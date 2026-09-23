@@ -8,6 +8,8 @@ import {
   hasNotificationPermission,
   NUTRITION_CAPTURE_ACTION,
   NUTRITION_CAPTURE_CATEGORY,
+  NUTRITION_REVIEW_ACTION,
+  NUTRITION_REVIEW_CATEGORY,
 } from './notifications';
 import i18n from '../localization/i18n';
 import { getTodayDate } from '../utils/dateUtils';
@@ -42,7 +44,7 @@ export function reconcileNutritionEngagementReminders(input: {
     if (permitted && input.identity) {
       for (const candidate of input.candidates) {
         if (
-          candidate.kind === 'capture' &&
+          (candidate.kind === 'capture' || candidate.kind === 'review') &&
           candidate.preferredAt > Date.now()
         ) {
           desired.set(scopedIdentifier(input.identity, candidate), candidate);
@@ -70,16 +72,27 @@ export function reconcileNutritionEngagementReminders(input: {
     }
     if (!permitted || !input.identity) return;
     for (const [identifier, candidate] of desired) {
+      const isReview = candidate.kind === 'review';
       await Notifications.scheduleNotificationAsync({
         identifier,
         content: {
-          title: i18n.t('engagement.captureReminderTitle', {
-            defaultValue: 'Meal check-in',
-          }),
-          body: i18n.t('engagement.captureReminderBody', {
-            defaultValue: 'A photo is enough for now.',
-          }),
-          categoryIdentifier: NUTRITION_CAPTURE_CATEGORY,
+          title: isReview
+            ? i18n.t('engagement.reviewReminderTitle', {
+                defaultValue: 'Meal photos to review',
+              })
+            : i18n.t('engagement.captureReminderTitle', {
+                defaultValue: 'Meal check-in',
+              }),
+          body: isReview
+            ? i18n.t('engagement.reviewReminderBody', {
+                defaultValue: "Review today's meal photos when convenient.",
+              })
+            : i18n.t('engagement.captureReminderBody', {
+                defaultValue: 'A photo is enough for now.',
+              }),
+          categoryIdentifier: isReview
+            ? NUTRITION_REVIEW_CATEGORY
+            : NUTRITION_CAPTURE_CATEGORY,
           data: {
             version: 1,
             serverConfigId: input.identity.serverConfigId,
@@ -111,6 +124,7 @@ export function initNutritionEngagementResponses(): void {
   const handle = async (response: Notifications.NotificationResponse) => {
     if (
       response.actionIdentifier !== NUTRITION_CAPTURE_ACTION &&
+      response.actionIdentifier !== NUTRITION_REVIEW_ACTION &&
       response.actionIdentifier !== Notifications.DEFAULT_ACTION_IDENTIFIER
     )
       return;
@@ -120,11 +134,16 @@ export function initNutritionEngagementResponses(): void {
     if (handledResponses.has(responseKey) || inFlightResponses.has(responseKey))
       return;
     const data = request.content.data;
+    const isCapture =
+      data?.candidateId === `nutrition:capture:${getTodayDate()}:selected`;
+    const isReview = data?.candidateId === `nutrition:review:${getTodayDate()}`;
     if (
       data?.version !== 1 ||
       typeof data.serverConfigId !== 'string' ||
       typeof data.userId !== 'string' ||
-      data.candidateId !== `nutrition:capture:${getTodayDate()}:selected`
+      (!isCapture && !isReview) ||
+      (response.actionIdentifier === NUTRITION_CAPTURE_ACTION && !isCapture) ||
+      (response.actionIdentifier === NUTRITION_REVIEW_ACTION && !isReview)
     )
       return;
     const identity = await getActiveNutritionIdentity();
@@ -138,7 +157,11 @@ export function initNutritionEngagementResponses(): void {
       return;
     inFlightResponses.add(responseKey);
     try {
-      await Linking.openURL('sparkyfitnessmobile://meal-photo');
+      await Linking.openURL(
+        isReview
+          ? 'sparkyfitnessmobile://diary'
+          : 'sparkyfitnessmobile://meal-photo'
+      );
       handledResponses.add(responseKey);
     } finally {
       inFlightResponses.delete(responseKey);

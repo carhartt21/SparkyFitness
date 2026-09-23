@@ -132,6 +132,48 @@ it('does not catch up a missed meal prompt after its preferred time', () => {
   ).toHaveLength(0);
 });
 
+it('keeps photo review separate from capture and only proposes a future prompt', () => {
+  const state = deriveNutritionEngagementState({
+    day,
+    remoteEntries: [],
+    remoteCaptures: [
+      {
+        id: captureId,
+        user_id: identity.userId,
+        captured_at: new Date(at(12)).toISOString(),
+        consumed_at: new Date(at(12)).toISOString(),
+        entry_date: day,
+        meal_type_id: null,
+        notes: null,
+        completion_state: 'incomplete',
+        images: [],
+      },
+    ],
+    localActions: [],
+    knownRemoteCalories: 0,
+    now: at(18),
+  });
+  const evaluate = (now: number) =>
+    nutritionReminderCandidates({
+      state,
+      windows: [],
+      reviewTime: '20:00',
+      now,
+    });
+  expect(evaluate(at(18))).toEqual([
+    expect.objectContaining({ id: `nutrition:review:${day}`, kind: 'review' }),
+  ]);
+  expect(evaluate(at(21))).toEqual([]);
+  expect(
+    nutritionReminderCandidates({
+      state: { ...state, incompleteCount: 0 },
+      windows: [],
+      reviewTime: '20:00',
+      now: at(18),
+    })
+  ).toEqual([]);
+});
+
 it('respects the shared cap and reserved scheduled-intake timing', () => {
   const candidates: ReminderCandidate[] = [
     {

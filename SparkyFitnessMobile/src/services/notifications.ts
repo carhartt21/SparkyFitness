@@ -36,6 +36,8 @@ export const MEDICATION_TAKEN_ACTION = 'medication-taken';
 export const MEDICATION_SKIP_ACTION = 'medication-skip';
 export const NUTRITION_CAPTURE_CATEGORY = 'engagement-nutrition-capture';
 export const NUTRITION_CAPTURE_ACTION = 'engagement-take-photo';
+export const NUTRITION_REVIEW_CATEGORY = 'engagement-nutrition-review';
+export const NUTRITION_REVIEW_ACTION = 'engagement-review-photos';
 
 export type AppNotificationPermission = 'granted' | 'denied' | 'undetermined';
 
@@ -97,6 +99,13 @@ export async function registerLocalizedNotificationPresentation(): Promise<void>
     {
       identifier: NUTRITION_CAPTURE_ACTION,
       buttonTitle: notificationCopy('engagement.takePhotoAction', 'Take photo'),
+      options: { opensAppToForeground: true },
+    },
+  ]);
+  await Notifications.setNotificationCategoryAsync(NUTRITION_REVIEW_CATEGORY, [
+    {
+      identifier: NUTRITION_REVIEW_ACTION,
+      buttonTitle: notificationCopy('engagement.reviewAction', 'Review photos'),
       options: { opensAppToForeground: true },
     },
   ]);

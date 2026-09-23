@@ -45,6 +45,8 @@ export default function NutritionEngagementCoordinator() {
   const start = useAppPreferencesStore((s) => s.mealCaptureWindowStart);
   const end = useAppPreferencesStore((s) => s.mealCaptureWindowEnd);
   const prompt = useAppPreferencesStore((s) => s.mealCapturePromptTime);
+  const reviewEnabled = useAppPreferencesStore((s) => s.mealPhotoReviewEnabled);
+  const reviewTime = useAppPreferencesStore((s) => s.mealPhotoReviewTime);
 
   useEffect(() => {
     const update = () => {
@@ -78,25 +80,26 @@ export default function NutritionEngagementCoordinator() {
 
   useEffect(() => {
     const candidates =
-      identity && !storageError && enabled && notificationsEnabled
+      identity && !storageError && notificationsEnabled
         ? nutritionReminderCandidates({
             state,
-            windows: [{ id: 'selected', start, end, prompt, enabled: true }],
-            reviewTime: null,
+            windows: [{ id: 'selected', start, end, prompt, enabled }],
+            reviewTime: reviewEnabled ? reviewTime : null,
             now: Date.now(),
           })
         : [];
     const plan = arbitrateDiscretionaryCandidates({
       candidates,
-      dailyCap: 1,
-      domainCaps: { nutrition: 1 },
+      dailyCap: 2,
+      domainCaps: { nutrition: 2 },
       collisionMinutes: 0,
       reservedTimes: [],
       now: Date.now(),
     });
     void reconcileNutritionEngagementReminders({
       identity,
-      enabled: !storageError && enabled && notificationsEnabled,
+      enabled:
+        !storageError && (enabled || reviewEnabled) && notificationsEnabled,
       candidates: plan,
     }).catch(() => undefined);
   }, [
@@ -107,6 +110,8 @@ export default function NutritionEngagementCoordinator() {
     start,
     end,
     prompt,
+    reviewEnabled,
+    reviewTime,
     state,
   ]);
 
@@ -123,7 +128,6 @@ export default function NutritionEngagementCoordinator() {
           state.incompleteCount,
           state.pendingSyncCount,
           state.remoteKnown,
-          state.knownCalories,
         ]);
         if (lastWidgetKey.current === widgetKey) return;
         const payload: Record<string, string | number> = {
@@ -137,8 +141,6 @@ export default function NutritionEngagementCoordinator() {
           remoteKnown: state.remoteKnown ? 1 : 0,
           generatedAt: Math.floor(Date.now() / 1000),
         };
-        if (state.knownCalories !== null)
-          payload.knownCalories = state.knownCalories;
         storage.set(WIDGET_KEY, payload);
         lastWidgetKey.current = widgetKey;
         widgetInitialized.current = true;

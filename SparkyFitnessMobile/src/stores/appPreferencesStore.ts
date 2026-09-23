@@ -64,6 +64,8 @@ export const PREFERENCE_DEFAULTS = {
   mealCaptureWindowStart: '11:00' as string,
   mealCaptureWindowEnd: '14:00' as string,
   mealCapturePromptTime: '12:30' as string,
+  mealPhotoReviewEnabled: false,
+  mealPhotoReviewTime: '20:00' as string,
   liquidGlassTabBarEnabled: false,
   activeWorkoutMetricColumn: 'rpe' as ActiveWorkoutMetricColumn,
   diarySummaryVisible: false,
@@ -107,6 +109,8 @@ export type AppPreferencesData = {
   mealCaptureWindowStart: string;
   mealCaptureWindowEnd: string;
   mealCapturePromptTime: string;
+  mealPhotoReviewEnabled: boolean;
+  mealPhotoReviewTime: string;
   liquidGlassTabBarEnabled: boolean;
   activeWorkoutMetricColumn: ActiveWorkoutMetricColumn;
   diarySummaryVisible: boolean;
@@ -147,6 +151,8 @@ export interface AppPreferencesState extends AppPreferencesData {
   setWaterReminderWindow: (start: string, end: string) => void;
   setMealCaptureReminderEnabled: (value: boolean) => void;
   setMealCaptureWindow: (start: string, end: string, prompt: string) => void;
+  setMealPhotoReviewEnabled: (value: boolean) => void;
+  setMealPhotoReviewTime: (value: string) => void;
   setLiquidGlassTabBarEnabled: (value: boolean) => void;
   setActiveWorkoutMetricColumn: (value: ActiveWorkoutMetricColumn) => void;
   setDiarySummaryVisible: (value: boolean) => void;
@@ -246,6 +252,9 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
           mealCaptureWindowEnd: end,
           mealCapturePromptTime: prompt,
         }),
+      setMealPhotoReviewEnabled: (value) =>
+        set({ mealPhotoReviewEnabled: value }),
+      setMealPhotoReviewTime: (value) => set({ mealPhotoReviewTime: value }),
       setLiquidGlassTabBarEnabled: (value) =>
         set({ liquidGlassTabBarEnabled: value }),
       setActiveWorkoutMetricColumn: (value) =>

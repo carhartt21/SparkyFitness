@@ -10,7 +10,6 @@ private struct NutritionEngagementPayload: Decodable {
     let incompleteCount: Int
     let pendingSyncCount: Int
     let remoteKnown: Int
-    let knownCalories: Double?
     let generatedAt: Double
 }
 

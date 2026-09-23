@@ -102,12 +102,19 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   const mealEnd = useAppPreferencesStore((s) => s.mealCaptureWindowEnd);
   const mealPrompt = useAppPreferencesStore((s) => s.mealCapturePromptTime);
   const setMealWindow = useAppPreferencesStore((s) => s.setMealCaptureWindow);
+  const reviewEnabled = useAppPreferencesStore((s) => s.mealPhotoReviewEnabled);
+  const setReviewEnabled = useAppPreferencesStore(
+    (s) => s.setMealPhotoReviewEnabled
+  );
+  const reviewTime = useAppPreferencesStore((s) => s.mealPhotoReviewTime);
+  const setReviewTime = useAppPreferencesStore((s) => s.setMealPhotoReviewTime);
   const { preferences } = usePreferences();
   const startTimeSheetRef = useRef<TimeSheetRef>(null);
   const endTimeSheetRef = useRef<TimeSheetRef>(null);
   const mealStartSheetRef = useRef<TimeSheetRef>(null);
   const mealEndSheetRef = useRef<TimeSheetRef>(null);
   const mealPromptSheetRef = useRef<TimeSheetRef>(null);
+  const reviewTimeSheetRef = useRef<TimeSheetRef>(null);
   const usesNativeHeader = useNativeIOSHeadersActive();
   const bannerRef = useRef<NotificationPermissionBannerHandle>(null);
 
@@ -168,6 +175,19 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       if (status === 'granted') setMealCaptureReminderEnabled(true);
     },
     [setMealCaptureReminderEnabled]
+  );
+
+  const handleReviewReminderToggle = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        setReviewEnabled(false);
+        return;
+      }
+      const status = await requestNotificationPermission();
+      bannerRef.current?.refresh();
+      if (status === 'granted') setReviewEnabled(true);
+    },
+    [setReviewEnabled]
   );
 
   const changeMealWindow = useCallback(
@@ -551,6 +571,41 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 />
               </>
             )}
+            <SettingsRow
+              title={t('engagement.reviewSetting', {
+                defaultValue: 'Meal photo review reminder',
+              })}
+              subtitle={t('engagement.reviewSettingSubtitle', {
+                defaultValue:
+                  'Optional later prompt only when an incomplete photo is known on this device.',
+              })}
+              subtitleNumberOfLines={0}
+              rightAccessory={
+                <Switch
+                  accessibilityLabel={t('engagement.reviewSetting', {
+                    defaultValue: 'Meal photo review reminder',
+                  })}
+                  value={reviewEnabled}
+                  onValueChange={(value) =>
+                    void handleReviewReminderToggle(value)
+                  }
+                />
+              }
+            />
+            {reviewEnabled && (
+              <SettingsRow
+                title={t('engagement.reviewTime', {
+                  defaultValue: 'Review time',
+                })}
+                onPress={() => reviewTimeSheetRef.current?.present()}
+                rightAccessory={
+                  <Text className="text-sm text-text-secondary">
+                    {formatTimeLabel(reviewTime, preferences?.time_format) ??
+                      reviewTime}
+                  </Text>
+                }
+              />
+            )}
           </SettingsRowGroup>
         )}
 
@@ -601,6 +656,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         ref={mealEndSheetRef}
         value={mealEnd}
         onSelectTime={(value) => changeMealWindow(mealStart, value, mealPrompt)}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={reviewTimeSheetRef}
+        value={reviewTime}
+        onSelectTime={setReviewTime}
         commitOn="done"
       />
     </View>

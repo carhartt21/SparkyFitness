@@ -391,4 +391,23 @@ describe('NotificationSettingsScreen', () => {
     fireEvent.press(getByText('Open break timer'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MovementBreak');
   });
+
+  it('keeps photo review opt-in and saves its chosen later time', async () => {
+    const { getByLabelText } = renderScreen();
+    expect(useAppPreferencesStore.getState().mealPhotoReviewEnabled).toBe(
+      false
+    );
+    fireEvent(
+      getByLabelText('Meal photo review reminder'),
+      'valueChange',
+      true
+    );
+    await waitFor(() =>
+      expect(useAppPreferencesStore.getState().mealPhotoReviewEnabled).toBe(
+        true
+      )
+    );
+    act(() => latestTimeSheet('20:00').onSelectTime('19:30'));
+    expect(useAppPreferencesStore.getState().mealPhotoReviewTime).toBe('19:30');
+  });
 });

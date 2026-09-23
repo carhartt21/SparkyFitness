@@ -20,7 +20,7 @@ The installed mobile stack is Expo SDK 57 / React Native 0.86; maintained native
 
 `HealthEngagementCoordinator` should derive domain-specific effective state, then pass small candidates through a deterministic, clock-injected discretionary policy. Candidate identity, domain record/occurrence identity, prompt identity, and action operation identity stay separate. Medication schedules are reserved, not arbitrated as optional wellbeing prompts. Hydration stays with its existing scheduler until its offline projection and action contract are ready. All new notifications use a feature-owned identifier namespace; never cancel another family's requests.
 
-The first vertical slice is an opt-in meal-window reminder. Local photo actions count as capture immediately; completion and sync remain independent. A small iOS widget snapshot shows food-record count and incomplete photos without exposing food names or images, with account/day scope and freshness. The app-scope coordinator reads the existing nutrition outbox; local saves drive reminder and widget reconciliation. The photo action itself is already durable before network work. The first enabled window is an editable example (11:00–14:00, reminder at 12:30), not an inferred personal routine. The setting defaults off. The existing hydration reminder owner was moved from Dashboard to app scope, so its cancellation and day rollover no longer depend on visiting that tab; its policy and server-dependent logging remain unchanged.
+The first vertical slice is an opt-in meal-window reminder. Local photo actions count as capture immediately; completion and sync remain independent. A separate opt-in review reminder is proposed only when incomplete photos are locally known and the chosen review time is still ahead; opening it routes to Diary and records nothing. A small iOS widget snapshot shows food-record count and incomplete photos without exposing food names, images, or calorie totals, with account/day scope and freshness. The app-scope coordinator reads the existing nutrition outbox; local saves drive reminder and widget reconciliation. The photo action itself is already durable before network work. The first enabled window is an editable example (11:00–14:00, reminder at 12:30), not an inferred personal routine. Both reminder settings default off. The existing hydration reminder owner was moved from Dashboard to app scope, so its cancellation and day rollover no longer depend on visiting that tab; its policy and server-dependent logging remain unchanged.
 
 A separate persisted `movementBreak` session is presentation state only. An explicit 2-, 5-, or 10-minute start requests a Live Activity on iOS. The session is scoped to the active account/server, adopted on relaunch only when the matching ActivityKit instance exists, and never recreated after dismissal. `staleDate` marks suspended-app content stale; app foreground/active-JS expiry reconciliation sends the actual end request. The timer never records movement. There is no all-day activity or push update infrastructure.
 
@@ -31,7 +31,7 @@ A separate persisted `movementBreak` session is presentation state only. An expl
 - The Watch bridge handles check-ins and selected quick logs, but no universal typed response contract. Extension actions must be introduced through its existing transport.
 - Widget reloads and local notification delivery are OS-controlled. A successfully written snapshot/request does not prove a widget was viewed or a notification delivered.
 - The current nutrition state counts grouped logged meals, standalone food records, and photos. It does not claim these are all eating events or infer that a missing record means a missed meal.
-- The nutrition reminder is capped at one selected window, but the existing water reminder owner has not yet been migrated into a combined discretionary budget. Do not present the settings as all-domain coordination.
+- Nutrition is capped at one selected capture window plus one separately enabled later review prompt. The existing water reminder owner has not yet been migrated into a combined discretionary budget. Do not present the settings as all-domain coordination.
 - The development Expo config lacks `ios.appleTeamId`; the simulator target built without signing, while physical-device provisioning remains unverified for this branch.
 - ActivityKit has a maintained `expo-widgets` route and an existing workout Live Activity, so a separate bounded wellbeing activity is feasible without editing generated native projects. Entitlement/build/device checks are still required.
 
@@ -42,9 +42,9 @@ A separate persisted `movementBreak` session is presentation state only. An expl
 | 0 Audit | Completed | Source inventory above; package instructions and official SDK docs reviewed |
 | 1 Shared state | Partial | Nutrition effective-state projection merges local and server records by stable IDs. Supplement/hydration/movement record projections pending |
 | 2 Policy and scheduler ownership | Partial | Pure candidate/arbitration functions and serialized namespaced nutrition scheduler; existing hydration owner moved to app scope without duplicating requests, medication owner unchanged |
-| 3 Settings and combined budgets | Partial | Editable opt-in one-window meal setting. All-domain combined budget/preview pending |
-| 4 Native responses | Partial | Capture notification action opens the existing camera route after account-scope validation and logs no intake; cold-launch device proof pending |
-| 5 Nutrition reminder → widget | Partial | Versioned Home/Lock widget snapshot and native target compile; end-to-end airplane-mode reminder flow pending |
+| 3 Settings and combined budgets | Partial | Editable opt-in one-window meal and later review settings. All-domain combined budget/preview pending |
+| 4 Native responses | Partial | Capture and review notification actions open camera/Diary after account-scope validation and log no intake; cold-launch device proof pending |
+| 5 Nutrition reminder → widget | Partial | Versioned Home/Lock widget snapshot, opt-in capture and later review policy, native target compile; end-to-end airplane-mode reminder flow pending |
 | 6 Hydration | Pending | Offline water contract/aggregation gate |
 | 7 Planned supplements | Pending | Offline occurrence action and server idempotency gate |
 | 8 Movement | Partial | Explicit local timer/session only; scheduled prompts and self-report contract pending |
@@ -61,7 +61,7 @@ No other application owns nutrition. No second outbox, backend, AI service, or H
 ## Validation to date
 
 - Mobile TypeScript typecheck, normal lint, React Compiler lint, i18n audit/generate check, native locale check, and Prettier check: passed after this change.
-- Full mobile Jest suite after the hydration mount move: 454 suites and 7,038 tests passed. Targeted response-handling and hydration owner/hook tests also passed; iOS export and simulator build passed after the Live Activity changes.
+- Full mobile Jest suite after the review additions: 454 suites and 7,041 tests passed. iOS prebuild, CocoaPods install, and a fresh unsigned simulator `CalorieTracker` build passed after the review/locale additions. Typecheck, lint, React Compiler lint, formatting, i18n audit/generation, native locale validation, and Knip passed.
 - `npx expo prebuild --clean --platform ios --no-install`, `pod install`, iOS Metro export, and Xcode simulator `CalorieTracker` scheme build: passed. Generated native output remains ignored, not committed.
 - Physical iPhone was unavailable to Xcode during this task. No notification delivery, widget redraw, or Live Activity presentation on a physical device has been claimed.
 

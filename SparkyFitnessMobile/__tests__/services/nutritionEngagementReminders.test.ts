@@ -26,6 +26,8 @@ jest.mock('../../src/services/notifications', () => ({
   hasNotificationPermission: jest.fn(),
   NUTRITION_CAPTURE_ACTION: 'engagement-take-photo',
   NUTRITION_CAPTURE_CATEGORY: 'engagement-nutrition-capture',
+  NUTRITION_REVIEW_ACTION: 'engagement-review-photos',
+  NUTRITION_REVIEW_CATEGORY: 'engagement-nutrition-review',
 }));
 
 const identity = { serverConfigId: 'server-A', userId: 'user-A' };
@@ -74,6 +76,22 @@ it('schedules one scoped capture request and leaves other reminder families inta
     candidateId: candidate.id,
   });
   expect(Notifications.cancelScheduledNotificationAsync).not.toHaveBeenCalled();
+});
+
+it('schedules a distinct review prompt without recording or changing the capture action', async () => {
+  await reconcileNutritionEngagementReminders({
+    identity,
+    enabled: true,
+    candidates: [
+      { ...candidate, id: 'nutrition:review:2026-09-24', kind: 'review' },
+    ],
+  });
+  const request = jest.mocked(Notifications.scheduleNotificationAsync).mock
+    .calls[0][0];
+  expect(request.content.categoryIdentifier).toBe(
+    'engagement-nutrition-review'
+  );
+  expect(request.content.data?.candidateId).toBe('nutrition:review:2026-09-24');
 });
 
 it('cancels an obsolete nutrition prompt but never a medication request', async () => {
@@ -185,4 +203,25 @@ it('rejects cross-account responses and deduplicates repeated camera actions', a
   expect(Linking.openURL).toHaveBeenCalledWith(
     'sparkyfitnessmobile://meal-photo'
   );
+  listener({
+    ...response,
+    actionIdentifier: 'engagement-review-photos',
+    notification: {
+      ...response.notification,
+      request: {
+        ...response.notification.request,
+        identifier: 'engagement:nutrition:server-A:user-A:review',
+        content: {
+          ...response.notification.request.content,
+          data: {
+            ...response.notification.request.content.data,
+            candidateId: `nutrition:review:${getTodayDate()}`,
+          },
+        },
+      },
+    },
+  });
+  await Promise.resolve();
+  await Promise.resolve();
+  expect(Linking.openURL).toHaveBeenCalledWith('sparkyfitnessmobile://diary');
 });

@@ -16,3 +16,11 @@
 "widget.meal_photo" = "Mahlzeit fotografieren";
 "widget.scan_barcode" = "Barcode scannen";
 "widget.macro.description" = "Die heutigen Eiweiß-, Kohlenhydrat- und Fettwerte auf einen Blick.";
+"widget.nutrition.name" = "Mahlzeiten erfassen";
+"widget.nutrition.description" = "Erfasste Mahlzeiten und Fotos zum Prüfen.";
+"widget.nutrition.unavailable" = "SparkyFitness zum Aktualisieren öffnen";
+"widget.nutrition.review" = "%d Foto(s) zum Prüfen";
+"widget.nutrition.savedLocally" = "Auf diesem Gerät gespeichert";
+"widget.nutrition.captured" = "%d Mahlzeiteneintrag/Einträge erfasst";
+"widget.nutrition.photo" = "Mahlzeitenfoto";
+"widget.nutrition.search" = "Lebensmittel suchen";

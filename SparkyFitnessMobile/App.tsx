@@ -301,6 +301,7 @@ function AppContent() {
         Tabs: {
           screens: {
             Dashboard: '',
+            Diary: 'diary',
           },
         },
         FoodScan: 'scan',
