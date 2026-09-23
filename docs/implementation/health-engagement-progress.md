@@ -67,6 +67,20 @@ No other application owns nutrition. No second outbox, backend, AI service, or H
 
 Platform behavior was checked against the installed Expo SDK 57 notification API and Apple’s [ActivityKit lifecycle](https://developer.apple.com/documentation/activitykit/displaying-live-data-with-live-activities) and [WidgetKit refresh guidance](https://developer.apple.com/documentation/widgetkit/keeping-a-widget-up-to-date). Scheduling and reload requests are not guarantees of delivery or immediate redraw. `staleDate` is not an ActivityKit end request; an expired timer can remain visible until the app next executes its reconciliation.
 
+## End-to-end acceptance status
+
+| Scenario | Automated/simulator evidence | Physical-device gate |
+| --- | --- | --- |
+| A Nutrition reminder → offline photo | Policy tests prove a durable local photo resolves the capture candidate; response tests route to camera; widget and app compile | Not run: iPhone is unavailable to Xcode. Delivery, offline save from notification, force-quit, and exact-once sync remain unverified for this new reminder |
+| B Hydration quick log | Existing hydration scheduler tests pass; owner now runs at app scope | Not implemented: water logging is still server-dependent and has no direct idempotent offline action |
+| C Planned supplement | Existing medication/supplement scheduler untouched and its tests pass | Not implemented: current direct response path is online-only and has no offline occurrence action |
+| D Movement break | Session-store tests prove the timer never writes a movement record; Live Activity target compiles | Not run: scheduled break prompts and explicit self-report are pending; ActivityKit presentation needs device proof |
+| E Dynamic Island session | Bounded start/update/end code compiles for simulator; duplicate start and scope tests cover the persisted session | Not run: compact/minimal/expanded/Lock rendering and dismissal need a compatible device |
+| F Combined interruption control | Pure cap/reservation arbitration test passes | Not implemented across domains: hydration and scheduled-intake owners are still separate |
+| G Stale/cross-account action | Nutrition response tests reject another account; session store tests retain scope | Not run on device; stale reference repair across every domain remains pending |
+
+No physical-device evidence was produced for this branch. `xcrun devicectl list devices` reported the iPhone 17 Pro as unavailable. No production build was distributed.
+
 ## Disable, upgrade, and rollback
 
 Turning the meal reminder off causes its app-scope reconciler to cancel only `engagement:nutrition:` requests; the stored photo/food records remain. Finishing a break ends only the session and its Live Activity. The existing medication and hydration owners are unaffected. The new preference keys use the existing shallow default merge, so older preference blobs load with the reminder off. The session and widget snapshots are versioned; unreadable sessions surface an error rather than being treated as movement records.
