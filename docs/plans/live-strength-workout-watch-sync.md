@@ -278,7 +278,7 @@ Keep changes in maintained native targets/config plugins, not only generated `io
 
 Use synthetic fixtures only. Do not publish workout histories, health exports, credentials, server addresses, or personal device identifiers. Respect project licensing and preserve notices. No production deployment, app-store upload, force push, destructive reset, or real-data migration is authorized by this plan.
 
-Before implementation, follow the package `AGENTS.md` files, [plan review checklist](../../..//agent-docs/plan-review-checklist.md), and [migration checklist](../../..//agent-docs/new-migration-checklist.md). Update affected guides when implementation introduces a new protocol or table.
+Before implementation, follow the package `AGENTS.md` files, [plan review checklist](../../agent-docs/plan-review-checklist.md), and [migration checklist](../../agent-docs/new-migration-checklist.md). Update affected guides when implementation introduces a new protocol or table.
 
 ## 12. Validation and mandatory acceptance tests
 
