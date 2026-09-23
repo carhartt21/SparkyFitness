@@ -1,7 +1,19 @@
-import { render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import NutritionPhotoEntries from '../../src/components/NutritionPhotoEntries';
 import type { PendingPhotoAction } from '../../src/services/nutritionActionOutbox';
 import type { NutritionCapture } from '../../src/services/api/nutritionCaptureApi';
+import { completeMealPhotoLocally } from '../../src/services/nutritionPhotoCompletion';
+
+jest.mock('../../src/services/nutritionPhotoCompletion', () => ({
+  completeMealPhotoLocally: jest
+    .fn()
+    .mockResolvedValue({ clientOperationId: 'operation-1' }),
+}));
+jest.mock('../../src/services/nutritionActionSync', () => ({
+  reconcileNutritionActions: jest
+    .fn()
+    .mockResolvedValue({ processed: 0, nextDelayMs: null }),
+}));
 
 jest.mock('../../src/services/storage', () => ({
   getActiveServerConfig: jest.fn().mockResolvedValue(null),
@@ -71,5 +83,34 @@ describe('NutritionPhotoEntries', () => {
       />
     );
     expect(screen.getAllByText('Incomplete meal')).toHaveLength(1);
+  });
+
+  test('manual completion saves a snapshot against the original offline capture', async () => {
+    const screen = render(
+      <NutritionPhotoEntries
+        local={[photo]}
+        remote={[]}
+        completions={[]}
+        completedFoodEntries={[]}
+      />
+    );
+    fireEvent.press(screen.getByLabelText('Complete meal'));
+    fireEvent.changeText(
+      screen.getByPlaceholderText('Food name'),
+      'Synthetic sandwich'
+    );
+    fireEvent.changeText(screen.getByPlaceholderText('Calories'), '250');
+    fireEvent.press(screen.getByText('Save'));
+    await waitFor(() =>
+      expect(completeMealPhotoLocally).toHaveBeenCalledWith(
+        expect.objectContaining({
+          captureId: id,
+          consumedAt: photo.payload.consumedAt,
+          entryDate: photo.payload.entryDate,
+          name: 'Synthetic sandwich',
+          calories: 250,
+        })
+      )
+    );
   });
 });

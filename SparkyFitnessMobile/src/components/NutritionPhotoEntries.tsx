@@ -144,7 +144,9 @@ export default function NutritionPhotoEntries({
 
   const saveCompletion = async () => {
     if (!selected || saving) return;
-    const energy = Number(calories);
+    const numericValue = (value: string) =>
+      Number(value.trim().replace(',', '.'));
+    const energy = numericValue(calories);
     const label = name.trim();
     if (!label || !calories.trim() || !Number.isFinite(energy) || energy < 0) {
       setError(
@@ -155,7 +157,7 @@ export default function NutritionPhotoEntries({
       return;
     }
     const optional = (value: string) =>
-      value.trim() ? Number(value) : undefined;
+      value.trim() ? numericValue(value) : undefined;
     const macros = [protein, carbs, fat].map(optional);
     if (
       macros.some(
