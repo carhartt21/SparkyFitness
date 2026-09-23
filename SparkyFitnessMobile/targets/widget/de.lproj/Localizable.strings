@@ -13,5 +13,6 @@
 "widget.a11y.kcal_left" = "%@ kcal verbleibend";
 "widget.a11y.kcal" = "%@ kcal";
 "widget.search_food" = "Lebensmittel suchen";
+"widget.meal_photo" = "Mahlzeit fotografieren";
 "widget.scan_barcode" = "Barcode scannen";
 "widget.macro.description" = "Die heutigen Eiweiß-, Kohlenhydrat- und Fettwerte auf einen Blick.";

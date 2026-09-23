@@ -14,4 +14,5 @@
 "widget.a11y.kcal_left" = "%@ kcal left";
 "widget.a11y.kcal" = "%@ kcal";
 "widget.search_food" = "Search food";
+"widget.meal_photo" = "Take meal photo";
 "widget.scan_barcode" = "Scan barcode";

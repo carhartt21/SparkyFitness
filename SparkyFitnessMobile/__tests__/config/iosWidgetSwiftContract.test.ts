@@ -107,6 +107,16 @@ describe('iOS WidgetKit Swift contract', () => {
   });
 
   describe('widget identity and timeline reload', () => {
+    it('opens the capture-first camera from both calorie and macro widgets', () => {
+      for (const file of ['widgets.swift', 'macroWidget.swift']) {
+        const source = readSwift(file);
+        expect(source).toContain('sparkyfitnessmobile://meal-photo');
+        expect(source).toContain('localizedWidgetString("widget.meal_photo")');
+      }
+      expect(readSwift('SharedHelpers.swift')).toContain(
+        'case "widget.meal_photo"'
+      );
+    });
     it('keeps the widget kinds unchanged', () => {
       expect(readSwift('widgets.swift')).toContain(
         'let kind: String = "widget"'
