@@ -126,6 +126,7 @@ import MedicationReminderReconciler from './src/components/MedicationReminderRec
 import { useNativeIOSTabsActive, useNativeIOSHeadersActive } from './src/services/nativeTabBarPreference';
 import { useWidgetLanguageRefresh } from './src/hooks/useWidgetLanguageRefresh';
 import { useIOSWidgetLanguageRefresh } from './src/hooks/useIOSWidgetLanguageRefresh';
+import { useNutritionActionSync } from './src/hooks/useNutritionActionSync';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -151,6 +152,11 @@ const androidModalAnimation =
 function WatchCheckInGate() {
   const { isConnected: isServerConnected } = useServerConnection();
   useWatchCheckInBridge(isServerConnected);
+  return null;
+}
+
+function NutritionActionSyncGate() {
+  useNutritionActionSync();
   return null;
 }
 
@@ -320,6 +326,7 @@ function AppContent() {
       }}
     >
       <WatchCheckInGate />
+      <NutritionActionSyncGate />
       <SafeAreaProvider>
         {/* Inside SafeAreaProvider on purpose: the viewer positions its close
             button against the insets, so mounting it at the app root crashes

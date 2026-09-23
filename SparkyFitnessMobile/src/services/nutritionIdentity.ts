@@ -22,10 +22,10 @@ export async function rememberActiveNutritionUser(
 ): Promise<void> {
   const serverConfigId = await getActiveServerConfigId();
   if (!serverConfigId || !userId) return;
-  await AsyncStorage.setItem(
-    keyFor(serverConfigId),
-    JSON.stringify({ version: 1, userId })
-  );
+  const key = keyFor(serverConfigId);
+  const existing = await AsyncStorage.getItem(key);
+  if (existing === JSON.stringify({ version: 1, userId })) return;
+  await AsyncStorage.setItem(key, JSON.stringify({ version: 1, userId }));
   changed();
 }
 
