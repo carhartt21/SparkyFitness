@@ -1,8 +1,22 @@
+import Constants from 'expo-constants';
 import {
   normalizeUrl,
   isPrivateOrLocalHost,
+  isPermittedHttpUrl,
   getInsecureUrlError,
 } from '../../src/utils/serverUrl';
+
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      extra: {
+        APP_VARIANT: 'dev',
+        devTestHttpOrigin: 'http://100.64.1.2:43010',
+      },
+    },
+  },
+}));
 
 describe('normalizeUrl', () => {
   test('trims whitespace and trailing slashes', () => {
@@ -151,5 +165,19 @@ describe('getInsecureUrlError', () => {
     globalWithDev.__DEV__ = false;
     expect(getInsecureUrlError('http://192.168.1.10:3010')).toBeTruthy();
     expect(getInsecureUrlError('http://localhost:3010')).toBeTruthy();
+  });
+
+  test('configured development build permits only the exact test origin', () => {
+    globalWithDev.__DEV__ = false;
+    expect(isPermittedHttpUrl('http://100.64.1.2:43010')).toBe(true);
+    expect(getInsecureUrlError('http://100.64.1.2:43010')).toBeNull();
+    expect(isPermittedHttpUrl('http://100.64.1.2:43011')).toBe(false);
+    expect(isPermittedHttpUrl('http://100.64.1.3:43010')).toBe(false);
+    expect(isPermittedHttpUrl('http://100.64.1.2:43010/other')).toBe(false);
+
+    const extra = Constants.expoConfig!.extra!;
+    extra.APP_VARIANT = 'production';
+    expect(isPermittedHttpUrl('http://100.64.1.2:43010')).toBe(false);
+    extra.APP_VARIANT = 'dev';
   });
 });

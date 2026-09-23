@@ -1,4 +1,5 @@
 import ipaddr from 'ipaddr.js';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 /** Trims whitespace and any trailing slashes from a server URL. */
@@ -63,6 +64,24 @@ export const isPrivateOrLocalHost = (url: string): boolean => {
   return false;
 };
 
+/** A single HTTP origin permitted only in an explicitly configured dev app. */
+export const isPermittedHttpUrl = (url: string): boolean => {
+  const normalized = normalizeUrl(url).toLowerCase();
+  if (!normalized.startsWith('http://')) return false;
+  if (__DEV__ && isPrivateOrLocalHost(normalized)) return true;
+
+  const extra = Constants.expoConfig?.extra;
+  if (extra?.APP_VARIANT !== 'dev' && extra?.APP_VARIANT !== 'development') {
+    return false;
+  }
+  const testOrigin = extra?.devTestHttpOrigin;
+  return (
+    typeof testOrigin === 'string' &&
+    /^http:\/\/[^/?#]+$/i.test(testOrigin) &&
+    normalized === normalizeUrl(testOrigin).toLowerCase()
+  );
+};
+
 /**
  * Returns a user-facing error when the server URL must use HTTPS but doesn't,
  * otherwise null. HTTPS always passes (including IP hosts with self-signed
@@ -76,7 +95,7 @@ export const getInsecureUrlError = (
   const normalized = normalizeUrl(url).toLowerCase();
   if (normalized.startsWith('https://')) return null;
 
-  if (__DEV__ && isPrivateOrLocalHost(url)) return null;
+  if (isPermittedHttpUrl(url)) return null;
 
   const healthPolicy =
     Platform.OS === 'ios' ? 'Apple Health' : 'Health Connect';

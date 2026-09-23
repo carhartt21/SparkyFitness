@@ -36,6 +36,7 @@ import {
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { useServerConfigs, useServerConnection } from '../hooks';
+import { isPermittedHttpUrl } from '../utils/serverUrl';
 import {
   serverConfigsQueryKey,
   serverConnectionQueryKey,
@@ -84,7 +85,10 @@ const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   const handleSetActiveConfig = async (configId: string): Promise<void> => {
     if (!__DEV__) {
       const config = allConfigs.find((c) => c.id === configId);
-      if (config?.url.toLowerCase().startsWith('http://')) {
+      if (
+        config?.url.toLowerCase().startsWith('http://') &&
+        !isPermittedHttpUrl(config.url)
+      ) {
         Toast.show({
           type: 'error',
           text1: t('common.error', { defaultValue: 'Error' }),

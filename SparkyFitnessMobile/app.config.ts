@@ -115,6 +115,10 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
   const environment = process.env.APP_VARIANT || 'dev';
 
   const isDev = environment === 'dev' || environment === 'development';
+  const devHttpHost = isDev ? process.env.EXPO_DEV_TEST_HTTP_HOST : undefined;
+  const devTestHttpOrigin = isDev
+    ? process.env.EXPO_DEV_TEST_HTTP_ORIGIN
+    : undefined;
 
   if (isDev) {
     androidPermissions.push(...devAndroidPermissions);
@@ -170,6 +174,17 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
           'SparkyFitness lets you choose photos from your library for your foods, meals, and diary entries.',
         NSAppTransportSecurity: {
           NSAllowsArbitraryLoads: false,
+          // A device-test server may use HTTP inside an encrypted private
+          // tunnel. Scope the exception to one host and only to dev builds.
+          ...(devHttpHost
+            ? {
+                NSExceptionDomains: {
+                  [devHttpHost]: {
+                    NSExceptionAllowsInsecureHTTPLoads: true,
+                  },
+                },
+              }
+            : {}),
         },
         ITSAppUsesNonExemptEncryption: false,
         // Keep the native per-app Language entry visible in iOS Settings even
@@ -244,6 +259,7 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
     extra: {
       ...config.extra,
       APP_VARIANT: environment,
+      ...(devTestHttpOrigin ? { devTestHttpOrigin } : {}),
       iosAppGroup: getIosAppGroup(),
       eas: {
         projectId: '498a86c5-344f-4d2c-9033-dfd720e4a383',

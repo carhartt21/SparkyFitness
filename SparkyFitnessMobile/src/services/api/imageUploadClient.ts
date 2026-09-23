@@ -1,3 +1,4 @@
+import { isPermittedHttpUrl } from '../../utils/serverUrl';
 import { File } from 'expo-file-system';
 import { normalizeUrl } from './apiClient';
 import { ApiError } from './errors';
@@ -55,7 +56,10 @@ export async function postImageMultipart<T>(params: {
   const baseUrl = normalizeUrl(config.url);
   // Same transport guard `apiFetch` applies: these requests carry auth headers
   // and user photos, so never send them over plaintext in a release build.
-  if (!__DEV__ && baseUrl.toLowerCase().startsWith('http://')) {
+  if (
+    baseUrl.toLowerCase().startsWith('http://') &&
+    !isPermittedHttpUrl(baseUrl)
+  ) {
     throw new Error(
       'HTTPS is required for server connections. Please update your server URL in Settings.'
     );
