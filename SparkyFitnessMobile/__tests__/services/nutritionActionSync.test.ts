@@ -88,6 +88,8 @@ function harness(actions: PendingNutritionAction[]) {
       return next;
     }),
     createEntry,
+    createCapture: jest.fn().mockResolvedValue({ id: 'capture-1' }),
+    uploadCaptureImage: jest.fn().mockResolvedValue({ id: 'image-1' }),
   } as unknown as NutritionSyncDependencies;
   return { rows, deps, createEntry };
 }
@@ -185,5 +187,37 @@ describe('nutrition action reconciliation', () => {
     ]);
     expect(first).toEqual(second);
     expect(createEntry).toHaveBeenCalledTimes(1);
+  });
+
+  test('photo capture is acknowledged only after every idempotent image upload', async () => {
+    const id = '281fe77f-2d74-43aa-8f35-c47aa106d6e7';
+    const imageId = '162242cb-e405-481a-84da-e15d3d2c563e';
+    const photo = {
+      ...foodAction(id),
+      type: 'createPhotoEntry' as const,
+      payload: {
+        id,
+        capturedAt: '2026-09-23T12:00:00.000Z',
+        consumedAt: '2026-09-23T12:00:00.000Z',
+        entryDate: '2026-09-23',
+        images: [{ id: imageId, uri: 'file:///documents/meal.jpg' }],
+      },
+    };
+    const { rows, deps } = harness([photo]);
+    (deps.createCapture as jest.Mock).mockResolvedValue({ id });
+    (deps.uploadCaptureImage as jest.Mock).mockRejectedValueOnce(
+      new Error('response lost')
+    );
+    await reconcileNutritionActions(undefined, deps);
+    expect(rows.get(id)?.syncState).toBe('pending');
+    expect(deps.markSynced).not.toHaveBeenCalled();
+    await reconcileNutritionActions(undefined, deps);
+    expect(deps.createCapture).toHaveBeenCalledTimes(2);
+    expect(deps.uploadCaptureImage).toHaveBeenCalledTimes(2);
+    expect(deps.uploadCaptureImage).toHaveBeenCalledWith(id, {
+      id: imageId,
+      uri: 'file:///documents/meal.jpg',
+    });
+    expect(rows.get(id)?.syncState).toBe('synced');
   });
 });

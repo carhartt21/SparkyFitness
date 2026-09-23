@@ -12,8 +12,12 @@ const numericValue = (text: string): number | undefined => {
   return Number(text.trim().replace(',', '.'));
 };
 
+interface Props {
+  onTakePhoto?: () => void;
+}
+
 /** Shared outbox-backed entry points; server reachability is not consulted. */
-export default function NutritionQuickActions() {
+export default function NutritionQuickActions({ onTakePhoto }: Props) {
   const { t } = useTranslation();
   const { cache, storageError } = useCachedNutritionFavorites();
   const [busy, setBusy] = useState(false);
@@ -24,7 +28,7 @@ export default function NutritionQuickActions() {
   const [fat, setFat] = useState('');
 
   const ready = cache && cache.mealTypes.some((type) => type.is_visible);
-  if (!ready && !storageError) return null;
+  if (!ready && !storageError && !onTakePhoto) return null;
 
   const error = (caught: unknown) => {
     Alert.alert(
@@ -96,6 +100,17 @@ export default function NutritionQuickActions() {
         </Text>
       )}
       <View className="flex-row flex-wrap gap-2">
+        {onTakePhoto && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onTakePhoto}
+            className="rounded-lg bg-background px-3 py-2"
+          >
+            <Text className="text-sm text-text-primary">
+              {t('nutritionQuick.photo', { defaultValue: '📷 Meal photo' })}
+            </Text>
+          </Pressable>
+        )}
         {foods.map((food) => (
           <Pressable
             key={food.id}

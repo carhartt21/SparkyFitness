@@ -26,6 +26,9 @@ export async function postImageMultipart<T>(params: {
   serviceName: string;
   operation: string;
   method?: 'POST' | 'PUT';
+  /** Existing routes use images; photo-capture upload uses one image part. */
+  fileField?: 'images' | 'image';
+  includeOrder?: boolean;
   /** Ordered `images` array with `__new__<n>` placeholders for uploads. */
   order: string[];
   /** Local URIs to upload, in placeholder order. */
@@ -39,6 +42,8 @@ export async function postImageMultipart<T>(params: {
     serviceName,
     operation,
     method = 'POST',
+    fileField = 'images',
+    includeOrder = true,
     order,
     newUris,
     payload,
@@ -76,12 +81,12 @@ export async function postImageMultipart<T>(params: {
       wrapperField,
       JSON.stringify({ ...(payload as object), images: order })
     );
-  } else {
+  } else if (includeOrder) {
     form.append('images', JSON.stringify(order));
   }
 
   for (const uri of newUris) {
-    form.append('images', new File(uri));
+    form.append(fileField, new File(uri));
   }
 
   let response: Response;

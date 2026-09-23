@@ -1,5 +1,9 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { createFoodEntry } from './api/foodEntriesApi';
+import {
+  createNutritionCapture,
+  uploadNutritionCaptureImage,
+} from './api/nutritionCaptureApi';
 import { fetchProfile } from './api/profileApi';
 import { ApiError } from './api/errors';
 import { getActiveServerConfigId } from './storage';
@@ -36,6 +40,8 @@ export interface NutritionSyncDependencies {
   markAttention: typeof markNutritionActionAttentionRequired;
   markSynced: typeof markNutritionActionSynced;
   createEntry: typeof createFoodEntry;
+  createCapture: typeof createNutritionCapture;
+  uploadCaptureImage: typeof uploadNutritionCaptureImage;
 }
 
 const productionDependencies: NutritionSyncDependencies = {
@@ -48,6 +54,8 @@ const productionDependencies: NutritionSyncDependencies = {
   markAttention: markNutritionActionAttentionRequired,
   markSynced: markNutritionActionSynced,
   createEntry: createFoodEntry,
+  createCapture: createNutritionCapture,
+  uploadCaptureImage: uploadNutritionCaptureImage,
 };
 
 function retryDelay(retryCount: number): number {
@@ -152,7 +160,15 @@ async function reconcilePass(
     await deps.markSyncing(identity, action.clientOperationId);
     processed += 1;
     try {
-      const result = await deps.createEntry(action.payload);
+      const result =
+        action.type === 'logFoodEntry'
+          ? await deps.createEntry(action.payload)
+          : await deps.createCapture(action.payload);
+      if (action.type === 'createPhotoEntry') {
+        for (const image of action.payload.images) {
+          await deps.uploadCaptureImage(action.payload.id, image);
+        }
+      }
       // A switch during the request cannot reassign the local acknowledgement.
       if (
         (await deps.getServerConfigId()) !== identity.serverConfigId ||
@@ -164,6 +180,11 @@ async function reconcilePass(
       void queryClient?.invalidateQueries({
         queryKey: dailySummaryRootQueryKey,
       });
+      if (action.type === 'createPhotoEntry') {
+        void queryClient?.invalidateQueries({
+          queryKey: ['nutritionCaptures', action.payload.entryDate],
+        });
+      }
     } catch (error) {
       const failure = classify(error);
       if (failure.permanent) {

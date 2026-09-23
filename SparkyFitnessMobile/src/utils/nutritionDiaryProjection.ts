@@ -1,4 +1,7 @@
-import type { PendingNutritionAction } from '../services/nutritionActionOutbox';
+import type {
+  PendingFoodAction,
+  PendingNutritionAction,
+} from '../services/nutritionActionOutbox';
 import type { FoodEntry } from '../types/foodEntries';
 
 /** Local actions remain visible until the matching server row is in the diary. */
@@ -6,7 +9,7 @@ export function projectLocalFoodActions(
   day: string,
   local: PendingNutritionAction[],
   remote: FoodEntry[]
-): PendingNutritionAction[] {
+): PendingFoodAction[] {
   const remoteIds = new Set(remote.map((entry) => entry.id));
   const remoteOperationIds = new Set(
     remote.flatMap((entry) =>
@@ -14,7 +17,8 @@ export function projectLocalFoodActions(
     )
   );
   return local.filter(
-    (action) =>
+    (action): action is PendingFoodAction =>
+      action.type === 'logFoodEntry' &&
       action.payload.entry_date === day &&
       !remoteOperationIds.has(action.clientOperationId) &&
       (!action.serverIdentity || !remoteIds.has(action.serverIdentity))
@@ -24,7 +28,7 @@ export function projectLocalFoodActions(
 export function reconciledFoodActions(
   local: PendingNutritionAction[],
   remote: FoodEntry[]
-): PendingNutritionAction[] {
+): PendingFoodAction[] {
   const remoteIds = new Set(remote.map((entry) => entry.id));
   const remoteOperationIds = new Set(
     remote.flatMap((entry) =>
@@ -32,7 +36,8 @@ export function reconciledFoodActions(
     )
   );
   return local.filter(
-    (action) =>
+    (action): action is PendingFoodAction =>
+      action.type === 'logFoodEntry' &&
       action.syncState === 'synced' &&
       action.serverIdentity !== null &&
       (remoteIds.has(action.serverIdentity) ||

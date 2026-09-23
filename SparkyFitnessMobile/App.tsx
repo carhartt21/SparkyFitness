@@ -50,6 +50,7 @@ import {
   SafeExerciseForm,
   SafeWorkoutPresetForm,
   SafeFoodScan,
+  SafeQuickMealPhoto,
   SafeFoodPhotoIntro,
   SafeMealAdd,
   SafeFoodEntryView,
@@ -300,6 +301,7 @@ function AppContent() {
           },
         },
         FoodScan: 'scan',
+        QuickMealPhoto: 'meal-photo',
         FoodSearch: 'search',
         // Tapping the workout Live Activity opens its associated URL.
         ActiveWorkout: 'active-workout',
@@ -551,6 +553,11 @@ function AppContent() {
               presentation: 'modal',
               ...(Platform.OS === 'android' ? androidModalAnimation : {}),
             })}
+          />
+          <Stack.Screen
+            name="QuickMealPhoto"
+            component={SafeQuickMealPhoto}
+            options={{ headerShown: false, presentation: 'modal' }}
           />
           <Stack.Screen
             name="FoodPhotoIntro"

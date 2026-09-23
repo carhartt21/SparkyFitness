@@ -1,9 +1,9 @@
 import { useTranslation } from 'react-i18next';
 import { Text, View } from 'react-native';
-import type { PendingNutritionAction } from '../services/nutritionActionOutbox';
+import type { PendingFoodAction } from '../services/nutritionActionOutbox';
 
 interface Props {
-  actions: PendingNutritionAction[];
+  actions: PendingFoodAction[];
   storageError?: boolean;
 }
 

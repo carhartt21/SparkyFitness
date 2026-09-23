@@ -46,15 +46,13 @@ const foodPayloadSchema = z.strictObject({
   meal_id: z.string().optional(),
 });
 
-const actionSchema = z.strictObject({
+const commonActionFields = {
   version: z.literal(1),
-  type: z.literal('logFoodEntry'),
   clientOperationId: z.uuid(),
   serverConfigId: z.string().min(1),
   userId: z.string().min(1),
   occurredAt: z.iso.datetime({ offset: true }),
   createdAt: z.iso.datetime({ offset: true }),
-  payload: foodPayloadSchema,
   syncState: z.enum(['pending', 'syncing', 'attentionRequired', 'synced']),
   retryCount: z.number().int().nonnegative(),
   lastAttemptAt: z.iso.datetime({ offset: true }).nullable(),
@@ -62,9 +60,44 @@ const actionSchema = z.strictObject({
     .enum(['network', 'server', 'auth', 'validation', 'storage'])
     .nullable(),
   serverIdentity: z.string().nullable(),
+};
+
+const photoPayloadSchema = z.strictObject({
+  id: z.uuid(),
+  capturedAt: z.iso.datetime({ offset: true }),
+  consumedAt: z.iso.datetime({ offset: true }),
+  entryDate: z.iso.date(),
+  mealTypeId: z.uuid().nullable().optional(),
+  notes: z.string().nullable().optional(),
+  images: z
+    .array(z.strictObject({ id: z.uuid(), uri: z.string().min(1) }))
+    .min(1)
+    .max(10),
 });
 
+const actionSchema = z.discriminatedUnion('type', [
+  z.strictObject({
+    ...commonActionFields,
+    type: z.literal('logFoodEntry'),
+    payload: foodPayloadSchema,
+  }),
+  z.strictObject({
+    ...commonActionFields,
+    type: z.literal('createPhotoEntry'),
+    payload: photoPayloadSchema,
+  }),
+]);
+
 export type PendingNutritionAction = z.infer<typeof actionSchema>;
+export type PendingFoodAction = Extract<
+  PendingNutritionAction,
+  { type: 'logFoodEntry' }
+>;
+export type PendingPhotoAction = Extract<
+  PendingNutritionAction,
+  { type: 'createPhotoEntry' }
+>;
+export type PhotoCapturePayload = z.infer<typeof photoPayloadSchema>;
 export type NutritionActionErrorClass = NonNullable<
   PendingNutritionAction['lastError']
 >;
@@ -121,7 +154,12 @@ function parseAction(raw: string): PendingNutritionAction {
       throw new NutritionOutboxCorruptError();
     }
     const action = actionSchema.parse(parsed);
-    if (action.payload.client_operation_id !== action.clientOperationId) {
+    if (
+      (action.type === 'logFoodEntry' &&
+        action.payload.client_operation_id !== action.clientOperationId) ||
+      (action.type === 'createPhotoEntry' &&
+        action.payload.id !== action.clientOperationId)
+    ) {
       throw new NutritionOutboxCorruptError();
     }
     return action;
@@ -189,6 +227,48 @@ export function enqueueFoodEntry(
       lastError: null,
       serverIdentity: null,
     });
+    await save(key, action);
+    return action;
+  });
+}
+
+export interface EnqueuePhotoInput extends NutritionActionIdentity {
+  payload: PhotoCapturePayload;
+}
+
+export function enqueuePhotoCapture(
+  input: EnqueuePhotoInput
+): Promise<PendingPhotoAction> {
+  return serialized(async () => {
+    const payload = photoPayloadSchema.parse(input.payload);
+    const key = keyFor(input, payload.id);
+    const existing = await read(key);
+    if (existing) {
+      if (
+        existing.type !== 'createPhotoEntry' ||
+        JSON.stringify(existing.payload) !== JSON.stringify(payload)
+      ) {
+        throw new Error('Operation ID already belongs to another action.');
+      }
+      return existing;
+    }
+    const action = actionSchema.parse({
+      version: 1,
+      type: 'createPhotoEntry',
+      clientOperationId: payload.id,
+      serverConfigId: input.serverConfigId,
+      userId: input.userId,
+      occurredAt: payload.consumedAt,
+      createdAt: new Date().toISOString(),
+      payload,
+      syncState: 'pending',
+      retryCount: 0,
+      lastAttemptAt: null,
+      lastError: null,
+      serverIdentity: null,
+    });
+    if (action.type !== 'createPhotoEntry')
+      throw new Error('Invalid photo action.');
     await save(key, action);
     return action;
   });

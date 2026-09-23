@@ -6,6 +6,7 @@ import {
   subscribeNutritionActions,
   type NutritionActionIdentity,
   type PendingNutritionAction,
+  type PendingPhotoAction,
 } from '../services/nutritionActionOutbox';
 import {
   getActiveNutritionIdentity,
@@ -64,6 +65,14 @@ export function useNutritionDiaryActions(day: string, remote: FoodEntry[]) {
     () => projectLocalFoodActions(day, actions, remote),
     [day, actions, remote]
   );
+  const photoActions = useMemo(
+    () =>
+      actions.filter(
+        (action): action is PendingPhotoAction =>
+          action.type === 'createPhotoEntry' && action.payload.entryDate === day
+      ),
+    [actions, day]
+  );
 
   useEffect(() => {
     if (!identity) return;
@@ -78,5 +87,5 @@ export function useNutritionDiaryActions(day: string, remote: FoodEntry[]) {
     }
   }, [identity, actions, remote]);
 
-  return { actions: visible, identity, storageError: error };
+  return { actions: visible, photoActions, identity, storageError: error };
 }

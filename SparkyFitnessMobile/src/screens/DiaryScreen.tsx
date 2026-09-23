@@ -33,6 +33,7 @@ import ExerciseSummary from '../components/ExerciseSummary';
 import FoodSummary from '../components/FoodSummary';
 import PendingNutritionActions from '../components/PendingNutritionActions';
 import NutritionQuickActions from '../components/NutritionQuickActions';
+import NutritionPhotoEntries from '../components/NutritionPhotoEntries';
 import MeasurementsSummary from '../components/MeasurementsSummary';
 import ServingAdjustSheet, {
   type ServingAdjustSheetRef,
@@ -60,6 +61,7 @@ import { usePreferences } from '../hooks/usePreferences';
 import { useSleepDay } from '../hooks/useSleepDay';
 import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
 import { useNutritionDiaryActions } from '../hooks/useNutritionDiaryActions';
+import { useNutritionCapturesByDate } from '../hooks/useNutritionCapturesByDate';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import type { FoodEntry } from '../types/foodEntries';
@@ -256,11 +258,16 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   });
   const {
     actions: localFoodActions,
+    photoActions: localPhotoActions,
     identity: nutritionIdentity,
     storageError: nutritionStorageError,
   } = useNutritionDiaryActions(
     selectedDate,
     summary?.foodEntries ?? EMPTY_FOOD_ENTRIES
+  );
+  const { captures: remotePhotoCaptures } = useNutritionCapturesByDate(
+    selectedDate,
+    isConnected
   );
   const { measurements, refetch: refetchMeasurements } = useMeasurements({
     date: selectedDate,
@@ -353,6 +360,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       wakeUp === null &&
       summary?.foodEntries.length === 0 &&
       localFoodActions.length === 0 &&
+      localPhotoActions.length === 0 &&
+      remotePhotoCaptures.length === 0 &&
       !hasSupplementNutrition(summary?.supplementTotals) && //A logged supplement is something the user recorded for this day, so the day is not empty even with no food, exercise or measurement.
       summary?.exerciseEntries.length === 0 &&
       !hasAnyMeasurement &&
@@ -370,6 +379,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     wakeUp,
     summary,
     localFoodActions,
+    localPhotoActions,
+    remotePhotoCaptures,
     hasAnyMeasurement,
     isPhotosLoading,
     dayPhotos,
@@ -384,7 +395,13 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           className="flex-1 bg-background"
           contentContainerStyle={{ padding: 16 }}
         >
-          <NutritionQuickActions />
+          <NutritionQuickActions
+            onTakePhoto={() => navigation.navigate('QuickMealPhoto')}
+          />
+          <NutritionPhotoEntries
+            local={localPhotoActions}
+            remote={remotePhotoCaptures}
+          />
           <PendingNutritionActions
             actions={localFoodActions}
             storageError={nutritionStorageError}
@@ -406,14 +423,20 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     // entries arrive, so a slow `/api/sleep` fills them in late instead of holding the
     // food and exercise that already loaded behind "Loading diary...".
     if (isLoading || isConnectionLoading) {
-      if (localFoodActions.length > 0) {
+      if (localFoodActions.length > 0 || localPhotoActions.length > 0) {
         return (
           <View className="flex-1 bg-background p-4">
             <PendingNutritionActions
               actions={localFoodActions}
               storageError={nutritionStorageError}
             />
-            <NutritionQuickActions />
+            <NutritionQuickActions
+              onTakePhoto={() => navigation.navigate('QuickMealPhoto')}
+            />
+            <NutritionPhotoEntries
+              local={localPhotoActions}
+              remote={remotePhotoCaptures}
+            />
           </View>
         );
       }
@@ -476,7 +499,13 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           actions={localFoodActions}
           storageError={nutritionStorageError}
         />
-        <NutritionQuickActions />
+        <NutritionQuickActions
+          onTakePhoto={() => navigation.navigate('QuickMealPhoto')}
+        />
+        <NutritionPhotoEntries
+          local={localPhotoActions}
+          remote={remotePhotoCaptures}
+        />
         {(summary.foodEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
           summary.exerciseEntries.length > 0 ||

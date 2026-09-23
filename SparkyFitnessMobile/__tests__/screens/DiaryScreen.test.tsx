@@ -15,6 +15,7 @@ import { useMeasurements } from '../../src/hooks/useMeasurements';
 import { useCustomMeasurementsByDate } from '../../src/hooks/useCustomMeasurements';
 import { useDiaryDateStore } from '../../src/stores/diaryDateStore';
 import { useSleepDay } from '../../src/hooks/useSleepDay';
+import { useNutritionCapturesByDate } from '../../src/hooks/useNutritionCapturesByDate';
 import { getTodayDate } from '../../src/utils/dateUtils';
 import { useNativeIOSTabsActive } from '../../src/services/nativeTabBarPreference';
 import { setNativeHeaderDatePickerOptions } from '../../src/utils/nativeHeaderDatePicker';
@@ -84,6 +85,13 @@ jest.mock('../../src/hooks/useSleepDay', () => ({
     isError: false,
     isForbidden: false,
     refetch: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
+
+jest.mock('../../src/hooks/useNutritionCapturesByDate', () => ({
+  useNutritionCapturesByDate: jest.fn(() => ({
+    captures: [],
+    isLoading: false,
   })),
 }));
 
@@ -421,6 +429,10 @@ describe('DiaryScreen custom queries', () => {
       '2024-06-15',
       expect.objectContaining({ enabled: false })
     );
+    expect(useNutritionCapturesByDate).toHaveBeenCalledWith(
+      '2024-06-15',
+      false
+    );
   });
 
   test('Test B — custom queries are enabled online', () => {
@@ -430,6 +442,7 @@ describe('DiaryScreen custom queries', () => {
       '2024-06-15',
       expect.objectContaining({ enabled: true })
     );
+    expect(useNutritionCapturesByDate).toHaveBeenCalledWith('2024-06-15', true);
   });
 
   test('Test C — pull-to-refresh refetches custom data', async () => {

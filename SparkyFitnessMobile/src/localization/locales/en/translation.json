@@ -1960,6 +1960,7 @@
   },
   "nutritionQuick": {
     "title": "Quick nutrition",
+    "photo": "📷 Meal photo",
     "logFavorite": "Log {{name}}",
     "manual": "+ Calories and macros",
     "errorTitle": "Could not save entry",
@@ -1970,6 +1971,19 @@
     "protein": "Protein (g)",
     "carbs": "Carbohydrate (g)",
     "fat": "Fat (g)"
+  },
+  "nutritionPhotos": {
+    "title": "Meal photos",
+    "incompleteCount_one": "{{count}} incomplete",
+    "incompleteCount_other": "{{count}} incomplete",
+    "incomplete": "Incomplete meal",
+    "complete": "Completed meal"
+  },
+  "nutritionPhotoCapture": {
+    "permission": "Allow camera access to capture a meal.",
+    "saveFailed": "Meal photo could not be saved. Try again.",
+    "saving": "Saving meal photo…",
+    "title": "Meal photo"
   },
   "exerciseSummary": {
     "tapToAdd": "Tap to add exercise",
