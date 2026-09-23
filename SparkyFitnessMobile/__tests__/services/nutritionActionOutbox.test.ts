@@ -1,8 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+jest.mock('expo-crypto', () => ({
+  randomUUID: jest.fn(() => 'cbb275a8-8d2a-4514-a6e2-0fb864452293'),
+}));
 import {
   NutritionOutboxCorruptError,
   acknowledgeNutritionActionVisible,
   enqueueFoodEntry,
+  enqueuePhotoCompletion,
   listNutritionActions,
   listPendingNutritionActions,
   markNutritionActionAttentionRequired,
@@ -165,5 +169,41 @@ describe('nutrition action outbox', () => {
       })
     ).rejects.toThrow();
     expect(await listNutritionActions(identity)).toEqual([]);
+  });
+
+  it('keeps one durable completion operation for a captured occurrence', async () => {
+    const completion = {
+      ...identity,
+      occurredAt: '2026-09-23T10:15:00.000Z',
+      payload: {
+        captureId: '281fe77f-2d74-43aa-8f35-c47aa106d6e7',
+        entryDate: '2026-09-23',
+        food: {
+          meal_type_id: 'lunch',
+          quantity: 1,
+          unit: 'serving',
+          food_name: 'Synthetic lunch',
+          serving_size: 1,
+          serving_unit: 'serving',
+          calories: 300,
+        },
+      },
+    };
+    const first = await enqueuePhotoCompletion(completion);
+    const repeated = await enqueuePhotoCompletion({
+      ...completion,
+      payload: {
+        ...completion.payload,
+        food: { ...completion.payload.food, calories: 400 },
+      },
+    });
+    expect(repeated.clientOperationId).toBe(first.clientOperationId);
+    expect(repeated.payload.food.calories).toBe(300);
+    expect(await listNutritionActions(identity)).toHaveLength(1);
+    expect(
+      (await AsyncStorage.getAllKeys()).some((key) =>
+        key.includes(first.clientOperationId)
+      )
+    ).toBe(true);
   });
 });

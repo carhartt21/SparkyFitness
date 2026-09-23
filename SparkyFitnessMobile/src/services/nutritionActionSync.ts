@@ -3,6 +3,7 @@ import { createFoodEntry } from './api/foodEntriesApi';
 import {
   createNutritionCapture,
   uploadNutritionCaptureImage,
+  completeNutritionCapture,
 } from './api/nutritionCaptureApi';
 import { fetchProfile } from './api/profileApi';
 import { ApiError } from './api/errors';
@@ -42,6 +43,7 @@ export interface NutritionSyncDependencies {
   createEntry: typeof createFoodEntry;
   createCapture: typeof createNutritionCapture;
   uploadCaptureImage: typeof uploadNutritionCaptureImage;
+  completeCapture: typeof completeNutritionCapture;
 }
 
 const productionDependencies: NutritionSyncDependencies = {
@@ -56,6 +58,7 @@ const productionDependencies: NutritionSyncDependencies = {
   createEntry: createFoodEntry,
   createCapture: createNutritionCapture,
   uploadCaptureImage: uploadNutritionCaptureImage,
+  completeCapture: completeNutritionCapture,
 };
 
 function retryDelay(retryCount: number): number {
@@ -160,14 +163,18 @@ async function reconcilePass(
     await deps.markSyncing(identity, action.clientOperationId);
     processed += 1;
     try {
-      const result =
-        action.type === 'logFoodEntry'
-          ? await deps.createEntry(action.payload)
-          : await deps.createCapture(action.payload);
-      if (action.type === 'createPhotoEntry') {
+      let serverId: string;
+      if (action.type === 'logFoodEntry') {
+        serverId = (await deps.createEntry(action.payload)).id;
+      } else if (action.type === 'createPhotoEntry') {
+        serverId = (await deps.createCapture(action.payload)).id;
         for (const image of action.payload.images) {
           await deps.uploadCaptureImage(action.payload.id, image);
         }
+      } else {
+        serverId = (
+          await deps.completeCapture(action.clientOperationId, action.payload)
+        ).entry.id;
       }
       // A switch during the request cannot reassign the local acknowledgement.
       if (
@@ -176,11 +183,14 @@ async function reconcilePass(
       ) {
         return { processed, nextDelayMs: null };
       }
-      await deps.markSynced(identity, action.clientOperationId, result.id);
+      await deps.markSynced(identity, action.clientOperationId, serverId);
       void queryClient?.invalidateQueries({
         queryKey: dailySummaryRootQueryKey,
       });
-      if (action.type === 'createPhotoEntry') {
+      if (
+        action.type === 'createPhotoEntry' ||
+        action.type === 'completePhotoEntry'
+      ) {
         void queryClient?.invalidateQueries({
           queryKey: ['nutritionCaptures', action.payload.entryDate],
         });

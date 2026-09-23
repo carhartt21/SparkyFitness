@@ -1,6 +1,10 @@
 import { apiFetch } from './apiClient';
 import { postImageMultipart } from './imageUploadClient';
-import type { PhotoCapturePayload } from '../nutritionActionOutbox';
+import type {
+  PhotoCapturePayload,
+  PhotoCompletionPayload,
+} from '../nutritionActionOutbox';
+import type { FoodEntry } from '../../types/foodEntries';
 
 export interface NutritionCapture {
   id: string;
@@ -56,5 +60,18 @@ export async function fetchNutritionCapturesByDate(
     endpoint: `/api/nutrition-captures/by-date/${date}`,
     serviceName: 'Nutrition Capture API',
     operation: 'list captures',
+  });
+}
+
+export async function completeNutritionCapture(
+  operationId: string,
+  payload: PhotoCompletionPayload
+): Promise<{ capture: NutritionCapture; entry: FoodEntry }> {
+  return apiFetch<{ capture: NutritionCapture; entry: FoodEntry }>({
+    endpoint: `/api/nutrition-captures/${payload.captureId}/complete`,
+    serviceName: 'Nutrition Capture API',
+    operation: 'complete capture',
+    method: 'POST',
+    body: { clientOperationId: operationId, food: payload.food },
   });
 }

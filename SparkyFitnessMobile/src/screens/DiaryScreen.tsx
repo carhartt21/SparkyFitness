@@ -259,6 +259,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const {
     actions: localFoodActions,
     photoActions: localPhotoActions,
+    photoCompletionActions,
     identity: nutritionIdentity,
     storageError: nutritionStorageError,
   } = useNutritionDiaryActions(
@@ -401,6 +402,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           <NutritionPhotoEntries
             local={localPhotoActions}
             remote={remotePhotoCaptures}
+            completions={photoCompletionActions}
+            completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
           />
           <PendingNutritionActions
             actions={localFoodActions}
@@ -436,6 +439,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             <NutritionPhotoEntries
               local={localPhotoActions}
               remote={remotePhotoCaptures}
+              completions={photoCompletionActions}
+              completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
             />
           </View>
         );
@@ -505,6 +510,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         <NutritionPhotoEntries
           local={localPhotoActions}
           remote={remotePhotoCaptures}
+          completions={photoCompletionActions}
+          completedFoodEntries={summary.foodEntries}
         />
         {(summary.foodEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
@@ -538,7 +545,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               navigation={navigation}
             />
             <FoodSummary
-              foodEntries={summary.foodEntries}
+              foodEntries={summary.foodEntries.filter(
+                (entry) => !entry.nutrition_capture_id
+              )}
               mealTypes={mealTypes}
               goals={summary.goals}
               calorieGoal={summary.calorieGoal}

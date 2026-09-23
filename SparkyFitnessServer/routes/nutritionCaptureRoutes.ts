@@ -17,9 +17,12 @@ import {
   deleteNutritionCaptureImage,
   getNutritionCapture,
   getNutritionCaptureImage,
+  getNutritionCaptureFoodEntry,
   listNutritionCaptures,
+  markNutritionCaptureComplete,
 } from '../models/nutritionCaptureRepository.js';
 import { resolveUploadPathWithinRoot } from '../utils/uploadsPath.js';
+import foodEntryService from '../services/foodEntryService.js';
 
 const router = express.Router();
 router.use(authenticate);
@@ -32,6 +35,22 @@ const createSchema = z.strictObject({
   entryDate: z.iso.date(),
   mealTypeId: idSchema.nullable().optional(),
   notes: z.string().max(10_000).nullable().optional(),
+});
+const completeSchema = z.strictObject({
+  clientOperationId: idSchema,
+  food: z.strictObject({
+    meal_type_id: z.string().min(1),
+    quantity: z.number().finite().positive(),
+    unit: z.string().min(1),
+    food_name: z.string().min(1),
+    brand_name: z.string().optional(),
+    serving_size: z.number().finite().positive(),
+    serving_unit: z.string().min(1),
+    calories: z.number().finite().nonnegative(),
+    protein: z.number().finite().nonnegative().optional(),
+    carbs: z.number().finite().nonnegative().optional(),
+    fat: z.number().finite().nonnegative().optional(),
+  }),
 });
 
 // Captures are personal to the authenticated actor. A family diary context
@@ -77,6 +96,62 @@ router.get('/:id', async (req, res, next) => {
     if (!capture) return res.status(404).json({ error: 'Not found.' });
     res.json(capture);
   } catch (error) {
+    next(error);
+  }
+});
+
+// One reviewed snapshot completes this occurrence. Retries use the same
+// operation ID; an existing linked row wins over a different completion.
+router.post('/:id/complete', express.json(), async (req, res, next) => {
+  const id = idSchema.safeParse(req.params.id);
+  const input = completeSchema.safeParse(req.body);
+  if (!id.success || !input.success) {
+    return res.status(400).json({ error: 'Invalid completion.' });
+  }
+  const userId = owner(req);
+  try {
+    const capture = await getNutritionCapture(userId, id.data);
+    if (!capture) return res.status(404).json({ error: 'Not found.' });
+    const existing = await getNutritionCaptureFoodEntry(userId, id.data);
+    if (
+      existing &&
+      existing.client_operation_id !== input.data.clientOperationId
+    ) {
+      return res.status(409).json({ error: 'Capture already completed.' });
+    }
+    const entry =
+      existing ??
+      (await foodEntryService.createFoodEntry(userId, userId, {
+        ...input.data.food,
+        entry_date: capture.entry_date,
+        // The capture owns the precise consumed instant. A food diary clock
+        // field has no timezone, so do not derive it from server-local time.
+        entry_time: null,
+        client_operation_id: input.data.clientOperationId,
+        nutrition_capture_id: id.data,
+      }));
+    if (entry.nutrition_capture_id !== id.data) {
+      return res
+        .status(409)
+        .json({ error: 'Operation ID belongs to another entry.' });
+    }
+    await markNutritionCaptureComplete(userId, id.data);
+    return res.json({
+      capture: await getNutritionCapture(userId, id.data),
+      entry,
+    });
+  } catch (error) {
+    if ((error as { code?: string }).code === '23505') {
+      const raced = await getNutritionCaptureFoodEntry(userId, id.data);
+      if (raced?.client_operation_id === input.data.clientOperationId) {
+        await markNutritionCaptureComplete(userId, id.data);
+        return res.json({
+          capture: await getNutritionCapture(userId, id.data),
+          entry: raced,
+        });
+      }
+      return res.status(409).json({ error: 'Capture already completed.' });
+    }
     next(error);
   }
 });

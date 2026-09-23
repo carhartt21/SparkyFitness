@@ -305,10 +305,10 @@ async function createFoodEntry(
          created_by_user_id, food_name, brand_name, serving_size, serving_unit, calories, protein, carbs, fat,
          saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat, cholesterol, sodium,
          potassium, dietary_fiber, sugars, vitamin_a, vitamin_c, calcium, iron, glycemic_index, custom_nutrients, allergens, traces, updated_by_user_id,
-         source, source_id, entry_time, images, notes, caffeine_mg, water_ml, alcohol_g, client_operation_id
+         source, source_id, entry_time, images, notes, caffeine_mg, water_ml, alcohol_g, client_operation_id, nutrition_capture_id
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
-         $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41::jsonb, $42, $43, $44, $45, $46
+         $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41::jsonb, $42, $43, $44, $45, $46, $47
        )
        -- Idempotent re-sync for provider-sourced entries (e.g. Health Connect):
        -- re-ingesting the same record updates it in place. Manual/web entries
@@ -410,6 +410,7 @@ async function createFoodEntry(
         snapshot.water_ml,
         snapshot.alcohol_g,
         entryData.client_operation_id ?? null,
+        entryData.nutrition_capture_id ?? null,
       ]
     );
     await client.query('COMMIT');
@@ -642,6 +643,7 @@ async function getFoodEntriesByDate(userId: string, selectedDate: string) {
         fe.id,
         fe.user_id,
         fe.client_operation_id,
+        fe.nutrition_capture_id,
         fe.food_id,
         fe.meal_id,
         mt.name as meal_type, fe.meal_type_id,
@@ -713,6 +715,7 @@ async function getFoodEntriesByDateAndMealType(
       `SELECT
         fe.id, 
         fe.client_operation_id,
+        fe.nutrition_capture_id,
         fe.food_id, 
         fe.meal_id,
         mt.name as meal_type, fe.meal_type_id,

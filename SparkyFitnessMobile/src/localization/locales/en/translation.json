@@ -1977,7 +1977,12 @@
     "incompleteCount_one": "{{count}} incomplete",
     "incompleteCount_other": "{{count}} incomplete",
     "incomplete": "Incomplete meal",
-    "complete": "Completed meal"
+    "complete": "Completed meal",
+    "completeMeal": "Complete meal",
+    "name": "Food name",
+    "validCompletion": "Enter a name and known calories.",
+    "validMacros": "Macros must be non-negative numbers."
+    ,"energy": "{{value}} kcal"
   },
   "nutritionPhotoCapture": {
     "permission": "Allow camera access to capture a meal.",

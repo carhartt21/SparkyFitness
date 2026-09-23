@@ -90,6 +90,7 @@ function harness(actions: PendingNutritionAction[]) {
     createEntry,
     createCapture: jest.fn().mockResolvedValue({ id: 'capture-1' }),
     uploadCaptureImage: jest.fn().mockResolvedValue({ id: 'image-1' }),
+    completeCapture: jest.fn().mockResolvedValue({ entry: { id: 'entry-1' } }),
   } as unknown as NutritionSyncDependencies;
   return { rows, deps, createEntry };
 }
@@ -219,5 +220,36 @@ describe('nutrition action reconciliation', () => {
       uri: 'file:///documents/meal.jpg',
     });
     expect(rows.get(id)?.syncState).toBe('synced');
+  });
+
+  test('completion retries with the same operation ID and one linked server entry', async () => {
+    const id = '99dceec7-7f47-4f57-9c1e-8e9b3db1d31f';
+    const action: PendingNutritionAction = {
+      ...foodAction(id),
+      type: 'completePhotoEntry',
+      payload: {
+        captureId: '281fe77f-2d74-43aa-8f35-c47aa106d6e7',
+        entryDate: '2026-09-23',
+        food: {
+          meal_type_id: 'lunch',
+          quantity: 1,
+          unit: 'serving',
+          food_name: 'Synthetic food',
+          serving_size: 1,
+          serving_unit: 'serving',
+          calories: 300,
+        },
+      },
+    };
+    const { rows, deps } = harness([action]);
+    (deps.completeCapture as jest.Mock).mockRejectedValueOnce(
+      new Error('response lost')
+    );
+    await reconcileNutritionActions(undefined, deps);
+    expect(rows.get(id)?.syncState).toBe('pending');
+    await reconcileNutritionActions(undefined, deps);
+    expect(deps.completeCapture).toHaveBeenCalledTimes(2);
+    expect(deps.completeCapture).toHaveBeenCalledWith(id, action.payload);
+    expect(rows.get(id)?.serverIdentity).toBe('entry-1');
   });
 });

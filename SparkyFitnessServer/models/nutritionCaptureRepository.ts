@@ -157,3 +157,33 @@ export async function deleteNutritionCapture(userId: string, id: string) {
     client.release();
   }
 }
+
+export async function getNutritionCaptureFoodEntry(userId: string, id: string) {
+  const client = await getClient(userId);
+  try {
+    const result = await client.query(
+      `SELECT fe.* FROM food_entries fe
+       WHERE fe.user_id = $1 AND fe.nutrition_capture_id = $2`,
+      [userId, id]
+    );
+    return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
+export async function markNutritionCaptureComplete(userId: string, id: string) {
+  const client = await getClient(userId);
+  try {
+    const result = await client.query(
+      `UPDATE nutrition_captures SET completion_state = 'complete',
+          updated_at = now()
+       WHERE user_id = $1 AND id = $2
+       RETURNING id`,
+      [userId, id]
+    );
+    return result.rows.length > 0;
+  } finally {
+    client.release();
+  }
+}

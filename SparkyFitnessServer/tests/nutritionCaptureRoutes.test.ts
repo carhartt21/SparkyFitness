@@ -5,6 +5,7 @@ import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import nutritionCaptureRoutes from '../routes/nutritionCaptureRoutes.js';
 import * as repository from '../models/nutritionCaptureRepository.js';
+import foodEntryService from '../services/foodEntryService.js';
 
 vi.mock('../middleware/authMiddleware.js', () => ({
   authenticate: (
@@ -34,6 +35,11 @@ vi.mock('../models/nutritionCaptureRepository.js', () => ({
   addNutritionCaptureImage: vi.fn(),
   deleteNutritionCaptureImage: vi.fn(),
   deleteNutritionCapture: vi.fn(),
+  getNutritionCaptureFoodEntry: vi.fn(),
+  markNutritionCaptureComplete: vi.fn(),
+}));
+vi.mock('../services/foodEntryService.js', () => ({
+  default: { createFoodEntry: vi.fn() },
 }));
 
 const captureId = 'd2e53cfe-9317-4a1b-acfa-571ccdd14835';
@@ -48,6 +54,8 @@ const saved = {
   ...payload,
   user_id: 'user-a',
   completion_state: 'incomplete',
+  consumed_at: payload.consumedAt,
+  entry_date: payload.entryDate,
   images: [],
 };
 const app = express();
@@ -113,5 +121,123 @@ describe('nutrition captures', () => {
     expect(sql).toContain('ENABLE ROW LEVEL SECURITY');
     expect(sql).toContain('public.authenticated_user_id()');
     expect(sql).toContain('nutrition_capture_images_owner');
+  });
+
+  it('links one food snapshot to the same owner and capture', () => {
+    const sql = readFileSync(
+      new URL(
+        '../db/migrations/20260923030000_link_food_entries_to_nutrition_captures.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    expect(sql).toContain('nutrition_capture_id uuid NULL');
+    expect(sql).toContain('ON DELETE CASCADE');
+    expect(sql).toContain(
+      'CREATE UNIQUE INDEX IF NOT EXISTS idx_food_entries_one_per_nutrition_capture'
+    );
+    expect(sql).toContain('c.user_id = NEW.user_id');
+    expect(sql).toContain('public.authenticated_user_id()');
+  });
+
+  it('completes the same capture once and returns its original lineage on retry', async () => {
+    const operationId = '4576bce5-dbd8-4eba-a702-f503d93ba4ae';
+    const entry = {
+      id: 'entry-1',
+      nutrition_capture_id: captureId,
+      client_operation_id: operationId,
+    };
+    vi.mocked(repository.getNutritionCapture).mockResolvedValue(saved);
+    vi.mocked(repository.getNutritionCaptureFoodEntry)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce(entry);
+    vi.mocked(foodEntryService.createFoodEntry).mockResolvedValue(
+      entry as never
+    );
+    const body = {
+      clientOperationId: operationId,
+      food: {
+        meal_type_id: 'Lunch',
+        quantity: 1,
+        unit: 'serving',
+        food_name: 'Synthetic lunch',
+        serving_size: 1,
+        serving_unit: 'serving',
+        calories: 300,
+      },
+    };
+    const first = await request(app)
+      .post(`/api/nutrition-captures/${captureId}/complete`)
+      .send(body);
+    const retry = await request(app)
+      .post(`/api/nutrition-captures/${captureId}/complete`)
+      .send(body);
+    expect(first.status).toBe(200);
+    expect(retry.status).toBe(200);
+    expect(first.body.entry.id).toBe(retry.body.entry.id);
+    expect(foodEntryService.createFoodEntry).toHaveBeenCalledTimes(1);
+    expect(foodEntryService.createFoodEntry).toHaveBeenCalledWith(
+      'user-a',
+      'user-a',
+      expect.objectContaining({
+        nutrition_capture_id: captureId,
+        entry_date: payload.entryDate,
+        client_operation_id: operationId,
+      })
+    );
+    expect(repository.markNutritionCaptureComplete).toHaveBeenCalledTimes(2);
+  });
+
+  it('rejects a second completion with another operation ID', async () => {
+    vi.mocked(repository.getNutritionCapture).mockResolvedValue(saved);
+    vi.mocked(repository.getNutritionCaptureFoodEntry).mockResolvedValue({
+      client_operation_id: '4576bce5-dbd8-4eba-a702-f503d93ba4ae',
+    });
+    const response = await request(app)
+      .post(`/api/nutrition-captures/${captureId}/complete`)
+      .send({
+        clientOperationId: '011789c2-6192-4edf-ad71-a3372da22d28',
+        food: {
+          meal_type_id: 'Lunch',
+          quantity: 1,
+          unit: 'serving',
+          food_name: 'Another meal',
+          serving_size: 1,
+          serving_unit: 'serving',
+          calories: 400,
+        },
+      });
+    expect(response.status).toBe(409);
+    expect(foodEntryService.createFoodEntry).not.toHaveBeenCalled();
+  });
+
+  it('treats a concurrent unique-index race with the same operation ID as a retry', async () => {
+    const operationId = '4576bce5-dbd8-4eba-a702-f503d93ba4ae';
+    vi.mocked(repository.getNutritionCapture).mockResolvedValue(saved);
+    vi.mocked(repository.getNutritionCaptureFoodEntry)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: 'entry-1',
+        client_operation_id: operationId,
+      });
+    vi.mocked(foodEntryService.createFoodEntry).mockRejectedValue({
+      code: '23505',
+    });
+    const response = await request(app)
+      .post(`/api/nutrition-captures/${captureId}/complete`)
+      .send({
+        clientOperationId: operationId,
+        food: {
+          meal_type_id: 'Lunch',
+          quantity: 1,
+          unit: 'serving',
+          food_name: 'Synthetic lunch',
+          serving_size: 1,
+          serving_unit: 'serving',
+          calories: 300,
+        },
+      });
+    expect(response.status).toBe(200);
+    expect(response.body.entry.id).toBe('entry-1');
   });
 });

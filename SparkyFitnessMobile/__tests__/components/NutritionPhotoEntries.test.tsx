@@ -34,7 +34,12 @@ const photo: PendingPhotoAction = {
 describe('NutritionPhotoEntries', () => {
   test('offline photo is one incomplete entry with unknown nutrition', () => {
     const screen = render(
-      <NutritionPhotoEntries local={[photo]} remote={[]} />
+      <NutritionPhotoEntries
+        local={[photo]}
+        remote={[]}
+        completions={[]}
+        completedFoodEntries={[]}
+      />
     );
     expect(screen.getAllByText('Incomplete meal')).toHaveLength(1);
     expect(screen.getByText('1 incomplete')).toBeTruthy();
@@ -58,7 +63,12 @@ describe('NutritionPhotoEntries', () => {
       ],
     };
     const screen = render(
-      <NutritionPhotoEntries local={[photo]} remote={[remote]} />
+      <NutritionPhotoEntries
+        local={[photo]}
+        remote={[remote]}
+        completions={[]}
+        completedFoodEntries={[]}
+      />
     );
     expect(screen.getAllByText('Incomplete meal')).toHaveLength(1);
   });

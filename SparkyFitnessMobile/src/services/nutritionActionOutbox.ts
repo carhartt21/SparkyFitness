@@ -74,6 +74,22 @@ const photoPayloadSchema = z.strictObject({
     .min(1)
     .max(10),
 });
+const completionPayloadSchema = z.strictObject({
+  captureId: z.uuid(),
+  entryDate: z.iso.date(),
+  food: z.strictObject({
+    meal_type_id: z.string().min(1),
+    quantity: z.number().finite().positive(),
+    unit: z.string().min(1),
+    food_name: z.string().min(1),
+    serving_size: z.number().finite().positive(),
+    serving_unit: z.string().min(1),
+    calories: z.number().finite().nonnegative(),
+    protein: z.number().finite().nonnegative().optional(),
+    carbs: z.number().finite().nonnegative().optional(),
+    fat: z.number().finite().nonnegative().optional(),
+  }),
+});
 
 const actionSchema = z.discriminatedUnion('type', [
   z.strictObject({
@@ -85,6 +101,11 @@ const actionSchema = z.discriminatedUnion('type', [
     ...commonActionFields,
     type: z.literal('createPhotoEntry'),
     payload: photoPayloadSchema,
+  }),
+  z.strictObject({
+    ...commonActionFields,
+    type: z.literal('completePhotoEntry'),
+    payload: completionPayloadSchema,
   }),
 ]);
 
@@ -98,6 +119,11 @@ export type PendingPhotoAction = Extract<
   { type: 'createPhotoEntry' }
 >;
 export type PhotoCapturePayload = z.infer<typeof photoPayloadSchema>;
+export type PhotoCompletionPayload = z.infer<typeof completionPayloadSchema>;
+export type PendingPhotoCompletionAction = Extract<
+  PendingNutritionAction,
+  { type: 'completePhotoEntry' }
+>;
 export type NutritionActionErrorClass = NonNullable<
   PendingNutritionAction['lastError']
 >;
@@ -270,6 +296,53 @@ export function enqueuePhotoCapture(
     if (action.type !== 'createPhotoEntry')
       throw new Error('Invalid photo action.');
     await save(key, action);
+    return action;
+  });
+}
+
+/** A capture may have one queued completion, reused across retries and relaunch. */
+export function enqueuePhotoCompletion(
+  input: NutritionActionIdentity & {
+    payload: PhotoCompletionPayload;
+    occurredAt: string;
+  }
+): Promise<PendingPhotoCompletionAction> {
+  return serialized(async () => {
+    const payload = completionPayloadSchema.parse(input.payload);
+    const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
+      key.startsWith(prefixFor(input))
+    );
+    for (const [key, raw] of await AsyncStorage.multiGet(keys)) {
+      if (raw === null) continue;
+      const action = parseAction(raw);
+      if (keyFor(action, action.clientOperationId) !== key)
+        throw new NutritionOutboxCorruptError();
+      if (
+        action.type === 'completePhotoEntry' &&
+        action.payload.captureId === payload.captureId
+      ) {
+        return action;
+      }
+    }
+    const clientOperationId = newUuid();
+    const action = actionSchema.parse({
+      version: 1,
+      type: 'completePhotoEntry',
+      clientOperationId,
+      serverConfigId: input.serverConfigId,
+      userId: input.userId,
+      occurredAt: input.occurredAt,
+      createdAt: new Date().toISOString(),
+      payload,
+      syncState: 'pending',
+      retryCount: 0,
+      lastAttemptAt: null,
+      lastError: null,
+      serverIdentity: null,
+    });
+    if (action.type !== 'completePhotoEntry')
+      throw new Error('Invalid completion action.');
+    await save(keyFor(input, clientOperationId), action);
     return action;
   });
 }

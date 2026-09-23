@@ -7,6 +7,7 @@ import {
   type NutritionActionIdentity,
   type PendingNutritionAction,
   type PendingPhotoAction,
+  type PendingPhotoCompletionAction,
 } from '../services/nutritionActionOutbox';
 import {
   getActiveNutritionIdentity,
@@ -73,6 +74,15 @@ export function useNutritionDiaryActions(day: string, remote: FoodEntry[]) {
       ),
     [actions, day]
   );
+  const photoCompletionActions = useMemo(
+    () =>
+      actions.filter(
+        (action): action is PendingPhotoCompletionAction =>
+          action.type === 'completePhotoEntry' &&
+          action.payload.entryDate === day
+      ),
+    [actions, day]
+  );
 
   useEffect(() => {
     if (!identity) return;
@@ -87,5 +97,31 @@ export function useNutritionDiaryActions(day: string, remote: FoodEntry[]) {
     }
   }, [identity, actions, remote]);
 
-  return { actions: visible, photoActions, identity, storageError: error };
+  useEffect(() => {
+    if (!identity) return;
+    for (const action of photoCompletionActions) {
+      if (action.syncState !== 'synced' || !action.serverIdentity) continue;
+      const linked = remote.find(
+        (entry) =>
+          entry.id === action.serverIdentity &&
+          entry.nutrition_capture_id === action.payload.captureId &&
+          entry.client_operation_id === action.clientOperationId
+      );
+      if (linked) {
+        void acknowledgeNutritionActionVisible(
+          identity,
+          action.clientOperationId,
+          linked.id
+        ).catch(() => setError(true));
+      }
+    }
+  }, [identity, photoCompletionActions, remote]);
+
+  return {
+    actions: visible,
+    photoActions,
+    photoCompletionActions,
+    identity,
+    storageError: error,
+  };
 }
