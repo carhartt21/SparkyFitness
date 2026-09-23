@@ -62,6 +62,14 @@ export type CachedFavoriteFood = z.infer<typeof cachedFoodSchema>;
 export type CachedMealType = z.infer<typeof cachedMealTypeSchema>;
 export type NutritionFavoriteCache = z.infer<typeof cacheSchema>;
 
+const listeners = new Set<() => void>();
+export function subscribeNutritionFavoriteCache(
+  listener: () => void
+): () => void {
+  listeners.add(listener);
+  return () => listeners.delete(listener);
+}
+
 const emptyCache = (): NutritionFavoriteCache => ({
   version: 1,
   updatedAt: new Date(0).toISOString(),
@@ -101,6 +109,7 @@ function update(
       transform(await readNutritionFavoriteCache(identity))
     );
     await AsyncStorage.setItem(keyFor(identity), JSON.stringify(next));
+    listeners.forEach((listener) => listener());
     return next;
   });
 }

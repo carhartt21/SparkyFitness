@@ -1958,6 +1958,19 @@
     "calories": "{{value}} Cal",
     "offline": "Server unavailable. Saved entries will sync when it returns."
   },
+  "nutritionQuick": {
+    "title": "Quick nutrition",
+    "logFavorite": "Log {{name}}",
+    "manual": "+ Calories and macros",
+    "errorTitle": "Could not save entry",
+    "storageError": "Please check device storage and try again.",
+    "cacheUnavailable": "Saved favorites are unavailable on this device.",
+    "caloriesRequired": "Enter calories.",
+    "calories": "Calories",
+    "protein": "Protein (g)",
+    "carbs": "Carbohydrate (g)",
+    "fat": "Fat (g)"
+  },
   "exerciseSummary": {
     "tapToAdd": "Tap to add exercise",
     "addExercise": "Add exercise",

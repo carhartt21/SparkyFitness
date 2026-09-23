@@ -13,12 +13,9 @@ export function useFavorites(options?: { enabled?: boolean }) {
     queryFn: async () => {
       const favorites = await fetchFavorites();
       try {
-        let identity = await getActiveNutritionIdentity();
-        if (!identity) {
-          await fetchProfile();
-          identity = await getActiveNutritionIdentity();
-        }
-        if (identity)
+        const profile = await fetchProfile();
+        const identity = await getActiveNutritionIdentity();
+        if (identity?.userId === profile.id)
           await cacheFavoriteFoods(identity, favorites.favoriteFoods);
       } catch {
         // Online favorites still render when device storage is unavailable.

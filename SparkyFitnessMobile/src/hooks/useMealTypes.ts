@@ -4,6 +4,7 @@ import { getDefaultMealTypeId } from '../constants/meals';
 import { mealTypesQueryKey } from './queryKeys';
 import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
 import { cacheQuickMealTypes } from '../services/nutritionFavoriteCache';
+import { fetchProfile } from '../services/api/profileApi';
 
 export function useMealTypes(options?: { enabled?: boolean }) {
   const { enabled = true } = options ?? {};
@@ -13,8 +14,10 @@ export function useMealTypes(options?: { enabled?: boolean }) {
     queryFn: async () => {
       const mealTypes = await fetchMealTypes();
       try {
+        const profile = await fetchProfile();
         const identity = await getActiveNutritionIdentity();
-        if (identity) await cacheQuickMealTypes(identity, mealTypes);
+        if (identity?.userId === profile.id)
+          await cacheQuickMealTypes(identity, mealTypes);
       } catch {
         // Keep online meal-type display independent of local cache availability.
       }

@@ -32,6 +32,7 @@ import EmptyDayIllustration from '../components/EmptyDayIllustration';
 import ExerciseSummary from '../components/ExerciseSummary';
 import FoodSummary from '../components/FoodSummary';
 import PendingNutritionActions from '../components/PendingNutritionActions';
+import NutritionQuickActions from '../components/NutritionQuickActions';
 import MeasurementsSummary from '../components/MeasurementsSummary';
 import ServingAdjustSheet, {
   type ServingAdjustSheetRef,
@@ -378,41 +379,26 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
   const renderContent = () => {
     if (!isConnectionLoading && !isConnected) {
-      if (localFoodActions.length > 0 || nutritionStorageError) {
-        return (
-          <ScrollView
-            className="flex-1 bg-background"
-            contentContainerStyle={{ padding: 16 }}
-          >
-            <PendingNutritionActions
-              actions={localFoodActions}
-              storageError={nutritionStorageError}
-            />
-            <Text className="text-sm text-text-muted">
-              {t('nutritionOutbox.offline', {
-                defaultValue:
-                  'Server unavailable. Saved entries will sync when it returns.',
-              })}
-            </Text>
-          </ScrollView>
-        );
-      }
       return (
-        <StatusView
-          icon="cloud-offline"
-          iconTone="muted"
-          iconSize={64}
-          title={t('diary.noServer', { defaultValue: 'No server configured' })}
-          subtitle={t('diary.configureServer', {
-            defaultValue:
-              'Configure your server connection in Settings to view your diary.',
-          })}
-          action={{
-            label: t('diary.goToSettings', { defaultValue: 'Go to Settings' }),
-            onPress: () => navigation.navigate('Settings'),
-            variant: 'primary',
-          }}
-        />
+        <ScrollView
+          className="flex-1 bg-background"
+          contentContainerStyle={{ padding: 16 }}
+        >
+          <NutritionQuickActions />
+          <PendingNutritionActions
+            actions={localFoodActions}
+            storageError={nutritionStorageError}
+          />
+          <Text className="text-sm text-text-muted">
+            {t('nutritionOutbox.offline', {
+              defaultValue:
+                'Server unavailable. Saved entries will sync when it returns.',
+            })}
+          </Text>
+          <Button onPress={() => navigation.navigate('Settings')}>
+            {t('diary.goToSettings', { defaultValue: 'Go to Settings' })}
+          </Button>
+        </ScrollView>
       );
     }
 
@@ -427,6 +413,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               actions={localFoodActions}
               storageError={nutritionStorageError}
             />
+            <NutritionQuickActions />
           </View>
         );
       }
@@ -489,6 +476,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           actions={localFoodActions}
           storageError={nutritionStorageError}
         />
+        <NutritionQuickActions />
         {(summary.foodEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
           summary.exerciseEntries.length > 0 ||
