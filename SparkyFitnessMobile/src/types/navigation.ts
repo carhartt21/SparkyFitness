@@ -238,6 +238,7 @@ export type RootStackParamList = {
     | undefined;
   FoodPhotoIntro: { date?: string; mealTypeId?: string } | undefined;
   QuickMealPhoto: undefined;
+  MovementBreak: undefined;
   FoodPhotoFlow: NavigatorScreenParams<FoodPhotoFlowParamList>;
   MealAdd:
     | {

@@ -20,6 +20,8 @@ import {
 import i18n, { initializeI18n } from '../../src/localization/i18n';
 import { addLog } from '../../src/services/LogService';
 import { initMedicationNotificationActions } from '../../src/services/medicationNotificationHandler';
+import { initNutritionEngagementResponses } from '../../src/services/nutritionEngagementReminders';
+import { initWellbeingLiveActivity } from '../../src/services/wellbeingLiveActivity';
 
 jest.mock('expo-splash-screen', () => ({
   preventAutoHideAsync: jest.fn(),
@@ -60,6 +62,14 @@ jest.mock('../../src/services/notifications', () => ({
 
 jest.mock('../../src/services/medicationNotificationHandler', () => ({
   initMedicationNotificationActions: jest.fn(),
+}));
+
+jest.mock('../../src/services/nutritionEngagementReminders', () => ({
+  initNutritionEngagementResponses: jest.fn(),
+}));
+
+jest.mock('../../src/services/wellbeingLiveActivity', () => ({
+  initWellbeingLiveActivity: jest.fn(),
 }));
 
 jest.mock('../../src/services/workoutLiveActivity', () => ({
@@ -145,6 +155,8 @@ describe('useAppStartup', () => {
     expect(order).toEqual(['timezone', 'configure', 'observers']);
     expect(initWorkoutNotificationActions).toHaveBeenCalled();
     expect(initMedicationNotificationActions).toHaveBeenCalled();
+    expect(initNutritionEngagementResponses).toHaveBeenCalled();
+    expect(initWellbeingLiveActivity).toHaveBeenCalled();
     expect(initNotifications).toHaveBeenCalled();
   });
 

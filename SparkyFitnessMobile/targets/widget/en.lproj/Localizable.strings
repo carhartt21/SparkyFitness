@@ -16,3 +16,11 @@
 "widget.search_food" = "Search food";
 "widget.meal_photo" = "Take meal photo";
 "widget.scan_barcode" = "Scan barcode";
+"widget.nutrition.name" = "Meal capture";
+"widget.nutrition.description" = "Meal capture and photo review status.";
+"widget.nutrition.unavailable" = "Open SparkyFitness to refresh";
+"widget.nutrition.review" = "%d photo(s) to review";
+"widget.nutrition.savedLocally" = "Saved on this device";
+"widget.nutrition.captured" = "%d food record(s) captured";
+"widget.nutrition.photo" = "Meal photo";
+"widget.nutrition.search" = "Search food";

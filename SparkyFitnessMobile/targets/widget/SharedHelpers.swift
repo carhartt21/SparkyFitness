@@ -83,6 +83,14 @@ private func fallbackWidgetString(_ key: String) -> String {
     case "widget.search_food": return "Search food"
     case "widget.meal_photo": return "Take meal photo"
     case "widget.scan_barcode": return "Scan barcode"
+    case "widget.nutrition.name": return "Meal capture"
+    case "widget.nutrition.description": return "Meal capture and photo review status."
+    case "widget.nutrition.unavailable": return "Open SparkyFitness to refresh"
+    case "widget.nutrition.review": return "%d photo(s) to review"
+    case "widget.nutrition.savedLocally": return "Saved on this device"
+    case "widget.nutrition.captured": return "%d food record(s) captured"
+    case "widget.nutrition.photo": return "Meal photo"
+    case "widget.nutrition.search": return "Search food"
     default: return key
     }
 }

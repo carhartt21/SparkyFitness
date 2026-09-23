@@ -10,5 +10,9 @@ export function useNutritionCapturesByDate(date: string, enabled: boolean) {
     queryFn: () => fetchNutritionCapturesByDate(date),
     enabled,
   });
-  return { captures: query.data ?? [], isLoading: query.isLoading };
+  return {
+    captures: query.data ?? [],
+    hasData: query.data !== undefined,
+    isLoading: query.isLoading,
+  };
 }

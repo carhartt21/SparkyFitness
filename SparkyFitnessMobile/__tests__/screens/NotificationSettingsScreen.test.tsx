@@ -73,7 +73,11 @@ function latestTimeSheet(value: string): MockTimeSheetProps {
   return match;
 }
 
-const mockNavigation = { goBack: jest.fn(), setOptions: jest.fn() } as never;
+const mockNavigation = {
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+  navigate: jest.fn(),
+} as never;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
@@ -351,5 +355,40 @@ describe('NotificationSettingsScreen', () => {
     expect(switches[1].props.accessibilityLabel).toBe('Rest Timer');
     expect(switches[2].props.accessibilityLabel).toBe('Fasting Goals');
     expect(switches[3].props.accessibilityLabel).toBe('Medication Reminders');
+  });
+
+  it('keeps the meal reminder off if notification permission is denied', async () => {
+    mockRequestPermission.mockResolvedValue('denied');
+    const { getByLabelText } = renderScreen();
+    fireEvent(getByLabelText('Meal photo reminder'), 'valueChange', true);
+    await waitFor(() => expect(mockRequestPermission).toHaveBeenCalled());
+    expect(useAppPreferencesStore.getState().mealCaptureReminderEnabled).toBe(
+      false
+    );
+  });
+
+  it('enables only the selected meal window and rejects an invalid reminder time', async () => {
+    const { getByLabelText } = renderScreen();
+    fireEvent(getByLabelText('Meal photo reminder'), 'valueChange', true);
+    await waitFor(() =>
+      expect(useAppPreferencesStore.getState().mealCaptureReminderEnabled).toBe(
+        true
+      )
+    );
+    act(() => latestTimeSheet('12:30').onSelectTime('15:00'));
+    expect(useAppPreferencesStore.getState().mealCapturePromptTime).toBe(
+      '12:30'
+    );
+    expect(Toast.show).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text1: 'The reminder time must fall inside the meal window.',
+      })
+    );
+  });
+
+  it('opens the explicit movement timer without logging an action', () => {
+    const { getByText } = renderScreen();
+    fireEvent.press(getByText('Open break timer'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('MovementBreak');
   });
 });

@@ -34,6 +34,8 @@ export const COMPLETE_SET_ACTION = 'complete-set';
 export const MEDICATION_REMINDER_CATEGORY = 'medication-reminder';
 export const MEDICATION_TAKEN_ACTION = 'medication-taken';
 export const MEDICATION_SKIP_ACTION = 'medication-skip';
+export const NUTRITION_CAPTURE_CATEGORY = 'engagement-nutrition-capture';
+export const NUTRITION_CAPTURE_ACTION = 'engagement-take-photo';
 
 export type AppNotificationPermission = 'granted' | 'denied' | 'undetermined';
 
@@ -89,6 +91,13 @@ export async function registerLocalizedNotificationPresentation(): Promise<void>
         'Complete Set'
       ),
       options: { opensAppToForeground: false },
+    },
+  ]);
+  await Notifications.setNotificationCategoryAsync(NUTRITION_CAPTURE_CATEGORY, [
+    {
+      identifier: NUTRITION_CAPTURE_ACTION,
+      buttonTitle: notificationCopy('engagement.takePhotoAction', 'Take photo'),
+      options: { opensAppToForeground: true },
     },
   ]);
   await Notifications.setNotificationCategoryAsync(

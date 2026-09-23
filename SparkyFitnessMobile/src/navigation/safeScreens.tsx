@@ -14,6 +14,7 @@ import ExerciseFormScreen from '../screens/ExerciseFormScreen';
 import WorkoutPresetFormScreen from '../screens/WorkoutPresetFormScreen';
 import FoodScanScreen from '../screens/FoodScanScreen';
 import QuickMealPhotoScreen from '../screens/QuickMealPhotoScreen';
+import MovementBreakScreen from '../screens/MovementBreakScreen';
 import FoodPhotoIntroScreen from '../screens/FoodPhotoIntroScreen';
 import FoodsLibraryScreen from '../screens/FoodsLibraryScreen';
 import MealsLibraryScreen from '../screens/MealsLibraryScreen';
@@ -107,6 +108,7 @@ export const SafeExerciseForm = withErrorBoundary(ExerciseFormScreen, 'ExerciseF
 export const SafeWorkoutPresetForm = withErrorBoundary(WorkoutPresetFormScreen, 'WorkoutPresetForm', { canGoBack: true });
 export const SafeFoodScan = withErrorBoundary(FoodScanScreen, 'FoodScan', { canGoBack: true });
 export const SafeQuickMealPhoto = withErrorBoundary(QuickMealPhotoScreen, 'QuickMealPhoto', { canGoBack: true });
+export const SafeMovementBreak = withErrorBoundary(MovementBreakScreen, 'MovementBreak', { canGoBack: true });
 export const SafeFoodPhotoIntro = withErrorBoundary(FoodPhotoIntroScreen, 'FoodPhotoIntro', { canGoBack: true });
 export const SafeMealAdd = withErrorBoundary(MealAddScreen, 'MealAdd', { canGoBack: true });
 export const SafeFoodEntryView = withErrorBoundary(FoodEntryViewScreen, 'FoodEntryView', { canGoBack: true });

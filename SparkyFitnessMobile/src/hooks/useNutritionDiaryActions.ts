@@ -118,6 +118,7 @@ export function useNutritionDiaryActions(day: string, remote: FoodEntry[]) {
   }, [identity, photoCompletionActions, remote]);
 
   return {
+    allActions: actions,
     actions: visible,
     photoActions,
     photoCompletionActions,

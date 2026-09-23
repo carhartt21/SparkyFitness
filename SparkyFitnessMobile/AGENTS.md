@@ -329,6 +329,11 @@ const androidService = require('../../src/services/healthConnectService.ts');
 - Food scan/photo changes: rerun food scan, food photo flow screens, AI settings/external food APIs, food photo intro, food photo utils, and haptics tests.
 - Settings/auth/networking changes: rerun onboarding, server settings, server config modal, auth hooks/services, storage, API client, raw fetch client tests, and proxy-header tests.
 - Widgets/HUD/tab/add-sheet changes: rerun `useWidgetSync`, active workout store, `AddSheet`, `CustomTabBar`, `ActiveWorkoutBar`, and error-boundary tests.
+- Health engagement changes: rerun `healthEngagementPolicy`, `nutritionEngagementReminders`, `wellbeingSessionStore`, notification settings, widget resources/Swift contracts, and navigation-header tests; rebuild maintained iOS widget/Expo targets when their sources change.
+
+## Health Engagement (partial implementation)
+
+`NutritionEngagementCoordinator` is mounted at app scope. It derives a conservative nutrition status from the existing scoped nutrition outbox and server queries, then owns only `engagement:nutrition:` local notifications and the versioned `nutritionEngagementSnapshot` app-group widget payload. The opt-in single meal window is in app preferences. `healthEngagementPolicy.ts` contains clock-injected candidate/arbitration functions; it does not yet arbitrate the old hydration scheduler. Never cancel medication or hydration notifications from this feature. The separate `wellbeingSessionStore` persists presentation state for an explicit bounded movement-break Live Activity; it is not an intake or movement action store. See `../docs/implementation/health-engagement-progress.md` for stage gates and known limitations.
 
 ## Quick Routing
 

@@ -60,6 +60,10 @@ export const PREFERENCE_DEFAULTS = {
   waterReminderIntervalHours: 2 as WaterReminderIntervalHours,
   waterReminderWindowStart: '08:00' as string,
   waterReminderWindowEnd: '22:00' as string,
+  mealCaptureReminderEnabled: false,
+  mealCaptureWindowStart: '11:00' as string,
+  mealCaptureWindowEnd: '14:00' as string,
+  mealCapturePromptTime: '12:30' as string,
   liquidGlassTabBarEnabled: false,
   activeWorkoutMetricColumn: 'rpe' as ActiveWorkoutMetricColumn,
   diarySummaryVisible: false,
@@ -99,6 +103,10 @@ export type AppPreferencesData = {
   waterReminderIntervalHours: WaterReminderIntervalHours;
   waterReminderWindowStart: string;
   waterReminderWindowEnd: string;
+  mealCaptureReminderEnabled: boolean;
+  mealCaptureWindowStart: string;
+  mealCaptureWindowEnd: string;
+  mealCapturePromptTime: string;
   liquidGlassTabBarEnabled: boolean;
   activeWorkoutMetricColumn: ActiveWorkoutMetricColumn;
   diarySummaryVisible: boolean;
@@ -137,6 +145,8 @@ export interface AppPreferencesState extends AppPreferencesData {
   setWaterReminderEnabled: (value: boolean) => void;
   setWaterReminderIntervalHours: (value: WaterReminderIntervalHours) => void;
   setWaterReminderWindow: (start: string, end: string) => void;
+  setMealCaptureReminderEnabled: (value: boolean) => void;
+  setMealCaptureWindow: (start: string, end: string, prompt: string) => void;
   setLiquidGlassTabBarEnabled: (value: boolean) => void;
   setActiveWorkoutMetricColumn: (value: ActiveWorkoutMetricColumn) => void;
   setDiarySummaryVisible: (value: boolean) => void;
@@ -228,6 +238,14 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         set({ waterReminderIntervalHours: value }),
       setWaterReminderWindow: (start, end) =>
         set({ waterReminderWindowStart: start, waterReminderWindowEnd: end }),
+      setMealCaptureReminderEnabled: (value) =>
+        set({ mealCaptureReminderEnabled: value }),
+      setMealCaptureWindow: (start, end, prompt) =>
+        set({
+          mealCaptureWindowStart: start,
+          mealCaptureWindowEnd: end,
+          mealCapturePromptTime: prompt,
+        }),
       setLiquidGlassTabBarEnabled: (value) =>
         set({ liquidGlassTabBarEnabled: value }),
       setActiveWorkoutMetricColumn: (value) =>
@@ -281,6 +299,10 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         waterReminderIntervalHours: state.waterReminderIntervalHours,
         waterReminderWindowStart: state.waterReminderWindowStart,
         waterReminderWindowEnd: state.waterReminderWindowEnd,
+        mealCaptureReminderEnabled: state.mealCaptureReminderEnabled,
+        mealCaptureWindowStart: state.mealCaptureWindowStart,
+        mealCaptureWindowEnd: state.mealCaptureWindowEnd,
+        mealCapturePromptTime: state.mealCapturePromptTime,
         liquidGlassTabBarEnabled: state.liquidGlassTabBarEnabled,
         // Older persisted blobs without these keys backfill via the default
         // shallow merge — no version bump needed.

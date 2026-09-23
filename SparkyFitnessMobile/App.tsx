@@ -51,6 +51,7 @@ import {
   SafeWorkoutPresetForm,
   SafeFoodScan,
   SafeQuickMealPhoto,
+  SafeMovementBreak,
   SafeFoodPhotoIntro,
   SafeMealAdd,
   SafeFoodEntryView,
@@ -124,6 +125,7 @@ import ActiveWorkoutBar, {
 import { ActiveWorkoutTransitionScreenLayout } from './src/components/ActiveWorkoutTransitionProbe';
 import ActiveWorkoutKeepAwake from './src/components/ActiveWorkoutKeepAwake';
 import MedicationReminderReconciler from './src/components/MedicationReminderReconciler';
+import NutritionEngagementCoordinator from './src/components/NutritionEngagementCoordinator';
 import { useNativeIOSTabsActive, useNativeIOSHeadersActive } from './src/services/nativeTabBarPreference';
 import { useWidgetLanguageRefresh } from './src/hooks/useWidgetLanguageRefresh';
 import { useIOSWidgetLanguageRefresh } from './src/hooks/useIOSWidgetLanguageRefresh';
@@ -302,6 +304,7 @@ function AppContent() {
         },
         FoodScan: 'scan',
         QuickMealPhoto: 'meal-photo',
+        MovementBreak: 'movement-break',
         FoodSearch: 'search',
         // Tapping the workout Live Activity opens its associated URL.
         ActiveWorkout: 'active-workout',
@@ -329,6 +332,7 @@ function AppContent() {
     >
       <WatchCheckInGate />
       <NutritionActionSyncGate />
+      <NutritionEngagementCoordinator />
       <SafeAreaProvider>
         {/* Inside SafeAreaProvider on purpose: the viewer positions its close
             button against the insets, so mounting it at the app root crashes
@@ -558,6 +562,13 @@ function AppContent() {
             name="QuickMealPhoto"
             component={SafeQuickMealPhoto}
             options={{ headerShown: false, presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="MovementBreak"
+            component={SafeMovementBreak}
+            options={createStackScreenOptions(t('engagement.breakTitle', {
+              defaultValue: 'Movement break',
+            }), { headerBackButtonDisplayMode: 'minimal' })}
           />
           <Stack.Screen
             name="FoodPhotoIntro"

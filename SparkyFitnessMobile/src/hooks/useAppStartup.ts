@@ -21,7 +21,9 @@ import {
   registerLocalizedNotificationPresentation,
 } from '../services/notifications';
 import { initMedicationNotificationActions } from '../services/medicationNotificationHandler';
+import { initNutritionEngagementResponses } from '../services/nutritionEngagementReminders';
 import { initWorkoutLiveActivity } from '../services/workoutLiveActivity';
+import { initWellbeingLiveActivity } from '../services/wellbeingLiveActivity';
 import { ensureTimezoneBootstrapped } from '../services/api/preferencesApi';
 
 interface AppStartupArgs {
@@ -71,6 +73,7 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
 
     initWorkoutNotificationActions();
     initMedicationNotificationActions();
+    initNutritionEngagementResponses();
 
     // iOS-only (no-op on Android): keeps the workout Live Activity in sync
     // with the active-workout store.
@@ -81,6 +84,7 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
         'ERROR'
       );
     });
+    initWellbeingLiveActivity();
 
     // Initialize log service (warms cache, prunes old logs, registers AppState listener)
     initLogService().catch((error) => {
