@@ -85,8 +85,9 @@ export const isPermittedHttpUrl = (url: string): boolean => {
 /**
  * Returns a user-facing error when the server URL must use HTTPS but doesn't,
  * otherwise null. HTTPS always passes (including IP hosts with self-signed
- * certs). Plain HTTP is accepted only for private/LAN hosts during development;
- * production always requires HTTPS.
+ * certs). Plain HTTP is accepted for private/LAN hosts during development or
+ * for one explicitly configured test origin in a development-variant build.
+ * Production variants always require HTTPS.
  */
 export const getInsecureUrlError = (
   url: string,

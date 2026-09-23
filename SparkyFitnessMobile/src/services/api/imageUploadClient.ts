@@ -55,7 +55,7 @@ export async function postImageMultipart<T>(params: {
   if (!config) throw new Error('Server configuration not found.');
   const baseUrl = normalizeUrl(config.url);
   // Same transport guard `apiFetch` applies: these requests carry auth headers
-  // and user photos, so never send them over plaintext in a release build.
+  // and user photos, so production variants never send them over plaintext.
   if (
     baseUrl.toLowerCase().startsWith('http://') &&
     !isPermittedHttpUrl(baseUrl)

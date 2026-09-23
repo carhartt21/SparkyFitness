@@ -66,6 +66,26 @@ describe('offline favorite cache', () => {
     expect(refreshed.mealTypes).toHaveLength(1);
   });
 
+  test('server null nutrients stay unknown while known zero is retained', async () => {
+    const serverFood = {
+      ...food,
+      default_variant: {
+        ...food.default_variant,
+        saturated_fat: null,
+        sodium: null,
+        custom_nutrients: null,
+        sugars: 0,
+      },
+    } as unknown as FoodItem;
+    await cacheFavoriteFoods(owner, [serverFood]);
+    const variant = (await readNutritionFavoriteCache(owner)).foods[0]
+      .default_variant;
+    expect(variant).not.toHaveProperty('saturated_fat');
+    expect(variant).not.toHaveProperty('sodium');
+    expect(variant).not.toHaveProperty('custom_nutrients');
+    expect(variant.sugars).toBe(0);
+  });
+
   test('storage failure does not claim a favorite was cached', async () => {
     const setItem = jest.spyOn(AsyncStorage, 'setItem');
     setItem.mockRejectedValueOnce(new Error('disk full'));

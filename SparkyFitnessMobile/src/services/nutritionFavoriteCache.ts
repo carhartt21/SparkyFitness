@@ -9,6 +9,10 @@ const keyFor = (identity: NutritionActionIdentity) =>
   `${PREFIX}${encodeURIComponent(identity.serverConfigId)}/${encodeURIComponent(identity.userId)}`;
 
 const nutrient = z.number().finite();
+// The server serializes absent optional variant nutrients as JSON null.
+// Local snapshots omit them; absence must never become a numeric zero.
+const known = <T>(value: T | null | undefined): T | undefined =>
+  value ?? undefined;
 const variantSchema = z.strictObject({
   id: z.string().optional(),
   serving_size: nutrient.positive(),
@@ -134,21 +138,21 @@ export function cacheFavoriteFoods(
         protein: food.default_variant.protein,
         carbs: food.default_variant.carbs,
         fat: food.default_variant.fat,
-        saturated_fat: food.default_variant.saturated_fat,
-        sodium: food.default_variant.sodium,
-        dietary_fiber: food.default_variant.dietary_fiber,
-        sugars: food.default_variant.sugars,
-        trans_fat: food.default_variant.trans_fat,
-        potassium: food.default_variant.potassium,
-        calcium: food.default_variant.calcium,
-        iron: food.default_variant.iron,
-        caffeine_mg: food.default_variant.caffeine_mg,
-        water_ml: food.default_variant.water_ml,
-        alcohol_g: food.default_variant.alcohol_g,
-        cholesterol: food.default_variant.cholesterol,
-        vitamin_a: food.default_variant.vitamin_a,
-        vitamin_c: food.default_variant.vitamin_c,
-        custom_nutrients: food.default_variant.custom_nutrients,
+        saturated_fat: known(food.default_variant.saturated_fat),
+        sodium: known(food.default_variant.sodium),
+        dietary_fiber: known(food.default_variant.dietary_fiber),
+        sugars: known(food.default_variant.sugars),
+        trans_fat: known(food.default_variant.trans_fat),
+        potassium: known(food.default_variant.potassium),
+        calcium: known(food.default_variant.calcium),
+        iron: known(food.default_variant.iron),
+        caffeine_mg: known(food.default_variant.caffeine_mg),
+        water_ml: known(food.default_variant.water_ml),
+        alcohol_g: known(food.default_variant.alcohol_g),
+        cholesterol: known(food.default_variant.cholesterol),
+        vitamin_a: known(food.default_variant.vitamin_a),
+        vitamin_c: known(food.default_variant.vitamin_c),
+        custom_nutrients: known(food.default_variant.custom_nutrients),
       },
     })
   );
