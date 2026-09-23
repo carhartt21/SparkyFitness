@@ -197,6 +197,46 @@ describe('nutrition captures', () => {
     expect(repository.markNutritionCaptureComplete).toHaveBeenCalledTimes(2);
   });
 
+  it('keeps the reviewed search portion and nutrient snapshot on the linked diary entry', async () => {
+    const operationId = '4576bce5-dbd8-4eba-a702-f503d93ba4ae';
+    vi.mocked(repository.getNutritionCapture).mockResolvedValue(saved);
+    vi.mocked(repository.getNutritionCaptureFoodEntry).mockResolvedValue(null);
+    vi.mocked(foodEntryService.createFoodEntry).mockResolvedValue({
+      id: 'entry-1',
+      nutrition_capture_id: captureId,
+      client_operation_id: operationId,
+    } as never);
+    const food = {
+      meal_type_id: 'Lunch',
+      food_id: '128d61d0-69e3-4d33-aa42-03b0969ea77f',
+      variant_id: '494c63d3-d565-499e-91e8-8fce1a935b29',
+      quantity: 42,
+      unit: 'g',
+      food_name: 'Synthetic bread',
+      serving_size: 100,
+      serving_unit: 'g',
+      calories: 250,
+      protein: 12,
+      carbs: 30,
+      fat: 4,
+      dietary_fiber: 7,
+    };
+    const response = await request(app)
+      .post(`/api/nutrition-captures/${captureId}/complete`)
+      .send({ clientOperationId: operationId, food });
+    expect(response.status).toBe(200);
+    expect(foodEntryService.createFoodEntry).toHaveBeenCalledWith(
+      'user-a',
+      'user-a',
+      expect.objectContaining({
+        ...food,
+        entry_date: payload.entryDate,
+        nutrition_capture_id: captureId,
+        client_operation_id: operationId,
+      })
+    );
+  });
+
   it('rejects a second completion with another operation ID', async () => {
     vi.mocked(repository.getNutritionCapture).mockResolvedValue(saved);
     vi.mocked(repository.getNutritionCaptureFoodEntry).mockResolvedValue({

@@ -42,6 +42,8 @@ const completeSchema = z.strictObject({
     meal_type_id: z.string().min(1),
     quantity: z.number().finite().positive(),
     unit: z.string().min(1),
+    food_id: z.string().optional(),
+    variant_id: z.string().optional(),
     food_name: z.string().min(1),
     brand_name: z.string().optional(),
     serving_size: z.number().finite().positive(),
@@ -50,6 +52,24 @@ const completeSchema = z.strictObject({
     protein: z.number().finite().nonnegative().optional(),
     carbs: z.number().finite().nonnegative().optional(),
     fat: z.number().finite().nonnegative().optional(),
+    dietary_fiber: z.number().finite().nonnegative().optional(),
+    saturated_fat: z.number().finite().nonnegative().optional(),
+    sodium: z.number().finite().nonnegative().optional(),
+    sugars: z.number().finite().nonnegative().optional(),
+    trans_fat: z.number().finite().nonnegative().optional(),
+    potassium: z.number().finite().nonnegative().optional(),
+    calcium: z.number().finite().nonnegative().optional(),
+    iron: z.number().finite().nonnegative().optional(),
+    caffeine_mg: z.number().finite().nonnegative().optional(),
+    water_ml: z.number().finite().nonnegative().optional(),
+    alcohol_g: z.number().finite().nonnegative().optional(),
+    cholesterol: z.number().finite().nonnegative().optional(),
+    vitamin_a: z.number().finite().nonnegative().optional(),
+    vitamin_c: z.number().finite().nonnegative().optional(),
+    custom_nutrients: z
+      .record(z.string(), z.union([z.string(), z.number()]))
+      .nullable()
+      .optional(),
   }),
 });
 

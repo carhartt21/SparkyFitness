@@ -513,8 +513,18 @@ async function deleteFoodEntry(entryId: string, userId: string) {
   const client = await getClient(userId); // User-specific operation (RLS will handle access)
   try {
     const result = await client.query(
-      'DELETE FROM food_entries WHERE id = $1 RETURNING id',
-      [entryId]
+      `WITH deleted AS (
+         DELETE FROM food_entries WHERE id = $1
+         RETURNING id, nutrition_capture_id
+       ), reset_capture AS (
+         UPDATE nutrition_captures
+            SET completion_state = 'incomplete', updated_at = now()
+          WHERE id IN (SELECT nutrition_capture_id FROM deleted)
+            AND user_id = $2
+         RETURNING id
+       )
+       SELECT id FROM deleted`,
+      [entryId, userId]
     );
     return result.rowCount > 0;
   } finally {
