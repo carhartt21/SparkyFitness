@@ -3293,6 +3293,13 @@
     }
   },
   "foodSearch": {
+    "comparison": {
+      "per100g": "per 100 g",
+      "per100ml": "per 100 ml",
+      "perServing": "per serving",
+      "energy": "{{value}} kcal {{basis}}",
+      "macros": "P {{protein}} g   C {{carbs}} g   F {{fat}} g"
+    },
     "menu": {
       "newFood": "New Food",
       "newMeal": "New Meal",
