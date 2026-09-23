@@ -13,6 +13,7 @@ import {
   SectionList,
   TextInput,
   Platform,
+  Linking,
 } from 'react-native';
 import Button from '../components/ui/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -1124,24 +1125,60 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     section,
   }: {
     section: ResultSection;
-  }) => (
-    <FoodSearchSectionHeader
-      section={section}
-      providerOptions={providerOptions}
-      selectedProvider={selectedProvider}
-      selectedProviderName={selectedProviderName}
-      isAllProviders={isAllProviders}
-      anyProviderLoading={anyProviderLoading}
-      isOnlineSearching={isOnlineSearching}
-      expandedProviders={expandedProviders}
-      getProviderColor={getProviderColor}
-      accentColor={accentColor}
-      textMuted={textMuted}
-      textSecondary={textSecondary}
-      onSelectProvider={handleSelectProvider}
-      onToggleProvider={toggleProvider}
-    />
-  );
+  }) => {
+    const isBls =
+      (section.kind === 'online' && selectedProviderType === 'bls4') ||
+      (section.kind === 'online-provider' &&
+        section.provider?.provider_type === 'bls4');
+    return (
+      <View>
+        <FoodSearchSectionHeader
+          section={section}
+          providerOptions={providerOptions}
+          selectedProvider={selectedProvider}
+          selectedProviderName={selectedProviderName}
+          isAllProviders={isAllProviders}
+          anyProviderLoading={anyProviderLoading}
+          isOnlineSearching={isOnlineSearching}
+          expandedProviders={expandedProviders}
+          getProviderColor={getProviderColor}
+          accentColor={accentColor}
+          textMuted={textMuted}
+          textSecondary={textSecondary}
+          onSelectProvider={handleSelectProvider}
+          onToggleProvider={toggleProvider}
+        />
+        {isBls && (
+          <Text className="px-4 pb-1 text-xs text-text-muted">
+            {t('foodSearch.bls4Attribution', {
+              defaultValue: 'BLS 4.0 · Max Rubner-Institut · per 100 g · ',
+            })}
+            <Text
+              className="text-primary"
+              accessibilityRole="link"
+              onPress={() => {
+                void Linking.openURL('https://www.blsdb.de/download');
+              }}
+            >
+              {t('foodSearch.bls4Source', { defaultValue: 'Source' })}
+            </Text>
+            {' · '}
+            <Text
+              className="text-primary"
+              accessibilityRole="link"
+              onPress={() => {
+                void Linking.openURL(
+                  'https://creativecommons.org/licenses/by/4.0/'
+                );
+              }}
+            >
+              {t('foodSearch.bls4License', { defaultValue: 'CC BY 4.0' })}
+            </Text>
+          </Text>
+        )}
+      </View>
+    );
+  };
 
   const renderResultSectionFooter = ({
     section,

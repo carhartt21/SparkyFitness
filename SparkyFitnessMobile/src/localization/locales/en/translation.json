@@ -3305,6 +3305,9 @@
     }
   },
   "foodSearch": {
+    "bls4Attribution": "BLS 4.0 · Max Rubner-Institut · per 100 g · ",
+    "bls4Source": "Source",
+    "bls4License": "CC BY 4.0",
     "comparison": {
       "per100g": "per 100 g",
       "per100ml": "per 100 ml",

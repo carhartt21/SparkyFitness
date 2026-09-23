@@ -3156,6 +3156,9 @@
     }
   },
   "foodSearch": {
+    "bls4Attribution": "BLS 4.0 · Max Rubner-Institut · je 100 g · ",
+    "bls4Source": "Quelle",
+    "bls4License": "CC BY 4.0",
     "menu": {
       "newFood": "Neu Ernährung",
       "newMeal": "Neu Mahlzeit",
