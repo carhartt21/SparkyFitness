@@ -1948,6 +1948,16 @@
     "caloriesUnit": "Cal",
     "nutritionBreakdown": "{{label}} nutrition breakdown"
   },
+  "nutritionOutbox": {
+    "title": "Saved on this device",
+    "storageError": "Some saved entries could not be read. They were kept for recovery.",
+    "attention": "Needs attention",
+    "loadingDiary": "Synced; loading diary",
+    "pending": "Waiting to sync",
+    "unknownNutrition": "Nutrition unknown",
+    "calories": "{{value}} Cal",
+    "offline": "Server unavailable. Saved entries will sync when it returns."
+  },
   "exerciseSummary": {
     "tapToAdd": "Tap to add exercise",
     "addExercise": "Add exercise",

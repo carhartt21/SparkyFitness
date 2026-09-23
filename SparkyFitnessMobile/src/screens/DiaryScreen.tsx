@@ -31,6 +31,7 @@ import DiaryCalorieMacroSummary from '../components/DiaryCalorieMacroSummary';
 import EmptyDayIllustration from '../components/EmptyDayIllustration';
 import ExerciseSummary from '../components/ExerciseSummary';
 import FoodSummary from '../components/FoodSummary';
+import PendingNutritionActions from '../components/PendingNutritionActions';
 import MeasurementsSummary from '../components/MeasurementsSummary';
 import ServingAdjustSheet, {
   type ServingAdjustSheetRef,
@@ -57,6 +58,7 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { usePreferences } from '../hooks/usePreferences';
 import { useSleepDay } from '../hooks/useSleepDay';
 import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
+import { useNutritionDiaryActions } from '../hooks/useNutritionDiaryActions';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import type { FoodEntry } from '../types/foodEntries';
@@ -76,6 +78,8 @@ type DiaryScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Diary'>,
   NativeStackScreenProps<RootStackParamList>
 >;
+
+const EMPTY_FOOD_ENTRIES: FoodEntry[] = [];
 
 const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const { t, i18n: translationI18n } = useTranslation();
@@ -249,6 +253,14 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     date: selectedDate,
     enabled: isConnected,
   });
+  const {
+    actions: localFoodActions,
+    identity: nutritionIdentity,
+    storageError: nutritionStorageError,
+  } = useNutritionDiaryActions(
+    selectedDate,
+    summary?.foodEntries ?? EMPTY_FOOD_ENTRIES
+  );
   const { measurements, refetch: refetchMeasurements } = useMeasurements({
     date: selectedDate,
     enabled: isConnected,
@@ -339,6 +351,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       !isSleepLoading &&
       wakeUp === null &&
       summary?.foodEntries.length === 0 &&
+      localFoodActions.length === 0 &&
       !hasSupplementNutrition(summary?.supplementTotals) && //A logged supplement is something the user recorded for this day, so the day is not empty even with no food, exercise or measurement.
       summary?.exerciseEntries.length === 0 &&
       !hasAnyMeasurement &&
@@ -355,6 +368,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     isSleepLoading,
     wakeUp,
     summary,
+    localFoodActions,
     hasAnyMeasurement,
     isPhotosLoading,
     dayPhotos,
@@ -364,6 +378,25 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
   const renderContent = () => {
     if (!isConnectionLoading && !isConnected) {
+      if (localFoodActions.length > 0 || nutritionStorageError) {
+        return (
+          <ScrollView
+            className="flex-1 bg-background"
+            contentContainerStyle={{ padding: 16 }}
+          >
+            <PendingNutritionActions
+              actions={localFoodActions}
+              storageError={nutritionStorageError}
+            />
+            <Text className="text-sm text-text-muted">
+              {t('nutritionOutbox.offline', {
+                defaultValue:
+                  'Server unavailable. Saved entries will sync when it returns.',
+              })}
+            </Text>
+          </ScrollView>
+        );
+      }
       return (
         <StatusView
           icon="cloud-offline"
@@ -387,6 +420,16 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     // entries arrive, so a slow `/api/sleep` fills them in late instead of holding the
     // food and exercise that already loaded behind "Loading diary...".
     if (isLoading || isConnectionLoading) {
+      if (localFoodActions.length > 0) {
+        return (
+          <View className="flex-1 bg-background p-4">
+            <PendingNutritionActions
+              actions={localFoodActions}
+              storageError={nutritionStorageError}
+            />
+          </View>
+        );
+      }
       return (
         <StatusView
           loading
@@ -442,6 +485,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           />
         }
       >
+        <PendingNutritionActions
+          actions={localFoodActions}
+          storageError={nutritionStorageError}
+        />
         {(summary.foodEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
           summary.exerciseEntries.length > 0 ||
@@ -570,7 +617,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
   const content = (
     <>
-      {!isConnectionLoading && isConnected ? (
+      {!isConnectionLoading && (isConnected || nutritionIdentity) ? (
         <DateNavigator
           title={t('diary.title', { defaultValue: 'Diary' })}
           selectedDate={selectedDate}

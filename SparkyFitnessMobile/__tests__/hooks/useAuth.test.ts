@@ -24,6 +24,7 @@ jest.mock('../../src/services/api/authService', () => ({
 
 jest.mock('../../src/services/storage', () => ({
   clearServerConfigCache: jest.fn(),
+  getActiveServerConfigId: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('expo-image', () => ({

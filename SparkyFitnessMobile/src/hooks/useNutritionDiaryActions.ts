@@ -1,0 +1,82 @@
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
+import {
+  acknowledgeNutritionActionVisible,
+  listNutritionActions,
+  subscribeNutritionActions,
+  type NutritionActionIdentity,
+  type PendingNutritionAction,
+} from '../services/nutritionActionOutbox';
+import {
+  getActiveNutritionIdentity,
+  subscribeNutritionIdentity,
+} from '../services/nutritionIdentity';
+import type { FoodEntry } from '../types/foodEntries';
+import {
+  projectLocalFoodActions,
+  reconciledFoodActions,
+} from '../utils/nutritionDiaryProjection';
+
+/** Reads durable actions independently of server connection or React Query. */
+export function useNutritionDiaryActions(day: string, remote: FoodEntry[]) {
+  const [identity, setIdentity] = useState<NutritionActionIdentity | null>(
+    null
+  );
+  const [actions, setActions] = useState<PendingNutritionAction[]>([]);
+  const [error, setError] = useState(false);
+  const generation = useRef(0);
+
+  const refresh = useCallback(async () => {
+    const currentGeneration = ++generation.current;
+    try {
+      const current = await getActiveNutritionIdentity();
+      const stored = current ? await listNutritionActions(current) : [];
+      if (currentGeneration !== generation.current) return;
+      setIdentity(current);
+      setActions(stored);
+      setError(false);
+    } catch {
+      if (currentGeneration !== generation.current) return;
+      // Preserve the last rendered rows and surface the storage problem;
+      // treating a corrupt outbox as empty would hide unsynced intake.
+      setError(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Defer the initial read until after the subscription is installed; the
+    // asynchronous callback also avoids a render cascade in this effect.
+    void Promise.resolve().then(refresh);
+    const stopActions = subscribeNutritionActions(() => void refresh());
+    const stopIdentity = subscribeNutritionIdentity(() => void refresh());
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+    return () => {
+      generation.current += 1;
+      stopActions();
+      stopIdentity();
+      appState.remove();
+    };
+  }, [refresh]);
+
+  const visible = useMemo(
+    () => projectLocalFoodActions(day, actions, remote),
+    [day, actions, remote]
+  );
+
+  useEffect(() => {
+    if (!identity) return;
+    for (const action of reconciledFoodActions(actions, remote)) {
+      if (action.serverIdentity) {
+        void acknowledgeNutritionActionVisible(
+          identity,
+          action.clientOperationId,
+          action.serverIdentity
+        ).catch(() => setError(true));
+      }
+    }
+  }, [identity, actions, remote]);
+
+  return { actions: visible, identity, storageError: error };
+}

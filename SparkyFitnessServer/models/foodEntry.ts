@@ -641,6 +641,7 @@ async function getFoodEntriesByDate(userId: string, selectedDate: string) {
       `SELECT
         fe.id,
         fe.user_id,
+        fe.client_operation_id,
         fe.food_id,
         fe.meal_id,
         mt.name as meal_type, fe.meal_type_id,
@@ -711,6 +712,7 @@ async function getFoodEntriesByDateAndMealType(
     const result = await client.query(
       `SELECT
         fe.id, 
+        fe.client_operation_id,
         fe.food_id, 
         fe.meal_id,
         mt.name as meal_type, fe.meal_type_id,
