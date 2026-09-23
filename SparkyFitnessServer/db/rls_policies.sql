@@ -35,6 +35,8 @@ BEGIN
     'external_data_providers',
     'family_access',
     'food_entries',
+    'nutrition_captures',
+    'nutrition_capture_images',
     'food_entry_meals',
     'food_favorites',
     'food_variants',
@@ -763,11 +765,39 @@ WITH CHECK (
     (meal_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.meals m WHERE m.id = food_entries.meal_id))
   )
 );
+-- These standalone logging-time snapshots are only writable by their owner.
+-- Keep this here, not solely in a migration: startup purges all policies.
+CREATE POLICY food_entries_offline_snapshot_insert_policy
+ON public.food_entries FOR INSERT TO PUBLIC
+WITH CHECK (
+  user_id = authenticated_user_id()
+  AND client_operation_id IS NOT NULL
+  AND food_id IS NULL AND meal_id IS NULL
+  AND food_name IS NOT NULL AND btrim(food_name) <> ''
+  AND serving_size > 0 AND calories >= 0
+);
 CREATE POLICY update_policy ON public.food_entries FOR UPDATE TO PUBLIC
 USING (has_diary_access(user_id))
 WITH CHECK (has_diary_access(user_id));
 CREATE POLICY delete_policy ON public.food_entries FOR DELETE TO PUBLIC
 USING (has_diary_access(user_id));
+
+-- A meal capture contains private images and belongs only to its author;
+-- family diary delegation does not grant access to the photo occurrence.
+CREATE POLICY nutrition_captures_owner ON public.nutrition_captures
+FOR ALL TO PUBLIC
+USING (user_id = authenticated_user_id())
+WITH CHECK (user_id = authenticated_user_id());
+CREATE POLICY nutrition_capture_images_owner ON public.nutrition_capture_images
+FOR ALL TO PUBLIC
+USING (
+  EXISTS (SELECT 1 FROM public.nutrition_captures c
+    WHERE c.id = capture_id AND c.user_id = authenticated_user_id())
+)
+WITH CHECK (
+  EXISTS (SELECT 1 FROM public.nutrition_captures c
+    WHERE c.id = capture_id AND c.user_id = authenticated_user_id())
+);
 
 CREATE POLICY select_policy ON public.food_variants FOR SELECT TO PUBLIC
 USING (

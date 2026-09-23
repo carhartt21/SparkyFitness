@@ -177,13 +177,13 @@ describe('food-entry client operation idempotency', () => {
 
   it('permits only owner-written standalone snapshots through the operation contract', () => {
     const sql = readFileSync(
-      new URL(
-        '../db/migrations/20260923010000_allow_offline_food_snapshots.sql',
-        import.meta.url
-      ),
+      new URL('../db/rls_policies.sql', import.meta.url),
       'utf8'
     );
-    expect(sql).toContain('user_id = public.authenticated_user_id()');
+    expect(sql).toContain(
+      'CREATE POLICY food_entries_offline_snapshot_insert_policy'
+    );
+    expect(sql).toContain('user_id = authenticated_user_id()');
     expect(sql).toContain('client_operation_id IS NOT NULL');
     expect(sql).toContain('food_id IS NULL');
     expect(sql).toContain('meal_id IS NULL');

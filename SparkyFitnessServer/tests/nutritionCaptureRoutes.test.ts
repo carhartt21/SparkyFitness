@@ -119,8 +119,17 @@ describe('nutrition captures', () => {
     expect(sql).toContain('completion_state');
     expect(sql).not.toMatch(/calories\s+numeric/i);
     expect(sql).toContain('ENABLE ROW LEVEL SECURITY');
-    expect(sql).toContain('public.authenticated_user_id()');
-    expect(sql).toContain('nutrition_capture_images_owner');
+    const startupPolicies = readFileSync(
+      new URL('../db/rls_policies.sql', import.meta.url),
+      'utf8'
+    );
+    expect(startupPolicies).toContain('CREATE POLICY nutrition_captures_owner');
+    expect(startupPolicies).toContain(
+      'CREATE POLICY nutrition_capture_images_owner'
+    );
+    expect(startupPolicies).toContain(
+      'CREATE POLICY food_entries_offline_snapshot_insert_policy'
+    );
   });
 
   it('links one food snapshot to the same owner and capture', () => {

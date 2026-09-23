@@ -28,25 +28,5 @@ CREATE INDEX IF NOT EXISTS idx_nutrition_capture_images_capture
 
 ALTER TABLE public.nutrition_captures ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.nutrition_capture_images ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS nutrition_captures_owner ON public.nutrition_captures;
-CREATE POLICY nutrition_captures_owner ON public.nutrition_captures
-  FOR ALL TO PUBLIC
-  USING (user_id = public.authenticated_user_id())
-  WITH CHECK (user_id = public.authenticated_user_id());
-
-DROP POLICY IF EXISTS nutrition_capture_images_owner ON public.nutrition_capture_images;
-CREATE POLICY nutrition_capture_images_owner ON public.nutrition_capture_images
-  FOR ALL TO PUBLIC
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.nutrition_captures c
-      WHERE c.id = capture_id AND c.user_id = public.authenticated_user_id()
-    )
-  )
-  WITH CHECK (
-    EXISTS (
-      SELECT 1 FROM public.nutrition_captures c
-      WHERE c.id = capture_id AND c.user_id = public.authenticated_user_id()
-    )
-  );
+-- Owner policies are installed by db/rls_policies.sql after migrations.
+-- That file is reapplied on every startup and purges old policies first.
