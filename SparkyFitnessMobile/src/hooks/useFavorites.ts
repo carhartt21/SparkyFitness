@@ -1,13 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
 import { fetchFavorites } from '../services/api/favoritesApi';
 import { favoritesQueryKey } from './queryKeys';
+import { fetchProfile } from '../services/api/profileApi';
+import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
+import { cacheFavoriteFoods } from '../services/nutritionFavoriteCache';
 
 export function useFavorites(options?: { enabled?: boolean }) {
   const { enabled = true } = options ?? {};
 
   const query = useQuery({
     queryKey: favoritesQueryKey,
-    queryFn: fetchFavorites,
+    queryFn: async () => {
+      const favorites = await fetchFavorites();
+      try {
+        let identity = await getActiveNutritionIdentity();
+        if (!identity) {
+          await fetchProfile();
+          identity = await getActiveNutritionIdentity();
+        }
+        if (identity)
+          await cacheFavoriteFoods(identity, favorites.favoriteFoods);
+      } catch {
+        // Online favorites still render when device storage is unavailable.
+        // No cached data is overwritten by a failed write.
+      }
+      return favorites;
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
   });
