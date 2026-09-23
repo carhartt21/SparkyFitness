@@ -13,8 +13,8 @@ import {
 } from '../stores/appPreferencesStore';
 import { computeReminderSchedule } from '../utils/hydrationReminder';
 
-// Reconciliation runs in exactly one mounted place — the headless
-// `HydrationReminderReconciler` on the Dashboard — and persists the scheduled
+// Reconciliation runs in exactly one mounted place — the app-scope
+// `HydrationReminderReconciler` — and persists the scheduled
 // chain so an unchanged input never reschedules. Every operation goes through
 // one promise queue: a log tap and an app resume can both reconcile at once,
 // and two interleaved passes would each schedule a chain.

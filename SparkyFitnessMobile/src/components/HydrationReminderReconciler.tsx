@@ -1,4 +1,5 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { AppState } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
 
 import { useDailySummary } from '../hooks/useDailySummary';
@@ -24,7 +25,20 @@ const HydrationReminderReconciler: React.FC = () => {
   );
   const { isConnected } = useServerConnection();
   const queriesEnabled = remindersActive && isConnected;
-  const today = getTodayDate();
+  const [today, setToday] = useState(getTodayDate);
+
+  useEffect(() => {
+    const refreshDay = () => setToday(getTodayDate());
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') refreshDay();
+    });
+    // Re-evaluate the local day while the app remains open across midnight.
+    const interval = setInterval(refreshDay, 60_000);
+    return () => {
+      subscription.remove();
+      clearInterval(interval);
+    };
+  }, []);
 
   const { summary, refetch: refetchSummary } = useDailySummary({
     date: today,

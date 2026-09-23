@@ -125,6 +125,7 @@ import ActiveWorkoutBar, {
 import { ActiveWorkoutTransitionScreenLayout } from './src/components/ActiveWorkoutTransitionProbe';
 import ActiveWorkoutKeepAwake from './src/components/ActiveWorkoutKeepAwake';
 import MedicationReminderReconciler from './src/components/MedicationReminderReconciler';
+import HydrationReminderReconciler from './src/components/HydrationReminderReconciler';
 import NutritionEngagementCoordinator from './src/components/NutritionEngagementCoordinator';
 import { useNativeIOSTabsActive, useNativeIOSHeadersActive } from './src/services/nativeTabBarPreference';
 import { useWidgetLanguageRefresh } from './src/hooks/useWidgetLanguageRefresh';
@@ -333,6 +334,7 @@ function AppContent() {
       <WatchCheckInGate />
       <NutritionActionSyncGate />
       <NutritionEngagementCoordinator />
+      <HydrationReminderReconciler />
       <SafeAreaProvider>
         {/* Inside SafeAreaProvider on purpose: the viewer positions its close
             button against the insets, so mounting it at the app root crashes
