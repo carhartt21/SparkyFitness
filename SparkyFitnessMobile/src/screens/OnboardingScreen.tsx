@@ -42,6 +42,7 @@ import {
 } from '../services/api/authService';
 import { saveServerConfig } from '../services/storage';
 import { addLog } from '../services/LogService';
+import { fetchProfile } from '../services/api/profileApi';
 import { normalizeUrl, getInsecureUrlError } from '../utils/serverUrl';
 import { pasteFromClipboard } from '../utils/keyboardFocus';
 import {
@@ -163,7 +164,14 @@ export default function OnboardingScreen({ navigation }: Props) {
     navigation.replace('Tabs', { screen: 'Settings' });
   };
 
-  const finishWithConnection = () => {
+  const finishWithConnection = async () => {
+    // Establish the account-scoped offline action partition before exposing
+    // quick capture. Diary queries may not have fetched the profile yet.
+    try {
+      await fetchProfile();
+    } catch {
+      addLog('Nutrition offline identity is pending profile fetch.', 'WARNING');
+    }
     void markCurrentVersionSeen();
     queryClient.invalidateQueries({ queryKey: serverConnectionQueryKey });
     navigation.replace('Tabs', { screen: 'Dashboard' });

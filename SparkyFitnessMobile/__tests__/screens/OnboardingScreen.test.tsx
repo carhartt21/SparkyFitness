@@ -5,6 +5,7 @@ import OnboardingScreen from '../../src/screens/OnboardingScreen';
 import { login, fetchAuthSettings } from '../../src/services/api/authService';
 import { saveServerConfig } from '../../src/services/storage';
 import { TimeoutError } from '../../src/utils/concurrency';
+import { fetchProfile } from '../../src/services/api/profileApi';
 
 // Mock navigation
 const mockReplace = jest.fn();
@@ -41,6 +42,10 @@ jest.mock('../../src/services/LogService', () => ({
   addLog: jest.fn(),
 }));
 
+jest.mock('../../src/services/api/profileApi', () => ({
+  fetchProfile: jest.fn().mockResolvedValue({ id: 'test-user' }),
+}));
+
 jest.mock('../../src/hooks', () => ({
   queryClient: { invalidateQueries: jest.fn() },
   serverConnectionQueryKey: ['serverConnection'],
@@ -61,6 +66,7 @@ const mockFetchAuthSettings = fetchAuthSettings as jest.MockedFunction<
 describe('OnboardingScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (fetchProfile as jest.Mock).mockResolvedValue({ id: 'test-user' });
     mockFetch.mockReset();
     // Settings fetch fails by default so page-1 navigation exercises the
     // reachability fallback (global fetch), like the pre-existing tests expect.
@@ -297,6 +303,7 @@ describe('OnboardingScreen', () => {
             authType: 'apiKey',
           })
         );
+        expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(mockReplace).toHaveBeenCalledWith('Tabs', {
           screen: 'Dashboard',
         });
@@ -340,6 +347,7 @@ describe('OnboardingScreen', () => {
             sessionToken: 'tok-123',
           })
         );
+        expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(mockReplace).toHaveBeenCalledWith('Tabs', {
           screen: 'Dashboard',
         });
