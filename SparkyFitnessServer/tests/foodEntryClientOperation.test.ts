@@ -174,4 +174,20 @@ describe('food-entry client operation idempotency', () => {
     );
     expect(sql).toContain('WHERE client_operation_id IS NOT NULL');
   });
+
+  it('permits only owner-written standalone snapshots through the operation contract', () => {
+    const sql = readFileSync(
+      new URL(
+        '../db/migrations/20260923010000_allow_offline_food_snapshots.sql',
+        import.meta.url
+      ),
+      'utf8'
+    );
+    expect(sql).toContain('user_id = public.authenticated_user_id()');
+    expect(sql).toContain('client_operation_id IS NOT NULL');
+    expect(sql).toContain('food_id IS NULL');
+    expect(sql).toContain('meal_id IS NULL');
+    expect(sql).toContain('serving_size > 0');
+    expect(sql).toContain('calories >= 0');
+  });
 });
