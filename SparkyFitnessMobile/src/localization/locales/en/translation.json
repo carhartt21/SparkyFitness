@@ -1956,7 +1956,11 @@
     "pending": "Waiting to sync",
     "unknownNutrition": "Nutrition unknown",
     "calories": "{{value}} Cal",
-    "offline": "Server unavailable. Saved entries will sync when it returns."
+    "offline": "Server unavailable. Saved entries will sync when it returns.",
+    "deviceTotals": "Known on this device",
+    "deviceCalories": "{{calories}} kcal · P {{protein}} g · C {{carbs}} g · F {{fat}} g",
+    "unknownCount_one": "{{count}} saved item with unknown calories",
+    "unknownCount_other": "{{count}} saved items with unknown calories"
   },
   "nutritionQuick": {
     "title": "Quick nutrition",

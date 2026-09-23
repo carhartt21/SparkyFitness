@@ -76,6 +76,10 @@ import {
   setNativeHeaderDatePickerOptions,
   type NativeHeaderDatePickerNavigation,
 } from '../utils/nativeHeaderDatePicker';
+import {
+  getPendingNutritionTotals,
+  projectPendingNutritionSummary,
+} from '../utils/nutritionPendingTotals';
 
 type DiaryScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Diary'>,
@@ -270,6 +274,22 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     selectedDate,
     isConnected
   );
+  const pendingNutritionTotals = useMemo(
+    () =>
+      getPendingNutritionTotals(
+        localFoodActions,
+        photoCompletionActions,
+        summary?.foodEntries ?? EMPTY_FOOD_ENTRIES
+      ),
+    [localFoodActions, photoCompletionActions, summary?.foodEntries]
+  );
+  const visibleSummary = useMemo(
+    () =>
+      summary
+        ? projectPendingNutritionSummary(summary, pendingNutritionTotals)
+        : null,
+    [summary, pendingNutritionTotals]
+  );
   const { measurements, refetch: refetchMeasurements } = useMeasurements({
     date: selectedDate,
     enabled: isConnected,
@@ -405,6 +425,34 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             completions={photoCompletionActions}
             completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
           />
+          {(pendingNutritionTotals.knownEnergyCount > 0 ||
+            pendingNutritionTotals.unknownEnergyCount > 0) && (
+            <View className="bg-surface rounded-xl p-4 mb-3">
+              <Text className="text-base font-bold text-text-primary">
+                {t('nutritionOutbox.deviceTotals', {
+                  defaultValue: 'Known on this device',
+                })}
+              </Text>
+              <Text className="text-sm text-text-secondary">
+                {t('nutritionOutbox.deviceCalories', {
+                  defaultValue:
+                    '{{calories}} kcal · P {{protein}} g · C {{carbs}} g · F {{fat}} g',
+                  calories: Math.round(pendingNutritionTotals.calories),
+                  protein: Math.round(pendingNutritionTotals.protein),
+                  carbs: Math.round(pendingNutritionTotals.carbs),
+                  fat: Math.round(pendingNutritionTotals.fat),
+                })}
+              </Text>
+              {pendingNutritionTotals.unknownEnergyCount > 0 && (
+                <Text className="text-sm text-text-muted">
+                  {t('nutritionOutbox.unknownCount', {
+                    defaultValue: '{{count}} saved items with unknown calories',
+                    count: pendingNutritionTotals.unknownEnergyCount,
+                  })}
+                </Text>
+              )}
+            </View>
+          )}
           <PendingNutritionActions
             actions={localFoodActions}
             storageError={nutritionStorageError}
@@ -518,7 +566,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           summary.exerciseEntries.length > 0 ||
           summary.calorieGoal > 0) && (
           <DiaryCalorieMacroSummary
-            summary={summary}
+            summary={visibleSummary ?? summary}
             showNetCarbs={preferences?.show_net_carbs === true}
             customNutrientKeys={customNutrientKeys}
             customNutrients={customNutrients}
