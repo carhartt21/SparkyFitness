@@ -752,6 +752,8 @@ CREATE POLICY modify_policy ON public.family_access FOR ALL TO PUBLIC
 USING (authenticated_user_id() = owner_user_id)
 WITH CHECK (authenticated_user_id() = owner_user_id);
 
+-- client_operation_id is part of the existing diary row. It inherits these
+-- owner/delegate permissions; the unique index is scoped by row user_id.
 CREATE POLICY select_policy ON public.food_entries FOR SELECT TO PUBLIC
 USING (has_diary_read_access(user_id));
 CREATE POLICY insert_policy ON public.food_entries FOR INSERT TO PUBLIC

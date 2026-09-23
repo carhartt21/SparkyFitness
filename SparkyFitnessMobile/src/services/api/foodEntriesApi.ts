@@ -6,6 +6,8 @@ import type {
 } from '@workspace/shared';
 
 export interface CreateFoodEntryPayload {
+  /** Stable UUID reused for every retry of this logical logging action. */
+  client_operation_id?: string;
   meal_type_id: string;
   quantity: number;
   unit: string;

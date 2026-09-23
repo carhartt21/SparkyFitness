@@ -7,6 +7,7 @@ import { clearUserTdeeCache } from '../services/AdaptiveTdeeService.js';
 import {
   CopyReviewedFoodEntriesFromUserBodySchema,
   CopySelectedFoodEntriesFromUserBodySchema,
+  foodEntryClientOperationIdSchema,
   isEntryTimeString,
 } from '@workspace/shared';
 import {
@@ -173,6 +174,22 @@ router.post(
       // Check if creating for another user (explicitly requested)
 
       const targetUserId = req.body.user_id || req.userId;
+
+      // Manual actions are immutable; provider source IDs use a distinct
+      // upsert contract that intentionally refreshes snapshots.
+      if (
+        req.body.client_operation_id !== undefined &&
+        req.body.client_operation_id !== null &&
+        (!foodEntryClientOperationIdSchema.safeParse(
+          req.body.client_operation_id
+        ).success ||
+          (req.body.source !== null && req.body.source !== undefined) ||
+          (req.body.source_id !== null && req.body.source_id !== undefined))
+      ) {
+        return res.status(400).json({
+          error: 'client_operation_id must be a UUID on a manual entry.',
+        });
+      }
 
       if (
         req.body.entry_time !== null &&

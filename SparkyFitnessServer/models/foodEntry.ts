@@ -67,6 +67,10 @@ function reviewedCopyConflict() {
  *           type: string
  *           format: uuid
  *           description: The unique identifier for the food entry.
+ *         client_operation_id:
+ *           type: string
+ *           format: uuid
+ *           description: Optional stable mobile action ID, unique per diary owner. Retrying returns the original entry.
  *         user_id:
  *           type: string
  *           format: uuid
@@ -167,13 +171,21 @@ async function createFoodEntry(
   entryData: FoodEntryInput,
   createdByUserId: string
 ) {
-  log(
-    'info',
-    `createFoodEntry in foodEntry.js: entryData: ${JSON.stringify(entryData)}, createdByUserId: ${createdByUserId}`
-  );
+  // Do not log names, nutrients, notes, or image paths from the request.
   const client = await getClient(entryData.user_id, createdByUserId); // User-specific operation
   try {
     await client.query('BEGIN');
+    if (entryData.client_operation_id) {
+      const existing = await client.query(
+        `SELECT * FROM food_entries
+         WHERE user_id = $1 AND client_operation_id = $2`,
+        [entryData.user_id, entryData.client_operation_id]
+      );
+      if (existing.rows[0]) {
+        await client.query('COMMIT');
+        return existing.rows[0];
+      }
+    }
     let mealTypeId = entryData.meal_type_id;
     if (!mealTypeId && entryData.meal_type) {
       const typeRes = await client.query(
@@ -293,10 +305,10 @@ async function createFoodEntry(
          created_by_user_id, food_name, brand_name, serving_size, serving_unit, calories, protein, carbs, fat,
          saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat, cholesterol, sodium,
          potassium, dietary_fiber, sugars, vitamin_a, vitamin_c, calcium, iron, glycemic_index, custom_nutrients, allergens, traces, updated_by_user_id,
-         source, source_id, entry_time, images, notes, caffeine_mg, water_ml, alcohol_g
+         source, source_id, entry_time, images, notes, caffeine_mg, water_ml, alcohol_g, client_operation_id
        ) VALUES (
          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21,
-         $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41::jsonb, $42, $43, $44, $45
+         $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41::jsonb, $42, $43, $44, $45, $46
        )
        -- Idempotent re-sync for provider-sourced entries (e.g. Health Connect):
        -- re-ingesting the same record updates it in place. Manual/web entries
@@ -397,12 +409,32 @@ async function createFoodEntry(
         snapshot.caffeine_mg,
         snapshot.water_ml,
         snapshot.alcohol_g,
+        entryData.client_operation_id ?? null,
       ]
     );
     await client.query('COMMIT');
     return result.rows[0];
   } catch (error) {
     await client.query('ROLLBACK');
+    // A concurrent first attempt can commit after our precheck but before our
+    // INSERT. The unique index serializes that race; recover the committed row
+    // in a fresh transaction instead of returning a retryable 500.
+    if (
+      entryData.client_operation_id &&
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === '23505' &&
+      'constraint' in error &&
+      error.constraint === 'idx_food_entries_user_client_operation_id'
+    ) {
+      const existing = await client.query(
+        `SELECT * FROM food_entries
+         WHERE user_id = $1 AND client_operation_id = $2`,
+        [entryData.user_id, entryData.client_operation_id]
+      );
+      if (existing.rows[0]) return existing.rows[0];
+    }
     log('error', 'Error creating food entry with snapshot:', error);
     throw error;
   } finally {

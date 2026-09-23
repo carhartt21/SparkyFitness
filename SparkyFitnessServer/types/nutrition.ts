@@ -90,6 +90,7 @@ export interface FoodVariantInput extends NutrientFields {
  */
 export interface FoodEntryInput extends FoodEntrySnapshot {
   user_id?: string;
+  client_operation_id?: string | null;
   food_id?: string | null;
   meal_id?: string | null;
   food_entry_meal_id?: string | null;

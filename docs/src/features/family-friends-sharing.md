@@ -63,7 +63,7 @@ If you set an **Access End Date** for a connection, the database automatically r
 
 ### 5. Deleting a Shared Food or Exercise
 
-A diary entry keeps its own copy of everything it needs to display itself — the food's name, brand and full nutrition, or the exercise's name, category, muscles, equipment and images. It does not depend on the library item it was logged from, so removing that item never erases anyone's history.
+A diary entry keeps its own copy of everything it needs to display itself — the food's name, brand and full nutrition, or the exercise's name, category, muscles, equipment and images. It does not depend on the library item it was logged from, so removing that item never erases anyone's history. Repeated mobile food-log requests with the same action ID reuse the owner's original entry; delegates can still log only where diary permissions allow it.
 
 When you delete a food or exercise from your library you are offered up to three choices:
 
