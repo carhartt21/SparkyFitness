@@ -102,6 +102,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   const date = route.params?.date;
   const pickerMode = route.params?.pickerMode ?? 'log-entry';
   const mealTypeId = route.params?.mealTypeId;
+  const photoCapture = route.params?.photoCapture;
   const mealPlanTarget = route.params?.mealPlanTarget;
   const isMealBuilderMode = pickerMode === 'meal-builder';
   const isMealPlanMode = pickerMode === 'meal-plan';
@@ -203,7 +204,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // untouched. The basket is deliberately independent of select MODE: mode
   // only switches the row affordances, so a basket survives typing a search
   // and single-tap adds; only Clear or a completed batch empties it.
-  const multiSelectAvailable = pickerMode === 'log-entry';
+  const multiSelectAvailable = pickerMode === 'log-entry' && !photoCapture;
   const {
     count: selectionCount,
     maxItems: selectionMaxItems,
@@ -271,7 +272,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // outlives Cancel.
   const basketTapReturnDepth = selectionPickerMode
     ? 2
-    : isSelectMode || selectionCount > 0
+    : multiSelectAvailable && (isSelectMode || selectionCount > 0)
       ? 1
       : undefined;
 
@@ -285,7 +286,9 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
   // Local meals (never mixed in while building a meal).
   const { searchResults: mealResults, isSearching: isMealSearching } =
-    useMealSearch(searchText, { enabled: isConnected && !isMealBuilderMode });
+    useMealSearch(searchText, {
+      enabled: isConnected && !isMealBuilderMode && !photoCapture,
+    });
 
   // Online provider results stream in below the local results, always fetched
   // (no separate Online tab). Provider is the user's default.
@@ -436,6 +439,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       navigation.navigate('FoodEntryAdd', {
         item,
         date,
+        photoCapture,
         pickerMode: selectionPickerMode,
         // basketTapReturnDepth keeps a basket alive across a single add;
         // picker modes keep their existing depth-2 return past this screen.
@@ -449,6 +453,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       date,
       mealPlanTarget,
       mealTypeId,
+      photoCapture,
       selectionPickerMode,
       basketTapReturnDepth,
     ]
@@ -779,8 +784,11 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     [searchResults, ownershipFilter, profile?.id]
   );
   const filteredMealResults = useMemo(
-    () => filterByOwnership(mealResults, ownershipFilter, profile?.id),
-    [mealResults, ownershipFilter, profile?.id]
+    () =>
+      photoCapture
+        ? []
+        : filterByOwnership(mealResults, ownershipFilter, profile?.id),
+    [mealResults, ownershipFilter, profile?.id, photoCapture]
   );
 
   // Based on the FILTERED lists: results the ownership filter hides must still
@@ -801,7 +809,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // Favorites is the only surface that offers a meal and then refuses it two
   // screens later. Drop the gate once the picker learns to emit child_meal_id.
   const favoriteEntries = useMemo<LandingEntry[]>(() => {
-    const selectableMeals = isMealBuilderMode ? [] : filteredFavoriteMeals;
+    const selectableMeals =
+      isMealBuilderMode || photoCapture ? [] : filteredFavoriteMeals;
     const tagged = [
       ...selectableMeals.map((meal) => ({
         entry: {
@@ -831,7 +840,12 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     return tagged
       .sort((a, b) => b.favoritedAt - a.favoritedAt)
       .map((t) => t.entry);
-  }, [filteredFavoriteFoods, filteredFavoriteMeals, isMealBuilderMode]);
+  }, [
+    filteredFavoriteFoods,
+    filteredFavoriteMeals,
+    isMealBuilderMode,
+    photoCapture,
+  ]);
 
   // One notion of "starred", shared by the landing (which excludes favorites
   // from the sections below Favorites) and the search results (which float them
@@ -872,14 +886,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     // afterwards would shrink a section below its cap.
     // Recently Logged: foods + meals merged into one recency timeline.
     const recentEntries = mergeRecent(
-      filteredRecentMeals,
+      photoCapture ? [] : filteredRecentMeals,
       filteredRecentFoods,
       landingLimit,
       favoriteKeys
     );
     // Top: foods + meals by usage.
     const frequentEntries = mergeFrequent(
-      filteredTopMeals,
+      photoCapture ? [] : filteredTopMeals,
       filteredTopFoods,
       landingLimit,
       new Set([...favoriteKeys, ...recentEntries.map((entry) => entry.key)])
@@ -910,6 +924,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     filteredRecentMeals,
     filteredTopMeals,
     landingLimit,
+    photoCapture,
     t,
   ]);
 

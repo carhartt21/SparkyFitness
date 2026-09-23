@@ -1,10 +1,12 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Paths } from 'expo-file-system';
 import {
   isMealPhotoAvailable,
   saveMealPhotoLocally,
 } from '../../src/services/nutritionPhotoCapture';
 import { listNutritionActions } from '../../src/services/nutritionActionOutbox';
 import { rememberActiveNutritionUser } from '../../src/services/nutritionIdentity';
+import { resolveNutritionPhotoUri } from '../../src/services/nutritionPhotoFiles';
 
 const mockFileSizes = new Map<string, number>();
 const mockDirectories = new Set<string>();
@@ -68,6 +70,7 @@ describe('durable photo-first nutrition capture', () => {
     await AsyncStorage.clear();
     mockFileSizes.clear();
     mockDirectories.clear();
+    (Paths.document as { uri: string }).uri = 'file:///documents';
     let sequence = 0;
     (
       jest.requireMock('expo-crypto') as { randomUUID: jest.Mock }
@@ -102,5 +105,16 @@ describe('durable photo-first nutrition capture', () => {
     expect(await listNutritionActions(owner)).toEqual([]);
     expect([...mockFileSizes.keys()]).toEqual(['file:///picker/meal.jpg']);
     setItem.mockRestore();
+  });
+
+  test('recovers a photo after an iOS document-container URI changes', () => {
+    const captureId = '3116b172-7248-4c9e-aa4a-000000000010';
+    const imageId = '3116b172-7248-4c9e-aa4a-000000000011';
+    const oldUri = `file:///documents/nutrition-captures/${captureId}/${imageId}.jpg`;
+    const newUri = oldUri.replace('file:///documents', 'file:///new-documents');
+    mockFileSizes.set(newUri, 1234);
+    (Paths.document as { uri: string }).uri = 'file:///new-documents';
+
+    expect(resolveNutritionPhotoUri(captureId, imageId, oldUri)).toBe(newUri);
   });
 });

@@ -31,6 +31,7 @@ import DiaryCalorieMacroSummary from '../components/DiaryCalorieMacroSummary';
 import EmptyDayIllustration from '../components/EmptyDayIllustration';
 import ExerciseSummary from '../components/ExerciseSummary';
 import FoodSummary from '../components/FoodSummary';
+import { nutritionCapturePhotoRefs } from '../utils/nutritionCapturePhotoRefs';
 import PendingNutritionActions from '../components/PendingNutritionActions';
 import NutritionQuickActions from '../components/NutritionQuickActions';
 import NutritionPhotoEntries from '../components/NutritionPhotoEntries';
@@ -80,6 +81,7 @@ import {
   getPendingNutritionTotals,
   projectPendingNutritionSummary,
 } from '../utils/nutritionPendingTotals';
+import { projectPhotoCompletions } from '../utils/projectPhotoCompletions';
 
 type DiaryScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Diary'>,
@@ -274,6 +276,13 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     selectedDate,
     isConnected
   );
+  const capturePhotos = useMemo(() => {
+    return nutritionCapturePhotoRefs(
+      remotePhotoCaptures,
+      localPhotoActions,
+      isConnected
+    );
+  }, [localPhotoActions, remotePhotoCaptures, isConnected]);
   const pendingNutritionTotals = useMemo(
     () =>
       getPendingNutritionTotals(
@@ -282,6 +291,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         summary?.foodEntries ?? EMPTY_FOOD_ENTRIES
       ),
     [localFoodActions, photoCompletionActions, summary?.foodEntries]
+  );
+  const pendingPhotoDiaryEntries = useMemo(
+    () =>
+      projectPhotoCompletions(
+        photoCompletionActions,
+        summary?.foodEntries ?? EMPTY_FOOD_ENTRIES,
+        mealTypes
+      ),
+    [photoCompletionActions, summary?.foodEntries, mealTypes]
   );
   const visibleSummary = useMemo(
     () =>
@@ -382,6 +400,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       summary?.foodEntries.length === 0 &&
       localFoodActions.length === 0 &&
       localPhotoActions.length === 0 &&
+      pendingPhotoDiaryEntries.length === 0 &&
       remotePhotoCaptures.length === 0 &&
       !hasSupplementNutrition(summary?.supplementTotals) && //A logged supplement is something the user recorded for this day, so the day is not empty even with no food, exercise or measurement.
       summary?.exerciseEntries.length === 0 &&
@@ -401,6 +420,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     summary,
     localFoodActions,
     localPhotoActions,
+    pendingPhotoDiaryEntries,
     remotePhotoCaptures,
     hasAnyMeasurement,
     isPhotosLoading,
@@ -424,7 +444,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             remote={remotePhotoCaptures}
             completions={photoCompletionActions}
             completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
+            isConnected={isConnected}
           />
+          {pendingPhotoDiaryEntries.length > 0 && (
+            <FoodSummary
+              foodEntries={pendingPhotoDiaryEntries}
+              capturePhotos={capturePhotos}
+              mealTypes={mealTypes}
+            />
+          )}
           {(pendingNutritionTotals.knownEnergyCount > 0 ||
             pendingNutritionTotals.unknownEnergyCount > 0) && (
             <View className="bg-surface rounded-xl p-4 mb-3">
@@ -474,7 +502,11 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     // entries arrive, so a slow `/api/sleep` fills them in late instead of holding the
     // food and exercise that already loaded behind "Loading diary...".
     if (isLoading || isConnectionLoading) {
-      if (localFoodActions.length > 0 || localPhotoActions.length > 0) {
+      if (
+        localFoodActions.length > 0 ||
+        localPhotoActions.length > 0 ||
+        pendingPhotoDiaryEntries.length > 0
+      ) {
         return (
           <View className="flex-1 bg-background p-4">
             <PendingNutritionActions
@@ -489,7 +521,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               remote={remotePhotoCaptures}
               completions={photoCompletionActions}
               completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
+              isConnected={isConnected}
             />
+            {pendingPhotoDiaryEntries.length > 0 && (
+              <FoodSummary
+                foodEntries={pendingPhotoDiaryEntries}
+                capturePhotos={capturePhotos}
+                mealTypes={mealTypes}
+              />
+            )}
           </View>
         );
       }
@@ -560,8 +600,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           remote={remotePhotoCaptures}
           completions={photoCompletionActions}
           completedFoodEntries={summary.foodEntries}
+          isConnected={isConnected}
         />
         {(summary.foodEntries.length > 0 ||
+          pendingPhotoDiaryEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
           summary.exerciseEntries.length > 0 ||
           summary.calorieGoal > 0) && (
@@ -593,9 +635,11 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               navigation={navigation}
             />
             <FoodSummary
-              foodEntries={summary.foodEntries.filter(
-                (entry) => !entry.nutrition_capture_id
-              )}
+              foodEntries={[
+                ...summary.foodEntries,
+                ...pendingPhotoDiaryEntries,
+              ]}
+              capturePhotos={capturePhotos}
               mealTypes={mealTypes}
               goals={summary.goals}
               calorieGoal={summary.calorieGoal}

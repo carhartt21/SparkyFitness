@@ -8,6 +8,7 @@ import type { MealType } from '../types/mealTypes';
 import Icon from './Icon';
 import { MEAL_CONFIG } from '../constants/meals';
 import SwipeableFoodRow from './SwipeableFoodRow';
+import type { CapturePhotoRef } from './SwipeableFoodRow';
 import {
   calculateEntryNutrition,
   calculateMealNutrition,
@@ -19,6 +20,7 @@ import {
 
 interface FoodSummaryProps {
   foodEntries: FoodEntry[];
+  capturePhotos?: Record<string, CapturePhotoRef>;
   mealTypes: MealType[];
   goals?: DailyGoals;
   calorieGoal?: number;
@@ -33,6 +35,7 @@ interface FoodSummaryProps {
 
 interface MealSectionProps {
   group: MealGroup;
+  capturePhotos?: Record<string, CapturePhotoRef>;
   goals?: DailyGoals;
   calorieGoal?: number;
   onAdjustServing?: (entry: FoodEntry) => void;
@@ -63,6 +66,7 @@ const EmptyState: React.FC<{ onAddFood?: () => void }> = ({ onAddFood }) => {
 
 const MealSection: React.FC<MealSectionProps> = ({
   group,
+  capturePhotos,
   goals,
   calorieGoal,
   onAdjustServing,
@@ -138,6 +142,11 @@ const MealSection: React.FC<MealSectionProps> = ({
           <SwipeableFoodRow
             key={entry.id || index}
             entry={entry}
+            capturePhoto={
+              entry.nutrition_capture_id
+                ? capturePhotos?.[entry.nutrition_capture_id]
+                : undefined
+            }
             nutrition={nutrition}
             onAdjustServing={onAdjustServing}
           />
@@ -149,6 +158,7 @@ const MealSection: React.FC<MealSectionProps> = ({
 
 const FoodSummary: React.FC<FoodSummaryProps> = ({
   foodEntries,
+  capturePhotos,
   mealTypes,
   goals,
   calorieGoal,
@@ -178,6 +188,7 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
               : `historical:${group.name.toLowerCase()}`
           }
           group={group}
+          capturePhotos={capturePhotos}
           goals={goals}
           calorieGoal={calorieGoal}
           onAdjustServing={onAdjustServing}

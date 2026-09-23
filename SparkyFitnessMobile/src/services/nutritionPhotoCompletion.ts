@@ -1,6 +1,9 @@
 import { getActiveNutritionIdentity } from './nutritionIdentity';
 import { readNutritionFavoriteCache } from './nutritionFavoriteCache';
-import { enqueuePhotoCompletion } from './nutritionActionOutbox';
+import {
+  enqueuePhotoCompletion,
+  type PhotoCompletionPayload,
+} from './nutritionActionOutbox';
 
 export interface CompleteMealPhotoInput {
   captureId: string;
@@ -14,6 +17,31 @@ export interface CompleteMealPhotoInput {
   fat?: number;
 }
 
+export type ReviewedPhotoFood = PhotoCompletionPayload['food'];
+
+/** The photo remains the occurrence; this only queues its reviewed food snapshot. */
+export async function completeMealPhotoWithFoodLocally(input: {
+  captureId: string;
+  consumedAt: string;
+  entryDate: string;
+  food: ReviewedPhotoFood;
+}) {
+  const identity = await getActiveNutritionIdentity();
+  if (!identity)
+    throw new Error(
+      'Sign in once while online before completing meals offline.'
+    );
+  return enqueuePhotoCompletion({
+    ...identity,
+    occurredAt: input.consumedAt,
+    payload: {
+      captureId: input.captureId,
+      entryDate: input.entryDate,
+      food: input.food,
+    },
+  });
+}
+
 /** Persist the reviewed snapshot before attempting a server request. */
 export async function completeMealPhotoLocally(input: CompleteMealPhotoInput) {
   const identity = await getActiveNutritionIdentity();
@@ -25,24 +53,21 @@ export async function completeMealPhotoLocally(input: CompleteMealPhotoInput) {
   const mealType =
     input.mealTypeId ?? cache.mealTypes.find((type) => type.is_visible)?.id;
   if (!mealType) throw new Error('No cached meal category is available.');
-  return enqueuePhotoCompletion({
-    ...identity,
-    occurredAt: input.consumedAt,
-    payload: {
-      captureId: input.captureId,
-      entryDate: input.entryDate,
-      food: {
-        meal_type_id: mealType,
-        quantity: 1,
-        unit: 'serving',
-        food_name: input.name.trim(),
-        serving_size: 1,
-        serving_unit: 'serving',
-        calories: input.calories,
-        protein: input.protein,
-        carbs: input.carbs,
-        fat: input.fat,
-      },
+  return completeMealPhotoWithFoodLocally({
+    captureId: input.captureId,
+    entryDate: input.entryDate,
+    consumedAt: input.consumedAt,
+    food: {
+      meal_type_id: mealType,
+      quantity: 1,
+      unit: 'serving',
+      food_name: input.name.trim(),
+      serving_size: 1,
+      serving_unit: 'serving',
+      calories: input.calories,
+      protein: input.protein,
+      carbs: input.carbs,
+      fat: input.fat,
     },
   });
 }

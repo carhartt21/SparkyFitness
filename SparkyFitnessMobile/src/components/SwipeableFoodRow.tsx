@@ -12,21 +12,31 @@ import { useDeleteFoodEntryMeal } from '../hooks/useDeleteFoodEntryMeal';
 import { usePreferences } from '../hooks/usePreferences';
 import type { FoodEntry } from '../types/foodEntries';
 import type { EntryNutrition } from '../utils/mealNutrition';
-import { formatTimeLabel } from '../utils/entryTimeDisplay';
+import {
+  formatDateToTimeLabel,
+  formatTimeLabel,
+} from '../utils/entryTimeDisplay';
 import FoodThumbnail from './FoodThumbnail';
 import { useFoodImageSourceContext } from './FoodImageSourceProvider';
 import { diaryEntryImage, diaryEntryImages } from '../utils/foodImages';
 import { useOpenLightbox } from './LightboxProvider';
+import NutritionCaptureThumbnail, {
+  type CapturePhotoRef,
+} from './NutritionCaptureThumbnail';
+
+export type { CapturePhotoRef } from './NutritionCaptureThumbnail';
 
 interface SwipeableFoodRowProps {
   entry: FoodEntry;
   nutrition: EntryNutrition;
+  capturePhoto?: CapturePhotoRef;
   onAdjustServing?: (entry: FoodEntry) => void;
 }
 
 const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   entry,
   nutrition,
+  capturePhoto,
   onAdjustServing,
 }) => {
   const { t } = useTranslation();
@@ -39,6 +49,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   );
 
   const isMealComponent = !!entry.food_entry_meal_id;
+  const isPending = entry.isPendingNutrition === true;
   const getImageSource = useFoodImageSourceContext();
   const entryImage = diaryEntryImage(entry);
   const openLightbox = useOpenLightbox();
@@ -51,6 +62,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   const foodEntryDelete = useDeleteFoodEntry({
     entryId: entry.id,
     entryDate: entry.entry_date,
+    nutritionCaptureId: entry.nutrition_capture_id,
     onSuccess: onDeleteSuccess,
   });
 
@@ -92,13 +104,22 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   );
 
   const canQuickAdjust =
-    !isMealComponent && !!onAdjustServing && Number(entry.serving_size) > 0;
+    !isPending &&
+    !isMealComponent &&
+    !!onAdjustServing &&
+    Number(entry.serving_size) > 0;
   const name =
     entry.food_name ||
     t('foodRow.unknownFood', { defaultValue: 'Unknown food' });
-  const timeLabel = formatTimeLabel(entry.entry_time, preferences?.time_format);
+  const timeLabel = capturePhoto?.consumedAt
+    ? formatDateToTimeLabel(
+        new Date(capturePhoto.consumedAt),
+        preferences?.time_format
+      )
+    : formatTimeLabel(entry.entry_time, preferences?.time_format);
 
   const handlePress = () => {
+    if (isPending) return;
     if (isMealComponent && entry.food_entry_meal_id) {
       navigation.navigate('EditLoggedMeal', {
         foodEntryMealId: entry.food_entry_meal_id,
@@ -109,6 +130,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   };
 
   const handleLongPress = () => {
+    if (isPending) return;
     const buttons: {
       text: string;
       style?: 'cancel' | 'destructive';
@@ -136,7 +158,8 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
     <Animated.View style={animatedStyle} onLayout={handleLayout}>
       <ReanimatedSwipeable
         ref={swipeableRef}
-        renderRightActions={renderRightActions}
+        renderRightActions={isPending ? undefined : renderRightActions}
+        enabled={!isPending}
         overshootRight={false}
         rightThreshold={40}
       >
@@ -144,7 +167,9 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
           {/* Diary rows are deliberately dense, so this slot collapses to
               nothing when an entry has no photo — a photo-free day keeps the
               exact layout it had before images existed. */}
-          {entryImage ? (
+          {capturePhoto ? (
+            <NutritionCaptureThumbnail photo={capturePhoto} />
+          ) : entryImage ? (
             <FoodThumbnail
               image={entryImage}
               getImageSource={getImageSource}
@@ -177,6 +202,13 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
                 </Text>
               )}
             </View>
+            {isPending && (
+              <Text className="text-xs text-text-muted">
+                {t('nutritionOutbox.savedOnDevice', {
+                  defaultValue: 'Saved on this device',
+                })}
+              </Text>
+            )}
           </TouchableOpacity>
           {canQuickAdjust ? (
             <Button

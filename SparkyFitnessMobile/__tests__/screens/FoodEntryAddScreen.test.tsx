@@ -18,6 +18,7 @@ import { useAddFoodEntryMeal } from '../../src/hooks/useAddFoodEntryMeal';
 import { setPendingMealIngredientSelection } from '../../src/services/mealBuilderSelection';
 import { setPendingMealPlanSelection } from '../../src/services/mealPlanSelection';
 import { buildMealIngredientDraft } from '../../src/utils/mealBuilderDraft';
+import { completeMealPhotoWithFoodLocally } from '../../src/services/nutritionPhotoCompletion';
 
 const mockPop = jest.fn((count: number) => ({
   type: 'POP',
@@ -90,6 +91,17 @@ jest.mock('../../src/hooks/useAddFoodEntryMeal', () => ({
 
 jest.mock('../../src/services/mealBuilderSelection', () => ({
   setPendingMealIngredientSelection: jest.fn(),
+}));
+
+jest.mock('../../src/services/nutritionPhotoCompletion', () => ({
+  completeMealPhotoWithFoodLocally: jest
+    .fn()
+    .mockResolvedValue({ clientOperationId: 'operation-1' }),
+}));
+jest.mock('../../src/services/nutritionActionSync', () => ({
+  reconcileNutritionActions: jest
+    .fn()
+    .mockResolvedValue({ processed: 0, nextDelayMs: null }),
 }));
 
 jest.mock('../../src/services/mealPlanSelection', () => ({
@@ -440,6 +452,68 @@ describe('FoodEntryAddScreen', () => {
       isPending: false,
       invalidateCache: mockInvalidateMealCache,
     }));
+  });
+
+  it('completes the original photo with the reviewed food snapshot instead of adding a new entry', async () => {
+    const screen = renderScreen({
+      item: baseLocalItem,
+      photoCapture: {
+        id: '3116b172-7248-4c9e-aa4a-000000000001',
+        consumedAt: '2026-09-23T12:05:00.000Z',
+        entryDate: '2026-09-23',
+        mealTypeId: 'meal-1',
+      },
+      mealTypeId: 'meal-1',
+      date: '2026-09-23',
+    });
+    fireEvent.press(screen.getByText('Complete meal'));
+    await waitFor(() =>
+      expect(completeMealPhotoWithFoodLocally).toHaveBeenCalledWith({
+        captureId: '3116b172-7248-4c9e-aa4a-000000000001',
+        consumedAt: '2026-09-23T12:05:00.000Z',
+        entryDate: '2026-09-23',
+        food: expect.objectContaining({
+          food_id: 'food-1',
+          variant_id: 'variant-1',
+          food_name: 'Greek Yogurt',
+          calories: 100,
+          protein: 15,
+          quantity: 1,
+          unit: 'cup',
+        }),
+      })
+    );
+    expect(mockAddEntry).not.toHaveBeenCalled();
+    expect(navigation.dispatch).toHaveBeenCalledWith({ type: 'POP_TO_TOP' });
+  });
+
+  it('omits unknown provider nutrients instead of writing null or zero', async () => {
+    const screen = renderScreen({
+      item: {
+        ...baseExternalItem,
+        fiber: null,
+        sodium: null,
+        caffeineMg: null,
+      },
+      photoCapture: {
+        id: '3116b172-7248-4c9e-aa4a-000000000001',
+        consumedAt: '2026-09-23T12:05:00.000Z',
+        entryDate: '2026-09-23',
+        mealTypeId: 'meal-1',
+      },
+      mealTypeId: 'meal-1',
+    });
+    fireEvent.press(screen.getByText('Complete meal'));
+    await waitFor(() =>
+      expect(completeMealPhotoWithFoodLocally).toHaveBeenCalled()
+    );
+    const saved = (completeMealPhotoWithFoodLocally as jest.Mock).mock
+      .calls[0][0].food;
+    expect(saved).toMatchObject({ calories: 200, protein: 20 });
+    expect(saved.dietary_fiber).toBeUndefined();
+    expect(saved.sodium).toBeUndefined();
+    expect(saved.caffeine_mg).toBeUndefined();
+    expect(mockAddEntry).not.toHaveBeenCalled();
   });
 
   it('stores a pending ingredient and pops back for local foods in meal-builder mode', async () => {

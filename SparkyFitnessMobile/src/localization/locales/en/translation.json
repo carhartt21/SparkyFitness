@@ -1950,6 +1950,7 @@
   },
   "nutritionOutbox": {
     "title": "Saved on this device",
+    "savedOnDevice": "Saved on this device",
     "storageError": "Some saved entries could not be read. They were kept for recovery.",
     "attention": "Needs attention",
     "loadingDiary": "Synced; loading diary",
@@ -1983,6 +1984,12 @@
     "incomplete": "Incomplete meal",
     "complete": "Completed meal",
     "completeMeal": "Complete meal",
+    "manual": "Manual",
+    "saveManual": "Save manual nutrition",
+    "viewPhoto": "View meal photo",
+    "selectFood": "Choose a food to complete this photo",
+    "saveFailed": "Meal completion could not be saved",
+    "caloriesRequired": "Select a food with known calories or enter them manually.",
     "name": "Food name",
     "validCompletion": "Enter a name and known calories.",
     "validMacros": "Macros must be non-negative numbers."

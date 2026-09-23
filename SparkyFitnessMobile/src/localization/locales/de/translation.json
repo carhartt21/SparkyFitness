@@ -5115,6 +5115,17 @@
     "deltaBadge": "Δ {{value}}",
     "frameCountRanged": "{{current}} von {{total}} · {{range}}"
   },
+  "nutritionOutbox": {
+    "savedOnDevice": "Auf diesem Gerät gespeichert"
+  },
+  "nutritionPhotos": {
+    "manual": "Manuell",
+    "saveManual": "Manuelle Nährwerte speichern",
+    "viewPhoto": "Mahlzeitenfoto ansehen",
+    "selectFood": "Wähle ein Lebensmittel für dieses Foto",
+    "saveFailed": "Mahlzeit konnte nicht vervollständigt werden",
+    "caloriesRequired": "Wähle ein Lebensmittel mit bekannten Kalorien oder trage sie manuell ein."
+  },
   "caffeine": {
     "title": "Aktives Koffein",
     "activeNow": "Jetzt aktiv",

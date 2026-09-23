@@ -8,6 +8,8 @@ import {
   View,
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   getActiveServerConfig,
   proxyHeadersToRecord,
@@ -25,12 +27,15 @@ import { completeMealPhotoLocally } from '../services/nutritionPhotoCompletion';
 import { reconcileNutritionActions } from '../services/nutritionActionSync';
 import SafeImage from './SafeImage';
 import { formatDateToTimeLabel } from '../utils/entryTimeDisplay';
+import type { RootStackParamList } from '../types/navigation';
+import { resolveNutritionPhotoUri } from '../services/nutritionPhotoFiles';
 
 interface Props {
   local: PendingPhotoAction[];
   remote: NutritionCapture[];
   completions: PendingPhotoCompletionAction[];
   completedFoodEntries: FoodEntry[];
+  isConnected: boolean;
 }
 
 interface PhotoRow {
@@ -51,8 +56,11 @@ export default function NutritionPhotoEntries({
   remote,
   completions,
   completedFoodEntries,
+  isConnected,
 }: Props) {
   const { t } = useTranslation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [config, setConfig] = useState<ServerConfig | null>(null);
   const [selected, setSelected] = useState<PhotoRow | null>(null);
   const [name, setName] = useState('');
@@ -110,7 +118,12 @@ export default function NutritionPhotoEntries({
         capture.completion_state === 'complete'
           ? 'complete'
           : details(capture.id).state,
-      localImage: localById.get(capture.id)?.payload.images[0]?.uri ?? null,
+      localImage: (() => {
+        const image = localById.get(capture.id)?.payload.images[0];
+        return image
+          ? resolveNutritionPhotoUri(capture.id, image.id, image.uri)
+          : null;
+      })(),
       remoteImage: capture.images[0]?.url ?? null,
       syncState:
         completionByCapture.get(capture.id)?.syncState ??
@@ -128,7 +141,13 @@ export default function NutritionPhotoEntries({
         id: action.payload.id,
         consumedAt: action.payload.consumedAt,
         state: details(action.payload.id).state,
-        localImage: action.payload.images[0]?.uri ?? null,
+        localImage: action.payload.images[0]
+          ? resolveNutritionPhotoUri(
+              action.payload.id,
+              action.payload.images[0].id,
+              action.payload.images[0].uri
+            )
+          : null,
         remoteImage: null,
         syncState:
           completionByCapture.get(action.payload.id)?.syncState ??
@@ -139,7 +158,13 @@ export default function NutritionPhotoEntries({
         calories: details(action.payload.id).calories,
       });
     }
-    return merged.sort((a, b) => a.consumedAt.localeCompare(b.consumedAt));
+    // A queued completion already has a local food row in the diary. Keep the
+    // capture out of this queue before and after server reconciliation.
+    return merged
+      .filter(
+        (row) => !entryByCapture.has(row.id) && !completionByCapture.has(row.id)
+      )
+      .sort((a, b) => a.consumedAt.localeCompare(b.consumedAt));
   }, [local, remote, completions, completedFoodEntries]);
 
   const saveCompletion = async () => {
@@ -193,6 +218,19 @@ export default function NutritionPhotoEntries({
     }
   };
 
+  const openSearch = (capture: PhotoRow) => {
+    navigation.navigate('FoodSearch', {
+      date: capture.entryDate,
+      mealTypeId: capture.mealTypeId ?? undefined,
+      photoCapture: {
+        id: capture.id,
+        consumedAt: capture.consumedAt,
+        entryDate: capture.entryDate,
+        mealTypeId: capture.mealTypeId,
+      },
+    });
+  };
+
   if (rows.length === 0) return null;
   const incomplete = rows.filter((row) => row.state === 'incomplete').length;
   return (
@@ -207,9 +245,11 @@ export default function NutritionPhotoEntries({
         })}
       </Text>
       {rows.map((row) => {
-        const source = row.localImage
+        const localSource = row.localImage
           ? { uri: row.localImage, headers: {} }
-          : row.remoteImage && config
+          : null;
+        const remoteSource =
+          row.remoteImage && config
             ? {
                 uri: `${normalizeUrl(config.url)}${row.remoteImage}`,
                 headers: {
@@ -218,64 +258,81 @@ export default function NutritionPhotoEntries({
                 },
               }
             : null;
+        // An old absolute file URI can be stale after an iOS app update.
+        const source = isConnected
+          ? (remoteSource ?? localSource)
+          : (localSource ?? remoteSource);
         return (
-          <Pressable
-            key={row.id}
-            className="flex-row gap-3 items-center"
-            accessibilityRole="button"
-            accessibilityLabel={
-              row.state === 'incomplete'
-                ? t('nutritionPhotos.completeMeal', {
-                    defaultValue: 'Complete meal',
-                  })
-                : (row.name ?? undefined)
-            }
-            onPress={() => {
-              if (row.state !== 'incomplete') return;
-              setSelected(row);
-              setName('');
-              setCalories('');
-              setProtein('');
-              setCarbs('');
-              setFat('');
-              setError(null);
-            }}
-          >
-            <SafeImage
-              source={source}
-              style={{ width: 64, height: 64, borderRadius: 8 }}
-            />
-            <View className="flex-1">
-              <Text className="text-text-primary">
-                {row.name ??
-                  (row.state === 'incomplete'
-                    ? t('nutritionPhotos.incomplete', {
-                        defaultValue: 'Incomplete meal',
-                      })
-                    : t('nutritionPhotos.complete', {
-                        defaultValue: 'Completed meal',
-                      }))}
-              </Text>
-              {row.calories !== null && (
+          <View key={row.id} className="flex-row gap-3 items-center">
+            <Pressable
+              className="flex-row gap-3 items-center flex-1"
+              accessibilityRole="button"
+              accessibilityLabel={
+                row.state === 'incomplete'
+                  ? t('nutritionPhotos.completeMeal', {
+                      defaultValue: 'Complete meal',
+                    })
+                  : (row.name ?? undefined)
+              }
+              onPress={() => {
+                if (row.state === 'incomplete') openSearch(row);
+              }}
+            >
+              <SafeImage
+                source={source}
+                style={{ width: 64, height: 64, borderRadius: 8 }}
+              />
+              <View className="flex-1">
+                <Text className="text-text-primary">
+                  {row.name ??
+                    (row.state === 'incomplete'
+                      ? t('nutritionPhotos.incomplete', {
+                          defaultValue: 'Incomplete meal',
+                        })
+                      : t('nutritionPhotos.complete', {
+                          defaultValue: 'Completed meal',
+                        }))}
+                </Text>
+                {row.calories !== null && (
+                  <Text className="text-xs text-text-muted">
+                    {t('nutritionPhotos.energy', {
+                      value: row.calories,
+                      defaultValue: '{{value}} kcal',
+                    })}
+                  </Text>
+                )}
                 <Text className="text-xs text-text-muted">
-                  {t('nutritionPhotos.energy', {
-                    value: row.calories,
-                    defaultValue: '{{value}} kcal',
-                  })}
+                  {formatDateToTimeLabel(new Date(row.consumedAt))}
                 </Text>
-              )}
-              <Text className="text-xs text-text-muted">
-                {formatDateToTimeLabel(new Date(row.consumedAt))}
-              </Text>
-              {row.syncState === 'attentionRequired' && (
-                <Text className="text-xs text-text-danger">
-                  {t('nutritionOutbox.attention', {
-                    defaultValue: 'Needs attention',
-                  })}
+                {row.syncState === 'attentionRequired' && (
+                  <Text className="text-xs text-text-danger">
+                    {t('nutritionOutbox.attention', {
+                      defaultValue: 'Needs attention',
+                    })}
+                  </Text>
+                )}
+              </View>
+            </Pressable>
+            {row.state === 'incomplete' && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  setSelected(row);
+                  setName('');
+                  setCalories('');
+                  setProtein('');
+                  setCarbs('');
+                  setFat('');
+                  setError(null);
+                }}
+                className="p-2"
+              >
+                <Text className="text-text-link">
+                  {t('nutritionPhotos.manual', { defaultValue: 'Manual' })}
                 </Text>
-              )}
-            </View>
-          </Pressable>
+              </Pressable>
+            )}
+          </View>
         );
       })}
       <Modal
@@ -343,10 +400,12 @@ export default function NutritionPhotoEntries({
               accessibilityRole="button"
               onPress={() => void saveCompletion()}
               disabled={saving}
-              className="bg-accent-primary rounded-lg p-3"
+              className="border border-border rounded-lg p-3"
             >
-              <Text className="text-center text-white">
-                {t('common.save', { defaultValue: 'Save' })}
+              <Text className="text-center text-text-primary">
+                {t('nutritionPhotos.saveManual', {
+                  defaultValue: 'Save manual nutrition',
+                })}
               </Text>
             </Pressable>
             <Pressable

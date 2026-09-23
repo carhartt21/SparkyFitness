@@ -20,6 +20,7 @@ import {
   type PendingNutritionAction,
 } from './nutritionActionOutbox';
 import { dailySummaryRootQueryKey } from '../hooks/queryKeys';
+import { resolveNutritionPhotoUri } from './nutritionPhotoFiles';
 
 const MAX_ACTIONS_PER_PASS = 20;
 const MAX_RETRY_DELAY_MS = 60_000;
@@ -169,7 +170,14 @@ async function reconcilePass(
       } else if (action.type === 'createPhotoEntry') {
         serverId = (await deps.createCapture(action.payload)).id;
         for (const image of action.payload.images) {
-          await deps.uploadCaptureImage(action.payload.id, image);
+          await deps.uploadCaptureImage(action.payload.id, {
+            ...image,
+            uri: resolveNutritionPhotoUri(
+              action.payload.id,
+              image.id,
+              image.uri
+            ),
+          });
         }
       } else {
         serverId = (

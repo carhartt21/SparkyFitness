@@ -503,6 +503,39 @@ describe('FoodSearchScreen', () => {
     );
   });
 
+  it('carries the original photo through food selection and hides unsupported meal templates', () => {
+    mockUseFoodSearch.mockReturnValue({
+      searchResults: [buildFood()],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+    } as any);
+    mockUseMealSearch.mockReturnValue({
+      searchResults: [buildMeal()],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+      refetch: jest.fn(),
+    });
+    const photoCapture = {
+      id: '3116b172-7248-4c9e-aa4a-000000000001',
+      consumedAt: '2026-09-23T12:05:00.000Z',
+      entryDate: '2026-09-23',
+      mealTypeId: 'custom-pw',
+    };
+    const screen = renderSearching({
+      key: 'FoodSearch-key',
+      name: 'FoodSearch',
+      params: { date: '2026-09-23', mealTypeId: 'custom-pw', photoCapture },
+    });
+    expect(screen.queryByText('Lunch Bowl')).toBeNull();
+    fireEvent.press(screen.getByText('Grilled Chicken'));
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'FoodEntryAdd',
+      expect.objectContaining({ photoCapture, mealTypeId: 'custom-pw' })
+    );
+  });
+
   it('opens FoodEntryAdd when a saved-meal result is tapped', () => {
     mockUseMealSearch.mockReturnValue({
       searchResults: [buildMeal()],

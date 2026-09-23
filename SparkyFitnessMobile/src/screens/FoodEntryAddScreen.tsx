@@ -110,6 +110,8 @@ import {
 import { buildMealIngredientDraft } from '../utils/mealBuilderDraft';
 import { persistExternalVariants } from '../utils/persistExternalVariants';
 import { DECIMAL_INPUT_REGEX, parseDecimalInput } from '../utils/numericInput';
+import { completeMealPhotoWithFoodLocally } from '../services/nutritionPhotoCompletion';
+import { reconcileNutritionActions } from '../services/nutritionActionSync';
 
 type FoodEntryAddScreenProps = RootStackScreenProps<'FoodEntryAdd'>;
 const EXTERNAL_DRAFT_VARIANT_ID = '__draft-external-unit__';
@@ -162,6 +164,15 @@ function toOptionalFiniteNumber(
   return Number.isFinite(numericValue) ? numericValue : fallback;
 }
 
+/** Provider variants may contain null for unknown nutrients despite UI types. */
+function knownSnapshotNumber(
+  value: number | null | undefined
+): number | undefined {
+  return typeof value === 'number' && Number.isFinite(value)
+    ? value
+    : undefined;
+}
+
 function toNonEmptyString(value: unknown, fallback: string): string {
   const trimmed = typeof value === 'string' ? value.trim() : '';
   return trimmed ? trimmed : fallback;
@@ -208,6 +219,7 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
   route,
 }) => {
   const { item, date: initialDate } = route.params;
+  const photoCapture = route.params.photoCapture;
   const { t } = useTranslation();
   const pickerMode = route.params?.pickerMode ?? 'log-entry';
   const returnDepth = route.params?.returnDepth ?? 1;
@@ -1340,6 +1352,82 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
 
   const isActionPending =
     isAddPending || isAddMealPending || isSavePending || isCreateVariantPending;
+  const [isPhotoCompletionPending, setPhotoCompletionPending] = useState(false);
+
+  const savePhotoCompletion = async () => {
+    if (!photoCapture || !effectiveMealId || isPhotoCompletionPending) return;
+    if (activeItem.source === 'meal') {
+      Toast.show({
+        type: 'error',
+        text1: t('nutritionPhotos.selectFood', {
+          defaultValue: 'Choose a food to complete this photo',
+        }),
+      });
+      return;
+    }
+    setPhotoCompletionPending(true);
+    try {
+      const knownCalories = knownSnapshotNumber(displayValues.calories);
+      if (knownCalories === undefined) {
+        throw new Error(
+          t('nutritionPhotos.caloriesRequired', {
+            defaultValue:
+              'Select a food with known calories or enter them manually.',
+          })
+        );
+      }
+      await completeMealPhotoWithFoodLocally({
+        captureId: photoCapture.id,
+        consumedAt: photoCapture.consumedAt,
+        entryDate: photoCapture.entryDate,
+        food: {
+          meal_type_id: effectiveMealId,
+          quantity,
+          unit: displayValues.servingUnit,
+          ...(activeItem.source === 'local' && selectedVariantId
+            ? { food_id: activeItem.id, variant_id: selectedVariantId }
+            : {}),
+          food_name: adjustedValues?.name?.trim() || activeItem.name,
+          ...(activeItem.brand ? { brand_name: activeItem.brand } : {}),
+          serving_size: displayValues.servingSize,
+          serving_unit: displayValues.servingUnit,
+          calories: knownCalories,
+          protein: knownSnapshotNumber(displayValues.protein),
+          carbs: knownSnapshotNumber(displayValues.carbs),
+          fat: knownSnapshotNumber(displayValues.fat),
+          dietary_fiber: knownSnapshotNumber(displayValues.fiber),
+          saturated_fat: knownSnapshotNumber(displayValues.saturatedFat),
+          sodium: knownSnapshotNumber(displayValues.sodium),
+          sugars: knownSnapshotNumber(displayValues.sugars),
+          trans_fat: knownSnapshotNumber(displayValues.transFat),
+          potassium: knownSnapshotNumber(displayValues.potassium),
+          calcium: knownSnapshotNumber(displayValues.calcium),
+          iron: knownSnapshotNumber(displayValues.iron),
+          caffeine_mg: knownSnapshotNumber(displayValues.caffeineMg),
+          water_ml: knownSnapshotNumber(displayValues.waterMl),
+          alcohol_g: knownSnapshotNumber(displayValues.alcoholG),
+          cholesterol: knownSnapshotNumber(displayValues.cholesterol),
+          vitamin_a: knownSnapshotNumber(displayValues.vitaminA),
+          vitamin_c: knownSnapshotNumber(displayValues.vitaminC),
+          ...(selectedCustomNutrients !== undefined
+            ? { custom_nutrients: selectedCustomNutrients }
+            : {}),
+        },
+      });
+      navigation.dispatch(StackActions.popToTop());
+      void reconcileNutritionActions().catch(() => undefined);
+    } catch (cause) {
+      Toast.show({
+        type: 'error',
+        text1: t('nutritionPhotos.saveFailed', {
+          defaultValue: 'Meal completion could not be saved',
+        }),
+        text2: cause instanceof Error ? cause.message : undefined,
+      });
+    } finally {
+      setPhotoCompletionPending(false);
+    }
+  };
 
   // Navigate to FoodForm in adjust-nutrition mode. Shared by the inline header
   // edit button (Android) and the native header Edit item (iOS).
@@ -1696,7 +1784,7 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
           </View>
         </View>
 
-        {!isSelectionMode ? (
+        {!isSelectionMode && !photoCapture ? (
           <>
             <View className="flex-row items-center mt-2">
               <DateSelectRow
@@ -1861,17 +1949,26 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
       {/* Sticky footer */}
       <FooterSaveBar
         label={
-          activeItem.source === 'meal'
-            ? t('foodEntryAdd.actions.addMeal', { defaultValue: 'Add Meal' })
-            : t('foodEntryAdd.actions.addFood', { defaultValue: 'Add Food' })
+          photoCapture
+            ? t('nutritionPhotos.completeMeal', {
+                defaultValue: 'Complete meal',
+              })
+            : activeItem.source === 'meal'
+              ? t('foodEntryAdd.actions.addMeal', { defaultValue: 'Add Meal' })
+              : t('foodEntryAdd.actions.addFood', { defaultValue: 'Add Food' })
         }
-        busy={isActionPending}
+        busy={isActionPending || isPhotoCompletionPending}
         disabled={
           isActionPending ||
+          isPhotoCompletionPending ||
           (!isSelectionMode && !effectiveMealId) ||
           quantity <= 0
         }
         onPress={() => {
+          if (photoCapture) {
+            void savePhotoCompletion();
+            return;
+          }
           if (isSelectionMode) {
             void handleSelectionAdd();
             return;

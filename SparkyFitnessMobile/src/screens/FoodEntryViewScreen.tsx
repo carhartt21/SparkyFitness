@@ -831,6 +831,7 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   } = useDeleteFoodEntry({
     entryId: entry.id,
     entryDate: entry.entry_date,
+    nutritionCaptureId: entry.nutrition_capture_id,
     onSuccess: () => {
       invalidateDeleteCache();
       navigation.goBack();
