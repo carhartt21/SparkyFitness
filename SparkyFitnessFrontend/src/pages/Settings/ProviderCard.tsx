@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import {
@@ -105,6 +106,7 @@ export const ProviderCard = ({
   startEditing,
   isAdminMode = false,
 }: ProviderCardProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { data: providerTypes } = useExternalProviderTypesQuery();
   const yazioDisplay = decodeYazioAppId(provider.app_id);
@@ -593,6 +595,32 @@ export const ProviderCard = ({
               className="text-primary hover:underline font-medium ml-1"
             >
               Swiss Food Composition Database
+            </a>
+          </p>
+        )}
+
+        {provider.provider_type === 'bls4' && (
+          <p className="text-xs text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
+            {t('providers.bls4Attribution', {
+              defaultValue:
+                'Food composition data: Max Rubner-Institut (2025), Bundeslebensmittelschlüssel 4.0. Values per 100 g edible portion.',
+            })}{' '}
+            <a
+              href="https://www.blsdb.de/download"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              {t('providers.bls4Source', { defaultValue: 'Dataset' })}
+            </a>
+            {' · '}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              CC BY 4.0
             </a>
           </p>
         )}

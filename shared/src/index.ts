@@ -48,6 +48,7 @@ export * from "./schemas/database/ExercisePresetEntries.zod.ts";
 export * from "./schemas/database/Exercises.zod.ts";
 export * from "./schemas/database/ExternalDataProviders.zod.ts";
 export * from "./schemas/database/ExternalProviderTypes.zod.ts";
+export * from "./schemas/database/Bls4Foods.zod.ts";
 export * from "./schemas/database/FamilyAccess.zod.ts";
 export * from "./schemas/database/FastingLogs.zod.ts";
 export * from "./schemas/database/FoodEntries.zod.ts";

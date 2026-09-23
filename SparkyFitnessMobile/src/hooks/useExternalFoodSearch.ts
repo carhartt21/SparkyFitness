@@ -31,6 +31,7 @@ export function useExternalFoodSearch(
       if (
         providerType !== 'openfoodfacts' &&
         providerType !== 'swissfood' &&
+        providerType !== 'bls4' &&
         !providerId
       ) {
         return {

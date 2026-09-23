@@ -14,6 +14,7 @@ export const VALID_PROVIDER_TYPES = [
   'yazio',
   'norish',
   'swissfood',
+  'bls4',
 ] as const;
 
 export type ProviderType = (typeof VALID_PROVIDER_TYPES)[number];

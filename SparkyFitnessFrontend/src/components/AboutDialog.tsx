@@ -147,6 +147,18 @@ const AboutDialog: React.FC<AboutDialogProps> = ({
                           'Swiss Food Composition Database API'
                         )}
                       </li>
+                      <li>
+                        <a
+                          href="https://www.blsdb.de/download"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t(
+                            'aboutDialog.bls4Credit',
+                            'Bundeslebensmittelschlüssel 4.0 · Max Rubner-Institut (2025), CC BY 4.0'
+                          )}
+                        </a>
+                      </li>
                     </ul>
                   </li>
                 </ul>

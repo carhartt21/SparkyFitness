@@ -160,6 +160,11 @@ These tables contain daily diaries, logging entries, and scheduler items. **Care
 ## System & Global Reference Tables (Public Read, Admin Write)
 These tables store global configuration settings, lookup values, and reference metadata. They do not contain user-specific data and do not have Row-Level Security enabled. All authenticated users can read them, but only administrators can update them.
 
+`bls4_foods` is an exception to the general RLS statement above: it enables
+RLS and grants authenticated users SELECT only. The application role has no
+write policy; the pinned BLS importer uses the database owner role. Its source
+nutrients and references are public, never diary records or account data.
+
 | Table Name | Description | Write (insert/update/delete) | Read (select) |
 | :--- | :--- | :--- | :--- |
 | `global_settings` | Application global feature flags and system configurations | Admin-Only | Authenticated Users |
@@ -167,6 +172,7 @@ These tables store global configuration settings, lookup values, and reference m
 | `sso_provider` | Active Single Sign-On providers (Google, Apple, etc.) | Admin-Only | Public (Login page) |
 | `oidc_providers` | OpenID Connect integration settings and metadata | Admin-Only | Public |
 | `external_provider_types` | Search provider configurations lookup (FATSecret, USDA) | Admin-Only | Authenticated Users |
+| `bls4_foods` | BLS 4.0 food composition reference catalogue | Database owner import only | Authenticated Users (RLS SELECT) |
 | `medication_types` | Medication categories lookup (GLP-1, Insulin, ADHD, etc.) | Admin-Only | Authenticated Users |
 | `medication_route_types` | Medication administration route lookup (Subcutaneous, Oral) | Admin-Only | Authenticated Users |
 | `medication_schedule_types`| Medication scheduling frequencies lookup (Daily, Weekly) | Admin-Only | Authenticated Users |

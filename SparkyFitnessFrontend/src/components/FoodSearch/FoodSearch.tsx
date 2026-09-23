@@ -745,6 +745,18 @@ const EnhancedFoodSearch = ({
           hasMore: data.pagination?.hasMore ?? false,
         };
       },
+      bls4: async (term, id, _provider, page) => {
+        const data = await queryClient.fetchQuery(
+          searchFoodsV2Options('bls4', term, id, undefined, undefined, page)
+        );
+        return {
+          items: data.foods.map((food: Food) => ({
+            provider_type: 'bls4' as const,
+            food,
+          })),
+          hasMore: data.pagination?.hasMore ?? false,
+        };
+      },
     }),
     [queryClient, autoScaleOpenFoodFactsImports, itemDisplayLimit]
   );
@@ -1027,14 +1039,19 @@ const EnhancedFoodSearch = ({
       (food.provider_type === 'fatsecret' ||
         food.provider_type === 'usda' ||
         food.provider_type === 'yazio' ||
-        food.provider_type === 'swissfood') &&
+        food.provider_type === 'swissfood' ||
+        food.provider_type === 'bls4') &&
       food.provider_external_id;
 
     if (needsDetailFetch) {
       // In All Providers mode searchProviderId isn't set, so callers pass the
       // result's own provider id to fetch full nutrients with the right creds.
       const providerId = providerIdOverride || searchProviderId || undefined;
-      if (!providerId && food.provider_type !== 'swissfood') {
+      if (
+        !providerId &&
+        food.provider_type !== 'swissfood' &&
+        food.provider_type !== 'bls4'
+      ) {
         // No provider credentials available — data is already complete (barcode flow)
         setEditingProduct(food);
         setShowEditDialog(true);

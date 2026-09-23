@@ -82,7 +82,8 @@ export interface Food {
     | 'usda'
     | 'yazio'
     | 'norish'
-    | 'swissfood';
+    | 'swissfood'
+    | 'bls4';
   provider_verified?: boolean;
   default_variant?: FoodVariant;
   variants?: FoodVariant[];

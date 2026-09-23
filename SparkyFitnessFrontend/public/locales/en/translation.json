@@ -816,6 +816,7 @@
     "gotIt": "Got it",
     "close": "Close",
     "swissFoodApi": "Swiss Food Composition Database API",
+    "bls4Credit": "Bundeslebensmittelschlüssel 4.0 · Max Rubner-Institut (2025), CC BY 4.0",
     "usdaApi": "USDA Food Database API"
   },
   "exercise": {
@@ -5485,6 +5486,8 @@
     }
   },
   "providers": {
+    "bls4Attribution": "Food composition data: Max Rubner-Institut (2025), Bundeslebensmittelschlüssel 4.0. Values per 100 g edible portion.",
+    "bls4Source": "Dataset",
     "createError": "Failed to add external data provider.",
     "createSuccess": "External data provider added successfully.",
     "deleteError": "Failed to delete external data provider",

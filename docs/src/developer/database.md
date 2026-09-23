@@ -76,6 +76,7 @@ Quick reference of all tables by domain and purpose. For detailed security tier,
 | Table | Purpose |
 |-------|---------|
 | `foods` | Custom food items created by user |
+| `bls4_foods` | Imported, read-only Max Rubner-Institut BLS 4.0 reference foods and source provenance |
 | `food_variants` | Serving size options for foods |
 | `food_entries` | Logged meals/calories for the day |
 | `food_entry_meals` | Meal details associated with logged entries |

@@ -23,6 +23,7 @@ DECLARE
 BEGIN
   FOR table_name IN SELECT unnest(ARRAY[
     'ai_service_settings',
+    'bls4_foods',
     'check_in_measurements',
     'check_in_photos',
     'custom_categories',
@@ -514,6 +515,11 @@ BEGIN
   ', table_name, table_name);
 END;
 $$;
+
+-- Public reference data is available only within an authenticated app session.
+-- No app-role INSERT/UPDATE/DELETE policy exists; imports use the owner role.
+CREATE POLICY bls4_foods_select_policy ON public.bls4_foods
+FOR SELECT TO PUBLIC USING (authenticated_user_id() IS NOT NULL);
 
 -- Step 5: Apply policies to all tables.
 -- Custom policy for ai_service_settings to support admin-global + user-owned settings

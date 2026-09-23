@@ -33,6 +33,7 @@ import {
 import { mapFatSecretFood } from '../../integrations/fatsecret/fatsecretService.js';
 import { getYazioFoodDetails } from '../../integrations/yazio/yazioService.js';
 import { getSwissFoodDetails } from '../../integrations/swissfood/swissFoodService.js';
+import { getBlsFoodDetails } from '../../integrations/bls/blsFoodService.js';
 import {
   getFatSecretNutrients,
   getMealieFoodDetails,
@@ -438,6 +439,10 @@ const detailHandler: RequestHandler<{
           language,
           credentials.base_url || undefined
         );
+        break;
+      }
+      case 'bls4': {
+        food = await getBlsFoodDetails(req.userId, externalId, language);
         break;
       }
     }
