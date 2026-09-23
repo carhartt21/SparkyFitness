@@ -77,11 +77,20 @@ export default function QuickMealPhotoScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (!isFocused) return;
-    // React Navigation may reuse this route after the previous capture. A
-    // fresh focus is a new user action and must launch the camera again.
+    // This screen is itself a native-stack modal. Presenting the system camera
+    // during its opening transition can leave a later camera request hanging
+    // behind the old presentation. Wait until that transition is finished.
+    // A cold-launch route may have no transition event, hence the fallback.
     launched.current = false;
-    void capture();
-  }, [capture, isFocused]);
+    const stop = navigation.addListener('transitionEnd', (event) => {
+      if (!event.data.closing) void capture();
+    });
+    const fallback = setTimeout(() => void capture(), 650);
+    return () => {
+      stop();
+      clearTimeout(fallback);
+    };
+  }, [capture, isFocused, navigation]);
 
   const busy = phase !== 'idle';
 
