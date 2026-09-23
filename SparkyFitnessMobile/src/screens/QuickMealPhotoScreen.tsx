@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
 import { Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import * as ImageManipulator from 'expo-image-manipulator';
+import Constants from 'expo-constants';
 import { useTranslation } from 'react-i18next';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
@@ -13,14 +15,15 @@ type Props = NativeStackScreenProps<RootStackParamList, 'QuickMealPhoto'>;
 /** Opens the camera on mount, including after a cold-launch deep link. */
 export default function QuickMealPhotoScreen({ navigation }: Props) {
   const { t } = useTranslation();
+  const isFocused = useIsFocused();
   const launched = useRef(false);
-  const [busy, setBusy] = useState(true);
+  const [phase, setPhase] = useState<'opening' | 'saving' | 'idle'>('opening');
   const [error, setError] = useState<string | null>(null);
 
   const capture = useCallback(async () => {
     if (launched.current) return;
     launched.current = true;
-    setBusy(true);
+    setPhase('opening');
     setError(null);
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -54,30 +57,45 @@ export default function QuickMealPhotoScreen({ navigation }: Props) {
               format: ImageManipulator.SaveFormat.JPEG,
             })
           ).uri;
+      setPhase('saving');
       await saveMealPhotoLocally({ sourceUri, capturedAt });
       navigation.navigate('Tabs', { screen: 'Diary' });
-    } catch {
+    } catch (cause) {
+      const diagnostic =
+        Constants.expoConfig?.extra?.devTestHttpOrigin && cause instanceof Error
+          ? ` (${cause.message})`
+          : '';
       setError(
         t('nutritionPhotoCapture.saveFailed', {
           defaultValue: 'Meal photo could not be saved. Try again.',
-        })
+        }) + diagnostic
       );
     } finally {
-      setBusy(false);
+      setPhase('idle');
     }
   }, [navigation, t]);
 
   useEffect(() => {
+    if (!isFocused) return;
+    // React Navigation may reuse this route after the previous capture. A
+    // fresh focus is a new user action and must launch the camera again.
+    launched.current = false;
     void capture();
-  }, [capture]);
+  }, [capture, isFocused]);
+
+  const busy = phase !== 'idle';
 
   return (
     <View className="flex-1 bg-background justify-center items-center p-6 gap-4">
       <Text className="text-lg font-semibold text-text-primary">
         {busy
-          ? t('nutritionPhotoCapture.saving', {
-              defaultValue: 'Saving meal photo…',
-            })
+          ? phase === 'opening'
+            ? t('nutritionPhotoCapture.opening', {
+                defaultValue: 'Opening camera…',
+              })
+            : t('nutritionPhotoCapture.saving', {
+                defaultValue: 'Saving meal photo…',
+              })
           : t('nutritionPhotoCapture.title', {
               defaultValue: 'Meal photo',
             })}

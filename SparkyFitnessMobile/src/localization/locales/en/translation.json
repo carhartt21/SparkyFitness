@@ -1989,6 +1989,7 @@
     ,"energy": "{{value}} kcal"
   },
   "nutritionPhotoCapture": {
+    "opening": "Opening camera…",
     "permission": "Allow camera access to capture a meal.",
     "saveFailed": "Meal photo could not be saved. Try again.",
     "saving": "Saving meal photo…",

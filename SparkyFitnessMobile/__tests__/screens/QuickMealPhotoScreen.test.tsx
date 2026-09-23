@@ -13,6 +13,10 @@ jest.mock('../../src/services/nutritionPhotoCapture', () => ({
 
 const navigate = jest.fn();
 const goBack = jest.fn();
+let mockFocused = true;
+jest.mock('@react-navigation/native', () => ({
+  useIsFocused: () => mockFocused,
+}));
 const props = {
   navigation: { navigate, goBack },
   route: { key: 'quick-photo', name: 'QuickMealPhoto' },
@@ -21,6 +25,7 @@ const props = {
 describe('QuickMealPhotoScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocused = true;
     (ImagePicker.requestCameraPermissionsAsync as jest.Mock).mockResolvedValue({
       granted: true,
     });
@@ -46,5 +51,23 @@ describe('QuickMealPhotoScreen', () => {
     render(<QuickMealPhotoScreen {...props} />);
     await waitFor(() => expect(goBack).toHaveBeenCalledTimes(1));
     expect(saveMealPhotoLocally).not.toHaveBeenCalled();
+  });
+
+  test('opening the route again after returning to the diary relaunches the camera', async () => {
+    (ImagePicker.launchCameraAsync as jest.Mock).mockResolvedValue({
+      canceled: false,
+      assets: [{ uri: 'file:///picker/meal.jpg' }],
+    });
+    const screen = render(<QuickMealPhotoScreen {...props} />);
+    await waitFor(() =>
+      expect(ImagePicker.launchCameraAsync).toHaveBeenCalledTimes(1)
+    );
+    mockFocused = false;
+    screen.rerender(<QuickMealPhotoScreen {...props} />);
+    mockFocused = true;
+    screen.rerender(<QuickMealPhotoScreen {...props} />);
+    await waitFor(() =>
+      expect(ImagePicker.launchCameraAsync).toHaveBeenCalledTimes(2)
+    );
   });
 });
