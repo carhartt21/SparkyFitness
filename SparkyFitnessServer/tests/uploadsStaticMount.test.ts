@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
  * Guards the public /uploads static mounts (SparkyFitnessServer.ts).
  *
  * Sensitive photo subtrees must never be reachable without authentication:
- * check-in progress photos and pregnancy bump photos are both served only by
+ * check-in, pregnancy, and nutrition-capture photos are served only by
  * their owner-checked routes. SparkyFitnessServer.ts cannot be imported (it has
  * no exports and opens a DB connection and a listener at module scope), so the
  * mount block is reconstructed here, and a separate source-order assertion
@@ -28,7 +28,11 @@ const uploadsSecurityHeaders = {
   'Content-Disposition': 'attachment',
 };
 
-const SENSITIVE_UPLOAD_SUBTREES = new Set(['check-in', 'pregnancy']);
+const SENSITIVE_UPLOAD_SUBTREES = new Set([
+  'check-in',
+  'pregnancy',
+  'nutrition_captures',
+]);
 
 function buildApp() {
   const app = express();
@@ -79,6 +83,7 @@ beforeAll(async () => {
   uploadsRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'sparky-uploads-'));
   await seed('pregnancy/user-1/preg-1/w12-1700000000000.png');
   await seed('check-in/user-1/2026-01-01/front.png');
+  await seed('nutrition_captures/capture-1/photo.png');
   await seed('exercises/ex-1/image.png');
 });
 
@@ -99,6 +104,14 @@ describe('public uploads static mounts', () => {
     '/uploads/check-in/user-1/2026-01-01/front.png',
     '/api/uploads/check-in/user-1/2026-01-01/front.png',
   ])('denies unauthenticated check-in photos via %s', async (url) => {
+    const res = await request(buildApp()).get(url);
+    expect(res.status).toBe(404);
+  });
+
+  it.each([
+    '/uploads/nutrition_captures/capture-1/photo.png',
+    '/api/uploads/nutrition_captures/capture-1/photo.png',
+  ])('denies unauthenticated meal photos via %s', async (url) => {
     const res = await request(buildApp()).get(url);
     expect(res.status).toBe(404);
   });
@@ -150,6 +163,9 @@ describe('SparkyFitnessServer.ts mount ordering', () => {
       'express.static(UPLOADS_BASE_DIR, uploadsStaticOptions)'
     );
     expect(denyIndex).toBeGreaterThan(-1);
+    expect(source.slice(denyIndex, staticIndex)).toContain(
+      'nutrition_captures'
+    );
     expect(staticIndex).toBeGreaterThan(-1);
     expect(denyIndex).toBeLessThan(staticIndex);
   });

@@ -37,6 +37,7 @@ import v2ExerciseEntryRoutes from './routes/v2/exerciseEntryRoutes.js';
 import v2ExerciseRoutes from './routes/v2/exerciseRoutes.js';
 import mealRoutes from './routes/mealRoutes.js';
 import foodEntryRoutes from './routes/foodEntryRoutes.js';
+import nutritionCaptureRoutes from './routes/nutritionCaptureRoutes.js';
 import foodEntryMealRoutes from './routes/foodEntryMealRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import preferenceRoutes from './routes/preferenceRoutes.js';
@@ -451,7 +452,11 @@ const uploadsStaticOptions = {
 // This block MUST stay above the express.static mounts below — moving it after
 // them silently re-exposes every file. tests/uploadsStaticMount.test.ts guards
 // both the behavior and the source ordering.
-const SENSITIVE_UPLOAD_SUBTREES = new Set(['check-in', 'pregnancy']);
+const SENSITIVE_UPLOAD_SUBTREES = new Set([
+  'check-in',
+  'pregnancy',
+  'nutrition_captures',
+]);
 app.use(['/uploads', '/api/uploads'], (req, res, next) => {
   // Match the path the way serve-static resolves it, not the way it was
   // written: a prefix test against the raw URL would not account for percent-
@@ -679,6 +684,7 @@ app.use('/api/v2/foods', v2FoodRoutes);
 app.use('/api/v2/exercise-entries', v2ExerciseEntryRoutes);
 app.use('/api/v2/exercises', v2ExerciseRoutes);
 app.use('/api/food-entries', foodEntryRoutes);
+app.use('/api/nutrition-captures', nutritionCaptureRoutes);
 app.use('/api/food-entry-meals', foodEntryMealRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/daily-summary', dailySummaryRoutes);
