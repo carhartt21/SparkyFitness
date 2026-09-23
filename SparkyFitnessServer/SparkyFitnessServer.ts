@@ -1107,7 +1107,12 @@ const scheduleLiftosaurSyncs = async () => {
       log('error', '[DEMO] Demo auto-purge check failed:', err);
     }
   }
-  const server = app.listen(PORT);
+  // A disposable device-test server may need to bind to a private interface.
+  // Keep the existing all-interface default for container deployments.
+  const bindHost = process.env.SPARKY_FITNESS_SERVER_BIND_HOST;
+  const server = bindHost
+    ? app.listen(Number(PORT), bindHost)
+    : app.listen(PORT);
   // A binding failure (EADDRINUSE, EACCES) arrives as the server's 'error'
   // event, not as a rejection of this chain. Left unhandled it terminates the
   // process before the catch below can drain the pools, so bridge the two
