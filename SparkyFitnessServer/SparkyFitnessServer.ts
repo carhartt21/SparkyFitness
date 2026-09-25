@@ -12,6 +12,8 @@ import { bridgeBearerAuthHeader } from './utils/bearerAuthBridge.js';
 import { endPool } from './db/poolManager.js';
 import { log } from './config/logging.js';
 import { authenticate } from './middleware/authMiddleware.js';
+import { authenticateMcp } from './middleware/mcpAuthentication.js';
+import { rejectMcpReadOnlyCredential } from './middleware/rejectMcpReadOnlyCredential.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { applySignOutCookieCleanup } from './middleware/signOutCookieCleanup.js';
 import {
@@ -247,12 +249,15 @@ app.use(
   requestLogger({ logCompletion: true }),
   express.json({ limit: isDemoMode() ? '1mb' : '50mb' }),
   cookieParser(),
-  authenticate,
+  authenticateMcp,
   // /mcp mounts ahead of the global route table, so it needs the demo guard
   // explicitly — the app-level one below never sees these requests.
   demoRestrictionGuard,
   mcpRoutes
 );
+// The dedicated MCP credential cannot authenticate to REST, Better Auth,
+// uploads, or other routes, even if a browser session accompanies the request.
+app.use(rejectMcpReadOnlyCredential);
 // Middleware to parse JSON bodies for all incoming requests
 // Increased limit to 50mb to accommodate image uploads. A public demo instance
 // takes a much lower cap: the routes that need the headroom (image analysis,

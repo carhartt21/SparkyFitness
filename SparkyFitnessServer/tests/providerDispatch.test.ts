@@ -596,8 +596,8 @@ describe('dispatchAiRequest — text-only structured request shapes', () => {
     );
     const { url, headers, body } = captured(m);
     expect(url).toBe('https://openrouter.ai/api/v1/chat/completions');
-    expect(headers['HTTP-Referer']).toBe('https://sparky-fitness.com');
-    expect(headers['X-Title']).toBe('Sparky Fitness');
+    expect(headers['HTTP-Referer']).toBeUndefined();
+    expect(headers['X-Title']).toBe('X on Track');
     expect((body.response_format as { type: string }).type).toBe('json_schema');
     expect(body.provider).toEqual({ require_parameters: true });
   });

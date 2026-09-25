@@ -5,15 +5,81 @@ import {
   DateParamSchema,
   UuidParamSchema,
   UpdateWaterIntakeLogTimeBodySchema,
+  ManualWaterActionBodySchema,
+  ContainerWaterActionBodySchema,
 } from '../../schemas/measurementSchemas.js';
 
 import checkPermissionMiddleware from '../../middleware/checkPermissionMiddleware.js';
 import onBehalfOfMiddleware from '../../middleware/onBehalfOfMiddleware.js';
 import measurementService from '../../services/measurementService.js';
+import { WaterActionConflictError } from '../../models/measurementRepository.js';
+import {
+  ContainerWaterActionError,
+  createContainerWaterAction,
+} from '../../services/containerWaterActionService.js';
 
 const router = express.Router();
 
 router.use(onBehalfOfMiddleware);
+/**
+ * @swagger
+ * /v2/measurements/water-intake/container-actions:
+ *   post:
+ *     summary: Log one container serving and any linked food exactly once
+ *     tags: [Wellness & Metrics]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [client_operation_id, entry_date, container_id, logged_at]
+ *             properties:
+ *               client_operation_id: { type: string, format: uuid }
+ *               entry_date: { type: string, format: date }
+ *               container_id: { type: integer, minimum: 1 }
+ *               logged_at: { type: string, format: date-time }
+ *     responses:
+ *       200:
+ *         description: Container action applied or previously applied.
+ *       400:
+ *         description: Invalid action body.
+ *       404:
+ *         description: Container not found.
+ *       409:
+ *         description: Operation ID conflict or invalid container amount.
+ */
+router.post(
+  '/water-intake/container-actions',
+  checkPermissionMiddleware('diary'),
+  async (req, res, next) => {
+    try {
+      const parsed = ContainerWaterActionBodySchema.safeParse(req.body);
+      if (!parsed.success) {
+        res.status(400).json({
+          error: 'Invalid request body',
+          details: parsed.error.flatten().fieldErrors,
+        });
+        return;
+      }
+      const result = await createContainerWaterAction(
+        req.userId,
+        req.originalUserId || req.userId,
+        parsed.data
+      );
+      res.status(200).json(result);
+    } catch (error) {
+      if (error instanceof ContainerWaterActionError) {
+        res.status(error.statusCode).json({ error: error.message });
+        return;
+      }
+      next(error);
+    }
+  }
+);
+
 router.use(checkPermissionMiddleware('checkin'));
 
 /**
@@ -712,6 +778,59 @@ const updateWaterIntakeLogTimeHandler: RequestHandler = async (
 
 // Note: /entry/:id and /log routes must be registered before /:date to avoid
 // Express matching "entry" or "log" as a date parameter.
+/**
+ * @swagger
+ * /v2/measurements/water-intake/manual-actions:
+ *   post:
+ *     summary: Log one plain-water action with an immutable retry ID
+ *     tags: [Wellness & Metrics]
+ *     security:
+ *       - cookieAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [client_operation_id, entry_date, water_ml, logged_at]
+ *             properties:
+ *               client_operation_id: { type: string, format: uuid }
+ *               entry_date: { type: string, format: date }
+ *               water_ml: { type: number, exclusiveMinimum: 0, maximum: 10000 }
+ *               logged_at: { type: string, format: date-time }
+ *     responses:
+ *       200:
+ *         description: Action applied or previously applied with identical data.
+ *       400:
+ *         description: Invalid action body.
+ *       409:
+ *         description: Operation ID was already used for different data.
+ */
+router.post('/water-intake/manual-actions', async (req, res, next) => {
+  try {
+    const parsed = ManualWaterActionBodySchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: 'Invalid request body',
+        details: parsed.error.flatten().fieldErrors,
+      });
+      return;
+    }
+    const result = await measurementService.logManualWaterAction(
+      req.userId,
+      req.originalUserId || req.userId,
+      parsed.data
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    if (error instanceof WaterActionConflictError) {
+      res.status(409).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+});
+
 router.get('/water-intake/entry/:id', getWaterIntakeEntryHandler);
 router.get('/water-intake/:date/log', getWaterIntakeLogHandler);
 router.get('/water-intake/:date', getWaterIntakeHandler);

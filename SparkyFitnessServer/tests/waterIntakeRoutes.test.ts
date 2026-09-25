@@ -6,11 +6,28 @@ import { v4 as uuidv4 } from 'uuid';
 import measurementService from '../services/measurementService.js';
 import errorHandler from '../middleware/errorHandler.js';
 import waterIntakeRoutes from '../routes/v2/waterIntakeRoutes.js';
+import { WaterActionConflictError } from '../models/measurementRepository.js';
+import {
+  ContainerWaterActionError,
+  createContainerWaterAction,
+} from '../services/containerWaterActionService.js';
+vi.mock('../services/containerWaterActionService.js', () => ({
+  createContainerWaterAction: vi.fn(),
+  ContainerWaterActionError: class ContainerWaterActionError extends Error {
+    constructor(
+      readonly statusCode: 404 | 409,
+      message: string
+    ) {
+      super(message);
+    }
+  },
+}));
 vi.mock('../services/measurementService.js', () => ({
   default: {
     getWaterIntakeEntryById: vi.fn(),
     getWaterIntake: vi.fn(),
     upsertWaterIntake: vi.fn(),
+    logManualWaterAction: vi.fn(),
     updateWaterIntake: vi.fn(),
     deleteWaterIntake: vi.fn(),
     getWaterIntakeLog: vi.fn(),
@@ -39,9 +56,114 @@ app.use(injectUser);
 app.use('/api/v2/measurements', waterIntakeRoutes);
 app.use(errorHandler);
 const VALID_UUID = uuidv4();
+const manualAction = {
+  client_operation_id: VALID_UUID,
+  entry_date: '2026-09-24',
+  water_ml: 250,
+  logged_at: '2026-09-24T12:00:00.000Z',
+};
+const containerAction = {
+  client_operation_id: VALID_UUID,
+  entry_date: '2026-09-24',
+  container_id: 7,
+  logged_at: '2026-09-24T08:30:00.000Z',
+};
 describe('Water Intake Routes (v2)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+  describe('POST /api/v2/measurements/water-intake/container-actions', () => {
+    it('passes a valid operation through and returns its result', async () => {
+      vi.mocked(createContainerWaterAction).mockResolvedValue({
+        waterLogId: VALID_UUID,
+        foodEntryId: null,
+        waterMl: 250,
+        alreadyApplied: false,
+        totals: { water_ml: 250, manual_ml: 250, ledger_ml: 250, food_ml: 0 },
+      });
+      const response = await request(app)
+        .post('/api/v2/measurements/water-intake/container-actions')
+        .send(containerAction);
+      expect(response.statusCode).toBe(200);
+      expect(createContainerWaterAction).toHaveBeenCalledWith(
+        'test-user-id',
+        'test-user-id',
+        containerAction
+      );
+    });
+
+    it('rejects malformed actions before writing and maps conflicts', async () => {
+      const invalid = await request(app)
+        .post('/api/v2/measurements/water-intake/container-actions')
+        .send({ ...containerAction, container_id: -1 });
+      expect(invalid.statusCode).toBe(400);
+      expect(createContainerWaterAction).not.toHaveBeenCalled();
+
+      vi.mocked(createContainerWaterAction).mockRejectedValue(
+        new ContainerWaterActionError(409, 'Operation ID conflict')
+      );
+      const conflict = await request(app)
+        .post('/api/v2/measurements/water-intake/container-actions')
+        .send(containerAction);
+      expect(conflict.statusCode).toBe(409);
+    });
+  });
+  describe('POST /api/v2/measurements/water-intake/manual-actions', () => {
+    it('passes a valid action to the service and returns its replay status', async () => {
+      const result = {
+        id: VALID_UUID,
+        alreadyApplied: true,
+        totals: { water_ml: 250, manual_ml: 250, ledger_ml: 250, food_ml: 0 },
+      };
+      vi.mocked(measurementService.logManualWaterAction).mockResolvedValue(
+        result
+      );
+      const response = await request(app)
+        .post('/api/v2/measurements/water-intake/manual-actions')
+        .send(manualAction);
+      expect(response.statusCode).toBe(200);
+      expect(response.body).toEqual(result);
+      expect(measurementService.logManualWaterAction).toHaveBeenCalledWith(
+        'test-user-id',
+        'test-user-id',
+        manualAction
+      );
+    });
+
+    it('rejects invalid volumes before writing', async () => {
+      const response = await request(app)
+        .post('/api/v2/measurements/water-intake/manual-actions')
+        .send({ ...manualAction, water_ml: -10 });
+      expect(response.statusCode).toBe(400);
+      expect(measurementService.logManualWaterAction).not.toHaveBeenCalled();
+    });
+
+    it('accepts three decimal places despite binary floating-point rounding', async () => {
+      vi.mocked(measurementService.logManualWaterAction).mockResolvedValue({
+        id: VALID_UUID,
+        alreadyApplied: false,
+        totals: {
+          water_ml: 1.001,
+          manual_ml: 1.001,
+          ledger_ml: 1.001,
+          food_ml: 0,
+        },
+      });
+      const response = await request(app)
+        .post('/api/v2/measurements/water-intake/manual-actions')
+        .send({ ...manualAction, water_ml: 1.001 });
+      expect(response.statusCode).toBe(200);
+    });
+
+    it('returns a conflict for a reused operation ID with changed data', async () => {
+      vi.mocked(measurementService.logManualWaterAction).mockRejectedValue(
+        new WaterActionConflictError()
+      );
+      const response = await request(app)
+        .post('/api/v2/measurements/water-intake/manual-actions')
+        .send(manualAction);
+      expect(response.statusCode).toBe(409);
+    });
   });
   // ---------------------------------------------------------------------------
   // GET /entry/:id

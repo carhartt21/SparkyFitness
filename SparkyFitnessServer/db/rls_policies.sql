@@ -67,10 +67,12 @@ BEGIN
     'user_water_containers',
     'water_intake',
     'water_intake_entries',
+    'water_container_actions',
     'weekly_goal_plans',
     'workout_plan_assignment_sets',
     'workout_plan_template_assignments',
     'workout_plan_templates',
+    'workout_plan_template_versions',
     'workout_preset_exercise_sets',
     'workout_preset_exercises',
     'workout_presets',
@@ -87,6 +89,7 @@ BEGIN
     'medications',
     'medication_schedules',
     'medication_entries',
+    'planned_supplement_actions',
     'medication_pens',
     'injection_entries',
     'medication_titration_steps',
@@ -627,6 +630,12 @@ SELECT create_checkin_policy('check_in_photos');
 SELECT create_checkin_policy('custom_categories');
 SELECT create_checkin_policy('custom_measurements');
 SELECT create_diary_policy('exercise_entries');
+-- Dated plan snapshots are readable alongside exercise reports. Only the
+-- owner may append one; existing snapshots cannot be rewritten or deleted.
+CREATE POLICY select_policy ON public.workout_plan_template_versions FOR SELECT TO PUBLIC
+USING (has_diary_read_access(user_id));
+CREATE POLICY insert_policy ON public.workout_plan_template_versions FOR INSERT TO PUBLIC
+WITH CHECK (authenticated_user_id() = user_id);
 -- Custom policy for exercise_entries to allow access if linked to an owned exercise_preset_entry
 CREATE POLICY select_exercise_preset_entry_linked_policy ON public.exercise_entries FOR SELECT TO PUBLIC
 USING (
@@ -637,12 +646,15 @@ USING (
 );
 -- The modify policy for exercise_entries is already handled by create_diary_policy('exercise_entries')
 
+-- Imported workout source IDs remain diary data; their nullable identity
+-- columns inherit the same owner/delegate access as the session rows.
 SELECT create_diary_policy('exercise_preset_entries');
 SELECT create_diary_policy('food_entry_meals');
 SELECT create_checkin_policy('sleep_entries');
 SELECT create_checkin_policy('sleep_entry_stages');
 SELECT create_diary_policy('water_intake');
 SELECT create_diary_policy('water_intake_entries');
+SELECT create_diary_policy('water_container_actions');
 
 -- Library access tables
 SELECT create_library_policy('exercises', 'shared_with_public', ARRAY['can_view_exercise_library', 'can_manage_diary']);
@@ -650,6 +662,8 @@ SELECT create_library_policy('foods', 'shared_with_public', ARRAY['can_view_food
 SELECT create_library_policy('meals', 'is_public', ARRAY['can_view_food_library', 'can_manage_diary']);
 SELECT create_library_policy('meal_plan_templates', 'false', ARRAY['can_view_food_library']);
 SELECT create_library_policy('workout_plan_templates', 'false', ARRAY['can_view_exercise_library']);
+-- Imported routine source IDs remain library data; they do not grant access
+-- to the provider's private credentials or change preset sharing rules.
 SELECT create_library_policy('workout_presets', 'is_public', ARRAY['can_view_exercise_library','can_manage_diary']);
 
 -- Medication & GLP-1 tracker (see migration 20260624000000_add_medication_glp1_schema.sql).
@@ -949,6 +963,7 @@ WITH CHECK (authenticated_user_id() = user_id);
 SELECT create_medication_policy('medications');
 SELECT create_medication_policy('medication_schedules');
 SELECT create_medication_policy('medication_entries');
+SELECT create_medication_policy('planned_supplement_actions');
 SELECT create_medication_policy('medication_pens');
 SELECT create_medication_policy('injection_entries');
 SELECT create_medication_policy('medication_titration_steps');

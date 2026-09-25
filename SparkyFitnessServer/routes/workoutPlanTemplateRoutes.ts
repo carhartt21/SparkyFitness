@@ -1,7 +1,51 @@
-import express from 'express';
+import express, { type RequestHandler } from 'express';
+import { z } from 'zod';
+import { exerciseSetTypeRequestSchema } from '@workspace/shared';
 import { authenticate } from '../middleware/authMiddleware.js';
 import workoutPlanTemplateService from '../services/workoutPlanTemplateService.js';
 const router = express.Router();
+
+// This older endpoint passes the rest of its plan payload through to the
+// service. Validate its nested set labels at the HTTP boundary too, so plan
+// templates cannot bypass the same rule as diary sessions and saved routines.
+const setTypeOnlyBodySchema = z
+  .object({
+    assignments: z
+      .array(
+        z
+          .object({
+            sets: z
+              .array(
+                z
+                  .object({
+                    set_type: exerciseSetTypeRequestSchema
+                      .nullable()
+                      .optional(),
+                  })
+                  .passthrough()
+              )
+              .nullable()
+              .optional(),
+          })
+          .passthrough()
+      )
+      .nullable()
+      .optional(),
+  })
+  .passthrough();
+
+const validateSetTypes: RequestHandler = (req, res, next) => {
+  const parsed = setTypeOnlyBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({
+      error: 'Invalid workout plan set type.',
+      details: parsed.error.flatten(),
+    });
+    return;
+  }
+  req.body = parsed.data;
+  next();
+};
 /**
  * @swagger
  * /workout-plan-templates:
@@ -29,7 +73,7 @@ const router = express.Router();
  *       500:
  *         description: Internal server error.
  */
-router.post('/', authenticate, async (req, res, next) => {
+router.post('/', authenticate, validateSetTypes, async (req, res, next) => {
   try {
     const newPlan = await workoutPlanTemplateService.createWorkoutPlanTemplate(
       req.userId,
@@ -167,8 +211,11 @@ router.get('/:id', authenticate, async (req, res, next) => {
  *       500:
  *         description: Internal server error.
  */
-router.put('/:id', authenticate, async (req, res, next) => {
+router.put('/:id', authenticate, validateSetTypes, async (req, res, next) => {
   try {
+    if (typeof req.params.id !== 'string') {
+      return res.status(400).json({ error: 'Invalid workout plan ID.' });
+    }
     const updatedPlan =
       await workoutPlanTemplateService.updateWorkoutPlanTemplate(
         req.userId,

@@ -29,6 +29,7 @@ describe('Generic Health & Workout Zod Schemas', () => {
       created_at: new Date(),
       updated_at: new Date(),
       workout_plan_assignment_id: null,
+      workout_plan_origin_assignment_id: null,
       image_url: null,
       created_by_user_id: null,
       exercise_name: 'Outdoor Run',

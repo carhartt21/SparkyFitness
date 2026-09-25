@@ -3,6 +3,7 @@ import {
   isDayString,
   MIN_MEASURED_BMR_KCAL,
   MAX_MEASURED_BMR_KCAL,
+  containerWaterActionBodySchema,
 } from '@workspace/shared';
 
 const coerceLegacyNumber = (value: unknown) => {
@@ -121,6 +122,25 @@ export const UpsertWaterIntakeBodySchema = z
   .loose();
 
 export type UpsertWaterIntakeBody = z.infer<typeof UpsertWaterIntakeBodySchema>;
+
+export const ManualWaterActionBodySchema = z.strictObject({
+  client_operation_id: z.uuid(),
+  entry_date: z.iso.date(),
+  water_ml: z
+    .number()
+    .finite()
+    .positive()
+    .max(10000)
+    .refine(
+      (value) => Math.abs(value * 1000 - Math.round(value * 1000)) < 1e-7,
+      {
+        message: 'water_ml must have at most three decimal places',
+      }
+    ),
+  logged_at: z.iso.datetime({ offset: true }),
+});
+
+export const ContainerWaterActionBodySchema = containerWaterActionBodySchema;
 
 export const UpdateWaterIntakeBodySchema = z
   .object({

@@ -33,6 +33,98 @@ describe('measurementRepository.upsertWaterIntakeSamples', () => {
     vi.clearAllMocks();
   });
 
+  describe('insertManualWaterAction', () => {
+    const loggedAt = '2026-09-24T12:00:00.000Z';
+    const args = [
+      'user-1',
+      'user-1',
+      '11111111-1111-4111-8111-111111111111',
+      '2026-09-24',
+      250,
+      loggedAt,
+    ] as const;
+
+    it('inserts once and recomputes the manual aggregate in the transaction', async () => {
+      mockClient.query.mockImplementation((sql: string) => {
+        if (sql.includes('DO NOTHING RETURNING id')) {
+          return Promise.resolve({ rows: [{ id: 'water-row-1' }] });
+        }
+        if (sql.includes('COALESCE(SUM(water_ml)')) {
+          return Promise.resolve({ rows: [{ total_ml: '250' }] });
+        }
+        return Promise.resolve({ rows: [] });
+      });
+      const result = await measurementRepository.insertManualWaterAction(
+        ...args
+      );
+      expect(result).toEqual({ id: 'water-row-1', alreadyApplied: false });
+      expect(findQueries('COALESCE(SUM(water_ml)')).toHaveLength(1);
+      expect(findQueries('pg_advisory_xact_lock')).toHaveLength(1);
+      expect(findQueries('COMMIT')).toHaveLength(1);
+    });
+
+    it('returns the original row on an identical retry without recomputing', async () => {
+      mockClient.query.mockImplementation((sql: string) => {
+        if (sql.includes('DO NOTHING RETURNING id')) {
+          return Promise.resolve({ rows: [] });
+        }
+        if (sql.includes('entry_date::text')) {
+          return Promise.resolve({
+            rows: [
+              {
+                id: 'water-row-1',
+                entry_date: '2026-09-24',
+                water_ml: '250.000',
+                logged_at: new Date(loggedAt),
+              },
+            ],
+          });
+        }
+        return Promise.resolve({ rows: [] });
+      });
+      const result = await measurementRepository.insertManualWaterAction(
+        ...args
+      );
+      expect(result).toEqual({ id: 'water-row-1', alreadyApplied: true });
+      expect(findQueries('COALESCE(SUM(water_ml)')).toHaveLength(0);
+    });
+
+    it('rolls back a reused ID with different data', async () => {
+      mockClient.query.mockImplementation((sql: string) => {
+        if (sql.includes('DO NOTHING RETURNING id')) {
+          return Promise.resolve({ rows: [] });
+        }
+        if (sql.includes('entry_date::text')) {
+          return Promise.resolve({
+            rows: [
+              {
+                id: 'water-row-1',
+                entry_date: '2026-09-24',
+                water_ml: '500.000',
+                logged_at: new Date(loggedAt),
+              },
+            ],
+          });
+        }
+        return Promise.resolve({ rows: [] });
+      });
+      await expect(
+        measurementRepository.insertManualWaterAction(...args)
+      ).rejects.toThrow('Operation ID already belongs');
+      expect(findQueries('ROLLBACK')).toHaveLength(1);
+      expect(findQueries('COALESCE(SUM(water_ml)')).toHaveLength(0);
+    });
+  });
+
+  it('returns the manual operation ID in the scoped itemized water log', async () => {
+    mockClient.query.mockResolvedValue({ rows: [] });
+    await measurementRepository.getWaterIntakeLogByDate('user-1', '2026-09-24');
+    const [sql, values] = mockClient.query.mock.calls[0];
+    expect(sql).toContain('source_id');
+    expect(sql).toContain('user_id = $1 AND entry_date = $2');
+    expect(values).toEqual(['user-1', '2026-09-24']);
+  });
+
   it('never issues a DELETE for keyed samples (no destructive window-replace)', async () => {
     await measurementRepository.upsertWaterIntakeSamples('user-1', 'user-1', [
       {

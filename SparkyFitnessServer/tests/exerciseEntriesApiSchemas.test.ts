@@ -526,6 +526,38 @@ describe('Exercise entry API schemas', () => {
     });
   });
 
+  describe('client-authored set types', () => {
+    it('accepts mobile, web, and imported set labels without renaming them', () => {
+      for (const setType of ['drop', 'Drop Set', 'Warm-up Set', 'AMRAP']) {
+        const result = runSchema('exerciseEntrySetRequestSchema', {
+          set_number: 1,
+          set_type: setType,
+        });
+        expect(result.success).toBe(true);
+        expect(result.data.set_type).toBe(setType);
+      }
+    });
+
+    it('treats a blank legacy editor selection as unset', () => {
+      const result = runSchema('exerciseEntrySetRequestSchema', {
+        set_number: 1,
+        set_type: '  ',
+      });
+      expect(result.success).toBe(true);
+      expect(result.data.set_type).toBeNull();
+    });
+
+    it('rejects unrecognized and oversized set labels', () => {
+      for (const setType of ['mystery', 'x'.repeat(65)]) {
+        const result = runSchema('exerciseEntrySetRequestSchema', {
+          set_number: 1,
+          set_type: setType,
+        });
+        expect(result.success).toBe(false);
+      }
+    });
+  });
+
   describe('set distance (km)', () => {
     const baseSetRequest = {
       set_number: 1,

@@ -1818,6 +1818,59 @@ describe('sparky_search_exercises', () => {
 });
 
 describe('sparky_get_exercise_diary', () => {
+  it('pages entries with their own sets and a cursor', async () => {
+    vi.mocked(exerciseEntryDb.getExerciseDiaryRange).mockResolvedValue({
+      entries: [{ id: 'ee-2', entry_date: '2026-06-10' }],
+      sets: [{ id: 's-2', exercise_entry_id: 'ee-2', set_number: 1 }],
+      totalCount: 3,
+    });
+
+    const result = await tools.sparky_get_exercise_diary.execute!(
+      { date: '2026-06-10', limit: 1, offset: 1 },
+      opts
+    );
+
+    expect(JSON.parse(String(result))).toMatchObject({
+      start_date: '2026-06-10',
+      end_date: '2026-06-10',
+      data: [{ id: 'ee-2', sets: [{ id: 's-2', set_number: 1 }] }],
+      total_count: 3,
+      has_more: true,
+      next_offset: 2,
+    });
+    expect(exerciseEntryDb.getExerciseDiaryRange).toHaveBeenCalledWith(
+      'user-1',
+      '2026-06-10',
+      '2026-06-10',
+      { limit: 1, offset: 1 }
+    );
+  });
+
+  it('advances the diary cursor only past entries actually emitted after truncation', async () => {
+    const entries = Array.from({ length: 20 }, (_, index) => ({
+      id: `ee-${index}`,
+      entry_date: '2026-06-10',
+      notes: 'n'.repeat(500),
+    }));
+    vi.mocked(exerciseEntryDb.getExerciseDiaryRange).mockResolvedValue({
+      entries,
+      sets: [],
+      totalCount: 30,
+    });
+
+    const result = String(
+      await tools.sparky_get_exercise_diary.execute!(
+        { date: '2026-06-10', limit: 20 },
+        opts
+      )
+    );
+    expect(result).toContain('Result truncated:');
+    const payload = JSON.parse(result.split('\n\n---\n⚠️')[0]);
+    expect(payload.data.length).toBeLessThan(20);
+    expect(payload.next_offset).toBe(payload.data.length);
+    expect(payload.has_more).toBe(true);
+  });
+
   it('lets a single date override the range and wraps entries plus sets', async () => {
     vi.mocked(exerciseEntryDb.getExerciseDiaryRange).mockResolvedValue({
       entries: [{ id: 'ee-1' }],

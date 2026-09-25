@@ -97,7 +97,7 @@ async function prepareContribution(
       401
     );
   const attribution = {
-    appName: 'SparkyFitness',
+    appName: 'X on Track',
     appVersion: pkg.version,
     appUuid: createOpenFoodFactsAppUuid(ownerId),
   };

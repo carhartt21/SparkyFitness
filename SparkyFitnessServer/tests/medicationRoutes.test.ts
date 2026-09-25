@@ -7,6 +7,7 @@ import medicationPenRepository from '../models/medicationPenRepository.js';
 import injectionRepository from '../models/injectionRepository.js';
 import titrationRepository from '../models/titrationRepository.js';
 import medicationEntryRepository from '../models/medicationEntryRepository.js';
+import { createPlannedSupplementAction } from '../models/plannedSupplementActionRepository.js';
 import medicationDisplayPreferenceRepository from '../models/medicationDisplayPreferenceRepository.js';
 import glp1Service from '../services/glp1Service.js';
 import { canAccessUserData } from '../utils/permissionUtils.js';
@@ -17,6 +18,7 @@ vi.mock('../models/medicationPenRepository.js');
 vi.mock('../models/injectionRepository.js');
 vi.mock('../models/titrationRepository.js');
 vi.mock('../models/medicationEntryRepository.js');
+vi.mock('../models/plannedSupplementActionRepository.js');
 vi.mock('../models/medicationDisplayPreferenceRepository.js');
 vi.mock('../services/glp1Service.js');
 vi.mock('../utils/permissionUtils.js', () => ({
@@ -105,6 +107,64 @@ describe('Medication Routes V2', () => {
         'testUser',
         expect.objectContaining({ glp1Only: true })
       );
+    });
+  });
+
+  describe('POST /api/v2/medications/entries/planned-supplement-actions', () => {
+    const action = {
+      client_operation_id: UID,
+      medication_id: '550e8400-e29b-41d4-a716-446655440001',
+      schedule_id: '550e8400-e29b-41d4-a716-446655440002',
+      entry_date: '2026-09-24',
+      status: 'taken',
+      occurred_at: '2026-09-24T08:00:00.000Z',
+    };
+
+    it('returns 201 with the created entry for an authorized planned supplement', async () => {
+      vi.mocked(createPlannedSupplementAction).mockResolvedValue({
+        entry: {
+          id: UID,
+          medication_id: action.medication_id,
+          schedule_id: action.schedule_id,
+          entry_date: action.entry_date,
+          status: 'taken',
+        },
+        replayed: false,
+      });
+
+      const response = await request(app)
+        .post('/api/v2/medications/entries/planned-supplement-actions')
+        .set('Cookie', cookie)
+        .send(action);
+
+      expect(response.statusCode).toBe(201);
+      expect(createPlannedSupplementAction).toHaveBeenCalledWith(
+        'testUser',
+        action,
+        'America/New_York'
+      );
+    });
+
+    it('rejects a delegate without diary permission before creating an entry', async () => {
+      vi.mocked(canAccessUserData).mockResolvedValue(false);
+
+      const response = await request(app)
+        .post('/api/v2/medications/entries/planned-supplement-actions')
+        .set('Cookie', cookie)
+        .send(action);
+
+      expect(response.statusCode).toBe(403);
+      expect(createPlannedSupplementAction).not.toHaveBeenCalled();
+    });
+
+    it('rejects a malformed action before reaching persistence', async () => {
+      const response = await request(app)
+        .post('/api/v2/medications/entries/planned-supplement-actions')
+        .set('Cookie', cookie)
+        .send({ ...action, status: 'prn_taken' });
+
+      expect(response.statusCode).toBe(400);
+      expect(createPlannedSupplementAction).not.toHaveBeenCalled();
     });
   });
 

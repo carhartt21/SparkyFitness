@@ -134,7 +134,7 @@ export async function searchSwissFoods(
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'SparkyFitness/1.0',
+        'User-Agent': 'XonTrack/1.0',
       },
     });
 
@@ -221,7 +221,7 @@ export async function getSwissFoodDetails(
       method: 'GET',
       headers: {
         Accept: 'application/json',
-        'User-Agent': 'SparkyFitness/1.0',
+        'User-Agent': 'XonTrack/1.0',
       },
     });
 

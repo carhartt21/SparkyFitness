@@ -394,6 +394,10 @@ const exercisePaginationSchema = z.object({
   offset: z.number().int().min(0).optional(),
 });
 
+const exerciseDiarySchema = exerciseDateRangeSchema.merge(
+  exercisePaginationSchema
+);
+
 const listExercisesSchema = exercisePaginationSchema.extend({
   search: z.string().optional(),
 });
@@ -1114,10 +1118,10 @@ Actions:
 
     sparky_get_exercise_diary: tool({
       description:
-        'Returns entry-level exercise diary data for a specific date or date range.',
-      inputSchema: exerciseDateRangeSchema,
+        'Returns exercise diary entries and their sets for a date or range. Supply limit and offset for stable entry-level pagination.',
+      inputSchema: exerciseDiarySchema,
       execute: async (rawArgs) => {
-        const parsed = exerciseDateRangeSchema.safeParse(
+        const parsed = exerciseDiarySchema.safeParse(
           normalizeDayKeywords(rawArgs, tz)
         );
         if (!parsed.success) {
@@ -1125,11 +1129,44 @@ Actions:
         }
         try {
           const { startDate, endDate } = exerciseDateRange(parsed.data, tz);
-          const { entries, sets } = await exerciseEntryDb.getExerciseDiaryRange(
-            userId,
-            startDate,
-            endDate
-          );
+          const page =
+            parsed.data.limit !== undefined || parsed.data.offset !== undefined
+              ? normalizePagination(parsed.data.limit, parsed.data.offset)
+              : undefined;
+          const { entries, sets, totalCount } = page
+            ? await exerciseEntryDb.getExerciseDiaryRange(
+                userId,
+                startDate,
+                endDate,
+                page
+              )
+            : await exerciseEntryDb.getExerciseDiaryRange(
+                userId,
+                startDate,
+                endDate
+              );
+          if (page) {
+            const setsByEntry = new Map<string, Record<string, unknown>[]>();
+            for (const set of sets) {
+              const entryId = String(set.exercise_entry_id);
+              const existing = setsByEntry.get(entryId) ?? [];
+              existing.push(compactRecord(set, EXERCISE_SET_DROP));
+              setsByEntry.set(entryId, existing);
+            }
+            const data = buildPaginatedResult(
+              entries.map((entry: Record<string, unknown>) => ({
+                ...projectExerciseEntry(entry),
+                sets: setsByEntry.get(String(entry.id)) ?? [],
+              })),
+              totalCount ?? 0,
+              page.offset
+            );
+            return formatJsonResult({
+              start_date: startDate,
+              end_date: endDate,
+              ...data,
+            });
+          }
           const data = {
             start_date: startDate,
             end_date: endDate,

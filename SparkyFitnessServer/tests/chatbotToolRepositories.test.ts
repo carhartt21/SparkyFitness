@@ -397,6 +397,41 @@ describe('exerciseEntry range/usage queries', () => {
     expect(setsParams).toEqual([['ee-1', 'ee-2']]);
   });
 
+  it('getExerciseDiaryRange counts and fetches only the requested entry page', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({ rows: [{ total_count: 3 }] })
+      .mockResolvedValueOnce({ rows: [{ id: 'ee-2' }] })
+      .mockResolvedValueOnce({
+        rows: [{ id: 's-2', exercise_entry_id: 'ee-2' }],
+      });
+
+    const result = await exerciseEntryRepository.getExerciseDiaryRange(
+      'user-1',
+      '2026-06-01',
+      '2026-06-11',
+      { limit: 1, offset: 1 }
+    );
+
+    expect(result).toEqual({
+      entries: [{ id: 'ee-2' }],
+      sets: [{ id: 's-2', exercise_entry_id: 'ee-2' }],
+      totalCount: 3,
+    });
+    const [countSql, countParams] = mockClient.query.mock.calls[0];
+    expect(countSql).toContain(
+      'WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3'
+    );
+    expect(countParams).toEqual(['user-1', '2026-06-01', '2026-06-11']);
+    const [entriesSql, entriesParams] = mockClient.query.mock.calls[1];
+    expect(entriesSql).toContain(
+      'ORDER BY ee.entry_date ASC, ee.created_at ASC, ee.id ASC'
+    );
+    expect(entriesSql).toContain('LIMIT $4 OFFSET $5');
+    expect(entriesParams).toEqual(['user-1', '2026-06-01', '2026-06-11', 1, 1]);
+    const [, setsParams] = mockClient.query.mock.calls[2];
+    expect(setsParams).toEqual([['ee-2']]);
+  });
+
   it('getExerciseDiaryRange skips the sets query when there are no entries', async () => {
     const result = await exerciseEntryRepository.getExerciseDiaryRange(
       'user-1',

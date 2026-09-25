@@ -66,7 +66,7 @@ interface NutrientMapping {
   unit: string;
 }
 
-const USER_AGENT = `${pkg.name}/${pkg.version} (https://github.com/CodeWithCJ/SparkyFitness)`;
+const USER_AGENT = `XonTrack/${pkg.version} (https://github.com/carhartt21/SparkyFitness)`;
 const WRITE_REQUEST_TIMEOUT_MS = 30_000;
 
 const NUTRIENT_MAPPINGS: NutrientMapping[] = [
@@ -175,7 +175,7 @@ export function buildOpenFoodFactsProductForm(
     [`product_name_${language}`]: product.name,
     nutrition_data_per: product.nutritionDataPer,
     serving_size: `${product.servingSize} ${product.servingUnit}`,
-    comment: 'Contributed from SparkyFitness',
+    comment: 'Contributed from X on Track',
   });
 
   if (product.brand?.trim()) {

@@ -4,6 +4,7 @@ import type { NextFunction, Request, Response } from 'express';
 // @ts-expect-error TS(7016): no type declarations shipped for supertest
 import request from 'supertest';
 import exerciseStatsService from '../services/exerciseStatsService.js';
+import { getExerciseReview } from '../services/exerciseReviewService.js';
 import exerciseStatsRoutes from '../routes/exerciseStatsRoutes.js';
 
 vi.mock('../services/exerciseStatsService.js', () => ({
@@ -11,6 +12,9 @@ vi.mock('../services/exerciseStatsService.js', () => ({
     getPersonalRecordMatrix: vi.fn(),
     getMatchedCourses: vi.fn(),
   },
+}));
+vi.mock('../services/exerciseReviewService.js', () => ({
+  getExerciseReview: vi.fn(),
 }));
 vi.mock('../utils/permissionUtils.js', () => ({
   canAccessUserData: vi.fn().mockResolvedValue(true),
@@ -41,6 +45,53 @@ beforeEach(() => {
   (
     exerciseStatsService.getMatchedCourses as ReturnType<typeof vi.fn>
   ).mockResolvedValue(courses);
+  vi.mocked(getExerciseReview).mockResolvedValue({
+    current: { startDate: '2026-09-21', endDate: '2026-09-25' },
+    previous: { startDate: '2026-09-16', endDate: '2026-09-20' },
+  } as Awaited<ReturnType<typeof getExerciseReview>>);
+});
+
+describe('GET /exercise-stats/review', () => {
+  it('returns an explicit date window through the read-only service', async () => {
+    const response = await request(app).get(
+      '/exercise-stats/review?startDate=2026-09-21&endDate=2026-09-25'
+    );
+    expect(response.status).toBe(200);
+    expect(getExerciseReview).toHaveBeenCalledWith(
+      'user-123',
+      '2026-09-21',
+      '2026-09-25',
+      undefined
+    );
+  });
+
+  it('accepts explicit preceding dates for partial calendar periods', async () => {
+    const response = await request(app).get(
+      '/exercise-stats/review?startDate=2026-09-21&endDate=2026-09-25&previousStartDate=2026-09-14&previousEndDate=2026-09-18'
+    );
+    expect(response.status).toBe(200);
+    expect(getExerciseReview).toHaveBeenCalledWith(
+      'user-123',
+      '2026-09-21',
+      '2026-09-25',
+      { startDate: '2026-09-14', endDate: '2026-09-18' }
+    );
+  });
+
+  it.each([
+    'startDate=2026-09-21',
+    'startDate=2026-02-30&endDate=2026-03-01',
+    'startDate=2026-09-25&endDate=2026-09-21',
+    'startDate=2025-01-01&endDate=2026-09-25',
+    'startDate=2026-09-21&endDate=2026-09-25&previousStartDate=2026-09-14',
+    'startDate=2026-09-21&endDate=2026-09-25&previousStartDate=2026-09-26&previousEndDate=2026-09-30',
+    'startDate=2026-09-21&endDate=2026-09-25&previousStartDate=2026-02-30&previousEndDate=2026-09-20',
+    'startDate=2026-09-21&endDate=2026-09-25&previousStartDate=2020-01-01&previousEndDate=2020-01-05',
+  ])('rejects an invalid review range: %s', async (query) => {
+    const response = await request(app).get(`/exercise-stats/review?${query}`);
+    expect(response.status).toBe(400);
+    expect(getExerciseReview).not.toHaveBeenCalled();
+  });
 });
 
 // The routes advertise unitSystem as an enum. Casting the raw query string

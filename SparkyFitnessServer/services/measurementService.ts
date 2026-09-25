@@ -10,7 +10,6 @@ import {
   instantHourMinuteWithOffset,
   isValidTimeZone,
   isDayString,
-  foodVolumeToMl,
 } from '@workspace/shared';
 import { userAge } from '../utils/dateHelpers.js';
 import {
@@ -25,6 +24,7 @@ import waterContainerRepository from '../models/waterContainerRepository.js';
 import foodRepository from '../models/foodRepository.js';
 import mealTypeRepository from '../models/mealType.js';
 import { buildFoodEntrySnapshot } from '../utils/foodEntrySnapshot.js';
+import { containerPressWaterMl } from '../utils/containerWaterAmount.js';
 import type {
   VariantNutritionSource,
   FoodNameSource,
@@ -634,13 +634,6 @@ async function upsertWaterIntake(
         Number(containerRow?.linked_quantity) > 0
           ? Number(containerRow?.linked_quantity)
           : 1;
-      // A volume on a LINKED container is an explicit override meaning "the
-      // glass holds more liquid than the food itself" (concentrate, tablet,
-      // powder). Unlinked containers always carry a volume, so this flag is
-      // only consulted inside the linked branch below.
-      const hasVolumeOverride =
-        Number(containerRow?.volume) > 0 && !!containerRow?.linked_food_id;
-
       if (containerRow && containerRow.linked_food_id) {
         linkedFood = await foodRepository.getFoodById(
           containerRow.linked_food_id,
@@ -693,7 +686,7 @@ async function upsertWaterIntake(
             ? Number(containerRow.hydration_factor)
             : 1.0;
 
-        if (linkedFood && linkedVariant) {
+        if (containerRow && linkedFood && linkedVariant) {
           const snapshot = buildFoodEntrySnapshot(linkedFood, linkedVariant);
           const foodEntryInput = {
             user_id: authenticatedUserId,
@@ -720,44 +713,7 @@ async function upsertWaterIntake(
             createdFoodEntryId = createdEntry.id;
           }
 
-          // Precedence, highest first:
-          //   1. the container's own volume, when the user set it as an
-          //      override. The food is then not the whole drink -- a cordial
-          //      concentrate, an electrolyte tablet or a powder in a 500 ml
-          //      glass -- and only the glass knows the hydration. This used to
-          //      sit LAST, so a volume typed on a linked container was silently
-          //      discarded whenever the food had any water of its own.
-          //   2. the food's own water, scaled the way every nutrient is: the
-          //      column holds the amount per serving_size, so consuming
-          //      linked_quantity of it is value * quantity / serving_size --
-          //      the same formula the diary and reports use. Omitting the
-          //      divisor turned a 250 ml drink holding 22 ml of water into
-          //      5500 ml, and looked plausible only at quantity 1.
-          //   3. the logged amount read as a volume, for foods served in ml/l.
-          //      No divisor there: the quantity is already an absolute amount
-          //      in a volume unit.
-          if (hasVolumeOverride) {
-            drinkWaterMl = amountPerDrink * hydrationFactor;
-          } else {
-            const foodExplicitWater = Number(linkedVariant.water_ml);
-            if (Number.isFinite(foodExplicitWater) && foodExplicitWater > 0) {
-              const servingSize = Number(linkedVariant.serving_size) || 0;
-              const consumedWater =
-                servingSize > 0
-                  ? (foodExplicitWater * linkedQuantity) / servingSize
-                  : foodExplicitWater;
-              drinkWaterMl = consumedWater * hydrationFactor;
-            } else {
-              const volFallback = foodVolumeToMl(
-                linkedQuantity,
-                linkedVariant.serving_unit || ''
-              );
-              drinkWaterMl =
-                volFallback !== null
-                  ? volFallback * hydrationFactor
-                  : amountPerDrink * hydrationFactor;
-            }
-          }
+          drinkWaterMl = containerPressWaterMl(containerRow, linkedVariant);
         }
 
         await measurementRepository.insertWaterIntakeLog(
@@ -887,6 +843,32 @@ async function logWaterIntakeAmount(
     );
     throw error;
   }
+}
+
+async function logManualWaterAction(
+  authenticatedUserId: string,
+  actingUserId: string,
+  action: {
+    client_operation_id: string;
+    entry_date: string;
+    water_ml: number;
+    logged_at: string;
+  }
+) {
+  const result = await measurementRepository.insertManualWaterAction(
+    authenticatedUserId,
+    actingUserId,
+    action.client_operation_id,
+    action.entry_date,
+    action.water_ml,
+    action.logged_at
+  );
+  const totals = await hydrationTotalsService.resolveWaterTotalsForDate(
+    authenticatedUserId,
+    actingUserId,
+    action.entry_date
+  );
+  return { ...result, totals };
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getWaterIntakeEntryById(authenticatedUserId: any, id: any) {
@@ -1960,6 +1942,7 @@ export { getWaterIntake };
 export { getWaterIntakeByDateRange };
 export { upsertWaterIntake };
 export { logWaterIntakeAmount };
+export { logManualWaterAction };
 export { getWaterIntakeEntryById };
 export { updateWaterIntake };
 export { deleteWaterIntake };
@@ -2109,6 +2092,7 @@ export default {
   getWaterIntakeByDateRange,
   upsertWaterIntake,
   logWaterIntakeAmount,
+  logManualWaterAction,
   getWaterIntakeEntryById,
   updateWaterIntake,
   deleteWaterIntake,

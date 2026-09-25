@@ -14,6 +14,10 @@ import {
 import { createDefaultNutrientPreferencesForUser } from './services/nutrientDisplayPreferenceService.js';
 import { isPrivateNetworkAddress } from './utils/corsHelper.js';
 import { apiKey } from '@better-auth/api-key';
+import {
+  MCP_READ_ONLY_KEY_CONFIG_ID,
+  MCP_READ_ONLY_KEY_PREFIX,
+} from './utils/mcpReadOnlyKey.js';
 import { v4 } from 'uuid';
 import { emailOTP, magicLink, admin, twoFactor } from 'better-auth/plugins';
 import { sso } from '@better-auth/sso';
@@ -212,55 +216,72 @@ const SIGN_IN_MAX =
   Number.parseInt(process.env.SPARKY_FITNESS_SIGN_IN_RATELIMIT_MAX ?? '', 10) ||
   4;
 
-const apiKeyPlugin = apiKey({
-  enableSessionForAPIKeys: true, // Required for getSession to work with API Keys
-  rateLimit: {
-    enabled: true,
-    timeWindow:
-      Number.parseInt(
-        // @ts-expect-error
-        process.env.SPARKY_FITNESS_API_KEY_RATELIMIT_WINDOW_MS,
-        10
-      ) || 60_000, // 1 minute
-    maxRequests:
-      Number.parseInt(
-        // @ts-expect-error
-        process.env.SPARKY_FITNESS_API_KEY_RATELIMIT_MAX_REQUESTS,
-        10
-      ) || 100, // 100 req/min (Better Auth defaults to 10/day)
-  },
-  schema: {
-    apikey: {
-      modelName: 'api_key',
-      fields: {
-        // @ts-expect-error
-        id: 'id',
-        name: 'name',
-        key: 'key',
-        referenceId: 'reference_id',
-        configId: 'config_id',
-        token: 'key', // Better Auth sometimes looks for 'token'
-        metadata: 'metadata',
-        createdAt: 'created_at',
-        updatedAt: 'updated_at',
-        expiresAt: 'expires_at',
-        start: 'start',
-        prefix: 'prefix',
-        refillInterval: 'refill_interval',
-        refillAmount: 'refill_amount',
-        lastRefillAt: 'last_refill_at',
-        enabled: 'enabled',
-        rateLimitEnabled: 'rate_limit_enabled',
-        rateLimitTimeWindow: 'rate_limit_time_window',
-        rateLimitMax: 'rate_limit_max',
-        requestCount: 'request_count',
-        remaining: 'remaining',
-        lastRequest: 'last_request',
-        permissions: 'permissions',
+const apiKeyPlugin = apiKey(
+  [
+    {
+      configId: 'default',
+      enableSessionForAPIKeys: true, // Existing keys keep their session behavior.
+      rateLimit: {
+        enabled: true,
+        timeWindow:
+          Number.parseInt(
+            // @ts-expect-error
+            process.env.SPARKY_FITNESS_API_KEY_RATELIMIT_WINDOW_MS,
+            10
+          ) || 60_000, // 1 minute
+        maxRequests:
+          Number.parseInt(
+            // @ts-expect-error
+            process.env.SPARKY_FITNESS_API_KEY_RATELIMIT_MAX_REQUESTS,
+            10
+          ) || 100, // 100 req/min (Better Auth defaults to 10/day)
       },
     },
-  },
-});
+    {
+      configId: MCP_READ_ONLY_KEY_CONFIG_ID,
+      defaultPrefix: MCP_READ_ONLY_KEY_PREFIX,
+      enableSessionForAPIKeys: false,
+      rateLimit: {
+        enabled: true,
+        timeWindow: 60_000,
+        maxRequests: 100,
+      },
+    },
+  ],
+  {
+    schema: {
+      apikey: {
+        modelName: 'api_key',
+        fields: {
+          // @ts-expect-error
+          id: 'id',
+          name: 'name',
+          key: 'key',
+          referenceId: 'reference_id',
+          configId: 'config_id',
+          token: 'key', // Better Auth sometimes looks for 'token'
+          metadata: 'metadata',
+          createdAt: 'created_at',
+          updatedAt: 'updated_at',
+          expiresAt: 'expires_at',
+          start: 'start',
+          prefix: 'prefix',
+          refillInterval: 'refill_interval',
+          refillAmount: 'refill_amount',
+          lastRefillAt: 'last_refill_at',
+          enabled: 'enabled',
+          rateLimitEnabled: 'rate_limit_enabled',
+          rateLimitTimeWindow: 'rate_limit_time_window',
+          rateLimitMax: 'rate_limit_max',
+          requestCount: 'request_count',
+          remaining: 'remaining',
+          lastRequest: 'last_request',
+          permissions: 'permissions',
+        },
+      },
+    },
+  }
+);
 let passkeyRpID: string | undefined;
 try {
   const frontendUrl = process.env.SPARKY_FITNESS_FRONTEND_URL;
@@ -833,9 +854,7 @@ const auth = betterAuth({
     }),
     twoFactor({
       issuer:
-        process.env.NODE_ENV === 'production'
-          ? 'SparkyFitness'
-          : 'SparkyFitnessDev',
+        process.env.NODE_ENV === 'production' ? 'X on Track' : 'X on Track Dev',
       schema: {
         user: {
           fields: {
@@ -888,7 +907,7 @@ const auth = betterAuth({
     }),
     passkey({
       rpID: passkeyRpID,
-      rpName: 'SparkyFitness',
+      rpName: 'X on Track',
       schema: {
         passkey: {
           modelName: 'passkey',

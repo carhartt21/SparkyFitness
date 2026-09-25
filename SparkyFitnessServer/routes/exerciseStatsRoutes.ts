@@ -2,9 +2,13 @@ import express from 'express';
 import { authenticate } from '../middleware/authMiddleware.js';
 import { canAccessUserData } from '../utils/permissionUtils.js';
 import exerciseStatsService from '../services/exerciseStatsService.js';
+import { getExerciseReview } from '../services/exerciseReviewService.js';
 import {
   exerciseStatsSummaryQuerySchema,
   exerciseActivityQueryRequestSchema,
+  exerciseReviewQuerySchema,
+  daysBetween,
+  isDayString,
 } from '@workspace/shared';
 
 const router = express.Router();
@@ -27,6 +31,109 @@ function parseUnitSystem(raw: unknown): UnitSystem | null {
 
 const INVALID_UNIT_SYSTEM_ERROR =
   "Invalid unitSystem. Expected 'metric' or 'imperial'.";
+
+/** On-demand review with explicit, comparable current and previous windows. */
+/**
+ * @swagger
+ * /exercise-stats/review:
+ *   get:
+ *     summary: Review recorded exercise and historical workout-plan adherence
+ *     description: Returns activity totals, sport trends, source sessions, and plan slots attended after at least one set was completed. Plan adherence excludes today and reports historical coverage.
+ *     tags: [Exercise Stats]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: userId
+ *         description: Optional delegated report owner ID.
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *       - in: query
+ *         name: startDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: endDate
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: previousStartDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *       - in: query
+ *         name: previousEndDate
+ *         schema:
+ *           type: string
+ *           format: date
+ *     responses:
+ *       200:
+ *         description: Recorded activity plus eligible and attended workout-plan slots for both periods.
+ *       400:
+ *         description: Invalid date windows.
+ *       403:
+ *         description: Report access denied.
+ */
+router.get('/review', authenticate, async (req, res, next) => {
+  try {
+    const targetUserId = (req.query.userId as string) || req.userId;
+    if (!targetUserId) {
+      return res.status(400).json({ error: 'Target User ID is required.' });
+    }
+    if (req.query.userId && req.query.userId !== req.userId) {
+      const allowed = await canAccessUserData(
+        req.query.userId as string,
+        'reports',
+        req.authenticatedUserId || req.userId
+      );
+      if (!allowed) return res.status(403).json({ error: 'Forbidden' });
+    }
+    const parsed = exerciseReviewQuerySchema.safeParse(req.query);
+    const previousStartDate = parsed.success
+      ? parsed.data.previousStartDate
+      : undefined;
+    const previousEndDate = parsed.success
+      ? parsed.data.previousEndDate
+      : undefined;
+    if (
+      !parsed.success ||
+      !isDayString(parsed.data.startDate) ||
+      !isDayString(parsed.data.endDate) ||
+      parsed.data.endDate < parsed.data.startDate ||
+      daysBetween(parsed.data.startDate, parsed.data.endDate) > 365 ||
+      (previousStartDate === undefined) !== (previousEndDate === undefined) ||
+      (previousStartDate !== undefined &&
+        previousEndDate !== undefined &&
+        (!isDayString(previousStartDate) ||
+          !isDayString(previousEndDate) ||
+          previousEndDate < previousStartDate ||
+          previousEndDate >= parsed.data.startDate ||
+          daysBetween(previousEndDate, parsed.data.startDate) > 366 ||
+          daysBetween(previousStartDate, previousEndDate) > 365))
+    ) {
+      return res.status(400).json({
+        error:
+          'Valid current and preceding comparison dates (up to 366 days each) are required.',
+      });
+    }
+    const review = await getExerciseReview(
+      targetUserId,
+      parsed.data.startDate,
+      parsed.data.endDate,
+      previousStartDate && previousEndDate
+        ? { startDate: previousStartDate, endDate: previousEndDate }
+        : undefined
+    );
+    return res.status(200).json(review);
+  } catch (error) {
+    next(error);
+  }
+});
 
 /**
  * @swagger

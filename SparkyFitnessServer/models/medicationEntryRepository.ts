@@ -8,9 +8,27 @@ const ENTRY_COLS = `id, medication_id, schedule_id, user_id, status, taken_at, s
   med_name_snapshot, dose_amount_snapshot, dose_unit_snapshot, notes, source, custom_fields, created_at, updated_at,
   nutrients_snapshot`;
 
+export class MedicationEntryConflictError extends Error {
+  readonly statusCode = 409;
+}
+
 async function createEntry(userId: string, data: CreateMedicationEntryBody) {
   const client = await getClient(userId);
+  let inTransaction = false;
   try {
+    if (data.schedule_id) {
+      // The reminder-action route locks this same row before checking a slot.
+      // Serialize a manual supplement log with it so neither path can create a
+      // second adherence entry while the other request is in flight.
+      await client.query('BEGIN');
+      inTransaction = true;
+      await client.query(
+        `SELECT id FROM medication_schedules
+          WHERE id = $1 AND medication_id = $2 AND user_id = $3
+          FOR UPDATE`,
+        [data.schedule_id, data.medication_id, userId]
+      );
+    }
     // Fetch medication snapshot details. We always look the medication up (when a
     // medication_id is present) because — beyond filling in any missing name/dose
     // snapshots — we must capture the per-dose nutrient payload for supplements.
@@ -34,6 +52,20 @@ async function createEntry(userId: string, data: CreateMedicationEntryBody) {
       );
       const med = medResult.rows[0];
       if (med) {
+        if (med.is_supplement && data.schedule_id) {
+          const existing = await client.query(
+            `SELECT id FROM medication_entries
+              WHERE user_id = $1 AND schedule_id = $2
+                AND entry_date = COALESCE($3::date, CURRENT_DATE)
+              LIMIT 1`,
+            [userId, data.schedule_id, data.entry_date ?? null]
+          );
+          if (existing.rows[0]) {
+            throw new MedicationEntryConflictError(
+              'This planned supplement occurrence is already logged.'
+            );
+          }
+        }
         nameSnapshot ||= med.display_name || med.name;
         // For a supplement the snapshot is what the report multiplies the per-dose payload
         // by, so it MUST be the authoritative schedule/medication dose count — never a
@@ -83,7 +115,11 @@ async function createEntry(userId: string, data: CreateMedicationEntryBody) {
           : null,
       ]
     );
+    if (inTransaction) await client.query('COMMIT');
     return result.rows[0];
+  } catch (error) {
+    if (inTransaction) await client.query('ROLLBACK');
+    throw error;
   } finally {
     client.release();
   }

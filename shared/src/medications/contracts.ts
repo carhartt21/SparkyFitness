@@ -39,6 +39,8 @@ export interface Medication {
   is_active: boolean;
   is_quick: boolean;
   is_glp1: boolean;
+  /** Server classification; absent only in older cached medication payloads. */
+  is_supplement?: boolean;
   notes: string | null;
   source: string;
   rxnorm_rxcui?: string | null;

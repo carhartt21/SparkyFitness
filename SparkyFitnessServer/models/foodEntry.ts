@@ -169,12 +169,17 @@ function reviewedCopyConflict() {
  */
 async function createFoodEntry(
   entryData: FoodEntryInput,
-  createdByUserId: string
+  createdByUserId: string,
+  transactionClient?: PoolClient
 ) {
   // Do not log names, nutrients, notes, or image paths from the request.
-  const client = await getClient(entryData.user_id, createdByUserId); // User-specific operation
+  // A caller that combines a food entry with another diary effect can pass
+  // its own user-scoped client so every effect commits or rolls back together.
+  const ownsClient = !transactionClient;
+  const client =
+    transactionClient ?? (await getClient(entryData.user_id, createdByUserId));
   try {
-    await client.query('BEGIN');
+    if (ownsClient) await client.query('BEGIN');
     if (entryData.client_operation_id) {
       const existing = await client.query(
         `SELECT * FROM food_entries
@@ -182,7 +187,7 @@ async function createFoodEntry(
         [entryData.user_id, entryData.client_operation_id]
       );
       if (existing.rows[0]) {
-        await client.query('COMMIT');
+        if (ownsClient) await client.query('COMMIT');
         return existing.rows[0];
       }
     }
@@ -413,14 +418,15 @@ async function createFoodEntry(
         entryData.nutrition_capture_id ?? null,
       ]
     );
-    await client.query('COMMIT');
+    if (ownsClient) await client.query('COMMIT');
     return result.rows[0];
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (ownsClient) await client.query('ROLLBACK');
     // A concurrent first attempt can commit after our precheck but before our
     // INSERT. The unique index serializes that race; recover the committed row
     // in a fresh transaction instead of returning a retryable 500.
     if (
+      ownsClient &&
       entryData.client_operation_id &&
       typeof error === 'object' &&
       error !== null &&
@@ -439,7 +445,7 @@ async function createFoodEntry(
     log('error', 'Error creating food entry with snapshot:', error);
     throw error;
   } finally {
-    client.release();
+    if (ownsClient) client.release();
   }
 }
 async function getFoodEntryById(entryId: string, userId: string) {

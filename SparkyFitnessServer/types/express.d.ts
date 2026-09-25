@@ -11,6 +11,8 @@ declare global {
       activeUserId: string;
       /** Full Better Auth user object (includes role, email, etc.). */
       user: Record<string, unknown>;
+      /** Verified MCP-only credential; no REST session is created. */
+      mcpReadOnly?: boolean;
     }
   }
 }

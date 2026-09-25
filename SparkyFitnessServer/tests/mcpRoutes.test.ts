@@ -11,6 +11,7 @@ import mcpRoutes from '../routes/mcpRoutes.js';
 import { requestLogger } from '../middleware/requestLogger.js';
 import { buildChatbotTools } from '../ai/tools/index.js';
 import { buildDevTools } from '../ai/tools/devTools.js';
+import { READ_ONLY_MCP_TOOL_NAMES } from '../ai/mcp/mcpAdapter.js';
 import goalService from '../services/goalService.js';
 import userRepository from '../models/userRepository.js';
 import foodEntryService from '../services/foodEntryService.js';
@@ -111,15 +112,21 @@ let testUserRole = 'admin';
 // req.user carries the role so resolveIsAdmin resolves without the DB fallback.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function fakeAuthenticate(req: any, res: any, next: any) {
-  if (req.headers.authorization === 'Bearer valid') {
+  if (
+    req.headers.authorization === 'Bearer valid' ||
+    req.headers.authorization === 'Bearer readonly'
+  ) {
     req.authenticatedUserId = TEST_USER;
     req.userId = TEST_USER;
-    req.activeUserId = TEST_USER;
+    // A caller may have a delegated profile open in the web app. MCP must
+    // still read as the authenticated key owner, never that active profile.
+    req.activeUserId = req.headers['x-test-active-user'] ?? TEST_USER;
     req.user = {
       id: TEST_USER,
       role: testUserRole,
       email: 'mcp-test@example.com',
     };
+    req.mcpReadOnly = req.headers.authorization === 'Bearer readonly';
     return next();
   }
   return res.status(401).json({ error: 'Authentication required.' });
@@ -148,6 +155,207 @@ beforeEach(() => {
 });
 
 describe('POST /mcp', () => {
+  it('restricts MCP-only credentials to an audited read tool surface', async () => {
+    vi.stubEnv('DEV_TOOLS_ENABLED', 'true');
+    const listed = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
+    expect(listed.status).toBe(200);
+    const names = listed.body.result.tools.map((t: { name: string }) => t.name);
+    expect(names.sort()).toEqual([...READ_ONLY_MCP_TOOL_NAMES].sort());
+    expect(names).not.toContain('sparky_manage_food');
+    expect(names).not.toContain('sparky_execute_read_only_sql');
+    expect(
+      listed.body.result.tools.find(
+        (tool: { name: string }) => tool.name === 'sparky_get_exercise_stats'
+      ).description
+    ).toContain('require explicit dates');
+
+    const write = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 2,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_manage_food',
+          arguments: { action: 'log_water', amount_ml: 250 },
+        },
+      });
+    expect(write.body.result.isError).toBe(true);
+    expect(write.body.result.content).toHaveLength(1);
+    expect(write.body.result.content[0].text).toContain(
+      'Tool sparky_manage_food not found'
+    );
+
+    vi.mocked(goalService.getUserGoals).mockResolvedValue({ calories: 2000 });
+    const read = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .set('x-test-active-user', 'other-account')
+      .send({
+        jsonrpc: '2.0',
+        id: 3,
+        method: 'tools/call',
+        params: { name: 'sparky_get_goal_snapshot', arguments: {} },
+      });
+    expect(read.status).toBe(200);
+    expect(read.body.result.content[0].text).toContain('2000');
+    const evidence = JSON.parse(read.body.result.content[1].text);
+    expect(evidence).toMatchObject({
+      kind: 'x-on-track-read-only-evidence-context',
+      tool: 'sparky_get_goal_snapshot',
+      source: 'X on Track server, authenticated key owner',
+      time_zone: 'UTC',
+    });
+    expect(evidence.requested_period.start_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(evidence.unsynced_device_boundary).toContain('not yet uploaded');
+    expect(goalService.getUserGoals).toHaveBeenCalledWith(
+      TEST_USER,
+      expect.any(String),
+      undefined,
+      true
+    );
+  });
+
+  it('defaults read-only exercise diary calls to a bounded entry page', async () => {
+    poolMocks.query.mockImplementation(async (sql: string) => {
+      if (sql.includes('COUNT(*)::int AS total_count')) {
+        return { rows: [{ total_count: 2 }] };
+      }
+      if (sql.includes('SELECT ee.*')) {
+        return { rows: [{ id: 'entry-1', entry_date: '2026-09-24' }] };
+      }
+      return { rows: [] };
+    });
+
+    const read = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 4,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_get_exercise_diary',
+          arguments: { date: '2026-09-24' },
+        },
+      });
+
+    expect(read.status).toBe(200);
+    expect(read.body.result.isError).toBeUndefined();
+    const payload = JSON.parse(read.body.result.content[0].text);
+    expect(payload).toMatchObject({
+      data: [{ id: 'entry-1', sets: [] }],
+      total_count: 2,
+      has_more: true,
+      next_offset: 1,
+    });
+    expect(JSON.parse(read.body.result.content[1].text)).toMatchObject({
+      tool: 'sparky_get_exercise_diary',
+      requested_period: {
+        start_date: '2026-09-24',
+        end_date: '2026-09-24',
+      },
+    });
+    const [entriesSql, entriesParams] = poolMocks.query.mock.calls[1];
+    expect(entriesSql).toContain('LIMIT $4 OFFSET $5');
+    expect(entriesParams).toEqual([
+      TEST_USER,
+      '2026-09-24',
+      '2026-09-24',
+      20,
+      0,
+    ]);
+  });
+
+  it('rejects an oversized read-only diary query before fetching owner data', async () => {
+    const rejected = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 4,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_get_food_diary',
+          arguments: {
+            start_date: '2026-09-01',
+            end_date: '2026-09-08',
+          },
+        },
+      });
+    expect(rejected.status).toBe(200);
+    expect(rejected.body.result.isError).toBe(true);
+    expect(rejected.body.result.content).toHaveLength(1);
+    expect(rejected.body.result.content[0].text).toContain('1–7 calendar days');
+    expect(foodEntryService.getFoodEntriesByDateRange).not.toHaveBeenCalled();
+
+    vi.mocked(foodEntryService.getFoodEntriesByDateRange).mockResolvedValue([]);
+    vi.mocked(
+      foodEntryMealRepository.getFoodEntryMealsByDateRange
+    ).mockResolvedValue([]);
+    const accepted = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 5,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_get_food_diary',
+          arguments: {
+            start_date: '2026-09-01',
+            end_date: '2026-09-07',
+          },
+        },
+      });
+    expect(accepted.status).toBe(200);
+    expect(accepted.body.result.isError).toBeUndefined();
+    expect(JSON.parse(accepted.body.result.content[1].text)).toMatchObject({
+      requested_period: {
+        start_date: '2026-09-01',
+        end_date: '2026-09-07',
+      },
+    });
+    expect(foodEntryService.getFoodEntriesByDateRange).toHaveBeenCalledWith(
+      TEST_USER,
+      TEST_USER,
+      '2026-09-01',
+      '2026-09-07'
+    );
+  });
+
+  it('rejects a read-only exercise-progress call without both effective dates', async () => {
+    const res = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 6,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_get_exercise_progress',
+          arguments: { exercise_id: 'bench', start_date: '2026-09-01' },
+        },
+      });
+    expect(res.status).toBe(200);
+    expect(res.body.result.isError).toBe(true);
+    expect(res.body.result.content).toHaveLength(1);
+    expect(res.body.result.content[0].text).toContain(
+      'valid date range is required'
+    );
+  });
+
   it('tools/list returns the full registry tool surface as MCP tools', async () => {
     const res = await request(app)
       .post('/mcp')

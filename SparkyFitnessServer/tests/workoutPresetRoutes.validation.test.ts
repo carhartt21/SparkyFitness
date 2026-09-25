@@ -166,6 +166,16 @@ describe('workoutPresetRoutes request validation', () => {
     expect(data.exercises[0].superset_group).toBe(1);
   });
 
+  it('rejects an unsupported set type before writing a preset', async () => {
+    const body = validCreateBody();
+    body.exercises[0].sets[0].set_type = 'mystery';
+
+    const { statusCode } = await invokeRoute('post', '/', { body });
+
+    expect(statusCode).toBe(400);
+    expect(workoutPresetService.createWorkoutPreset).not.toHaveBeenCalled();
+  });
+
   it('strips a spoofed body user_id so ownership cannot be forged', async () => {
     const body = {
       ...validCreateBody(),

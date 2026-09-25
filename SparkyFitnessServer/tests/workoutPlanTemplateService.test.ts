@@ -147,9 +147,14 @@ describe('workoutPlanTemplateService', () => {
       ).toHaveBeenCalledWith(TEMPLATE_ID, USER_ID);
       expect(
         workoutPlanTemplateRepository.updateWorkoutPlanTemplate
-      ).toHaveBeenCalledWith(TEMPLATE_ID, USER_ID, {
-        plan_name: 'Updated Name',
-      });
+      ).toHaveBeenCalledWith(
+        TEMPLATE_ID,
+        USER_ID,
+        {
+          plan_name: 'Updated Name',
+        },
+        '2026-09-10'
+      );
       expect(result.plan_name).toBe('Updated Name');
     });
   });
@@ -201,7 +206,7 @@ describe('workoutPlanTemplateService', () => {
       ).toHaveBeenCalledWith(TEMPLATE_ID, USER_ID, '2026-09-10');
       expect(
         workoutPlanTemplateRepository.deleteWorkoutPlanTemplate
-      ).toHaveBeenCalledWith(TEMPLATE_ID, USER_ID);
+      ).toHaveBeenCalledWith(TEMPLATE_ID, USER_ID, '2026-09-10');
       expect(result).toEqual({
         message: 'Workout plan template deleted successfully.',
       });

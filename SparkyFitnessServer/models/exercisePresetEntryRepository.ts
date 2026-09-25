@@ -3,7 +3,7 @@ import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
 const PRESET_ENTRY_SELECT = `
   SELECT id, user_id, workout_preset_id, name, description, entry_date, created_at,
-         updated_at, created_by_user_id, notes, source
+         updated_at, created_by_user_id, notes, source, source_id
   FROM exercise_preset_entries
 `;
 
@@ -33,8 +33,8 @@ async function createExercisePresetEntryWithClient(
   createdByUserId: any
 ) {
   const result = await client.query(
-    `INSERT INTO exercise_preset_entries (user_id, workout_preset_id, name, description, entry_date, created_by_user_id, notes, source)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`,
+    `INSERT INTO exercise_preset_entries (user_id, workout_preset_id, name, description, entry_date, created_by_user_id, notes, source, source_id)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id`,
     [
       userId,
       entryData.workout_preset_id ?? null,
@@ -44,6 +44,7 @@ async function createExercisePresetEntryWithClient(
       createdByUserId,
       entryData.notes ?? null,
       entryData.source ?? 'manual',
+      entryData.source_id ?? null,
     ]
   );
   return getExercisePresetEntryByIdWithClient(

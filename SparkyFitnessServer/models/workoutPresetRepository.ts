@@ -13,13 +13,15 @@ async function createWorkoutPreset(presetData: any) {
   try {
     await client.query('BEGIN');
     const presetResult = await client.query(
-      `INSERT INTO workout_presets (user_id, name, description, is_public)
-       VALUES ($1, $2, $3, $4) RETURNING id, user_id, name, description, is_public`,
+      `INSERT INTO workout_presets (user_id, name, description, is_public, source, source_id)
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, name, description, is_public, source, source_id`,
       [
         presetData.user_id,
         presetData.name,
         presetData.description,
         presetData.is_public,
+        presetData.source ?? null,
+        presetData.source_id ?? null,
       ]
     );
     const newPreset = { ...presetResult.rows[0], isNew: true };
@@ -36,9 +38,10 @@ async function createWorkoutPreset(presetData: any) {
             rep_goal,
             increment_type,
             increment_value,
-            equipment_brand
+            equipment_brand,
+            notes
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id`,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
           [
             newPreset.id,
             exercise.exercise_id,
@@ -50,6 +53,7 @@ async function createWorkoutPreset(presetData: any) {
             exercise.increment_type ?? 'weight',
             exercise.increment_value ?? 5.0,
             exercise.equipment_brand ?? null,
+            exercise.notes ?? null,
           ]
         );
         const newExerciseId = exerciseResult.rows[0].id;
@@ -86,6 +90,25 @@ async function createWorkoutPreset(presetData: any) {
   }
 }
 
+async function getWorkoutPresetBySource(
+  userId: string,
+  source: string,
+  sourceId: string
+) {
+  const client = await getClient(userId);
+  try {
+    const result = await client.query(
+      `SELECT id FROM workout_presets
+       WHERE user_id = $1 AND source = $2 AND source_id = $3
+       LIMIT 1`,
+      [userId, source, sourceId]
+    );
+    return result.rows[0] ?? null;
+  } finally {
+    client.release();
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getWorkoutPresetByName(userId: any, name: any) {
   const client = await getClient(userId);
@@ -99,7 +122,7 @@ async function getWorkoutPresetByName(userId: any, name: any) {
       `SELECT
         wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.created_at, wp.updated_at,
         COALESCE(
-          (SELECT json_agg(ex_data)
+          (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
            FROM (
              SELECT
                wpe.id,
@@ -112,6 +135,7 @@ async function getWorkoutPresetByName(userId: any, name: any) {
                wpe.increment_type,
                wpe.increment_value,
                wpe.equipment_brand,
+               wpe.notes,
                e.name as exercise_name,
                e.category as category,
                e.modality as modality,
@@ -165,18 +189,20 @@ async function getWorkoutPresets(userId: any, page = 1, limit = 10) {
       `SELECT
          wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.created_at, wp.updated_at,
          COALESCE(
-           (SELECT json_agg(ex_data)
+           (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
             FROM (
               SELECT
                 wpe.id,
                 wpe.exercise_id,
                 wpe.image_url,
+                wpe.sort_order,
                 wpe.superset_group,
                 wpe.progression_mode,
                 wpe.rep_goal,
                 wpe.increment_type,
                 wpe.increment_value,
                 wpe.equipment_brand,
+                wpe.notes,
                 e.name as exercise_name,
                 e.category as category,
                 e.modality as modality,
@@ -222,18 +248,20 @@ async function getWorkoutPresetById(presetId: any, userId: any) {
       `SELECT
          wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.created_at, wp.updated_at,
          COALESCE(
-           (SELECT json_agg(ex_data)
+           (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
             FROM (
               SELECT
                 wpe.id,
                 wpe.exercise_id,
                 wpe.image_url,
+                wpe.sort_order,
                 wpe.superset_group,
                 wpe.progression_mode,
                 wpe.rep_goal,
                 wpe.increment_type,
                 wpe.increment_value,
                 wpe.equipment_brand,
+                wpe.notes,
                 e.name as exercise_name,
                 e.category as category,
                 e.modality as modality,
@@ -530,12 +558,13 @@ async function searchWorkoutPresets(
       SELECT
         wp.id, wp.user_id, wp.name, wp.description, wp.is_public,
         COALESCE(
-          (SELECT json_agg(ex_data)
+          (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
            FROM (
              SELECT
                wpe.id,
                wpe.exercise_id,
                wpe.image_url,
+               wpe.sort_order,
                wpe.superset_group,
                wpe.progression_mode,
                wpe.rep_goal,
@@ -588,6 +617,7 @@ export { getWorkoutPresetOwnerId };
 export { searchWorkoutPresets };
 export { getWorkoutPresetByName };
 export { addExerciseToWorkoutPreset };
+export { getWorkoutPresetBySource };
 export default {
   createWorkoutPreset,
   getWorkoutPresets,
@@ -598,4 +628,5 @@ export default {
   searchWorkoutPresets,
   getWorkoutPresetByName,
   addExerciseToWorkoutPreset,
+  getWorkoutPresetBySource,
 };

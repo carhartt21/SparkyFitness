@@ -81,11 +81,18 @@ async function createWorkoutPlanTemplate(
     }
   }
   try {
+    const today = await resolveTemplateStartDay(
+      userId,
+      planData.currentClientDate
+    );
     const newPlan =
-      await workoutPlanTemplateRepository.createWorkoutPlanTemplate({
-        ...planData,
-        user_id: userId,
-      });
+      await workoutPlanTemplateRepository.createWorkoutPlanTemplate(
+        {
+          ...planData,
+          user_id: userId,
+        },
+        today
+      );
     log(
       'info',
       'createWorkoutPlanTemplate service - newPlan created:',
@@ -95,10 +102,6 @@ async function createWorkoutPlanTemplate(
       log(
         'info',
         `createWorkoutPlanTemplate service - New plan is active, creating exercise entries from template ${newPlan.id}`
-      );
-      const today = await resolveTemplateStartDay(
-        userId,
-        planData.currentClientDate
       );
       await exerciseRepository.createExerciseEntriesFromTemplate(
         newPlan.id,
@@ -213,7 +216,8 @@ async function updateWorkoutPlanTemplate(
       await workoutPlanTemplateRepository.updateWorkoutPlanTemplate(
         templateId,
         userId,
-        updateData
+        updateData,
+        today
       );
     log(
       'info',
@@ -286,7 +290,8 @@ async function deleteWorkoutPlanTemplate(
     const deleted =
       await workoutPlanTemplateRepository.deleteWorkoutPlanTemplate(
         templateId,
-        userId
+        userId,
+        today
       );
     if (!deleted) {
       throw new Error(

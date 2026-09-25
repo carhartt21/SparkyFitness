@@ -3,6 +3,7 @@ import { vi, beforeEach, describe, it, expect } from 'vitest';
 vi.mock('../models/exerciseEntry.js', () => ({
   default: {
     createExerciseEntry: vi.fn().mockResolvedValue({ id: 'entry-1' }),
+    getExistingExerciseSourceIds: vi.fn().mockResolvedValue([]),
     deleteExerciseEntriesByEntrySourceAndDate: vi
       .fn()
       .mockResolvedValue(undefined),
@@ -29,6 +30,7 @@ vi.mock('../models/activityDetailsRepository.js', () => ({
 vi.mock('../models/workoutPresetRepository.js', () => ({
   default: {
     getWorkoutPresetByName: vi.fn().mockResolvedValue(null),
+    getWorkoutPresetBySource: vi.fn().mockResolvedValue(null),
     createWorkoutPreset: vi.fn().mockResolvedValue({ id: 42 }),
     addExerciseToWorkoutPreset: vi.fn().mockResolvedValue(undefined),
   },
@@ -38,6 +40,8 @@ vi.mock('../models/exercisePresetEntryRepository.js', () => ({
     createExercisePresetEntry: vi
       .fn()
       .mockResolvedValue({ id: 'preset-entry-1' }),
+    getExercisePresetEntriesByDate: vi.fn().mockResolvedValue([]),
+    deleteExercisePresetEntry: vi.fn().mockResolvedValue(true),
     deleteExercisePresetEntriesByEntrySourceAndDate: vi
       .fn()
       .mockResolvedValue(undefined),
@@ -45,12 +49,24 @@ vi.mock('../models/exercisePresetEntryRepository.js', () => ({
 }));
 vi.mock('../config/logging.js', () => ({ log: vi.fn() }));
 
-import { processHevyWorkouts } from '../integrations/hevy/hevyDataProcessor.js';
-import type { HevyWorkout } from '../integrations/hevy/hevyDataProcessor.js';
+import {
+  processHevyUserInfo,
+  processHevyRoutines,
+  processHevyWorkouts,
+} from '../integrations/hevy/hevyDataProcessor.js';
+import type {
+  HevyRoutine,
+  HevyWorkout,
+} from '../integrations/hevy/hevyDataProcessor.js';
 import exerciseEntryRepository from '../models/exerciseEntry.js';
 import activityDetailsRepository from '../models/activityDetailsRepository.js';
 import workoutPresetRepository from '../models/workoutPresetRepository.js';
 import exercisePresetEntryRepository from '../models/exercisePresetEntryRepository.js';
+import measurementRepository from '../models/measurementRepository.js';
+import {
+  hevyCsvWorkoutsForImport,
+  previewHevyWorkoutCsv,
+} from '../integrations/hevy/hevyCsvPreview.js';
 
 const UID = 'user-1';
 const CID = 'user-1';
@@ -162,7 +178,121 @@ beforeEach(() => {
   vi.clearAllMocks();
 });
 
+describe('processHevyUserInfo — measurement day', () => {
+  it('uses the user-local day for a timestamp but preserves a date-only value', async () => {
+    await processHevyUserInfo(
+      UID,
+      CID,
+      {
+        user: { weight_kg: 80, updated_at: '2026-09-24T00:30:00Z' },
+      },
+      'America/Los_Angeles'
+    );
+    await processHevyUserInfo(
+      UID,
+      CID,
+      { user: { height_cm: 180, updated_at: '2026-09-24' } },
+      'America/Los_Angeles'
+    );
+
+    expect(
+      measurementRepository.upsertCheckInMeasurements
+    ).toHaveBeenNthCalledWith(1, UID, CID, '2026-09-23', { weight: 80 });
+    expect(
+      measurementRepository.upsertCheckInMeasurements
+    ).toHaveBeenNthCalledWith(2, UID, CID, '2026-09-24', { height: 180 });
+  });
+
+  it('does not invent a day for an ambiguous timestamp', async () => {
+    await expect(
+      processHevyUserInfo(
+        UID,
+        CID,
+        {
+          user: { weight_kg: 80, updated_at: '2026-09-24T00:30:00' },
+        },
+        'America/Los_Angeles'
+      )
+    ).rejects.toThrow('Hevy measurement timestamp has no UTC offset');
+
+    expect(
+      measurementRepository.upsertCheckInMeasurements
+    ).not.toHaveBeenCalled();
+  });
+
+  it('propagates a failed measurement write to the sync outcome', async () => {
+    vi.mocked(
+      measurementRepository.upsertCheckInMeasurements
+    ).mockRejectedValueOnce(new Error('measurement write failed'));
+
+    await expect(
+      processHevyUserInfo(
+        UID,
+        CID,
+        { user: { weight_kg: 80, updated_at: '2026-09-24' } },
+        'UTC'
+      )
+    ).rejects.toThrow('measurement write failed');
+  });
+
+  it('does not treat an unneeded timestamp as a failed measurement', async () => {
+    await expect(
+      processHevyUserInfo(
+        UID,
+        CID,
+        { user: { updated_at: '2026-09-24T00:30:00' } },
+        'UTC'
+      )
+    ).resolves.toBeUndefined();
+    expect(
+      measurementRepository.upsertCheckInMeasurements
+    ).not.toHaveBeenCalled();
+  });
+});
+
 describe('processHevyWorkouts — field mapping', () => {
+  it('keeps each CSV weight reduction as its own ordered drop-set row', async () => {
+    const csv = [
+      'title,start_time,end_time,description,exercise_title,superset_id,exercise_notes,set_index,set_type,weight_kg,reps,distance_km,duration_seconds,rpe',
+      'Sample A,"23 Sep 2026, 21:42","23 Sep 2026, 22:34",,Bench Press,,,0,normal,60,8,,0,',
+      'Sample A,"23 Sep 2026, 21:42","23 Sep 2026, 22:34",,Bench Press,,,1,dropset,45,6,,0,',
+      'Sample A,"23 Sep 2026, 21:42","23 Sep 2026, 22:34",,Bench Press,,,2,dropset,30,7,,0,',
+    ].join('\n');
+    const workouts = hevyCsvWorkoutsForImport(
+      previewHevyWorkoutCsv(csv),
+      'Europe/Berlin'
+    );
+
+    const result = await processHevyWorkouts(
+      UID,
+      CID,
+      workouts,
+      'Europe/Berlin'
+    );
+
+    expect(result.failed).toEqual([]);
+    expect(entryArgForExercise('Bench Press').sets).toEqual([
+      expect.objectContaining({
+        set_number: 1,
+        set_type: 'Working Set',
+        weight: 60,
+        reps: 8,
+      }),
+      expect.objectContaining({
+        set_number: 2,
+        set_type: 'Drop Set',
+        weight: 45,
+        reps: 6,
+      }),
+      expect.objectContaining({
+        set_number: 3,
+        set_type: 'Drop Set',
+        weight: 30,
+        reps: 7,
+      }),
+    ]);
+  });
+
   it('maps entry_time from the workout start time in the user timezone', async () => {
     await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
     expect(entryArgForExercise('Bulgarian Split Squat').entry_time).toBe(
@@ -177,6 +307,29 @@ describe('processHevyWorkouts — field mapping', () => {
       '01:52'
     );
   });
+
+  it.each(['start_time', 'end_time'] as const)(
+    'rejects an offset-free workout %s before writing a session',
+    async (field) => {
+      const workout = sampleWorkout();
+      workout[field] = '2026-07-13T05:52:14';
+
+      const result = await processHevyWorkouts(UID, CID, [workout], 'UTC');
+
+      expect(result).toMatchObject({
+        imported: 0,
+        failed: [
+          {
+            id: 'workout-abc',
+            message: `Hevy workout ${field === 'start_time' ? 'start' : 'end'} time has no UTC offset.`,
+          },
+        ],
+      });
+      expect(
+        exercisePresetEntryRepository.createExercisePresetEntry
+      ).not.toHaveBeenCalled();
+    }
+  );
 
   it('sets a stable per-exercise source_id (workout id + exercise index)', async () => {
     await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
@@ -195,10 +348,10 @@ describe('processHevyWorkouts — field mapping', () => {
     expect(entryArgForExercise('Pull Up').superset_group).toBe(1);
   });
 
-  it('attributes whole-workout duration to the first untimed exercise only', async () => {
+  it('allocates workout minutes without double-counting timed sets', async () => {
     await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
     expect(entryArgForExercise('Bulgarian Split Squat').duration_minutes).toBe(
-      60
+      57
     );
     expect(entryArgForExercise('Pull Up').duration_minutes).toBe(0);
   });
@@ -206,6 +359,39 @@ describe('processHevyWorkouts — field mapping', () => {
   it('uses summed per-set duration for timed exercises', async () => {
     await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
     // 90 + 90 = 180s → 3 min
+    expect(entryArgForExercise('Plank').duration_minutes).toBe(3);
+  });
+
+  it('keeps a timed warm-up short when it precedes the main exercises', async () => {
+    const workout = sampleWorkout();
+    workout.exercises = [
+      {
+        index: 0,
+        title: 'Warm Up',
+        superset_id: null,
+        sets: [
+          {
+            index: 0,
+            type: 'normal',
+            weight_kg: null,
+            reps: 0,
+            duration_seconds: 180,
+            distance_meters: null,
+            rpe: null,
+          },
+        ],
+      },
+      ...workout.exercises!.map((exercise) => ({
+        ...exercise,
+        index: exercise.index + 1,
+      })),
+    ];
+
+    await processHevyWorkouts(UID, CID, [workout], 'UTC');
+    expect(entryArgForExercise('Warm Up').duration_minutes).toBe(3);
+    expect(entryArgForExercise('Bulgarian Split Squat').duration_minutes).toBe(
+      54
+    );
     expect(entryArgForExercise('Plank').duration_minutes).toBe(3);
   });
 
@@ -250,6 +436,11 @@ describe('processHevyWorkouts — field mapping', () => {
 
     // 500 m + 750 m = 1250 m = 1.25 km, not 1250.
     expect(entryArgForExercise('Rowing Machine').distance).toBe(1.25);
+    expect(
+      entryArgForExercise('Rowing Machine').sets.map(
+        (set: { distance: number | null }) => set.distance
+      )
+    ).toEqual([0.5, 0.75]);
   });
 
   it('keeps short Hevy distances from rounding away to zero', async () => {
@@ -297,22 +488,27 @@ describe('processHevyWorkouts — field mapping', () => {
       entryArgForExercise('Pull Up').sets.every((s: any) => s.duration === null)
     ).toBe(true);
   });
+
+  it('keeps configured rest intervals on completed-workout sets', async () => {
+    const workout = sampleWorkout();
+    workout.exercises![0]!.rest_seconds = '90';
+    workout.exercises![1]!.rest_seconds = -1;
+
+    await processHevyWorkouts(UID, CID, [workout], 'UTC');
+
+    expect(
+      entryArgForExercise('Bulgarian Split Squat').sets.map(
+        (set: { rest_time: number | null }) => set.rest_time
+      )
+    ).toEqual([90, 90]);
+    expect(entryArgForExercise('Pull Up').sets[0].rest_time).toBeNull();
+  });
 });
 
-describe('processHevyWorkouts — workout-preset grouping', () => {
-  it('creates the workout preset by name when missing', async () => {
+describe('processHevyWorkouts — session grouping', () => {
+  it('does not infer a saved routine from a completed workout title', async () => {
     await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
-    expect(workoutPresetRepository.getWorkoutPresetByName).toHaveBeenCalledWith(
-      UID,
-      'Vid plan A'
-    );
-    expect(workoutPresetRepository.createWorkoutPreset).toHaveBeenCalledWith(
-      expect.objectContaining({
-        user_id: UID,
-        name: 'Vid plan A',
-        is_public: false,
-      })
-    );
+    expect(workoutPresetRepository.createWorkoutPreset).not.toHaveBeenCalled();
   });
 
   it('creates one preset entry (session) for the workout, sourced Hevy', async () => {
@@ -325,8 +521,9 @@ describe('processHevyWorkouts — workout-preset grouping', () => {
     ).toHaveBeenCalledWith(
       UID,
       expect.objectContaining({
-        workout_preset_id: 42,
+        workout_preset_id: null,
         name: 'Vid plan A',
+        source_id: 'workout-abc',
         entry_date: '2026-07-13',
         source: 'Hevy',
       }),
@@ -343,23 +540,6 @@ describe('processHevyWorkouts — workout-preset grouping', () => {
       expect(call[1].exercise_preset_entry_id).toBe('preset-entry-1');
     }
   });
-
-  it('adds each exercise to the workout preset template', async () => {
-    await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
-    expect(
-      workoutPresetRepository.addExerciseToWorkoutPreset
-    ).toHaveBeenCalledTimes(3);
-    expect(
-      workoutPresetRepository.addExerciseToWorkoutPreset
-    ).toHaveBeenCalledWith(
-      UID,
-      42,
-      'exercise-Bulgarian Split Squat',
-      null,
-      expect.any(Array),
-      0
-    );
-  });
 });
 
 describe('processHevyWorkouts — duplicate workout guard', () => {
@@ -374,15 +554,216 @@ describe('processHevyWorkouts — duplicate workout guard', () => {
     expect(
       exercisePresetEntryRepository.createExercisePresetEntry
     ).toHaveBeenCalledTimes(1);
-    // 3 exercises, not 6.
+    expect(exerciseEntryRepository.createExerciseEntry).toHaveBeenCalledTimes(
+      3
+    );
+  });
+
+  it('keeps distinct workouts with the same title on one day', async () => {
+    const second = { ...sampleWorkout(), id: 'workout-def' };
+    vi.mocked(exercisePresetEntryRepository.getExercisePresetEntriesByDate)
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        { source: 'Hevy', source_id: 'workout-abc', name: 'Vid plan A' },
+      ]);
+    await processHevyWorkouts(UID, CID, [sampleWorkout(), second], 'UTC');
     expect(
-      workoutPresetRepository.addExerciseToWorkoutPreset
-    ).toHaveBeenCalledTimes(3);
+      exercisePresetEntryRepository.createExercisePresetEntry
+    ).toHaveBeenCalledTimes(2);
+    expect(
+      vi
+        .mocked(exercisePresetEntryRepository.createExercisePresetEntry)
+        .mock.calls.map((call) => call[1].source_id)
+    ).toEqual(['workout-abc', 'workout-def']);
+  });
+});
+
+describe('processHevyWorkouts — import outcomes', () => {
+  it('reports an unknown set type and removes the partial session', async () => {
+    const workout = sampleWorkout();
+    workout.exercises![1]!.sets![0]!.type = 'assisted';
+
+    const result = await processHevyWorkouts(UID, CID, [workout], 'UTC');
+
+    expect(result).toEqual({
+      imported: 0,
+      skipped: 0,
+      failed: [
+        { id: 'workout-abc', message: 'Unsupported Hevy set type: assisted' },
+      ],
+    });
+    expect(
+      exercisePresetEntryRepository.deleteExercisePresetEntry
+    ).toHaveBeenCalledWith('preset-entry-1', UID);
+  });
+
+  it('reports an imported workout and skips a repeated ID', async () => {
+    const result = await processHevyWorkouts(
+      UID,
+      CID,
+      [sampleWorkout(), sampleWorkout()],
+      'UTC'
+    );
+
+    expect(result).toEqual({ imported: 1, skipped: 1, failed: [] });
+  });
+
+  it('removes a newly created partial session and reports the failure', async () => {
+    vi.mocked(exerciseEntryRepository.createExerciseEntry)
+      .mockResolvedValueOnce({ id: 'entry-1' })
+      .mockRejectedValueOnce(new Error('set write failed'));
+
+    const result = await processHevyWorkouts(
+      UID,
+      CID,
+      [sampleWorkout()],
+      'UTC'
+    );
+
+    expect(result).toEqual({
+      imported: 0,
+      skipped: 0,
+      failed: [{ id: 'workout-abc', message: 'set write failed' }],
+    });
+    expect(
+      exercisePresetEntryRepository.deleteExercisePresetEntry
+    ).toHaveBeenCalledWith('preset-entry-1', UID);
+  });
+
+  it('reports cleanup failure so a partial workout is not silently treated as retryable', async () => {
+    vi.mocked(
+      exerciseEntryRepository.createExerciseEntry
+    ).mockRejectedValueOnce(new Error('set write failed'));
+    vi.mocked(
+      exercisePresetEntryRepository.deleteExercisePresetEntry
+    ).mockRejectedValueOnce(new Error('session delete failed'));
+
+    const result = await processHevyWorkouts(
+      UID,
+      CID,
+      [sampleWorkout()],
+      'UTC'
+    );
+
+    expect(result.failed[0]?.message).toContain(
+      'partial-session cleanup failed'
+    );
+    expect(result.failed[0]?.message).toContain('Manual review is required');
+  });
+});
+
+describe('processHevyRoutines — saved templates', () => {
+  const routine: HevyRoutine = {
+    id: 'routine-1',
+    title: 'Vid plan A',
+    exercises: [
+      {
+        index: 0,
+        title: 'Bench Press',
+        notes: 'Pause at the bottom',
+        rest_seconds: 90,
+        superset_id: 0,
+        sets: [
+          {
+            index: 0,
+            type: 'normal',
+            weight_kg: 60,
+            reps: null,
+            rep_range: { start: 8, end: 12 },
+            distance_meters: null,
+            duration_seconds: null,
+            rpe: null,
+          },
+          {
+            index: 1,
+            type: 'dropset',
+            weight_kg: 40,
+            reps: 10,
+            distance_meters: null,
+            duration_seconds: null,
+            rpe: null,
+          },
+        ],
+      },
+      {
+        index: 1,
+        title: 'Pull Up',
+        superset_id: 0,
+        sets: [],
+      },
+    ],
+  };
+
+  it('imports a saved routine with a stable source identity and mapped sets', async () => {
+    await processHevyRoutines(UID, CID, [routine]);
+    expect(workoutPresetRepository.createWorkoutPreset).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Vid plan A',
+        source: 'Hevy',
+        source_id: 'routine-1',
+        exercises: [
+          expect.objectContaining({
+            superset_group: 1,
+            notes: 'Pause at the bottom',
+            sets: [
+              expect.objectContaining({
+                reps: 8,
+                rest_time: 90,
+                notes: expect.stringContaining('8–12'),
+              }),
+              expect.objectContaining({ set_type: 'Drop Set' }),
+            ],
+          }),
+          expect.objectContaining({ superset_group: 1 }),
+        ],
+      })
+    );
+  });
+
+  it('preserves a locally edited import on re-sync', async () => {
+    vi.mocked(
+      workoutPresetRepository.getWorkoutPresetBySource
+    ).mockResolvedValueOnce({ id: 42 });
+    await processHevyRoutines(UID, CID, [routine]);
+    expect(workoutPresetRepository.createWorkoutPreset).not.toHaveBeenCalled();
+  });
+
+  it('does not mistake a local preset with the same title for this Hevy routine', async () => {
+    vi.mocked(workoutPresetRepository.getWorkoutPresetByName).mockResolvedValue(
+      { id: 7 }
+    );
+    await processHevyRoutines(UID, CID, [routine]);
+    expect(
+      workoutPresetRepository.getWorkoutPresetByName
+    ).not.toHaveBeenCalled();
+    expect(workoutPresetRepository.createWorkoutPreset).toHaveBeenCalledWith(
+      expect.objectContaining({ source_id: 'routine-1' })
+    );
+  });
+
+  it('reports a failed saved routine and continues to the next one', async () => {
+    vi.mocked(workoutPresetRepository.createWorkoutPreset)
+      .mockRejectedValueOnce(new Error('preset write failed'))
+      .mockResolvedValueOnce({ id: 43 });
+
+    const result = await processHevyRoutines(UID, CID, [
+      routine,
+      { ...routine, id: 'routine-2', title: 'Vid plan B' },
+    ]);
+
+    expect(result).toEqual({
+      imported: 1,
+      skipped: 0,
+      failed: [{ id: 'routine-1', message: 'preset write failed' }],
+    });
+    expect(workoutPresetRepository.createWorkoutPreset).toHaveBeenCalledTimes(
+      2
+    );
   });
 });
 
 describe('processHevyWorkouts — re-sync cleanup', () => {
-  it('clears existing Hevy entries and preset entries over the batch date range', async () => {
+  it('never range-deletes Hevy history during re-sync', async () => {
     const older = sampleWorkout();
     older.id = 'workout-old';
     older.start_time = '2026-07-08T05:00:00+00:00';
@@ -391,10 +772,31 @@ describe('processHevyWorkouts — re-sync cleanup', () => {
 
     expect(
       exerciseEntryRepository.deleteExerciseEntriesByEntrySourceAndDate
-    ).toHaveBeenCalledWith(UID, '2026-07-08', '2026-07-13', 'Hevy');
+    ).not.toHaveBeenCalled();
     expect(
       exercisePresetEntryRepository.deleteExercisePresetEntriesByEntrySourceAndDate
-    ).toHaveBeenCalledWith(UID, '2026-07-08', '2026-07-13', 'Hevy');
+    ).not.toHaveBeenCalled();
+  });
+
+  it('preserves an existing workout identified by a source exercise', async () => {
+    vi.mocked(
+      exerciseEntryRepository.getExistingExerciseSourceIds
+    ).mockResolvedValueOnce(['workout-abc_0']);
+    await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
+    expect(
+      exercisePresetEntryRepository.createExercisePresetEntry
+    ).not.toHaveBeenCalled();
+    expect(exerciseEntryRepository.createExerciseEntry).not.toHaveBeenCalled();
+  });
+
+  it('preserves an ambiguous same-title same-day legacy session', async () => {
+    vi.mocked(
+      exercisePresetEntryRepository.getExercisePresetEntriesByDate
+    ).mockResolvedValueOnce([{ source: 'Hevy', name: 'Vid plan A' }]);
+    await processHevyWorkouts(UID, CID, [sampleWorkout()], 'UTC');
+    expect(
+      exercisePresetEntryRepository.createExercisePresetEntry
+    ).not.toHaveBeenCalled();
   });
 });
 
