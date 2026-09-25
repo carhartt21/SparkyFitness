@@ -1157,7 +1157,7 @@ function ActiveWorkoutScreen({ navigation, route }: Props) {
             }),
             t('healthSync.workoutExportErrorMessage', {
               defaultValue:
-                'Your workout was saved, but its Apple Health export could not be queued: {{error}}',
+                'Your workout was saved, but Apple Health export failed: {{error}}',
               error: String(error),
             })
           );

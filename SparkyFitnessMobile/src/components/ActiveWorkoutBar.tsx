@@ -601,7 +601,11 @@ const ActiveWorkoutBar: React.FC<ActiveWorkoutBarProps> = ({
           t('healthSync.workoutExportErrorTitle', {
             defaultValue: 'Apple Health export unavailable',
           }),
-          String(error)
+          t('healthSync.workoutExportErrorMessage', {
+            defaultValue:
+              'Your workout was saved, but Apple Health export failed: {{error}}',
+            error: String(error),
+          })
         );
       }
     }

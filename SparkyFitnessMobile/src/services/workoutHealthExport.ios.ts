@@ -49,7 +49,9 @@ async function exportPending(
   pending: PendingExport
 ): Promise<void> {
   if ((await loadHealthPreference<boolean>(PREFERENCE)) !== true) return;
-  if (!hasWorkoutWritePermission()) return;
+  if (!hasWorkoutWritePermission()) {
+    throw new Error('Apple Health workout write permission is not enabled.');
+  }
 
   // A query before save handles the crash window between HealthKit saving the
   // sample and AsyncStorage recording success. The sync metadata is a second
@@ -85,6 +87,12 @@ async function exportPending(
         HKMetadataKeyExternalUUID: pending.syncId,
         HKMetadataKeyWorkoutBrandName: 'X on Track',
       }
+    );
+    addLog('[Workout Health export] Saved workout to Apple Health.', 'INFO');
+  } else {
+    addLog(
+      '[Workout Health export] Found existing Apple Health workout.',
+      'INFO'
     );
   }
   const done: CompletedExport = { status: 'done', syncId: pending.syncId };
@@ -123,6 +131,7 @@ export async function queueCompletedWorkoutExport(
         `[Workout Health export] Pending retry: ${String(error)}`,
         'WARNING'
       );
+      throw error;
     }
   });
 }

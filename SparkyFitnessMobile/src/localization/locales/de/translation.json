@@ -900,7 +900,7 @@
     "workoutExport": "Abgeschlossene Trainings",
     "workoutExportNote": "Abgeschlossene Trainings werden erst nach dem Einschalten exportiert. Ausschalten stoppt künftige Exporte; „Entfernen“ unten betrifft nur Ernährung und Flüssigkeitszufuhr.",
     "workoutExportErrorTitle": "Apple Health-Export nicht verfügbar",
-    "workoutExportErrorMessage": "Dein Training wurde gespeichert, aber der Apple Health-Export konnte nicht vorgemerkt werden: {{error}}",
+    "workoutExportErrorMessage": "Dein Training wurde gespeichert, aber der Apple Health-Export ist fehlgeschlagen: {{error}}",
     "writeTitle": "Schreiben in {{store}}",
     "writeSummary": "Synchronisierungs the data du eintragen in X on Track out to {{store}}, keeping the two in Synchronisierung.",
     "removeFrom": "from {{store}} entfernen",

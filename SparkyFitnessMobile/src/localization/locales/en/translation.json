@@ -751,7 +751,7 @@
     "workoutExport": "Completed workouts",
     "workoutExportNote": "Completed workouts are exported only after you turn this on. Turning it off stops future exports; the removal control below affects nutrition and hydration only.",
     "workoutExportErrorTitle": "Apple Health export unavailable",
-    "workoutExportErrorMessage": "Your workout was saved, but its Apple Health export could not be queued: {{error}}",
+    "workoutExportErrorMessage": "Your workout was saved, but Apple Health export failed: {{error}}",
     "writeTitle": "Write to {{store}}",
     "writeSummary": "Syncs the data you log in X on Track out to {{store}}, keeping the two in sync.",
     "removeFrom": "Remove from {{store}}",

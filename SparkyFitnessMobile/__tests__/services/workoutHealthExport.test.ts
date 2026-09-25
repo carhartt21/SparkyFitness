@@ -62,7 +62,9 @@ test('retries a failed save and recognizes a workout already saved before the ap
   (saveWorkoutSample as jest.Mock).mockRejectedValueOnce(
     new Error('Health unavailable')
   );
-  await queueCompletedWorkoutExport(workout);
+  await expect(queueCompletedWorkoutExport(workout)).rejects.toThrow(
+    'Health unavailable'
+  );
   expect(saveWorkoutSample).toHaveBeenCalledTimes(1);
   (queryWorkoutSamples as jest.Mock).mockResolvedValueOnce([
     { uuid: 'health-1' },
@@ -71,6 +73,16 @@ test('retries a failed save and recognizes a workout already saved before the ap
   expect(saveWorkoutSample).toHaveBeenCalledTimes(1);
   await retryPendingWorkoutExports();
   expect(queryWorkoutSamples).toHaveBeenCalledTimes(2);
+});
+
+test('keeps a pending workout when HealthKit write permission is missing', async () => {
+  (authorizationStatusFor as jest.Mock).mockReturnValueOnce(1);
+  await expect(queueCompletedWorkoutExport(workout)).rejects.toThrow(
+    'workout write permission is not enabled'
+  );
+  expect(saveWorkoutSample).not.toHaveBeenCalled();
+  await retryPendingWorkoutExports();
+  expect(saveWorkoutSample).toHaveBeenCalledTimes(1);
 });
 
 test('does not export without opt-in or when the active account changes', async () => {
