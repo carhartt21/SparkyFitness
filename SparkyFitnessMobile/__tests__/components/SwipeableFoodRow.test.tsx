@@ -75,6 +75,24 @@ describe('SwipeableFoodRow', () => {
     expect(mockNavigate).toHaveBeenCalledWith('FoodEntryView', { entry });
   });
 
+  it('shows an imported entry source and exposes the full row as an edit action', () => {
+    const entry = createEntry({
+      food_name: 'Greek yogurt with berries and toasted oats',
+      source: 'health_connect',
+    });
+    const screen = renderRow(
+      <SwipeableFoodRow
+        entry={entry}
+        nutrition={{ calories: 120, protein: 15, carbs: 8, fat: 2 }}
+      />
+    );
+    expect(screen.getByText('Health Connect')).toBeTruthy();
+    fireEvent.press(
+      screen.getByLabelText('Greek yogurt with berries and toasted oats, 100 g')
+    );
+    expect(mockNavigate).toHaveBeenCalledWith('FoodEntryView', { entry });
+  });
+
   it('routes meal-component tap to EditLoggedMeal', () => {
     const entry = createEntry({ food_entry_meal_id: 'fem-1' });
 

@@ -44,7 +44,7 @@
 
       --color-text-primary: #171c22;
       --color-text-secondary: #40554c;
-      --color-text-muted: hsl(215, 20%, 65%);
+      --color-text-muted: #596b60;
       --color-icon-decorative: hsl(215, 19%, 40%);
 
       --color-text-link: #0b5e46;
@@ -58,11 +58,11 @@
       --color-form-enabled: hsl(220, 22%, 55%);
       --color-form-disabled: hsl(220, 12%, 82%);
 
-      --color-calories: hsl(230, 91%, 64%);
-      --color-macro-protein: hsl(35, 90%, 64%);
-      --color-macro-carbs: hsl(124, 53%, 66%);
-      --color-macro-fat: hsl(195, 74%, 67%);
-      --color-macro-fiber: hsl(126, 35%, 43%);
+      --color-calories: #087257;
+      --color-macro-protein: #95590f;
+      --color-macro-carbs: #0e7746;
+      --color-macro-fat: #116f8d;
+      --color-macro-fiber: #a3394b;
 
       --color-hydration: hsl(200, 40%, 60%);
       --color-exercise: hsl(146, 68%, 66%);
@@ -151,11 +151,11 @@
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 26%);
 
-      --color-calories: hsl(233, 62%, 71%);
-      --color-macro-protein: hsl(35, 70%, 64%);
-      --color-macro-carbs: hsl(124, 36%, 66%);
-      --color-macro-fat: hsl(195, 60%, 67%);
-      --color-macro-fiber: hsl(126, 25%, 45%);
+      --color-calories: #1bd8ad;
+      --color-macro-protein: #f4bd4c;
+      --color-macro-carbs: #65d99a;
+      --color-macro-fat: #4ec6e8;
+      --color-macro-fiber: #ff7c83;
 
       --color-hydration: hsl(200, 50%, 52%);
       --color-exercise: hsl(158, 49%, 48%);
@@ -243,11 +243,11 @@
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 18%);
 
-      --color-calories: hsl(233, 62%, 71%);
-      --color-macro-protein: hsl(35, 70%, 64%);
-      --color-macro-carbs: hsl(124, 36%, 66%);
-      --color-macro-fat: hsl(195, 60%, 67%);
-      --color-macro-fiber: hsl(126, 25%, 45%);
+      --color-calories: #1bd8ad;
+      --color-macro-protein: #f4bd4c;
+      --color-macro-carbs: #65d99a;
+      --color-macro-fat: #4ec6e8;
+      --color-macro-fiber: #ff7c83;
 
       --color-hydration: hsl(200, 50%, 52%);
       --color-exercise: hsl(158, 49%, 48%);

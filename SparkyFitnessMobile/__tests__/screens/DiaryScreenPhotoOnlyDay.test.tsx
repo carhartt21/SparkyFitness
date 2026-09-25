@@ -190,7 +190,7 @@ describe('DiaryScreen on a photo-only day', () => {
     mockPhotosByDate.mockReturnValue({ photos: [photo()], isLoading: false });
     renderDiary();
 
-    expect(screen.queryByText('Add Food')).toBeNull();
+    expect(screen.queryByText('No entries recorded for this day')).toBeNull();
   });
 
   it('shows that day the photo summary it would otherwise hide', () => {
@@ -204,7 +204,7 @@ describe('DiaryScreen on a photo-only day', () => {
     // The other half of the rule: no photos must not defeat the empty state.
     renderDiary();
 
-    expect(screen.getByText('Add Food')).toBeTruthy();
+    expect(screen.getByText('No entries recorded for this day')).toBeTruthy();
   });
 
   it('holds the empty state back while the photos are still loading', () => {
@@ -212,6 +212,6 @@ describe('DiaryScreen on a photo-only day', () => {
     mockPhotosByDate.mockReturnValue({ photos: [], isLoading: true });
     renderDiary();
 
-    expect(screen.queryByText('Add Food')).toBeNull();
+    expect(screen.queryByText('No entries recorded for this day')).toBeNull();
   });
 });

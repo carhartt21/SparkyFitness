@@ -15,10 +15,14 @@ const numericValue = (text: string): number | undefined => {
 
 interface Props {
   onTakePhoto?: () => void;
+  onSearchFood?: () => void;
 }
 
 /** Shared outbox-backed entry points; server reachability is not consulted. */
-export default function NutritionQuickActions({ onTakePhoto }: Props) {
+export default function NutritionQuickActions({
+  onTakePhoto,
+  onSearchFood,
+}: Props) {
   const { t } = useTranslation();
   const { cache, storageError } = useCachedNutritionFavorites();
   const [busy, setBusy] = useState(false);
@@ -41,7 +45,7 @@ export default function NutritionQuickActions({ onTakePhoto }: Props) {
   );
 
   const ready = cache && cache.mealTypes.some((type) => type.is_visible);
-  if (!ready && !storageError && !onTakePhoto) return null;
+  if (!ready && !storageError && !onTakePhoto && !onSearchFood) return null;
 
   const error = (caught: unknown) => {
     Alert.alert(
@@ -113,11 +117,25 @@ export default function NutritionQuickActions({ onTakePhoto }: Props) {
         </Text>
       )}
       <View className="flex-row flex-wrap gap-2">
+        {onSearchFood && (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={t('diary.addFood', {
+              defaultValue: 'Add Food',
+            })}
+            onPress={onSearchFood}
+            className="min-h-11 justify-center rounded-lg bg-accent-primary px-4 py-2"
+          >
+            <Text className="text-sm font-semibold text-accent-text">
+              {t('diary.addFood', { defaultValue: 'Add Food' })}
+            </Text>
+          </Pressable>
+        )}
         {onTakePhoto && (
           <Pressable
             accessibilityRole="button"
             onPress={onTakePhoto}
-            className="rounded-lg bg-background px-3 py-2"
+            className="min-h-11 justify-center rounded-lg bg-background px-3 py-2"
           >
             <Text className="text-sm text-text-primary">
               {t('nutritionQuick.photo', { defaultValue: '📷 Meal photo' })}
@@ -134,7 +152,7 @@ export default function NutritionQuickActions({ onTakePhoto }: Props) {
             })}
             disabled={busy}
             onPress={() => void favorite(food.id)}
-            className="rounded-lg bg-background px-3 py-2"
+            className="min-h-11 justify-center rounded-lg bg-background px-3 py-2"
           >
             <Text className="text-sm text-text-primary">★ {food.name}</Text>
           </Pressable>
@@ -143,7 +161,7 @@ export default function NutritionQuickActions({ onTakePhoto }: Props) {
           accessibilityRole="button"
           disabled={busy || !ready}
           onPress={() => setShowQuick(true)}
-          className="rounded-lg bg-background px-3 py-2"
+          className="min-h-11 justify-center rounded-lg bg-background px-3 py-2"
         >
           <Text className="text-sm text-text-primary">
             {t('nutritionQuick.manual', {

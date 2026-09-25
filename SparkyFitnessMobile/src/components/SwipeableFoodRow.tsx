@@ -111,6 +111,12 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   const name =
     entry.food_name ||
     t('foodRow.unknownFood', { defaultValue: 'Unknown food' });
+  const sourceLabel =
+    entry.source && entry.source !== 'manual'
+      ? entry.source
+          .replace(/[_-]/g, ' ')
+          .replace(/\b\w/g, (letter) => letter.toUpperCase())
+      : null;
   const timeLabel = capturePhoto?.consumedAt
     ? formatDateToTimeLabel(
         new Date(capturePhoto.consumedAt),
@@ -163,7 +169,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
         overshootRight={false}
         rightThreshold={40}
       >
-        <View className="py-1.5 flex-row items-center bg-surface">
+        <View className="min-h-11 py-1.5 flex-row items-center bg-surface">
           {/* Diary rows are deliberately dense, so this slot collapses to
               nothing when an entry has no photo — a photo-free day keeps the
               exact layout it had before images existed. */}
@@ -180,13 +186,15 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
             />
           ) : null}
           <TouchableOpacity
-            className="flex-1 mr-2"
+            className="flex-1 min-h-11 justify-center mr-2"
             activeOpacity={0.7}
             onPress={handlePress}
             onLongPress={handleLongPress}
+            accessibilityRole="button"
+            accessibilityLabel={`${name}, ${entry.quantity} ${entry.unit}`}
           >
             <View className="flex-row flex-wrap items-baseline">
-              <Text className="text-md text-text-primary" numberOfLines={1}>
+              <Text className="text-md text-text-primary" numberOfLines={2}>
                 {name}
               </Text>
               <Text className="text-sm text-text-secondary" numberOfLines={1}>
@@ -202,6 +210,11 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
                 </Text>
               )}
             </View>
+            {sourceLabel && (
+              <Text className="text-xs text-text-secondary" numberOfLines={1}>
+                {sourceLabel}
+              </Text>
+            )}
             {isPending && (
               <Text className="text-xs text-text-muted">
                 {t('nutritionOutbox.savedOnDevice', {
@@ -215,7 +228,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               variant="ghost"
               onPress={() => onAdjustServing!(entry)}
               hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              className="py-0 px-0"
+              className="min-h-11 justify-center px-2"
               textClassName="text-sm text-text-secondary font-medium"
             >
               {`${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })} ▾`}

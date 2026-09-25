@@ -68,7 +68,7 @@ import { useDiaryDateStore } from '../stores/diaryDateStore';
 import type { FoodEntry } from '../types/foodEntries';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 import { isManualSource } from '../utils/customMeasurementsForm';
-import { formatDateLabel } from '../utils/dateUtils';
+import { formatDateLabel, getTodayDate } from '../utils/dateUtils';
 import {
   getHistoricalMealTypeLabel,
   getMealTypeDisplayLabel,
@@ -437,7 +437,14 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           contentContainerStyle={{ padding: 16 }}
         >
           <NutritionQuickActions
-            onTakePhoto={() => navigation.navigate('QuickMealPhoto')}
+            onTakePhoto={
+              selectedDate === getTodayDate()
+                ? () => navigation.navigate('QuickMealPhoto')
+                : undefined
+            }
+            onSearchFood={() =>
+              navigation.navigate('FoodSearch', { date: selectedDate })
+            }
           />
           <NutritionPhotoEntries
             local={localPhotoActions}
@@ -514,7 +521,14 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               storageError={nutritionStorageError}
             />
             <NutritionQuickActions
-              onTakePhoto={() => navigation.navigate('QuickMealPhoto')}
+              onTakePhoto={
+                selectedDate === getTodayDate()
+                  ? () => navigation.navigate('QuickMealPhoto')
+                  : undefined
+              }
+              onSearchFood={() =>
+                navigation.navigate('FoodSearch', { date: selectedDate })
+              }
             />
             <NutritionPhotoEntries
               local={localPhotoActions}
@@ -593,7 +607,14 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           storageError={nutritionStorageError}
         />
         <NutritionQuickActions
-          onTakePhoto={() => navigation.navigate('QuickMealPhoto')}
+          onTakePhoto={
+            selectedDate === getTodayDate()
+              ? () => navigation.navigate('QuickMealPhoto')
+              : undefined
+          }
+          onSearchFood={() =>
+            navigation.navigate('FoodSearch', { date: selectedDate })
+          }
         />
         <NutritionPhotoEntries
           local={localPhotoActions}
@@ -617,15 +638,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         {isDayEmpty ? (
           <>
             <EmptyDayIllustration />
-            <Button
-              variant="primary"
-              className="px-6 mt-4 self-center"
-              onPress={() =>
-                navigation.navigate('FoodSearch', { date: selectedDate })
-              }
-            >
-              {t('diary.addFood', { defaultValue: 'Add Food' })}
-            </Button>
           </>
         ) : (
           <>

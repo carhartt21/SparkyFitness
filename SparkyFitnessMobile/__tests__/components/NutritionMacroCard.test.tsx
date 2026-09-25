@@ -111,6 +111,19 @@ describe('NutritionMacroCard', () => {
       expect(queryByTestId('macro-composition-ring')).toBeNull();
     });
 
+    it('shows the over-target amount instead of zero when intake exceeds the goal', () => {
+      const { getByText } = render(
+        <NutritionMacroCard
+          {...baseProps}
+          calories={2200}
+          calorieGoal={2000}
+          goalPercentages={{ calories: 110 }}
+        />
+      );
+      expect(getByText('200')).toBeTruthy();
+      expect(getByText('over target')).toBeTruthy();
+    });
+
     it('renders the macro composition ring when no calorie goal is provided', () => {
       // Per-food screens pass goal percentages without a calorie goal; a
       // progress ring there would always render full (calories / 1).

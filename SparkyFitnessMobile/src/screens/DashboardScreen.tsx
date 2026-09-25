@@ -25,6 +25,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
+import { addSheetRef } from '../components/AddSheet';
 import CalendarSheet, {
   type CalendarSheetRef,
 } from '../components/CalendarSheet';
@@ -524,11 +525,55 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <CalorieRingCard
             caloriesConsumed={eaten}
             caloriesBurned={burned}
+            burnedIncludesBmr={preferences.include_bmr_in_net_calories === true}
             calorieGoal={goal}
             remainingCalories={remaining}
             progressPercent={progress / 100}
           />
         )}
+        <View className="flex-row flex-wrap gap-2 mb-3">
+          {[
+            {
+              label: t('diary.addFood', { defaultValue: 'Add Food' }),
+              icon: 'food' as const,
+              onPress: () =>
+                navigation.navigate('FoodSearch', { date: selectedDate }),
+            },
+            {
+              label: t('addSheet.exercise', { defaultValue: 'Exercise' }),
+              icon: 'exercise-running' as const,
+              onPress: () =>
+                addSheetRef.current?.present({ initialMenu: 'exercise' }),
+            },
+            {
+              label: t('dashboard.logWater', { defaultValue: 'Log water' }),
+              icon: 'water' as const,
+              onPress: () =>
+                isContainersLoaded
+                  ? incrementWater()
+                  : navigation.navigate('WaterContainers'),
+            },
+            {
+              label: t('addSheet.scanFood', { defaultValue: 'Scan Food' }),
+              icon: 'scan' as const,
+              onPress: () =>
+                navigation.navigate('FoodScan', { date: selectedDate }),
+            },
+          ].map((action) => (
+            <Pressable
+              key={action.label}
+              accessibilityRole="button"
+              accessibilityLabel={action.label}
+              onPress={action.onPress}
+              className="w-[48%] min-h-20 items-center justify-center rounded-xl border border-border-subtle bg-surface px-3 py-2"
+            >
+              <Icon name={action.icon} size={23} color={accentColor} />
+              <Text className="mt-2 text-center text-xs font-semibold text-text-primary">
+                {action.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
         {/* Tap-to-open launcher for the Sparky chat. Styled like an input to
             invite, but it pushes the full chat screen rather than capturing text
             here — the Dashboard's scroll + date-fling gestures make a live input
@@ -678,22 +723,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               );
             })()
           : null}
-
-        {summary.foodEntries.length === 0 && (
-          <Pressable
-            className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
-            onPress={() =>
-              navigation.navigate('FoodSearch', { date: selectedDate })
-            }
-          >
-            <Text className="text-md font-bold text-text-primary mb-4">
-              {t('dashboard.food', { defaultValue: 'Food' })}
-            </Text>
-            <Text className="text-text-muted text-sm text-center mb-4">
-              {t('dashboard.tapToAddFood', { defaultValue: 'Tap to add food' })}
-            </Text>
-          </Pressable>
-        )}
 
         {(summary.foodEntries.length > 0 ||
           summary.exerciseEntries.length > 0) &&

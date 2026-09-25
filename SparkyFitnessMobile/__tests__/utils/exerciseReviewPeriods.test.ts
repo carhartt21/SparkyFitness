@@ -1,6 +1,17 @@
 import { exerciseReviewDates } from '../../src/utils/exerciseReviewPeriods';
 
 describe('exerciseReviewDates', () => {
+  it('compares the selected day with the previous day', () => {
+    expect(exerciseReviewDates('2026-09-25', 'day')).toEqual({
+      startDate: '2026-09-25',
+      endDate: '2026-09-25',
+      previousStartDate: '2026-09-24',
+      previousEndDate: '2026-09-24',
+    });
+    expect(exerciseReviewDates('2026-09-25', 'day', 1).startDate).toBe(
+      '2026-09-24'
+    );
+  });
   it('compares the unfinished Monday-based week with the same elapsed prior weekdays', () => {
     expect(exerciseReviewDates('2026-09-25', 'week')).toEqual({
       startDate: '2026-09-21',

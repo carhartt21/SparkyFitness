@@ -437,7 +437,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             </Text>
             <Text className="text-sm text-text-secondary mt-0.5">
               {t('exerciseReview.librarySubtitle', {
-                defaultValue: 'Compare activity by week, month, or year',
+                defaultValue: 'Compare activity by day, week, month, or year',
               })}
             </Text>
           </View>

@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 import {
   fetchNutritionTrends,
   type NutritionTrendPoint,
@@ -41,13 +42,15 @@ const DEFAULT_NUTRIENT_VALUES = {
 interface UseNutritionTrendsOptions {
   range: TrendRange;
   enabled?: boolean;
+  endDate?: string;
 }
 
 export function useNutritionTrends({
   range,
   enabled = true,
+  endDate,
 }: UseNutritionTrendsOptions) {
-  const today = getTodayDate();
+  const today = endDate ?? getTodayDate();
   const days = RANGE_DAYS[range];
   const startDate = addDays(today, -(days - 1));
 
@@ -55,50 +58,58 @@ export function useNutritionTrends({
     queryKey: nutritionTrendsQueryKey(startDate, today),
     queryFn: () => fetchNutritionTrends(startDate, today),
     enabled,
-    select: (data: NutritionTrendPoint[]) => {
-      const dataByDate = new Map<string, NutritionTrendPoint>();
-      const extraKeys = new Set<string>();
-
-      for (const item of data) {
-        if (item && item.date) {
-          dataByDate.set(item.date, item);
-          for (const key of Object.keys(item)) {
-            if (key !== 'date') {
-              extraKeys.add(key);
-            }
-          }
-        }
-      }
-
-      const filledData: NutritionTrendPoint[] = [];
-      for (let i = 0; i < days; i++) {
-        const day = addDays(today, -(days - 1 - i));
-        const existing = dataByDate.get(day);
-
-        if (existing) {
-          filledData.push(existing);
-        } else {
-          const defaultPoint: NutritionTrendPoint = {
-            date: day,
-            ...DEFAULT_NUTRIENT_VALUES,
-          };
-          for (const key of extraKeys) {
-            if (!(key in defaultPoint)) {
-              defaultPoint[key] = 0;
-            }
-          }
-          filledData.push(defaultPoint);
-        }
-      }
-
-      return filledData;
-    },
   });
+
+  const recordedDates = useMemo(
+    () => new Set((query.data ?? []).map((point) => point.date)),
+    [query.data]
+  );
+  const data = useMemo(() => {
+    const source = query.data;
+    if (!source) return [];
+    const dataByDate = new Map<string, NutritionTrendPoint>();
+    const extraKeys = new Set<string>();
+
+    for (const item of source) {
+      if (item && item.date) {
+        dataByDate.set(item.date, item);
+        for (const key of Object.keys(item)) {
+          if (key !== 'date') {
+            extraKeys.add(key);
+          }
+        }
+      }
+    }
+
+    const filledData: NutritionTrendPoint[] = [];
+    for (let i = 0; i < days; i++) {
+      const day = addDays(today, -(days - 1 - i));
+      const existing = dataByDate.get(day);
+
+      if (existing) {
+        filledData.push(existing);
+      } else {
+        const defaultPoint: NutritionTrendPoint = {
+          date: day,
+          ...DEFAULT_NUTRIENT_VALUES,
+        };
+        for (const key of extraKeys) {
+          if (!(key in defaultPoint)) {
+            defaultPoint[key] = 0;
+          }
+        }
+        filledData.push(defaultPoint);
+      }
+    }
+
+    return filledData;
+  }, [query.data, days, today]);
 
   useRefetchOnFocus(query.refetch, enabled);
 
   return {
-    data: query.data ?? [],
+    data,
+    recordedDates,
     isLoading: query.isLoading,
     isError: query.isError,
     refetch: query.refetch,

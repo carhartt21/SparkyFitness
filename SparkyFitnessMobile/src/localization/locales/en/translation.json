@@ -867,8 +867,15 @@
     "food": "Food",
     "tapToAddFood": "Tap to add food",
     "healthTrends": "Health Trends",
+    "dailyEnergy": "Daily energy",
     "consumed": "Consumed",
     "remaining": "remaining",
+    "overTarget": "over target",
+    "kcal": "kcal",
+    "target": "Target",
+    "totalExpenditure": "Total expenditure",
+    "activityBurned": "Activity burned",
+    "balanceAdjustment": "Allowance adjustment",
     "ofCalories": "of {{value}} kcal",
     "burned": "Burned",
     "hydration": "Hydration",
@@ -881,6 +888,7 @@
     "noExerciseEntries": "No exercise entries yet",
     "removeWater": "Remove water",
     "addWater": "Add water",
+    "logWater": "Log water",
     "selectContainer": "Select {{container}}",
     "perContainer": "{{value}} {{unit}} per container",
     "waterFromFood": "Includes {{value}} {{unit}} from food",
@@ -2108,6 +2116,7 @@
     "carbsAmount": "carbs",
     "fatAmount": "fat",
     "left": "left",
+    "overTarget": "over target",
     "calories": "calories",
     "remaining": "{{value}}g left",
     "over": "{{value}}g over",
@@ -3326,6 +3335,8 @@
   },
   "dailyNutritionDetails": {
     "title": "Nutrition Details",
+    "loggedIntakeNote": "Based on logged food and supplements; missing meals are unknown.",
+    "viewCalorieTrends": "View calorie trends",
     "loadFailed": "Failed to load nutrition details",
     "tryAgain": "Please check your connection and try again.",
     "left": "{{value}}{{unit}} left",
@@ -3343,9 +3354,11 @@
     "other": "Other"
   },
   "exerciseReview": {
+    "logExercise": "Log exercise",
     "title": "Exercise review",
-    "librarySubtitle": "Compare activity by week, month, or year",
+    "librarySubtitle": "Compare activity by day, week, month, or year",
     "intro": "A look at the activity you recorded, compared with the previous period.",
+    "today": "Day",
     "week": "Week",
     "month": "Month",
     "year": "Year",
@@ -3543,6 +3556,7 @@
     }
   },
   "foodSearch": {
+    "quickPhoto": "Meal photo",
     "bls4Attribution": "BLS 4.0 · Max Rubner-Institut · per 100 g · ",
     "bls4Source": "Source",
     "bls4License": "CC BY 4.0",
@@ -4299,12 +4313,13 @@
   },
   "nutrientTrends": {
     "title": "{{nutrient}} Trends",
+    "loggedDaysNote": "Trends include logged days only; days without entries are unknown.",
     "states": {
       "loadFailed": "Failed to load trend data"
     },
     "labels": {
       "summary": "Summary Statistics",
-      "dailyAverage": "Daily Average",
+      "dailyAverage": "Average on logged days",
       "highestDay": "Highest Intake Day",
       "targetGoal": "Target Daily Goal",
       "averageVsTarget": "Average vs. Target",

@@ -18,6 +18,8 @@ import type {
 import { useCSSVariable } from 'uniwind';
 import Toast from 'react-native-toast-message';
 import SegmentedControl from '../components/SegmentedControl';
+import { addSheetRef } from '../components/AddSheet';
+import Icon from '../components/Icon';
 import StatusView from '../components/StatusView';
 import { usePreferences, useServerConnection } from '../hooks';
 import { useScreenHeader } from '../hooks/useScreenHeader';
@@ -322,7 +324,7 @@ export default function ExerciseReviewScreen({
   navigation,
 }: RootStackScreenProps<'ExerciseReview'>) {
   const { t } = useTranslation();
-  const [window, setWindow] = useState<ExerciseReviewWindow>('week');
+  const [window, setWindow] = useState<ExerciseReviewWindow>('day');
   const [periodsAgo, setPeriodsAgo] = useState(0);
   const [today, setToday] = useState(getTodayDate);
   const [visibleSourceCount, setVisibleSourceCount] =
@@ -332,6 +334,7 @@ export default function ExerciseReviewScreen({
   const { isConnected, isLoading: connectionLoading } = useServerConnection();
   const { preferences } = usePreferences({ enabled: isConnected });
   const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const accentTextColor = useCSSVariable('--color-accent-text') as string;
   const distanceUnit =
     preferences?.default_distance_unit === 'miles' ? 'mi' : 'km';
   const weightUnit = preferences?.default_weight_unit === 'lbs' ? 'lb' : 'kg';
@@ -360,8 +363,14 @@ export default function ExerciseReviewScreen({
   });
   const formatRangeDay = (day: string) =>
     `${formatShortDate(day, getAppLocale())} ${day.slice(0, 4)}`;
-  const periodLabel = `${formatRangeDay(dates.startDate)} – ${formatRangeDay(dates.endDate)}`;
-  const previousPeriodLabel = `${formatRangeDay(dates.previousStartDate)} – ${formatRangeDay(dates.previousEndDate)}`;
+  const periodLabel =
+    window === 'day'
+      ? formatRangeDay(dates.startDate)
+      : `${formatRangeDay(dates.startDate)} – ${formatRangeDay(dates.endDate)}`;
+  const previousPeriodLabel =
+    window === 'day'
+      ? formatRangeDay(dates.previousStartDate)
+      : `${formatRangeDay(dates.previousStartDate)} – ${formatRangeDay(dates.previousEndDate)}`;
   const earlierLabel = t('exerciseReview.earlier', { defaultValue: 'Earlier' });
   const number = (value: number, fractionDigits = 0) =>
     formatLocalizedNumber(value, { maximumFractionDigits: fractionDigits });
@@ -482,6 +491,10 @@ export default function ExerciseReviewScreen({
         <SegmentedControl<ExerciseReviewWindow>
           segments={[
             {
+              key: 'day',
+              label: t('exerciseReview.today', { defaultValue: 'Day' }),
+            },
+            {
               key: 'week',
               label: t('exerciseReview.week', { defaultValue: 'Week' }),
             },
@@ -544,6 +557,21 @@ export default function ExerciseReviewScreen({
             range: previousPeriodLabel,
           })}
         </Text>
+        <TouchableOpacity
+          onPress={() =>
+            addSheetRef.current?.present({ initialMenu: 'exercise' })
+          }
+          accessibilityRole="button"
+          accessibilityLabel={t('exerciseReview.logExercise', {
+            defaultValue: 'Log exercise',
+          })}
+          className="min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-accent-primary px-4"
+        >
+          <Icon name="add" size={19} color={accentTextColor} />
+          <Text className="text-base font-semibold text-accent-text">
+            {t('exerciseReview.logExercise', { defaultValue: 'Log exercise' })}
+          </Text>
+        </TouchableOpacity>
         {connectionLoading || (isConnected && query.isPending) ? (
           <StatusView
             loading
@@ -595,6 +623,14 @@ export default function ExerciseReviewScreen({
               <PlanAdherenceCard
                 current={query.data.adherence.current}
                 previous={query.data.adherence.previous}
+              />
+            ) : null}
+            {trend.length > 0 ? (
+              <ReviewTrend
+                points={trend}
+                window={window}
+                distanceUnit={distanceUnit}
+                weightUnit={weightUnit}
               />
             ) : null}
             {current.overall.exerciseEntries === 0 ? (
@@ -658,14 +694,6 @@ export default function ExerciseReviewScreen({
                 ) : null}
               </>
             )}
-            {trend.length > 0 ? (
-              <ReviewTrend
-                points={trend}
-                window={window}
-                distanceUnit={distanceUnit}
-                weightUnit={weightUnit}
-              />
-            ) : null}
             {sources.length > 0 ? (
               <View className="rounded-2xl bg-raised px-4 py-4 gap-3">
                 <View className="gap-1">

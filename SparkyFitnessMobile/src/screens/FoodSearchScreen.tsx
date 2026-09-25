@@ -77,6 +77,7 @@ import {
 import type { NativeStackHeaderItemMenu } from '@react-navigation/native-stack';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { ALL_PROVIDERS_VALUE } from '../constants/foodProviders';
+import { getTodayDate } from '../utils/dateUtils';
 
 type FoodSearchScreenProps = RootStackScreenProps<'FoodSearch'>;
 
@@ -1264,7 +1265,6 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
             autoCapitalize="none"
             autoCorrect={false}
             returnKeyType="search"
-            autoFocus
           />
         </View>
         {searchText.length > 0 ? (
@@ -1495,6 +1495,43 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       style={Platform.OS === 'android' ? { paddingTop: insets.top } : undefined}
     >
       {renderHeaderBar()}
+      {pickerMode === 'log-entry' && !photoCapture && !inSearchMode && (
+        <View className="flex-row gap-2 px-4 pb-3">
+          {[
+            ...(!date || date === getTodayDate()
+              ? [
+                  {
+                    label: t('foodSearch.quickPhoto', {
+                      defaultValue: 'Meal photo',
+                    }),
+                    icon: 'camera' as const,
+                    onPress: () => navigation.navigate('QuickMealPhoto'),
+                  },
+                ]
+              : []),
+            {
+              label: t('foodSearch.menu.newFood', {
+                defaultValue: 'New Food',
+              }),
+              icon: 'add' as const,
+              onPress: openCreateFood,
+            },
+          ].map((action) => (
+            <Button
+              key={action.label}
+              variant="secondary"
+              onPress={action.onPress}
+              accessibilityLabel={action.label}
+              className="min-h-14 flex-1 flex-row gap-1 px-2"
+            >
+              <Icon name={action.icon} size={18} color={accentColor} />
+              <Text className="text-xs font-semibold text-text-primary">
+                {action.label}
+              </Text>
+            </Button>
+          ))}
+        </View>
+      )}
       {renderBody()}
       {/* Basket bar: visible whenever anything is selected in a
           diary-logging context, in or out of select mode, so a basket built

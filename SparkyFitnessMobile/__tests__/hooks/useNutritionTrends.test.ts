@@ -34,7 +34,7 @@ describe('useNutritionTrends', () => {
     queryClient.clear();
   });
 
-  test('fills missing days with zero values for 7d range', async () => {
+  test('retains chart dates while distinguishing logged days from unknown gaps', async () => {
     const today = getTodayDate();
     const threeDaysAgo = addDays(today, -3);
 
@@ -78,6 +78,7 @@ describe('useNutritionTrends', () => {
     expect(todayItem?.sugars).toBe(0);
     expect(todayItem?.calories).toBe(0);
     expect(todayItem?.custom_nutrient_a).toBe(0);
+    expect(result.current.recordedDates.has(today)).toBe(false);
 
     // Verify logged day has actual values
     const loggedItem = result.current.data.find((d) => d.date === threeDaysAgo);
@@ -85,6 +86,7 @@ describe('useNutritionTrends', () => {
     expect(loggedItem?.sugars).toBe(45);
     expect(loggedItem?.calories).toBe(2000);
     expect(loggedItem?.custom_nutrient_a).toBe(12);
+    expect(result.current.recordedDates.has(threeDaysAgo)).toBe(true);
   });
 
   test('fills missing days for 30d and 90d ranges', async () => {
@@ -111,6 +113,22 @@ describe('useNutritionTrends', () => {
     });
 
     expect(res90.current.data).toHaveLength(90);
+  });
+
+  test('anchors the chart range to a selected historical diary date', async () => {
+    mockFetchNutritionTrends.mockResolvedValue([]);
+    const endDate = '2026-08-12';
+    const { result } = renderHook(
+      () => useNutritionTrends({ range: '7d', endDate }),
+      { wrapper: createQueryWrapper(queryClient) }
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetchNutritionTrends).toHaveBeenCalledWith(
+      '2026-08-06',
+      endDate
+    );
+    expect(result.current.data.at(-1)?.date).toBe(endDate);
   });
 
   test('does not fetch when enabled is false', async () => {

@@ -22,6 +22,19 @@ jest.mock('../../src/hooks/useServerConnection', () => ({
   useServerConnection: () => ({ isConnected: true }),
 }));
 
+jest.mock('../../src/hooks/usePreferences', () => ({
+  usePreferences: () => ({ preferences: { show_net_carbs: true } }),
+}));
+
+jest.mock('../../src/hooks/useNutritionTrends', () => ({
+  useNutritionTrends: () => ({
+    data: [],
+    recordedDates: new Set(),
+    isLoading: false,
+    isError: false,
+  }),
+}));
+
 jest.mock('../../src/hooks/useScreenHeader', () => ({
   useScreenHeader: () => null,
 }));
@@ -123,6 +136,7 @@ describe('DailyNutritionDetailsScreen fiber row', () => {
     expect(
       screen.getByText(`${FOOD_FIBER + SUPPLEMENT_FIBER}g / 30g`)
     ).toBeTruthy();
+    expect(screen.getByText('Net Carbs')).toBeTruthy();
     // The food-only figure must not appear: that was the disagreement.
     expect(screen.queryByText(`${FOOD_FIBER}g / 30g`)).toBeNull();
   });

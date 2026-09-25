@@ -44,20 +44,29 @@ const NutrientTrendsScreen: React.FC<NutrientTrendsScreenProps> = ({
     left: { kind: 'back' },
   });
 
-  const { data, isLoading, isError } = useNutritionTrends({ range });
+  const { data, recordedDates, isLoading, isError } = useNutritionTrends({
+    range,
+  });
 
   // Map historical trend data to extract values for this specific nutrient
   const chartData = useMemo(() => {
-    return data.map((item) => {
-      const rawVal = item[nutrientKey];
-      const val =
-        typeof rawVal === 'number' ? rawVal : parseFloat(String(rawVal)) || 0;
-      return {
-        day: item.date,
-        value: val,
-      };
-    });
-  }, [data, nutrientKey]);
+    return data
+      .filter((item) => recordedDates.has(item.date))
+      .flatMap((item) => {
+        const rawVal = item[nutrientKey];
+        const val =
+          typeof rawVal === 'number' && Number.isFinite(rawVal)
+            ? rawVal
+            : Number.parseFloat(String(rawVal));
+        if (!Number.isFinite(val)) return [];
+        return [
+          {
+            day: item.date,
+            value: val,
+          },
+        ];
+      });
+  }, [data, nutrientKey, recordedDates]);
 
   // Compute stats
   const stats = useMemo(() => {
@@ -145,82 +154,91 @@ const NutrientTrendsScreen: React.FC<NutrientTrendsScreenProps> = ({
           goal={goal}
         />
 
+        <Text className="mt-2 text-sm text-text-secondary">
+          {t('nutrientTrends.loggedDaysNote', {
+            defaultValue:
+              'Trends include logged days only; days without entries are unknown.',
+          })}
+        </Text>
+
         {/* Statistics Summary Card */}
-        <View className="bg-surface rounded-xl p-4 mt-4 shadow-sm">
-          <Text className="text-text-primary text-base font-bold mb-3">
-            {t('nutrientTrends.labels.summary', {
-              defaultValue: 'Summary Statistics',
-            })}
-          </Text>
-
-          <View className="flex-row justify-between py-2 border-b border-border-subtle">
-            <Text className="text-text-secondary text-sm">
-              {t('nutrientTrends.labels.dailyAverage', {
-                defaultValue: 'Daily Average',
+        {chartData.length > 0 && (
+          <View className="bg-surface rounded-xl p-4 mt-4 shadow-sm">
+            <Text className="text-text-primary text-base font-bold mb-3">
+              {t('nutrientTrends.labels.summary', {
+                defaultValue: 'Summary Statistics',
               })}
             </Text>
-            <Text className="text-text-primary text-sm font-semibold">
-              {stats.average % 1 !== 0
-                ? formatLocalizedNumber(stats.average, {
-                    maximumFractionDigits: 1,
-                  })
-                : formatLocalizedNumber(stats.average)}{' '}
-              {unit}
-            </Text>
-          </View>
 
-          <View className="flex-row justify-between py-2 border-b border-border-subtle">
-            <Text className="text-text-secondary text-sm">
-              {t('nutrientTrends.labels.highestDay', {
-                defaultValue: 'Highest Intake Day',
-              })}
-            </Text>
-            <View className="items-end">
+            <View className="flex-row justify-between py-2 border-b border-border-subtle">
+              <Text className="text-text-secondary text-sm">
+                {t('nutrientTrends.labels.dailyAverage', {
+                  defaultValue: 'Average on logged days',
+                })}
+              </Text>
               <Text className="text-text-primary text-sm font-semibold">
-                {stats.peak % 1 !== 0
-                  ? formatLocalizedNumber(stats.peak, {
+                {stats.average % 1 !== 0
+                  ? formatLocalizedNumber(stats.average, {
                       maximumFractionDigits: 1,
                     })
-                  : formatLocalizedNumber(stats.peak)}{' '}
+                  : formatLocalizedNumber(stats.average)}{' '}
                 {unit}
               </Text>
-              {formattedPeakDay ? (
-                <Text className="text-text-muted text-xs mt-0.5">
-                  {formattedPeakDay}
-                </Text>
-              ) : null}
             </View>
+
+            <View className="flex-row justify-between py-2 border-b border-border-subtle">
+              <Text className="text-text-secondary text-sm">
+                {t('nutrientTrends.labels.highestDay', {
+                  defaultValue: 'Highest Intake Day',
+                })}
+              </Text>
+              <View className="items-end">
+                <Text className="text-text-primary text-sm font-semibold">
+                  {stats.peak % 1 !== 0
+                    ? formatLocalizedNumber(stats.peak, {
+                        maximumFractionDigits: 1,
+                      })
+                    : formatLocalizedNumber(stats.peak)}{' '}
+                  {unit}
+                </Text>
+                {formattedPeakDay ? (
+                  <Text className="text-text-muted text-xs mt-0.5">
+                    {formattedPeakDay}
+                  </Text>
+                ) : null}
+              </View>
+            </View>
+
+            {goal && goal > 0 ? (
+              <>
+                <View className="flex-row justify-between py-2 border-b border-border-subtle">
+                  <Text className="text-text-secondary text-sm">
+                    {t('nutrientTrends.labels.targetGoal', {
+                      defaultValue: 'Target Daily Goal',
+                    })}
+                  </Text>
+                  <Text className="text-text-primary text-sm font-semibold">
+                    {formatLocalizedNumber(Math.round(goal))} {unit}
+                  </Text>
+                </View>
+
+                <View className="flex-row justify-between py-2">
+                  <Text className="text-text-secondary text-sm">
+                    {t('nutrientTrends.labels.averageVsTarget', {
+                      defaultValue: 'Average vs. Target',
+                    })}
+                  </Text>
+                  <Text className="text-text-primary text-sm font-semibold">
+                    {t('nutrientTrends.labels.percentOfGoal', {
+                      defaultValue: '{{percent}}% of goal',
+                      percent: Math.round((stats.average / goal) * 100),
+                    })}
+                  </Text>
+                </View>
+              </>
+            ) : null}
           </View>
-
-          {goal && goal > 0 ? (
-            <>
-              <View className="flex-row justify-between py-2 border-b border-border-subtle">
-                <Text className="text-text-secondary text-sm">
-                  {t('nutrientTrends.labels.targetGoal', {
-                    defaultValue: 'Target Daily Goal',
-                  })}
-                </Text>
-                <Text className="text-text-primary text-sm font-semibold">
-                  {formatLocalizedNumber(Math.round(goal))} {unit}
-                </Text>
-              </View>
-
-              <View className="flex-row justify-between py-2">
-                <Text className="text-text-secondary text-sm">
-                  {t('nutrientTrends.labels.averageVsTarget', {
-                    defaultValue: 'Average vs. Target',
-                  })}
-                </Text>
-                <Text className="text-text-primary text-sm font-semibold">
-                  {t('nutrientTrends.labels.percentOfGoal', {
-                    defaultValue: '{{percent}}% of goal',
-                    percent: Math.round((stats.average / goal) * 100),
-                  })}
-                </Text>
-              </View>
-            </>
-          ) : null}
-        </View>
+        )}
       </ScrollView>
     </View>
   );

@@ -1,6 +1,6 @@
 import { addDays, dayOfWeek, daysBetween } from '@workspace/shared';
 
-export type ExerciseReviewWindow = 'week' | 'month' | 'year';
+export type ExerciseReviewWindow = 'day' | 'week' | 'month' | 'year';
 
 interface ExerciseReviewDates {
   startDate: string;
@@ -15,6 +15,7 @@ function calendarStart(
   offset: number
 ): string {
   const [year, month] = day.split('-').map(Number);
+  if (window === 'day') return addDays(day, -offset);
   if (window === 'week') {
     const mondayOffset = (dayOfWeek(day) + 6) % 7;
     return addDays(day, -mondayOffset - offset * 7);
@@ -25,6 +26,7 @@ function calendarStart(
 }
 
 function calendarEnd(start: string, window: ExerciseReviewWindow): string {
+  if (window === 'day') return start;
   if (window === 'week') return addDays(start, 6);
   if (window === 'year') return `${start.slice(0, 4)}-12-31`;
   return addDays(calendarStart(start, 'month', -1), -1);

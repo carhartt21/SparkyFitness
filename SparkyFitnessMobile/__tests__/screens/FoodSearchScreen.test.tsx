@@ -21,6 +21,8 @@ import {
 } from '../../src/hooks';
 import type { Meal } from '../../src/types/meals';
 import type { FoodItem } from '../../src/types/foods';
+import type { RootStackScreenProps } from '../../src/types/navigation';
+import { addDays, getTodayDate } from '../../src/utils/dateUtils';
 import {
   useAppPreferencesStore,
   __resetAppPreferencesStoreForTests,
@@ -202,7 +204,7 @@ describe('FoodSearchScreen', () => {
     goBack: jest.fn(),
     navigate: jest.fn(),
   } as any;
-  const route = {
+  const route: RootStackScreenProps<'FoodSearch'>['route'] = {
     key: 'FoodSearch-key',
     name: 'FoodSearch' as const,
     params: undefined,
@@ -285,6 +287,31 @@ describe('FoodSearchScreen', () => {
     fireEvent.changeText(screen.getByPlaceholderText('Search foods...'), term);
     return screen;
   }
+
+  it('keeps the quick photo action on today and avoids silently logging a historical day as today', () => {
+    const todayScreen = render(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodSearchScreen
+          navigation={navigation}
+          route={{ ...route, params: { date: getTodayDate() } }}
+        />
+      </SafeAreaProvider>
+    );
+    fireEvent.press(todayScreen.getByLabelText('Meal photo'));
+    expect(navigation.navigate).toHaveBeenCalledWith('QuickMealPhoto');
+    todayScreen.unmount();
+
+    const historicalScreen = render(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodSearchScreen
+          navigation={navigation}
+          route={{ ...route, params: { date: addDays(getTodayDate(), -1) } }}
+        />
+      </SafeAreaProvider>
+    );
+    expect(historicalScreen.queryByLabelText('Meal photo')).toBeNull();
+    expect(historicalScreen.getByLabelText('New Food')).toBeTruthy();
+  });
 
   it('renders local foods, saved meals, and the online provider together in one search', () => {
     mockUseFoodSearch.mockReturnValue({
