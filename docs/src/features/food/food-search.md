@@ -1,6 +1,6 @@
 # Food Search
 
-This page will explain how to search for food items in SparkyFitness.
+This page will explain how to search for food items in X on Track.
 When you click on Add food, you'll have the option to search for recent foods:
 <img width="1109" height="389" alt="grafik" src="https://github.com/user-attachments/assets/54276539-7034-4dbc-bee3-b3a4d84e3a57" />
 

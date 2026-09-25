@@ -1,6 +1,6 @@
 # AI Assistant & MCP Server
 
-SparkyFitness includes a powerful **Model Context Protocol (MCP)** server. This allows you to connect advanced AI assistants (like Claude Desktop, Cursor, or custom AI clients) directly to your personal health data securely.
+X on Track includes a powerful **Model Context Protocol (MCP)** server. This allows you to connect advanced AI assistants (like Claude Desktop, Cursor, or custom AI clients) directly to your personal health data securely.
 
 When you enable the MCP Server, your AI assistant transforms into a **Personal Health Intelligence** layer that can read your health logs, track your progress, and provide hyper-personalized coaching based on your actual data.
 
@@ -78,15 +78,16 @@ Because the AI has access to all these tools, it can do things a standard app ca
 
 1.  **User Isolation (RLS)**: Normal MCP tools are restricted by PostgreSQL **Row Level Security**, scoped to the user authenticated by the API key. The AI can _only_ see data belonging to that user.
 2.  **Admin-Only Dev Tools**: A small set of optional developer/debugging tools is **off by default**. They require an admin API key, plus either the **Admin > System Settings** toggle or the `DEV_TOOLS_ENABLED=true` environment variable, which forces them on regardless of the stored setting. These tools intentionally run with elevated database access (the owner pool, bypassing Row Level Security), so leave them disabled unless you are actively debugging.
-3.  **Local First**: If you run SparkyFitness locally, your data never leaves your infrastructure until you send it to your chosen AI provider (e.g., Anthropic or OpenAI).
+3.  **MCP read-only keys**: A key created with **MCP read-only** access works only at `/mcp`. It cannot create a normal API session or authenticate to protected REST routes. The MCP server publishes only reviewed query tools for this key; write-capable and admin tools are unavailable. Use **Full API access** only when an integration needs to change data.
+4.  **Local First**: If you run X on Track locally, your data never leaves your infrastructure until you send it to your chosen AI provider (e.g., Anthropic or OpenAI).
 
 ## 🚀 Getting Started
 
-The MCP server is served **in-process** by the main SparkyFitness server at `POST /mcp`. There is no separate MCP service to run.
+The MCP server is served **in-process** by the main X on Track server at `POST /mcp`. There is no separate MCP service to run.
 
 ### 1. Generate an API Key
 
-Go to **Settings → Developer & Integrations → API Key Management** in the web UI and generate a key. You'll pass this as a **Bearer Token** in the `Authorization` header.
+Go to **Settings → Developer & Integrations → API Key Management** in the web UI and generate an **MCP read-only** key. You'll pass it as a **Bearer Token** in the `Authorization` header. Existing full-access keys continue to expose the full MCP tool set.
 
 ### 2. Find Your MCP Endpoint
 

@@ -23,11 +23,11 @@
 
 ## Troubleshooting AI Providers
 
-Most "OpenAI Compatible / OpenRouter isn't working" reports come from provider configuration, not from SparkyFitness itself. The most common cases:
+Most "OpenAI Compatible / OpenRouter isn't working" reports come from provider configuration, not from X on Track itself. The most common cases:
 
 ### OpenRouter: "No allowed providers are available for the selected model" (HTTP 404)
 
-This is an **OpenRouter account setting**, not a SparkyFitness error. OpenRouter serves each model through one or more upstream providers. If your account is restricted to a subset of providers, a model whose upstream is excluded fails with this 404 — this most often hits the free (`:free`) models, which run on providers you may not have enabled.
+This is an **OpenRouter account setting**, not a X on Track error. OpenRouter serves each model through one or more upstream providers. If your account is restricted to a subset of providers, a model whose upstream is excluded fails with this 404 — this most often hits the free (`:free`) models, which run on providers you may not have enabled.
 
 The error body shows the mismatch directly:
 
@@ -38,9 +38,9 @@ The error body shows the mismatch directly:
 
 ### Every request 404s (doubled URL)
 
-If your custom URL already ends in `/chat/completions`, SparkyFitness appends its own path and the request 404s.
+If your custom URL already ends in `/chat/completions`, X on Track appends its own path and the request 404s.
 
-**Fix:** Enter only the base URL ending in `/v1` — for example `https://openrouter.ai/api/v1`. For local servers such as LM Studio or Ollama, use an admin/global AI setting or enable [`ALLOW_PRIVATE_NETWORK_AI=true`](/install/environment-variables) on a trusted self-hosted deployment. SparkyFitness adds `/chat/completions` for you.
+**Fix:** Enter only the base URL ending in `/v1` — for example `https://openrouter.ai/api/v1`. For local servers such as LM Studio or Ollama, use an admin/global AI setting or enable [`ALLOW_PRIVATE_NETWORK_AI=true`](/install/environment-variables) on a trusted self-hosted deployment. X on Track adds `/chat/completions` for you.
 
 ### "Model not found" or empty/garbled responses
 
@@ -68,6 +68,6 @@ Small local models (roughly 3B–8B, e.g. an 8 GB Mac) can drive the chatbot's t
    - Set `OLLAMA_CONTEXT_LENGTH=16384` on the Ollama server (e.g. `launchctl setenv OLLAMA_CONTEXT_LENGTH 16384` on macOS, then restart Ollama), **or**
    - Bake `PARAMETER num_ctx 16384` into a Modelfile (`ollama create my-model -f Modelfile`) and point the service at that model.
    - On an 8 GB machine, start at `8192` — context uses VRAM — and only go higher if responses stay fast.
-2. **Use the `core` tool profile.** When you add an Ollama service, SparkyFitness now preselects the **core** tool profile (in the service's settings). Core exposes the everyday logging tools plus goals (~20 tools) instead of the full ~35, which small models select from far more reliably and which fits a smaller context window. Pick **full** only on a strong local machine with a raised context window.
+2. **Use the `core` tool profile.** When you add an Ollama service, X on Track now preselects the **core** tool profile (in the service's settings). Core exposes the everyday logging tools plus goals (~20 tools) instead of the full ~35, which small models select from far more reliably and which fits a smaller context window. Pick **full** only on a strong local machine with a raised context window.
 
 The server logs a warning when an Ollama service runs the `full` profile, since that combination most often overflows the default context. Also prefer models trained for tool calling (e.g. `qwen2.5:7b-instruct`, `llama3.1:8b`) — plain small chat models make unreliable tool calls.

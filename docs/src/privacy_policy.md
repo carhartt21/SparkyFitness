@@ -1,4 +1,6 @@
-# Privacy Policy
+# Upstream privacy policy
+
+This page reproduces the SparkyFitness upstream mobile privacy policy for reference. It has **not** been reviewed or adopted as a privacy policy for an X on Track release. The X on Track mobile app currently links to the upstream policy in About; an owner-reviewed policy and link are required before publication.
 
 SparkyFitness is committed to protecting your privacy. This Privacy Policy explains how information is handled when you use the SparkyFitness mobile application.
 

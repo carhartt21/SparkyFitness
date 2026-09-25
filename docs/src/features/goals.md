@@ -1,12 +1,12 @@
 # Goals
 
-SparkyFitness allows you to set and track various fitness and nutrition goals, helping you stay motivated and monitor your progress.
+X on Track allows you to set and track various fitness and nutrition goals, helping you stay motivated and monitor your progress.
 
 ---
 
 ## Nutrient Goal Direction (Minimum / Maximum / Target)
 
-By default, every nutrient goal in SparkyFitness is treated as a **minimum** — a target to reach, with progress filling toward 100% as you approach it. That works well for protein or fiber, but it doesn't fit every nutrient or every person: someone managing high cholesterol wants cholesterol treated as a ceiling, not something to "fill up"; someone maintaining their weight wants calories treated as a range to stay near, not a bar to max out.
+By default, every nutrient goal in X on Track is treated as a **minimum** — a target to reach, with progress filling toward 100% as you approach it. That works well for protein or fiber, but it doesn't fit every nutrient or every person: someone managing high cholesterol wants cholesterol treated as a ceiling, not something to "fill up"; someone maintaining their weight wants calories treated as a range to stay near, not a bar to max out.
 
 **Settings → Nutrient Goal Direction** lets you choose, per nutrient (predefined or custom), how progress should be judged:
 
@@ -22,7 +22,7 @@ This applies to the Diary page's Nutrition Summary card and to the Daily Energy 
 
 ## Tracking Added Sugars
 
-SparkyFitness's built-in "Sugars" goal reflects **total sugar** (naturally occurring plus added), because that's what most food databases report per item. If you want to track **added sugars** specifically — sugar added during processing, as distinct from sugars naturally present in fruit or milk — create a custom nutrient (Settings → Custom Nutrients) named **"Added Sugars"** (matching the wording used on nutrition labels), set its Goal Direction to **Maximum**, and log it per food the same way you would any other custom nutrient.
+X on Track's built-in "Sugars" goal reflects **total sugar** (naturally occurring plus added), because that's what most food databases report per item. If you want to track **added sugars** specifically — sugar added during processing, as distinct from sugars naturally present in fruit or milk — create a custom nutrient (Settings → Custom Nutrients) named **"Added Sugars"** (matching the wording used on nutrition labels), set its Goal Direction to **Maximum**, and log it per food the same way you would any other custom nutrient.
 
 ### Auto-calculate a recommended limit
 

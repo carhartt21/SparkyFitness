@@ -1,12 +1,12 @@
 # External Providers
 
-SparkyFitness supports integration with external health and fitness data providers to automatically sync your activity and measurements.
+X on Track supports integration with external health and fitness data providers to automatically sync your activity and measurements.
 
 ---
 
 ## Supported Providers
 
-SparkyFitness supports integration with the following health and fitness data providers:
+X on Track supports integration with the following health and fitness data providers:
 
 - Apple Health (iOS)
 - Google Health Connect (Android)
@@ -25,9 +25,21 @@ SparkyFitness supports integration with the following health and fitness data pr
 - Tandoor
 - Strava (partially tested)
 
+### Hevy workout history and routines
+
+A Hevy sync treats completed workouts as diary history and saved routines as reusable workout presets. A completed workout's title does not by itself create a saved routine. Repeating a sync preserves existing imported sessions and locally edited routine presets. Warm-up, working, and drop-set rows remain separate; exercises with the same Hevy superset ID stay grouped.
+
+Hevy's workout-history CSV contains completed sets but does not identify which routines are currently saved. In **Settings → Data Import → Hevy Workout History (CSV)**, choose the export and the IANA timezone in which its local workout times were recorded. Preview the sessions before importing. Re-importing the same export skips already imported sessions and reports imported, skipped, and failed counts; it does not overwrite local edits. Ambiguous daylight-saving times require correction before import. Parser tests cover representative rows and mixed line endings from an authorized completed-workout sample. A read-only preview of the full supplied export parsed 3,965 set rows into 268 completed workouts with no warnings; conversion under an assumed `Europe/Berlin` timezone succeeded. This does not confirm the export's actual timezone or a live diary import.
+
+To import saved routines, connect a Hevy API key so X on Track can read Hevy's separate [routines endpoint](https://api.hevyapp.com/docs/). A workout title in the CSV is not proof of a saved routine. Live Hevy API acceptance remains untested and the routine checks use synthetic fixtures.
+
+API sync responses list imported, skipped, and failed workouts and saved routines separately. If a fetch or import fails, or if Hevy returns a malformed workout or routine page or incomplete pagination, the sync returns a partial result (HTTP 207), shows an issue count in Settings, and leaves the provider's last successful sync time unchanged. A diagnostic raw-response replay is also partial when either page family is missing, malformed, or has a gap in its numbered pages. Retry after resolving the issue; use a full sync for older workout history. Existing imports are matched by their Hevy source IDs and preserved.
+
+After a complete live sync or authorized raw-response replay, X on Track updates the last-sync time only for the selected Hevy connection belonging to the current user. Other Hevy connections keep their own sync history.
+
 ## Open Food Facts Accounts and Contributions
 
-Open Food Facts searches work without an account. Adding both an Open Food Facts username and password lets SparkyFitness publish an individual product only after you review its exact preview and confirm the data and photo rights. This first release supports manual contributions, one product at a time.
+Open Food Facts searches work without an account. Adding both an Open Food Facts username and password lets X on Track publish an individual product only after you review its exact preview and confirm the data and photo rights. This first release supports manual contributions, one product at a time.
 
 You can configure credentials in either place:
 
@@ -36,7 +48,7 @@ You can configure credentials in either place:
 
 Credentials are encrypted at rest. Both username and password are required for contributions, and credentialed contribution endpoints must use HTTPS. Self-hosted HTTP instances remain available for unauthenticated searches.
 
-For sandbox testing, set the provider URL to `https://world.openfoodfacts.net`. SparkyFitness automatically supplies the staging server's documented `off:off` HTTP Basic gate. Open Food Facts production and staging accounts are separate, so the provider must use an account registered on the selected environment.
+For sandbox testing, set the provider URL to `https://world.openfoodfacts.net`. X on Track automatically supplies the staging server's documented `off:off` HTTP Basic gate. Open Food Facts production and staging accounts are separate, so the provider must use an account registered on the selected environment.
 
 To contribute a product:
 
@@ -45,7 +57,7 @@ To contribute a product:
 3. Choose **Preview contribution**. Review the destination product link, whether the product already exists, which account will publish, the sanitized photo and every outgoing field. Open the existing public product to compare its current information.
 4. Separately confirm that you entered and verified the packaging data and that you took and own the photo. Then choose **Publish this contribution**. Both confirmations start unchecked for every new preview.
 
-SparkyFitness sends the product name, brand, barcode, serving information and eligible nutrition from the default variant. Only custom products entered locally from physical packaging are eligible. Imported data, including products downloaded from Open Food Facts or proprietary third-party databases, is excluded. A non-internal, checksum-valid barcode, product name and metric-convertible default serving are required. Unknown nutrients are not turned into zeroes. The server rechecks ownership and eligibility before publication; family delegates cannot contribute someone else's food.
+X on Track sends the product name, brand, barcode, serving information and eligible nutrition from the default variant. Only custom products entered locally from physical packaging are eligible. Imported data, including products downloaded from Open Food Facts or proprietary third-party databases, is excluded. A non-internal, checksum-valid barcode, product name and metric-convertible default serving are required. Unknown nutrients are not turned into zeroes. The server rechecks ownership and eligibility before publication; family delegates cannot contribute someone else's food.
 
 The preview is valid for ten minutes. Changing the photo, photo type or language clears the preview and its confirmations. If the food, publishing account or public product changes, request and review a fresh preview. Preparing or cancelling a preview does not change Open Food Facts, and ordinary food saves, setting changes, diary entries and deletions never publish or queue contributions. There is no bulk contribution action or automatic retry in this release.
 

@@ -1,12 +1,12 @@
 # Meals & Meal Categories
 
-This section provides an overview of meal-related features in SparkyFitness.
+This section provides an overview of meal-related features in X on Track.
 
 ---
 
 ## Suggested Meal Category Times
 
-SparkyFitness dynamically suggests the appropriate meal category (e.g., Breakfast, Lunch, Dinner, Snacks, or custom categories) when you log food based on your current time of day.
+X on Track dynamically suggests the appropriate meal category (e.g., Breakfast, Lunch, Dinner, Snacks, or custom categories) when you log food based on your current time of day.
 
 ### How Suggested Times Work
 Each meal category can have a **Default Time** assigned to it:

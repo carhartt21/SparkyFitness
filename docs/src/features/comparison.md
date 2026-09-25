@@ -1,4 +1,6 @@
-# How SparkyFitness Compares
+# Upstream feature comparison
+
+This comparison was written for **SparkyFitness**, the upstream project on which X on Track is based. Its prices, release claims, support links, and feature judgments have not been revalidated for X on Track. It is retained as historical upstream context, not as X on Track marketing or a current purchasing guide.
 
 SparkyFitness is usually evaluated against two very different groups: **self-hosted trackers** that you run yourself, and **commercial subscription apps** that run in someone else's cloud. This page compares SparkyFitness against both, including the places where the other apps are genuinely better.
 

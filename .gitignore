@@ -28,6 +28,9 @@ dist-ssr
 private/
 coverage/
 
+# Local authorized import samples may contain personal workout history.
+hevy_workout_data.csv
+
 # OS generated files
 Thumbs.db
 .DS_Store

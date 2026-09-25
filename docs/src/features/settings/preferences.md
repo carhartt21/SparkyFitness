@@ -1,6 +1,6 @@
 # Preferences
 
-This page explains how to manage preference settings in **SparkyFitness**.
+This page explains how to manage preference settings in **X on Track**.
 
 ---
 
@@ -41,7 +41,7 @@ It may still be useful to keep a **gram-based Unit Variant**, especially for cas
 > **Note:**  
 > **“Auto-scale”** in the *Edit Food Details* dialog scales measurements **for that specific variant only**.  
 > This is **not related** to OpenFoodFacts import scaling.  
-> It is a SparkyFitness feature that allows users to change serving sizes while automatically adjusting nutrition values.
+> It is a X on Track feature that allows users to change serving sizes while automatically adjusting nutrition values.
 
 #### A. Duplicate the gram measurement
 <img width="897" height="758" alt="9dca897ac0a85f59b13cc9c12707c4ad" src="https://github.com/user-attachments/assets/11d32341-4c31-461c-8972-2f7117a315a2" />
