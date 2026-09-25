@@ -60,24 +60,9 @@ export default defineConfig(({ mode }) => {
       mode === 'production' &&
         VitePWA({
           registerType: 'autoUpdate',
-          manifest: {
-            name: 'SparkyFitness',
-            short_name: 'SparkyFitness',
-            description: 'Your personal fitness companion',
-            theme_color: '#000000',
-            icons: [
-              {
-                src: 'images/icons/icon-192x192.png',
-                sizes: '192x192',
-                type: 'image/png',
-              },
-              {
-                src: 'images/icons/icon-512x512.png',
-                sizes: '512x512',
-                type: 'image/png',
-              },
-            ],
-          },
+          // index.html already links the reviewed public/manifest.json.
+          // Avoid injecting a second install manifest with divergent branding.
+          manifest: false,
           workbox: {
             maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
             navigateFallback: '/index.html',

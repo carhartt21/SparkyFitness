@@ -58,14 +58,30 @@ const AboutDialog: React.FC<AboutDialogProps> = ({
       <AlertDialogContent ref={contentRef}>
         <AlertDialogHeader>
           <AlertDialogTitle>
-            {t('aboutDialog.title', 'About SparkyFitness')}
+            {t('aboutDialog.title', 'About X on Track')}
           </AlertDialogTitle>
           <AlertDialogDescription>
             <div className="space-y-4">
+              <div className="flex items-center gap-3 text-left">
+                <img
+                  src="/images/brand/x-on-track-light.png"
+                  alt="X on Track logo"
+                  className="h-12 w-12 object-contain dark:hidden"
+                />
+                <img
+                  src="/images/brand/x-on-track-dark.png"
+                  alt="X on Track logo"
+                  className="hidden h-12 w-12 object-contain dark:block"
+                />
+                <div>
+                  <strong className="block text-foreground">X on Track</strong>
+                  <span>Keep getting better.</span>
+                </div>
+              </div>
               <p>
                 {t(
-                  'aboutDialog.description1',
-                  'SparkyFitness: Built for Families. Powered by AI. Track food, fitness, water, and health — together.'
+                  'aboutDialog.personalBestDescription',
+                  'X on Track helps you log what matters, understand your patterns, and improve relative to your own baseline. Keep getting better.'
                 )}
               </p>
               <p>
@@ -73,27 +89,17 @@ const AboutDialog: React.FC<AboutDialogProps> = ({
                 <strong>{version}</strong>
               </p>
               <div>
-                {t('aboutDialog.joinDiscord', 'Join our community on Discord:')}{' '}
-                <a
-                  href="https://discord.gg/vcnMT5cPEA"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
-                >
-                  discord.gg/vcnMT5cPEA
-                </a>
-              </div>
-              <div>
                 {t(
-                  'aboutDialog.moreInfoVisit',
-                  'For more information, visit the'
+                  'aboutDialog.upstreamSourceAndLicense',
+                  'Upstream source and license:'
                 )}{' '}
                 <a
                   href="https://github.com/CodeWithCJ/SparkyFitness"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-blue-500 hover:underline"
+                  className="text-primary hover:underline"
                 >
+                  SparkyFitness{' '}
                   {t('aboutDialog.githubRepo', 'GitHub repository')}
                 </a>
                 .

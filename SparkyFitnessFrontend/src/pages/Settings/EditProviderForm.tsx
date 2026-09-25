@@ -180,7 +180,7 @@ export const EditProviderForm = ({
           <p className="text-sm text-muted-foreground col-span-2">
             Open Food Facts is a community-driven database that supports
             localization. Sparky automatically queries products in your active
-            language setting in SparkyFitness. For more information, visit the{' '}
+            language setting in X on Track. For more information, visit the{' '}
             <a
               href="https://world.openfoodfacts.org/"
               target="_blank"
@@ -569,8 +569,7 @@ export const EditProviderForm = ({
                 Note: Garmin Connect integration is tested with few metrics
                 only. Ensure your Docker Compose is updated to include Garmin
                 section.
-                <br />
-                Sparky Fitness does not store your Garmin email or password.
+                <br />X on Track does not store your Garmin email or password.
                 They are used only during login to obtain secure tokens.
               </p>
             </>
@@ -950,7 +949,7 @@ export const EditProviderForm = ({
             <strong>Italian (it)</strong>.
           </p>
           <p className="text-sm text-muted-foreground">
-            If your active language in SparkyFitness is not supported, the API
+            If your active language in X on Track is not supported, the API
             queries will default to English. For more details, see the official
             portal at{' '}
             <a

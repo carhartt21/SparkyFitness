@@ -443,7 +443,7 @@ const Auth = () => {
               Almost there!
             </h2>
             <p className="text-muted-foreground animate-pulse text-sm">
-              Securing your family dashboard...
+              Loading X on Track...
             </p>
           </div>
         ) : showMfaChallenge && mfaChallengeProps ? (
@@ -453,18 +453,20 @@ const Auth = () => {
             <CardHeader className="text-center">
               <div className="flex items-center justify-center mb-4">
                 <img
-                  src="/images/SparkyFitness.webp"
-                  alt="SparkyFitness Logo"
-                  className="h-10 w-10 mr-2"
+                  src="/images/brand/x-on-track-light.png"
+                  alt="X on Track logo"
+                  className="h-10 w-10 mr-2 dark:hidden"
+                />
+                <img
+                  src="/images/brand/x-on-track-dark.png"
+                  alt="X on Track logo"
+                  className="hidden h-10 w-10 mr-2 dark:block"
                 />
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-300">
-                  SparkyFitness
+                  X on Track
                 </CardTitle>
               </div>
-              <CardDescription>
-                Built for Families. Powered by AI. Track food, fitness, water,
-                and health — together.
-              </CardDescription>
+              <CardDescription>Keep getting better.</CardDescription>
             </CardHeader>
             <CardContent>
               {loginSettings?.warning && (

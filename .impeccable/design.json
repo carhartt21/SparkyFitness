@@ -1,0 +1,466 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-25T07:32:58+00:00",
+  "title": "Design System: X on Track Settings",
+  "extensions": {
+    "colorMeta": {
+      "brand-green-mobile-light": {
+        "role": "primary",
+        "displayName": "Brand Green Mobile Light",
+        "canonical": "#0b5e46",
+        "tonalRamp": [
+          "oklch(15% 0.084 167.2)",
+          "oklch(26% 0.084 167.2)",
+          "oklch(37% 0.084 167.2)",
+          "oklch(48% 0.084 167.2)",
+          "oklch(59% 0.084 167.2)",
+          "oklch(71% 0.084 167.2)",
+          "oklch(83% 0.084 167.2)",
+          "oklch(95% 0.084 167.2)"
+        ]
+      },
+      "brand-green-mobile-dark": {
+        "role": "primary",
+        "displayName": "Brand Green Mobile Dark",
+        "canonical": "#11a67e",
+        "tonalRamp": [
+          "oklch(15% 0.128 167.6)",
+          "oklch(26% 0.128 167.6)",
+          "oklch(37% 0.128 167.6)",
+          "oklch(48% 0.128 167.6)",
+          "oklch(59% 0.128 167.6)",
+          "oklch(71% 0.128 167.6)",
+          "oklch(83% 0.128 167.6)",
+          "oklch(95% 0.128 167.6)"
+        ]
+      },
+      "background-mobile-light": {
+        "role": "neutral",
+        "displayName": "Background Mobile Light",
+        "canonical": "#f6f0e3",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "surface-mobile-light": {
+        "role": "neutral",
+        "displayName": "Surface Mobile Light",
+        "canonical": "#f0eadd",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "text-mobile-light": {
+        "role": "neutral",
+        "displayName": "Text Mobile Light",
+        "canonical": "#171c22",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.1)",
+          "oklch(26% 0.014 253.1)",
+          "oklch(37% 0.014 253.1)",
+          "oklch(48% 0.014 253.1)",
+          "oklch(59% 0.014 253.1)",
+          "oklch(71% 0.014 253.1)",
+          "oklch(83% 0.014 253.1)",
+          "oklch(95% 0.014 253.1)"
+        ]
+      },
+      "supporting-text-mobile-light": {
+        "role": "neutral",
+        "displayName": "Supporting Text Mobile Light",
+        "canonical": "#40554c",
+        "tonalRamp": [
+          "oklch(15% 0.030 166.9)",
+          "oklch(26% 0.030 166.9)",
+          "oklch(37% 0.030 166.9)",
+          "oklch(48% 0.030 166.9)",
+          "oklch(59% 0.030 166.9)",
+          "oklch(71% 0.030 166.9)",
+          "oklch(83% 0.030 166.9)",
+          "oklch(95% 0.030 166.9)"
+        ]
+      },
+      "divider-mobile-light": {
+        "role": "neutral",
+        "displayName": "Divider Mobile Light",
+        "canonical": "hsl(213, 16%, 90%)",
+        "tonalRamp": [
+          "oklch(15% 0.007 253.3)",
+          "oklch(26% 0.007 253.3)",
+          "oklch(37% 0.007 253.3)",
+          "oklch(48% 0.007 253.3)",
+          "oklch(59% 0.007 253.3)",
+          "oklch(71% 0.007 253.3)",
+          "oklch(83% 0.007 253.3)",
+          "oklch(95% 0.007 253.3)"
+        ]
+      },
+      "background-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Background Mobile Dark",
+        "canonical": "#171c22",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.1)",
+          "oklch(26% 0.014 253.1)",
+          "oklch(37% 0.014 253.1)",
+          "oklch(48% 0.014 253.1)",
+          "oklch(59% 0.014 253.1)",
+          "oklch(71% 0.014 253.1)",
+          "oklch(83% 0.014 253.1)",
+          "oklch(95% 0.014 253.1)"
+        ]
+      },
+      "surface-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Surface Mobile Dark",
+        "canonical": "#242d32",
+        "tonalRamp": [
+          "oklch(15% 0.015 232.3)",
+          "oklch(26% 0.015 232.3)",
+          "oklch(37% 0.015 232.3)",
+          "oklch(48% 0.015 232.3)",
+          "oklch(59% 0.015 232.3)",
+          "oklch(71% 0.015 232.3)",
+          "oklch(83% 0.015 232.3)",
+          "oklch(95% 0.015 232.3)"
+        ]
+      },
+      "text-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Text Mobile Dark",
+        "canonical": "hsl(220, 15%, 92%)",
+        "tonalRamp": [
+          "oklch(15% 0.006 264.5)",
+          "oklch(26% 0.006 264.5)",
+          "oklch(37% 0.006 264.5)",
+          "oklch(48% 0.006 264.5)",
+          "oklch(59% 0.006 264.5)",
+          "oklch(71% 0.006 264.5)",
+          "oklch(83% 0.006 264.5)",
+          "oklch(95% 0.006 264.5)"
+        ]
+      },
+      "brand-green-web-light": {
+        "role": "primary",
+        "displayName": "Brand Green Web Light",
+        "canonical": "hsl(163 79% 21%)",
+        "tonalRamp": [
+          "oklch(15% 0.085 167.6)",
+          "oklch(26% 0.085 167.6)",
+          "oklch(37% 0.085 167.6)",
+          "oklch(48% 0.085 167.6)",
+          "oklch(59% 0.085 167.6)",
+          "oklch(71% 0.085 167.6)",
+          "oklch(83% 0.085 167.6)",
+          "oklch(95% 0.085 167.6)"
+        ]
+      },
+      "brand-green-web-dark": {
+        "role": "primary",
+        "displayName": "Brand Green Web Dark",
+        "canonical": "hsl(164 81% 36%)",
+        "tonalRamp": [
+          "oklch(15% 0.128 167.8)",
+          "oklch(26% 0.128 167.8)",
+          "oklch(37% 0.128 167.8)",
+          "oklch(48% 0.128 167.8)",
+          "oklch(59% 0.128 167.8)",
+          "oklch(71% 0.128 167.8)",
+          "oklch(83% 0.128 167.8)",
+          "oklch(95% 0.128 167.8)"
+        ]
+      },
+      "background-web-light": {
+        "role": "neutral",
+        "displayName": "Background Web Light",
+        "canonical": "hsl(41 51% 93%)",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "card-web-light": {
+        "role": "neutral",
+        "displayName": "Card Web Light",
+        "canonical": "hsl(43 100% 99%)",
+        "tonalRamp": [
+          "oklch(15% 0.005 88.8)",
+          "oklch(26% 0.005 88.8)",
+          "oklch(37% 0.005 88.8)",
+          "oklch(48% 0.005 88.8)",
+          "oklch(59% 0.005 88.8)",
+          "oklch(71% 0.005 88.8)",
+          "oklch(83% 0.005 88.8)",
+          "oklch(95% 0.005 88.8)"
+        ]
+      },
+      "accent-web-light": {
+        "role": "neutral",
+        "displayName": "Accent Web Light",
+        "canonical": "hsl(148 23% 87%)",
+        "tonalRamp": [
+          "oklch(15% 0.020 162.9)",
+          "oklch(26% 0.020 162.9)",
+          "oklch(37% 0.020 162.9)",
+          "oklch(48% 0.020 162.9)",
+          "oklch(59% 0.020 162.9)",
+          "oklch(71% 0.020 162.9)",
+          "oklch(83% 0.020 162.9)",
+          "oklch(95% 0.020 162.9)"
+        ]
+      },
+      "foreground-web-light": {
+        "role": "neutral",
+        "displayName": "Foreground Web Light",
+        "canonical": "hsl(213 19% 11%)",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.6)",
+          "oklch(26% 0.014 253.6)",
+          "oklch(37% 0.014 253.6)",
+          "oklch(48% 0.014 253.6)",
+          "oklch(59% 0.014 253.6)",
+          "oklch(71% 0.014 253.6)",
+          "oklch(83% 0.014 253.6)",
+          "oklch(95% 0.014 253.6)"
+        ]
+      },
+      "muted-foreground-web-light": {
+        "role": "neutral",
+        "displayName": "Muted Foreground Web Light",
+        "canonical": "hsl(153 12% 36%)",
+        "tonalRamp": [
+          "oklch(15% 0.031 166.0)",
+          "oklch(26% 0.031 166.0)",
+          "oklch(37% 0.031 166.0)",
+          "oklch(48% 0.031 166.0)",
+          "oklch(59% 0.031 166.0)",
+          "oklch(71% 0.031 166.0)",
+          "oklch(83% 0.031 166.0)",
+          "oklch(95% 0.031 166.0)"
+        ]
+      },
+      "border-web-light": {
+        "role": "neutral",
+        "displayName": "Border Web Light",
+        "canonical": "hsl(40 22% 82%)",
+        "tonalRamp": [
+          "oklch(15% 0.020 84.6)",
+          "oklch(26% 0.020 84.6)",
+          "oklch(37% 0.020 84.6)",
+          "oklch(48% 0.020 84.6)",
+          "oklch(59% 0.020 84.6)",
+          "oklch(71% 0.020 84.6)",
+          "oklch(83% 0.020 84.6)",
+          "oklch(95% 0.020 84.6)"
+        ]
+      },
+      "background-web-dark": {
+        "role": "neutral",
+        "displayName": "Background Web Dark",
+        "canonical": "hsl(213 19% 11%)",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.6)",
+          "oklch(26% 0.014 253.6)",
+          "oklch(37% 0.014 253.6)",
+          "oklch(48% 0.014 253.6)",
+          "oklch(59% 0.014 253.6)",
+          "oklch(71% 0.014 253.6)",
+          "oklch(83% 0.014 253.6)",
+          "oklch(95% 0.014 253.6)"
+        ]
+      },
+      "card-web-dark": {
+        "role": "neutral",
+        "displayName": "Card Web Dark",
+        "canonical": "hsl(200 16% 16%)",
+        "tonalRamp": [
+          "oklch(15% 0.015 229.6)",
+          "oklch(26% 0.015 229.6)",
+          "oklch(37% 0.015 229.6)",
+          "oklch(48% 0.015 229.6)",
+          "oklch(59% 0.015 229.6)",
+          "oklch(71% 0.015 229.6)",
+          "oklch(83% 0.015 229.6)",
+          "oklch(95% 0.015 229.6)"
+        ]
+      },
+      "accent-web-dark": {
+        "role": "neutral",
+        "displayName": "Accent Web Dark",
+        "canonical": "hsl(153 22% 20%)",
+        "tonalRamp": [
+          "oklch(15% 0.033 164.7)",
+          "oklch(26% 0.033 164.7)",
+          "oklch(37% 0.033 164.7)",
+          "oklch(48% 0.033 164.7)",
+          "oklch(59% 0.033 164.7)",
+          "oklch(71% 0.033 164.7)",
+          "oklch(83% 0.033 164.7)",
+          "oklch(95% 0.033 164.7)"
+        ]
+      },
+      "foreground-web-dark": {
+        "role": "neutral",
+        "displayName": "Foreground Web Dark",
+        "canonical": "hsl(41 51% 93%)",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "page-title": {
+        "displayName": "Mobile page title",
+        "purpose": "Settings screen heading when the native tab header is not active."
+      },
+      "web-page-title": {
+        "displayName": "Web page title",
+        "purpose": "Top heading for the Settings page."
+      },
+      "web-section-title": {
+        "displayName": "Web section title",
+        "purpose": "Current category heading."
+      },
+      "mobile-section-title": {
+        "displayName": "Mobile section title",
+        "purpose": "Names a related settings group."
+      },
+      "mobile-row-title": {
+        "displayName": "Mobile row title",
+        "purpose": "Names a destination or action."
+      },
+      "supporting-copy": {
+        "displayName": "Supporting copy",
+        "purpose": "Descriptions and status details."
+      },
+      "small-label": {
+        "displayName": "Small label",
+        "purpose": "Compact profile context and captions."
+      }
+    },
+    "motion": [
+      {
+        "name": "web-accordion",
+        "value": "0.2s ease-out",
+        "purpose": "Open and close height transition for Settings accordion content."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Mobile settings group",
+      "kind": "card",
+      "refersTo": "mobile-settings-group",
+      "description": "Shared rounded surface and thin divider for related mobile settings.",
+      "html": "<div class=\"ds-mobile-group\"><div class=\"ds-mobile-group-row\">Server</div><div class=\"ds-mobile-group-divider\"></div><div class=\"ds-mobile-group-row\">Health Data Sync</div></div>",
+      "css": ".ds-mobile-group{background:#f0eadd;border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm,0 1px 2px rgba(0,0,0,.05));color:#171c22}.ds-mobile-group-row{padding:16px;font-size:16px;font-weight:600}.ds-mobile-group-divider{height:1px;background:hsl(213 16% 90%)}"
+    },
+    {
+      "name": "Mobile status row",
+      "kind": "custom",
+      "refersTo": "mobile-settings-row",
+      "description": "Action row with a text status, destination cue, and semantic status dot.",
+      "html": "<button class=\"ds-mobile-status\"><span class=\"ds-mobile-status-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"8\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"8\" rx=\"2\"/></svg></span><span class=\"ds-mobile-status-copy\"><strong>Server</strong><small><i aria-hidden=\"true\"></i>Connected</small></span><span class=\"ds-mobile-status-chevron\" aria-hidden=\"true\">\u203a</span></button>",
+      "css": ".ds-mobile-status{display:flex;align-items:center;width:100%;padding:16px;border:0;background:#f0eadd;color:#171c22;text-align:left;cursor:pointer}.ds-mobile-status:hover,.ds-mobile-status:active{opacity:.7}.ds-mobile-status:focus-visible{outline:2px solid #0b5e46;outline-offset:-2px}.ds-mobile-status-icon{width:40px;height:40px;display:grid;place-items:center;margin-right:12px;border-radius:8px;background:#fff;color:#0b5e46}.ds-mobile-status-copy{flex:1;display:grid;gap:2px}.ds-mobile-status-copy strong{font-size:16px;font-weight:600}.ds-mobile-status-copy small{font-size:14px;color:#40554c}.ds-mobile-status-copy i{display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;background:#0b5e46}.ds-mobile-status-chevron{font-size:22px;color:#40554c}"
+    },
+    {
+      "name": "Web active profile card",
+      "kind": "card",
+      "refersTo": "web-profile-card",
+      "description": "Compact account context in the Settings header.",
+      "html": "<div class=\"ds-web-profile\"><small>Active profile</small><strong>Loading profile</strong><span>Your account</span></div>",
+      "css": ".ds-web-profile{min-width:208px;padding:12px 16px;border-radius:12px;background:hsl(43 100% 99%);color:hsl(213 19% 11%);display:grid;gap:4px}.ds-web-profile small,.ds-web-profile span{font-size:12px;color:hsl(153 12% 36%)}.ds-web-profile strong{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+    },
+    {
+      "name": "Web section tab",
+      "kind": "nav",
+      "refersTo": "web-active-section-tab",
+      "description": "Category navigation; selected state uses the accent surface and stronger type.",
+      "html": "<div class=\"ds-web-tabs\" role=\"tablist\" aria-label=\"Settings sections\"><button class=\"ds-web-tab\" role=\"tab\" aria-selected=\"true\">Profile &amp; Account</button><button class=\"ds-web-tab\" role=\"tab\" aria-selected=\"false\">Nutrition &amp; Tracking</button></div>",
+      "css": ".ds-web-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ds-web-tab{min-height:48px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:hsl(153 12% 36%);text-align:left;font-size:14px;cursor:pointer}.ds-web-tab:hover{background:hsl(39 27% 89%);color:hsl(213 19% 11%)}.ds-web-tab:focus-visible{outline:2px solid hsl(163 79% 21%);outline-offset:2px}.ds-web-tab[aria-selected=true]{background:hsl(148 23% 87%);color:hsl(213 19% 11%);font-weight:600}@media(min-width:640px){.ds-web-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(min-width:1024px){.ds-web-tabs{display:flex;flex-direction:column;width:240px}}"
+    },
+    {
+      "name": "Web settings accordion",
+      "kind": "custom",
+      "refersTo": "web-settings-accordion",
+      "description": "Bordered expandable setting with a title, description, and clear focus.",
+      "html": "<button class=\"ds-web-accordion\" aria-expanded=\"false\"><span><strong>Allergen Preferences</strong><small>Track allergens you want to be warned about in foods</small></span><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "css": ".ds-web-accordion{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid hsl(40 22% 82%);border-radius:8px;background:transparent;color:hsl(213 19% 11%);text-align:left;cursor:pointer}.ds-web-accordion:hover{background:hsl(39 27% 89%)}.ds-web-accordion:focus-visible{outline:2px solid hsl(163 79% 21%);outline-offset:-2px}.ds-web-accordion span{display:grid;gap:4px}.ds-web-accordion strong{font-size:14px;font-weight:500}.ds-web-accordion small{font-size:14px;font-weight:400;color:hsl(153 12% 36%)}.ds-web-accordion svg{flex:none;transition:transform .2s}.ds-web-accordion[aria-expanded=true] svg{transform:rotate(180deg)}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Status overview plus clear sections",
+    "overview": "This record describes the implemented Settings surfaces only: `SparkyFitnessMobile/src/screens/SettingsScreen.tsx`, `SparkyFitnessMobile/src/components/SettingsRow.tsx`, and `SparkyFitnessFrontend/src/pages/Settings/SettingsPage.tsx`. It is not a claim about every screen in either app. The Settings experience is an **Operate** surface: people check their current context, find a category, and reach a specific setting. The mobile screen leads with server and sync state. The web screen leads with the active profile and five named sections.\n\nThe light themes use warm cream backgrounds, darker text, and a restrained green accent; the dark themes keep the same semantic roles with darker surfaces and brighter green. Status copy reports observed connection and sync history, including checking and unavailable states. Sections and controls use the actual English locale strings, with translations supplied by each app's i18n system.",
+    "keyCharacteristics": [
+      "Grouped settings with headings that name the user's task.",
+      "Current account or connection context near the top of the page.",
+      "One destination per mobile row; category tabs and expandable settings on web.",
+      "Visible text and accessibility labels for state, with color as a supporting cue."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic State Rule",
+        "body": "A connection dot may reinforce status, but text must state whether the connection is checking, connected, or unavailable. Sync history must also expose its loading, missing, and unavailable states in words.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scan First Rule",
+        "body": "Keep section names and setting titles stronger than explanatory text. Preserve meaningful labels when they wrap; the mobile row title has no line limit by default.",
+        "section": "typography"
+      },
+      {
+        "name": "The Destination Rule",
+        "body": "Keep a category label, its controls, and deep-link section IDs aligned when changing the Settings layout. Mobile rows continue to navigate to their existing screens.",
+        "section": "layout"
+      }
+    ],
+    "dos": [
+      "Do put current context before the detailed controls on these Settings surfaces.",
+      "Do keep labels task-oriented and use the English locale entries as the copy source.",
+      "Do keep connection and sync information truthful in loading and error states.",
+      "Do preserve accessible names, focus indicators, navigation destinations, and URL section aliases."
+    ],
+    "donts": [
+      "Don't present a color dot as the only status indicator.",
+      "Don't invent account, connection, sync, or health status from decorative UI.",
+      "Don't collapse unrelated settings into one unlabelled group."
+    ]
+  }
+}

@@ -90,7 +90,7 @@ const OpenFoodFactsContributionSettingsContent = ({
         <CardDescription>
           {t(
             'settings.foodExerciseDataProviders.openFoodFacts.contributionsDescription',
-            'Improve the shared Open Food Facts database and make product data better for every SparkyFitness server.'
+            'Improve the shared Open Food Facts database and make product data better for every X on Track server.'
           )}
         </CardDescription>
       </CardHeader>

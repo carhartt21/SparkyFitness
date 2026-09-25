@@ -880,7 +880,7 @@ const CalculationSettings = () => {
               </span>{' '}
               {t(
                 'settings.calorieGoalAdjustment.adaptiveGoalDescription',
-                "The 'Gold Standard'. SparkyFitness calculates your TDEE by correlating your actual weight changes with your calorie intake over the last 35 days. It 'learns' your unique metabolism."
+                "The 'Gold Standard'. X on Track calculates your TDEE by correlating your actual weight changes with your calorie intake over the last 35 days. It 'learns' your unique metabolism."
               )}
             </Label>
           </div>
@@ -1703,7 +1703,7 @@ const CalculationSettings = () => {
                     <span>
                       {t('settings.goalMode.estimatedTargetNote', {
                         defaultValue:
-                          'Note: This target is currently based on an estimated activity level. After {{required}}+ days of weight and calorie data, SparkyFitness will calculate a more personalized adaptive TDEE.',
+                          'Note: This target is currently based on an estimated activity level. After {{required}}+ days of weight and calorie data, X on Track will calculate a more personalized adaptive TDEE.',
                         required: ADAPTIVE_TDEE_GOAL_MIN_DAYS,
                       })}
                     </span>

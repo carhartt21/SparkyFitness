@@ -28,6 +28,7 @@ import {
   useDeleteApiKeyMutation,
   useToggleApiKeyMutation,
   useCleanupApiKeysMutation,
+  type ApiKeyScope,
 } from '@/hooks/Settings/useApiKeys';
 
 export const ApiSettings = () => {
@@ -35,6 +36,8 @@ export const ApiSettings = () => {
   const { user } = useAuth();
   const [newlyCreatedKey, setNewlyCreatedKey] = useState<string | null>(null); // New state to show secret key once
   const [newApiKeyDescription, setNewApiKeyDescription] = useState<string>('');
+  const [newApiKeyScope, setNewApiKeyScope] =
+    useState<ApiKeyScope>('mcp-read-only');
   const [newApiKeyExpiresIn, setNewApiKeyExpiresIn] = useState<number | null>(
     null
   );
@@ -60,6 +63,7 @@ export const ApiSettings = () => {
       const data = await createKey({
         name: newApiKeyDescription || 'New API Key',
         expiresIn: newApiKeyExpiresIn || undefined,
+        scope: newApiKeyScope,
       });
 
       if (data && data.key) {
@@ -71,7 +75,10 @@ export const ApiSettings = () => {
     }
   };
 
-  const handleDeleteApiKey = async (apiKeyId: string) => {
+  const handleDeleteApiKey = async (
+    apiKeyId: string,
+    configId?: string | null
+  ) => {
     if (!user) return;
     if (
       !window.confirm(
@@ -82,16 +89,20 @@ export const ApiSettings = () => {
     }
 
     try {
-      await deleteKey(apiKeyId);
+      await deleteKey({ keyId: apiKeyId, configId });
     } catch (error: unknown) {
       console.error(error);
     }
   };
 
-  const handleToggleApiKey = async (apiKeyId: string, enabled: boolean) => {
+  const handleToggleApiKey = async (
+    apiKeyId: string,
+    enabled: boolean,
+    configId?: string | null
+  ) => {
     if (!user) return;
     try {
-      await toggleKey({ keyId: apiKeyId, enabled });
+      await toggleKey({ keyId: apiKeyId, enabled, configId });
     } catch (error: unknown) {
       console.error(error);
     }
@@ -125,7 +136,7 @@ export const ApiSettings = () => {
         <p className="text-sm text-muted-foreground">
           {t(
             'settings.apiKeyManagement.infoText',
-            'Generate API keys to securely submit data from external applications like iPhone Shortcuts. These keys are tied to your account and can be revoked at any time.'
+            'Choose MCP read-only for assistants that only need to inspect your data, or full API access for integrations that submit data. Keys can be revoked at any time.'
           )}
         </p>
 
@@ -183,7 +194,7 @@ export const ApiSettings = () => {
         )}
 
         <div className="flex flex-col sm:flex-row gap-2">
-          <div className="flex flex-col sm:flex-row gap-4 items-end">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-4 items-end">
             <div className="flex-grow space-y-2 w-full">
               <Label htmlFor="api-key-description">
                 {t(
@@ -200,6 +211,35 @@ export const ApiSettings = () => {
                   "Description (e.g., 'iPhone Health Shortcut')"
                 )}
               />
+            </div>
+            <div className="space-y-2 w-full sm:w-48">
+              <Label htmlFor="api-key-scope">
+                {t('settings.apiKeyManagement.scope', 'Access')}
+              </Label>
+              <Select
+                value={newApiKeyScope}
+                onValueChange={(value) =>
+                  setNewApiKeyScope(value === 'full' ? 'full' : 'mcp-read-only')
+                }
+              >
+                <SelectTrigger id="api-key-scope">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mcp-read-only">
+                    {t(
+                      'settings.apiKeyManagement.mcpReadOnly',
+                      'MCP read-only'
+                    )}
+                  </SelectItem>
+                  <SelectItem value="full">
+                    {t(
+                      'settings.apiKeyManagement.fullAccess',
+                      'Full API access'
+                    )}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2 w-full sm:w-48">
               <Label htmlFor="api-key-expiry">
@@ -293,6 +333,17 @@ export const ApiSettings = () => {
                         {t('settings.apiKeyManagement.disabled', 'Disabled')}
                       </span>
                     )}
+                    <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border uppercase font-bold">
+                      {key.configId === 'mcp-read-only'
+                        ? t(
+                            'settings.apiKeyManagement.mcpReadOnly',
+                            'MCP read-only'
+                          )
+                        : t(
+                            'settings.apiKeyManagement.fullAccess',
+                            'Full API access'
+                          )}
+                    </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <span className="font-mono text-xs">{key.id}</span>
@@ -336,14 +387,14 @@ export const ApiSettings = () => {
                   <Switch
                     checked={key.enabled}
                     onCheckedChange={(checked) =>
-                      handleToggleApiKey(key.id, checked)
+                      handleToggleApiKey(key.id, checked, key.configId)
                     }
                     disabled={isFormLoading}
                   />
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => handleDeleteApiKey(key.id)}
+                    onClick={() => handleDeleteApiKey(key.id, key.configId)}
                     disabled={isFormLoading}
                     className="text-muted-foreground hover:text-destructive"
                   >

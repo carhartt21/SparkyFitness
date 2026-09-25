@@ -3,14 +3,19 @@ import { useTranslation } from 'react-i18next';
 import { authClient } from '@/lib/auth-client';
 import { apiKeyKeys } from '@/api/keys/settings';
 
-interface ApiKeyRecord {
+export interface ApiKeyRecord {
   id: string;
   name: string | null;
   enabled: boolean;
   createdAt: string | Date | null;
   updatedAt: string | Date | null;
   expiresAt: string | Date | null;
+  configId?: string | null;
 }
+
+export type ApiKeyScope = 'full' | 'mcp-read-only';
+const configIdForScope = (scope: ApiKeyScope) =>
+  scope === 'mcp-read-only' ? 'mcp-read-only' : 'default';
 
 export const useApiKeysQuery = (userId?: string) => {
   const { t } = useTranslation();
@@ -40,13 +45,16 @@ export const useCreateApiKeyMutation = () => {
     mutationFn: async ({
       name,
       expiresIn,
+      scope,
     }: {
       name: string;
       expiresIn?: number;
+      scope: ApiKeyScope;
     }) => {
       const { data, error } = await authClient.apiKey.create({
         name,
         expiresIn,
+        configId: configIdForScope(scope),
       });
       if (error) throw error;
       return data;
@@ -72,8 +80,17 @@ export const useDeleteApiKeyMutation = () => {
   const { t } = useTranslation();
 
   return useMutation({
-    mutationFn: async (keyId: string) => {
-      const { error } = await authClient.apiKey.delete({ keyId });
+    mutationFn: async ({
+      keyId,
+      configId,
+    }: {
+      keyId: string;
+      configId?: string | null;
+    }) => {
+      const { error } = await authClient.apiKey.delete({
+        keyId,
+        configId: configId || 'default',
+      });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -100,11 +117,17 @@ export const useToggleApiKeyMutation = () => {
     mutationFn: async ({
       keyId,
       enabled,
+      configId,
     }: {
       keyId: string;
       enabled: boolean;
+      configId?: string | null;
     }) => {
-      const { error } = await authClient.apiKey.update({ keyId, enabled });
+      const { error } = await authClient.apiKey.update({
+        keyId,
+        enabled,
+        configId: configId || 'default',
+      });
       if (error) throw error;
       return enabled;
     },

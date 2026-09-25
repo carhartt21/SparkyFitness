@@ -11,6 +11,7 @@ interface ApiCallOptions extends RequestInit {
   externalApi?: boolean;
   isFormData?: boolean; // New option to indicate if the body is FormData
   responseType?: 'json' | 'text' | 'blob'; // Add responseType option
+  omitRequestBodyFromLogs?: boolean;
 }
 
 export class HttpApiError extends Error {
@@ -183,11 +184,13 @@ export async function apiCall<T = any>(
   }
 
   if (options?.body) {
-    logging.debug(
-      userLoggingLevel,
-      `API Call: Request body for ${endpoint}:`,
-      options.body
-    );
+    if (!options.omitRequestBodyFromLogs) {
+      logging.debug(
+        userLoggingLevel,
+        `API Call: Request body for ${endpoint}:`,
+        options.body
+      );
+    }
     if (!options.isFormData && typeof options.body === 'object') {
       config.body = JSON.stringify(options.body);
     } else {
@@ -199,7 +202,9 @@ export async function apiCall<T = any>(
     logging.debug(
       userLoggingLevel,
       `API Call: Sending request to ${url} with config:`,
-      config
+      options?.omitRequestBodyFromLogs
+        ? { ...config, body: '[omitted]' }
+        : config
     );
     const response = await fetch(url, config);
     logging.debug(

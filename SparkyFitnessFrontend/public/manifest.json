@@ -1,11 +1,11 @@
 {
-  "name": "SparkyFitness",
-  "short_name": "SparkyFit",
-  "description": "Your Personal Fitness Companion",
+  "name": "X on Track",
+  "short_name": "X on Track",
+  "description": "Keep getting better.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#F6F0E3",
+  "theme_color": "#0B5E46",
   "icons": [
     {
       "src": "/images/icons/icon-192x192.png",

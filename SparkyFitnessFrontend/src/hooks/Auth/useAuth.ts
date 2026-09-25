@@ -20,10 +20,7 @@ export const useDemoLoginMutation = () => {
   return useMutation({
     mutationFn: () => demoLogin(),
     meta: {
-      successMessage: t(
-        'auth.demoLoginSuccess',
-        'Welcome to SparkyFitness Demo!'
-      ),
+      successMessage: t('auth.demoLoginSuccess', 'Welcome to X on Track Demo!'),
       errorMessage: (error: unknown) => getErrorMessage(error),
     },
   });
