@@ -66,25 +66,25 @@ const SUPERSET_COLORS: Record<
   { border: string; bg: string; text: string; label: string }
 > = {
   1: {
-    border: 'border-l-blue-500',
+    border: 'ring-blue-500/50',
     bg: 'bg-blue-500/15',
     text: 'text-blue-400',
     label: 'SUPERSET A',
   },
   2: {
-    border: 'border-l-purple-500',
+    border: 'ring-purple-500/50',
     bg: 'bg-purple-500/15',
     text: 'text-purple-400',
     label: 'SUPERSET B',
   },
   3: {
-    border: 'border-l-emerald-500',
+    border: 'ring-emerald-500/50',
     bg: 'bg-emerald-500/15',
     text: 'text-emerald-400',
     label: 'SUPERSET C',
   },
   4: {
-    border: 'border-l-amber-500',
+    border: 'ring-amber-500/50',
     bg: 'bg-amber-500/15',
     text: 'text-amber-400',
     label: 'SUPERSET D',
@@ -342,7 +342,7 @@ export const SortableExerciseItem = ({
       ref={setNodeRef}
       style={style}
       className={`border p-3 rounded-md space-y-3 bg-card transition-colors ${
-        supersetConfig ? `border-l-4 ${supersetConfig.border}` : ''
+        supersetConfig ? `ring-2 ring-inset ${supersetConfig.border}` : ''
       }`}
       {...attributes}
     >

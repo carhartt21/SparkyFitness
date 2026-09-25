@@ -190,47 +190,47 @@ export const FastingReport = ({ fastingData }: FastingReportProps) => {
     <div className="space-y-6">
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="bg-gradient-to-r from-indigo-600 to-violet-500 text-white">
+        <Card className="bg-accent/50">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <List className="w-4 h-4" />
               {t('reports.fasting.totalFasts', 'Total Fasts')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-white">
+          <CardContent className="text-3xl font-bold text-foreground">
             {summary.totalFasts}
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-r from-cyan-500 to-sky-600 text-white">
+        <Card className="bg-accent/50">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <Clock className="w-4 h-4" />
               {t('reports.fasting.totalHours', 'Total Hours')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-white">
+          <CardContent className="text-3xl font-bold text-foreground">
             {summary.totalHours}
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-r from-yellow-400 to-orange-500 text-white">
+        <Card className="bg-accent/50">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <Hourglass className="w-4 h-4" />
               {t('reports.fasting.avgDuration', 'Avg Duration (hrs)')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-white">
+          <CardContent className="text-3xl font-bold text-foreground">
             {summary.avgDuration}
           </CardContent>
         </Card>
-        <Card className="bg-gradient-to-r from-rose-500 to-red-600 text-white">
+        <Card className="bg-accent/50">
           <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
+            <CardTitle className="text-foreground flex items-center gap-2">
               <Award className="w-4 h-4" />
               {t('reports.fasting.longestFast', 'Longest Fast (hrs)')}
             </CardTitle>
           </CardHeader>
-          <CardContent className="text-3xl font-bold text-white">
+          <CardContent className="text-3xl font-bold text-foreground">
             {summary.longestFast}
           </CardContent>
         </Card>

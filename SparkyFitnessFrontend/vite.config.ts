@@ -70,34 +70,13 @@ export default defineConfig(({ mode }) => {
           },
         }),
     ].filter(Boolean),
-    build: {
-      rollupOptions: {
-        output: {
-          manualChunks(id) {
-            if (id.includes('node_modules')) {
-              // Large independent packages in their own chunks
-              if (id.includes('recharts')) return 'vendor-recharts';
-              if (id.includes('@radix-ui')) return 'vendor-radix';
-              if (
-                id.includes('@ericblade/quagga2') ||
-                id.includes('html5-qrcode') ||
-                id.includes('@zxing/library')
-              )
-                return 'vendor-scanners';
-              if (id.includes('@dnd-kit')) return 'vendor-dnd';
-              // Everything else (React, utilities, auth ) together to avoid dependency issues
-              // This ensures React loads before anything that depends on it
-              return 'vendor-others';
-            }
-          },
-        },
-      },
-      chunkSizeWarningLimit: 1000,
-    },
+    // Let the bundler follow lazy route boundaries instead of forcing all
+    // remaining dependencies into one preloaded vendor bundle.
+    build: { chunkSizeWarningLimit: 1000 },
     resolve: {
       alias: {
-        '@': path.resolve(__dirname, './src'),
-        '@workspace/shared': path.resolve(__dirname, '../shared'),
+        '@': path.resolve(import.meta.dirname, './src'),
+        '@workspace/shared': path.resolve(import.meta.dirname, '../shared'),
       },
       dedupe: ['react', 'react-dom'],
     },

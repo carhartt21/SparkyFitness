@@ -22,6 +22,7 @@ import {
   Cookie, // Used for Snacks
   UtensilsCrossed, // Used for Dinner
   Salad, // Used for Food Log
+  ChevronDown,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
@@ -33,6 +34,12 @@ import GlobalSyncButton from '@/components/GlobalSyncButton';
 import ProfileSwitcher from '@/components/ProfileSwitcher';
 import GlobalNotificationIcon from '@/components/GlobalNotificationIcon';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/hooks/useAuth';
 import { useActiveUser } from '@/contexts/ActiveUserContext';
 import { usePreferences } from '@/contexts/PreferencesContext';
@@ -386,10 +393,30 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     [loggingLevel, navigate]
   );
 
-  const gridClass = getGridClassNormal(availableTabs.length);
   const mobileGridClass = getGridClassNormal(availableMobileTabs.length);
 
   const location = useLocation();
+  const isActiveTab = (value: string) =>
+    value === '/'
+      ? location.pathname === '/' ||
+        location.pathname.startsWith('/workout-playback')
+      : location.pathname === value ||
+        location.pathname.startsWith(`${value}/`);
+  const primaryPaths = new Set([
+    '/',
+    '/checkin',
+    '/reports',
+    '/goals',
+    '/settings',
+  ]);
+  const primaryTabs = availableTabs.filter((tab) =>
+    primaryPaths.has(tab.value)
+  );
+  const moreTabs = availableTabs.filter((tab) => !primaryPaths.has(tab.value));
+  const desktopGridClass = getGridClassNormal(
+    primaryTabs.length + (moreTabs.length > 0 ? 1 : 0)
+  );
+  const moreIsActive = moreTabs.some((tab) => isActiveTab(tab.value));
 
   // Whether the current route is reachable for the active profile. When acting
   // on behalf, a delegate only has a subset of tabs; landing on a disallowed
@@ -441,28 +468,34 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-background">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-3 focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        {t('nav.skipToContent', 'Skip to content')}
+      </a>
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-1">
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-y-3">
+          <div className="flex shrink-0 items-center gap-1">
             <img
               src="/images/brand/x-on-track-light.png"
               alt="X on Track logo"
               width={54}
               height={54}
-              className="dark:hidden"
+              className="h-11 w-11 sm:h-[54px] sm:w-[54px] dark:hidden"
             />
             <img
               src="/images/brand/x-on-track-dark.png"
               alt="X on Track logo"
               width={54}
               height={54}
-              className="hidden dark:block"
+              className="hidden h-11 w-11 sm:h-[54px] sm:w-[54px] dark:block"
             />
-            <h1 className="text-xl sm:text-2xl font-bold text-foreground dark:text-slate-300">
+            <span className="text-xl sm:text-2xl font-bold text-foreground dark:text-slate-300">
               X on Track
-            </h1>
+            </span>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
             <ProfileSwitcher />
             <span className="text-sm text-muted-foreground hidden sm:inline">
               {t('layout.welcome', 'Welcome {{activeUserName}}', {
@@ -490,9 +523,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             <ThemeToggle />
             <Button
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={handleSignOut}
-              className="flex items-center gap-2"
+              className="sm:w-auto sm:px-3 flex items-center gap-2"
+              aria-label={t('auth.signOut', 'Sign Out')}
             >
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline dark:text-slate-300">
@@ -502,9 +536,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
         </div>
         <nav
+          aria-label={t('nav.primary', 'Primary navigation')}
           className={cn(
             'relative hidden sm:grid w-full gap-1 mb-6 bg-slate-200/60 dark:bg-muted/50 p-1 rounded-lg border transition-colors overflow-hidden',
-            gridClass,
+            desktopGridClass,
             selectedDateRelation === 'today' && 'border-transparent',
             selectedDateRelation === 'past' && 'border-date-past/40',
             selectedDateRelation === 'future' && 'border-date-future/40'
@@ -519,25 +554,59 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               )}
             />
           )}
-          {availableTabs.map(({ value, label, icon: Icon }) => (
+          {primaryTabs.map(({ value, label, icon: Icon }) => (
             <Button
               key={value}
               variant="ghost"
               className={`relative flex items-center gap-2 hover:bg-background/50 transition-all ${
-                location.pathname === value
+                isActiveTab(value)
                   ? 'bg-background shadow-sm text-foreground'
                   : 'text-muted-foreground'
               }`}
               onClick={() => navigate(value)}
+              aria-current={isActiveTab(value) ? 'page' : undefined}
             >
               <Icon className="h-4 w-4" />
               <span>{label}</span>
             </Button>
           ))}
+          {moreTabs.length > 0 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    'relative flex items-center gap-2 hover:bg-background/50',
+                    moreIsActive
+                      ? 'bg-background shadow-sm text-foreground'
+                      : 'text-muted-foreground'
+                  )}
+                  aria-label={t('nav.more', 'More sections')}
+                >
+                  <span>{t('nav.more', 'More')}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="min-w-48">
+                {moreTabs.map(({ value, label, icon: Icon }) => (
+                  <DropdownMenuItem
+                    key={value}
+                    onSelect={() => navigate(value)}
+                    className="min-h-11 gap-3"
+                    aria-current={isActiveTab(value) ? 'page' : undefined}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span>{label}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </nav>
 
         {/* Mobile Navigation */}
         <nav
+          aria-label={t('nav.mobile', 'Mobile navigation')}
           className={cn(
             'apple-safe-area sm:hidden fixed bottom-0 left-0 right-0 z-50 w-full bg-background border-t transition-colors overflow-hidden',
             selectedDateRelation === 'past' && 'border-date-past/80',
@@ -554,18 +623,23 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             />
           )}
           <div
-            className={`relative h-14 grid ${mobileGridClass} items-center justify-items-center`}
+            className={`relative min-h-16 grid ${mobileGridClass} items-stretch`}
           >
-            {availableMobileTabs.map(({ value, icon: Icon }) => (
+            {availableMobileTabs.map(({ value, label, icon: Icon }) => (
               <Button
                 key={value}
                 variant="ghost"
-                className={`flex flex-col items-center gap-1 py-2 ${
-                  location.pathname ===
-                  (value === 'Add' ? location.pathname : value)
-                    ? 'text-primary'
-                    : ''
-                }`}
+                className={cn(
+                  'h-full min-h-16 rounded-none flex flex-col items-center justify-center gap-0.5 px-1 py-1 text-[11px]',
+                  (value === 'Add' ? isAddCompOpen : isActiveTab(value))
+                    ? 'text-primary font-semibold'
+                    : 'text-muted-foreground'
+                )}
+                aria-label={label}
+                aria-current={
+                  value !== 'Add' && isActiveTab(value) ? 'page' : undefined
+                }
+                aria-expanded={value === 'Add' ? isAddCompOpen : undefined}
                 onClick={() => {
                   if (value === 'Add') {
                     setIsAddCompOpen((prev) => !prev);
@@ -575,17 +649,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   }
                 }}
               >
-                <Icon className="h-8 w-8" />
+                <Icon className="h-5 w-5" aria-hidden="true" />
+                <span className="max-w-full truncate">{label}</span>
               </Button>
             ))}
           </div>
         </nav>
 
-        <div className="pb-16 sm:pb-0">
+        <main id="main-content" tabIndex={-1} className="pb-20 sm:pb-0">
           {/* Don't mount a disallowed page while the redirect effect runs, or it
               fires requests the active profile isn't permitted to make. */}
           {isCurrentPathAllowed ? <Outlet /> : null}
-        </div>
+        </main>
 
         <SparkyChat />
       </div>

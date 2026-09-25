@@ -435,7 +435,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-6" />
@@ -449,7 +449,7 @@ const Auth = () => {
         ) : showMfaChallenge && mfaChallengeProps ? (
           <MfaChallenge {...mfaChallengeProps} />
         ) : (
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md shadow-sm">
             <CardHeader className="text-center">
               <div className="flex items-center justify-center mb-4">
                 <img
@@ -507,8 +507,11 @@ const Auth = () => {
                     </TabsList>
                   )}
                   {loginSettings?.signup_disabled && (
-                    <p className="text-center text-xs text-muted-foreground">
-                      Registration is currently disabled.
+                    <p className="rounded-md bg-muted/50 px-3 py-2 text-center text-sm text-muted-foreground">
+                      {t(
+                        'auth.privateAccess',
+                        'This is a private space. If you need access, contact the person who manages this instance.'
+                      )}
                     </p>
                   )}
                   <TabsContent value="signin">

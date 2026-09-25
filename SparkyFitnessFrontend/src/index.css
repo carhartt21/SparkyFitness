@@ -90,6 +90,11 @@
 
 @layer base {
   :root {
+    --metric-calories: 165 84% 27%;
+    --metric-protein: 36 80% 34%;
+    --metric-carbs: 151 71% 29%;
+    --metric-fat: 193 75% 35%;
+    --metric-fiber: 352 47% 50%;
     --brand-primary: 163 79% 21%;
     --brand-secondary: 163 79% 21%;
     --brand-supporting: 145 30% 42%;
@@ -115,7 +120,7 @@
     --accent: 148 23% 87%;
     --accent-foreground: var(--foreground);
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 70% 38%;
     --destructive-foreground: 210 40% 98%;
 
     --border: 40 22% 82%;
@@ -139,6 +144,11 @@
   }
 
   .dark {
+    --metric-calories: 166 78% 48%;
+    --metric-protein: 40 89% 63%;
+    --metric-carbs: 148 61% 62%;
+    --metric-fat: 193 77% 61%;
+    --metric-fiber: 357 100% 74%;
     --brand-primary: 163 79% 21%;
     --brand-secondary: 164 81% 36%;
     --brand-supporting: 158 44% 62%;

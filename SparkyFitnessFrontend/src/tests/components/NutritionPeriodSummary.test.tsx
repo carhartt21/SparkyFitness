@@ -177,7 +177,7 @@ describe('NutritionPeriodSummary', () => {
     mockAdjustmentMode = 'dynamic';
   });
 
-  it('calculates Net Balance as Total Eaten - Total Goal when no exercise is logged', () => {
+  it('calculates logged intake variance against the target when no exercise is logged', () => {
     render(
       <NutritionPeriodSummary
         nutritionData={[day('2026-08-03', 2000)]}
@@ -189,9 +189,9 @@ describe('NutritionPeriodSummary', () => {
       />
     );
 
-    // Eaten: 2000, Goal: 1800 -> Net Balance and Avg Daily Variance: +200 kcal
+    // Logged intake: 2000, goal: 1800 -> reported variance: +200 kcal.
     expect(screen.getAllByText('+200 kcal')).toHaveLength(2);
-    expect(screen.getByText(/Total Eaten: 2000 kcal/i)).toBeInTheDocument();
+    expect(screen.getByText(/Logged intake: 2000 kcal/i)).toBeInTheDocument();
     expect(screen.getByText(/Total Goal: 1800 kcal/i)).toBeInTheDocument();
   });
 
@@ -413,8 +413,8 @@ describe('NutritionPeriodSummary', () => {
     );
 
     // Total eaten 18,320. Total goal 1962*8 + 4,028 = 19,724.
-    // Net Balance = 18,320 - 19,724 = -1,404, the negation of the summed remaining.
-    expect(screen.getByText(/Total Eaten: 18320 kcal/i)).toBeInTheDocument();
+    // Logged variance = 18,320 - 19,724 = -1,404, the negation of summed remaining.
+    expect(screen.getByText(/Logged intake: 18320 kcal/i)).toBeInTheDocument();
     expect(screen.getByText(/Total Goal: 19724 kcal/i)).toBeInTheDocument();
     expect(screen.getByText('-1404 kcal')).toBeInTheDocument();
   });

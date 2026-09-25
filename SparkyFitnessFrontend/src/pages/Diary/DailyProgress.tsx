@@ -60,6 +60,7 @@ const DailyProgress = ({ selectedDate }: { selectedDate: string }) => {
   const navigate = useNavigate();
   const {
     loggingLevel,
+    includeBmrInNetCalories,
     calorieGoalAdjustmentMode: storedCalorieGoalAdjustmentMode,
     energyUnit,
     convertEnergy,
@@ -248,6 +249,23 @@ const DailyProgress = ({ selectedDate }: { selectedDate: string }) => {
   const displayAge = userProfile?.date_of_birth
     ? calculateAge(userProfile.date_of_birth, timezone)
     : 30;
+  const assumedInputs = [
+    ...(!weightData?.weight
+      ? [t('diary.calculateExplanation.weightAssumed', 'weight (70 kg)')]
+      : []),
+    ...(!heightData?.height
+      ? [t('diary.calculateExplanation.heightAssumed', 'height (170 cm)')]
+      : []),
+    ...(!userProfile?.gender
+      ? [t('diary.calculateExplanation.genderAssumed', 'sex (male)')]
+      : []),
+    ...(!userProfile?.date_of_birth
+      ? [t('diary.calculateExplanation.ageAssumed', 'age (30 years)')]
+      : []),
+    ...(isLeanMassBmr && bodyFatData?.body_fat_percentage == null
+      ? [t('diary.calculateExplanation.bodyFatAssumed', 'body fat (0%)')]
+      : []),
+  ];
 
   const activityMultiplier = ACTIVITY_MULTIPLIERS[activityLevel] || 1.2;
 
@@ -342,11 +360,11 @@ const DailyProgress = ({ selectedDate }: { selectedDate: string }) => {
   };
 
   return (
-    <Card className="h-full">
+    <Card className="h-full border-primary/25 bg-primary/5">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center space-x-2 text-base">
-            <Target className="w-4 h-4 text-green-500" />
+            <Target className="w-4 h-4 text-primary" />
             <span className="dark:text-slate-300">
               {t('exercise.dailyProgress.dailyEnergyGoal', 'Daily Energy Goal')}
             </span>
@@ -402,16 +420,31 @@ const DailyProgress = ({ selectedDate }: { selectedDate: string }) => {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="space-y-1 cursor-help min-w-0">
+                  <button
+                    type="button"
+                    className="space-y-1 cursor-help min-w-0 rounded focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-600"
+                    aria-label={t(
+                      'exercise.dailyProgress.burnedEnergyBreakdown',
+                      'Burned Energy Breakdown:'
+                    )}
+                  >
                     <div className="flex items-center justify-center text-lg font-bold text-orange-600 whitespace-nowrap">
                       <Flame className="w-4 h-4 mr-1 shrink-0" />
                       <span>{display.burnedTotal}</span>
                     </div>
                     <div className="text-xs text-gray-500 whitespace-nowrap">
                       {getEnergyUnitString(energyUnit)}{' '}
-                      {t('exercise.dailyProgress.burned', 'burned')}
+                      {includeBmrInNetCalories
+                        ? t(
+                            'exercise.dailyProgress.totalExpenditure',
+                            'total expenditure'
+                          )
+                        : t(
+                            'exercise.dailyProgress.activityBurned',
+                            'activity burned'
+                          )}
                     </div>
-                  </div>
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent className="bg-black text-white text-xs p-2 rounded-md">
                   <p>
@@ -809,6 +842,7 @@ const DailyProgress = ({ selectedDate }: { selectedDate: string }) => {
               displayHeight={displayHeight}
               displayAge={displayAge}
               displayGender={displayGender}
+              assumedInputs={assumedInputs}
               displayBodyFat={displayBodyFat}
               displayWaist={displayWaist ?? undefined}
               displayNeck={displayNeck ?? undefined}

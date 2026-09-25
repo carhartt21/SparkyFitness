@@ -62,6 +62,7 @@ interface CalorieTargetBreakdownProps {
   displayHeight: number;
   displayAge: number;
   displayGender: 'male' | 'female';
+  assumedInputs?: string[];
   displayBodyFat?: number;
   displayWaist?: number;
   displayNeck?: number;
@@ -87,6 +88,7 @@ export const CalorieTargetBreakdown: React.FC<CalorieTargetBreakdownProps> = ({
   displayHeight,
   displayAge,
   displayGender,
+  assumedInputs = [],
   displayBodyFat = 0,
   displayWaist,
   displayNeck,
@@ -482,6 +484,15 @@ export const CalorieTargetBreakdown: React.FC<CalorieTargetBreakdownProps> = ({
 
   const body = (
     <div className="mt-3 space-y-4 pl-1 text-xs text-muted-foreground leading-relaxed border-l border-border/60 ml-1.5 text-left font-sans">
+      {assumedInputs.length > 0 && !isMeasuredBmr && (
+        <p className="rounded-md border border-border bg-muted/50 p-2 text-sm text-foreground">
+          {t(
+            'diary.calculateExplanation.assumedInputs',
+            'This preview uses assumed values for {{inputs}}. Add these measurements in Check-In and profile settings for a personal calculation.',
+            { inputs: assumedInputs.join(', ') }
+          )}
+        </p>
+      )}
       {/* Step 1: BMR/RMR Calculation */}
       <div className="space-y-1">
         <div className="flex items-center justify-between font-medium text-foreground">

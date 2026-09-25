@@ -42,24 +42,24 @@ const FastingTimerRing: React.FC<FastingTimerRingProps> = ({
     if (hours < 4)
       return {
         name: 'Anabolic',
-        color: 'from-blue-400 to-blue-600',
+        color: 'bg-primary',
         icon: null,
       };
     if (hours < 16)
       return {
         name: 'Catabolic',
-        color: 'from-yellow-400 to-orange-500',
+        color: 'bg-primary',
         icon: null,
       };
     if (hours < 24)
       return {
         name: 'Fat Burning',
-        color: 'from-red-400 to-red-600',
+        color: 'bg-primary',
         icon: <Flame className="w-4 h-4 inline" />,
       };
     return {
       name: 'Ketosis',
-      color: 'from-violet-400 to-violet-600',
+      color: 'bg-primary',
       icon: <Flame className="w-4 h-4 inline" />,
     };
   };
@@ -98,9 +98,8 @@ const FastingTimerRing: React.FC<FastingTimerRingProps> = ({
       >
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#60A5FA" />
-            <stop offset="50%" stopColor="#F97316" />
-            <stop offset="100%" stopColor="#A78BFA" />
+            <stop offset="0%" stopColor="hsl(var(--brand-supporting))" />
+            <stop offset="100%" stopColor="hsl(var(--brand-primary))" />
           </linearGradient>
           <filter id={shadowId} x="-50%" y="-50%" width="200%" height="200%">
             <feDropShadow
@@ -221,8 +220,8 @@ const FastingTimerRing: React.FC<FastingTimerRingProps> = ({
         </div>
         <div
           className={cn(
-            'inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full text-sm font-medium text-white',
-            `bg-gradient-to-r ${zone.color}`
+            'inline-flex items-center gap-2 mt-2 px-3 py-1 rounded-full text-sm font-medium text-primary-foreground',
+            zone.color
           )}
         >
           {zone.icon}

@@ -170,7 +170,7 @@ const ExercisePresetEntryDisplay: React.FC<ExercisePresetEntryDisplayProps> = ({
                     variant="ghost"
                     size="icon"
                     onClick={() => handleDelete(presetEntry.id)}
-                    className="flex-shrink-0 h-8 w-8 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/50 transition-colors"
+                    className="flex-shrink-0 h-10 w-10 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </Button>

@@ -712,6 +712,10 @@
     }
   },
   "nav": {
+    "primary": "Primary navigation",
+    "mobile": "Mobile navigation",
+    "more": "More",
+    "skipToContent": "Skip to content",
     "diary": "Diary",
     "checkin": "Check-In",
     "reports": "Reports",
@@ -822,6 +826,7 @@
     "usdaApi": "USDA Food Database API"
   },
   "exercise": {
+    "readInstructionsAloud": "Read instructions aloud",
     "title": "Exercises",
     "addExerciseDialog": {
       "title": "Add Exercise",
@@ -908,6 +913,8 @@
       "targetBand": "target {{min}}–{{max}}",
       "eaten": "eaten",
       "burned": "burned",
+      "activityBurned": "activity burned",
+      "totalExpenditure": "total expenditure",
       "burnedCaloriesBreakdown": "Burned Calories Breakdown:",
       "otherExerciseCalories": "Other Exercise: {{exerciseCalories}} {{energyUnit}}",
       "activeCalories": "Active Calories: {{activeCaloriesFromExercise}} {{energyUnit}}",
@@ -2753,6 +2760,7 @@
     "startCascadingPlan": "Start 6-Month Cascading Plan"
   },
   "common": {
+    "retry": "Try again",
     "add": "Add",
     "saving": "Saving...",
     "cancel": "Cancel",
@@ -2842,6 +2850,16 @@
     "max": "Max"
   },
   "diary": {
+    "addFood": "Add Food",
+    "noMealTypeForQuickAdd": "Set up a meal to add food",
+    "pageTitle": "Your day",
+    "pageDescription": "A clear view of your daily progress and entries.",
+    "goalsLoadErrorTitle": "Your daily view could not load",
+    "goalsLoadErrorDescription": "Try again to load your goals and daily entries.",
+    "goalsEmptyTitle": "Set up your daily goals",
+    "goalsEmptyDescription": "Add your goals to see your daily summary and start tracking here.",
+    "goalsDelegateDescription": "The account owner needs to set daily goals before this view is available.",
+    "openGoals": "Open goals",
     "nutritionSummary": "Nutrition Summary",
     "dailyEnergyGoal": "Daily Energy Goal",
     "waterIntake": "Water Intake",
@@ -2907,6 +2925,12 @@
     "addError": "Failed to add food.",
     "addSuccess": "Food added successfully.",
     "calculateExplanation": {
+      "assumedInputs": "This preview uses assumed values for {{inputs}}. Add these measurements in Check-In and profile settings for a personal calculation.",
+      "weightAssumed": "weight (70 kg)",
+      "heightAssumed": "height (170 cm)",
+      "genderAssumed": "sex (male)",
+      "ageAssumed": "age (30 years)",
+      "bodyFatAssumed": "body fat (0%)",
       "bmrMeasured": "Measured",
       "bmrMeasuredDesc": "Using a measured BMR of {{value}} {{unit}} recorded for this day, from a smart scale or health app sync. Your {{algorithm}} formula is not applied.",
       "bmrMeasuredScope": "A measured value only counts on the day it was recorded. Days without one fall back to the formula. To stop using measured values, turn off “Use measured BMR from check-ins and synced devices” in Calculation Settings.",
@@ -3733,6 +3757,11 @@
     "pasteButton": "Paste"
   },
   "reports": {
+    "nutrientTrends": "Nutrient trends",
+    "selectNutrient": "Select nutrient",
+    "focusChart": "Focus one chart",
+    "showAllCharts": "Show all charts",
+    "noVisibleNutrientCharts": "No nutrient charts are selected. Update your chart preferences to see a trend.",
     "alcohol": {
       "weeklyAlcohol": "Weekly Alcohol Intake",
       "standardDrinks": "std drinks",
@@ -3985,11 +4014,13 @@
     "heartRateHigh": "High",
     "bpm": "bpm",
     "average": "Average",
-    "avgDailyVariance": "Avg Daily Variance",
+    "avgDailyVariance": "Avg logged variance per day",
+    "loggedAverageVariance": "Avg logged variance per day",
     "avgVarianceDescription": "Average deviation from goal per day",
     "avgVarianceTargetRangeDescription": "Average deviation outside target range per day",
     "awakeAvg": "Awake Avg",
-    "cumulativeBalanceTitle": "Cumulative Balance",
+    "cumulativeBalanceTitle": "Cumulative logged variance",
+    "loggedCumulativeVariance": "Cumulative logged variance",
     "customMeasurementChartTitle": "{{categoryName}} ({{measurementType}})",
     "dailyAverages": "Daily Averages",
     "dailySteps": "Daily Steps",
@@ -4038,7 +4069,10 @@
     "medicationsTab": "Medications",
     "miniNutritionTrendsError": "Failed to load nutrition trend data.",
     "moodChartTitle": "Daily Mood",
-    "netEnergyBalance": "Net Balance",
+    "netEnergyBalance": "Logged intake vs target",
+    "loggedIntakeVsTarget": "Logged intake vs target",
+    "loggedBalanceCaveat": "Based on logged entries. Missing meals can change this value; it is not a confirmed energy deficit.",
+    "loggedTotalIntake": "Logged intake",
     "noMoodData": "No daily mood data available.",
     "noStressData": "No raw stress data available.",
     "normalRange": "Normal adult resting range",
@@ -4055,7 +4089,7 @@
     "sleepAvg": "Sleep Avg",
     "stressChartTitle": "Raw Stress Levels",
     "stressTab": "Stress",
-    "totalEaten": "Total Eaten",
+    "totalEaten": "Logged intake",
     "totalGoal": "Total Goal",
     "uniqueExercises": "Unique Exercises",
     "primary": "Primary",
@@ -4484,7 +4518,8 @@
     "failedToLoadMuscles": "Failed to load muscle groups."
   },
   "addComp": {
-    "addNew": "Add New"
+    "addNew": "Add New",
+    "chooseAction": "Choose what you want to add."
   },
   "barcodeScanner": {
     "error": {
@@ -5189,6 +5224,7 @@
     "cancel": "Cancel"
   },
   "auth": {
+    "privateAccess": "This is a private space. If you need access, contact the person who manages this instance.",
     "agreeAndEnter": "I Agree & Enter Demo",
     "demoAgreeCheckbox": "I accept the License terms and agree not to misuse this evaluation sandbox.",
     "demoLicenseDesc": "By using this demo, you agree to the project license.",

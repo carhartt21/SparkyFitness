@@ -16,6 +16,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { ElementType, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 type ExerciseCategory = keyof typeof EXERCISE_CATEGORY_META;
 
@@ -50,6 +51,7 @@ export const ExerciseSearchListItem = ({
   actionText,
   actionIcon: ActionIcon,
 }: ExerciseListItemProps) => {
+  const { t } = useTranslation();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isActioning, setIsActioning] = useState(false);
   const { energyUnit, convertEnergy } = usePreferences();
@@ -229,13 +231,20 @@ export const ExerciseSearchListItem = ({
         {/* Instructions (first line + speak) */}
         {exercise.instructions && exercise.instructions.length > 0 && (
           <div className="flex items-center gap-1 mt-0.5">
-            <span className="text-[10px] text-gray-400 dark:text-gray-500 line-clamp-1 flex-1">
+            <span className="text-xs text-muted-foreground line-clamp-1 flex-1">
               {exercise.instructions[0]}
             </span>
             <button
               onClick={handleSpeak}
-              className="flex-shrink-0 p-1 rounded text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/50 transition-colors"
-              title="Read instructions aloud"
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
+              title={t(
+                'exercise.readInstructionsAloud',
+                'Read instructions aloud'
+              )}
+              aria-label={t(
+                'exercise.readInstructionsAloud',
+                'Read instructions aloud'
+              )}
             >
               <Volume2 className="w-3 h-3" />
             </button>

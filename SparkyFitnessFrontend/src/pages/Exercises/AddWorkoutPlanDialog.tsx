@@ -240,7 +240,7 @@ const AddWorkoutPlanDialog = ({
               </Label>
             </div>
             <p
-              className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mt-2"
+              className="mt-2 rounded-md border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100"
               role="alert"
             >
               <span className="font-bold">
