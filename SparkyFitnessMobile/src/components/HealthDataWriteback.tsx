@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import CollapsibleSection from './CollapsibleSection';
 import Button from './ui/Button';
 import BottomSheetPicker from './BottomSheetPicker';
@@ -88,9 +88,8 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
         className="flex-row justify-between items-center mb-2"
       >
         <View className="flex-row items-center flex-1 mr-2">
-          <Image source={metric.icon} className="w-6 h-6" />
           <Text
-            className="ml-2 text-base text-text-primary flex-shrink"
+            className="text-base text-text-primary flex-shrink"
             numberOfLines={1}
           >
             {metricLabel}
