@@ -1,17 +1,18 @@
 {
   "expo": {
-    "name": "SparkyFitnessMobile",
-    "slug": "sparkyfitnessmobile",
+    "name": "X on Track",
+    "slug": "personalbest",
+    "owner": "ilmtech",
     "scheme": "sparkyfitnessmobile",
     "orientation": "portrait",
-    "icon": "./assets/icons/appstore.png",
+    "icon": "./assets/icons/x-on-track-app-icon.png",
     "userInterfaceStyle": "automatic",
     "plugins": [
       [
         "@kingstinct/react-native-healthkit",
         {
-          "NSHealthShareUsageDescription": "SparkyFitness reads Health data (such as activity, workouts, and body measurements) to display it in the app and sync it to your self-hosted SparkyFitness server.",
-          "NSHealthUpdateUsageDescription": "SparkyFitness writes the nutrition and hydration you log in the app to Apple Health, keeping the two in sync.",
+          "NSHealthShareUsageDescription": "X on Track reads Health data (such as activity, workouts, and body measurements) to display it in the app and sync it to your self-hosted X on Track server.",
+          "NSHealthUpdateUsageDescription": "X on Track writes the nutrition and hydration you log in the app to Apple Health, keeping the two in sync.",
           "background": true
         }
       ],
@@ -34,19 +35,19 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "SparkyFitness needs access to your camera to scan food barcodes and labels.",
+          "cameraPermission": "X on Track needs access to your camera to photograph meals and scan food barcodes and labels.",
           "recordAudioAndroid": false
         }
       ],
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#e2e2e2",
+          "backgroundColor": "#FFFBF3",
           "imageWidth": 200,
-          "image": "./assets/images/splash.png",
+          "image": "./assets/brand/x-on-track-light.png",
           "dark": {
-            "backgroundColor": "#232323",
-            "image": "./assets/images/splash.png"
+            "backgroundColor": "#24282D",
+            "image": "./assets/brand/x-on-track-dark.png"
           }
         }
       ],
@@ -65,7 +66,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "498a86c5-344f-4d2c-9033-dfd720e4a383"
+        "projectId": "d0d1c7d2-deb1-4675-9411-2a1bd0a3a967"
       },
       "APP_VARIANT": "production"
     },

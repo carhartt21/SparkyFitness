@@ -2,10 +2,9 @@ import { execSync } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
+import identifiers from '../app.identifiers.js';
 
-const bundleId = process.env.EXPO_DEV_BUNDLE_IDENTIFIER
-  ? `${process.env.EXPO_DEV_BUNDLE_IDENTIFIER}.watchkitapp`
-  : 'org.SparkyApps.SparkyFitnessMobile1.dev.watchkitapp';
+const bundleId = `${identifiers.DEV_BUNDLE_IDENTIFIER}.watchkitapp`;
 
 console.log('› Building SparkyFitness Watch scheme...');
 execSync(

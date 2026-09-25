@@ -1,5 +1,12 @@
 {
+  "brand": {
+    "name": "X on Track",
+    "tagline": "Keep getting better."
+  },
   "engagement": {
+    "dailyOptionalBudget": "Optional reminders today",
+    "dailyOptionalBudgetSummary": "{{used}} of 3 daily slots used. Meal, movement, and water share them; medication and rest alerts are separate.",
+    "dailyOptionalBudgetUnavailable": "Daily reminder count unavailable. Meal, movement, and water reminders share three slots.",
     "captureReminderTitle": "Meal check-in",
     "captureReminderBody": "A photo is enough for now.",
     "takePhotoAction": "Take photo",
@@ -19,16 +26,103 @@
     "breakTitle": "Movement break",
     "breakSubtitle": "A timer, not a movement record",
     "breakReady": "Ready for a movement break?",
-    "breakExplanation": "Stand, walk, or move in a way that works for you. Starting or finishing this timer does not log movement.",
+    "breakExplanation": "Stand, walk, or move in a way that works for you. The timer does not log movement; you can record an activity separately.",
     "breakError": "The break timer could not be updated.",
     "startBreak": "Start break timer",
     "finishBreak": "Finish timer",
+    "logActivity": "Log an activity",
     "twoMinutes": "2 min",
     "fiveMinutes": "5 min",
     "tenMinutes": "10 min",
     "movementSettingsTitle": "Movement break",
+    "movementReminderSetting": "Movement break reminder",
+    "movementReminderSettingSubtitle": "One optional invitation at your chosen time. It does not track or log movement.",
+    "movementReminderTime": "Reminder time",
+    "movementReminderTitle": "Time for a movement break?",
+    "movementReminderBody": "Open a short timer if this works for you.",
     "openBreakTimer": "Open break timer",
     "breakSettingSubtitle": "Start a short, explicit timer. Finishing it does not log movement."
+  },
+  "mobility": {
+    "title": "Guided mobility",
+    "openRoutines": "Guided mobility routines",
+    "intro": "Build a short sequence you know. Only steps you confirm are recorded.",
+    "loading": "Loading routines",
+    "accountRequired": "Connect to your account to use saved routines.",
+    "loadError": "Your routines could not be loaded.",
+    "actionError": "That change could not be saved. Try again.",
+    "nameAndStepRequired": "Add a routine name and at least one step.",
+    "invalidStep": "Check each step: timed steps need 5–3600 seconds, repetitions need 1–1000, and transitions need 0–600 seconds.",
+    "newRoutine": "New routine",
+    "editRoutine": "Edit routine",
+    "routineName": "Routine name",
+    "cue": "End-of-timer cue",
+    "dailyReminderTime": "Daily reminder time (optional)",
+    "reminderTimePlaceholder": "HH:mm",
+    "invalidReminderTime": "Enter the reminder time as HH:mm, or leave it blank.",
+    "reminderPolicy": "This shares the one-per-day movement reminder limit with movement breaks. A reminder opens the routine list; it never records activity.",
+    "reminderTitle": "Time for your mobility routine?",
+    "reminderBody": "Open your saved routine when it works for you.",
+    "cueOption": {
+      "off": "Off",
+      "haptic": "Haptic",
+      "sound": "Sound",
+      "both": "Both"
+    },
+    "stepLabel": "Step {{number}}",
+    "stepCount": "Step {{current}} of {{total}}",
+    "stepTotal_one": "{{count}} step",
+    "stepTotal_other": "{{count}} steps",
+    "movementName": "Movement name",
+    "instructions": "Optional instructions",
+    "timed": "Timed",
+    "repetitions": "Repetitions",
+    "durationSeconds": "Duration in seconds",
+    "repetitionCount": "Number of repetitions",
+    "repetitionsCount_one": "{{count}} repetition",
+    "repetitionsCount_other": "{{count}} repetitions",
+    "sideLabel": "Side",
+    "side": {
+      "both": "Both sides",
+      "left": "Left side",
+      "right": "Right side"
+    },
+    "transitionSeconds": "Transition after this step (seconds)",
+    "transition": "Transition",
+    "nextStep": "Next: {{name}}",
+    "moveComfortably": "Move at a comfortable range.",
+    "expiryIsNotCompletion": "The timer does not mark a step complete. Confirm what you did.",
+    "continue": "Continue to next step",
+    "completeStep": "I did this step",
+    "skipStep": "Skip step",
+    "repeatStep": "Restart step timer",
+    "repeatRepetitions": "Repeat this step",
+    "pause": "Pause",
+    "resume": "Resume",
+    "endSession": "End session",
+    "endSessionConfirm": "End this routine? Your confirmed steps will be kept.",
+    "deleteRoutine": "Delete routine",
+    "deleteRoutineConfirm": "Delete {{name}}? Past sessions will stay in your history. This cannot be undone.",
+    "removeStep": "Remove step",
+    "addStep": "Add step",
+    "start": "Start routine",
+    "lastSession": "Last session: {{completed}} completed, {{skipped}} skipped",
+    "historyTitle": "Session history",
+    "historyDescription": "Review the steps you confirmed or skipped.",
+    "historyEmpty": "Your finished and ended sessions will appear here.",
+    "historyReviewSession": "Review {{name}} on {{date}}",
+    "historyFinished": "Finished",
+    "historyEndedEarly": "Ended early",
+    "historyCounts": "{{completed}} completed · {{skipped}} skipped",
+    "historyNoOutcomes": "No steps were recorded.",
+    "historyUnknownStep": "Unknown step",
+    "historyCompleted": "Completed",
+    "historySkipped": "Skipped",
+    "historyUnrecorded_one": "{{count}} step not recorded",
+    "historyUnrecorded_other": "{{count}} steps not recorded",
+    "historyDelete": "Delete session",
+    "historyDeleteConfirm": "Delete this saved session? This cannot be undone.",
+    "historyOlder": "Show older sessions"
   },
   "common": {
     "save": "Save",
@@ -122,10 +216,25 @@
       "iosSubtitle": "{{language}} · {{managedBy}}"
     },
     "lastSynced": "Last synced {{time}}",
+    "syncChecking": "Checking sync history",
+    "syncHistoryUnavailable": "Sync history unavailable",
     "addServer": "Tap to add a server",
     "title": "Settings",
+    "sections": {
+      "connection": "Data & sync",
+      "experience": "App experience",
+      "tracking": "Tracking preferences",
+      "family": "Family & sharing",
+      "support": "Help & information"
+    },
+    "connectionStatus": {
+      "checking": "Checking connection",
+      "connected": "Connected",
+      "unavailable": "Connection unavailable"
+    },
     "shareReportFailed": "Failed to share diagnostic report: {{error}}",
     "serverConnected": "Server settings. Connected.",
+    "serverChecking": "Server settings. Checking connection.",
     "serverConnectionFailed": "Server settings. Connection failed.",
     "serverNotConfigured": "Server settings. No server configured.",
     "shareReportDescription": "Exports a local diagnostic report (app version, sync status, logs). No personal health or food data is included. Nothing is sent automatically.",
@@ -160,6 +269,10 @@
       "title": "Notifications",
       "subtitle": "Rest timers, fasting goals, and medication reminders."
     },
+    "fasting": {
+      "title": "Fasting",
+      "subtitle": "Show fasting on the Dashboard and allow its goal reminders."
+    },
     "haptics": {
       "title": "Haptic Feedback",
       "subtitle": "Light vibrations for timers and confirmations."
@@ -170,7 +283,7 @@
     }
   },
   "languageSettings": {
-    "subtitle": "Use your device language or choose a language for SparkyFitness."
+    "subtitle": "Use your device language or choose a language for X on Track."
   },
   "navigation": {
     "settings": "Settings",
@@ -264,7 +377,7 @@
     },
     "exactAlarm": {
       "title": "On-time alerts",
-      "message": "Android delays scheduled alerts unless SparkyFitness is allowed to set exact alarms. Enable \"Alarms & reminders\" so rest timers and medication reminders ring on time.",
+      "message": "Android delays scheduled alerts unless X on Track is allowed to set exact alarms. Enable \"Alarms & reminders\" so rest timers and medication reminders ring on time.",
       "notNow": "Not Now",
       "openSettings": "Open Settings"
     },
@@ -282,7 +395,8 @@
     },
     "hydration": {
       "title": "Time to hydrate 💧",
-      "body": "You haven't logged any water in a while."
+      "body": "You haven't logged any water in a while.",
+      "log250ml": "Log 250 ml"
     }
   },
   "activeWorkout": {
@@ -453,7 +567,7 @@
     "pastSets": "Past sets & reps",
     "wellness": "Wellness",
     "progressPhotos": "Progress Photos",
-    "askSparky": "Ask Sparky",
+    "askSparky": "Ask the assistant",
     "syncHealth": "Sync Health Data",
     "logPregnancyEntry": "Log Pregnancy Entry",
     "logCycle": "Log Cycle"
@@ -474,7 +588,7 @@
     "newPreset": "New Preset",
     "scanFood": "Scan Food",
     "photoFood": "Photo Food",
-    "sparky": "Sparky",
+    "sparky": "Assistant",
     "editMeal": "Edit Meal",
     "createMeal": "Create Meal",
     "foodEntry": "Food Entry",
@@ -627,19 +741,19 @@
     "healthConnect": "Health Connect",
     "appleSummary": "Reads selected data from Apple Health and syncs it to your self-hosted server.",
     "connectSummary": "Reads selected data from Health Connect and syncs it to your self-hosted server.",
-    "appleDetail": "SparkyFitness reads the health data you select below using Apple Health (HealthKit). If sync is enabled, data is synchronized only between your device and your self-hosted SparkyFitness server (manual or background).\n\nManage or remove access in Settings → Health → Data Access & Devices → SparkyFitnessMobile",
-    "connectDetail": "SparkyFitness reads the health data you select below using Health Connect. If sync is enabled, data is synchronized only between your device and your self-hosted SparkyFitness server (manual or background).",
+    "appleDetail": "X on Track reads the health data you select below using Apple Health (HealthKit). If sync is enabled, data is synchronized only between your device and your self-hosted X on Track server (manual or background).\n\nManage or remove access in Settings → Health → Data Access & Devices → X on Track",
+    "connectDetail": "X on Track reads the health data you select below using Health Connect. If sync is enabled, data is synchronized only between your device and your self-hosted X on Track server (manual or background).",
     "title": "Health Data to Sync",
     "notMedicalAdvice": "Not medical advice.",
     "consultProfessional": "Consult a healthcare professional for medical advice, diagnosis, or treatment.",
     "enableAll": "Enable All Health Metrics",
     "batteryNote": "Enabling many health metrics may increase battery usage. Each enabled metric allows the app to wake in the background when new data is available.",
     "writeTitle": "Write to {{store}}",
-    "writeSummary": "Syncs the data you log in SparkyFitness out to {{store}}, keeping the two in sync.",
+    "writeSummary": "Syncs the data you log in X on Track out to {{store}}, keeping the two in sync.",
     "removeFrom": "Remove from {{store}}",
     "allTime": "All time",
     "pickDateRange": "Pick a date range…",
-    "removeData": "Remove SparkyFitness data from {{store}}",
+    "removeData": "Remove X on Track data from {{store}}",
     "source": "Source:",
     "syncMetricLabel": "Sync {{metric}}",
     "syncMetricHint": "Toggles synchronization for this health metric.",
@@ -664,7 +778,7 @@
     "sso": "SSO",
     "passkey": "Passkey",
     "connect": "Connect",
-    "connectTitle": "Connect to SparkyFitness",
+    "connectTitle": "Connect to X on Track",
     "signInWithPasskey": "Sign in with Passkey",
     "orSignInWith": "Or sign in with",
     "noMethods": "No standard sign-in methods are currently enabled on this server. Please use an API Key or contact an administrator.",
@@ -727,9 +841,9 @@
     "noStandardMethods": "No standard sign-in methods are currently enabled on this server. Please use an API Key or contact an administrator."
   },
   "onboarding": {
-    "subtitle": "Your self-hosted fitness tracker",
-    "learnMoreTitle": "Learn more about SparkyFitness",
-    "learnMoreBody": "SparkyFitness helps you track your food, workouts, and health data in one place.",
+    "subtitle": "Keep getting better.",
+    "learnMoreTitle": "Learn more about X on Track",
+    "learnMoreBody": "X on Track helps you track your food, workouts, and health data in one place.",
     "learnMorePrivacy": "It runs on your own server so your data stays private.",
     "errors": {
       "validFrontendUrl": "Enter a valid Frontend URL",
@@ -744,7 +858,7 @@
     "loadingSummary": "Loading summary...",
     "loadFailed": "Failed to load summary",
     "checkConnection": "Please check your connection and try again.",
-    "askSparky": "Ask Sparky…",
+    "askSparky": "Ask the assistant…",
     "nutrients": "Nutrients",
     "food": "Food",
     "tapToAddFood": "Tap to add food",
@@ -755,6 +869,7 @@
     "burned": "Burned",
     "hydration": "Hydration",
     "ofVolume": "of {{value}} {{unit}}",
+    "noHydrationGoal": "No daily target set",
     "perBottle": "{{value}} {{unit}} per bottle",
     "exercise": "Exercise",
     "minutes": "Minutes",
@@ -765,6 +880,16 @@
     "selectContainer": "Select {{container}}",
     "perContainer": "{{value}} {{unit}} per container",
     "waterFromFood": "Includes {{value}} {{unit}} from food",
+    "waterAwaitingSync": "{{value}} {{unit}} awaiting sync",
+    "waterNeedsAttention": "{{value}} {{unit}} needs attention",
+    "waterDrinksAwaitingSync_one": "{{count}} drink awaiting sync",
+    "waterDrinksAwaitingSync_other": "{{count}} drinks awaiting sync",
+    "waterDrinksNeedAttention_one": "{{count}} drink needs attention",
+    "waterDrinksNeedAttention_other": "{{count}} drinks need attention",
+    "retrySavedWater": "Retry saved water entries",
+    "retryingSavedWater": "Retrying saved water…",
+    "retrySavedWaterFailed": "Could not retry saved water entries",
+    "waterPendingUnavailable": "Pending water entries could not be read",
     "chooseWaterContainer": "Choose a water container to enable quick add/remove",
     "quickAddDrinks": "Quick add",
     "logDrink": "Log {{drink}}",
@@ -810,12 +935,12 @@
     },
     "removal": {
       "removed": "Removed",
-      "deleted": "Deleted SparkyFitness data from {{store}}.",
+      "deleted": "Deleted X on Track data from {{store}}.",
       "partial": "Partially removed",
       "partialMessage": "Some records couldn't be deleted from {{store}}.",
       "errorMessage": "Could not remove data from {{store}}.",
       "confirmTitle": "Remove all {{store}} data",
-      "confirmMessage": "Delete every nutrition and hydration record SparkyFitness wrote to {{store}}, and turn writeback off? Your SparkyFitness diary and records from other apps are not affected."
+      "confirmMessage": "Delete every nutrition and hydration record X on Track wrote to {{store}}, and turn writeback off? Your X on Track diary and records from other apps are not affected."
     },
     "range": {
       "title": "Sync Range",
@@ -967,14 +1092,15 @@
   "dashboardSettings": {
     "updateFailed": "Failed to update setting.",
     "noCustomNutrients": "No custom nutrients",
-    "customNutrientsDescription": "Custom nutrients are created in the SparkyFitness web app. Once you add some, they will appear here so you can choose which show on your Dashboard.",
+    "customNutrientsDescription": "Custom nutrients are created in the X on Track web app. Once you add some, they will appear here so you can choose which show on your Dashboard.",
     "title": "Dashboard Settings",
-    "askSparky": "Ask Sparky",
-    "askSparkySubtitle": "Show the Ask Sparky chat launcher on the Dashboard",
+    "askSparky": "AI assistant",
+    "askSparkySubtitle": "Show the AI assistant launcher on the Dashboard",
     "hydration": "Hydration",
     "hydrationSubtitle": "Show the hydration card on the Dashboard",
     "fasting": "Fasting",
     "fastingSubtitle": "Show the fasting card on the Dashboard",
+    "fastingDisabledSubtitle": "Enable fasting in App Settings first",
     "cyclePregnancy": "Cycle & Pregnancy",
     "cyclePregnancySubtitle": "Show the wellness card on the Dashboard",
     "medications": "Medications",
@@ -991,7 +1117,7 @@
     "updateFailed": "Failed to update setting.",
     "limitReached": "Limit reached",
     "noCustomNutrients": "No custom nutrients",
-    "customNutrientsDescription": "Custom nutrients are created in the SparkyFitness web app. Once you add some, they will appear here so you can choose which show on your Diary.",
+    "customNutrientsDescription": "Custom nutrients are created in the X on Track web app. Once you add some, they will appear here so you can choose which show on your Diary.",
     "title": "Diary Settings",
     "summary": "Diary Summary",
     "summarySubtitle": "Show calories and macronutrients",
@@ -1003,10 +1129,11 @@
     "title": "About",
     "version": "Version {{version}} ({{build}})",
     "descriptionTitle": "About this app",
-    "description": "SparkyFitness is an open-source nutrition, exercise, and health-data tracker that syncs to your own server. This app is the mobile companion for logging meals, workouts, and measurements on the go.",
-    "github": "Project on GitHub",
-    "documentation": "Documentation",
-    "privacyPolicy": "Privacy Policy",
+    "description": "Log nutrition, training, and health data. Understand your patterns and improve relative to your own baseline.",
+    "personalBestDescription": "Log nutrition, training, and health data. Understand your patterns and improve relative to your own baseline.",
+    "github": "Upstream source and licenses",
+    "documentation": "Upstream documentation",
+    "privacyPolicy": "Upstream privacy policy",
     "openExternalLink": "Opens in your browser"
   },
   "errorBoundary": {
@@ -1019,7 +1146,7 @@
   "notificationSettings": {
     "title": "Notifications",
     "allow": "Allow Notifications",
-    "allowSubtitle": "Master switch for all alerts from SparkyFitness.",
+    "allowSubtitle": "Master switch for all alerts from X on Track.",
     "alerts": "Alerts",
     "restTimer": "Rest Timer",
     "restTimerSubtitle": "Alert when a rest period ends, even in the background.",
@@ -1034,7 +1161,7 @@
     "hideMedicationNamesSubtitle": "Show a generic reminder instead of the medication name and dose.",
     "hydration": "Hydration",
     "waterReminders": "Water Reminders",
-    "waterRemindersSubtitle": "Remind you to drink when you haven't logged water in a while.",
+    "waterRemindersSubtitle": "Water reminders follow your interval and share available reminder slots with meal and movement prompts.",
     "waterReminderInterval": "Remind After",
     "waterReminderIntervalOption": "{{hours}}h",
     "waterReminderStart": "Start Time",
@@ -1045,7 +1172,7 @@
     "enableNotifications": "Enable Notifications",
     "openSettings": "Open Settings",
     "permissionTitle": "Grant permissions",
-    "permissionBody": "SparkyFitness alerts (rest timers, fasting goals, medication and hydration reminders) won't fire.",
+    "permissionBody": "X on Track alerts (rest timers, fasting goals, medication and hydration reminders) won't fire.",
     "permissionWarningAccessibility": "{{title}}. {{body}} {{action}}."
   },
   "workoutSettings": {
@@ -1230,7 +1357,14 @@
       "failedRemoveDose": "Failed to remove {{name}} dose",
       "failedUnmark": "Failed to unmark {{name}}",
       "failedUpdate": "Failed to update {{name}}",
-      "failedLog": "Failed to log {{name}}"
+      "failedLog": "Failed to log {{name}}",
+      "savedActionError": "A saved supplement response could not be read. Check the diary before logging again.",
+      "refreshing": "Synced; refreshing",
+      "discardRejectedTitle": "Clear rejected response?",
+      "discardRejectedMessage": "The server did not accept this saved response. Check the dose history before logging it again.",
+      "clearRejected": "Clear response",
+      "rejectedAction": "A saved supplement response needs attention.",
+      "reviewAndClear": "Review the dose, then clear this response"
     },
     "card": {
       "title": "Medications",
@@ -1877,9 +2011,12 @@
   },
   "privacyPolicy": {
     "title": "Privacy Policy",
-    "noData": "This app does not collect, store, or sell your personal data.",
-    "healthData": "All HealthKit data stays on your device and is transmitted only to your own server.",
-    "learnMore": "Learn more in our Privacy Policy."
+    "noData": "X on Track stores the records you log on your device and, when synchronization is enabled, on your selected self-hosted server.",
+    "healthData": "You choose which Apple Health data X on Track can read or write in system settings.",
+    "learnMore": "Read the upstream privacy policy.",
+    "storageSummary": "X on Track stores the records you log on your device and, when synchronization is enabled, on your selected self-hosted server.",
+    "healthDataSummary": "You choose which Apple Health data X on Track can read or write in system settings.",
+    "upstreamPolicy": "Read the upstream privacy policy."
   },
   "cycleCalendar": {
     "previousMonth": "Previous month",
@@ -2023,8 +2160,8 @@
     "caloriesRequired": "Select a food with known calories or enter them manually.",
     "name": "Food name",
     "validCompletion": "Enter a name and known calories.",
-    "validMacros": "Macros must be non-negative numbers."
-    ,"energy": "{{value}} kcal"
+    "validMacros": "Macros must be non-negative numbers.",
+    "energy": "{{value}} kcal"
   },
   "nutritionPhotoCapture": {
     "opening": "Opening camera…",
@@ -2257,7 +2394,7 @@
     "photo": {
       "frameMeal": "Frame the whole meal",
       "notSetUp": "AI photo estimates aren't set up",
-      "setupHelp": "Open SparkyFitness in a browser and visit Settings → AI to add an AI provider, then return here.",
+      "setupHelp": "Open X on Track in a browser and visit Settings → AI to add an AI provider, then return here.",
       "logManually": "Log manually"
     },
     "barcode": {
@@ -2793,15 +2930,15 @@
         "cta": "Open settings"
       },
       "chat": {
-        "eyebrow": "ASK SPARKY",
+        "eyebrow": "AI ASSISTANT",
         "headline": "Chat with your AI coach",
-        "body": "Ask Sparky to log meals, plan what to eat, and answer questions about your day through chat.",
+        "body": "Ask the assistant to log meals, plan food, and answer questions about your day through chat.",
         "cta": "Start chatting"
       },
       "widget": {
         "eyebrow": "HOME SCREEN WIDGET",
         "headline": "Calories on your home screen",
-        "body": "See where your day stands at a glance. Add SparkyFitness from your home screen's widget gallery."
+        "body": "See where your day stands at a glance. Add X on Track from your home screen's widget gallery."
       },
       "photo": {
         "eyebrow": "AI PHOTO SCAN",
@@ -2835,7 +2972,7 @@
     "conditions": "Conditions",
     "disclaimerTitle": "Disclaimer & Complete",
     "medicalDisclaimer": "Medical Disclaimer",
-    "disclaimerBody": "The SparkyFitness Wellness and Reproductive Health Tracker is designed to help you track predictions, symptoms, and physiological parameters. It is NOT intended to be used as a contraceptive method or as a diagnostic/treatment tool.",
+    "disclaimerBody": "The X on Track Wellness and Reproductive Health Tracker is designed to help you track predictions, symptoms, and physiological parameters. It is NOT intended to be used as a contraceptive method or as a diagnostic/treatment tool.",
     "consultProfessional": "Always consult with a qualified medical professional for health concerns.",
     "acceptInitialize": "Accept & Initialize Profile",
     "mode": {
@@ -2884,7 +3021,7 @@
       "serverChanged": "The active server changed during the import, so it stopped. Start again to import into the current server.",
       "alreadyRunning": "Another sync is running right now. Wait a moment for it to finish, then start the import.",
       "title": "Import your health history",
-      "description": "Import all of your past {{source}} data into SparkyFitness with a one-time backfill of every enabled metric, from your earliest recorded data up to today.",
+      "description": "Import all of your past {{source}} data into X on Track with a one-time backfill of every enabled metric, from your earliest recorded data up to today.",
       "source": "Source",
       "dataTypes": "Data types enabled",
       "timing": "Takes a few minutes. You can pause any time and pick up where you left off."
@@ -3201,6 +3338,59 @@
     "dinner": "Dinner",
     "other": "Other"
   },
+  "exerciseReview": {
+    "title": "Exercise review",
+    "librarySubtitle": "Compare activity by week, month, or year",
+    "intro": "A look at the activity you recorded, compared with the previous period.",
+    "week": "Week",
+    "month": "Month",
+    "year": "Year",
+    "comparedWith": "Compared with {{range}}",
+    "earlier": "Earlier",
+    "later": "Later",
+    "loading": "Loading your review…",
+    "offline": "Connect to view your review",
+    "failed": "Could not load your review",
+    "overall": "All activity",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "previousSessions": "Earlier: {{value}}",
+    "planAdherenceTitle": "Workout plan",
+    "planAdherenceCount": "{{done}} of {{planned}} attended",
+    "planNoScheduled": "No scheduled workouts",
+    "planHistoryUnavailable": "Plan history unavailable",
+    "planAdherenceRate": "{{percent}}% of scheduled slots",
+    "planPrevious": "Earlier: {{done}} of {{planned}} attended",
+    "planPreviousUnavailable": "Earlier: plan history unavailable",
+    "planDefinition": "A scheduled workout counts as attended after at least one set is completed. Today is excluded.",
+    "planPartialHistory": "Plan history is known for {{covered}} of {{elapsed}} elapsed days in this period.",
+    "running": "Running",
+    "cycling": "Cycling",
+    "strength": "Strength",
+    "other": "Other activity",
+    "trendTitle": "Sport trends",
+    "trendHint": "Recorded activity through the selected period.",
+    "trendSessions": "Sessions",
+    "trendDistance": "Distance",
+    "trendVolume": "Lifted volume",
+    "trendEmpty": "No {{metric}} recorded for {{sport}} in this period.",
+    "trendPoint": "{{date}}: {{metric}} {{value}}",
+    "minutes": "{{value}} min",
+    "liftedVolume": "{{value}} lifted",
+    "reps": "{{value}} reps",
+    "inferred_one": "{{count}} entry classified from its name",
+    "inferred_other": "{{count}} entries classified from their names",
+    "empty": "No activity recorded in this period",
+    "emptyHint": "Try an earlier period or log an activity.",
+    "recordedSessions": "Recorded sessions",
+    "openSourceHint": "Open a session to see its recorded details and source.",
+    "openSource": "Open {{name}} from {{date}}",
+    "unnamedSource": "Activity",
+    "showMoreSources": "Show more sessions",
+    "sourceUnavailable": "This activity is no longer available. Refresh the review.",
+    "sourceOpenFailed": "Could not open that activity",
+    "recordedOnly": "Based on recorded entries. Missing distance, time, or sets are not estimated."
+  },
   "foodEntryAdd": {
     "errors": {
       "equivalentsNotSaved": "Some equivalent units could not be saved",
@@ -3217,6 +3407,12 @@
     "actions": {
       "adjustNutrition": "Adjust nutrition",
       "saveFood": "Save Food",
+      "choosePortion": "Choose {{portion}}",
+      "choosePortionHint": "Selects the portion. Use Add Food to log it.",
+      "changeUnit": "Change unit: {{unit}}",
+      "editLogDestination": "Edit log destination",
+      "decreaseAmount": "Decrease amount",
+      "increaseAmount": "Increase amount",
       "useYesterday": "Use Yesterday",
       "useToday": "Use Today",
       "now": "Now",
@@ -3227,6 +3423,13 @@
       "addFavorite": "Add to favorites"
     },
     "labels": {
+      "foodPhoto": "Photo of {{name}}",
+      "amount": "Amount",
+      "nutritionForAmount": "Nutrition for selected amount",
+      "logTo": "Log to",
+      "ofGoal": "{{percent}}% of goal",
+      "quickPortions": "Choose a portion",
+      "quickPortionNutrition": "{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein",
       "perServing": "per serving",
       "time": "Time",
       "none": "None",
@@ -3807,14 +4010,14 @@
     "removeFailed": "Could not remove photo"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Assistant",
     "error": "Chat error",
     "errorRetry": "Something went wrong. Tap retry to try again.",
     "retry": "Retry",
-    "placeholder": "Message Sparky…",
-    "emptyPrompt": "Ask Sparky anything about your nutrition, exercise, or goals.",
+    "placeholder": "Message the assistant…",
+    "emptyPrompt": "Ask about your nutrition, exercise, or goals.",
     "clearTitle": "Clear chat",
-    "clearMessage": "This permanently deletes your Sparky chat history. This cannot be undone.",
+    "clearMessage": "This permanently deletes your assistant chat history. This cannot be undone.",
     "clearFailed": "Could not clear chat",
     "clearAccessibility": "Clear chat",
     "noServer": "No active server config. Set one up in Settings first.",
@@ -3834,7 +4037,7 @@
       "goals": "Goals",
       "lookedUp": "Looked up {{name}}"
     },
-    "typing": "Sparky is typing"
+    "typing": "Assistant is typing"
   },
   "foodImagePicker": {
     "photos": "Photos",
@@ -5264,10 +5467,17 @@
     "emptyBody": "Add one above and it will show up here with that day’s weight.",
     "loadError": "Couldn't load your progress photos.",
     "takePhoto": "Take Photo",
+    "capture": "Capture photo",
+    "captureError": "Could not save that photo. Try again.",
+    "poseGuide": "Pose guide",
+    "showGuide": "Show guide",
+    "hideGuide": "Hide guide",
+    "guideNotSaved": "The guide is never saved with your photo.",
+    "grantCamera": "Allow camera",
     "chooseLibrary": "Choose from Library",
     "remove": "Remove Photo",
     "cameraPermission": "Camera permission is required",
-    "cameraPermissionHint": "Enable camera access for SparkyFitness in Settings.",
+    "cameraPermissionHint": "Enable camera access for X on Track in Settings.",
     "compare": "Compare",
     "compareTitle": "Compare",
     "before": "Before",

@@ -246,19 +246,21 @@ describe('measurementsApi', () => {
           entryDate: '2024-06-15',
           changeDrinks: 1,
           containerId: 1,
+          clientOperationId: '550e8400-e29b-41d4-a716-446655440000',
+          loggedAt: '2024-06-15T12:00:00.000Z',
         })
       ).rejects.toThrow('Server configuration not found.');
     });
 
-    test('sends POST request to /api/measurements/water-intake with correct body', async () => {
+    test('sends one stable container operation ID and capture time', async () => {
       mockGetActiveServerConfig.mockResolvedValue(testConfig);
       mockFetch.mockResolvedValue({
         ok: true,
         json: () =>
           Promise.resolve({
-            id: '123',
-            water_ml: 500,
-            entry_date: '2024-06-15',
+            waterLogId: '123',
+            alreadyApplied: false,
+            totals: { water_ml: 500 },
           }),
       });
 
@@ -266,10 +268,12 @@ describe('measurementsApi', () => {
         entryDate: '2024-06-15',
         changeDrinks: 1,
         containerId: 5,
+        clientOperationId: '550e8400-e29b-41d4-a716-446655440000',
+        loggedAt: '2024-06-15T12:00:00.000Z',
       });
 
       expect(mockFetch).toHaveBeenCalledWith(
-        'https://example.com/api/measurements/water-intake',
+        'https://example.com/api/v2/measurements/water-intake/container-actions',
         expect.objectContaining({
           method: 'POST',
           headers: {
@@ -279,9 +283,10 @@ describe('measurementsApi', () => {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
+            client_operation_id: '550e8400-e29b-41d4-a716-446655440000',
             entry_date: '2024-06-15',
-            change_drinks: 1,
             container_id: 5,
+            logged_at: '2024-06-15T12:00:00.000Z',
           }),
         })
       );
@@ -321,6 +326,8 @@ describe('measurementsApi', () => {
           entryDate: '2024-06-15',
           changeDrinks: 1,
           containerId: 1,
+          clientOperationId: '550e8400-e29b-41d4-a716-446655440000',
+          loggedAt: '2024-06-15T12:00:00.000Z',
         })
       ).rejects.toThrow('Server error: 500 - Internal Server Error');
     });

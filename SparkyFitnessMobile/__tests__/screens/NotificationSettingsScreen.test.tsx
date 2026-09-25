@@ -3,6 +3,8 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import Toast from 'react-native-toast-message';
 
 import NotificationSettingsScreen from '../../src/screens/NotificationSettingsScreen';
+import { getTodayDiscretionaryPromptBudget } from '../../src/services/discretionaryPromptLedger';
+import { getActiveNutritionIdentity } from '../../src/services/nutritionIdentity';
 import {
   maybePromptForExactAlarmPermission,
   requestNotificationPermission,
@@ -19,6 +21,15 @@ jest.mock('../../src/services/notifications', () => ({
   setNotificationsEnabled: jest.fn(async () => undefined),
   setRestTimerNotificationsEnabled: jest.fn(async () => undefined),
   maybePromptForExactAlarmPermission: jest.fn(async () => undefined),
+}));
+
+jest.mock('../../src/services/discretionaryPromptLedger', () => ({
+  getTodayDiscretionaryPromptBudget: jest.fn(),
+  subscribeDiscretionaryPromptBudget: jest.fn(() => jest.fn()),
+}));
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  getActiveNutritionIdentity: jest.fn(),
+  subscribeNutritionIdentity: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../src/components/NotificationPermissionBanner', () => {
@@ -124,6 +135,27 @@ describe('NotificationSettingsScreen', () => {
     __resetAppPreferencesStoreForTests();
     mockRequestPermission.mockResolvedValue('granted');
     mockTimeSheetRenders.length = 0;
+    jest.mocked(getActiveNutritionIdentity).mockResolvedValue({
+      serverConfigId: 'server-A',
+      userId: 'user-A',
+    });
+    jest.mocked(getTodayDiscretionaryPromptBudget).mockResolvedValue({
+      used: 2,
+      remaining: 1,
+    });
+  });
+
+  it('previews the combined optional reminder budget without counting medication', async () => {
+    const { findByText } = renderScreen();
+    expect(
+      await findByText(
+        /2 of 3 daily slots used.*medication and rest alerts are separate/i
+      )
+    ).toBeTruthy();
+    expect(getTodayDiscretionaryPromptBudget).toHaveBeenCalledWith({
+      serverConfigId: 'server-A',
+      userId: 'user-A',
+    });
   });
 
   it('hides category rows while the master toggle is off', () => {
@@ -390,6 +422,36 @@ describe('NotificationSettingsScreen', () => {
     const { getByText } = renderScreen();
     fireEvent.press(getByText('Open break timer'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MovementBreak');
+  });
+
+  it('keeps movement reminders off when permission is denied', async () => {
+    mockRequestPermission.mockResolvedValue('denied');
+    const { getByLabelText } = renderScreen();
+    await act(async () => {
+      fireEvent(getByLabelText('Movement break reminder'), 'valueChange', true);
+    });
+    await waitFor(() => expect(mockRequestPermission).toHaveBeenCalled());
+    expect(useAppPreferencesStore.getState().movementBreakReminderEnabled).toBe(
+      false
+    );
+  });
+
+  it('enables an optional movement reminder and saves its time', async () => {
+    const { getByLabelText } = renderScreen();
+    await act(async () => {
+      fireEvent(getByLabelText('Movement break reminder'), 'valueChange', true);
+    });
+    await waitFor(() =>
+      expect(
+        useAppPreferencesStore.getState().movementBreakReminderEnabled
+      ).toBe(true)
+    );
+    await act(async () => {
+      latestTimeSheet('15:00').onSelectTime('16:30');
+    });
+    expect(useAppPreferencesStore.getState().movementBreakReminderTime).toBe(
+      '16:30'
+    );
   });
 
   it('keeps photo review opt-in and saves its chosen later time', async () => {

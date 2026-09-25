@@ -41,7 +41,7 @@ const YesNoClearControl: React.FC<YesNoClearControlProps> = ({
       }}
     >
       <Text
-        className={`text-sm ${selected ? 'text-white font-semibold' : 'text-text-secondary'}`}
+        className={`text-sm ${selected ? 'text-accent-text font-semibold' : 'text-text-secondary'}`}
       >
         {label}
       </Text>

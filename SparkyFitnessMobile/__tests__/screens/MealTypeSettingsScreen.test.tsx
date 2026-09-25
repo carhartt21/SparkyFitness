@@ -1072,8 +1072,10 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
       expect(b?.is_visible).toBe(true); // rolled back to previous
       expect(l?.is_visible).toBe(false); // B's success preserved
     });
-    expect(getByLabelText('Visible Breakfast').props.value).toBe(true);
-    expect(getByLabelText('Visible Lunch').props.value).toBe(false);
+    await waitFor(() => {
+      expect(getByLabelText('Visible Breakfast').props.value).toBe(true);
+      expect(getByLabelText('Visible Lunch').props.value).toBe(false);
+    });
     await act(async () => {});
   });
 

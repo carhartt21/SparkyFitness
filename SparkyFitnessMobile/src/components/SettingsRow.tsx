@@ -63,6 +63,8 @@ export const SettingsRowGroup: React.FC<SettingsRowGroupProps> = ({
 interface SettingsRowProps {
   icon?: IconName;
   title: string;
+  /** Set a line limit only when a specific row needs one. */
+  titleNumberOfLines?: number;
   subtitle?: React.ReactNode;
   /** Line clamp for string subtitles; 0 lets the text wrap freely. */
   subtitleNumberOfLines?: number;
@@ -79,6 +81,7 @@ interface SettingsRowProps {
 const SettingsRow: React.FC<SettingsRowProps> = ({
   icon,
   title,
+  titleNumberOfLines = 0,
   subtitle,
   subtitleNumberOfLines = 1,
   onPress,
@@ -101,6 +104,9 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
 
   const tintColor = iconColor ?? textSecondary;
   const tileBg = iconBackgroundColor ?? 'transparent';
+  const spokenLabel =
+    accessibilityLabel ??
+    (typeof subtitle === 'string' ? `${title}. ${subtitle}` : title);
 
   const content = (
     <>
@@ -115,7 +121,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
       <View className="flex-1 mr-2">
         <Text
           className="text-base font-semibold text-text-primary"
-          numberOfLines={1}
+          numberOfLines={titleNumberOfLines}
           ellipsizeMode="tail"
         >
           {title}
@@ -157,8 +163,9 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
       className={wrapperClass}
       onPress={onPress}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel ?? title}
+      accessibilityLabel={spokenLabel}
       accessibilityHint={accessibilityHint}
+      accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
       testID={testID}
       style={({ pressed }) =>

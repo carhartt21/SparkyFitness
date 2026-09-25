@@ -24,6 +24,13 @@ import { ExactAlarmBridge } from '../../src/services/ExactAlarmBridge';
 import { __resetSoundsForTests } from '../../src/services/sounds';
 import { useAppPreferencesStore } from '../../src/stores/appPreferencesStore';
 import i18n, { initializeI18n } from '../../src/localization/i18n';
+import { newUuid } from '../../src/utils/ids';
+import {
+  __resetDiscretionaryPromptLedgerForTests,
+  reserveDiscretionaryPrompt,
+} from '../../src/services/discretionaryPromptLedger';
+
+jest.mock('../../src/utils/ids', () => ({ newUuid: jest.fn() }));
 
 jest.mock('../../src/services/ExactAlarmBridge', () => ({
   ExactAlarmBridge: {
@@ -87,6 +94,7 @@ function setAppState(state: string): void {
 
 describe('notifications service', () => {
   beforeEach(async () => {
+    __resetDiscretionaryPromptLedgerForTests();
     await initializeI18n('en');
     await AsyncStorage.clear();
     __resetNotificationStateForTests();
@@ -104,6 +112,9 @@ describe('notifications service', () => {
     mockGetPresented.mockReset().mockResolvedValue([]);
     mockDismiss.mockReset().mockResolvedValue(undefined as any);
     mockToastShow.mockClear();
+    jest
+      .mocked(newUuid)
+      .mockReturnValue('cfd1c894-124e-4c2b-8987-9f1084b22ef4');
     setAppState('active');
     Object.defineProperty(Platform, 'OS', {
       get: () => 'ios',
@@ -419,6 +430,47 @@ describe('notifications service', () => {
       });
     });
 
+    it('uses only the last free daily slot after other engagement reminders', async () => {
+      const day = new Date(Date.now() + 86_400_000);
+      day.setHours(10, 0, 0, 0);
+      const identity = { serverConfigId: 'server-A', userId: 'user-A' };
+      for (const [index, family] of ['nutrition', 'movement'].entries()) {
+        await reserveDiscretionaryPrompt({
+          identity,
+          candidateId: `${family}:${index}`,
+          at: day.getTime() + index * 3_600_000,
+        });
+      }
+      const ids = await scheduleWaterReminderNotifications(
+        [12, 13].map((hour) => {
+          const time = new Date(day);
+          time.setHours(hour);
+          return time;
+        }),
+        identity
+      );
+      expect(ids).toHaveLength(1);
+      expect(mockSchedule).toHaveBeenCalledTimes(1);
+    });
+
+    it('offers an account-bound quick log with a stable operation ID', async () => {
+      await scheduleWaterReminderNotifications([inHours(1)], {
+        serverConfigId: 'server-A',
+        userId: 'user-A',
+      });
+      const request = mockSchedule.mock.calls[0][0];
+      expect(request.content.categoryIdentifier).toBe('hydration-quick-log');
+      expect(request.content.data).toMatchObject({
+        version: 1,
+        serverConfigId: 'server-A',
+        userId: 'user-A',
+        waterMl: 250,
+      });
+      expect(request.content.data?.clientOperationId).toEqual(
+        expect.any(String)
+      );
+    });
+
     it('skips times that are already in the past', async () => {
       const ids = await scheduleWaterReminderNotifications([
         new Date(Date.now() - 60 * 1000),
@@ -569,6 +621,13 @@ describe('notifications service', () => {
   });
 
   describe('per-category notification toggles', () => {
+    it('does not schedule a fasting goal when fasting is disabled in App Settings', async () => {
+      useAppPreferencesStore.getState().setFastingEnabled(false);
+      const target = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+      expect(await scheduleFastGoalNotification(target)).toBeNull();
+      expect(mockSchedule).not.toHaveBeenCalled();
+    });
+
     it('skips scheduling a rest notification when the rest-timer toggle is off', async () => {
       await setRestTimerNotificationsEnabled(false);
       expect(await scheduleRestNotification('Bench Press', 60)).toBeNull();

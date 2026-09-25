@@ -536,7 +536,7 @@
     "enableAll": "Aktiver alle helsemålinger",
     "removeFrom": "Fjern fra {{store}}",
     "pickDateRange": "Velg en datoperiode…",
-    "removeData": "Fjern SparkyFitness-data fra {{store}}"
+    "removeData": "Fjern X on Track-data fra {{store}}"
   },
   "auth": {
     "email": "E-post",
@@ -552,7 +552,7 @@
     "hidePassword": "Skjul passord",
     "showPassword": "Vis passord",
     "headerValuePlaceholder": "Verdi",
-    "connectTitle": "Koble til SparkyFitness",
+    "connectTitle": "Koble til X on Track",
     "twoFactorTitle": "Tofaktorautentisering",
     "errors": {
       "unknown": "Ukjent feil"
@@ -623,7 +623,7 @@
       "partial": "Delvis fjernet",
       "errorMessage": "Kunne ikke fjerne data fra {{store}}.",
       "confirmTitle": "Fjern alle {{store}}-data",
-      "confirmMessage": "Vil du slette alle ernærings- og væskeregistreringer SparkyFitness har skrevet til {{store}}, og slå av tilbakeskriving? SparkyFitness-dagboken og registreringer fra andre apper påvirkes ikke."
+      "confirmMessage": "Vil du slette alle ernærings- og væskeregistreringer X on Track har skrevet til {{store}}, og slå av tilbakeskriving? X on Track-dagboken og registreringer fra andre apper påvirkes ikke."
     },
     "import": {
       "title": "Importer hele historikken"
@@ -1063,7 +1063,7 @@
       "scanLabel": "Skann næringsdeklarasjon"
     },
     "photo": {
-      "setupHelp": "Åpne SparkyFitness i en nettleser og gå til Innstillinger → KI for å legge til en KI-leverandør, og gå deretter tilbake hit."
+      "setupHelp": "Åpne X on Track i en nettleser og gå til Innstillinger → KI for å legge til en KI-leverandør, og gå deretter tilbake hit."
     },
     "manual": {
       "title": "Skriv inn strekkode",

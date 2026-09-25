@@ -58,6 +58,7 @@ const DateRangeSheet = React.forwardRef<DateRangeSheetRef, DateRangeSheetProps>(
         '--color-text-primary',
         '--color-text-secondary',
       ]) as [string, string, string, string, string];
+    const accentText = useCSSVariable('--color-accent-text') as string;
 
     const markedDayComponent = useMarkedDayComponent({
       markedDates,
@@ -137,12 +138,12 @@ const DateRangeSheet = React.forwardRef<DateRangeSheetRef, DateRangeSheetProps>(
             }}
             styles={{
               selected: { backgroundColor: accentPrimary },
-              selected_label: { color: '#FFFFFF' },
+              selected_label: { color: accentText },
               range_fill: { backgroundColor: accentPrimary, opacity: 0.25 },
               range_start: { backgroundColor: accentPrimary },
-              range_start_label: { color: '#FFFFFF' },
+              range_start_label: { color: accentText },
               range_end: { backgroundColor: accentPrimary },
-              range_end_label: { color: '#FFFFFF' },
+              range_end_label: { color: accentText },
               today: { borderColor: accentPrimary, borderWidth: 1 },
               day_label: { color: textPrimary },
               weekday_label: { color: textSecondary },
@@ -152,9 +153,9 @@ const DateRangeSheet = React.forwardRef<DateRangeSheetRef, DateRangeSheetProps>(
               month_label: { color: textPrimary },
               year_label: { color: textPrimary },
               selected_month: { backgroundColor: accentPrimary },
-              selected_month_label: { color: '#FFFFFF' },
+              selected_month_label: { color: accentText },
               selected_year: { backgroundColor: accentPrimary },
-              selected_year_label: { color: '#FFFFFF' },
+              selected_year_label: { color: accentText },
             }}
           />
           <View className="px-2 mt-1">
@@ -163,7 +164,7 @@ const DateRangeSheet = React.forwardRef<DateRangeSheetRef, DateRangeSheetProps>(
               onPress={confirm}
               disabled={!start || !end}
             >
-              <Text className="text-base font-semibold text-white">
+              <Text className="text-base font-semibold text-accent-text">
                 {confirmLabel ??
                   t('dateRange.removeAction', {
                     defaultValue: 'Remove selected range',

@@ -7,5 +7,6 @@ struct exportWidgets: WidgetBundle {
         widget()
         macroWidget()
         nutritionEngagementWidget()
+        routineWidget()
     }
 }

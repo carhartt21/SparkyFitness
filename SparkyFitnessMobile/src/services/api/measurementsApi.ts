@@ -1,6 +1,7 @@
 import { apiFetch } from './apiClient';
 import { ApiError } from './errors';
 import { getTodayDate } from '../../utils/dateUtils';
+import { newUuid } from '../../utils/ids';
 
 import type {
   CheckInMeasurement,
@@ -14,6 +15,8 @@ import type {
   UpdateWaterContainerBody,
   DrinkPresetCatalogEntry,
   WaterIntakeLogEntry,
+  ContainerWaterActionBody,
+  ContainerWaterActionResponse,
 } from '@workspace/shared';
 import type {
   CustomCategory,
@@ -430,7 +433,23 @@ export const changeWaterIntake = async (params: {
   entryDate: string;
   changeDrinks: number;
   containerId: number;
+  clientOperationId?: string;
+  loggedAt?: string;
 }): Promise<WaterIntakeResponse> => {
+  if (params.changeDrinks === 1 && params.containerId > 0) {
+    const result = await createContainerWaterAction({
+      client_operation_id: params.clientOperationId ?? newUuid(),
+      entry_date: params.entryDate,
+      container_id: params.containerId,
+      logged_at: params.loggedAt ?? new Date().toISOString(),
+    });
+    return {
+      water_ml: Number(result.totals.water_ml),
+      manual_ml: Number(result.totals.manual_ml ?? 0),
+      ledger_ml: Number(result.totals.ledger_ml ?? 0),
+      food_ml: Number(result.totals.food_ml ?? 0),
+    };
+  }
   return apiFetch<WaterIntakeResponse>({
     endpoint: '/api/measurements/water-intake',
     serviceName: 'Measurements API',
@@ -441,6 +460,37 @@ export const changeWaterIntake = async (params: {
       change_drinks: params.changeDrinks,
       container_id: params.containerId,
     },
+  });
+};
+
+export const createContainerWaterAction = async (
+  payload: ContainerWaterActionBody
+): Promise<ContainerWaterActionResponse> => {
+  return apiFetch<ContainerWaterActionResponse>({
+    endpoint: '/api/v2/measurements/water-intake/container-actions',
+    serviceName: 'Measurements API',
+    operation: 'log container water action',
+    method: 'POST',
+    body: payload,
+  });
+};
+
+export interface ManualWaterActionPayload {
+  client_operation_id: string;
+  entry_date: string;
+  water_ml: number;
+  logged_at: string;
+}
+
+export const createManualWaterAction = async (
+  payload: ManualWaterActionPayload
+): Promise<{ id: string; alreadyApplied: boolean }> => {
+  return apiFetch<{ id: string; alreadyApplied: boolean }>({
+    endpoint: '/api/v2/measurements/water-intake/manual-actions',
+    serviceName: 'Measurements API',
+    operation: 'log manual water action',
+    method: 'POST',
+    body: payload,
   });
 };
 

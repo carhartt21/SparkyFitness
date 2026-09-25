@@ -1,6 +1,11 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { createFoodEntry } from './api/foodEntriesApi';
 import {
+  createContainerWaterAction,
+  createManualWaterAction,
+} from './api/measurementsApi';
+import { createPlannedSupplementAction } from './api/medicationsApi';
+import {
   createNutritionCapture,
   uploadNutritionCaptureImage,
   completeNutritionCapture,
@@ -19,8 +24,13 @@ import {
   type NutritionActionIdentity,
   type PendingNutritionAction,
 } from './nutritionActionOutbox';
-import { dailySummaryRootQueryKey } from '../hooks/queryKeys';
+import {
+  caffeineActiveQueryKey,
+  dailySummaryRootQueryKey,
+  waterIntakeLogQueryKey,
+} from '../hooks/queryKeys';
 import { resolveNutritionPhotoUri } from './nutritionPhotoFiles';
+import { invalidateMedicationEntryCaches } from '../hooks/invalidateMedicationEntryCaches';
 
 const MAX_ACTIONS_PER_PASS = 20;
 const MAX_RETRY_DELAY_MS = 60_000;
@@ -42,6 +52,9 @@ export interface NutritionSyncDependencies {
   markAttention: typeof markNutritionActionAttentionRequired;
   markSynced: typeof markNutritionActionSynced;
   createEntry: typeof createFoodEntry;
+  createWaterAction: typeof createManualWaterAction;
+  createContainerWaterAction: typeof createContainerWaterAction;
+  createPlannedSupplementAction: typeof createPlannedSupplementAction;
   createCapture: typeof createNutritionCapture;
   uploadCaptureImage: typeof uploadNutritionCaptureImage;
   completeCapture: typeof completeNutritionCapture;
@@ -57,6 +70,9 @@ const productionDependencies: NutritionSyncDependencies = {
   markAttention: markNutritionActionAttentionRequired,
   markSynced: markNutritionActionSynced,
   createEntry: createFoodEntry,
+  createWaterAction: createManualWaterAction,
+  createContainerWaterAction,
+  createPlannedSupplementAction,
   createCapture: createNutritionCapture,
   uploadCaptureImage: uploadNutritionCaptureImage,
   completeCapture: completeNutritionCapture,
@@ -167,6 +183,16 @@ async function reconcilePass(
       let serverId: string;
       if (action.type === 'logFoodEntry') {
         serverId = (await deps.createEntry(action.payload)).id;
+      } else if (action.type === 'logManualWater') {
+        serverId = (await deps.createWaterAction(action.payload)).id;
+      } else if (action.type === 'logContainerWater') {
+        const result = await deps.createContainerWaterAction(action.payload);
+        // A receipt outlives deliberate deletion of its water row. Keep the
+        // operation itself acknowledged even when replay returns a null row ID.
+        serverId = result.waterLogId ?? action.clientOperationId;
+      } else if (action.type === 'logPlannedSupplement') {
+        const result = await deps.createPlannedSupplementAction(action.payload);
+        serverId = result.entry?.id ?? action.clientOperationId;
       } else if (action.type === 'createPhotoEntry') {
         serverId = (await deps.createCapture(action.payload)).id;
         for (const image of action.payload.images) {
@@ -195,6 +221,22 @@ async function reconcilePass(
       void queryClient?.invalidateQueries({
         queryKey: dailySummaryRootQueryKey,
       });
+      if (
+        action.type === 'logManualWater' ||
+        action.type === 'logContainerWater'
+      ) {
+        void queryClient?.invalidateQueries({
+          queryKey: waterIntakeLogQueryKey(action.payload.entry_date),
+        });
+      }
+      if (action.type === 'logContainerWater') {
+        void queryClient?.invalidateQueries({
+          queryKey: caffeineActiveQueryKey(action.payload.entry_date),
+        });
+      }
+      if (action.type === 'logPlannedSupplement' && queryClient) {
+        invalidateMedicationEntryCaches(queryClient);
+      }
       if (
         action.type === 'createPhotoEntry' ||
         action.type === 'completePhotoEntry'

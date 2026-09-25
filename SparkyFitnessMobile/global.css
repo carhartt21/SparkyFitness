@@ -14,8 +14,26 @@
     --radius-xl: 16px;
 
     @variant light {
-      --color-background: hsl(220, 25%, 96%);
-      --color-surface: hsl(220, 20%, 98%);
+      --color-brand-primary: #0b5e46;
+      --color-brand-primary-dark: #083f31;
+      --color-brand-secondary: #0b5e46;
+      --color-brand-accent: #ff5a1f;
+      --color-brand-supporting: #4b8c69;
+      --color-background-primary: #f6f0e3;
+      --color-background-secondary: #f0eadd;
+      --color-surface-primary: #fffdf8;
+      --color-surface-elevated: #fffdf8;
+      --color-text-tertiary: #66776d;
+      --color-separator: #ded8cb;
+      --color-positive: #0b5e46;
+      --color-warning: #9b5d18;
+      --color-destructive: #b42333;
+      --color-informational: #35658c;
+      --color-progress-low: #b7d2bd;
+      --color-progress-medium: #4b8c69;
+      --color-progress-high: #0b5e46;
+      --color-background: var(--color-background-primary);
+      --color-surface: var(--color-background-secondary);
       --color-raised: hsl(0, 0%, 100%);
       --color-chrome: hsl(0, 0%, 100%);
 
@@ -24,19 +42,18 @@
       --color-border-strong: hsl(212, 18%, 83%);
       --color-chrome-border: hsl(220, 20%, 88%);
 
-      --color-text-primary: hsl(222, 47%, 11%);
-      --color-text-secondary: hsl(215, 19%, 40%);
+      --color-text-primary: #171c22;
+      --color-text-secondary: #40554c;
       --color-text-muted: hsl(215, 20%, 65%);
       --color-icon-decorative: hsl(215, 19%, 40%);
 
-      --color-text-link: hsl(220, 90%, 65%);
+      --color-text-link: #0b5e46;
 
-      /* --color-accent-primary:    hsl(20, 89%, 48%);    */
-      --color-accent-primary: hsl(220, 91%, 64%);
-      --color-accent-muted: hsl(220, 49%, 55%);
-      --color-accent-text: hsl(220, 88%, 94%);
+      --color-accent-primary: var(--color-brand-secondary);
+      --color-accent-muted: var(--color-brand-supporting);
+      --color-accent-text: #ffffff;
 
-      --color-tab-active: hsl(220, 91%, 64%);
+      --color-tab-active: var(--color-brand-secondary);
       --color-tab-inactive: hsl(220, 16%, 47%);
       --color-form-enabled: hsl(220, 22%, 55%);
       --color-form-disabled: hsl(220, 12%, 82%);
@@ -80,7 +97,7 @@
 
       /* Deliberately distinct from --color-cat-amber, which also colors
          moderate RPE and a superset rail on the same live-workout screen. */
-      --color-pr: hsl(36, 92%, 44%);
+      --color-pr: #b04414;
 
       --color-wellness-menstrual: hsl(354, 75%, 55%);
       --color-wellness-follicular: hsl(158, 55%, 45%);
@@ -90,28 +107,46 @@
     }
 
     @variant dark {
-      --color-background: hsl(220, 20%, 6%);
-      --color-surface: hsl(220, 18%, 9%);
-      --color-raised: hsl(220, 16%, 13%);
-      --color-chrome: hsl(220, 22%, 7%);
+      --color-brand-primary: #f6f0e3;
+      --color-brand-primary-dark: #0b5e46;
+      --color-brand-secondary: #11a67e;
+      --color-brand-accent: #ff8052;
+      --color-brand-supporting: #72c7a8;
+      --color-background-primary: #171c22;
+      --color-background-secondary: #1d252a;
+      --color-surface-primary: #242d32;
+      --color-surface-elevated: #2b373b;
+      --color-text-tertiary: #91a699;
+      --color-separator: #30473b;
+      --color-positive: #11a67e;
+      --color-warning: #e7ab63;
+      --color-destructive: #f0808b;
+      --color-informational: #92bddb;
+      --color-progress-low: #315744;
+      --color-progress-medium: #11a67e;
+      --color-progress-high: #a9d5b8;
+      --color-background: var(--color-background-primary);
+      --color-surface: var(--color-surface-primary);
+      --color-raised: var(--color-surface-elevated);
+      --color-chrome: #171c22;
 
-      --color-border-subtle: hsl(220, 15%, 14%);
-      --color-border: hsl(220, 15%, 18%);
-      --color-border-strong: hsl(220, 15%, 22%);
+      --color-border-subtle: #34473b;
+      --color-border: #405345;
+      --color-border-strong: #526a59;
       --color-chrome-border: hsl(220, 18%, 16%);
 
       --color-text-primary: hsl(220, 15%, 92%);
       --color-text-secondary: hsl(220, 10%, 80%);
-      --color-text-muted: hsl(220, 10%, 50%);
-      --color-icon-decorative: hsl(220, 10%, 50%);
+      --color-text-muted: #a9bbad;
+      --color-icon-decorative: #a9bbad;
 
-      --color-accent-primary: hsl(220, 85%, 60%);
-      --color-accent-muted: hsl(220, 65%, 66%);
-      --color-accent-text: hsl(221, 100%, 97%);
+      --color-accent-primary: var(--color-brand-secondary);
+      --color-accent-muted: var(--color-brand-supporting);
+      --color-accent-text: #171c22;
 
-      --color-text-link: hsl(220, 80%, 65%);
+      --color-text-link: var(--color-brand-secondary);
 
-      --color-tab-active: hsl(220, 85%, 60%);
+      --color-tab-active: var(--color-brand-secondary);
       --color-tab-inactive: hsl(215, 15%, 55%);
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 26%);
@@ -154,7 +189,7 @@
       --color-text-danger-subtle: hsl(357, 88%, 88%);
       --color-icon-danger: hsl(358, 80%, 65%);
 
-      --color-pr: hsl(42, 88%, 64%);
+      --color-pr: var(--color-brand-accent);
 
       --color-wellness-menstrual: hsl(354, 75%, 65%);
       --color-wellness-follicular: hsl(158, 55%, 55%);
@@ -164,28 +199,46 @@
     }
 
     @variant amoled {
+      --color-brand-primary: #f6f0e3;
+      --color-brand-primary-dark: #0b5e46;
+      --color-brand-secondary: #11a67e;
+      --color-brand-accent: #ff8052;
+      --color-brand-supporting: #72c7a8;
+      --color-background-primary: #000000;
+      --color-background-secondary: #101913;
+      --color-surface-primary: #19251c;
+      --color-surface-elevated: #253329;
+      --color-text-tertiary: #91a699;
+      --color-separator: #30473b;
+      --color-positive: #11a67e;
+      --color-warning: #e7ab63;
+      --color-destructive: #f0808b;
+      --color-informational: #92bddb;
+      --color-progress-low: #315744;
+      --color-progress-medium: #11a67e;
+      --color-progress-high: #a9d5b8;
       --color-background: hsl(0, 0%, 0%);
-      --color-surface: hsl(220, 18%, 4%);
-      --color-raised: hsl(220, 16%, 8%);
+      --color-surface: var(--color-surface-primary);
+      --color-raised: var(--color-surface-elevated);
       --color-chrome: hsla(0, 0%, 0%, 0.9);
 
-      --color-border-subtle: hsl(220, 15%, 10%);
-      --color-border: hsl(220, 15%, 13%);
-      --color-border-strong: hsl(220, 15%, 17%);
+      --color-border-subtle: #304335;
+      --color-border: #3c5141;
+      --color-border-strong: #506954;
       --color-chrome-border: hsl(220, 18%, 11%);
 
       --color-text-primary: hsl(220, 15%, 92%);
       --color-text-secondary: hsl(220, 10%, 70%);
-      --color-text-muted: hsl(220, 10%, 50%);
-      --color-icon-decorative: hsl(220, 10%, 50%);
+      --color-text-muted: #a9bbad;
+      --color-icon-decorative: #a9bbad;
 
-      --color-accent-primary: hsl(220, 85%, 60%);
-      --color-accent-muted: hsl(220, 65%, 66%);
-      --color-accent-text: hsl(221, 100%, 97%);
+      --color-accent-primary: var(--color-brand-secondary);
+      --color-accent-muted: var(--color-brand-supporting);
+      --color-accent-text: #000000;
 
-      --color-text-link: hsl(220, 80%, 65%);
+      --color-text-link: var(--color-brand-secondary);
 
-      --color-tab-active: hsl(220, 85%, 60%);
+      --color-tab-active: var(--color-brand-secondary);
       --color-tab-inactive: hsl(215, 15%, 55%);
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 18%);
@@ -227,7 +280,7 @@
       --color-text-danger-subtle: hsl(357, 88%, 88%);
       --color-icon-danger: hsl(358, 80%, 65%);
 
-      --color-pr: hsl(42, 88%, 64%);
+      --color-pr: var(--color-brand-accent);
 
       --color-wellness-menstrual: hsl(354, 75%, 65%);
       --color-wellness-follicular: hsl(158, 55%, 55%);

@@ -443,7 +443,7 @@ const WorkoutPresetDetailScreen: React.FC<WorkoutPresetDetailScreenProps> = ({
           disabled={isStarting || isDeletePending}
           className="mt-4"
         >
-          <Text className="text-white text-base font-semibold">
+          <Text className="text-accent-text text-base font-semibold">
             {isStarting
               ? t('workoutPresetDetail.actions.starting', {
                   defaultValue: 'Starting…',

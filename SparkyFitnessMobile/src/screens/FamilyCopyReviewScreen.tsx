@@ -357,7 +357,11 @@ const FamilyCopyReviewScreen: React.FC<FamilyCopyReviewScreenProps> = ({
                 style={{ minHeight: 44, minWidth: 44 }}
                 onPress={() => setTargetMealTypeId(mealType.id)}
               >
-                <Text className={selected ? 'text-white' : 'text-text-primary'}>
+                <Text
+                  className={
+                    selected ? 'text-accent-text' : 'text-text-primary'
+                  }
+                >
                   {mealType.name}
                 </Text>
               </Pressable>

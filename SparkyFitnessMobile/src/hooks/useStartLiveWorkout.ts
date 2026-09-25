@@ -132,12 +132,9 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
       const entryDate = getTodayDate();
       try {
         // Resolved before the create so a storage failure can't strand an
-        // already-created session. Preset ids collide across servers, so the
-        // link is only meaningful scoped to the active config.
-        const sourceServerConfigId =
-          sourcePresetId != null
-            ? (await getActiveServerConfig())?.id
-            : undefined;
+        // already-created session. Preset links and the Watch workout mirror
+        // must both be scoped to the active server config.
+        const sourceServerConfigId = (await getActiveServerConfig())?.id;
         // Hevy-style start: sets are created with empty weight/reps — the
         // plan renders as gray placeholders and is only recorded when a set
         // is completed or typed over.

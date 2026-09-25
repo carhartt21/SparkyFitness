@@ -101,6 +101,17 @@ describe('computeReminderSchedule', () => {
     }
   });
 
+  it('can examine farther ahead while keeping the default request limit', () => {
+    const times = computeReminderSchedule(
+      input({ now: at(15, 9), intervalHours: 1, maxCount: 128 })
+    );
+    expect(times).toHaveLength(128);
+    expect(times.at(-1)!.getTime()).toBeGreaterThan(at(19, 8).getTime());
+    expect(computeReminderSchedule(input({ now: at(15, 9) }))).toHaveLength(
+      MAX_SCHEDULED_WATER_REMINDERS
+    );
+  });
+
   it('terminates when the window is shorter than the interval', () => {
     const times = computeReminderSchedule(
       input({ now: at(15, 7), windowStart: '08:00', windowEnd: '09:00' })

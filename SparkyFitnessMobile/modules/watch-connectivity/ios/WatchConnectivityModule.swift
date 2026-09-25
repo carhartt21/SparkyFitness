@@ -13,8 +13,10 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
     var onContextRequest: (() -> Void)?
     /// A water container tap captured on the watch, awaiting a server write.
     var onWaterIntake: (([String: Any]) -> Void)?
+    var onManualWater: (([String: Any]) -> Void)?
     /// A request from the watch to delete one logged drink.
     var onWaterDelete: (([String: Any]) -> Void)?
+    var onWorkoutSetOperation: (([String: Any]) -> Void)?
 
     func activate() {
         guard WCSession.isSupported() else { return }
@@ -31,8 +33,12 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
             onContextRequest?()
         case "waterIntake":
             onWaterIntake?(payload)
+        case "manualWater":
+            onManualWater?(payload)
         case "waterDelete":
             onWaterDelete?(payload)
+        case "workoutSetOperation":
+            onWorkoutSetOperation?(payload)
         default:
             break
         }
@@ -94,7 +100,9 @@ public class WatchConnectivityModule: Module {
             "onCheckIn",
             "onContextRequest",
             "onWaterIntake",
-            "onWaterDelete"
+            "onManualWater",
+            "onWaterDelete",
+            "onWorkoutSetOperation"
         )
 
         OnCreate {
@@ -104,6 +112,7 @@ public class WatchConnectivityModule: Module {
             self.delegateHandler.onCheckIn = { [weak self] payload in
                 self?.sendEvent("onCheckIn", [
                     "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
                     "entryDate": payload["entryDate"] as? String ?? "",
                     "weightKg": payload["weightKg"] as? Double ?? 0,
                     // Absent (rather than null) when the wearer skipped body fat,
@@ -118,14 +127,37 @@ public class WatchConnectivityModule: Module {
             self.delegateHandler.onWaterIntake = { [weak self] payload in
                 self?.sendEvent("onWaterIntake", [
                     "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
                     "entryDate": payload["entryDate"] as? String ?? "",
                     "containerId": payload["containerId"] as? Int ?? 0,
+                    "loggedAt": payload["loggedAt"] as? String ?? "",
+                ])
+            }
+            self.delegateHandler.onManualWater = { [weak self] payload in
+                self?.sendEvent("onManualWater", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "loggedAt": payload["loggedAt"] as? String ?? "",
+                    "waterMl": payload["waterMl"] as? Int ?? 0,
+                    "scope": payload["scope"] as? String ?? "",
                 ])
             }
             self.delegateHandler.onWaterDelete = { [weak self] payload in
                 self?.sendEvent("onWaterDelete", [
                     "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
                     "entryId": payload["entryId"] as? String ?? "",
+                ])
+            }
+            self.delegateHandler.onWorkoutSetOperation = { [weak self] payload in
+                self?.sendEvent("onWorkoutSetOperation", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "sessionId": payload["sessionId"] as? String ?? "",
+                    "setKey": payload["setKey"] as? String ?? "",
+                    "setSignature": payload["setSignature"] as? String ?? "",
+                    "expectedCompleted": payload["expectedCompleted"] as? Bool ?? false,
+                    "completed": payload["completed"] as? Bool ?? false,
                 ])
             }
             self.delegateHandler.activate()

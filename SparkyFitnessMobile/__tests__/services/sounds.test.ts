@@ -3,6 +3,7 @@ import { createAudioPlayer, setAudioModeAsync } from 'expo-audio';
 import {
   __resetSoundsForTests,
   isRestTimerSoundEnabled,
+  playMobilityCueSound,
   playRestCompleteSound,
   willPlayRestCompleteSound,
 } from '../../src/services/sounds';
@@ -125,5 +126,18 @@ describe('sounds service', () => {
       expect(() => playRestCompleteSound()).not.toThrow();
       await flush();
     });
+  });
+
+  it('plays an opted-in mobility cue in the foreground independently of rest settings', async () => {
+    useAppPreferencesStore.getState().setRestTimerSoundEnabled(false);
+    playMobilityCueSound();
+    await flush();
+    expect(mockCreatePlayer).toHaveBeenCalledTimes(1);
+    setAppState('background');
+    playMobilityCueSound();
+    await flush();
+    expect(mockCreatePlayer.mock.results[0].value.play).toHaveBeenCalledTimes(
+      1
+    );
   });
 });

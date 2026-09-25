@@ -19,8 +19,10 @@ enum OutboundPayloads {
     private enum Kind {
         static let checkIn = "checkIn"
         static let waterIntake = "waterIntake"
+        static let manualWater = "manualWater"
         static let waterDelete = "waterDelete"
         static let contextRequest = "requestContext"
+        static let workoutSetOperation = "workoutSetOperation"
     }
 
     /// A morning check-in awaiting a server write.
@@ -34,6 +36,7 @@ enum OutboundPayloads {
             "clientId": checkIn.id,
             "entryDate": checkIn.entryDate,
             "weightKg": checkIn.weightKg,
+            "scope": checkIn.scope ?? "",
         ]
         if let bodyFat = checkIn.bodyFatPercentage {
             payload["bodyFatPercentage"] = bodyFat
@@ -49,6 +52,20 @@ enum OutboundPayloads {
             "clientId": tap.id,
             "entryDate": tap.entryDate,
             "containerId": tap.containerId,
+            "loggedAt": ISO8601DateFormatter().string(from: tap.loggedAt),
+            "scope": tap.scope,
+        ]
+    }
+
+    /// A standalone 250 ml action. Retries retain all fields, especially id.
+    static func manualWater(_ action: PendingQuickWaterAction) -> [String: Any] {
+        [
+            "type": Kind.manualWater,
+            "clientId": action.id,
+            "entryDate": action.entryDate,
+            "loggedAt": ISO8601DateFormatter().string(from: action.loggedAt),
+            "waterMl": 250,
+            "scope": action.scope,
         ]
     }
 
@@ -58,6 +75,20 @@ enum OutboundPayloads {
             "type": Kind.waterDelete,
             "clientId": request.id,
             "entryId": request.entryId,
+            "scope": request.scope,
+        ]
+    }
+
+    static func workoutSetOperation(_ operation: WorkoutSetOperation) -> [String: Any] {
+        [
+            "type": Kind.workoutSetOperation,
+            "clientId": operation.id,
+            "sessionId": operation.sessionId,
+            "setKey": operation.setKey,
+            "setSignature": operation.setSignature,
+            "expectedCompleted": operation.expectedCompleted,
+            "completed": operation.completed,
+            "scope": operation.scope ?? "",
         ]
     }
 

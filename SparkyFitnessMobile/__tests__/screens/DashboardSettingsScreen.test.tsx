@@ -5,6 +5,10 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import DashboardSettingsScreen from '../../src/screens/DashboardSettingsScreen';
 import { initializeI18n } from '../../src/localization/i18n';
+import {
+  useAppPreferencesStore,
+  __resetAppPreferencesStoreForTests,
+} from '../../src/stores/appPreferencesStore';
 
 jest.mock('../../src/hooks', () => ({
   useServerConnection: jest.fn(() => ({
@@ -60,6 +64,7 @@ describe('DashboardSettingsScreen', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetAppPreferencesStoreForTests();
   });
 
   test('renders a Health Trends row', () => {
@@ -75,5 +80,13 @@ describe('DashboardSettingsScreen', () => {
     fireEvent.press(getByTestId('dashboard-settings-health-trends'));
 
     expect(navigation.navigate).toHaveBeenCalledWith('HealthTrendsSettings');
+  });
+
+  test('does not offer a Dashboard fasting card while fasting is disabled', () => {
+    useAppPreferencesStore.getState().setFastingEnabled(false);
+    const { getByText, getByLabelText } = renderScreen();
+
+    expect(getByText('Enable fasting in App Settings first')).toBeTruthy();
+    expect(getByLabelText('Fasting').props.disabled).toBe(true);
   });
 });

@@ -15,7 +15,7 @@ import {
 interface HealthDataWritebackProps {
   writebackStates: Record<string, boolean>;
   handleToggleWriteback: (metric: WritebackMetric, newValue: boolean) => void;
-  /** Delete all SparkyFitness-written records (full purge — caller confirms). */
+  /** Delete all X on Track-written records (full purge — caller confirms). */
   onRemoveAllData: () => void;
   /** Open the date-range picker to remove a window of records. */
   onRemoveDateRange: () => void;
@@ -36,7 +36,7 @@ const groupByCategory = (
   );
 
 /**
- * Opt-in toggles for writing SparkyFitness diary data out to the OS health store
+ * Opt-in toggles for writing X on Track diary data out to the OS health store
  * (Health Connect on Android, Apple Health on iOS). Grouped into accordion categories
  * to match the read "Health Data to Sync" card. Mobile-only; renders nothing elsewhere.
  */
@@ -116,7 +116,7 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
       <Text className="text-sm text-text-muted mb-3">
         {t('healthSync.writeSummary', {
           defaultValue:
-            'Syncs the data you log in SparkyFitness out to {{store}}, keeping the two in sync.',
+            'Syncs the data you log in X on Track out to {{store}}, keeping the two in sync.',
           store: storeName,
         })}
       </Text>
@@ -166,7 +166,7 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
           >
             <Text className="text-sm font-medium text-text-danger-subtle">
               {t('healthSync.removeData', {
-                defaultValue: 'Remove SparkyFitness data from {{store}}',
+                defaultValue: 'Remove X on Track data from {{store}}',
                 store: storeName,
               })}
             </Text>

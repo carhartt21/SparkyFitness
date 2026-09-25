@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCachedNutritionFavorites } from '../hooks/useCachedNutritionFavorites';
@@ -6,6 +6,7 @@ import {
   logFavoriteFood,
   logQuickNutrition,
 } from '../services/quickNutritionLog';
+import { subscribeNutritionIdentity } from '../services/nutritionIdentity';
 
 const numericValue = (text: string): number | undefined => {
   if (!text.trim()) return undefined;
@@ -26,6 +27,18 @@ export default function NutritionQuickActions({ onTakePhoto }: Props) {
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+
+  useEffect(
+    () =>
+      subscribeNutritionIdentity(() => {
+        setShowQuick(false);
+        setCalories('');
+        setProtein('');
+        setCarbs('');
+        setFat('');
+      }),
+    []
+  );
 
   const ready = cache && cache.mealTypes.some((type) => type.is_visible);
   if (!ready && !storageError && !onTakePhoto) return null;
@@ -201,7 +214,7 @@ export default function NutritionQuickActions({ onTakePhoto }: Props) {
               onPress={() => void saveQuick()}
               className="rounded-lg bg-accent-primary px-3 py-3"
             >
-              <Text className="text-center font-semibold text-white">
+              <Text className="text-center font-semibold text-accent-text">
                 {t('common.save', { defaultValue: 'Save' })}
               </Text>
             </Pressable>

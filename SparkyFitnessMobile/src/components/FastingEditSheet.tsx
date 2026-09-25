@@ -63,6 +63,7 @@ const FastingEditSheet = forwardRef<FastingEditSheetRef, FastingEditSheetProps>(
       '--color-text-secondary',
       '--color-icon-danger',
     ]) as [string, string, string, string, string, string];
+    const accentText = useCSSVariable('--color-accent-text') as string;
 
     const [fastId, setFastId] = useState<string | null>(null);
     const [startDate, setStartDate] = useState<Date>(() => new Date());
@@ -111,7 +112,7 @@ const FastingEditSheet = forwardRef<FastingEditSheetRef, FastingEditSheetProps>(
     const pickerStyles = useMemo(
       () => ({
         selected: { backgroundColor: accentPrimary },
-        selected_label: { color: '#FFFFFF' },
+        selected_label: { color: accentText },
         today: { borderColor: accentPrimary, borderWidth: 1 },
         day_label: { color: textPrimary },
         weekday_label: { color: textSecondary },
@@ -130,11 +131,11 @@ const FastingEditSheet = forwardRef<FastingEditSheetRef, FastingEditSheetProps>(
         year_label: { color: textPrimary },
         time_label: { color: textPrimary },
         selected_month: { backgroundColor: accentPrimary },
-        selected_month_label: { color: '#FFFFFF' },
+        selected_month_label: { color: accentText },
         selected_year: { backgroundColor: accentPrimary },
-        selected_year_label: { color: '#FFFFFF' },
+        selected_year_label: { color: accentText },
       }),
-      [accentPrimary, textPrimary, textSecondary, textMuted]
+      [accentPrimary, accentText, textPrimary, textSecondary, textMuted]
     );
 
     const pickerComponents = useMemo(
@@ -345,7 +346,7 @@ const FastingEditSheet = forwardRef<FastingEditSheetRef, FastingEditSheetProps>(
               isPending || !isValid ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-white text-base font-semibold">
+            <Text className="text-accent-text text-base font-semibold">
               {isSavePending
                 ? t('fastingEdit.saving', { defaultValue: 'Saving...' })
                 : t('fastingEdit.saveChanges', {

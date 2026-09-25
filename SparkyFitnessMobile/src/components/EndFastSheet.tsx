@@ -55,6 +55,7 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
         '--color-text-primary',
         '--color-text-secondary',
       ]) as [string, string, string, string, string];
+    const accentText = useCSSVariable('--color-accent-text') as string;
 
     const [fastId, setFastId] = useState<string | null>(null);
     const [startDate, setStartDate] = useState<Date>(() => new Date());
@@ -100,7 +101,7 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
     const pickerStyles = useMemo(
       () => ({
         selected: { backgroundColor: accentPrimary },
-        selected_label: { color: '#FFFFFF' },
+        selected_label: { color: accentText },
         today: { borderColor: accentPrimary, borderWidth: 1 },
         day_label: { color: textPrimary },
         weekday_label: { color: textSecondary },
@@ -118,11 +119,11 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
         year_label: { color: textPrimary },
         time_label: { color: textPrimary },
         selected_month: { backgroundColor: accentPrimary },
-        selected_month_label: { color: '#FFFFFF' },
+        selected_month_label: { color: accentText },
         selected_year: { backgroundColor: accentPrimary },
-        selected_year_label: { color: '#FFFFFF' },
+        selected_year_label: { color: accentText },
       }),
-      [accentPrimary, textPrimary, textSecondary, textMuted]
+      [accentPrimary, accentText, textPrimary, textSecondary, textMuted]
     );
 
     const pickerComponents = useMemo(

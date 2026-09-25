@@ -747,7 +747,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
 
   const handlePhotoGateLogManually = () => {
     setPhotoGateVisible(false);
-    navigation.replace('FoodSearch', { date });
+    navigation.replace('FoodSearch', { date, mealTypeId });
   };
 
   const handleShowManualEntry = () => {
@@ -1076,7 +1076,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
             <Text className="text-text-secondary text-sm">
               {t('foodScan.photo.setupHelp', {
                 defaultValue:
-                  'Open SparkyFitness in a browser and visit Settings → AI to add an AI provider, then return here.',
+                  'Open X on Track in a browser and visit Settings → AI to add an AI provider, then return here.',
               })}
             </Text>
             <View className="gap-2 mt-2">

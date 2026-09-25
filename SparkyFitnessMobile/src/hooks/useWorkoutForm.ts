@@ -1,5 +1,4 @@
 import { useReducer, useCallback } from 'react';
-import { clearDraft } from '../services/workoutDraftService';
 import { useDraftPersistence } from './useDraftPersistence';
 import {
   draftExercisesReducer,
@@ -285,7 +284,7 @@ export function useWorkoutForm(options?: UseWorkoutFormOptions) {
     reorderExercises,
   } = useDraftExerciseActions(dispatch, state.exercises);
 
-  const { clearPersistedDraft } = useDraftPersistence({
+  const { clearPersistedDraft, clearCurrentDraft } = useDraftPersistence({
     state,
     draftType: 'workout',
     isEditMode,
@@ -307,9 +306,9 @@ export function useWorkoutForm(options?: UseWorkoutFormOptions) {
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
     if (!isEditMode) {
-      void clearDraft();
+      void clearCurrentDraft();
     }
-  }, [isEditMode]);
+  }, [clearCurrentDraft, isEditMode]);
 
   const discardDraft = useCallback(async () => {
     if (!isEditMode) {

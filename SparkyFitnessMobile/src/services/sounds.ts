@@ -38,6 +38,16 @@ export function willPlayRestCompleteSound(): boolean {
  */
 export function playRestCompleteSound(): void {
   if (!willPlayRestCompleteSound()) return;
+  playForegroundChime();
+}
+
+/** An explicitly enabled cue for a visible guided-mobility timer. */
+export function playMobilityCueSound(): void {
+  if (AppState.currentState !== 'active') return;
+  playForegroundChime();
+}
+
+function playForegroundChime(): void {
   void (async () => {
     try {
       if (!audioModeConfigured) {

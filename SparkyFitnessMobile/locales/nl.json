@@ -1,8 +1,8 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "SparkyFitness heeft toegang nodig tot jouw camera om barcodes en labels te scannen.",
-    "NSHealthShareUsageDescription": "SparkyFitness leest gezondheidsdata (zoals activiteiten, workouts en lichamelijke metingen) om deze in de app weer te geven en te synchroniseren met jouw zelf-gehoste SparkyFitness server.",
-    "NSHealthUpdateUsageDescription": "SparkyFitness schrijft de voedingswaarden en vochtinname, die je in de app bijhoudt, naar Apple Gezondheid. Deze twee houden elkaar gesynchroniseerd.",
-    "NSLocalNetworkUsageDescription": "SparkyFitness verbindt met zelf-gehoste servers op jouw lokale netwerk."
+    "NSCameraUsageDescription": "X on Track heeft toegang nodig tot jouw camera om barcodes en labels te scannen.",
+    "NSHealthShareUsageDescription": "X on Track leest gezondheidsdata (zoals activiteiten, workouts en lichamelijke metingen) om deze in de app weer te geven en te synchroniseren met jouw zelf-gehoste X on Track server.",
+    "NSHealthUpdateUsageDescription": "X on Track schrijft de voedingswaarden en vochtinname, die je in de app bijhoudt, naar Apple Gezondheid. Deze twee houden elkaar gesynchroniseerd.",
+    "NSLocalNetworkUsageDescription": "X on Track verbindt met zelf-gehoste servers op jouw lokale netwerk."
   }
 }

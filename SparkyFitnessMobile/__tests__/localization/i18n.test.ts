@@ -181,6 +181,11 @@ describe('representative PR3 strings', () => {
       expect(i18n.t('navigation.settings')).toBe('Ajustes');
       expect(i18n.t('common.save')).toBe('Guardar');
       expect(i18n.t('common.saving')).toBe('Guardando…');
+      expect(i18n.t('onboarding.learnMoreTitle')).toContain('X on Track');
+      expect(i18n.t('onboarding.learnMoreTitle')).not.toContain(
+        'SparkyFitness'
+      );
+      expect(i18n.t('chat.title')).not.toContain('Sparky');
     });
   });
 

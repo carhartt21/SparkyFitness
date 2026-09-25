@@ -107,6 +107,21 @@ describe('iOS WidgetKit Swift contract', () => {
   });
 
   describe('widget identity and timeline reload', () => {
+    it('requires the nutrition snapshot to match the active account marker', () => {
+      const swift = readSwift('nutritionEngagementWidget.swift');
+      const coordinator = fs.readFileSync(
+        path.join(
+          __dirname,
+          '../../src/components/NutritionEngagementCoordinator.tsx'
+        ),
+        'utf8'
+      );
+      expect(swift).toContain('nutritionEngagementScope');
+      expect(swift).toContain('payload.scope == scope');
+      expect(coordinator).toContain('storage.remove(WIDGET_SCOPE_KEY)');
+      expect(coordinator).toContain('subscribeNutritionIdentity(refreshScope)');
+    });
+
     it('opens the capture-first camera from both calorie and macro widgets', () => {
       for (const file of ['widgets.swift', 'macroWidget.swift']) {
         const source = readSwift(file);

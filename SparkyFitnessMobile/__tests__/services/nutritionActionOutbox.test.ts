@@ -6,6 +6,10 @@ import {
   NutritionOutboxCorruptError,
   acknowledgeNutritionActionVisible,
   enqueueFoodEntry,
+  enqueueManualWaterAction,
+  enqueueContainerWaterAction,
+  enqueuePlannedSupplementAction,
+  discardRejectedPlannedSupplementAction,
   enqueuePhotoCompletion,
   listNutritionActions,
   listPendingNutritionActions,
@@ -56,6 +60,144 @@ describe('nutrition action outbox', () => {
       (await AsyncStorage.getAllKeys()).some((key) => key.includes(operation))
     ).toBe(true);
     expect(await listPendingNutritionActions(identity)).toEqual([action]);
+  });
+
+  it('keeps one immutable plain-water action across retries', async () => {
+    const waterInput = {
+      ...identity,
+      clientOperationId: operation,
+      entryDate: '2026-09-23',
+      waterMl: 250,
+      loggedAt: '2026-09-23T10:15:00.000Z',
+    };
+    const first = await enqueueManualWaterAction(waterInput);
+    expect(first.payload.client_operation_id).toBe(operation);
+    expect(await enqueueManualWaterAction(waterInput)).toEqual(first);
+    await expect(
+      enqueueManualWaterAction({ ...waterInput, waterMl: 500 })
+    ).rejects.toThrow('another action');
+    expect(await listPendingNutritionActions(identity)).toEqual([first]);
+  });
+
+  it('retries an attention-required water action with its original operation and payload', async () => {
+    const first = await enqueueManualWaterAction({
+      ...identity,
+      clientOperationId: operation,
+      entryDate: '2026-09-23',
+      waterMl: 250,
+      loggedAt: '2026-09-23T10:15:00.000Z',
+    });
+    await markNutritionActionAttentionRequired(
+      identity,
+      operation,
+      'validation'
+    );
+
+    const retried = await retryNutritionAction(identity, operation);
+    expect(retried.syncState).toBe('pending');
+    expect(retried.clientOperationId).toBe(first.clientOperationId);
+    expect(retried.payload).toEqual(first.payload);
+
+    await markNutritionActionSynced(identity, operation, 'water-entry-1');
+    const afterSync = await retryNutritionAction(identity, operation);
+    expect(afterSync.syncState).toBe('synced');
+    expect(await listPendingNutritionActions(identity)).toEqual([]);
+  });
+
+  it('persists the original container, day and time and rejects a changed replay', async () => {
+    const waterInput = {
+      ...identity,
+      clientOperationId: operation,
+      entryDate: '2026-09-23',
+      containerId: 12,
+      loggedAt: '2026-09-23T10:15:00.000Z',
+    };
+    const first = await enqueueContainerWaterAction(waterInput);
+    expect(first.type).toBe('logContainerWater');
+    expect(first.payload.client_operation_id).toBe(operation);
+    expect(await enqueueContainerWaterAction(waterInput)).toEqual(first);
+    await expect(
+      enqueueContainerWaterAction({ ...waterInput, containerId: 13 })
+    ).rejects.toThrow('another action');
+    expect(await listPendingNutritionActions(identity)).toEqual([first]);
+  });
+
+  it('keeps one supplement response per schedule and day within each account', async () => {
+    const supplementInput = {
+      ...identity,
+      medicationId: '11111111-1111-4111-8111-111111111111',
+      scheduleId: '22222222-2222-4222-8222-222222222222',
+      entryDate: '2026-09-23',
+      status: 'taken' as const,
+      occurredAt: '2026-09-23T10:15:00.000Z',
+    };
+    const first = await enqueuePlannedSupplementAction(supplementInput);
+    const repeated = await enqueuePlannedSupplementAction({
+      ...supplementInput,
+      occurredAt: '2026-09-23T10:16:00.000Z',
+    });
+    expect(repeated).toEqual(first);
+    expect(first.payload.client_operation_id).toBe(first.clientOperationId);
+    await expect(
+      enqueuePlannedSupplementAction({ ...supplementInput, status: 'skipped' })
+    ).rejects.toThrow('already has a response');
+    expect(await listNutritionActions(identity)).toHaveLength(1);
+    expect(
+      await listNutritionActions({ ...identity, userId: 'other-user' })
+    ).toEqual([]);
+  });
+
+  it('clears only a rejected supplement response after explicit repair', async () => {
+    const action = await enqueuePlannedSupplementAction({
+      ...identity,
+      medicationId: '11111111-1111-4111-8111-111111111111',
+      scheduleId: '22222222-2222-4222-8222-222222222222',
+      entryDate: '2026-09-23',
+      status: 'skipped',
+      occurredAt: '2026-09-23T10:15:00.000Z',
+    });
+    expect(
+      await discardRejectedPlannedSupplementAction(
+        identity,
+        action.clientOperationId
+      )
+    ).toBe(false);
+    await markNutritionActionAttentionRequired(
+      identity,
+      action.clientOperationId,
+      'validation'
+    );
+    expect(
+      await discardRejectedPlannedSupplementAction(
+        { ...identity, userId: 'other-user' },
+        action.clientOperationId
+      )
+    ).toBe(false);
+    expect(
+      await discardRejectedPlannedSupplementAction(
+        identity,
+        action.clientOperationId
+      )
+    ).toBe(true);
+    expect(await listNutritionActions(identity)).toEqual([]);
+  });
+
+  it('accepts a three-decimal water volume and rejects extra precision', async () => {
+    const waterInput = {
+      ...identity,
+      clientOperationId: operation,
+      entryDate: '2026-09-23',
+      waterMl: 1.001,
+      loggedAt: '2026-09-23T10:15:00.000Z',
+    };
+    await enqueueManualWaterAction(waterInput);
+    await expect(
+      enqueueManualWaterAction({
+        ...waterInput,
+        clientOperationId: '44444444-4444-4444-8444-444444444444',
+        waterMl: 1.0001,
+      })
+    ).rejects.toThrow();
   });
 
   it('does not invent zero nutrition for unknown values', async () => {

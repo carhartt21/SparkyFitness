@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Router for the watch app. First run is a one-time gate; after that, Goals,
-/// Water, Entry and Trend are pages the wearer swipes between — swiping is
+/// Workout, Water, Entry and Trend are pages the wearer swipes between — swiping is
 /// the only way to move between them, there is no button.
 struct ContentView: View {
     /// Identifies a page; the cases are `.tag` values, nothing more.
@@ -10,7 +10,7 @@ struct ContentView: View {
     /// below, NOT by the order of these cases — a `.page`-style TabView lays
     /// its children out in body order. Reordering this enum alone changes
     /// nothing on screen, so change both together or neither.
-    private enum Page: Int { case goals, water, entry, trend }
+    private enum Page: Int { case goals, workout, water, entry, trend }
 
     @EnvironmentObject private var store: CheckInStore
     @EnvironmentObject private var session: WatchSessionManager
@@ -30,18 +30,28 @@ struct ContentView: View {
 
     var body: some View {
         Group {
-            if !didFirstRun && store.needsFirstRunEntry {
+            if !didFirstRun && store.needsFirstRunEntry && store.context.workout == nil && !store.canCaptureActions {
+                VStack(spacing: 8) {
+                    Text("Open X on Track on your phone to sync this Watch")
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                    Button("Retry sync") { session.requestContext() }
+                }
+            } else if !didFirstRun && store.needsFirstRunEntry && store.context.workout == nil {
                 FirstRunEntryView { weight, bodyFat in
-                    let checkIn = store.capture(weightKg: weight, bodyFatPercentage: bodyFat)
+                    guard let checkIn = store.capture(weightKg: weight, bodyFatPercentage: bodyFat) else { return }
                     store.markState(session.send(checkIn), for: checkIn)
                     didFirstRun = true
                     page = .trend
                 }
             } else {
-                // This order is the swipe order: Goals ▸ Water ▸ Entry ▸ Trend.
+                // This order is the swipe order: Goals ▸ Workout ▸ Water ▸ Entry ▸ Trend.
                 TabView(selection: Binding(get: { page ?? initialPage }, set: { page = $0 })) {
                     GoalSummaryView()
                         .tag(Page.goals)
+
+                    WorkoutView()
+                        .tag(Page.workout)
 
                     WaterIntakeView()
                         .tag(Page.water)
@@ -86,8 +96,8 @@ struct ContentView: View {
                   let requested = destination(for: link)
             else { return }
             // Deliberately does not touch `didFirstRun`: if there is no seed
-            // weight yet, that one-time entry is still owed, and the requested
-            // page is simply waiting behind it rather than being skipped.
+            // weight yet, that one-time entry is still owed after the active
+            // workout ends.
             page = requested
         }
     }
@@ -104,10 +114,11 @@ struct ContentView: View {
         }
     }
 
-    /// Landing page on a normal (non-first-run) launch: Nutrition goal if today is
-    /// already logged — nothing left to capture — otherwise Entry.
+    /// An active workout should be reachable immediately, even when the Watch
+    /// has not yet received its first weight check-in.
     private var initialPage: Page {
-        store.isReplacingToday ? .goals : .entry
+        if store.context.workout != nil { return .workout }
+        return store.isReplacingToday ? .goals : .entry
     }
 }
 
@@ -121,12 +132,26 @@ struct FirstRunEntryView: View {
     @EnvironmentObject private var store: CheckInStore
     @State private var weightText = ""
     @State private var bodyFatText = ""
+    @State private var entryUnit: WeightUnit?
 
-    /// Mirrors the phone's Settings → default weight unit, same as the crown
-    /// screen and trend chart. Available here as long as the watch has synced
-    /// with the phone at least once, which first-run entry doesn't require —
-    /// falls back to kg otherwise.
-    private var unit: WeightUnit { store.context.effectiveWeightUnit }
+    /// Keep the unit printed beside a typed number fixed for this form.
+    /// A later phone context must not reinterpret an unfinished value.
+    private var unit: WeightUnit { entryUnit ?? store.context.effectiveWeightUnit }
+
+    private var parsedWeightKg: Double? {
+        guard let weight = parse(weightText) else { return nil }
+        let weightKg = unit.toKg(weight)
+        return CheckInInputBounds.weightKg.contains(weightKg) ? weightKg : nil
+    }
+
+    private var parsedBodyFat: Double? {
+        guard let bodyFat = parse(bodyFatText) else { return nil }
+        return CheckInInputBounds.bodyFatPercentage.contains(bodyFat) ? bodyFat : nil
+    }
+
+    private var bodyFatIsValid: Bool {
+        bodyFatText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || parsedBodyFat != nil
+    }
 
     var body: some View {
         ScrollView {
@@ -142,18 +167,34 @@ struct FirstRunEntryView: View {
                 TextField("Weight \(unit.suffix)", text: $weightText)
                 TextField("Body fat % (optional)", text: $bodyFatText)
 
+                if !weightText.isEmpty && parsedWeightKg == nil {
+                    Text("Enter a valid weight")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                } else if !bodyFatIsValid {
+                    Text("Body fat must be 0–100%")
+                        .font(.caption2)
+                        .foregroundStyle(.orange)
+                }
+
                 Button("Save") {
-                    guard let weight = parse(weightText) else { return }
-                    onSave(unit.toKg(weight), parse(bodyFatText))
+                    guard let weightKg = parsedWeightKg, bodyFatIsValid else { return }
+                    onSave(weightKg, parsedBodyFat)
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(parse(weightText) == nil)
+                .disabled(parsedWeightKg == nil || !bodyFatIsValid || !store.canCaptureActions)
             }
             .padding(.horizontal, 4)
+        }
+        .onAppear {
+            if entryUnit == nil { entryUnit = store.context.effectiveWeightUnit }
         }
     }
 
     private func parse(_ value: String) -> Double? {
-        Double(value.replacingOccurrences(of: ",", with: "."))
+        let normalized = value.trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: ",", with: ".")
+        guard let parsed = Double(normalized), parsed.isFinite else { return nil }
+        return parsed
     }
 }

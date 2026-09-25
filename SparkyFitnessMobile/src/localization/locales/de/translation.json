@@ -1,5 +1,8 @@
 {
   "engagement": {
+    "dailyOptionalBudget": "Optionale Erinnerungen heute",
+    "dailyOptionalBudgetSummary": "{{used}} von 3 Tagesplätzen belegt. Mahlzeit-, Bewegungs- und Wassererinnerungen teilen sie; Medikamenten- und Pausenhinweise sind getrennt.",
+    "dailyOptionalBudgetUnavailable": "Anzahl der heutigen Erinnerungen nicht verfügbar. Mahlzeit-, Bewegungs- und Wassererinnerungen teilen drei Plätze.",
     "captureReminderTitle": "Mahlzeit-Check-in",
     "captureReminderBody": "Ein Foto reicht fürs Erste.",
     "takePhotoAction": "Foto aufnehmen",
@@ -19,10 +22,11 @@
     "breakTitle": "Bewegungspause",
     "breakSubtitle": "Ein Timer, kein Bewegungsnachweis",
     "breakReady": "Bereit für eine Bewegungspause?",
-    "breakExplanation": "Steh auf, geh ein Stück oder bewege dich auf eine für dich passende Weise. Der Timer erfasst keine Bewegung.",
+    "breakExplanation": "Steh auf, geh ein Stück oder bewege dich auf eine für dich passende Weise. Der Timer erfasst keine Bewegung; eine Aktivität kannst du separat speichern.",
     "breakError": "Der Pausentimer konnte nicht aktualisiert werden.",
     "startBreak": "Pausentimer starten",
     "finishBreak": "Timer beenden",
+    "logActivity": "Aktivität erfassen",
     "twoMinutes": "2 Min.",
     "fiveMinutes": "5 Min.",
     "tenMinutes": "10 Min.",
@@ -112,6 +116,17 @@
     "lastSynced": "Zuletzt synchronisiert {{time}}",
     "addServer": "Tippe, um einen Server hinzuzufügen",
     "title": "Einstellungen",
+    "sections": {
+      "connection": "Daten & Synchronisierung",
+      "experience": "App anpassen",
+      "tracking": "Erfassung anpassen",
+      "family": "Familie & Freigaben",
+      "support": "Hilfe & Informationen"
+    },
+    "connectionStatus": {
+      "connected": "Verbunden",
+      "unavailable": "Verbindung nicht verfügbar"
+    },
     "shareReportFailed": "Diagnosebericht konnte nicht geteilt werden: {{error}}",
     "serverConnected": "Server-Einstellungen. Verbunden.",
     "serverConnectionFailed": "Server-Einstellungen. Verbindung fehlgeschlagen.",
@@ -148,6 +163,10 @@
       "title": "Benachrichtigungen",
       "subtitle": "Ruhezeiten-Timer, Fastenziele und Erinnerungen an die Einnahme von Medikamenten."
     },
+    "fasting": {
+      "title": "Fasten",
+      "subtitle": "Fasten im Dashboard anzeigen und Erinnerungen an Fastenziele erlauben."
+    },
     "haptics": {
       "title": "Haptisches Feedback",
       "subtitle": "Leichte Vibrationen für Timer und Bestätigungen."
@@ -158,7 +177,7 @@
     }
   },
   "languageSettings": {
-    "subtitle": "Verwenden Sie die Sprache Ihres Geräts oder wählen Sie eine Sprache für SparkyFitness aus."
+    "subtitle": "Verwenden Sie die Sprache Ihres Geräts oder wählen Sie eine Sprache für X on Track aus."
   },
   "navigation": {
     "settings": "Einstellungen",
@@ -348,7 +367,14 @@
       "failedRemoveDose": "Fehler beim Löschen der Einnahme von {{name}}.",
       "failedUnmark": "Fehler bei der Markierungsentfernung von {{name}}.",
       "failedUpdate": "Fehler beim update {{name}}",
-      "failedLog": "Fehler beim Loggen von {{name}}."
+      "failedLog": "Fehler beim Loggen von {{name}}.",
+      "savedActionError": "Eine gespeicherte Reaktion auf die Nahrungsergänzungs-Erinnerung konnte nicht gelesen werden. Prüfe das Protokoll, bevor du die Einnahme erneut einträgst.",
+      "refreshing": "Synchronisiert; wird aktualisiert",
+      "discardRejectedTitle": "Abgelehnte Reaktion entfernen?",
+      "discardRejectedMessage": "Der Server hat diese gespeicherte Reaktion nicht angenommen. Prüfe den Einnahmeverlauf, bevor du sie erneut einträgst.",
+      "clearRejected": "Reaktion entfernen",
+      "rejectedAction": "Eine gespeicherte Reaktion auf die Nahrungsergänzungs-Erinnerung muss geprüft werden.",
+      "reviewAndClear": "Einnahme prüfen und dann diese Reaktion entfernen"
     },
     "card": {
       "title": "Medikamente",
@@ -586,7 +612,7 @@
     },
     "exactAlarm": {
       "title": "An-Zeit alerts",
-      "message": "Android delays scheduled alerts unless SparkyFitness is allowed to set exact alarms. Aktivieren \"Alarms & reminders\" so rest timers und medication reminders ring an Zeit.",
+      "message": "Android delays scheduled alerts unless X on Track is allowed to set exact alarms. Aktivieren \"Alarms & reminders\" so rest timers und medication reminders ring an Zeit.",
       "notNow": "Neint Jetzt",
       "openSettings": "Öffnen Einstellungen"
     },
@@ -752,7 +778,7 @@
     "pastSets": "Vergangene Sätze und Wiederholungen",
     "wellness": "Wohlbefinden",
     "progressPhotos": "Fortschrittsfotos",
-    "askSparky": "Sparky fragen",
+    "askSparky": "Assistenten fragen",
     "syncHealth": "Synchronisierung Gesundheit Data",
     "logPregnancyEntry": "Eintragen Schwangerschaft Entry",
     "logCycle": "Eintragen Zyklus"
@@ -773,7 +799,7 @@
     "newPreset": "Neu Preset",
     "scanFood": "Scannen Ernährung",
     "photoFood": "Foto Ernährung",
-    "sparky": "Sparky",
+    "sparky": "Assistent",
     "editMeal": "Bearbeiten Mahlzeit",
     "createMeal": "Create Mahlzeit",
     "foodEntry": "Ernährung Entry",
@@ -864,19 +890,19 @@
     "healthConnect": "Gesundheit Connect",
     "appleSummary": "Reads selected data von Apple Gesundheit und syncs it to dein self-hosted Server.",
     "connectSummary": "Reads selected data von Gesundheit Connect und syncs it to dein self-hosted Server.",
-    "appleDetail": "SparkyFitness reads the Gesundheit data du auswählen unter using Apple Gesundheit (HealthKit). If Synchronisierung is aktiviert, data is synchronized only zwischen dein device und dein self-hosted SparkyFitness Server (manual or background).\n\nVerwalten or entfernen access in Einstellungen → Gesundheit → Data Access & Devices → SparkyFitnessMobile",
-    "connectDetail": "SparkyFitness reads the Gesundheit data du auswählen unter using Gesundheit Connect. If Synchronisierung is aktiviert, data is synchronized only zwischen dein device und dein self-hosted SparkyFitness Server (manual or background).",
+    "appleDetail": "X on Track reads the Gesundheit data du auswählen unter using Apple Gesundheit (HealthKit). If Synchronisierung is aktiviert, data is synchronized only zwischen dein device und dein self-hosted X on Track Server (manual or background).\n\nVerwalten or entfernen access in Einstellungen → Gesundheit → Data Access & Devices → X on Track",
+    "connectDetail": "X on Track reads the Gesundheit data du auswählen unter using Gesundheit Connect. If Synchronisierung is aktiviert, data is synchronized only zwischen dein device und dein self-hosted X on Track Server (manual or background).",
     "title": "Gesundheit Data to Synchronisierung",
     "notMedicalAdvice": "Neint medical advice.",
     "consultProfessional": "Consult a healthcare professional für medical advice, diagnosis, or treatment.",
     "enableAll": "All Health Metrics aktivieren",
     "batteryNote": "Enabling many Gesundheit metrics may increase battery usage. Each aktiviert metric allows the App to wake in the background when neu data is verfügbar.",
     "writeTitle": "Schreiben in {{store}}",
-    "writeSummary": "Synchronisierungs the data du eintragen in SparkyFitness out to {{store}}, keeping the two in Synchronisierung.",
+    "writeSummary": "Synchronisierungs the data du eintragen in X on Track out to {{store}}, keeping the two in Synchronisierung.",
     "removeFrom": "from {{store}} entfernen",
     "allTime": "Gesamter Zeitraum",
     "pickDateRange": "Pick a Datumsbereich…",
-    "removeData": "SparkyFitness data from {{store}} entfernen",
+    "removeData": "X on Track data from {{store}} entfernen",
     "source": "Quelle:",
     "syncMetricLabel": "Synchronisierung {{metric}}",
     "syncMetricHint": "Toggles synchronization für this Gesundheit metric.",
@@ -901,8 +927,8 @@
     "sso": "SSO",
     "passkey": "Zugangsschlüssel",
     "connect": "Verbinden",
-    "connectTitle": "Verbinden in SparkyFitness",
-    "signInWithPasskey": "Sign in mit Passkey",
+    "connectTitle": "Mit X on Track verbinden",
+    "signInWithPasskey": "Mit Passkey anmelden",
     "orSignInWith": "Or sign in mit",
     "noMethods": "Keine standard sign-in methods are currently enabled on this server. Please use an API Key or contact an administrator.",
     "pasteUrl": "Paste URL von clipboard",
@@ -910,7 +936,7 @@
     "errors": {
       "emailRequired": "Bitte enter your email..",
       "passwordRequired": "Bitte enter your password..",
-      "connectionFailed": "connect to server. Check the URL and try again. konnte nicht ausgeführt werden.",
+      "connectionFailed": "Verbindung zum Server fehlgeschlagen. Prüfe die URL und versuche es erneut.",
       "apiKeyRequired": "Bitte enter an API key..",
       "invalidApiKey": "Invalid API key. Please check und try again.",
       "unknown": "Unbekannt Fehler",
@@ -923,11 +949,11 @@
       "verificationFailed": "Verification fehlgeschlagen. Bitte versuche es erneut.",
       "sendEmailCodeFailed": "Fehler beim send email code. Please try again..",
       "noServerSelected": "Keine server selected.",
-      "httpsRequired": "HTTPS is erforderlich für Server connections.",
+      "httpsRequired": "Für die Verbindung zum Server ist HTTPS erforderlich.",
       "frontendUrlRequired": "Bitte enter your Frontend URL first..",
       "saveFailed": "Speichern fehlgeschlagen: {{message}}",
       "generic": "Authentication fehlgeschlagen. Bitte versuche es erneut.",
-      "connectionRetry": "connect to server. Please try again. konnte nicht ausgeführt werden.",
+      "connectionRetry": "Verbindung zum Server fehlgeschlagen. Bitte versuche es erneut.",
       "httpsRequiredEdit": "HTTPS is erforderlich für Server connections. Please bearbeiten this Konfiguration to use HTTPS.",
       "httpsRequiredServer": "Serververbindungen erfordern HTTPS."
     },
@@ -965,8 +991,8 @@
   },
   "onboarding": {
     "subtitle": "Dein self-hosted fitness tracker",
-    "learnMoreTitle": "Mehr erfahren about SparkyFitness",
-    "learnMoreBody": "SparkyFitness helps du erfassen dein Ernährung, workouts, und Gesundheit data in one place.",
+    "learnMoreTitle": "Mehr erfahren about X on Track",
+    "learnMoreBody": "X on Track helps du erfassen dein Ernährung, workouts, und Gesundheit data in one place.",
     "learnMorePrivacy": "It runs an dein own Server so dein data stays private.",
     "errors": {
       "validFrontendUrl": "a valid Frontend URL eingeben",
@@ -981,7 +1007,7 @@
     "loadingSummary": "Wird geladen summary...",
     "loadFailed": "Die Zusammenfassung konnte nicht geladen werden",
     "checkConnection": "Bitte check your connection and try again..",
-    "askSparky": "Sparky fragen…",
+    "askSparky": "Assistenten fragen…",
     "nutrients": "Nährstoffe",
     "food": "Essen",
     "tapToAddFood": "Tippe, um hinzufügen Ernährung",
@@ -992,6 +1018,7 @@
     "burned": "Verbrannt",
     "hydration": "Flüssigkeitszufuhr",
     "ofVolume": "von {{value}} {{unit}}",
+    "noHydrationGoal": "Kein Tagesziel festgelegt",
     "perBottle": "{{value}} {{unit}} pro Flasche",
     "exercise": "Übung",
     "minutes": "Minuten",
@@ -1047,12 +1074,12 @@
     },
     "removal": {
       "removed": "Entfernend",
-      "deleted": "Löschend SparkyFitness data von {{store}}.",
+      "deleted": "Löschend X on Track data von {{store}}.",
       "partial": "Teilweise entfernt",
       "partialMessage": "Some records couldn't be deleted von {{store}}.",
       "errorMessage": "remove data from {{store}}. konnte nicht ausgeführt werden.",
       "confirmTitle": "all {{store}} data entfernen",
-      "confirmMessage": "Alle von SparkyFitness in {{store}} gespeicherten Ernährungs- und Trinkprotokolle löschen und die Rückmeldung deaktivieren? Dein SparkyFitness-Tagebuch und die Protokolle aus anderen Apps sind davon nicht betroffen."
+      "confirmMessage": "Alle von X on Track in {{store}} gespeicherten Ernährungs- und Trinkprotokolle löschen und die Rückmeldung deaktivieren? Dein X on Track-Tagebuch und die Protokolle aus anderen Apps sind davon nicht betroffen."
     },
     "range": {
       "title": "Synchronisierung Range",
@@ -1196,14 +1223,15 @@
   "dashboardSettings": {
     "updateFailed": "Fehler beim update setting..",
     "noCustomNutrients": "Nein benutzerdefiniert nutrients",
-    "customNutrientsDescription": "Benutzerdefiniert nutrients are created in the SparkyFitness web App. Once du hinzufügen some, they will appear here so du can auswählen which show an dein Dashboard.",
+    "customNutrientsDescription": "Benutzerdefiniert nutrients are created in the X on Track web App. Once du hinzufügen some, they will appear here so du can auswählen which show an dein Dashboard.",
     "title": "Dashboard Einstellungen",
-    "askSparky": "Sparky fragen",
-    "askSparkySubtitle": "the Ask Sparky chat launcher on the Dashboard anzeigen",
+    "askSparky": "KI-Assistent",
+    "askSparkySubtitle": "Den KI-Assistenten im Dashboard anzeigen",
     "hydration": "Flüssigkeitszufuhr",
     "hydrationSubtitle": "the hydration card on the Dashboard anzeigen",
     "fasting": "Schnelling",
-    "fastingSubtitle": "the fasting card on the Dashboard anzeigen",
+    "fastingSubtitle": "Fasten im Dashboard anzeigen",
+    "fastingDisabledSubtitle": "Aktiviere Fasten zuerst in den App-Einstellungen",
     "cyclePregnancy": "Zyklus & Schwangerschaft",
     "cyclePregnancySubtitle": "the wellness card on the Dashboard anzeigen",
     "medications": "Medikamente",
@@ -1220,7 +1248,7 @@
     "updateFailed": "Fehler beim update setting..",
     "limitReached": "Limit erreicht",
     "noCustomNutrients": "Nein benutzerdefiniert nutrients",
-    "customNutrientsDescription": "Benutzerdefiniert nutrients are created in the SparkyFitness web App. Once du hinzufügen some, they will appear here so du can auswählen which show an dein Tagebuch.",
+    "customNutrientsDescription": "Benutzerdefiniert nutrients are created in the X on Track web App. Once du hinzufügen some, they will appear here so du can auswählen which show an dein Tagebuch.",
     "title": "Tagebuch Einstellungen",
     "summary": "Tagebuch Summary",
     "summarySubtitle": "calories and macronutrients anzeigen",
@@ -1232,9 +1260,10 @@
     "title": "Über",
     "version": "Version {{version}} ({{build}})",
     "descriptionTitle": "Über this App",
-    "description": "SparkyFitness is an öffnen-source nutrition, exercise, und Gesundheit-data tracker that syncs to dein own Server. This App is the mobile companion für logging meals, workouts, und measurements an the go.",
-    "github": "Project an GitHub",
-    "documentation": "Dokumentation",
+    "description": "X on Track is an öffnen-source nutrition, exercise, und Gesundheit-data tracker that syncs to dein own Server. This App is the mobile companion für logging meals, workouts, und measurements an the go.",
+    "personalBestDescription": "Erfasse Ernährung, Training und Gesundheitsdaten. Erkenne Muster und entwickle dich im Vergleich zu deinem eigenen Ausgangspunkt weiter.",
+    "github": "Quellcode und Lizenzen des Ursprungsprojekts",
+    "documentation": "Dokumentation des Ursprungsprojekts",
     "privacyPolicy": "Datenschutzerklärung",
     "openExternalLink": "Öffnens in dein browser"
   },
@@ -1248,7 +1277,7 @@
   "notificationSettings": {
     "title": "Benachrichtigungen",
     "allow": "Alleow Benachrichtigungen",
-    "allowSubtitle": "Master switch für alle alerts von SparkyFitness.",
+    "allowSubtitle": "Master switch für alle alerts von X on Track.",
     "alerts": "Benachrichtigungen",
     "restTimer": "Pause Timer",
     "restTimerSubtitle": "Benachrichtigung wenn a Pause Zeitraum endet, even in the Hintergrund.",
@@ -1264,7 +1293,7 @@
     "enableNotifications": "Notifications aktivieren",
     "openSettings": "Öffnen Einstellungen",
     "permissionTitle": "Berechtigungen erteilen",
-    "permissionBody": "SparkyFitness alerts (rest timers, fasting Ziele, medication reminders) won't fire.",
+    "permissionBody": "X on Track alerts (rest timers, fasting Ziele, medication reminders) won't fire.",
     "permissionWarningAccessibility": "{{title}}. {{body}} {{action}}."
   },
   "workoutSettings": {
@@ -2147,9 +2176,9 @@
     },
     "photo": {
       "frameMeal": "Frame the whole Mahlzeit",
-      "notSetUp": "AI Foto estimates aren't set up",
-      "setupHelp": "Öffnen SparkyFitness in a browser und visit Einstellungen → AI to hinzufügen an AI provider, then return here.",
-      "logManually": "Eintragen manually"
+      "notSetUp": "KI-Fotoschätzungen sind nicht eingerichtet",
+      "setupHelp": "Öffne X on Track im Browser und gehe zu Einstellungen → KI, um einen KI-Anbieter hinzuzufügen. Kehre dann hierher zurück.",
+      "logManually": "Manuell eintragen"
     },
     "barcode": {
       "typeInstead": "Typ Barcode Instead"
@@ -2684,15 +2713,15 @@
         "cta": "Öffnen Einstellungen"
       },
       "chat": {
-        "eyebrow": "ASK SPARKY",
+        "eyebrow": "KI-ASSISTENT",
         "headline": "Chat mit dein AI coach",
-        "body": "Ask Sparky to eintragen meals, plan what to eat, und answer questions about dein Tag through chat.",
+        "body": "Frage den Assistenten nach Ernährung, Mahlzeiten und deinem Tag.",
         "cta": "Starten chatting"
       },
       "widget": {
         "eyebrow": "HOME Bildschirm WIDGET",
         "headline": "Kalorien an dein home screen",
-        "body": "See where dein Tag stands at a glance. Hinzufügen SparkyFitness von dein home screen's widget gallery."
+        "body": "See where dein Tag stands at a glance. Hinzufügen X on Track von dein home screen's widget gallery."
       },
       "photo": {
         "eyebrow": "AI Foto SCAN",
@@ -2726,7 +2755,7 @@
     "conditions": "Bedingungen",
     "disclaimerTitle": "Disclaimer & Abschließen",
     "medicalDisclaimer": "Medical Disclaimer",
-    "disclaimerBody": "The SparkyFitness Wellness und Reproductive Gesundheit Tracker is designed to help du erfassen predictions, symptoms, und physiological parameters. It is NOT intended to be used as a contraceptive method or as a diagnostic/treatment tool.",
+    "disclaimerBody": "The X on Track Wellness und Reproductive Gesundheit Tracker is designed to help du erfassen predictions, symptoms, und physiological parameters. It is NOT intended to be used as a contraceptive method or as a diagnostic/treatment tool.",
     "consultProfessional": "Immer consult mit a qualified medical professional für Gesundheit concerns.",
     "acceptInitialize": "Accept & Initialize Profil",
     "mode": {
@@ -2775,7 +2804,7 @@
       "serverChanged": "The active Server changed during the importieren, so it stopped. Start again to importieren into the aktuell Server.",
       "alreadyRunning": "Another Synchronisierung is running right now. Wait a moment für it to finish, then start the importieren.",
       "title": "Importieren dein Gesundheit history",
-      "description": "Importieren alle von dein past {{source}} data into SparkyFitness mit a one-Zeit backfill von jeden aktiviert metric, von dein earliest recorded data up to heute.",
+      "description": "Importieren alle von dein past {{source}} data into X on Track mit a one-Zeit backfill von jeden aktiviert metric, von dein earliest recorded data up to heute.",
       "source": "Quelle",
       "dataTypes": "Data types aktiviert",
       "timing": "Takes a few Minuten. Du can pause any Zeit und pick up where du left aus."
@@ -3640,14 +3669,14 @@
     "removeFailed": "remove photo konnte nicht ausgeführt werden."
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Assistent",
     "error": "Chat Fehler",
     "errorRetry": "Something went wrong. Tippe retry to try again.",
     "retry": "Erneut versuchen",
-    "placeholder": "Nachricht Sparky…",
-    "emptyPrompt": "Ask Sparky anything about dein nutrition, exercise, or Ziele.",
+    "placeholder": "Nachricht an den Assistenten…",
+    "emptyPrompt": "Frage nach deiner Ernährung, deinem Training oder deinen Zielen.",
     "clearTitle": "Leeren chat",
-    "clearMessage": "Dieses permanently deletes your Sparky chat history. This cannot be undone.",
+    "clearMessage": "Der Chatverlauf wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
     "clearFailed": "clear chat konnte nicht ausgeführt werden.",
     "clearAccessibility": "Leeren chat",
     "noServer": "Keine active server config. Set one up in Settings first.",
@@ -3667,7 +3696,7 @@
       "goals": "Ziele",
       "lookedUp": "Looked up {{name}}"
     },
-    "typing": "Sparky is typing"
+    "typing": "Assistent schreibt"
   },
   "foodImagePicker": {
     "photos": "Fotos",
@@ -5100,7 +5129,7 @@
     "chooseLibrary": "Aus Mediathek auswählen",
     "remove": "Foto entfernen",
     "cameraPermission": "Kameraberechtigung ist erforderlich",
-    "cameraPermissionHint": "camera access for SparkyFitness in Settings. aktivieren",
+    "cameraPermissionHint": "camera access for X on Track in Settings. aktivieren",
     "compare": "Vergleichen",
     "compareTitle": "Vergleichen",
     "before": "Vorher",

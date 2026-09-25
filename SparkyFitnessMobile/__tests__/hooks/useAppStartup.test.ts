@@ -21,6 +21,9 @@ import i18n, { initializeI18n } from '../../src/localization/i18n';
 import { addLog } from '../../src/services/LogService';
 import { initMedicationNotificationActions } from '../../src/services/medicationNotificationHandler';
 import { initNutritionEngagementResponses } from '../../src/services/nutritionEngagementReminders';
+import { initMovementEngagementResponses } from '../../src/services/movementEngagementReminders';
+import { initMobilityEngagementResponses } from '../../src/services/mobilityEngagementReminders';
+import { initHydrationQuickLogResponses } from '../../src/services/hydrationQuickLogResponses';
 import { initWellbeingLiveActivity } from '../../src/services/wellbeingLiveActivity';
 
 jest.mock('expo-splash-screen', () => ({
@@ -66,6 +69,18 @@ jest.mock('../../src/services/medicationNotificationHandler', () => ({
 
 jest.mock('../../src/services/nutritionEngagementReminders', () => ({
   initNutritionEngagementResponses: jest.fn(),
+}));
+
+jest.mock('../../src/services/movementEngagementReminders', () => ({
+  initMovementEngagementResponses: jest.fn(),
+}));
+
+jest.mock('../../src/services/mobilityEngagementReminders', () => ({
+  initMobilityEngagementResponses: jest.fn(),
+}));
+
+jest.mock('../../src/services/hydrationQuickLogResponses', () => ({
+  initHydrationQuickLogResponses: jest.fn(),
 }));
 
 jest.mock('../../src/services/wellbeingLiveActivity', () => ({
@@ -156,6 +171,9 @@ describe('useAppStartup', () => {
     expect(initWorkoutNotificationActions).toHaveBeenCalled();
     expect(initMedicationNotificationActions).toHaveBeenCalled();
     expect(initNutritionEngagementResponses).toHaveBeenCalled();
+    expect(initMovementEngagementResponses).toHaveBeenCalled();
+    expect(initMobilityEngagementResponses).toHaveBeenCalled();
+    expect(initHydrationQuickLogResponses).toHaveBeenCalled();
     expect(initWellbeingLiveActivity).toHaveBeenCalled();
     expect(initNotifications).toHaveBeenCalled();
   });

@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
 import type { CreateFoodEntryPayload } from './api/foodEntriesApi';
+import {
+  containerWaterActionBodySchema,
+  plannedSupplementActionBodySchema,
+} from '@workspace/shared';
 import { newUuid } from '../utils/ids';
 
 const PREFIX = '@SparkyFitness/nutrition-action/v1/';
@@ -111,6 +115,20 @@ const completionPayloadSchema = z.strictObject({
       .optional(),
   }),
 });
+const waterPayloadSchema = z.strictObject({
+  client_operation_id: z.uuid(),
+  entry_date: z.iso.date(),
+  water_ml: z
+    .number()
+    .finite()
+    .positive()
+    .max(10000)
+    .refine(
+      (value) => Math.abs(value * 1000 - Math.round(value * 1000)) < 1e-7,
+      'water_ml must have at most three decimal places'
+    ),
+  logged_at: z.iso.datetime({ offset: true }),
+});
 
 const actionSchema = z.discriminatedUnion('type', [
   z.strictObject({
@@ -128,6 +146,21 @@ const actionSchema = z.discriminatedUnion('type', [
     type: z.literal('completePhotoEntry'),
     payload: completionPayloadSchema,
   }),
+  z.strictObject({
+    ...commonActionFields,
+    type: z.literal('logManualWater'),
+    payload: waterPayloadSchema,
+  }),
+  z.strictObject({
+    ...commonActionFields,
+    type: z.literal('logContainerWater'),
+    payload: containerWaterActionBodySchema,
+  }),
+  z.strictObject({
+    ...commonActionFields,
+    type: z.literal('logPlannedSupplement'),
+    payload: plannedSupplementActionBodySchema,
+  }),
 ]);
 
 export type PendingNutritionAction = z.infer<typeof actionSchema>;
@@ -144,6 +177,18 @@ export type PhotoCompletionPayload = z.infer<typeof completionPayloadSchema>;
 export type PendingPhotoCompletionAction = Extract<
   PendingNutritionAction,
   { type: 'completePhotoEntry' }
+>;
+export type PendingManualWaterAction = Extract<
+  PendingNutritionAction,
+  { type: 'logManualWater' }
+>;
+export type PendingContainerWaterAction = Extract<
+  PendingNutritionAction,
+  { type: 'logContainerWater' }
+>;
+export type PendingPlannedSupplementAction = Extract<
+  PendingNutritionAction,
+  { type: 'logPlannedSupplement' }
 >;
 export type NutritionActionErrorClass = NonNullable<
   PendingNutritionAction['lastError']
@@ -203,6 +248,12 @@ function parseAction(raw: string): PendingNutritionAction {
     const action = actionSchema.parse(parsed);
     if (
       (action.type === 'logFoodEntry' &&
+        action.payload.client_operation_id !== action.clientOperationId) ||
+      (action.type === 'logManualWater' &&
+        action.payload.client_operation_id !== action.clientOperationId) ||
+      (action.type === 'logContainerWater' &&
+        action.payload.client_operation_id !== action.clientOperationId) ||
+      (action.type === 'logPlannedSupplement' &&
         action.payload.client_operation_id !== action.clientOperationId) ||
       (action.type === 'createPhotoEntry' &&
         action.payload.id !== action.clientOperationId)
@@ -275,6 +326,167 @@ export function enqueueFoodEntry(
       serverIdentity: null,
     });
     await save(key, action);
+    return action;
+  });
+}
+
+/** Plain water uses the existing account-scoped durable action queue. */
+export function enqueueManualWaterAction(
+  input: NutritionActionIdentity & {
+    entryDate: string;
+    waterMl: number;
+    loggedAt: string;
+    clientOperationId?: string;
+  }
+): Promise<PendingManualWaterAction> {
+  return serialized(async () => {
+    const clientOperationId = input.clientOperationId ?? newUuid();
+    const key = keyFor(input, clientOperationId);
+    const payload = waterPayloadSchema.parse({
+      client_operation_id: clientOperationId,
+      entry_date: input.entryDate,
+      water_ml: input.waterMl,
+      logged_at: input.loggedAt,
+    });
+    const existing = await read(key);
+    if (existing) {
+      if (
+        existing.type !== 'logManualWater' ||
+        JSON.stringify(existing.payload) !== JSON.stringify(payload)
+      ) {
+        throw new Error('Operation ID already belongs to another action.');
+      }
+      return existing;
+    }
+    const action = actionSchema.parse({
+      version: 1,
+      type: 'logManualWater',
+      clientOperationId,
+      serverConfigId: input.serverConfigId,
+      userId: input.userId,
+      occurredAt: input.loggedAt,
+      createdAt: new Date().toISOString(),
+      payload,
+      syncState: 'pending',
+      retryCount: 0,
+      lastAttemptAt: null,
+      lastError: null,
+      serverIdentity: null,
+    });
+    if (action.type !== 'logManualWater')
+      throw new Error('Invalid water action.');
+    await save(key, action);
+    return action;
+  });
+}
+
+/** Container presses keep the same operation ID, day and time across retries. */
+export function enqueueContainerWaterAction(
+  input: NutritionActionIdentity & {
+    entryDate: string;
+    containerId: number;
+    loggedAt: string;
+    clientOperationId?: string;
+  }
+): Promise<PendingContainerWaterAction> {
+  return serialized(async () => {
+    const clientOperationId = input.clientOperationId ?? newUuid();
+    const key = keyFor(input, clientOperationId);
+    const payload = containerWaterActionBodySchema.parse({
+      client_operation_id: clientOperationId,
+      entry_date: input.entryDate,
+      container_id: input.containerId,
+      logged_at: input.loggedAt,
+    });
+    const existing = await read(key);
+    if (existing) {
+      if (
+        existing.type !== 'logContainerWater' ||
+        JSON.stringify(existing.payload) !== JSON.stringify(payload)
+      ) {
+        throw new Error('Operation ID already belongs to another action.');
+      }
+      return existing;
+    }
+    const action = actionSchema.parse({
+      version: 1,
+      type: 'logContainerWater',
+      clientOperationId,
+      serverConfigId: input.serverConfigId,
+      userId: input.userId,
+      occurredAt: input.loggedAt,
+      createdAt: new Date().toISOString(),
+      payload,
+      syncState: 'pending',
+      retryCount: 0,
+      lastAttemptAt: null,
+      lastError: null,
+      serverIdentity: null,
+    });
+    if (action.type !== 'logContainerWater') {
+      throw new Error('Invalid container water action.');
+    }
+    await save(key, action);
+    return action;
+  });
+}
+
+/** The first tap owns a schedule/day occurrence; repeat taps reuse its UUID. */
+export function enqueuePlannedSupplementAction(
+  input: NutritionActionIdentity & {
+    medicationId: string;
+    scheduleId: string;
+    entryDate: string;
+    status: 'taken' | 'skipped';
+    occurredAt: string;
+  }
+): Promise<PendingPlannedSupplementAction> {
+  return serialized(async () => {
+    const actions = await listActionsWithoutSerialization(input);
+    const existing = actions.find(
+      (action) =>
+        action.type === 'logPlannedSupplement' &&
+        action.payload.schedule_id === input.scheduleId &&
+        action.payload.entry_date === input.entryDate
+    );
+    if (existing) {
+      if (
+        existing.type !== 'logPlannedSupplement' ||
+        existing.payload.medication_id !== input.medicationId ||
+        existing.payload.status !== input.status
+      ) {
+        throw new Error('This supplement occurrence already has a response.');
+      }
+      return existing;
+    }
+    const clientOperationId = newUuid();
+    const payload = plannedSupplementActionBodySchema.parse({
+      client_operation_id: clientOperationId,
+      medication_id: input.medicationId,
+      schedule_id: input.scheduleId,
+      entry_date: input.entryDate,
+      status: input.status,
+      occurred_at: input.occurredAt,
+    });
+    const action = actionSchema.parse({
+      version: 1,
+      type: 'logPlannedSupplement',
+      clientOperationId,
+      serverConfigId: input.serverConfigId,
+      userId: input.userId,
+      occurredAt: input.occurredAt,
+      createdAt: new Date().toISOString(),
+      payload,
+      syncState: 'pending',
+      retryCount: 0,
+      lastAttemptAt: null,
+      lastError: null,
+      serverIdentity: null,
+    });
+    if (action.type !== 'logPlannedSupplement') {
+      throw new Error('Invalid supplement action.');
+    }
+    await save(keyFor(input, clientOperationId), action);
     return action;
   });
 }
@@ -371,26 +583,30 @@ export function enqueuePhotoCompletion(
 export function listNutritionActions(
   identity: NutritionActionIdentity
 ): Promise<PendingNutritionAction[]> {
-  return serialized(async () => {
-    const prefix = prefixFor(identity);
-    const keys = (await AsyncStorage.getAllKeys())
-      .filter((key) => key.startsWith(prefix))
-      .sort();
-    const values = await AsyncStorage.multiGet(keys);
-    const actions = values.flatMap(([key, raw]) => {
-      if (raw === null) return [];
-      const action = parseAction(raw);
-      if (keyFor(action, action.clientOperationId) !== key) {
-        throw new NutritionOutboxCorruptError();
-      }
-      return [action];
-    });
-    return actions.sort(
-      (a, b) =>
-        a.createdAt.localeCompare(b.createdAt) ||
-        a.clientOperationId.localeCompare(b.clientOperationId)
-    );
+  return serialized(() => listActionsWithoutSerialization(identity));
+}
+
+async function listActionsWithoutSerialization(
+  identity: NutritionActionIdentity
+): Promise<PendingNutritionAction[]> {
+  const prefix = prefixFor(identity);
+  const keys = (await AsyncStorage.getAllKeys())
+    .filter((key) => key.startsWith(prefix))
+    .sort();
+  const values = await AsyncStorage.multiGet(keys);
+  const actions = values.flatMap(([key, raw]) => {
+    if (raw === null) return [];
+    const action = parseAction(raw);
+    if (keyFor(action, action.clientOperationId) !== key) {
+      throw new NutritionOutboxCorruptError();
+    }
+    return [action];
   });
+  return actions.sort(
+    (a, b) =>
+      a.createdAt.localeCompare(b.createdAt) ||
+      a.clientOperationId.localeCompare(b.clientOperationId)
+  );
 }
 
 export async function listPendingNutritionActions(
@@ -412,6 +628,7 @@ function transition(
     const current = await read(key);
     if (!current) throw new Error('Nutrition action is missing.');
     const next = update(current);
+    if (next === current) return current;
     await save(key, next);
     return next;
   });
@@ -458,11 +675,14 @@ export function retryNutritionAction(
   identity: NutritionActionIdentity,
   operationId: string
 ): Promise<PendingNutritionAction> {
-  return transition(identity, operationId, (action) => ({
-    ...action,
-    syncState: 'pending',
-    lastError: null,
-  }));
+  return transition(identity, operationId, (action) => {
+    if (action.syncState !== 'attentionRequired') return action;
+    return {
+      ...action,
+      syncState: 'pending',
+      lastError: null,
+    };
+  });
 }
 
 export function markNutritionActionSynced(
@@ -478,6 +698,26 @@ export function markNutritionActionSynced(
     serverIdentity,
     lastError: null,
   }));
+}
+
+/** Explicit conflict repair only; ordinary queued actions cannot be discarded here. */
+export function discardRejectedPlannedSupplementAction(
+  identity: NutritionActionIdentity,
+  operationId: string
+): Promise<boolean> {
+  return serialized(async () => {
+    const key = keyFor(identity, operationId);
+    const action = await read(key);
+    if (
+      action?.type !== 'logPlannedSupplement' ||
+      action.syncState !== 'attentionRequired'
+    ) {
+      return false;
+    }
+    await AsyncStorage.removeItem(key);
+    changed();
+    return true;
+  });
 }
 
 /** Remove only after a matching server entry is visible in the diary. */

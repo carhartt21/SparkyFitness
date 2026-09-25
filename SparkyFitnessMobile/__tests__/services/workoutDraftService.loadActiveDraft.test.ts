@@ -5,11 +5,20 @@ import {
 } from '../../src/services/workoutDraftService';
 import type { WorkoutDraft } from '../../src/hooks/useWorkoutForm';
 import type { ActivityDraft } from '../../src/types/drafts';
+import { getActiveNutritionIdentity } from '../../src/services/nutritionIdentity';
+
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  getActiveNutritionIdentity: jest.fn(),
+}));
 
 describe('workoutDraftService - loadActiveDraft', () => {
   beforeEach(async () => {
     await AsyncStorage.clear();
     jest.clearAllMocks();
+    (getActiveNutritionIdentity as jest.Mock).mockResolvedValue({
+      serverConfigId: 'server-1',
+      userId: 'user-1',
+    });
   });
 
   it('returns null when no draft exists', async () => {

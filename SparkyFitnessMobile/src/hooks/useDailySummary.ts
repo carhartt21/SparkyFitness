@@ -12,14 +12,19 @@ export type { DailySummaryRawData } from '../services/dailySummaryService';
 interface UseDailySummaryOptions {
   date: string;
   enabled?: boolean;
+  /** Optional account scope for callers that can span an identity change. */
+  scope?: string | null;
 }
 
 export function useDailySummary({
   date,
   enabled = true,
+  scope,
 }: UseDailySummaryOptions) {
   const query = useQuery({
-    queryKey: dailySummaryQueryKey(date),
+    queryKey: scope
+      ? [...dailySummaryQueryKey(date), scope]
+      : dailySummaryQueryKey(date),
     queryFn: () => loadDailySummaryRawData(date),
     select: (raw) => buildDailySummary(date, raw),
     enabled,

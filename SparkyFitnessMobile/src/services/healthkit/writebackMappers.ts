@@ -219,7 +219,7 @@ export const foodEntryToNutrientSamples = (
   if (samples.length === 0) return null; // nothing positive to write
 
   return {
-    name: entry.food_name || 'SparkyFitness food',
+    name: entry.food_name || 'X on Track food',
     mealType: entry.meal_type,
     start,
     end,

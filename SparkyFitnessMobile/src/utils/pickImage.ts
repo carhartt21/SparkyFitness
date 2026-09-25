@@ -3,8 +3,8 @@ import * as ImageManipulator from 'expo-image-manipulator';
 import { addLog } from '../services/LogService';
 
 /**
- * Camera / photo-library capture for food and meal photos, downscaled before
- * upload.
+ * Camera / photo-library images, downscaled before upload. Progress-photo
+ * capture also uses the exported preparation step after its in-app preview.
  *
  * The server stores what it is given — there is no thumbnail generation and no
  * `sharp` — and enforces a 10 MB per-file limit. A modern phone camera photo
@@ -31,7 +31,7 @@ export type CameraPickResult =
   | { status: 'cancelled' }
   | { status: 'denied' };
 
-async function downscale(asset: {
+export async function prepareImageForUpload(asset: {
   uri: string;
   width?: number;
   height?: number;
@@ -78,7 +78,7 @@ export async function pickImageFromCamera(): Promise<CameraPickResult> {
   if (!asset?.uri) return { status: 'cancelled' };
 
   try {
-    return { status: 'ok', image: await downscale(asset) };
+    return { status: 'ok', image: await prepareImageForUpload(asset) };
   } catch (error) {
     // A failed re-encode should not lose the user's photo; the server still
     // accepts the original when it is within limits.
@@ -108,7 +108,7 @@ export async function pickImagesFromLibrary(
   for (const asset of result.assets ?? []) {
     if (!asset?.uri) continue;
     try {
-      picked.push(await downscale(asset));
+      picked.push(await prepareImageForUpload(asset));
     } catch (error) {
       addLog(
         `[Food Image] Downscale failed, using original: ${String(error)}`,

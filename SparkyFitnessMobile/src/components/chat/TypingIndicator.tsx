@@ -67,7 +67,7 @@ export default function TypingIndicator() {
       className="flex-row items-center gap-1"
       style={{ height: 20 }}
       accessibilityLabel={t('chat.typing', {
-        defaultValue: 'Sparky is typing',
+        defaultValue: 'Assistant is typing',
       })}
     >
       {Array.from({ length: DOT_COUNT }).map((_, i) => (

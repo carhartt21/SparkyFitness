@@ -64,7 +64,9 @@ export interface WaterContainer {
 }
 
 export interface WaterIntakeResponse {
-  id: string;
   water_ml: number;
-  entry_date: string;
+  manual_ml?: number;
+  ledger_ml?: number;
+  food_ml?: number;
+  removedFoodEntryIds?: string[];
 }

@@ -422,6 +422,30 @@ describe('FoodScanScreen', () => {
       });
     });
 
+    it('keeps the selected date and meal when the AI setup gate opens manual logging', async () => {
+      mockUseActiveAiServiceSetting.mockReturnValue({
+        data: null,
+        isLoading: false,
+      } as any);
+      const screen = renderScreenWithRoute({
+        initialMode: 'photo',
+        date: '2026-09-25',
+        mealTypeId: 'snack',
+      });
+
+      await waitFor(() =>
+        expect(
+          screen.getByText(/AI photo estimates aren.t set up/)
+        ).toBeTruthy()
+      );
+      fireEvent.press(screen.getByText('Log manually'));
+
+      expect(mockNavigation.replace).toHaveBeenCalledWith('FoodSearch', {
+        date: '2026-09-25',
+        mealTypeId: 'snack',
+      });
+    });
+
     it('treats any configured provider (e.g. mistral) as dispatchable: no gate, Photo available', async () => {
       // Attempt-all: mistral is dispatched server-side, so the gate must NOT
       // show and the Photo capture UI (library button) is available.

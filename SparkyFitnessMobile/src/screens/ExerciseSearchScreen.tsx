@@ -822,7 +822,7 @@ const ExerciseSearchScreen: React.FC<ExerciseSearchScreenProps> = ({
               >
                 <Text
                   className={`text-sm font-medium ${
-                    isActive ? 'text-white' : 'text-text-primary'
+                    isActive ? 'text-accent-text' : 'text-text-primary'
                   }`}
                 >
                   {provider.provider_name}

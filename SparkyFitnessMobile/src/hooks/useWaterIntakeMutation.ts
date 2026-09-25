@@ -17,6 +17,7 @@ import {
   waterIntakeLogQueryKey,
 } from './queryKeys';
 import { navigationRef as rootNavigationRef } from '../components/ActiveWorkoutBar';
+import { logPhoneContainerWaterAction } from '../services/phoneContainerWaterAction';
 
 /**
  * Stand-in used when the user has no standard container of their own, matching
@@ -134,14 +135,30 @@ export function useWaterIntakeMutation({
       if (!activeContainer) {
         throw new Error('No water container configured');
       }
-      return changeWaterIntake({
+      if (changeDrinks === 1 && activeContainer.id > 0) {
+        return {
+          kind: 'container' as const,
+          state: await logPhoneContainerWaterAction(
+            date,
+            activeContainer.id,
+            queryClient
+          ),
+        };
+      }
+      const result = await changeWaterIntake({
         entryDate: date,
         changeDrinks,
         containerId: activeContainer.id,
       });
+      return { kind: 'direct' as const, result };
     },
     onMutate: async (changeDrinks: number) => {
       if (!activeContainer) return;
+
+      // Real container additions first enter the durable outbox. The server
+      // may resolve a linked food's water credit differently from its vessel
+      // volume, and a queued action has not yet reached the server.
+      if (changeDrinks === 1 && activeContainer.id > 0) return;
 
       // #2115: a linked container's water credit is foodWater(entry) x
       // hydration_factor, not the container volume -- a different number the
@@ -170,13 +187,25 @@ export function useWaterIntakeMutation({
       );
     },
     onSuccess: (response) => {
+      if (response.kind === 'container') {
+        if (response.state === 'attentionRequired') {
+          Toast.show({
+            type: 'error',
+            text1: t('waterIntake.updateFailed', { defaultValue: 'Error' }),
+            text2: t('waterIntake.updateMessage', {
+              defaultValue: 'Failed to update water intake. Please try again.',
+            }),
+          });
+        }
+        return;
+      }
       queryClient.setQueryData<DailySummaryRawData>(
         dailySummaryQueryKey(date),
         (old) => {
           if (!old) return old;
           return {
             ...old,
-            waterIntake: { water_ml: response.water_ml },
+            waterIntake: { water_ml: response.result.water_ml },
           };
         }
       );
@@ -241,8 +270,16 @@ export function useWaterIntakeMutation({
   // server's total is what lands.
   const logPreset = useMutation({
     mutationFn: (containerId: number) =>
-      changeWaterIntake({ entryDate: date, changeDrinks: 1, containerId }),
-    onSuccess: () => {
+      logPhoneContainerWaterAction(date, containerId, queryClient),
+    onSuccess: (state) => {
+      if (state === 'attentionRequired') {
+        Toast.show({
+          type: 'error',
+          text1: t('dashboard.logDrinkFailed', {
+            defaultValue: 'Could not log that drink',
+          }),
+        });
+      }
       void queryClient.invalidateQueries({
         queryKey: dailySummaryQueryKey(date),
       });

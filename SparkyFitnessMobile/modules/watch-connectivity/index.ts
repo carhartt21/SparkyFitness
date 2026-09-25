@@ -5,6 +5,8 @@ import { Platform } from 'react-native';
 export interface WatchCheckInPayload {
   /** Stable id generated on the watch, used to dedupe re-delivered transfers. */
   clientId: string;
+  /** JSON [serverConfigId, userId] fixed when the Watch captured the action. */
+  scope: string;
   /** Calendar day (`yyyy-MM-dd`) in the wearer's local timezone. */
   entryDate: string;
   weightKg: number;
@@ -30,15 +32,29 @@ export interface WatchWaterIntakePayload {
    * is — see the comment on `containers` below — so this only guards against
    * one queued transfer being delivered to this listener twice. */
   clientId: string;
+  scope: string;
   /** Calendar day (`yyyy-MM-dd`) in the wearer's local timezone. */
   entryDate: string;
   containerId: number;
+  /** Original tap instant, retained across retries and day rollover. */
+  loggedAt: string;
+}
+
+/** Standalone 250 ml action captured on Watch and replayed by the phone outbox. */
+export interface WatchManualWaterPayload {
+  clientId: string;
+  entryDate: string;
+  loggedAt: string;
+  waterMl: 250;
+  /** JSON [serverConfigId, userId] from the phone's most recent context. */
+  scope: string;
 }
 
 /** A request from the watch to delete one logged drink. */
 export interface WatchWaterDeletePayload {
   /** Stable id generated on the watch, to dedupe a re-delivered transfer. */
   clientId: string;
+  scope: string;
   /** The `water_intake_entries` row id, as relayed in `waterLog` below. */
   entryId: string;
 }
@@ -56,6 +72,42 @@ export interface WatchWaterLogPayload {
   /** Wall-clock time this was logged, pre-formatted by the phone (see the
    * comment on `waterLog` for why the watch doesn't format it itself). */
   time: string;
+}
+
+/** Read-only mirror of the phone's active session for the Watch workout page. */
+export interface WatchWorkoutPayload {
+  sessionId: string;
+  name: string;
+  activeSetId: string | null;
+  restEndsAt: number | null;
+  exercises: {
+    id: string;
+    name: string;
+    sets: {
+      id: string;
+      /** Stable across the server's recreate-save id churn. */
+      key: string;
+      /** Values/type shown on the Watch when an action is captured. */
+      signature: string;
+      number: number;
+      type: string | null;
+      weightKg: number | null;
+      reps: number | null;
+      durationSeconds: number | null;
+      completed: boolean;
+    }[];
+  }[];
+}
+
+/** Desired completion state captured on the Watch, with a stale-view guard. */
+export interface WatchWorkoutSetOperationPayload {
+  clientId: string;
+  scope: string;
+  sessionId: string;
+  setKey: string;
+  setSignature: string;
+  expectedCompleted: boolean;
+  completed: boolean;
 }
 
 /** One water container configured on the server, as relayed to the watch. */
@@ -86,6 +138,8 @@ export interface WatchContextPayload {
    */
   pushedAt: number;
   today: string;
+  /** Required for new Watch writes; absent until a signed-in phone syncs. */
+  actionScope?: string | null;
   todayWeightKg?: number | null;
   todayBodyFatPercentage?: number | null;
   lastWeightKg?: number | null;
@@ -172,6 +226,8 @@ export interface WatchContextPayload {
    * it wrong.
    */
   waterLog?: WatchWaterLogPayload[] | null;
+  /** Null when the phone has no active workout for the current server. */
+  workout?: WatchWorkoutPayload | null;
 }
 
 export type WatchConnectivityEvents = {
@@ -179,7 +235,9 @@ export type WatchConnectivityEvents = {
   onCheckIn: (payload: WatchCheckInPayload) => void;
   onContextRequest: () => void;
   onWaterIntake: (payload: WatchWaterIntakePayload) => void;
+  onManualWater: (payload: WatchManualWaterPayload) => void;
   onWaterDelete: (payload: WatchWaterDeletePayload) => void;
+  onWorkoutSetOperation: (payload: WatchWorkoutSetOperationPayload) => void;
 };
 
 declare class WatchConnectivityModuleType extends NativeModule<WatchConnectivityEvents> {

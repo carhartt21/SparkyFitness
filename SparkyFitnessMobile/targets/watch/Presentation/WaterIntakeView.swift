@@ -8,7 +8,8 @@ import WatchKit
 /// containers configured on the server on the right, one per entry. Tapping a
 /// square logs that container's full serving straight to the phone — there is
 /// no local-only increment and no selection state, unlike the phone app's
-/// single active-container model. Every square is always live.
+/// single active-container model. A container can be logged once the phone
+/// has supplied an account scope.
 struct WaterIntakeView: View {
     @EnvironmentObject private var store: CheckInStore
     @EnvironmentObject private var session: WatchSessionManager
@@ -95,12 +96,9 @@ struct WaterIntakeView: View {
                 // takes whatever's left rather than being given a width of
                 // its own.
                 VStack(spacing: 4) {
-                    // Same status indicator as TrendView's summary row — a
-                    // check-in's sync state, not anything about the taps
-                    // below, but it's the one "are we caught up with the
-                    // phone" signal the watch has, and every page should
-                    // read it the same way rather than the Water page being
-                    // the one place it's missing.
+                    // The Water page reports its own outstanding container
+                    // taps, including an older failed tap that can be retried.
+                    // Only today's taps contribute to the bottle below.
                     HStack(spacing: 4) {
                         SyncStatusIcon(
                             state: store.waterSyncState,
@@ -132,7 +130,7 @@ struct WaterIntakeView: View {
 
     @ViewBuilder
     private var containerList: some View {
-        if !containers.isEmpty {
+        if !containers.isEmpty || store.canCaptureActions {
             // Measured explicitly rather than via `.aspectRatio` on each
             // square: inside a ScrollView the vertical proposal is
             // effectively unbounded, which is exactly the dimension
@@ -143,8 +141,22 @@ struct WaterIntakeView: View {
             GeometryReader { geo in
                 ScrollView {
                     VStack(spacing: 6) {
+                        if store.canCaptureActions {
+                            quickWaterButton(side: geo.size.width)
+                        }
                         ForEach(containers) { container in
                             containerSquare(container, side: geo.size.width)
+                        }
+                        if !store.failedQuickWaterActions.isEmpty {
+                            Button("Retry unsent") {
+                                session.retryFailedQuickWaterActions()
+                            }
+                            .font(.system(size: 10))
+                            .accessibilityLabel("Retry unsent quick water logs")
+                        } else if !store.queuedQuickWaterActions.isEmpty {
+                            Text("\(store.queuedQuickWaterActions.count) queued")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
                         }
                         logButton(side: geo.size.width)
                     }
@@ -157,13 +169,39 @@ struct WaterIntakeView: View {
                     .foregroundStyle(.secondary)
                 Text(hasEverSyncedContainers
                      ? "No containers set up on the server yet"
-                     : "Open SparkyFitness on your phone to sync your containers")
+                     : "Open X on Track on your phone to sync your containers")
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
         }
+    }
+
+    private func quickWaterButton(side: CGFloat) -> some View {
+        Button {
+            WKInterfaceDevice.current().play(.click)
+            guard let action = store.captureQuickWater() else { return }
+            session.sendQuickWater(action)
+        } label: {
+            VStack(spacing: 2) {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 15))
+                    .foregroundStyle(GoalPalette.water)
+                Text("250 ml")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("Quick water")
+                    .font(.system(size: 9))
+                    .foregroundStyle(.secondary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(width: side, height: side)
+            .background(GoalPalette.water.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("Log 250 millilitres of water")
+        .accessibilityHint("Saves on the watch until the phone confirms it")
     }
 
     /// Last square in the column: opens today's log rather than logging
@@ -212,6 +250,7 @@ struct WaterIntakeView: View {
             .background(GoalPalette.water.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
         }
         .buttonStyle(.plain)
+        .disabled(!store.canCaptureActions)
         .accessibilityLabel("Log \(container.name), \(container.displayVolume)")
     }
 
@@ -222,19 +261,18 @@ struct WaterIntakeView: View {
         // is watchOS's "that completed" pattern — promising it here would be
         // a lie on any tap that later fails and settles back out of the
         // bottle.
-        WKInterfaceDevice.current().play(.click)
-
         // No timeout to un-do this: the tap stands until the phone sends a
         // total for today that accounts for it. A ten-second expiry looked
         // honest when the phone was in the room and was simply wrong when it
         // wasn't — which is exactly when the wearer is drinking.
         // One id, generated by the store and carried to the phone, so the
         // acknowledgement that comes back can be matched to this exact tap.
-        let clientId = store.recordWaterTap(
+        guard let tap = store.recordWaterTap(
             volumeMl: container.servingVolumeMl,
             containerId: container.id
-        )
-        session.sendWaterTap(containerId: container.id, clientId: clientId)
+        ) else { return }
+        WKInterfaceDevice.current().play(.click)
+        session.sendWaterTap(tap)
     }
 
     // MARK: - Bottle

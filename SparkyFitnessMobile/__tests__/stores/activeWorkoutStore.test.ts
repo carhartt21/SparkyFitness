@@ -23,6 +23,7 @@ import {
   __resetAppPreferencesStoreForTests,
 } from '../../src/stores/appPreferencesStore';
 import type { Exercise } from '../../src/types/exercise';
+import { buildWatchWorkoutSnapshot } from '../../src/utils/watchWorkoutSnapshot';
 
 jest.mock('../../src/services/notifications', () => ({
   scheduleRestNotification: jest.fn(async () => 'notif-abc'),
@@ -1412,7 +1413,7 @@ describe('activeWorkoutStore', () => {
   });
 
   describe('completeSet rest (supersets)', () => {
-    // Steps: 301(90), 401(0), 302(90), 402(0).
+    // Steps: 301(90), 401(90), 302(90), 402(90).
     beforeEach(() => {
       useActiveWorkoutStore.getState().startWorkout(makeSupersetSession(2));
     });
@@ -1435,11 +1436,26 @@ describe('activeWorkoutStore', () => {
       await flushPromises();
     });
 
-    it('rests between rounds but not between partners when logged in order', async () => {
-      // Partner within the round → no rest.
+    it('uses each completed superset member’s own rest before the next exercise', async () => {
+      const session = makeSupersetSession(2);
+      session.exercises[0].sets[0].rest_time = 40;
+      session.exercises[1].sets[0].rest_time = 100;
+      useActiveWorkoutStore.getState().startWorkout(session);
+
       useActiveWorkoutStore.getState().completeSet('301');
-      expect(useActiveWorkoutStore.getState().rest.state).toBe('ready');
-      // Finishing the round → rest before the next round.
+      expect(useActiveWorkoutStore.getState().rest.durationSec).toBe(40);
+      await flushPromises();
+
+      useActiveWorkoutStore.getState().completeSet('401');
+      expect(useActiveWorkoutStore.getState().rest.durationSec).toBe(100);
+      await flushPromises();
+    });
+
+    it('rests between partners and between rounds when logged in order', async () => {
+      useActiveWorkoutStore.getState().completeSet('301');
+      expect(useActiveWorkoutStore.getState().rest.state).toBe('resting');
+      expect(useActiveWorkoutStore.getState().rest.durationSec).toBe(90);
+      // Finishing the round also rests before the next round.
       useActiveWorkoutStore.getState().completeSet('401');
       const afterRound = useActiveWorkoutStore.getState();
       expect(afterRound.activeSetId).toBe('302');
@@ -1449,15 +1465,15 @@ describe('activeWorkoutStore', () => {
     });
 
     it('rests after a round finished out of order (regression)', async () => {
-      // Log both X sets first, skipping the Y partners. Each lands on its own
-      // round's Y partner (back-to-back) → no rest.
+      // Log both X sets first, skipping the Y partners. Each starts its own
+      // configured rest, even when the next cursor is a same-round partner.
       useActiveWorkoutStore.getState().completeSet('301');
-      expect(useActiveWorkoutStore.getState().rest.state).toBe('ready');
+      expect(useActiveWorkoutStore.getState().rest.state).toBe('resting');
       useActiveWorkoutStore.getState().completeSet('302');
-      expect(useActiveWorkoutStore.getState().rest.state).toBe('ready');
+      expect(useActiveWorkoutStore.getState().rest.state).toBe('resting');
       // Fill round 0's Y partner: round 0 is now complete and the cursor lands
       // on round 1's Y (402), a between-rounds move — a rest must start even
-      // though 402's step-baked restSec is 0.
+      // regardless of 402's position within its round.
       useActiveWorkoutStore.getState().completeSet('401');
       const state = useActiveWorkoutStore.getState();
       expect(state.activeSetId).toBe('402');
@@ -1466,13 +1482,13 @@ describe('activeWorkoutStore', () => {
       await flushPromises();
     });
 
-    it('stays back-to-back when the cursor lands on the same-round partner', () => {
-      // Logging X of round 1 out of order lands on its own partner (402),
-      // which is still a within-round transition → no rest.
+    it('rests when an out-of-order set lands on its same-round partner', () => {
+      // Logging X of round 1 out of order lands on its own partner (402).
       useActiveWorkoutStore.getState().completeSet('302');
       const state = useActiveWorkoutStore.getState();
       expect(state.activeSetId).toBe('402');
-      expect(state.rest.state).toBe('ready');
+      expect(state.rest.state).toBe('resting');
+      expect(state.rest.durationSec).toBe(90);
     });
   });
 
@@ -1532,6 +1548,39 @@ describe('activeWorkoutStore', () => {
       expect(state.rest.state).toBe('resting');
       expect(state.rest.durationSec).toBe(60); // Bench's rest — the exercise just logged
       await flushPromises();
+    });
+
+    it('keeps successive drop-set rows together until the last reduction is logged', async () => {
+      const session = makeDropSession();
+      session.exercises[0].sets.push({
+        ...session.exercises[0].sets[1],
+        id: 103,
+        set_number: 3,
+        weight: 30,
+        reps: 8,
+      });
+      useActiveWorkoutStore.getState().startWorkout(session);
+
+      useActiveWorkoutStore.getState().completeSet('101');
+      expect(useActiveWorkoutStore.getState().activeSetId).toBe('102');
+      expect(useActiveWorkoutStore.getState().rest.state).toBe('ready');
+      useActiveWorkoutStore.getState().completeSet('102');
+      expect(useActiveWorkoutStore.getState().activeSetId).toBe('103');
+      expect(useActiveWorkoutStore.getState().rest.state).toBe('ready');
+      useActiveWorkoutStore.getState().completeSet('103');
+      expect(useActiveWorkoutStore.getState().activeSetId).toBe('201');
+      expect(useActiveWorkoutStore.getState().rest.durationSec).toBe(60);
+      await flushPromises();
+    });
+
+    it('skips rest before an imported Drop Set row', () => {
+      const session = makeDropSession();
+      session.exercises[0].sets[1].set_type = 'Drop Set';
+      useActiveWorkoutStore.getState().startWorkout(session);
+      useActiveWorkoutStore.getState().completeSet('101');
+
+      expect(useActiveWorkoutStore.getState().activeSetId).toBe('102');
+      expect(useActiveWorkoutStore.getState().rest.state).toBe('ready');
     });
 
     it('honors a mid-workout type change to drop (steps rebuild)', () => {
@@ -2799,6 +2848,31 @@ describe('activeWorkoutStore', () => {
       expect(state.hasUnsavedChanges).toBe(true);
     });
 
+    it('delete-first-mid-flight: keeps the surviving set identity across recreated ids', () => {
+      useActiveWorkoutStore.getState().updateSetField('102', { weight: 72.5 });
+      const sentRevision = useActiveWorkoutStore.getState().sessionRevision;
+      const sentSetIds = [['101', '102'], ['201']];
+
+      useActiveWorkoutStore.getState().deleteSet('101');
+      useActiveWorkoutStore.getState().completeActiveSet(); // surviving 102
+
+      useActiveWorkoutStore
+        .getState()
+        .applyServerSession(
+          makeRecreatedSession(),
+          sentRevision,
+          SENT_ENTRY_IDS,
+          sentSetIds
+        );
+
+      const state = useActiveWorkoutStore.getState();
+      expect(state.session!.exercises[0].sets.map((set) => set.id)).toEqual([
+        502,
+      ]);
+      expect(state.completedSetIds).toEqual({ '502': FIXED_NOW });
+      expect(state.hasUnsavedChanges).toBe(true);
+    });
+
     it('graft branch remaps completion and cursor through the id map', async () => {
       useActiveWorkoutStore.getState().completeActiveSet(); // 101 done, cursor → 102
       await flushPromises();
@@ -3191,7 +3265,7 @@ describe('activeWorkoutStore', () => {
     }
 
     describe('step interleaving', () => {
-      it('interleaves grouped exercises into rounds with rest only on round openers', () => {
+      it('interleaves grouped exercises into rounds with rest for each member', () => {
         useActiveWorkoutStore.getState().startWorkout(makeGroupedSession());
         const { steps } = useActiveWorkoutStore.getState();
         expect(steps.map((s) => s.setId)).toEqual([
@@ -3201,7 +3275,7 @@ describe('activeWorkoutStore', () => {
           '202',
           '301',
         ]);
-        expect(steps.map((s) => s.restSec)).toEqual([60, 0, 60, 0, 45]);
+        expect(steps.map((s) => s.restSec)).toEqual([60, 60, 60, 60, 45]);
         expect(steps.map((s) => s.exerciseName)).toEqual([
           'Bench Press',
           'Squat',
@@ -3230,7 +3304,7 @@ describe('activeWorkoutStore', () => {
           '103',
           '301',
         ]);
-        expect(steps.map((s) => s.restSec)).toEqual([60, 0, 60, 60, 45]);
+        expect(steps.map((s) => s.restSec)).toEqual([60, 60, 60, 60, 45]);
       });
 
       it('produces unchanged sequential steps for ungrouped sessions (incl. pre-upgrade shape)', () => {
@@ -3244,26 +3318,27 @@ describe('activeWorkoutStore', () => {
     });
 
     describe('round advancement', () => {
-      it('advances without rest inside a round (no timer, no notification)', () => {
+      it('starts rest inside a round before the next exercise', () => {
         useActiveWorkoutStore.getState().startWorkout(makeGroupedSession());
         useActiveWorkoutStore.getState().completeActiveSet(); // 101 → 201
 
         const state = useActiveWorkoutStore.getState();
         expect(state.activeSetId).toBe('201');
-        expect(state.rest.state).toBe('ready');
-        expect(mockSchedule).not.toHaveBeenCalled();
+        expect(state.rest.state).toBe('resting');
+        expect(state.rest.durationSec).toBe(60);
+        expect(mockSchedule).toHaveBeenCalledTimes(1);
       });
 
       it('starts the group rest after the round-final set', () => {
         useActiveWorkoutStore.getState().startWorkout(makeGroupedSession());
-        useActiveWorkoutStore.getState().completeActiveSet(); // 101 → 201, no rest
+        useActiveWorkoutStore.getState().completeActiveSet(); // 101 → 201, resting
         useActiveWorkoutStore.getState().completeActiveSet(); // 201 → 102, round done
 
         const state = useActiveWorkoutStore.getState();
         expect(state.activeSetId).toBe('102');
         expect(state.rest.state).toBe('resting');
         expect(state.rest.durationSec).toBe(60);
-        expect(mockSchedule).toHaveBeenCalledTimes(1);
+        expect(mockSchedule).toHaveBeenCalledTimes(2);
         // The rest-complete notification describes the upcoming set (#1).
         expect(mockSchedule).toHaveBeenCalledWith(
           'Bench Press',
@@ -3306,7 +3381,7 @@ describe('activeWorkoutStore', () => {
           '102',
           '201',
         ]);
-        expect(state.steps.map((s) => s.restSec)).toEqual([60, 0, 60, 120]);
+        expect(state.steps.map((s) => s.restSec)).toEqual([60, 60, 60, 120]);
       });
 
       it("adds a member to the current run's tail via a grouped card", () => {
@@ -3329,7 +3404,7 @@ describe('activeWorkoutStore', () => {
           '102',
           '202',
         ]);
-        expect(state.steps.map((s) => s.restSec)).toEqual([60, 0, 0, 60, 0]);
+        expect(state.steps.map((s) => s.restSec)).toEqual([60, 60, 60, 60, 60]);
       });
 
       it('generates a fresh group id past stale (singleton) values', () => {
@@ -3475,7 +3550,9 @@ describe('activeWorkoutStore', () => {
         expect(bench.sets.map((s) => s.rest_time)).toEqual([150, 150]);
         expect(squat.sets.map((s) => s.rest_time)).toEqual([150, 150]);
         expect(row.sets.map((s) => s.rest_time)).toEqual([45]); // untouched
-        expect(state.steps.map((s) => s.restSec)).toEqual([150, 0, 150, 0, 45]);
+        expect(state.steps.map((s) => s.restSec)).toEqual([
+          150, 150, 150, 150, 45,
+        ]);
       });
 
       it('solo exercises keep the single-exercise behavior', () => {
@@ -3493,7 +3570,193 @@ describe('activeWorkoutStore', () => {
     });
   });
 
+  describe('Watch workout snapshot', () => {
+    it('mirrors edited values, completion, cursor, and rest from the phone store', () => {
+      const store = useActiveWorkoutStore.getState;
+      expect(buildWatchWorkoutSnapshot(store())).toBeNull();
+
+      store().startWorkout(makeSession());
+      store().updateSetField('102', { weight: 72.5 });
+      store().completeActiveSet();
+
+      const snapshot = buildWatchWorkoutSnapshot(store());
+      expect(snapshot).toMatchObject({
+        sessionId: 'session-1',
+        name: 'Push Day',
+        activeSetId: '102',
+        exercises: [
+          {
+            id: 'ex-uuid-1',
+            name: 'Bench Press',
+            sets: [
+              { id: '101', number: 1, completed: true },
+              { id: '102', number: 2, weightKg: 72.5, completed: false },
+            ],
+          },
+          { id: 'ex-uuid-2', name: 'Squat' },
+        ],
+      });
+      expect(snapshot?.restEndsAt).toBe(FIXED_NOW + 60_000);
+
+      store().clearWorkout();
+      expect(buildWatchWorkoutSnapshot(store())).toBeNull();
+    });
+  });
+
+  describe('Watch set operations', () => {
+    const store = useActiveWorkoutStore.getState;
+    const operationFor = (
+      index: number,
+      completed: boolean,
+      clientId: string
+    ) => {
+      const snapshot = buildWatchWorkoutSnapshot(store())!;
+      const set = snapshot.exercises[0].sets[index];
+      return {
+        clientId,
+        sessionId: snapshot.sessionId,
+        setKey: set.key,
+        setSignature: set.signature,
+        expectedCompleted: set.completed,
+        completed,
+      };
+    };
+
+    it('applies once, accepts an already-satisfied end state, and rejects stale values', () => {
+      store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
+      const first = operationFor(0, true, 'watch-1');
+      expect(store().applyWatchSetOperation(first, 'config-2')).toBe(
+        'conflict'
+      );
+      expect(store().completedSetIds['101']).toBeUndefined();
+      expect(store().applyWatchSetOperation(first, 'config-1')).toBe('applied');
+      expect(store().completedSetIds['101']).toBe(FIXED_NOW);
+      expect(store().applyWatchSetOperation(first, 'config-1')).toBe(
+        'duplicate'
+      );
+
+      const revisionAfterCompletion = store().sessionRevision;
+      expect(
+        store().applyWatchSetOperation(
+          { ...first, clientId: 'watch-2' },
+          'config-1'
+        )
+      ).toBe('duplicate');
+      expect(store().sessionRevision).toBe(revisionAfterCompletion);
+      const second = operationFor(1, true, 'watch-3');
+      store().updateSetField('102', { reps: 7 });
+      expect(store().applyWatchSetOperation(second, 'config-1')).toBe(
+        'conflict'
+      );
+      expect(store().completedSetIds['102']).toBeUndefined();
+    });
+
+    it('keeps the queued set key and dedupe record through server id churn and restart', async () => {
+      store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
+      const queued = operationFor(1, true, 'watch-queued');
+      const sentRevision = store().sessionRevision;
+      const recreated = makeSession();
+      recreated.exercises[0].sets[0].id = 501;
+      recreated.exercises[0].sets[1].id = 502;
+      recreated.exercises[1].sets[0].id = 601;
+      store().applyServerSession(recreated, sentRevision, [
+        'ex-uuid-1',
+        'ex-uuid-2',
+      ]);
+      expect(buildWatchWorkoutSnapshot(store())?.exercises[0].sets[1].key).toBe(
+        queued.setKey
+      );
+
+      const persisted =
+        useActiveWorkoutStore.persist.getOptions().partialize!(store());
+      __resetActiveWorkoutStoreForTests();
+      await AsyncStorage.setItem(
+        '@SparkyFitness/active-workout',
+        JSON.stringify({ state: persisted, version: 5 })
+      );
+      await useActiveWorkoutStore.persist.rehydrate();
+      expect(store().applyWatchSetOperation(queued, 'config-1')).toBe(
+        'applied'
+      );
+      expect(store().completedSetIds['502']).toBe(FIXED_NOW);
+      expect(store().applyWatchSetOperation(queued, 'config-1')).toBe(
+        'duplicate'
+      );
+
+      const appliedState =
+        useActiveWorkoutStore.persist.getOptions().partialize!(store());
+      __resetActiveWorkoutStoreForTests();
+      await AsyncStorage.setItem(
+        '@SparkyFitness/active-workout',
+        JSON.stringify({ state: appliedState, version: 5 })
+      );
+      await useActiveWorkoutStore.persist.rehydrate();
+      expect(store().applyWatchSetOperation(queued, 'config-1')).toBe(
+        'duplicate'
+      );
+      expect(store().applyWatchSetOperation(queued, 'config-2')).toBe(
+        'conflict'
+      );
+    });
+
+    it('rejects an action after its workout ends', () => {
+      store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
+      const queued = operationFor(0, true, 'watch-late');
+      store().clearWorkout();
+      expect(store().applyWatchSetOperation(queued, 'config-1')).toBe(
+        'conflict'
+      );
+    });
+  });
+
   describe('persistence + rehydration', () => {
+    it('restores edited, removed, and unchecked sets before reconciling server ids', async () => {
+      const store = useActiveWorkoutStore.getState;
+      store().startWorkout(makeSession());
+      store().updateSetField('102', { weight: 72.5 });
+      store().completeSet('101');
+      store().uncompleteSet('101');
+      store().completeSet('102');
+      store().deleteSet('101');
+
+      const persistedState =
+        useActiveWorkoutStore.persist.getOptions().partialize!(store());
+      __resetActiveWorkoutStoreForTests();
+      await AsyncStorage.setItem(
+        '@SparkyFitness/active-workout',
+        JSON.stringify({ state: persistedState, version: 5 })
+      );
+      await useActiveWorkoutStore.persist.rehydrate();
+
+      expect(store().session!.exercises[0].sets).toEqual([
+        expect.objectContaining({ id: 102, set_number: 1, weight: 72.5 }),
+      ]);
+      expect(store().completedSetIds).toEqual({ '102': FIXED_NOW });
+      expect(store().hasUnsavedChanges).toBe(true);
+
+      const sentRevision = store().sessionRevision;
+      const response = makeSession();
+      response.exercises[0].sets = [
+        {
+          ...response.exercises[0].sets[1],
+          id: 502,
+          set_number: 1,
+          weight: 72.5,
+        },
+      ];
+      response.exercises[1].sets[0].id = 601;
+      store().applyServerSession(
+        response,
+        sentRevision,
+        ['ex-uuid-1', 'ex-uuid-2'],
+        [['102'], ['201']]
+      );
+
+      expect(store().completedSetIds).toEqual({ '502': FIXED_NOW });
+      expect(store().session!.exercises[0].sets[0].weight).toBe(72.5);
+      expect(store().hasUnsavedChanges).toBe(false);
+    });
+
     it('rehydration with resting + expired endsAt snaps to ready (no phantom haptic)', async () => {
       jest.useRealTimers();
       const now = Date.now();

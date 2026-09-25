@@ -46,6 +46,7 @@ export const PREFERENCE_DEFAULTS = {
   notificationsEnabled: true,
   restTimerNotificationsEnabled: true,
   fastingGoalNotificationsEnabled: true,
+  fastingEnabled: true,
   hydrationCardVisible: true,
   caffeineCardVisible: true,
   fastingCardVisible: true,
@@ -66,6 +67,8 @@ export const PREFERENCE_DEFAULTS = {
   mealCapturePromptTime: '12:30' as string,
   mealPhotoReviewEnabled: false,
   mealPhotoReviewTime: '20:00' as string,
+  movementBreakReminderEnabled: false,
+  movementBreakReminderTime: '15:00' as string,
   liquidGlassTabBarEnabled: false,
   activeWorkoutMetricColumn: 'rpe' as ActiveWorkoutMetricColumn,
   diarySummaryVisible: false,
@@ -91,6 +94,7 @@ export type AppPreferencesData = {
   notificationsEnabled: boolean;
   restTimerNotificationsEnabled: boolean;
   fastingGoalNotificationsEnabled: boolean;
+  fastingEnabled: boolean;
   hydrationCardVisible: boolean;
   caffeineCardVisible: boolean;
   fastingCardVisible: boolean;
@@ -111,6 +115,8 @@ export type AppPreferencesData = {
   mealCapturePromptTime: string;
   mealPhotoReviewEnabled: boolean;
   mealPhotoReviewTime: string;
+  movementBreakReminderEnabled: boolean;
+  movementBreakReminderTime: string;
   liquidGlassTabBarEnabled: boolean;
   activeWorkoutMetricColumn: ActiveWorkoutMetricColumn;
   diarySummaryVisible: boolean;
@@ -136,6 +142,7 @@ export interface AppPreferencesState extends AppPreferencesData {
   setNotificationsEnabled: (value: boolean) => void;
   setRestTimerNotificationsEnabled: (value: boolean) => void;
   setFastingGoalNotificationsEnabled: (value: boolean) => void;
+  setFastingEnabled: (value: boolean) => void;
   setHydrationCardVisible: (value: boolean) => void;
   setCaffeineCardVisible: (value: boolean) => void;
   setFastingCardVisible: (value: boolean) => void;
@@ -153,6 +160,8 @@ export interface AppPreferencesState extends AppPreferencesData {
   setMealCaptureWindow: (start: string, end: string, prompt: string) => void;
   setMealPhotoReviewEnabled: (value: boolean) => void;
   setMealPhotoReviewTime: (value: string) => void;
+  setMovementBreakReminderEnabled: (value: boolean) => void;
+  setMovementBreakReminderTime: (value: string) => void;
   setLiquidGlassTabBarEnabled: (value: boolean) => void;
   setActiveWorkoutMetricColumn: (value: ActiveWorkoutMetricColumn) => void;
   setDiarySummaryVisible: (value: boolean) => void;
@@ -224,6 +233,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         set({ restTimerNotificationsEnabled: value }),
       setFastingGoalNotificationsEnabled: (value) =>
         set({ fastingGoalNotificationsEnabled: value }),
+      setFastingEnabled: (value) => set({ fastingEnabled: value }),
       setHydrationCardVisible: (value) => set({ hydrationCardVisible: value }),
       setCaffeineCardVisible: (value) => set({ caffeineCardVisible: value }),
       setFastingCardVisible: (value) => set({ fastingCardVisible: value }),
@@ -255,6 +265,10 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
       setMealPhotoReviewEnabled: (value) =>
         set({ mealPhotoReviewEnabled: value }),
       setMealPhotoReviewTime: (value) => set({ mealPhotoReviewTime: value }),
+      setMovementBreakReminderEnabled: (value) =>
+        set({ movementBreakReminderEnabled: value }),
+      setMovementBreakReminderTime: (value) =>
+        set({ movementBreakReminderTime: value }),
       setLiquidGlassTabBarEnabled: (value) =>
         set({ liquidGlassTabBarEnabled: value }),
       setActiveWorkoutMetricColumn: (value) =>
@@ -294,6 +308,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         notificationsEnabled: state.notificationsEnabled,
         restTimerNotificationsEnabled: state.restTimerNotificationsEnabled,
         fastingGoalNotificationsEnabled: state.fastingGoalNotificationsEnabled,
+        fastingEnabled: state.fastingEnabled,
         hydrationCardVisible: state.hydrationCardVisible,
         caffeineCardVisible: state.caffeineCardVisible,
         fastingCardVisible: state.fastingCardVisible,
@@ -312,6 +327,10 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         mealCaptureWindowStart: state.mealCaptureWindowStart,
         mealCaptureWindowEnd: state.mealCaptureWindowEnd,
         mealCapturePromptTime: state.mealCapturePromptTime,
+        mealPhotoReviewEnabled: state.mealPhotoReviewEnabled,
+        mealPhotoReviewTime: state.mealPhotoReviewTime,
+        movementBreakReminderEnabled: state.movementBreakReminderEnabled,
+        movementBreakReminderTime: state.movementBreakReminderTime,
         liquidGlassTabBarEnabled: state.liquidGlassTabBarEnabled,
         // Older persisted blobs without these keys backfill via the default
         // shallow merge — no version bump needed.

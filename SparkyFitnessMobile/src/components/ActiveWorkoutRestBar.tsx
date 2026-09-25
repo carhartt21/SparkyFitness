@@ -82,12 +82,14 @@ function ActiveWorkoutRestBar({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const usesGlass = useNativeIOSTabsActive();
-  const [accentPrimary, textMuted, trackColor, chromeBorder] = useCSSVariable([
-    '--color-accent-primary',
-    '--color-text-muted',
-    '--color-progress-track',
-    '--color-chrome-border',
-  ]) as [string, string, string, string];
+  const [accentPrimary, textMuted, trackColor, chromeBorder, accentText] =
+    useCSSVariable([
+      '--color-accent-primary',
+      '--color-text-muted',
+      '--color-progress-track',
+      '--color-chrome-border',
+      '--color-accent-text',
+    ]) as [string, string, string, string, string];
 
   const paused = state === 'paused';
   const timerColor = paused ? textMuted : accentPrimary;
@@ -125,8 +127,8 @@ function ActiveWorkoutRestBar({
           className="flex-row items-center rounded-full px-4 py-2.5"
           style={{ backgroundColor: accentPrimary, gap: 6 }}
         >
-          <Icon name="checkmark" size={16} color="#ffffff" weight="bold" />
-          <Text className="text-sm font-semibold" style={{ color: '#ffffff' }}>
+          <Icon name="checkmark" size={16} color={accentText} weight="bold" />
+          <Text className="text-sm font-semibold" style={{ color: accentText }}>
             {t('activeWorkout.rest.completeSetTitle', {
               defaultValue: 'Complete Set',
             })}
@@ -235,7 +237,7 @@ function ActiveWorkoutRestBar({
               <Icon
                 name="skip-forward"
                 size={16}
-                color="#ffffff"
+                color={accentText}
                 weight="bold"
               />
             </Pressable>

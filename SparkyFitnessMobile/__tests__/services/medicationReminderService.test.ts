@@ -2,6 +2,8 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { reconcileMedicationReminders } from '../../src/services/medicationReminderService';
+import { getActiveNutritionIdentity } from '../../src/services/nutritionIdentity';
+import { listNutritionActions } from '../../src/services/nutritionActionOutbox';
 import {
   __resetAppPreferencesStoreForTests,
   useAppPreferencesStore,
@@ -11,6 +13,13 @@ import type {
   MedicationEntry,
   MedicationSchedule,
 } from '@workspace/shared';
+
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  getActiveNutritionIdentity: jest.fn(),
+}));
+jest.mock('../../src/services/nutritionActionOutbox', () => ({
+  listNutritionActions: jest.fn(),
+}));
 
 const mockGetPerms = Notifications.getPermissionsAsync as jest.MockedFunction<
   typeof Notifications.getPermissionsAsync
@@ -157,6 +166,8 @@ describe('reconcileMedicationReminders', () => {
     mockCancel.mockReset().mockResolvedValue(undefined);
     mockGetAllScheduled.mockReset().mockResolvedValue([]);
     mockSetChannel.mockClear();
+    (getActiveNutritionIdentity as jest.Mock).mockResolvedValue(null);
+    (listNutritionActions as jest.Mock).mockResolvedValue([]);
     Object.defineProperty(Platform, 'OS', {
       get: () => 'ios',
       configurable: true,
@@ -214,6 +225,61 @@ describe('reconcileMedicationReminders', () => {
   });
 
   describe('scheduling', () => {
+    it.each([
+      ['missing', null],
+      ['another account', { userId: 'other-user', serverConfigId: 'server-1' }],
+    ])(
+      'does not offer an unusable supplement action for %s identity',
+      async (_label, identity) => {
+        (getActiveNutritionIdentity as jest.Mock).mockResolvedValue(identity);
+        mockGetAllScheduled.mockResolvedValue([
+          pendingRequest('old-dose', {
+            medicationId: 'med-1',
+            key: BASE_KEY,
+          }),
+        ]);
+
+        await reconcileMedicationReminders(
+          [buildMedication({ is_supplement: true })],
+          []
+        );
+
+        expect(mockCancel).toHaveBeenCalledWith('old-dose');
+        expect(mockSchedule).not.toHaveBeenCalled();
+      }
+    );
+
+    it('does not recreate a supplement reminder after an offline response is queued', async () => {
+      (getActiveNutritionIdentity as jest.Mock).mockResolvedValue({
+        userId: 'user-1',
+        serverConfigId: 'server-1',
+      });
+      (listNutritionActions as jest.Mock).mockResolvedValue([
+        {
+          type: 'logPlannedSupplement',
+          payload: { schedule_id: 'sched-1', entry_date: TODAY },
+        },
+      ]);
+      mockGetAllScheduled.mockResolvedValue([
+        pendingRequest('old-dose', {
+          medicationId: 'med-1',
+          key: BASE_KEY,
+        }),
+      ]);
+
+      await reconcileMedicationReminders(
+        [buildMedication({ is_supplement: true })],
+        []
+      );
+
+      expect(mockCancel).toHaveBeenCalledWith('old-dose');
+      expect(scheduledKeys()).not.toContain(BASE_KEY);
+      expect(listNutritionActions).toHaveBeenCalledWith({
+        userId: 'user-1',
+        serverConfigId: 'server-1',
+      });
+    });
+
     it('schedules a base reminder plus 10/20/30-minute repeats for an unlogged future dose', async () => {
       await reconcileMedicationReminders([buildMedication()], []);
 
@@ -231,6 +297,10 @@ describe('reconcileMedicationReminders', () => {
             baseKey: BASE_KEY,
             hideNames: 'false',
             locale: 'en',
+            responseVersion: '2',
+            accountUserId: 'user-1',
+            serverConfigId: '',
+            isSupplement: 'false',
           },
         },
         trigger: {
@@ -429,7 +499,16 @@ describe('reconcileMedicationReminders', () => {
     it('does not reschedule a dose whose base reminder is already pending', async () => {
       useAppPreferencesStore.setState({ medicationReminderRepeats: false });
       mockGetAllScheduled.mockResolvedValue([
-        pendingRequest('n1', { medicationId: 'med-1', key: BASE_KEY }),
+        pendingRequest('n1', {
+          medicationId: 'med-1',
+          key: BASE_KEY,
+          hideNames: 'false',
+          locale: 'en',
+          responseVersion: '2',
+          accountUserId: 'user-1',
+          serverConfigId: '',
+          isSupplement: 'false',
+        }),
       ]);
 
       await reconcileMedicationReminders([buildMedication()], []);
@@ -440,7 +519,16 @@ describe('reconcileMedicationReminders', () => {
 
     it('adds the repeat pings behind an already-pending base reminder when repeats turn on mid-day', async () => {
       mockGetAllScheduled.mockResolvedValue([
-        pendingRequest('n1', { medicationId: 'med-1', key: BASE_KEY }),
+        pendingRequest('n1', {
+          medicationId: 'med-1',
+          key: BASE_KEY,
+          hideNames: 'false',
+          locale: 'en',
+          responseVersion: '2',
+          accountUserId: 'user-1',
+          serverConfigId: '',
+          isSupplement: 'false',
+        }),
       ]);
 
       await reconcileMedicationReminders([buildMedication()], []);

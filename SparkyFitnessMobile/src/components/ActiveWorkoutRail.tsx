@@ -89,10 +89,11 @@ function ActiveWorkoutRail({
   onPressAdd,
 }: ActiveWorkoutRailProps) {
   const { t } = useTranslation();
-  const [textMuted, accentPrimary] = useCSSVariable([
+  const [textMuted, accentPrimary, accentText] = useCSSVariable([
     '--color-text-muted',
     '--color-accent-primary',
-  ]) as [string, string];
+    '--color-accent-text',
+  ]) as [string, string, string];
 
   const scrollRef = useRef<ScrollView>(null);
   const itemOffsetsRef = useRef<Record<string, number>>({});
@@ -217,7 +218,12 @@ function ActiveWorkoutRail({
                     backgroundColor: accentPrimary,
                   }}
                 >
-                  <Icon name="play" size={10} color="#ffffff" weight="bold" />
+                  <Icon
+                    name="play"
+                    size={10}
+                    color={accentText}
+                    weight="bold"
+                  />
                 </View>
               )}
             </View>

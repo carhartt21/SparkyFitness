@@ -14,6 +14,8 @@ export interface ReminderScheduleInput {
   windowStart: string;
   windowEnd: string;
   goalMetToday: boolean;
+  /** Policy may examine farther ahead than the 12 requests ultimately kept. */
+  maxCount?: number;
 }
 
 function atTimeOnDay(day: Date, time: string): Date {
@@ -53,6 +55,7 @@ export function computeReminderSchedule({
   windowStart,
   windowEnd,
   goalMetToday,
+  maxCount = MAX_SCHEDULED_WATER_REMINDERS,
 }: ReminderScheduleInput): Date[] {
   const intervalMs = intervalHours * HOUR_MS;
 
@@ -75,7 +78,7 @@ export function computeReminderSchedule({
   }
 
   const times = [next];
-  while (times.length < MAX_SCHEDULED_WATER_REMINDERS) {
+  while (times.length < Math.min(128, Math.max(1, maxCount))) {
     next = fitIntoWindow(
       new Date(next.getTime() + intervalMs),
       windowStart,

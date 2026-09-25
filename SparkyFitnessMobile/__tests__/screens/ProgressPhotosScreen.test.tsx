@@ -31,12 +31,26 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 jest.mock('../../src/utils/pickImage', () => ({
-  pickImageFromCamera: jest.fn(async () => ({
-    status: 'picked',
-    image: { uri: 'file:///picked.jpg' },
-  })),
   pickImagesFromLibrary: jest.fn(async () => [{ uri: 'file:///picked.jpg' }]),
 }));
+jest.mock('../../src/components/ProgressPhotoCapture', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      visible,
+      onCaptured,
+    }: {
+      visible: boolean;
+      onCaptured: (uri: string) => Promise<boolean>;
+    }) =>
+      visible ? (
+        <Pressable onPress={() => void onCaptured('file:///captured.jpg')}>
+          <Text>Mock capture</Text>
+        </Pressable>
+      ) : null,
+  };
+});
 
 // The sheets need a BottomSheetModalProvider. Record the action sheet's items
 // on each render so a test can invoke one the way a tap would.
@@ -385,15 +399,36 @@ describe('ProgressPhotosScreen', () => {
       expect(getByLabelText('Add the side photo')).toBeTruthy();
     });
 
-    it('uploads straight away rather than staging behind a Save', async () => {
+    it('uploads a camera photo only after capture, without a composited guide', async () => {
       setDayPhotos([]);
 
-      const { getByLabelText } = renderScreen();
+      const { getByLabelText, getByText } = renderScreen();
       fireEvent.press(getByLabelText('Add the front photo'));
 
       const camera = sheetItems()?.find((item) => item.key === 'camera');
       await act(async () => {
         camera?.onPress?.();
+      });
+      expect(uploadAsync).not.toHaveBeenCalled();
+
+      await act(async () => {
+        fireEvent.press(getByText('Mock capture'));
+      });
+
+      expect(uploadAsync).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'front', uri: 'file:///captured.jpg' })
+      );
+    });
+
+    it('uploads a selected library photo directly', async () => {
+      setDayPhotos([]);
+      const { getByLabelText } = renderScreen();
+      fireEvent.press(getByLabelText('Add the front photo'));
+
+      await act(async () => {
+        sheetItems()
+          ?.find((item) => item.key === 'library')
+          ?.onPress?.();
       });
 
       expect(uploadAsync).toHaveBeenCalledWith(

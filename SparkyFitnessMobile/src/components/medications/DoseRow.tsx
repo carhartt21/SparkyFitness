@@ -13,6 +13,7 @@ import Icon from '../Icon';
 interface ScheduledDoseRowProps {
   kind: 'scheduled';
   status: 'pending' | 'taken' | 'skipped';
+  queuedStatus?: 'pending' | 'syncing' | 'attentionRequired' | 'synced';
   /** Circle tap: logs the dose when pending, otherwise undoes the log. */
   onToggle: () => void;
   onTake: () => void;
@@ -85,6 +86,7 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
     ]) as [string, string, string, string];
 
   const completed = props.kind === 'scheduled' && props.status !== 'pending';
+  const queuedStatus = props.kind === 'scheduled' ? props.queuedStatus : null;
   const showTime = time != null && time !== '';
   const showSubtitle = subtitle != null && subtitle !== '';
   const taken = props.kind === 'scheduled' && props.status === 'taken';
@@ -140,6 +142,23 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
               {t('medications.dose.log', { defaultValue: 'Log' })}
             </Text>
           </TouchableOpacity>
+        </SizedActionColumn>
+      );
+    }
+    if (props.queuedStatus) {
+      const label =
+        props.queuedStatus === 'attentionRequired'
+          ? t('nutritionOutbox.attention', { defaultValue: 'Needs attention' })
+          : props.queuedStatus === 'synced'
+            ? t('medications.dose.refreshing', {
+                defaultValue: 'Synced; refreshing',
+              })
+            : t('nutritionOutbox.pending', {
+                defaultValue: 'Waiting to sync',
+              });
+      return (
+        <SizedActionColumn>
+          <Text className="text-sm text-text-secondary">{label}</Text>
         </SizedActionColumn>
       );
     }
@@ -201,6 +220,7 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
     >
       <Pressable
         onPress={onCirclePress}
+        disabled={queuedStatus != null}
         className="w-6 h-6 rounded-full items-center justify-center mr-3"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         accessibilityRole="button"

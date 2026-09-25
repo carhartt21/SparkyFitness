@@ -88,6 +88,18 @@ function harness(actions: PendingNutritionAction[]) {
       return next;
     }),
     createEntry,
+    createWaterAction: jest.fn().mockResolvedValue({
+      id: 'water-1',
+      alreadyApplied: false,
+    }),
+    createContainerWaterAction: jest.fn().mockResolvedValue({
+      waterLogId: 'container-water-1',
+      alreadyApplied: false,
+    }),
+    createPlannedSupplementAction: jest.fn().mockResolvedValue({
+      entry: { id: 'supplement-entry-1' },
+      replayed: false,
+    }),
     createCapture: jest.fn().mockResolvedValue({ id: 'capture-1' }),
     uploadCaptureImage: jest.fn().mockResolvedValue({ id: 'image-1' }),
     completeCapture: jest.fn().mockResolvedValue({ entry: { id: 'entry-1' } }),
@@ -96,6 +108,92 @@ function harness(actions: PendingNutritionAction[]) {
 }
 
 describe('nutrition action reconciliation', () => {
+  test('replays a planned supplement with the same operation ID after a lost response', async () => {
+    const id = 'cbb275a8-8d2a-4514-a6e2-0fb864452293';
+    const action: PendingNutritionAction = {
+      ...foodAction(id),
+      type: 'logPlannedSupplement',
+      payload: {
+        client_operation_id: id,
+        medication_id: '11111111-1111-4111-8111-111111111111',
+        schedule_id: '22222222-2222-4222-8222-222222222222',
+        entry_date: '2026-09-23',
+        status: 'taken',
+        occurred_at: '2026-09-23T12:00:00.000Z',
+      },
+    };
+    const { deps, rows } = harness([action]);
+    (deps.createPlannedSupplementAction as jest.Mock).mockRejectedValueOnce(
+      new Error('response lost')
+    );
+    await reconcileNutritionActions(undefined, deps);
+    expect(rows.get(id)?.syncState).toBe('pending');
+    (deps.createPlannedSupplementAction as jest.Mock).mockResolvedValueOnce({
+      entry: null,
+      replayed: true,
+    });
+    await reconcileNutritionActions(undefined, deps);
+    expect(deps.createPlannedSupplementAction).toHaveBeenCalledTimes(2);
+    expect(deps.createPlannedSupplementAction).toHaveBeenCalledWith(
+      action.payload
+    );
+    expect(rows.get(id)?.syncState).toBe('synced');
+    expect(rows.get(id)?.serverIdentity).toBe(id);
+  });
+  test('replays a plain-water action with its original operation ID', async () => {
+    const id = '7f5ba89d-07f6-47e0-9804-064467c49f9a';
+    const action: PendingNutritionAction = {
+      ...foodAction(id),
+      type: 'logManualWater',
+      payload: {
+        client_operation_id: id,
+        entry_date: '2026-09-23',
+        water_ml: 250,
+        logged_at: '2026-09-23T12:00:00.000Z',
+      },
+    };
+    const { deps, rows } = harness([action]);
+    (deps.createWaterAction as jest.Mock).mockRejectedValueOnce(
+      new Error('response lost')
+    );
+    await reconcileNutritionActions(undefined, deps);
+    expect(rows.get(id)?.syncState).toBe('pending');
+    await reconcileNutritionActions(undefined, deps);
+    expect(deps.createWaterAction).toHaveBeenCalledTimes(2);
+    expect(deps.createWaterAction).toHaveBeenCalledWith(action.payload);
+    expect(rows.get(id)?.serverIdentity).toBe('water-1');
+  });
+
+  test('replays a container press after a lost response without changing its payload', async () => {
+    const id = '16f383e7-df1f-4f32-b96a-e0b92690dab2';
+    const action: PendingNutritionAction = {
+      ...foodAction(id),
+      type: 'logContainerWater',
+      payload: {
+        client_operation_id: id,
+        entry_date: '2026-09-23',
+        container_id: 12,
+        logged_at: '2026-09-23T12:00:00.000Z',
+      },
+    };
+    const { deps, rows } = harness([action]);
+    (deps.createContainerWaterAction as jest.Mock).mockRejectedValueOnce(
+      new Error('response lost')
+    );
+    await reconcileNutritionActions(undefined, deps);
+    expect(rows.get(id)?.syncState).toBe('pending');
+    (deps.createContainerWaterAction as jest.Mock).mockResolvedValueOnce({
+      waterLogId: null,
+      alreadyApplied: true,
+    });
+    await reconcileNutritionActions(undefined, deps);
+    expect(deps.createContainerWaterAction).toHaveBeenCalledTimes(2);
+    expect(deps.createContainerWaterAction).toHaveBeenCalledWith(
+      action.payload
+    );
+    expect(rows.get(id)?.syncState).toBe('synced');
+    expect(rows.get(id)?.serverIdentity).toBe(id);
+  });
   test('submits a stable operation ID and acknowledges the server identity', async () => {
     const id = 'd4d56c1e-d55e-458c-99f7-fc7b2a53d700';
     const { rows, deps, createEntry } = harness([foodAction(id)]);

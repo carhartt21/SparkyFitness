@@ -128,7 +128,7 @@
     }
   },
   "languageSettings": {
-    "subtitle": "Usa la lingua del dispositivo o scegli una lingua per SparkyFitness."
+    "subtitle": "Usa la lingua del dispositivo o scegli una lingua per X on Track."
   },
   "navigation": {
     "settings": "Impostazioni",
@@ -221,7 +221,7 @@
     },
     "exactAlarm": {
       "title": "Avvisi puntuali",
-      "message": "Android ritarda gli avvisi programmati a meno che SparkyFitness non sia autorizzato a impostare allarmi esatti. Abilita \"Allarmi e promemoria\" in modo che i timer di riposo e i promemoria dei farmaci suonino puntualmente.",
+      "message": "Android ritarda gli avvisi programmati a meno che X on Track non sia autorizzato a impostare allarmi esatti. Abilita \"Allarmi e promemoria\" in modo che i timer di riposo e i promemoria dei farmaci suonino puntualmente.",
       "notNow": "Non ora",
       "openSettings": "Apri impostazioni"
     },
@@ -564,19 +564,19 @@
     "healthConnect": "Health Connect",
     "appleSummary": "Legge i dati selezionati da Apple Health e li sincronizza con il tuo server self-hosted.",
     "connectSummary": "Legge i dati selezionati da Health Connect e li sincronizza con il tuo server self-hosted.",
-    "appleDetail": "SparkyFitness legge i dati sanitari che selezioni di seguito utilizzando Apple Health (HealthKit). Se la sincronizzazione è abilitata, i dati vengono sincronizzati solo tra il tuo dispositivo e il tuo server SparkyFitness self-hosted (manuale o in background).\n\nGestisci o rimuovi l'accesso in Impostazioni → Salute → Accesso ai dati e dispositivi → SparkyFitnessMobile",
-    "connectDetail": "SparkyFitness legge i dati sanitari che selezioni di seguito utilizzando Health Connect. Se la sincronizzazione è abilitata, i dati vengono sincronizzati solo tra il tuo dispositivo e il tuo server SparkyFitness self-hosted (manuale o in background).",
+    "appleDetail": "X on Track legge i dati sanitari che selezioni di seguito utilizzando Apple Health (HealthKit). Se la sincronizzazione è abilitata, i dati vengono sincronizzati solo tra il tuo dispositivo e il tuo server X on Track self-hosted (manuale o in background).\n\nGestisci o rimuovi l'accesso in Impostazioni → Salute → Accesso ai dati e dispositivi → X on Track",
+    "connectDetail": "X on Track legge i dati sanitari che selezioni di seguito utilizzando Health Connect. Se la sincronizzazione è abilitata, i dati vengono sincronizzati solo tra il tuo dispositivo e il tuo server X on Track self-hosted (manuale o in background).",
     "title": "Dati sanitari da sincronizzare",
     "notMedicalAdvice": "Non è un consiglio medico.",
     "consultProfessional": "Consulta un professionista sanitario per consigli medici, diagnosi o trattamenti.",
     "enableAll": "Abilita tutte le metriche sanitarie",
     "batteryNote": "Abilitare molte metriche sanitarie può aumentare il consumo della batteria. Ogni metrica abilitata consente all'app di attivarsi in background quando sono disponibili nuovi dati.",
     "writeTitle": "Scrivi su {{store}}",
-    "writeSummary": "Sincronizza i dati che registri in SparkyFitness su {{store}}, mantenendo i due sincronizzati.",
+    "writeSummary": "Sincronizza i dati che registri in X on Track su {{store}}, mantenendo i due sincronizzati.",
     "removeFrom": "Rimuovi da {{store}}",
     "allTime": "Tutto il tempo",
     "pickDateRange": "Seleziona un intervallo di date…",
-    "removeData": "Rimuovi i dati di SparkyFitness da {{store}}",
+    "removeData": "Rimuovi i dati di X on Track da {{store}}",
     "source": "Fonte:",
     "syncMetricLabel": "Sincronizza {{metric}}",
     "syncMetricHint": "Attiva o disattiva la sincronizzazione per questa metrica sanitaria.",
@@ -601,7 +601,7 @@
     "sso": "SSO",
     "passkey": "Passkey",
     "connect": "Connetti",
-    "connectTitle": "Connetti a SparkyFitness",
+    "connectTitle": "Connetti a X on Track",
     "signInWithPasskey": "Accedi con Passkey",
     "orSignInWith": "Oppure accedi con",
     "noMethods": "Nessun metodo di accesso standard è attualmente abilitato su questo server. Utilizza un'API Key o contatta un amministratore.",
@@ -665,8 +665,8 @@
   },
   "onboarding": {
     "subtitle": "Il tuo tracker fitness self-hosted",
-    "learnMoreTitle": "Scopri di più su SparkyFitness",
-    "learnMoreBody": "SparkyFitness ti aiuta a monitorare cibo, allenamenti e dati sulla salute in un unico posto.",
+    "learnMoreTitle": "Scopri di più su X on Track",
+    "learnMoreBody": "X on Track ti aiuta a monitorare cibo, allenamenti e dati sulla salute in un unico posto.",
     "learnMorePrivacy": "Funziona sul tuo server, quindi i tuoi dati rimangono privati.",
     "errors": {
       "validFrontendUrl": "Inserisci un Frontend URL valido",
@@ -747,12 +747,12 @@
     },
     "removal": {
       "removed": "Rimosso",
-      "deleted": "Dati SparkyFitness eliminati da {{store}}.",
+      "deleted": "Dati X on Track eliminati da {{store}}.",
       "partial": "Rimosso parzialmente",
       "partialMessage": "Alcuni record non possono essere eliminati da {{store}}.",
       "errorMessage": "Impossibile rimuovere i dati da {{store}}.",
       "confirmTitle": "Rimuovi tutti i dati da {{store}}",
-      "confirmMessage": "Elimina tutti i record di valori nutrizionali e di idratazione che SparkyFitness ha scritto su {{store}} e disattiva la scrittura? Il tuo diario SparkyFitness e i record di altre app non saranno interessati."
+      "confirmMessage": "Elimina tutti i record di valori nutrizionali e di idratazione che X on Track ha scritto su {{store}} e disattiva la scrittura? Il tuo diario X on Track e i record di altre app non saranno interessati."
     },
     "range": {
       "title": "Intervallo di sincronizzazione",
@@ -898,7 +898,7 @@
   "dashboardSettings": {
     "updateFailed": "Impossibile aggiornare l'impostazione.",
     "noCustomNutrients": "Nessun nutriente personalizzato",
-    "customNutrientsDescription": "I nutrienti personalizzati vengono creati nell'app web SparkyFitness. Una volta aggiunti, appariranno qui in modo da poter scegliere quali mostrare sulla tua Dashboard.",
+    "customNutrientsDescription": "I nutrienti personalizzati vengono creati nell'app web X on Track. Una volta aggiunti, appariranno qui in modo da poter scegliere quali mostrare sulla tua Dashboard.",
     "title": "Impostazioni Dashboard",
     "askSparky": "Chiedi a Sparky",
     "askSparkySubtitle": "Mostra il launcher della chat Chiedi a Sparky sulla Dashboard",
@@ -922,7 +922,7 @@
     "updateFailed": "Impossibile aggiornare l'impostazione.",
     "limitReached": "Limite raggiunto",
     "noCustomNutrients": "Nessun nutriente personalizzato",
-    "customNutrientsDescription": "I nutrienti personalizzati vengono creati nell'app web SparkyFitness. Una volta aggiunti, appariranno qui in modo da poter scegliere quali mostrare sul tuo Diario.",
+    "customNutrientsDescription": "I nutrienti personalizzati vengono creati nell'app web X on Track. Una volta aggiunti, appariranno qui in modo da poter scegliere quali mostrare sul tuo Diario.",
     "title": "Impostazioni Diario",
     "summary": "Riepilogo Diario",
     "summarySubtitle": "Mostra calorie e macronutrienti",
@@ -935,7 +935,7 @@
     "title": "Informazioni",
     "version": "Versione {{version}} ({{build}})",
     "descriptionTitle": "Informazioni su questa app",
-    "description": "SparkyFitness è un tracker open-source di nutrizione, esercizio fisico e dati sulla salute che si sincronizza con il tuo server. Questa app è il compagno mobile per registrare pasti, allenamenti e misurazioni in movimento.",
+    "description": "X on Track è un tracker open-source di nutrizione, esercizio fisico e dati sulla salute che si sincronizza con il tuo server. Questa app è il compagno mobile per registrare pasti, allenamenti e misurazioni in movimento.",
     "github": "Progetto su GitHub",
     "documentation": "Documentazione",
     "privacyPolicy": "Informativa sulla Privacy",
@@ -951,7 +951,7 @@
   "notificationSettings": {
     "title": "Notifiche",
     "allow": "Consenti Notifiche",
-    "allowSubtitle": "Interruttore principale per tutti gli avvisi da SparkyFitness.",
+    "allowSubtitle": "Interruttore principale per tutti gli avvisi da X on Track.",
     "alerts": "Avvisi",
     "restTimer": "Timer di Riposo",
     "restTimerSubtitle": "Avvisa quando un periodo di riposo termina, anche in background.",
@@ -967,7 +967,7 @@
     "enableNotifications": "Abilita Notifiche",
     "openSettings": "Apri Impostazioni",
     "permissionTitle": "Concedi autorizzazioni",
-    "permissionBody": "Gli avvisi di SparkyFitness (timer di riposo, obiettivi di digiuno, promemoria farmaci) non verranno attivati.",
+    "permissionBody": "Gli avvisi di X on Track (timer di riposo, obiettivi di digiuno, promemoria farmaci) non verranno attivati.",
     "permissionWarningAccessibility": "{{title}}. {{body}} {{action}}."
   },
   "workoutSettings": {
@@ -2145,7 +2145,7 @@
     "photo": {
       "frameMeal": "Inquadra l'intero pasto",
       "notSetUp": "Le stime fotografiche AI non sono configurate",
-      "setupHelp": "Apri SparkyFitness in un browser e vai su Impostazioni → AI per aggiungere un provider AI, quindi torna qui.",
+      "setupHelp": "Apri X on Track in un browser e vai su Impostazioni → AI per aggiungere un provider AI, quindi torna qui.",
       "logManually": "Registra manualmente"
     },
     "barcode": {
@@ -2698,7 +2698,7 @@
       "widget": {
         "eyebrow": "WIDGET SCHERMATA PRINCIPALE",
         "headline": "Calorie sulla schermata principale",
-        "body": "Vedi a colpo d'occhio come sta andando la tua giornata. Aggiungi SparkyFitness dalla galleria dei widget della schermata principale."
+        "body": "Vedi a colpo d'occhio come sta andando la tua giornata. Aggiungi X on Track dalla galleria dei widget della schermata principale."
       },
       "photo": {
         "eyebrow": "SCANSIONE FOTO AI",
@@ -2732,7 +2732,7 @@
     "conditions": "Condizioni",
     "disclaimerTitle": "Disclaimer e Completa",
     "medicalDisclaimer": "Disclaimer medico",
-    "disclaimerBody": "Il tracker SparkyFitness per il benessere e la salute riproduttiva è progettato per aiutarti a monitorare previsioni, sintomi e parametri fisiologici. NON è destinato a essere utilizzato come metodo contraccettivo o come strumento diagnostico/terapeutico.",
+    "disclaimerBody": "Il tracker X on Track per il benessere e la salute riproduttiva è progettato per aiutarti a monitorare previsioni, sintomi e parametri fisiologici. NON è destinato a essere utilizzato come metodo contraccettivo o come strumento diagnostico/terapeutico.",
     "consultProfessional": "Consulta sempre un professionista medico qualificato per questioni di salute.",
     "acceptInitialize": "Accetta e Inizializza Profilo",
     "mode": {
@@ -2781,7 +2781,7 @@
       "serverChanged": "Il server attivo è cambiato durante l'importazione, quindi si è interrotta. Avvia di nuovo per importare nel server corrente.",
       "alreadyRunning": "Un'altra sincronizzazione è in corso in questo momento. Attendi un momento che finisca, quindi avvia l'importazione.",
       "title": "Importa la tua cronologia sanitaria",
-      "description": "Importa tutti i tuoi dati passati di {{source}} in SparkyFitness con un riempimento una tantum di ogni metrica abilitata, dai tuoi dati registrati più antichi fino a oggi.",
+      "description": "Importa tutti i tuoi dati passati di {{source}} in X on Track con un riempimento una tantum di ogni metrica abilitata, dai tuoi dati registrati più antichi fino a oggi.",
       "source": "Fonte",
       "dataTypes": "Tipi di dati abilitati",
       "timing": "Ci vorranno alcuni minuti. Puoi mettere in pausa in qualsiasi momento e riprendere da dove avevi interrotto."
@@ -5157,7 +5157,7 @@
     "chooseLibrary": "Scegli dalla libreria",
     "remove": "Rimuovi foto",
     "cameraPermission": "È necessario il permesso per la fotocamera",
-    "cameraPermissionHint": "Abilita l'accesso alla fotocamera per SparkyFitness nelle Impostazioni.",
+    "cameraPermissionHint": "Abilita l'accesso alla fotocamera per X on Track nelle Impostazioni.",
     "compare": "Confronta",
     "compareTitle": "Confronta",
     "before": "Prima",

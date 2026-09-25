@@ -4,9 +4,15 @@ import { fetchNutritionCapturesByDate } from '../services/api/nutritionCaptureAp
 export const nutritionCapturesQueryKey = (date: string) =>
   ['nutritionCaptures', date] as const;
 
-export function useNutritionCapturesByDate(date: string, enabled: boolean) {
+export function useNutritionCapturesByDate(
+  date: string,
+  enabled: boolean,
+  scope?: string | null
+) {
   const query = useQuery({
-    queryKey: nutritionCapturesQueryKey(date),
+    queryKey: scope
+      ? [...nutritionCapturesQueryKey(date), scope]
+      : nutritionCapturesQueryKey(date),
     queryFn: () => fetchNutritionCapturesByDate(date),
     enabled,
   });

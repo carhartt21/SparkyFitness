@@ -626,7 +626,7 @@ const MealPlanFormScreen: React.FC<MealPlanFormScreenProps> = ({
                 <Text
                   className={
                     isSelected
-                      ? 'text-sm font-semibold text-white'
+                      ? 'text-sm font-semibold text-accent-text'
                       : 'text-sm font-semibold text-text-primary'
                   }
                 >

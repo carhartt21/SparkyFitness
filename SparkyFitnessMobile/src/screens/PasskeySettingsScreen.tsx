@@ -58,10 +58,11 @@ const PasskeySettingsScreen: React.FC<PasskeySettingsScreenProps> = () => {
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const usesNativeHeader = useNativeIOSHeadersActive();
 
-  const [accentPrimary, textMuted] = useCSSVariable([
+  const [accentPrimary, textMuted, accentText] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-muted',
-  ]) as [string, string];
+    '--color-accent-text',
+  ]) as [string, string, string];
 
   const { activeConfig } = useServerConfigs();
 
@@ -409,15 +410,15 @@ const PasskeySettingsScreen: React.FC<PasskeySettingsScreenProps> = () => {
               {actionLoading ? (
                 <ActivityIndicator
                   size="small"
-                  color="#fff"
+                  color={accentText}
                   style={{ marginRight: 8 }}
                 />
               ) : (
                 <View style={{ marginRight: 8 }}>
-                  <Icon name="fingerprint" size={20} color="#fff" />
+                  <Icon name="fingerprint" size={20} color={accentText} />
                 </View>
               )}
-              <Text className="text-base font-semibold text-white">
+              <Text className="text-base font-semibold text-accent-text">
                 {t('passkeySettings.add', { defaultValue: 'Add Passkey' })}
               </Text>
             </Button>

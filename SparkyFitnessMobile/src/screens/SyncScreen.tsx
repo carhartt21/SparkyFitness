@@ -166,6 +166,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const accentPrimary = useCSSVariable('--color-accent-primary') as
     string | undefined;
+  const accentText = useCSSVariable('--color-accent-text') as string;
   const usesNativeHeader = useNativeIOSHeadersActive();
   const [healthMetricStates, setHealthMetricStates] =
     useState<HealthMetricStates>({});
@@ -528,7 +529,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           type: 'success',
           text1: t('syncScreen.removal.removed', { defaultValue: 'Removed' }),
           text2: t('syncScreen.removal.deleted', {
-            defaultValue: 'Deleted SparkyFitness data from {{store}}.',
+            defaultValue: 'Deleted X on Track data from {{store}}.',
             store: writebackStoreName,
           }),
         });
@@ -571,7 +572,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
       }),
       t('syncScreen.removal.confirmMessage', {
         defaultValue:
-          'Delete every nutrition and hydration record SparkyFitness wrote to {{store}}, and turn writeback off? Your SparkyFitness diary and records from other apps are not affected.',
+          'Delete every nutrition and hydration record X on Track wrote to {{store}}, and turn writeback off? Your X on Track diary and records from other apps are not affected.',
         store: writebackStoreName,
       }),
       [
@@ -880,15 +881,15 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           <Image
             source={require('../../assets/icons/sync_now_alt.png')}
             className="w-6 h-6 mr-3"
-            tintColor="#fff"
+            tintColor={accentText}
           />
           <View className="flex-1">
-            <Text className="text-white text-lg font-semibold">
+            <Text className="text-accent-text text-lg font-semibold">
               {syncMutation.isPending
                 ? t('syncScreen.syncing', { defaultValue: 'Syncing…' })
                 : t('syncScreen.syncNow', { defaultValue: 'Sync Now' })}
             </Text>
-            <Text className="text-white/80 text-sm mt-0.5">
+            <Text className="text-accent-text/80 text-sm mt-0.5">
               {t('syncScreen.sendToServer', {
                 defaultValue: 'Send your health data to your server',
               })}

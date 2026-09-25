@@ -12,9 +12,14 @@ import {
   Text,
   TouchableOpacity,
   ActivityIndicator,
+  Keyboard,
   Platform,
-  ScrollView,
 } from 'react-native';
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+  KeyboardStickyView,
+} from 'react-native-keyboard-controller';
 import Toast from 'react-native-toast-message';
 import { StackActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -23,13 +28,15 @@ import { useQuery } from '@tanstack/react-query';
 import Icon from '../components/Icon';
 import StepperInput from '../components/StepperInput';
 import MarkdownNotesField from '../components/MarkdownNotesField';
+import { useKeepNoteVisible } from '../hooks/useKeepNoteVisible';
 import { NoteMarkdown } from '../components/NoteMarkdown';
-import { usableFoodImages } from '../utils/foodImages';
+import SafeImage from '../components/SafeImage';
+import VerifiedBadge from '../components/VerifiedBadge';
+import { useFoodImageSourceContext } from '../components/FoodImageSourceProvider';
+import { externalFoodImage, usableFoodImages } from '../utils/foodImages';
 import BottomSheetPicker from '../components/BottomSheetPicker';
-import {
-  FoodNutritionHeader,
-  FoodNutrientBreakdown,
-} from '../components/FoodNutritionSummary';
+import { FoodNutrientBreakdown } from '../components/FoodNutritionSummary';
+import { localizeNutrientKey } from '../utils/nutrientLocalization';
 import { fetchDailyGoals } from '../services/api/goalsApi';
 import { setPendingMealIngredientSelection } from '../services/mealBuilderSelection';
 import {
@@ -39,7 +46,12 @@ import {
 } from '../services/mealPlanSelection';
 import { setPendingContainerLinkSelection } from '../services/waterContainerLinkSelection';
 import { CreateFoodEntryPayload } from '../services/api/foodEntriesApi';
-import { addDays, getTodayDate, getDeviceTimezone } from '../utils/dateUtils';
+import {
+  addDays,
+  formatDateLabel,
+  getTodayDate,
+  getDeviceTimezone,
+} from '../utils/dateUtils';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import { prefillEntryTime, userHourMinute } from '@workspace/shared';
 import TimeSheet, { type TimeSheetRef } from '../components/TimeSheet';
@@ -69,6 +81,8 @@ import CalendarSheet, {
 } from '../components/CalendarSheet';
 import DateSelectRow from '../components/DateSelectRow';
 import { FooterSaveBar } from '../components/FormScreenChrome';
+import Button from '../components/ui/Button';
+import { createDuplicatePressGuard } from '../utils/duplicatePress';
 import type { FoodFormData } from '../components/FoodForm';
 import type { Meal, MealIngredientDraft } from '../types/meals';
 import type {
@@ -214,13 +228,29 @@ function mergeVariantDisplayValues(
   return mergedValues;
 }
 
-const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
+const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   navigation,
   route,
 }) => {
   const { item, date: initialDate } = route.params;
   const photoCapture = route.params.photoCapture;
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  const [logDetailsExpanded, setLogDetailsExpanded] = useState(false);
+  const allowAddPress = useRef(createDuplicatePressGuard()).current;
+  useEffect(() => {
+    const show = Keyboard.addListener('keyboardDidShow', () =>
+      setKeyboardVisible(true)
+    );
+    const hide = Keyboard.addListener('keyboardDidHide', () =>
+      setKeyboardVisible(false)
+    );
+    return () => {
+      show.remove();
+      hide.remove();
+    };
+  }, []);
+  const getFoodImageSource = useFoodImageSourceContext();
   const pickerMode = route.params?.pickerMode ?? 'log-entry';
   const returnDepth = route.params?.returnDepth ?? 1;
   const ingredientIndex = route.params?.ingredientIndex;
@@ -295,6 +325,11 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
       route.params?.selectedVariantOverride ?? null
     );
   const activeItem = savedFoodOverride ?? item;
+  const displayBrand = adjustedValues?.brand ?? activeItem.brand;
+  const foodImagePath = externalFoodImage(activeItem);
+  const foodImageSource = foodImagePath
+    ? getFoodImageSource(foodImagePath)
+    : null;
   const effectiveMealId = selectedMealId ?? defaultMealTypeId;
   const selectedMealType = mealTypes.find((mt) => mt.id === effectiveMealId);
 
@@ -302,6 +337,7 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
   // The note for THIS diary entry. The food's own note is shown read-only
   // beside it and is never copied in.
   const [entryNotes, setEntryNotes] = useState('');
+  const noteVisibility = useKeepNoteVisible(96);
   const entryTimeTouched = useRef(false);
   useEffect(() => {
     if (entryTimeTouched.current) return;
@@ -1344,11 +1380,48 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
   );
   const carbsGoalPct = goalPercent(scaled(carbsForGoal), goals?.carbs);
   const fatGoalPct = goalPercent(scaled(displayValues.fat), goals?.fat);
+  const nutritionHighlights = [
+    {
+      key: 'calories',
+      value: scaled(displayValues.calories),
+      unit: 'kcal',
+      label: localizeNutrientKey(t, 'calories'),
+      goalPercent: calorieGoalPct,
+    },
+    {
+      key: 'fat',
+      value: scaled(displayValues.fat),
+      unit: 'g',
+      label: localizeNutrientKey(t, 'fat'),
+      goalPercent: fatGoalPct,
+    },
+    {
+      key: 'carbs',
+      value: scaled(carbsForGoal),
+      unit: 'g',
+      label: localizeNutrientKey(t, showNetCarbs ? 'netCarbs' : 'carbs'),
+      goalPercent: carbsGoalPct,
+    },
+    {
+      key: 'protein',
+      value: scaled(displayValues.protein),
+      unit: 'g',
+      label: localizeNutrientKey(t, 'protein'),
+      goalPercent: proteinGoalPct,
+    },
+  ];
 
   const mealPickerOptions = mealTypes.map((mealType) => ({
     label: getMealTypeDisplayLabel(mealType, t),
     value: mealType.id,
   }));
+  const logDestinationSummary = [
+    formatDateLabel(selectedDate, t, i18n.language),
+    selectedMealType ? getMealTypeDisplayLabel(selectedMealType, t) : null,
+    formatTimeLabel(entryTime, preferences?.time_format),
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   const isActionPending =
     isAddPending || isAddMealPending || isSavePending || isCreateVariantPending;
@@ -1562,10 +1635,56 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
     isFavorite,
   ]);
 
-  // The food name lives in the body's nutrition summary, so the header title
-  // stays blank. The favorite star is accent-tinted (role:'primary') so it
-  // reads as a button; edit/save stay neutral. The sticky footer "Add Food"/
-  // "Add Meal" button remains this screen's main accent action.
+  const addLabel = photoCapture
+    ? t('nutritionPhotos.completeMeal', { defaultValue: 'Complete meal' })
+    : activeItem.source === 'meal'
+      ? t('foodEntryAdd.actions.addMeal', { defaultValue: 'Add Meal' })
+      : t('foodEntryAdd.actions.addFood', { defaultValue: 'Add Food' });
+  const addDisabled =
+    isActionPending ||
+    isPhotoCompletionPending ||
+    (!isSelectionMode && !effectiveMealId) ||
+    quantity <= 0;
+  const handleAddPress = () => {
+    if (addDisabled || !allowAddPress('food-entry-add')) return;
+    if (photoCapture) {
+      void savePhotoCompletion();
+      return;
+    }
+    if (isSelectionMode) {
+      void handleSelectionAdd();
+      return;
+    }
+    if (!effectiveMealId) return;
+    if (activeItem.source === 'meal') {
+      addMeal(buildFoodEntryMealPayload());
+      return;
+    }
+    if (activeItem.source === 'external' && pendingVariantToPersist) {
+      void addEntryAsync({
+        saveFoodPayload: buildSaveFoodPayload(),
+        saveThenCreateVariantPayload: buildCreateFoodVariantInput(
+          pendingVariantToPersist
+        ),
+        ...(activeItem.externalVariants
+          ? { externalVariants: activeItem.externalVariants }
+          : {}),
+        createEntryPayload: buildFoodEntryPayload(),
+      }).catch(() => undefined);
+      return;
+    }
+    const saveFoodPayload =
+      activeItem.source === 'external' ? buildSaveFoodPayload() : undefined;
+    addEntry({
+      saveFoodPayload,
+      ...(activeItem.source === 'external'
+        ? { externalVariants: activeItem.externalVariants }
+        : {}),
+      createEntryPayload: buildFoodEntryPayload(),
+    });
+  };
+
+  // The food name lives in the summary card; keep the navigation bar quiet.
   const header = useScreenHeader({
     nativeTitle: '',
     left: {
@@ -1656,58 +1775,122 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
     >
       {header}
 
-      <ScrollView
+      <KeyboardAwareScrollView
+        mode="layout"
+        ref={noteVisibility.scrollRef}
+        onContentSizeChange={noteVisibility.onContentSizeChange}
         className="flex-1"
-        contentContainerClassName="px-4 pt-4 pb-4 gap-4"
+        contentContainerClassName={foodImagePath ? '' : 'pt-4'}
+        contentContainerStyle={{
+          paddingBottom: Math.max(insets.bottom, 12) + 96,
+        }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={96}
       >
-        <FoodNutritionHeader
-          name={adjustedValues?.name || activeItem.name}
-          brand={adjustedValues?.brand ?? activeItem.brand}
-          values={displayValues}
-          servings={servings}
-          goalPercentages={{
-            calories: calorieGoalPct,
-            protein: proteinGoalPct,
-            carbs: carbsGoalPct,
-            fat: fatGoalPct,
-          }}
-          goalsLoading={isGoalsLoading}
-          showNetCarbs={showNetCarbs}
-          provider_verified={activeItem.provider_verified}
-        />
-
-        <View className="mt-2">
-          <View className="flex-row items-center">
-            <StepperInput
-              value={quantityText}
-              onChangeText={updateQuantityText}
-              onBlur={clampQuantity}
-              onDecrement={() => adjustQuantity(-1)}
-              onIncrement={() => adjustQuantity(1)}
+        {foodImagePath ? (
+          <View
+            className="overflow-hidden bg-surface"
+            accessibilityLabel={t('foodEntryAdd.labels.foodPhoto', {
+              defaultValue: 'Photo of {{name}}',
+              name: activeItem.name,
+            })}
+          >
+            <SafeImage
+              source={foodImageSource}
+              style={{ width: '100%', height: 284 }}
+              contentFit="cover"
+              fallback={
+                <View className="h-full items-center justify-center bg-surface">
+                  <Icon name="food" size={40} color={textPrimary} />
+                </View>
+              }
             />
-            <Text className="text-text-primary text-base font-medium ml-2">
-              {quantityUnitLabel}
-            </Text>
           </View>
-          <View className="flex-row items-center mt-2">
-            <Text className="text-text-secondary text-sm">
-              {formatLocalizedNumber(servings, { maximumFractionDigits: 1 })}{' '}
-              {t('foodEntryAdd.labels.serving', {
-                defaultValue: 'servings',
-                defaultValue_one: 'serving',
-                defaultValue_other: 'servings',
-                count: servings,
+        ) : null}
+
+        <View
+          className="mx-4 rounded-2xl bg-raised px-5 py-6 gap-6"
+          style={foodImagePath ? { marginTop: -32 } : undefined}
+        >
+          <View>
+            <View className="flex-row items-start gap-2">
+              <Text className="flex-1 text-3xl font-bold text-text-primary">
+                {adjustedValues?.name || activeItem.name}
+              </Text>
+              {activeItem.provider_verified ? (
+                <VerifiedBadge size="md" />
+              ) : null}
+            </View>
+            {displayBrand ? (
+              <Text className="mt-1 text-sm text-text-secondary">
+                {displayBrand}
+              </Text>
+            ) : null}
+            <Text className="mt-1 text-sm text-text-secondary">
+              {t('foodEntryAdd.labels.nutritionForAmount', {
+                defaultValue: 'Nutrition for selected amount',
               })}
             </Text>
-            {/* Suppress the redundant "X serving per serving" suffix when the
-                unit is already 'serving' \u2014 that would just say e.g.
-                "1 serving \u00b7 1 serving per serving". Keep it for ml/g/etc.
-                where "X ml per serving" is meaningful info. */}
-            {displayValues.servingUnit !== 'serving' &&
-              !displayValues.servingDescription
-                ?.toLowerCase()
-                .includes('serving') &&
-              (variantPickerOptions.length > 1 ? (
+          </View>
+
+          <View className="flex-row justify-between gap-2 border-y border-border-subtle py-4">
+            {nutritionHighlights.map((nutrient) => (
+              <View
+                key={nutrient.key}
+                className="min-w-0 flex-1 items-center gap-1"
+              >
+                <Text
+                  className="text-center text-xl font-bold text-text-primary"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                >
+                  {formatLocalizedNumber(nutrient.value, {
+                    maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
+                  })}{' '}
+                  <Text className="text-xs font-medium">{nutrient.unit}</Text>
+                </Text>
+                <Text
+                  className="text-center text-sm text-text-secondary"
+                  numberOfLines={2}
+                >
+                  {nutrient.label}
+                </Text>
+                {nutrient.goalPercent != null && !isGoalsLoading ? (
+                  <Text className="mt-1 text-center text-xs text-text-secondary">
+                    {t('foodEntryAdd.labels.ofGoal', {
+                      defaultValue: '{{percent}}% of goal',
+                      percent: nutrient.goalPercent,
+                    })}
+                  </Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
+
+          <View>
+            <Text className="mb-2 text-sm font-semibold text-text-primary">
+              {t('foodEntryAdd.labels.amount', { defaultValue: 'Amount' })}
+            </Text>
+            <View className="flex-row items-center gap-3">
+              <StepperInput
+                value={quantityText}
+                onChangeText={updateQuantityText}
+                onBlur={clampQuantity}
+                onDecrement={() => adjustQuantity(-1)}
+                onIncrement={() => adjustQuantity(1)}
+                accessibilityLabels={{
+                  decrement: t('foodEntryAdd.actions.decreaseAmount', {
+                    defaultValue: 'Decrease amount',
+                  }),
+                  input: t('foodEntryAdd.labels.amount', {
+                    defaultValue: 'Amount',
+                  }),
+                  increment: t('foodEntryAdd.actions.increaseAmount', {
+                    defaultValue: 'Increase amount',
+                  }),
+                }}
+              />
+              {variantPickerOptions.length > 1 ? (
                 <BottomSheetPicker
                   value={selectedVariantId ?? variantPickerOptions[0]?.id ?? ''}
                   options={variantPickerOptions.map((variant) => ({
@@ -1722,28 +1905,27 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
                     <TouchableOpacity
                       onPress={onPress}
                       activeOpacity={0.7}
-                      className="flex-row items-center ml-1"
                       disabled={isCreateVariantPending}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('foodEntryAdd.actions.changeUnit', {
+                        defaultValue: 'Change unit: {{unit}}',
+                        unit: quantityUnitLabel,
+                      })}
+                      className="min-h-12 min-w-0 flex-1 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-4"
                     >
-                      <Text className="text-text-secondary text-sm">
-                        {' · '}
-                        {perServingLabel}{' '}
-                        {t('foodEntryAdd.labels.perServing', {
-                          defaultValue: 'per serving',
-                        })}
+                      <Text
+                        className="min-w-0 flex-1 text-base font-medium text-text-primary"
+                        numberOfLines={1}
+                      >
+                        {quantityUnitLabel}
                       </Text>
                       {isCreateVariantPending ? (
-                        <ActivityIndicator
-                          size="small"
-                          color={accentColor}
-                          style={{ marginLeft: 6 }}
-                        />
+                        <ActivityIndicator size="small" color={accentColor} />
                       ) : (
                         <Icon
                           name="chevron-down"
-                          size={12}
+                          size={16}
                           color={textPrimary}
-                          style={{ marginLeft: 4 }}
                           weight="medium"
                         />
                       )}
@@ -1751,138 +1933,166 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
                   )}
                 />
               ) : (
-                <Text className="text-text-secondary text-sm">
-                  {' · '}
-                  {perServingLabel}{' '}
-                  {t('foodEntryAdd.labels.perServing', {
-                    defaultValue: 'per serving',
-                  })}
-                </Text>
-              ))}
-            {/* Serving-unit meals: surface the meal's yield count as a
+                <View className="min-h-12 min-w-0 flex-1 justify-center rounded-xl border border-border-subtle bg-surface px-4">
+                  <Text
+                    className="text-base font-medium text-text-primary"
+                    numberOfLines={1}
+                  >
+                    {quantityUnitLabel}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View className="flex-row flex-wrap items-center mt-2">
+              <Text className="text-text-secondary text-sm">
+                {formatLocalizedNumber(servings, { maximumFractionDigits: 1 })}{' '}
+                {t('foodEntryAdd.labels.serving', {
+                  defaultValue: 'servings',
+                  defaultValue_one: 'serving',
+                  defaultValue_other: 'servings',
+                  count: servings,
+                })}
+              </Text>
+              {/* Suppress the redundant "X serving per serving" suffix when the
+                unit is already 'serving' \u2014 that would just say e.g.
+                "1 serving \u00b7 1 serving per serving". Keep it for ml/g/etc.
+                where "X ml per serving" is meaningful info. */}
+              {displayValues.servingUnit !== 'serving' &&
+                !displayValues.servingDescription
+                  ?.toLowerCase()
+                  .includes('serving') && (
+                  <Text className="text-text-secondary text-sm">
+                    {' · '}
+                    {perServingLabel}{' '}
+                    {t('foodEntryAdd.labels.perServing', {
+                      defaultValue: 'per serving',
+                    })}
+                  </Text>
+                )}
+              {/* Serving-unit meals: surface the meal's yield count as a
                 substitute for the suppressed "per serving" suffix above.
                 Singular meals (total_servings <= 1) don't need this \u2014 there's
                 no yield context to convey. */}
-            {displayValues.servingUnit === 'serving' &&
-              item.source === 'meal' &&
-              (item.mealTotalServings ?? 1) > 1 && (
-                <Text className="text-text-secondary text-sm">
-                  {' \u00b7 '}
-                  {t('foodEntryAdd.labels.mealMakes', {
-                    defaultValue: 'meal makes {{formattedCount}} servings',
-                    defaultValue_one: 'meal makes {{formattedCount}} serving',
-                    defaultValue_other:
-                      'meal makes {{formattedCount}} servings',
-                    count: item.mealTotalServings ?? 1,
-                    formattedCount: formatLocalizedNumber(
-                      item.mealTotalServings ?? 1,
-                      { maximumFractionDigits: 1 }
-                    ),
-                  })}
-                </Text>
-              )}
-          </View>
-        </View>
-
-        {!isSelectionMode && !photoCapture ? (
-          <>
-            <View className="flex-row items-center mt-2">
-              <DateSelectRow
-                date={selectedDate}
-                onPress={() => calendarRef.current?.present()}
-              />
-
-              {selectedDate === getTodayDate() ? (
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  className="flex-row items-center mx-4"
-                  onPress={() => setSelectedDate(addDays(getTodayDate(), -1))}
-                >
-                  <Text className="text-text-link text-sm font-medium mx-1.5">
-                    {t('foodEntryAdd.actions.useYesterday', {
-                      defaultValue: 'Use Yesterday',
+              {displayValues.servingUnit === 'serving' &&
+                item.source === 'meal' &&
+                (item.mealTotalServings ?? 1) > 1 && (
+                  <Text className="text-text-secondary text-sm">
+                    {' \u00b7 '}
+                    {t('foodEntryAdd.labels.mealMakes', {
+                      defaultValue: 'meal makes {{formattedCount}} servings',
+                      defaultValue_one: 'meal makes {{formattedCount}} serving',
+                      defaultValue_other:
+                        'meal makes {{formattedCount}} servings',
+                      count: item.mealTotalServings ?? 1,
+                      formattedCount: formatLocalizedNumber(
+                        item.mealTotalServings ?? 1,
+                        { maximumFractionDigits: 1 }
+                      ),
                     })}
                   </Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  className="flex-row items-center mx-4"
-                  onPress={() => setSelectedDate(getTodayDate())}
-                >
-                  <Text className="text-text-link text-sm font-medium mx-1.5">
-                    {t('foodEntryAdd.actions.useToday', {
-                      defaultValue: 'Use Today',
-                    })}
-                  </Text>
-                </TouchableOpacity>
-              )}
+                )}
             </View>
+          </View>
 
-            <View className="flex-row items-center mt-2">
+          <Button
+            variant="primary"
+            onPress={handleAddPress}
+            disabled={addDisabled}
+            loading={isActionPending || isPhotoCompletionPending}
+            accessibilityLabel={addLabel}
+            className="min-h-14 rounded-2xl"
+            textClassName="text-base text-center"
+          >
+            {addLabel}
+          </Button>
+
+          {!isSelectionMode && !photoCapture ? (
+            <View className="gap-3 border-t border-border-subtle pt-4">
               <TouchableOpacity
-                onPress={() => timeSheetRef.current?.present()}
+                onPress={() => setLogDetailsExpanded((expanded) => !expanded)}
                 activeOpacity={0.7}
-                className="flex-row items-center"
+                accessibilityRole="button"
+                accessibilityState={{ expanded: logDetailsExpanded }}
+                accessibilityLabel={t(
+                  'foodEntryAdd.actions.editLogDestination',
+                  { defaultValue: 'Edit log destination' }
+                )}
+                accessibilityHint={logDestinationSummary}
+                className="min-h-14 flex-row items-center gap-3"
               >
-                <Text className="text-text-secondary text-base">
-                  {t('foodEntryAdd.labels.time', { defaultValue: 'Time' })}
-                </Text>
-                <Text className="text-text-primary text-base font-medium mx-1.5">
-                  {formatTimeLabel(entryTime, preferences?.time_format) ??
-                    t('foodEntryAdd.labels.none', { defaultValue: 'None' })}
-                </Text>
+                <View className="h-10 w-10 items-center justify-center rounded-full bg-surface">
+                  <Icon name="calendar" size={18} color={accentColor} />
+                </View>
+                <View className="min-w-0 flex-1">
+                  <Text className="text-sm font-semibold text-text-secondary">
+                    {t('foodEntryAdd.labels.logTo', { defaultValue: 'Log to' })}
+                  </Text>
+                  <Text
+                    className="mt-0.5 text-base font-medium text-text-primary"
+                    numberOfLines={2}
+                  >
+                    {logDestinationSummary}
+                  </Text>
+                </View>
                 <Icon
-                  name="chevron-down"
-                  size={12}
+                  name={logDetailsExpanded ? 'chevron-up' : 'chevron-down'}
+                  size={16}
                   color={textPrimary}
-                  weight="medium"
                 />
               </TouchableOpacity>
+              {logDetailsExpanded ? (
+                <View className="gap-3 border-t border-border-subtle pt-3">
+                  <View className="flex-row flex-wrap items-center">
+                    <DateSelectRow
+                      date={selectedDate}
+                      onPress={() => calendarRef.current?.present()}
+                    />
 
-              <TouchableOpacity
-                activeOpacity={0.7}
-                className="flex-row items-center mx-4"
-                onPress={handleSetEntryTimeNow}
-              >
-                <Text className="text-text-link text-sm font-medium mx-1.5">
-                  {t('foodEntryAdd.actions.now', { defaultValue: 'Now' })}
-                </Text>
-              </TouchableOpacity>
+                    {selectedDate === getTodayDate() ? (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        className="flex-row items-center ml-2"
+                        onPress={() =>
+                          setSelectedDate(addDays(getTodayDate(), -1))
+                        }
+                      >
+                        <Text className="text-text-link text-sm font-medium mx-1.5">
+                          {t('foodEntryAdd.actions.useYesterday', {
+                            defaultValue: 'Use Yesterday',
+                          })}
+                        </Text>
+                      </TouchableOpacity>
+                    ) : (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        className="flex-row items-center ml-2"
+                        onPress={() => setSelectedDate(getTodayDate())}
+                      >
+                        <Text className="text-text-link text-sm font-medium mx-1.5">
+                          {t('foodEntryAdd.actions.useToday', {
+                            defaultValue: 'Use Today',
+                          })}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
 
-              {entryTime !== '' && (
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  className="flex-row items-center"
-                  onPress={() => handleSelectEntryTime('')}
-                >
-                  <Text className="text-text-link text-sm font-medium mx-1.5">
-                    {t('foodEntryAdd.actions.clear', { defaultValue: 'Clear' })}
-                  </Text>
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {selectedMealType ? (
-              <View className="flex-row items-center mt-2">
-                <Text className="text-text-secondary text-base">
-                  {t('foodEntryAdd.labels.meal', { defaultValue: 'Meal' })}
-                </Text>
-                <BottomSheetPicker
-                  value={effectiveMealId!}
-                  options={mealPickerOptions}
-                  onSelect={setSelectedMealId}
-                  title={t('foodEntryAdd.pickers.selectMeal', {
-                    defaultValue: 'Select Meal',
-                  })}
-                  renderTrigger={({ onPress }) => (
+                  <View className="flex-row flex-wrap items-center">
                     <TouchableOpacity
-                      onPress={onPress}
+                      onPress={() => timeSheetRef.current?.present()}
                       activeOpacity={0.7}
                       className="flex-row items-center"
                     >
+                      <Text className="text-text-secondary text-base">
+                        {t('foodEntryAdd.labels.time', {
+                          defaultValue: 'Time',
+                        })}
+                      </Text>
                       <Text className="text-text-primary text-base font-medium mx-1.5">
-                        {getMealTypeDisplayLabel(selectedMealType, t)}
+                        {formatTimeLabel(entryTime, preferences?.time_format) ??
+                          t('foodEntryAdd.labels.none', {
+                            defaultValue: 'None',
+                          })}
                       </Text>
                       <Icon
                         name="chevron-down"
@@ -1891,29 +2101,149 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
                         weight="medium"
                       />
                     </TouchableOpacity>
+
+                    <TouchableOpacity
+                      activeOpacity={0.7}
+                      className="flex-row items-center ml-2"
+                      onPress={handleSetEntryTimeNow}
+                    >
+                      <Text className="text-text-link text-sm font-medium mx-1.5">
+                        {t('foodEntryAdd.actions.now', { defaultValue: 'Now' })}
+                      </Text>
+                    </TouchableOpacity>
+
+                    {entryTime !== '' && (
+                      <TouchableOpacity
+                        activeOpacity={0.7}
+                        className="flex-row items-center"
+                        onPress={() => handleSelectEntryTime('')}
+                      >
+                        <Text className="text-text-link text-sm font-medium mx-1.5">
+                          {t('foodEntryAdd.actions.clear', {
+                            defaultValue: 'Clear',
+                          })}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
+                  {selectedMealType ? (
+                    <View className="flex-row flex-wrap items-center">
+                      <Text className="text-text-secondary text-base">
+                        {t('foodEntryAdd.labels.meal', {
+                          defaultValue: 'Meal',
+                        })}
+                      </Text>
+                      <BottomSheetPicker
+                        value={effectiveMealId!}
+                        options={mealPickerOptions}
+                        onSelect={setSelectedMealId}
+                        title={t('foodEntryAdd.pickers.selectMeal', {
+                          defaultValue: 'Select Meal',
+                        })}
+                        renderTrigger={({ onPress }) => (
+                          <TouchableOpacity
+                            onPress={onPress}
+                            activeOpacity={0.7}
+                            className="flex-row items-center"
+                          >
+                            <Text className="text-text-primary text-base font-medium mx-1.5">
+                              {getMealTypeDisplayLabel(selectedMealType, t)}
+                            </Text>
+                            <Icon
+                              name="chevron-down"
+                              size={12}
+                              color={textPrimary}
+                              weight="medium"
+                            />
+                          </TouchableOpacity>
+                        )}
+                      />
+                    </View>
+                  ) : null}
+                </View>
+              ) : null}
+            </View>
+          ) : null}
+        </View>
+
+        {variantPickerOptions.length > 1 ? (
+          <View className="mx-4 mt-6 rounded-2xl bg-surface px-5 py-5">
+            <Text className="mb-2 text-xl font-semibold text-text-primary">
+              {t('foodEntryAdd.labels.quickPortions', {
+                defaultValue: 'Choose a portion',
+              })}
+            </Text>
+            {variantPickerOptions.map((variant, index) => {
+              const selected =
+                variant.id ===
+                (selectedVariantId ?? variantPickerOptions[0]?.id);
+              return (
+                <TouchableOpacity
+                  key={variant.id ?? `${variant.label}-${index}`}
+                  onPress={() => handleVariantChange(variant.id ?? '')}
+                  disabled={isActionPending || !variant.id}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityState={{
+                    selected,
+                    disabled: isActionPending || !variant.id,
+                  }}
+                  accessibilityLabel={t('foodEntryAdd.actions.choosePortion', {
+                    defaultValue: 'Choose {{portion}}',
+                    portion: variant.label,
+                  })}
+                  accessibilityHint={t(
+                    'foodEntryAdd.actions.choosePortionHint',
+                    {
+                      defaultValue:
+                        'Selects the portion. Use Add Food to log it.',
+                    }
                   )}
-                />
-              </View>
-            ) : null}
-          </>
+                  className="min-h-16 flex-row items-center gap-3 border-t border-border-subtle py-4"
+                >
+                  <View className="flex-1">
+                    <Text className="text-lg font-semibold text-text-primary">
+                      {variant.perServingLabel}
+                    </Text>
+                    <Text className="text-sm text-text-secondary">
+                      {t('foodEntryAdd.labels.quickPortionNutrition', {
+                        defaultValue:
+                          '{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein',
+                        calories: formatLocalizedNumber(variant.calories, {
+                          maximumFractionDigits: 0,
+                        }),
+                        fat: formatLocalizedNumber(variant.fat, {
+                          maximumFractionDigits: 1,
+                        }),
+                        carbs: formatLocalizedNumber(variant.carbs, {
+                          maximumFractionDigits: 1,
+                        }),
+                        protein: formatLocalizedNumber(variant.protein, {
+                          maximumFractionDigits: 1,
+                        }),
+                      })}
+                    </Text>
+                  </View>
+                  <Icon
+                    name={
+                      selected ? 'checkmark-circle-filled' : 'chevron-forward'
+                    }
+                    size={24}
+                    color={accentColor}
+                  />
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         ) : null}
 
-        <FoodNutrientBreakdown
-          values={displayValues}
-          servings={servings}
-          showNetCarbs={showNetCarbs}
-          customNutrients={selectedCustomNutrients}
-        />
-
-        {/*
-          Notes sit below the nutrient breakdown on purpose: the numbers are
-          what this screen is opened to check, and a long recipe above them
-          would push them off-screen.
-        */}
+        {/* Keep the entry note close to the logging controls so it is easier to
+            reach and keep visible while the keyboard is open. */}
         {!isSelectionMode ? (
           <>
             {activeItem.notes ? (
-              <View className="mt-3">
+              <View className="mx-4 mt-5">
                 <Text className="text-xs font-semibold uppercase text-text-muted mb-1">
                   {t('foodEntryAdd.labels.aboutThisFood', {
                     defaultValue: 'About this food',
@@ -1929,11 +2259,22 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
               </View>
             ) : null}
 
-            <View className="mt-3">
+            <View
+              ref={noteVisibility.noteRef}
+              onLayout={noteVisibility.onNoteLayout}
+              className="mx-4 mt-5"
+            >
               <MarkdownNotesField
+                showFormattingControls={false}
+                maxInputHeight={144}
+                onFocus={noteVisibility.onFocus}
+                onBlur={noteVisibility.onBlur}
                 images={usableFoodImages(activeItem.images)}
                 value={entryNotes}
-                onCommit={setEntryNotes}
+                onCommit={(text) => {
+                  setEntryNotes(text);
+                  noteVisibility.onDraftChange();
+                }}
                 label={t('foodEntryAdd.labels.entryNotes', {
                   defaultValue: 'Note for this entry',
                 })}
@@ -1944,69 +2285,32 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
             </View>
           </>
         ) : null}
-      </ScrollView>
 
-      {/* Sticky footer */}
-      <FooterSaveBar
-        label={
-          photoCapture
-            ? t('nutritionPhotos.completeMeal', {
-                defaultValue: 'Complete meal',
-              })
-            : activeItem.source === 'meal'
-              ? t('foodEntryAdd.actions.addMeal', { defaultValue: 'Add Meal' })
-              : t('foodEntryAdd.actions.addFood', { defaultValue: 'Add Food' })
-        }
-        busy={isActionPending || isPhotoCompletionPending}
-        disabled={
-          isActionPending ||
-          isPhotoCompletionPending ||
-          (!isSelectionMode && !effectiveMealId) ||
-          quantity <= 0
-        }
-        onPress={() => {
-          if (photoCapture) {
-            void savePhotoCompletion();
-            return;
-          }
-          if (isSelectionMode) {
-            void handleSelectionAdd();
-            return;
-          }
+        <View className="mx-4 mt-5">
+          <FoodNutrientBreakdown
+            values={displayValues}
+            servings={servings}
+            showNetCarbs={showNetCarbs}
+            customNutrients={selectedCustomNutrients}
+          />
+        </View>
+      </KeyboardAwareScrollView>
 
-          if (!effectiveMealId) return;
-
-          if (activeItem.source === 'meal') {
-            addMeal(buildFoodEntryMealPayload());
-            return;
-          }
-          if (activeItem.source === 'external' && pendingVariantToPersist) {
-            void addEntryAsync({
-              saveFoodPayload: buildSaveFoodPayload(),
-              saveThenCreateVariantPayload: buildCreateFoodVariantInput(
-                pendingVariantToPersist
-              ),
-              ...(activeItem.externalVariants
-                ? { externalVariants: activeItem.externalVariants }
-                : {}),
-              createEntryPayload: buildFoodEntryPayload(),
-            }).catch(() => undefined);
-            return;
-          }
-
-          const saveFoodPayload =
-            activeItem.source === 'external'
-              ? buildSaveFoodPayload()
-              : undefined;
-          addEntry({
-            saveFoodPayload,
-            ...(activeItem.source === 'external'
-              ? { externalVariants: activeItem.externalVariants }
-              : {}),
-            createEntryPayload: buildFoodEntryPayload(),
-          });
-        }}
-      />
+      {/* The card owns the action at rest; the keyboard gets a reachable copy. */}
+      {keyboardVisible ? (
+        <KeyboardStickyView
+          style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
+        >
+          <View className="bg-background">
+            <FooterSaveBar
+              label={addLabel}
+              busy={isActionPending || isPhotoCompletionPending}
+              disabled={addDisabled}
+              onPress={handleAddPress}
+            />
+          </View>
+        </KeyboardStickyView>
+      ) : null}
 
       <CalendarSheet
         ref={calendarRef}
@@ -2021,5 +2325,13 @@ const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = ({
     </View>
   );
 };
+
+// Native-stack modal screens may not receive keyboard events from the root
+// provider. Keep the scroll view and floating Save bar in the modal's window.
+const FoodEntryAddScreen: React.FC<FoodEntryAddScreenProps> = (props) => (
+  <KeyboardProvider>
+    <FoodEntryAddScreenContent {...props} />
+  </KeyboardProvider>
+);
 
 export default FoodEntryAddScreen;

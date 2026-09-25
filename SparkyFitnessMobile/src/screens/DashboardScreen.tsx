@@ -13,6 +13,7 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import Toast from 'react-native-toast-message';
 import { formatLocalizedNumber } from '../localization';
 import {
   Pressable,
@@ -35,6 +36,13 @@ import FastingCard from '../components/FastingCard';
 import FastingGoalReconciler from '../components/FastingGoalReconciler';
 import HealthTrendsPager from '../components/HealthTrendsPager';
 import HydrationGauge from '../components/HydrationGauge';
+import { useManualWaterActions } from '../hooks/useManualWaterActions';
+import {
+  listNutritionActions,
+  retryNutritionAction,
+} from '../services/nutritionActionOutbox';
+import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
+import { reconcileNutritionActions } from '../services/nutritionActionSync';
 import CaffeineCard from '../components/CaffeineCard';
 import Icon from '../components/Icon';
 import MacroCard from '../components/MacroCard';
@@ -209,6 +217,42 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     date: selectedDate,
     enabled: isConnected,
   });
+  const manualWater = useManualWaterActions(selectedDate);
+  const [retryingSavedWater, setRetryingSavedWater] = useState(false);
+  const retryingSavedWaterRef = useRef(false);
+  const retrySavedWater = useCallback(async () => {
+    if (retryingSavedWaterRef.current) return;
+    retryingSavedWaterRef.current = true;
+    setRetryingSavedWater(true);
+    try {
+      const identity = await getActiveNutritionIdentity();
+      if (!identity) throw new Error('No active nutrition account');
+      const actions = await listNutritionActions(identity);
+      const failedWater = actions.filter(
+        (action) =>
+          (action.type === 'logManualWater' ||
+            action.type === 'logContainerWater') &&
+          action.payload.entry_date === selectedDate &&
+          action.syncState === 'attentionRequired'
+      );
+      for (const action of failedWater) {
+        await retryNutritionAction(identity, action.clientOperationId);
+      }
+      if (failedWater.length > 0) {
+        await reconcileNutritionActions(queryClient);
+      }
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: t('dashboard.retrySavedWaterFailed', {
+          defaultValue: 'Could not retry saved water entries',
+        }),
+      });
+    } finally {
+      retryingSavedWaterRef.current = false;
+      setRetryingSavedWater(false);
+    }
+  }, [queryClient, selectedDate, t]);
 
   // A linked container has no volume of its own, so state what one press logs
   // in the linked variant's own unit instead of a millilitre figure it does
@@ -309,6 +353,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const fastingCardVisible = useAppPreferencesStore(
     (s) => s.fastingCardVisible
   );
+  const fastingEnabled = useAppPreferencesStore((s) => s.fastingEnabled);
   const cycleCardVisible = useAppPreferencesStore((s) => s.cycleCardVisible);
   const hydrationCardVisible = useAppPreferencesStore(
     (s) => s.hydrationCardVisible
@@ -468,7 +513,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={accentColor || '#3B82F6'}
+            tintColor={accentColor || '#1B5744'}
           />
         }
       >
@@ -497,7 +542,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           >
             <Icon name="sparkles" size={18} color={accentColor} />
             <Text className="text-text-muted text-base ml-3">
-              {t('dashboard.askSparky', { defaultValue: 'Ask Sparky…' })}
+              {t('dashboard.askSparky', { defaultValue: 'Ask the assistant…' })}
             </Text>
           </Pressable>
         )}
@@ -671,6 +716,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             consumed={summary.waterConsumed}
             goal={summary.waterGoal}
             fromFoodMl={summary.waterFromFood}
+            pendingMl={manualWater.pendingMl}
+            attentionMl={manualWater.attentionMl}
+            pendingContainerCount={manualWater.pendingContainerCount}
+            attentionContainerCount={manualWater.attentionContainerCount}
+            pendingStorageError={manualWater.storageError}
+            onRetryAttention={retrySavedWater}
+            retryingAttention={retryingSavedWater}
             unit={waterDisplayUnit}
             containerVolume={servingVolume}
             linkedPressLabel={linkedPressLabel}
@@ -712,7 +764,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             to `selectedDate`. Visibility is a local app setting toggled from
             Dashboard Settings. */}
         <FastingGoalReconciler />
-        {fastingCardVisible && <FastingCard navigation={navigation} />}
+        {fastingEnabled && fastingCardVisible && (
+          <FastingCard navigation={navigation} />
+        )}
         {cycleCardVisible && <CycleCard navigation={navigation} />}
 
         {medicationsCardVisible && <MedicationsCard navigation={navigation} />}

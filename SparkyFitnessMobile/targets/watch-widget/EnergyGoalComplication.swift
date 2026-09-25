@@ -44,6 +44,7 @@ struct EnergyGoalSnapshot {
 }
 
 private struct EnergyGoalSnapshotPayload: Decodable {
+    let scope: String?
     let date: String?
     let calorieGoalProgress: Double?
     let proteinGoalProgress: Double?
@@ -56,8 +57,11 @@ private func loadEnergyGoalSnapshot() -> EnergyGoalSnapshot {
         let appGroup = appGroupIdentifier(),
         !appGroup.isEmpty,
         let defaults = UserDefaults(suiteName: appGroup),
+        let scope = defaults.string(forKey: "watchComplicationScope"),
         let data = defaults.data(forKey: "energyGoalSnapshot"),
         let payload = try? JSONDecoder().decode(EnergyGoalSnapshotPayload.self, from: data),
+        !scope.isEmpty,
+        payload.scope == scope,
         isToday(payload.date)
     else {
         return .empty

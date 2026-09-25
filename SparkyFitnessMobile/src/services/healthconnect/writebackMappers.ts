@@ -143,7 +143,7 @@ export const foodEntryToNutritionRecord = (
     startTime: interval.start,
     endTime: interval.end,
     mealType: mealSlugToInt(entry.meal_type),
-    name: entry.food_name || 'SparkyFitness food',
+    name: entry.food_name || 'X on Track food',
     metadata: {
       clientRecordId: nutritionClientRecordId(entry.id, clientRecordVersion),
       clientRecordVersion,

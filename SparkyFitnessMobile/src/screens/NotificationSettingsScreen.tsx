@@ -1,6 +1,12 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, ScrollView, Text } from 'react-native';
+import { AppState, View, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
@@ -28,6 +34,14 @@ import { useScreenHeader } from '../hooks/useScreenHeader';
 import { usePreferences } from '../hooks/usePreferences';
 import { formatTimeLabel } from '../utils/entryTimeDisplay';
 import { isValidReminderWindow } from '../utils/hydrationReminder';
+import {
+  getTodayDiscretionaryPromptBudget,
+  subscribeDiscretionaryPromptBudget,
+} from '../services/discretionaryPromptLedger';
+import {
+  getActiveNutritionIdentity,
+  subscribeNutritionIdentity,
+} from '../services/nutritionIdentity';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type IntervalKey = `${WaterReminderIntervalHours}`;
@@ -108,6 +122,18 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   );
   const reviewTime = useAppPreferencesStore((s) => s.mealPhotoReviewTime);
   const setReviewTime = useAppPreferencesStore((s) => s.setMealPhotoReviewTime);
+  const movementReminderEnabled = useAppPreferencesStore(
+    (s) => s.movementBreakReminderEnabled
+  );
+  const setMovementReminderEnabled = useAppPreferencesStore(
+    (s) => s.setMovementBreakReminderEnabled
+  );
+  const movementReminderTime = useAppPreferencesStore(
+    (s) => s.movementBreakReminderTime
+  );
+  const setMovementReminderTime = useAppPreferencesStore(
+    (s) => s.setMovementBreakReminderTime
+  );
   const { preferences } = usePreferences();
   const startTimeSheetRef = useRef<TimeSheetRef>(null);
   const endTimeSheetRef = useRef<TimeSheetRef>(null);
@@ -115,8 +141,53 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   const mealEndSheetRef = useRef<TimeSheetRef>(null);
   const mealPromptSheetRef = useRef<TimeSheetRef>(null);
   const reviewTimeSheetRef = useRef<TimeSheetRef>(null);
+  const movementTimeSheetRef = useRef<TimeSheetRef>(null);
   const usesNativeHeader = useNativeIOSHeadersActive();
   const bannerRef = useRef<NotificationPermissionBannerHandle>(null);
+  const [dailyOptionalBudgetUsed, setDailyOptionalBudgetUsed] = useState<
+    number | null
+  >(null);
+
+  useEffect(() => {
+    let mounted = true;
+    let latestRefresh = 0;
+    const refresh = async () => {
+      const request = ++latestRefresh;
+      try {
+        const identity = await getActiveNutritionIdentity();
+        const budget = await getTodayDiscretionaryPromptBudget(identity);
+        if (mounted && request === latestRefresh)
+          setDailyOptionalBudgetUsed(budget.used);
+      } catch {
+        if (mounted && request === latestRefresh)
+          setDailyOptionalBudgetUsed(null);
+      }
+    };
+    void refresh();
+    const unsubscribeBudget = subscribeDiscretionaryPromptBudget(() => {
+      void refresh();
+    });
+    const unsubscribeIdentity = subscribeNutritionIdentity(() => {
+      void refresh();
+    });
+    const unsubscribeFocus = navigation.addListener?.('focus', () => {
+      void refresh();
+    });
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+    const interval = setInterval(() => {
+      void refresh();
+    }, 60_000);
+    return () => {
+      mounted = false;
+      unsubscribeBudget();
+      unsubscribeIdentity();
+      unsubscribeFocus?.();
+      appState.remove();
+      clearInterval(interval);
+    };
+  }, [navigation]);
 
   const handleNotificationsToggle = useCallback(async (value: boolean) => {
     if (!value) {
@@ -188,6 +259,19 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       if (status === 'granted') setReviewEnabled(true);
     },
     [setReviewEnabled]
+  );
+
+  const handleMovementReminderToggle = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        setMovementReminderEnabled(false);
+        return;
+      }
+      const status = await requestNotificationPermission();
+      bannerRef.current?.refresh();
+      if (status === 'granted') setMovementReminderEnabled(true);
+    },
+    [setMovementReminderEnabled]
   );
 
   const changeMealWindow = useCallback(
@@ -288,7 +372,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
             defaultValue: 'Allow Notifications',
           })}
           subtitle={t('notificationSettings.allowSubtitle', {
-            defaultValue: 'Master switch for all alerts from SparkyFitness.',
+            defaultValue: 'Master switch for all alerts from X on Track.',
           })}
           subtitleNumberOfLines={0}
           rightAccessory={
@@ -303,6 +387,30 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         />
 
         <NotificationPermissionBanner ref={bannerRef} />
+
+        {notificationsEnabled && (
+          <SettingsRowGroup>
+            <SettingsRow
+              title={t('engagement.dailyOptionalBudget', {
+                defaultValue: 'Optional reminders today',
+              })}
+              subtitle={
+                dailyOptionalBudgetUsed === null
+                  ? t('engagement.dailyOptionalBudgetUnavailable', {
+                      defaultValue:
+                        'Daily reminder count unavailable. Meal, movement, and water reminders share three slots.',
+                    })
+                  : t('engagement.dailyOptionalBudgetSummary', {
+                      defaultValue:
+                        '{{used}} of 3 daily slots used. Meal, movement, and water share them; medication and rest alerts are separate.',
+                      used: dailyOptionalBudgetUsed,
+                    })
+              }
+              subtitleNumberOfLines={0}
+              testID="optional-reminder-budget"
+            />
+          </SettingsRowGroup>
+        )}
 
         {notificationsEnabled && (
           <SettingsRowGroup
@@ -437,7 +545,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               })}
               subtitle={t('notificationSettings.waterRemindersSubtitle', {
                 defaultValue:
-                  "Remind you to drink when you haven't logged water in a while.",
+                  'Water reminders follow your interval and share available reminder slots with meal and movement prompts.',
               })}
               subtitleNumberOfLines={0}
               rightAccessory={
@@ -614,6 +722,45 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
             defaultValue: 'Movement break',
           })}
         >
+          {notificationsEnabled && (
+            <SettingsRow
+              title={t('engagement.movementReminderSetting', {
+                defaultValue: 'Movement break reminder',
+              })}
+              subtitle={t('engagement.movementReminderSettingSubtitle', {
+                defaultValue:
+                  'One optional invitation at your chosen time. It does not track or log movement.',
+              })}
+              subtitleNumberOfLines={0}
+              rightAccessory={
+                <Switch
+                  accessibilityLabel={t('engagement.movementReminderSetting', {
+                    defaultValue: 'Movement break reminder',
+                  })}
+                  value={movementReminderEnabled}
+                  onValueChange={(value) =>
+                    void handleMovementReminderToggle(value)
+                  }
+                />
+              }
+            />
+          )}
+          {notificationsEnabled && movementReminderEnabled && (
+            <SettingsRow
+              title={t('engagement.movementReminderTime', {
+                defaultValue: 'Reminder time',
+              })}
+              onPress={() => movementTimeSheetRef.current?.present()}
+              rightAccessory={
+                <Text className="text-sm text-text-secondary">
+                  {formatTimeLabel(
+                    movementReminderTime,
+                    preferences?.time_format
+                  ) ?? movementReminderTime}
+                </Text>
+              }
+            />
+          )}
           <SettingsRow
             title={t('engagement.openBreakTimer', {
               defaultValue: 'Open break timer',
@@ -662,6 +809,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         ref={reviewTimeSheetRef}
         value={reviewTime}
         onSelectTime={setReviewTime}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={movementTimeSheetRef}
+        value={movementReminderTime}
+        onSelectTime={setMovementReminderTime}
         commitOn="done"
       />
     </View>

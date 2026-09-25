@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,16 +11,21 @@ import {
   startMovementBreak,
 } from '../services/wellbeingLiveActivity';
 import {
+  getActiveNutritionIdentity,
+  subscribeNutritionIdentity,
+} from '../services/nutritionIdentity';
+import {
   getWellbeingSession,
   subscribeWellbeingSession,
   type WellbeingSession,
 } from '../services/wellbeingSessionStore';
+import { getTodayDate } from '../utils/dateUtils';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type Props = RootStackScreenProps<'MovementBreak'>;
 type Duration = '2' | '5' | '10';
 
-export default function MovementBreakScreen(_props: Props) {
+export default function MovementBreakScreen({ navigation }: Props) {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const nativeHeader = useNativeIOSHeadersActive();
@@ -29,15 +34,32 @@ export default function MovementBreakScreen(_props: Props) {
   const [now, setNow] = useState(Date.now());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(false);
+  const refreshGeneration = useRef(0);
   const refresh = useCallback(() => {
-    void getWellbeingSession()
-      .then(setSession)
-      .catch(() => setError(true));
+    const generation = ++refreshGeneration.current;
+    void Promise.all([getWellbeingSession(), getActiveNutritionIdentity()])
+      .then(([stored, identity]) => {
+        if (generation !== refreshGeneration.current) return;
+        setSession(
+          stored &&
+            identity?.serverConfigId === stored.serverConfigId &&
+            identity.userId === stored.userId
+            ? stored
+            : null
+        );
+      })
+      .catch(() => {
+        if (generation === refreshGeneration.current) setError(true);
+      });
   }, []);
 
   useEffect(() => {
     refresh();
     const stop = subscribeWellbeingSession(refresh);
+    const stopIdentity = subscribeNutritionIdentity(() => {
+      setSession(null);
+      refresh();
+    });
     const foreground = AppState.addEventListener('change', (value) => {
       if (value === 'active') {
         setNow(Date.now());
@@ -46,7 +68,9 @@ export default function MovementBreakScreen(_props: Props) {
     });
     const timer = setInterval(() => setNow(Date.now()), 1_000);
     return () => {
+      refreshGeneration.current += 1;
       stop();
+      stopIdentity();
       foreground.remove();
       clearInterval(timer);
     };
@@ -68,7 +92,8 @@ export default function MovementBreakScreen(_props: Props) {
     setBusy(true);
     setError(false);
     try {
-      setSession(await startMovementBreak(Number(duration)));
+      await startMovementBreak(Number(duration));
+      refresh();
     } catch {
       setError(true);
     } finally {
@@ -76,10 +101,11 @@ export default function MovementBreakScreen(_props: Props) {
     }
   };
   const finish = async () => {
+    if (!session) return;
     setBusy(true);
     setError(false);
     try {
-      await finishMovementBreak();
+      await finishMovementBreak(session.id);
       refresh();
     } catch {
       setError(true);
@@ -105,7 +131,7 @@ export default function MovementBreakScreen(_props: Props) {
         <Text className="text-base text-text-secondary text-center">
           {t('engagement.breakExplanation', {
             defaultValue:
-              'Stand, walk, or move in a way that works for you. Starting or finishing this timer does not log movement.',
+              'Stand, walk, or move in a way that works for you. The timer does not log movement; you can record an activity separately.',
           })}
         </Text>
         {error && (
@@ -146,6 +172,24 @@ export default function MovementBreakScreen(_props: Props) {
             </Button>
           </>
         )}
+        <Button
+          variant="secondary"
+          onPress={() =>
+            navigation.navigate('ActivityAdd', { date: getTodayDate() })
+          }
+        >
+          {t('engagement.logActivity', {
+            defaultValue: 'Log an activity',
+          })}
+        </Button>
+        <Button
+          variant="secondary"
+          onPress={() => navigation.navigate('GuidedMobility')}
+        >
+          {t('mobility.openRoutines', {
+            defaultValue: 'Guided mobility routines',
+          })}
+        </Button>
       </View>
     </View>
   );

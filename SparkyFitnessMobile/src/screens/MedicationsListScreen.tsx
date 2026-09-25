@@ -129,7 +129,7 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
             className="mt-4 bg-accent-primary px-6 py-3 rounded-xl"
             onPress={() => navigation.navigate('MedicationForm', {})}
           >
-            <Text className="text-white font-semibold">
+            <Text className="text-accent-text font-semibold">
               {t('medications.addMedicationTitle', {
                 defaultValue: 'Add Medication',
               })}

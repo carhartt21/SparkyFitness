@@ -85,6 +85,7 @@ export type RootStackParamList = {
   WaterContainers: undefined;
   WaterContainerEdit: { containerId?: number } | undefined;
   ExercisesLibrary: undefined;
+  ExerciseReview: undefined;
   WorkoutPresetsLibrary: undefined;
   WorkoutPresetDetail: { preset: WorkoutPreset; updatedPreset?: WorkoutPreset };
   WorkoutPresetForm:
@@ -239,6 +240,7 @@ export type RootStackParamList = {
   FoodPhotoIntro: { date?: string; mealTypeId?: string } | undefined;
   QuickMealPhoto: undefined;
   MovementBreak: undefined;
+  GuidedMobility: undefined;
   FoodPhotoFlow: NavigatorScreenParams<FoodPhotoFlowParamList>;
   MealAdd:
     | {

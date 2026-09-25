@@ -57,6 +57,7 @@ import { normalizeDate, formatDate, formatDateLabel } from '../utils/dateUtils';
 import { parseDecimalInput } from '../utils/numericInput';
 import Toast from 'react-native-toast-message';
 import { addLog } from '../services/LogService';
+import { getActiveServerConfig } from '../services/storage';
 import { extractActivitySummary } from '../utils/activityDetails';
 import {
   seedCompletionFromSession,
@@ -322,10 +323,26 @@ const WorkoutDetailScreen: React.FC<Props> = ({ navigation, route }) => {
       void ensureNotificationPermission().then(() =>
         maybePromptForExactAlarmPermission()
       );
-      const store = useActiveWorkoutStore.getState();
-      if (atSetId != null) store.startWorkoutAtSet(session, atSetId);
-      else store.startWorkout(session);
-      navigation.replace('ActiveWorkout');
+      void (async () => {
+        let sourceServerConfigId: string | undefined;
+        try {
+          sourceServerConfigId = (await getActiveServerConfig())?.id;
+        } catch (error) {
+          void addLog(
+            `Could not scope live workout: ${String(error)}`,
+            'WARNING'
+          );
+        }
+        const store = useActiveWorkoutStore.getState();
+        if (atSetId != null) {
+          store.startWorkoutAtSet(session, atSetId, { sourceServerConfigId });
+        } else {
+          store.startWorkout(session, { sourceServerConfigId });
+        }
+        navigation.replace('ActiveWorkout');
+      })().catch((error) => {
+        void addLog(`Could not start live workout: ${String(error)}`, 'ERROR');
+      });
     },
     [session, navigation]
   );

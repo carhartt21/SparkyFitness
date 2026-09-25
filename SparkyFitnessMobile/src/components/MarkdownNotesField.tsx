@@ -8,6 +8,7 @@ import {
   TextInput,
   View,
   type NativeSyntheticEvent,
+  type TextInputProps,
   type TextInputSelectionChangeEventData,
 } from 'react-native';
 import {
@@ -34,6 +35,12 @@ interface MarkdownNotesFieldProps {
   label?: string;
   placeholder?: string;
   accessibilityLabel?: string;
+  /** Use a plain note field for brief diary entries. Existing markdown still renders on read. */
+  showFormattingControls?: boolean;
+  /** Keep long drafts scrollable inside the input on compact forms. */
+  maxInputHeight?: number;
+  onFocus?: TextInputProps['onFocus'];
+  onBlur?: TextInputProps['onBlur'];
   /**
    * Stored paths of photos belonging to the entity this note hangs off. Shown
    * in the insert-photo picker and used to resolve references in Preview.
@@ -179,6 +186,10 @@ function MarkdownNotesField({
   placeholder,
   accessibilityLabel,
   images,
+  showFormattingControls = true,
+  maxInputHeight,
+  onFocus,
+  onBlur,
 }: MarkdownNotesFieldProps) {
   const { t } = useTranslation();
   const resolvedLabel = label ?? t('notes.label', { defaultValue: 'Notes' });
@@ -285,17 +296,19 @@ function MarkdownNotesField({
         ) : (
           <View />
         )}
-        <Pressable
-          onPress={togglePreview}
-          accessibilityRole="button"
-          hitSlop={8}
-        >
-          <Text className="text-xs font-semibold text-accent-primary">
-            {preview
-              ? t('notes.write', { defaultValue: 'Write' })
-              : t('notes.preview', { defaultValue: 'Preview' })}
-          </Text>
-        </Pressable>
+        {showFormattingControls ? (
+          <Pressable
+            onPress={togglePreview}
+            accessibilityRole="button"
+            hitSlop={8}
+          >
+            <Text className="text-xs font-semibold text-accent-primary">
+              {preview
+                ? t('notes.write', { defaultValue: 'Write' })
+                : t('notes.preview', { defaultValue: 'Preview' })}
+            </Text>
+          </Pressable>
+        ) : null}
       </View>
 
       {preview ? (
@@ -312,50 +325,53 @@ function MarkdownNotesField({
         </View>
       ) : (
         <>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            keyboardShouldPersistTaps="always"
-            className="mb-1.5"
-            contentContainerStyle={{ gap: 4, paddingVertical: 2 }}
-          >
-            {BUTTONS.map((button) => (
-              <Pressable
-                key={button.id}
-                onPress={() => runAction(NOTE_TOOLBAR_ACTIONS[button.id])}
-                accessibilityRole="button"
-                accessibilityLabel={button.label(t)}
-                className="min-w-[36px] h-9 px-2 rounded-lg bg-raised border border-border-subtle items-center justify-center"
-              >
-                <Text
-                  className="text-sm text-text-primary"
-                  style={{
-                    fontWeight: button.style === 'bold' ? '700' : '500',
-                    fontStyle: button.style === 'italic' ? 'italic' : 'normal',
-                    textDecorationLine:
-                      button.style === 'strike' ? 'line-through' : 'none',
-                  }}
+          {showFormattingControls ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              keyboardShouldPersistTaps="always"
+              className="mb-1.5"
+              contentContainerStyle={{ gap: 4, paddingVertical: 2 }}
+            >
+              {BUTTONS.map((button) => (
+                <Pressable
+                  key={button.id}
+                  onPress={() => runAction(NOTE_TOOLBAR_ACTIONS[button.id])}
+                  accessibilityRole="button"
+                  accessibilityLabel={button.label(t)}
+                  className="min-w-[36px] h-9 px-2 rounded-lg bg-raised border border-border-subtle items-center justify-center"
                 >
-                  {button.glyph}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text
+                    className="text-sm text-text-primary"
+                    style={{
+                      fontWeight: button.style === 'bold' ? '700' : '500',
+                      fontStyle:
+                        button.style === 'italic' ? 'italic' : 'normal',
+                      textDecorationLine:
+                        button.style === 'strike' ? 'line-through' : 'none',
+                    }}
+                  >
+                    {button.glyph}
+                  </Text>
+                </Pressable>
+              ))}
 
-            {photos.length > 0 ? (
-              <Pressable
-                onPress={() => setShowImages((current) => !current)}
-                accessibilityRole="button"
-                accessibilityLabel={t('notes.toolbar.insertImage', {
-                  defaultValue: 'Insert photo',
-                })}
-                className="min-w-[36px] h-9 px-2 rounded-lg bg-raised border border-border-subtle items-center justify-center"
-              >
-                <Icon name="photo-library" size={16} />
-              </Pressable>
-            ) : null}
-          </ScrollView>
+              {photos.length > 0 ? (
+                <Pressable
+                  onPress={() => setShowImages((current) => !current)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('notes.toolbar.insertImage', {
+                    defaultValue: 'Insert photo',
+                  })}
+                  className="min-w-[36px] h-9 px-2 rounded-lg bg-raised border border-border-subtle items-center justify-center"
+                >
+                  <Icon name="photo-library" size={16} />
+                </Pressable>
+              ) : null}
+            </ScrollView>
+          ) : null}
 
-          {showImages && photos.length > 0 ? (
+          {showFormattingControls && showImages && photos.length > 0 ? (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -395,12 +411,21 @@ function MarkdownNotesField({
             onChangeText={commitDraft}
             onSelectionChange={onSelectionChange}
             selection={pendingSelection ?? undefined}
-            onBlur={() => onCommit(draft)}
+            onFocus={onFocus}
+            onBlur={(event) => {
+              onCommit(draft);
+              onBlur?.(event);
+            }}
             placeholder={resolvedPlaceholder}
             accessibilityLabel={accessibilityLabel ?? resolvedLabel}
             multiline
             maxLength={NOTES_MAX_LENGTH}
-            style={{ minHeight: 88, textAlignVertical: 'top' }}
+            scrollEnabled
+            style={{
+              minHeight: 88,
+              maxHeight: maxInputHeight,
+              textAlignVertical: 'top',
+            }}
           />
         </>
       )}

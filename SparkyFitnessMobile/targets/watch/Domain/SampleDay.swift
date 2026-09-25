@@ -86,6 +86,7 @@ enum SampleDay {
     static var context: WatchContext {
         WatchContext(
             today: today,
+            actionScope: "[\"preview-server\",\"preview-user\"]",
             todayWeightKg: 80.7,
             todayBodyFatPercentage: 18.8,
             lastWeightKg: 81.0,
@@ -101,6 +102,7 @@ enum SampleDay {
             waterContainers: containers,
             waterGoalMl: 2500,
             waterDisplayUnit: "liter",
+            workout: nil,
             generatedAt: Date()
         )
     }

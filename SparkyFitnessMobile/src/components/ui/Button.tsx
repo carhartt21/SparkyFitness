@@ -7,6 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import { preview } from 'radon-ide';
+import { useCSSVariable } from 'uniwind';
 
 type ButtonVariant =
   | 'primary'
@@ -52,7 +53,7 @@ const variantClasses: Record<
 > = {
   primary: {
     container: 'bg-accent-primary rounded-xl',
-    text: 'text-white font-semibold',
+    text: 'text-accent-text font-semibold',
     pressed: 'opacity-80',
   },
   secondary: {
@@ -101,6 +102,7 @@ const Button: React.FC<ButtonProps> = ({
   disabled,
   ...rest
 }) => {
+  const accentText = useCSSVariable('--color-accent-text') as string;
   const styles = variantClasses[variant];
   const textClass =
     tone === 'neutral' && neutralToneText[variant]
@@ -126,7 +128,7 @@ const Button: React.FC<ButtonProps> = ({
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color="#fff" />
+        <ActivityIndicator size="small" color={accentText} />
       ) : typeof children === 'string' ? (
         <Text className={`text-base ${textClass} ${textClassName}`}>
           {children}

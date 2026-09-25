@@ -76,11 +76,11 @@ const HealthDataSync: React.FC<HealthDataSyncProps> = ({
   const platformDetail = isIOS
     ? t('healthSync.appleDetail', {
         defaultValue:
-          'SparkyFitness reads the health data you select below using Apple Health (HealthKit). If sync is enabled, data is synchronized only between your device and your self-hosted SparkyFitness server (manual or background).\n\nManage or remove access in Settings → Health → Data Access & Devices → SparkyFitnessMobile',
+          'X on Track reads the health data you select below using Apple Health (HealthKit). If sync is enabled, data is synchronized only between your device and your self-hosted X on Track server (manual or background).\n\nManage or remove access in Settings → Health → Data Access & Devices → X on Track',
       })
     : t('healthSync.connectDetail', {
         defaultValue:
-          'SparkyFitness reads the health data you select below using Health Connect. If sync is enabled, data is synchronized only between your device and your self-hosted SparkyFitness server (manual or background).',
+          'X on Track reads the health data you select below using Health Connect. If sync is enabled, data is synchronized only between your device and your self-hosted X on Track server (manual or background).',
       });
 
   const handleLearnMoreToggle = useCallback(() => {

@@ -3,6 +3,7 @@ import SwiftUI
 
 private struct NutritionEngagementPayload: Decodable {
     let version: Int
+    let scope: String
     let serverConfigId: String
     let userId: String
     let day: String
@@ -21,9 +22,12 @@ private struct NutritionEngagementEntry: TimelineEntry {
 private func loadNutritionEngagementPayload() -> NutritionEngagementPayload? {
     guard let group = appGroupIdentifier(),
           let defaults = UserDefaults(suiteName: group),
+          let scope = defaults.string(forKey: "nutritionEngagementScope"),
           let data = defaults.data(forKey: "nutritionEngagementSnapshot"),
           let payload = try? JSONDecoder().decode(NutritionEngagementPayload.self, from: data),
           payload.version == 1,
+          !scope.isEmpty,
+          payload.scope == scope,
           !payload.serverConfigId.isEmpty,
           !payload.userId.isEmpty,
           isToday(payload.day),

@@ -11,6 +11,9 @@ import { invalidateMedicationEntryCaches } from '../hooks/invalidateMedicationEn
 import { addLog } from '../services/LogService';
 import type { MedicationEntryStatus } from '@workspace/shared';
 import { isDoseLogged } from '../utils/medications';
+import { getActiveNutritionIdentity } from './nutritionIdentity';
+import { enqueuePlannedSupplementAction } from './nutritionActionOutbox';
+import { reconcileNutritionActions } from './nutritionActionSync';
 
 let initialized = false;
 
@@ -44,6 +47,20 @@ export function initMedicationNotificationActions(): void {
       return;
     }
 
+    if (data?.isSupplement === 'true') {
+      void handlePlannedSupplementAction(
+        status,
+        medicationId,
+        scheduleId ?? null,
+        entryDate,
+        response.notification.request.identifier,
+        data?.baseKey ?? data?.key ?? null,
+        data?.accountUserId,
+        data?.serverConfigId
+      );
+      return;
+    }
+
     void handleNotificationAction(
       status,
       medicationId,
@@ -53,6 +70,74 @@ export function initMedicationNotificationActions(): void {
       data?.baseKey ?? data?.key ?? null
     );
   });
+}
+
+async function cancelMatchingReminders(key: string | null): Promise<void> {
+  if (!key) return;
+  const allPending = await Notifications.getAllScheduledNotificationsAsync();
+  const toCancel = allPending.filter(
+    (notification) => notification.content.data?.baseKey === key
+  );
+  await Promise.all(
+    toCancel.map((notification) =>
+      Notifications.cancelScheduledNotificationAsync(
+        notification.identifier
+      ).catch(() => {})
+    )
+  );
+}
+
+async function handlePlannedSupplementAction(
+  status: MedicationEntryStatus,
+  medicationId: string,
+  scheduleId: string | null,
+  entryDate: string,
+  notificationId: string,
+  key: string | null,
+  accountUserId: string | undefined,
+  serverConfigId: string | undefined
+): Promise<void> {
+  try {
+    const identity = await getActiveNutritionIdentity();
+    if (
+      !scheduleId ||
+      !identity ||
+      !accountUserId ||
+      !serverConfigId ||
+      identity.userId !== accountUserId ||
+      identity.serverConfigId !== serverConfigId
+    ) {
+      addLog(
+        '[MedicationNotificationAction] Supplement reminder does not match the active account',
+        'WARNING'
+      );
+      return;
+    }
+
+    // Persist before dismissing the OS notification. Repeated taps reuse the
+    // occurrence's operation ID, including after a lost server response.
+    await enqueuePlannedSupplementAction({
+      ...identity,
+      medicationId,
+      scheduleId,
+      entryDate,
+      status: status === 'taken' ? 'taken' : 'skipped',
+      occurredAt: new Date().toISOString(),
+    });
+    await cancelMatchingReminders(key);
+    await dismissDeliveredNotification(notificationId);
+    void reconcileNutritionActions(queryClient).catch((error: unknown) => {
+      addLog(
+        `[MedicationNotificationAction] Supplement action remains queued: ${(error as Error).message}`,
+        'WARNING'
+      );
+    });
+  } catch (error) {
+    addLog(
+      `[MedicationNotificationAction] Failed to queue supplement action: ${(error as Error).message}`,
+      'ERROR'
+    );
+  }
 }
 
 async function handleNotificationAction(
@@ -88,20 +173,7 @@ async function handleNotificationAction(
     // calories that do not include the dose the user just marked taken from the reminder.
     invalidateMedicationEntryCaches(queryClient);
 
-    if (key) {
-      const allPending =
-        await Notifications.getAllScheduledNotificationsAsync();
-      const toCancel = allPending.filter(
-        (n) => n.content.data?.baseKey === key
-      );
-      await Promise.all(
-        toCancel.map((n) =>
-          Notifications.cancelScheduledNotificationAsync(n.identifier).catch(
-            () => {}
-          )
-        )
-      );
-    }
+    await cancelMatchingReminders(key);
 
     await dismissDeliveredNotification(notificationId);
     addLog(

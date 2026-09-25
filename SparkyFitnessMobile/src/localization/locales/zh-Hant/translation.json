@@ -700,7 +700,7 @@
     }
   },
   "languageSettings": {
-    "subtitle": "使用你的裝置語言，或為 SparkyFitness 選擇一種語言。"
+    "subtitle": "使用你的裝置語言，或為 X on Track 選擇一種語言。"
   },
   "navigation": {
     "settings": "設定",
@@ -793,7 +793,7 @@
     },
     "exactAlarm": {
       "title": "準時提醒",
-      "message": "Android 會延遲定時提醒，除非允許 SparkyFitness 設定精確鬧鐘。請啟用「鬧鐘和提醒」，以便休息計時器等準時觸發。",
+      "message": "Android 會延遲定時提醒，除非允許 X on Track 設定精確鬧鐘。請啟用「鬧鐘和提醒」，以便休息計時器等準時觸發。",
       "notNow": "暫不",
       "openSettings": "開啟設定"
     },
@@ -1068,18 +1068,18 @@
     "healthConnect": "Health Connect",
     "appleSummary": "從 Apple 健康讀取所選資料，並同步到你自託管的伺服器。",
     "connectSummary": "從 Health Connect 讀取所選資料，並同步到你自託管的伺服器。",
-    "connectDetail": "SparkyFitness 使用 Health Connect 讀取你在下方選擇的健康資料。如果啟用了同步，資料只會同步到你自己的伺服器。所有同步都只使用你選擇的類別。",
+    "connectDetail": "X on Track 使用 Health Connect 讀取你在下方選擇的健康資料。如果啟用了同步，資料只會同步到你自己的伺服器。所有同步都只使用你選擇的類別。",
     "title": "要同步的健康資料",
     "notMedicalAdvice": "非醫療建議。",
     "consultProfessional": "有關醫療建議、診斷或治療，請諮詢醫療專業人士。",
     "enableAll": "啟用所有健康指標",
     "batteryNote": "啟用較多健康指標可能增加電池消耗。每個已啟用的指標都允許應用在後臺喚醒以讀取新資料。",
     "writeTitle": "寫入 {{store}}",
-    "writeSummary": "將你在 SparkyFitness 記錄的資料同步到 {{store}}，讓兩邊保持一致。",
+    "writeSummary": "將你在 X on Track 記錄的資料同步到 {{store}}，讓兩邊保持一致。",
     "removeFrom": "從 {{store}} 移除",
     "allTime": "全部時間",
     "pickDateRange": "選擇日期範圍…",
-    "removeData": "從 {{store}} 移除 SparkyFitness 資料",
+    "removeData": "從 {{store}} 移除 X on Track 資料",
     "source": "來源：",
     "syncMetricLabel": "同步 {{metric}}",
     "syncMetricHint": "切換此健康指標的同步。",
@@ -1094,7 +1094,7 @@
       "permissionErrorTitle": "許可權錯誤",
       "permissionErrorMessage": "請求健康許可權時發生意外錯誤：{{error}}"
     },
-    "appleDetail": "SparkyFitness 會透過 Apple Health（HealthKit）讀取您於下方選取嘅健康資料。若已開啟同步功能，資料僅會在您嘅裝置同自建嘅 SparkyFitness 伺服器之間同步（手動或背景同步）。\n\n前往 「設定」 → 「健康」 → 「資料存取與裝置」 → 「SparkyFitnessMobile」 管理或移除存取權限"
+    "appleDetail": "X on Track 會透過 Apple Health（HealthKit）讀取您於下方選取嘅健康資料。若已開啟同步功能，資料僅會在您嘅裝置同自建嘅 X on Track 伺服器之間同步（手動或背景同步）。\n\n前往 「設定」 → 「健康」 → 「資料存取與裝置」 → 「X on Track」 管理或移除存取權限"
   },
   "auth": {
     "frontendUrl": "前端 URL",
@@ -1105,7 +1105,7 @@
     "sso": "SSO",
     "passkey": "金鑰",
     "connect": "連線",
-    "connectTitle": "連線到 SparkyFitness",
+    "connectTitle": "連線到 X on Track",
     "signInWithPasskey": "使用金鑰登入",
     "orSignInWith": "或使用以下方式登入",
     "noMethods": "此伺服器當前未啟用標準登入方式。請使用 API 金鑰或聯絡管理員。",
@@ -1169,8 +1169,8 @@
   },
   "onboarding": {
     "subtitle": "你的自託管健身追蹤器",
-    "learnMoreTitle": "瞭解關於 SparkyFitness 的更多資訊",
-    "learnMoreBody": "SparkyFitness 幫助你在一處追蹤食物、訓練和健康資料。",
+    "learnMoreTitle": "瞭解關於 X on Track 的更多資訊",
+    "learnMoreBody": "X on Track 幫助你在一處追蹤食物、訓練和健康資料。",
     "learnMorePrivacy": "它執行在你自己的伺服器上，因此你的資料保持私密。",
     "errors": {
       "validFrontendUrl": "請輸入有效的前端 URL",
@@ -1251,12 +1251,12 @@
     },
     "removal": {
       "removed": "已移除",
-      "deleted": "已從 {{store}} 刪除 SparkyFitness 資料。",
+      "deleted": "已從 {{store}} 刪除 X on Track 資料。",
       "partial": "部分移除",
       "partialMessage": "部分記錄無法從 {{store}} 刪除。",
       "errorMessage": "無法從 {{store}} 移除資料。",
       "confirmTitle": "移除所有 {{store}} 資料",
-      "confirmMessage": "刪除 SparkyFitness 寫入 {{store}} 的所有營養和飲水記錄，並關閉寫回功能？你在此應用中手動記錄的資料不會受影響。"
+      "confirmMessage": "刪除 X on Track 寫入 {{store}} 的所有營養和飲水記錄，並關閉寫回功能？你在此應用中手動記錄的資料不會受影響。"
     },
     "range": {
       "title": "同步範圍",
@@ -1398,7 +1398,7 @@
   "dashboardSettings": {
     "updateFailed": "更新設定失敗。",
     "noCustomNutrients": "沒有自定義營養素",
-    "customNutrientsDescription": "自定義營養素在 SparkyFitness Web 應用中建立。新增後它們會顯示在這裡，你可以選擇在儀表板上顯示哪些。",
+    "customNutrientsDescription": "自定義營養素在 X on Track Web 應用中建立。新增後它們會顯示在這裡，你可以選擇在儀表板上顯示哪些。",
     "title": "儀表板設定",
     "askSparky": "詢問 Sparky",
     "askSparkySubtitle": "在儀表板上顯示「詢問 Sparky」聊天啟動器",
@@ -1422,7 +1422,7 @@
     "updateFailed": "更新設定失敗。",
     "limitReached": "已達到限制",
     "noCustomNutrients": "沒有自定義營養素",
-    "customNutrientsDescription": "自定義營養素在 SparkyFitness Web 應用中建立。新增後它們會顯示在這裡，你可以選擇在日記中顯示哪些。",
+    "customNutrientsDescription": "自定義營養素在 X on Track Web 應用中建立。新增後它們會顯示在這裡，你可以選擇在日記中顯示哪些。",
     "title": "日記設定",
     "summary": "日記摘要",
     "summarySubtitle": "顯示卡路里和巨量營養素",
@@ -1433,7 +1433,7 @@
     "title": "關於",
     "version": "版本 {{version}}（{{build}}）",
     "descriptionTitle": "關於此應用",
-    "description": "SparkyFitness 是一款開源營養、運動和健康資料追蹤器，可同步到你自己的伺服器。此應用是 SparkyFitness 生態系統的移動客戶端。",
+    "description": "X on Track 是一款開源營養、運動和健康資料追蹤器，可同步到你自己的伺服器。此應用是 X on Track 生態系統的移動客戶端。",
     "github": "GitHub 上的專案",
     "documentation": "文件",
     "privacyPolicy": "隱私政策",
@@ -1449,7 +1449,7 @@
   "notificationSettings": {
     "title": "通知",
     "allow": "允許通知",
-    "allowSubtitle": "SparkyFitness 所有提醒的總開關。",
+    "allowSubtitle": "X on Track 所有提醒的總開關。",
     "alerts": "提醒",
     "restTimer": "休息計時器",
     "restTimerSubtitle": "休息結束時提醒，即使應用在後臺。",
@@ -1465,7 +1465,7 @@
     "enableNotifications": "啟用通知",
     "openSettings": "開啟設定",
     "permissionTitle": "授予許可權",
-    "permissionBody": "SparkyFitness 提醒（休息計時器、禁食目標、藥物提醒）將不會觸發。",
+    "permissionBody": "X on Track 提醒（休息計時器、禁食目標、藥物提醒）將不會觸發。",
     "permissionWarningAccessibility": "{{title}}。{{body}} {{action}}。"
   },
   "workoutSettings": {
@@ -2091,7 +2091,7 @@
     "photo": {
       "frameMeal": "框住整餐飯",
       "notSetUp": "AI 照片估算尚未設定",
-      "setupHelp": "在瀏覽器中開啟 SparkyFitness，前往「設定 → AI」新增 AI 提供方，然後返回此處。",
+      "setupHelp": "在瀏覽器中開啟 X on Track，前往「設定 → AI」新增 AI 提供方，然後返回此處。",
       "logManually": "手動記錄"
     },
     "barcode": {
@@ -2626,7 +2626,7 @@
       "widget": {
         "eyebrow": "主螢幕小元件",
         "headline": "主螢幕上的卡路里",
-        "body": "一眼看清你一天的進度。從主螢幕的小元件相簿新增 SparkyFitness。"
+        "body": "一眼看清你一天的進度。從主螢幕的小元件相簿新增 X on Track。"
       },
       "photo": {
         "eyebrow": "AI 照片掃描",
@@ -2660,7 +2660,7 @@
     "conditions": "健康狀況",
     "disclaimerTitle": "免責宣告與完成",
     "medicalDisclaimer": "醫療免責宣告",
-    "disclaimerBody": "SparkyFitness 健康與生殖健康追蹤器旨在幫助你追蹤預測、症狀和身體……",
+    "disclaimerBody": "X on Track 健康與生殖健康追蹤器旨在幫助你追蹤預測、症狀和身體……",
     "consultProfessional": "如有健康問題，請始終諮詢合格的醫療專業人士。",
     "acceptInitialize": "接受並初始化檔案",
     "mode": {
@@ -2709,7 +2709,7 @@
       "serverChanged": "匯入期間活躍伺服器發生了更改，因此已停止。重新開始以匯入到當前伺服器。",
       "alreadyRunning": "另一個同步正在執行。請稍等它完成，然後開始匯入。",
       "title": "匯入你的健康歷史",
-      "description": "將你過往的 {{source}} 資料一次性回填到 SparkyFitness，涵蓋每一個已啟用的指標，從最早的記錄開始。",
+      "description": "將你過往的 {{source}} 資料一次性回填到 X on Track，涵蓋每一個已啟用的指標，從最早的記錄開始。",
       "source": "來源",
       "dataTypes": "已啟用的資料型別",
       "timing": "需要幾分鐘。你可以隨時暫停並在中斷處繼續。"
@@ -4912,7 +4912,7 @@
     "chooseLibrary": "從相簿選擇",
     "remove": "移除照片",
     "cameraPermission": "需要相機許可權",
-    "cameraPermissionHint": "請在設定中為 SparkyFitness 啟用相機訪問。",
+    "cameraPermissionHint": "請在設定中為 X on Track 啟用相機訪問。",
     "compare": "對比",
     "compareTitle": "對比",
     "before": "之前",

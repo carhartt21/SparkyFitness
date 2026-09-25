@@ -28,14 +28,21 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const [chrome, chromeBorder, tabActive, tabInactive, accentPrimary] =
-    useCSSVariable([
-      '--color-chrome',
-      '--color-chrome-border',
-      '--color-tab-active',
-      '--color-tab-inactive',
-      '--color-accent-primary',
-    ]) as [string, string, string, string, string];
+  const [
+    chrome,
+    chromeBorder,
+    tabActive,
+    tabInactive,
+    accentPrimary,
+    accentText,
+  ] = useCSSVariable([
+    '--color-chrome',
+    '--color-chrome-border',
+    '--color-tab-active',
+    '--color-tab-inactive',
+    '--color-accent-primary',
+    '--color-accent-text',
+  ]) as [string, string, string, string, string, string];
 
   return (
     <View
@@ -106,7 +113,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
                   }),
                 }}
               >
-                <Icon name="add" size={28} color="#FFFFFF" weight="bold" />
+                <Icon name="add" size={28} color={accentText} weight="bold" />
               </TouchableOpacity>
             </View>
           );

@@ -22,6 +22,9 @@ import {
 } from '../services/notifications';
 import { initMedicationNotificationActions } from '../services/medicationNotificationHandler';
 import { initNutritionEngagementResponses } from '../services/nutritionEngagementReminders';
+import { initMovementEngagementResponses } from '../services/movementEngagementReminders';
+import { initMobilityEngagementResponses } from '../services/mobilityEngagementReminders';
+import { initHydrationQuickLogResponses } from '../services/hydrationQuickLogResponses';
 import { initWorkoutLiveActivity } from '../services/workoutLiveActivity';
 import { initWellbeingLiveActivity } from '../services/wellbeingLiveActivity';
 import { ensureTimezoneBootstrapped } from '../services/api/preferencesApi';
@@ -74,6 +77,9 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
     initWorkoutNotificationActions();
     initMedicationNotificationActions();
     initNutritionEngagementResponses();
+    initMovementEngagementResponses();
+    initMobilityEngagementResponses();
+    initHydrationQuickLogResponses();
 
     // iOS-only (no-op on Android): keeps the workout Live Activity in sync
     // with the active-workout store.

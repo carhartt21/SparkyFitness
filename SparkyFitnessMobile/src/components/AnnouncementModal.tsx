@@ -139,7 +139,7 @@ export const AnnouncementModal: React.FC = () => {
               <Icon
                 name="sparkles"
                 size={20}
-                color={accentPrimary || '#3b82f6'}
+                color={accentPrimary || '#1B5744'}
               />
               <Text
                 style={[styles.titleText, { color: textPrimary || '#f8fafc' }]}
@@ -187,7 +187,7 @@ export const AnnouncementModal: React.FC = () => {
               })}
               style={[
                 styles.dismissButton,
-                { backgroundColor: accentPrimary || '#3b82f6' },
+                { backgroundColor: accentPrimary || '#1B5744' },
               ]}
             >
               <Text style={styles.dismissButtonText}>

@@ -1,13 +1,6 @@
-import { Canvas, Group, Path, Rect, Skia } from '@shopify/react-native-skia';
-import React, { useEffect, useMemo } from 'react';
+import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
-import {
-  Easing,
-  useDerivedValue,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
 import { useCSSVariable } from 'uniwind';
 import { formatLocalizedNumber } from '../localization';
 import {
@@ -16,60 +9,53 @@ import {
   volumeFromMl,
 } from '../utils/unitConversions';
 import Icon from './Icon';
-import Button from './ui/Button';
 
 interface ContainerOption {
   id: number;
   name: string;
 }
 
-/** A one-tap drink. Carries its own amount so the card can state it. */
 interface QuickAddPreset extends ContainerOption {
   pressLabel?: string;
 }
 
 interface HydrationGaugeProps {
-  consumed: number; // ml
-  goal: number; // ml
-  // #1557, #1629: the portion of `consumed` folded in from logged food's
-  // water content. 0/undefined when the user hasn't opted in, in which case
-  // no caption renders -- a caption on every day would say nothing new.
+  consumed: number;
+  goal: number;
   fromFoodMl?: number;
+  pendingMl?: number;
+  attentionMl?: number;
+  pendingContainerCount?: number;
+  attentionContainerCount?: number;
+  pendingStorageError?: boolean;
+  onRetryAttention?: () => void;
+  retryingAttention?: boolean;
   unit?: string;
-  containerVolume?: number | null; // ml per press; null when not measured in ml
-  /**
-   * What one press logs when the container is linked to a food, e.g.
-   * "250 ml of Ice Coffe". A linked container has no volume of its own, so
-   * there is no millilitre figure to state.
-   */
+  containerVolume?: number | null;
   linkedPressLabel?: string;
-  /** Opens the container screen when there is no container to press. */
   onConfigure?: () => void;
   onIncrement?: () => void;
   onDecrement?: () => void;
   disableDecrement?: boolean;
   containers?: ContainerOption[];
-  // A preset is one drink logged once, not a vessel to select: these render as
-  // their own tap-to-log row rather than joining the container chips, which is
-  // why tapping "Latte" used to select it and log nothing.
   quickAddPresets?: QuickAddPreset[];
   onQuickAdd?: (id: number) => void;
   activeContainerId?: number;
   onSelectContainer?: (id: number) => void;
 }
 
-const CANVAS_WIDTH = 70;
-const CANVAS_HEIGHT = 130;
-
-// Fillable region (bottom of lip to bottom of bottle)
-const FILL_TOP = 28;
-const FILL_BOTTOM = 124;
-const FILL_HEIGHT = FILL_BOTTOM - FILL_TOP;
-
+/** Compact hydration summary. Only explicit presses create or remove a drink. */
 const HydrationGauge: React.FC<HydrationGaugeProps> = ({
   consumed,
   goal,
   fromFoodMl,
+  pendingMl = 0,
+  attentionMl = 0,
+  pendingContainerCount = 0,
+  attentionContainerCount = 0,
+  pendingStorageError = false,
+  onRetryAttention,
+  retryingAttention = false,
   unit = 'ml',
   containerVolume,
   linkedPressLabel,
@@ -84,84 +70,19 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
   onQuickAdd,
 }) => {
   const { t } = useTranslation();
-  const hydrationColor = useCSSVariable('--color-hydration') as string;
-  const trackColor = useCSSVariable('--color-progress-track') as string;
-  const outlineColor = useCSSVariable('--color-border-strong') as string;
-
-  const progress = goal > 0 ? Math.min(consumed / goal, 1) : 0;
-
-  const animatedProgress = useSharedValue(0);
-
-  useEffect(() => {
-    animatedProgress.value = withTiming(progress, {
-      duration: 800,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [progress, animatedProgress]);
-
-  const bottlePath = useMemo(() => {
-    const b = Skia.PathBuilder.Make();
-
-    // Neck
-    b.moveTo(26, 6);
-    b.lineTo(26, 23);
-
-    // Lip (cap ridge)
-    b.lineTo(23, 23);
-    b.lineTo(23, 28);
-
-    // Left shoulder curve
-    b.cubicTo(23, 34, 12, 37, 12, 42);
-
-    // Left body
-    b.lineTo(12, 112);
-
-    // Bottom curves
-    b.cubicTo(12, 121, 20, 124, 35, 124);
-    b.cubicTo(50, 124, 58, 121, 58, 112);
-
-    // Right body
-    b.lineTo(58, 42);
-
-    // Right shoulder curve
-    b.cubicTo(58, 37, 47, 34, 47, 28);
-
-    // Lip right
-    b.lineTo(47, 23);
-    b.lineTo(44, 23);
-
-    // Right neck
-    b.lineTo(44, 6);
-
-    b.close();
-    return b.build();
-  }, []);
-
-  const fillPath = useDerivedValue(() => {
-    const y = FILL_BOTTOM - FILL_HEIGHT * animatedProgress.value;
-    return Skia.Path.Rect(Skia.XYWHRect(0, y, CANVAS_WIDTH, CANVAS_HEIGHT - y));
-  });
-
+  const [hydrationColor, accentText] = useCSSVariable([
+    '--color-hydration',
+    '--color-accent-text',
+  ]) as [string, string];
+  const unitLabel = WATER_UNIT_LABELS[unit] ?? unit;
   const displayConsumed = formatVolumeForUnit(
     volumeFromMl(consumed, unit),
     unit
   );
   const displayGoal = formatVolumeForUnit(volumeFromMl(goal, unit), unit);
-  const unitLabel = WATER_UNIT_LABELS[unit] ?? unit;
-
-  const showButtons = !!onIncrement || !!onDecrement;
-  // "Nothing to press", not "no millilitres". A container linked to a food has
-  // no volume of its own on purpose -- its credit is the food's water times the
-  // hydration factor, which only the server can compute -- so keying the
-  // buttons off containerVolume disabled a container the user had selected and
-  // could see named right below them.
+  const progress = goal > 0 ? Math.min(Math.max(consumed / goal, 0), 1) : null;
   const noContainer = containerVolume == null && !linkedPressLabel;
-  // Shown whenever there is a vessel to name, not only when there are two to
-  // choose between: with presets moved to their own row a user can be left
-  // with just "Default", and hiding it then left the card silent about what
-  // the +/- buttons were pressing.
-  const showChips = (containers?.length ?? 0) > 0;
-
+  const showButtons = !!onIncrement || !!onDecrement;
   const pressLabel =
     containerVolume != null
       ? t('dashboard.perPress', {
@@ -174,137 +95,239 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
       : (linkedPressLabel ?? null);
 
   return (
-    <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
-      <Text className="text-md font-bold text-text-secondary mb-3">
-        {t('dashboard.hydration', { defaultValue: 'Hydration' })}
-      </Text>
-      <View className="flex-row items-center">
-        <View className="items-center mr-4">
-          <View className="flex-row items-center">
-            {showButtons && (
-              <Button
-                variant="ghost"
-                onPress={onDecrement}
-                disabled={disableDecrement || noContainer}
-                className="p-2"
-                accessibilityRole="button"
-                accessibilityLabel={t('dashboard.removeWater', {
-                  defaultValue: 'Remove water',
-                })}
-                style={
-                  disableDecrement || noContainer ? { opacity: 0.3 } : undefined
-                }
-              >
-                <Icon name="remove-circle" size={28} color={hydrationColor} />
-              </Button>
-            )}
-            <Canvas style={{ width: CANVAS_WIDTH, height: CANVAS_HEIGHT }}>
-              {/* Fill clipped to bottle shape */}
-              <Group clip={bottlePath}>
-                <Rect
-                  x={0}
-                  y={0}
-                  width={CANVAS_WIDTH}
-                  height={CANVAS_HEIGHT}
-                  color={trackColor}
-                />
-                <Path path={fillPath} color={hydrationColor} />
-              </Group>
-              {/* Bottle outline */}
-              <Path
-                path={bottlePath}
-                style="stroke"
-                strokeWidth={2}
-                color={outlineColor}
-              />
-            </Canvas>
-            {showButtons && (
-              <Button
-                variant="ghost"
-                onPress={onIncrement}
-                disabled={noContainer}
-                className="p-2"
-                accessibilityRole="button"
-                accessibilityLabel={t('dashboard.addWater', {
-                  defaultValue: 'Add water',
-                })}
-                style={noContainer ? { opacity: 0.3 } : undefined}
-              >
-                <Icon name="add-circle" size={28} color={hydrationColor} />
-              </Button>
-            )}
-          </View>
-          {/* Directly under the buttons it describes, rather than centred on
-              the whole card where it read as belonging to the totals. */}
-          {showButtons && pressLabel ? (
-            <View className="rounded-full border border-border-subtle px-3 py-1 mt-2">
-              <Text className="text-sm font-semibold text-accent-primary">
-                {pressLabel}
-              </Text>
-            </View>
-          ) : null}
-        </View>
-        <View className="flex-1 items-center mr-2">
-          <Text className="text-2xl font-bold text-text-primary">
-            {displayConsumed} {unitLabel}
+    <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-3">
+      <View className="flex-row items-center justify-between mb-3">
+        <View className="flex-row items-center gap-2">
+          <Icon name="water" size={20} color={hydrationColor} />
+          <Text className="text-base font-semibold text-text-primary">
+            {t('dashboard.hydration', { defaultValue: 'Hydration' })}
           </Text>
-          <Text className="text-sm text-text-secondary mt-0.5">
+        </View>
+        <Text className="text-xl font-bold text-text-primary">
+          {displayConsumed} {unitLabel}
+        </Text>
+      </View>
+
+      {progress != null ? (
+        <>
+          <View
+            className="h-2 rounded-full bg-progress-track overflow-hidden"
+            accessibilityRole="progressbar"
+            accessibilityLabel={t('dashboard.hydration', {
+              defaultValue: 'Hydration',
+            })}
+            accessibilityValue={{
+              min: 0,
+              max: goal,
+              now: Math.min(Math.max(consumed, 0), goal),
+            }}
+          >
+            <View
+              className="h-full rounded-full"
+              style={{
+                width: `${progress * 100}%` as `${number}%`,
+                backgroundColor: hydrationColor,
+              }}
+            />
+          </View>
+          <Text className="text-sm text-text-secondary mt-2">
             {t('dashboard.ofVolume', {
               defaultValue: 'of {{value}} {{unit}}',
               value: displayGoal,
               unit: unitLabel,
             })}
           </Text>
-          {!!fromFoodMl && fromFoodMl > 0 && (
-            <Text className="text-xs text-text-muted mt-0.5">
-              {t('dashboard.waterFromFood', {
-                defaultValue: 'Includes {{value}} {{unit}} from food',
-                value: formatVolumeForUnit(
-                  volumeFromMl(fromFoodMl, unit),
-                  unit
-                ),
-                unit: unitLabel,
+        </>
+      ) : (
+        <Text className="text-sm text-text-secondary">
+          {t('dashboard.noHydrationGoal', {
+            defaultValue: 'No daily target set',
+          })}
+        </Text>
+      )}
+
+      {!!fromFoodMl && fromFoodMl > 0 ? (
+        <Text className="text-xs text-text-secondary mt-1">
+          {t('dashboard.waterFromFood', {
+            defaultValue: 'Includes {{value}} {{unit}} from food',
+            value: formatVolumeForUnit(volumeFromMl(fromFoodMl, unit), unit),
+            unit: unitLabel,
+          })}
+        </Text>
+      ) : null}
+
+      {pendingMl > 0 ? (
+        <Text className="text-xs text-text-secondary mt-1">
+          {t('dashboard.waterAwaitingSync', {
+            defaultValue: '{{value}} {{unit}} awaiting sync',
+            value: formatVolumeForUnit(volumeFromMl(pendingMl, unit), unit),
+            unit: unitLabel,
+          })}
+        </Text>
+      ) : null}
+      {attentionMl > 0 ? (
+        <Text className="text-xs text-text-danger mt-1">
+          {t('dashboard.waterNeedsAttention', {
+            defaultValue: '{{value}} {{unit}} needs attention',
+            value: formatVolumeForUnit(volumeFromMl(attentionMl, unit), unit),
+            unit: unitLabel,
+          })}
+        </Text>
+      ) : null}
+      {pendingContainerCount > 0 ? (
+        <Text className="text-xs text-text-secondary mt-1">
+          {t('dashboard.waterDrinksAwaitingSync', {
+            count: pendingContainerCount,
+            defaultValue: '{{count}} drinks awaiting sync',
+            defaultValue_one: '{{count}} drink awaiting sync',
+          })}
+        </Text>
+      ) : null}
+      {attentionContainerCount > 0 ? (
+        <Text className="text-xs text-text-danger mt-1">
+          {t('dashboard.waterDrinksNeedAttention', {
+            count: attentionContainerCount,
+            defaultValue: '{{count}} drinks need attention',
+            defaultValue_one: '{{count}} drink needs attention',
+          })}
+        </Text>
+      ) : null}
+      {(attentionMl > 0 || attentionContainerCount > 0) && onRetryAttention ? (
+        <Pressable
+          onPress={onRetryAttention}
+          disabled={retryingAttention}
+          accessibilityRole="button"
+          accessibilityLabel={t('dashboard.retrySavedWater', {
+            defaultValue: 'Retry saved water entries',
+          })}
+          className="min-h-11 self-start justify-center"
+        >
+          <Text className="text-sm font-semibold text-accent-primary">
+            {retryingAttention
+              ? t('dashboard.retryingSavedWater', {
+                  defaultValue: 'Retrying saved water…',
+                })
+              : t('dashboard.retrySavedWater', {
+                  defaultValue: 'Retry saved water entries',
+                })}
+          </Text>
+        </Pressable>
+      ) : null}
+      {pendingStorageError ? (
+        <Text className="text-xs text-text-danger mt-1">
+          {t('dashboard.waterPendingUnavailable', {
+            defaultValue: 'Pending water entries could not be read',
+          })}
+        </Text>
+      ) : null}
+
+      {showButtons && !noContainer ? (
+        <View className="flex-row items-center gap-2 mt-4">
+          {onDecrement ? (
+            <Pressable
+              onPress={onDecrement}
+              disabled={disableDecrement}
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.removeWater', {
+                defaultValue: 'Remove water',
+              })}
+              className={
+                'h-11 w-11 rounded-xl border border-border-strong items-center justify-center ' +
+                (disableDecrement ? 'opacity-40' : '')
+              }
+            >
+              <Icon name="remove" size={20} color={hydrationColor} />
+            </Pressable>
+          ) : null}
+          {onIncrement ? (
+            <Pressable
+              onPress={onIncrement}
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.addWater', {
+                defaultValue: 'Add water',
+              })}
+              className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent-primary px-3"
+            >
+              <Icon name="add" size={18} color={accentText} />
+              <Text
+                className="text-sm font-semibold text-accent-text"
+                numberOfLines={1}
+              >
+                {pressLabel}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : showButtons ? (
+        <View className="mt-3">
+          {onIncrement ? (
+            <Pressable
+              disabled
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.addWater', {
+                defaultValue: 'Add water',
+              })}
+              className="min-h-11 items-center justify-center rounded-xl bg-raised border border-border-subtle opacity-50"
+            >
+              <Text className="text-sm font-semibold text-text-secondary">
+                {t('dashboard.addWater', { defaultValue: 'Add water' })}
+              </Text>
+            </Pressable>
+          ) : null}
+          <Pressable
+            accessibilityRole="button"
+            onPress={onConfigure}
+            disabled={!onConfigure}
+            className="min-h-11 justify-center"
+          >
+            <Text className="text-sm font-semibold text-accent-primary">
+              {t('dashboard.chooseWaterContainer', {
+                defaultValue:
+                  'Choose a water container to enable quick add/remove',
               })}
             </Text>
-          )}
-          {showChips && (
-            <View className="flex-row flex-wrap justify-center mt-2 gap-1">
-              {containers!.map((c) => {
-                const active = c.id === activeContainerId;
-                return (
-                  <Pressable
-                    key={c.id}
-                    onPress={() => onSelectContainer?.(c.id)}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('dashboard.selectContainer', {
-                      defaultValue: 'Select {{container}}',
-                      container: c.name,
-                    })}
-                    accessibilityState={{ selected: active }}
-                    className={`rounded-full px-3 py-1 border ${active ? 'bg-accent-primary border-accent-primary' : 'bg-raised border-border-subtle'}`}
-                  >
-                    <Text
-                      className={`text-xs font-medium ${active ? 'text-white' : 'text-text-primary'}`}
-                    >
-                      {c.name}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          )}
+          </Pressable>
         </View>
-      </View>
-      {/* What one press logs, stated once and prominently. It was previously
-          split across two muted captions -- "N ml per container" for a plain
-          container and the drink name for a linked one -- either of which was
-          the least readable thing on the card. */}
-      {/* One tap logs the drink. These deliberately do not carry +/- of their
-          own: a second latte is another tap, and removing one belongs in the
-          drinks log where you can see which you are deleting. */}
+      ) : null}
+
+      {containers && containers.length > 0 ? (
+        <View className="flex-row flex-wrap gap-2 mt-3">
+          {containers.map((container) => {
+            const active = container.id === activeContainerId;
+            return (
+              <Pressable
+                key={container.id}
+                onPress={() => onSelectContainer?.(container.id)}
+                accessibilityRole="button"
+                accessibilityLabel={t('dashboard.selectContainer', {
+                  defaultValue: 'Select {{container}}',
+                  container: container.name,
+                })}
+                accessibilityState={{ selected: active }}
+                className={
+                  'min-h-11 justify-center rounded-xl border px-3 ' +
+                  (active
+                    ? 'bg-accent-primary/15 border-accent-primary'
+                    : 'bg-raised border-border-subtle')
+                }
+              >
+                <Text
+                  className={
+                    'text-sm font-medium ' +
+                    (active ? 'text-accent-primary' : 'text-text-primary')
+                  }
+                >
+                  {container.name}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      ) : null}
+
       {quickAddPresets && quickAddPresets.length > 0 ? (
-        <View className="mt-3 pt-3 border-t border-border-subtle">
-          <Text className="text-[11px] font-semibold uppercase tracking-wider text-text-muted mb-2">
+        <View className="mt-4 pt-3 border-t border-border-subtle">
+          <Text className="text-xs font-semibold text-text-secondary mb-2">
             {t('dashboard.quickAddDrinks', { defaultValue: 'Quick add' })}
           </Text>
           <View className="flex-row flex-wrap gap-2">
@@ -318,15 +341,14 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                   defaultValue: 'Log {{drink}}',
                   drink: preset.name,
                 })}
-                style={({ pressed }) => (pressed ? { opacity: 0.6 } : null)}
-                className="flex-row items-center gap-2 rounded-xl border border-border-subtle bg-raised px-3 py-2"
+                className="min-h-11 flex-row items-center gap-2 rounded-xl border border-border-subtle bg-raised px-3"
               >
-                <View className="min-w-0">
-                  <Text className="text-xs font-medium text-text-primary">
+                <View>
+                  <Text className="text-sm font-medium text-text-primary">
                     {preset.name}
                   </Text>
                   {preset.pressLabel ? (
-                    <Text className="text-[11px] text-text-muted">
+                    <Text className="text-xs text-text-secondary">
                       {preset.pressLabel}
                     </Text>
                   ) : null}
@@ -336,28 +358,6 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
             ))}
           </View>
         </View>
-      ) : null}
-      {/* No container to press. This used to be a dead sentence telling the
-          user to go to the server; the containers screen lives here now, so
-          it is a way in. */}
-      {showButtons && containerVolume == null && !linkedPressLabel ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={onConfigure}
-          disabled={!onConfigure}
-          style={({ pressed }) => (pressed ? { opacity: 0.6 } : null)}
-        >
-          <Text
-            className={`text-xs text-center mt-2 ${
-              onConfigure ? 'text-accent-primary' : 'text-text-muted'
-            }`}
-          >
-            {t('dashboard.chooseWaterContainer', {
-              defaultValue:
-                'Choose a water container to enable quick add/remove',
-            })}
-          </Text>
-        </Pressable>
       ) : null}
     </View>
   );

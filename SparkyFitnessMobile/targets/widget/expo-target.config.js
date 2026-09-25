@@ -2,6 +2,7 @@ const {
   getIosAppGroup,
   isDevVariant,
   DEV_BUNDLE_IDENTIFIER,
+  IOS_PROD_BUNDLE_IDENTIFIER,
 } = require('../../app.identifiers.js');
 const fs = require('fs');
 const path = require('path');
@@ -25,6 +26,8 @@ const syncInfoPlist = (appGroup) => {
   <dict>
     <key>APP_GROUP_IDENTIFIER</key>
     <string>${escapedAppGroup}</string>
+    <key>CFBundleDisplayName</key>
+    <string>X on Track Widgets</string>
     <key>NSExtension</key>
     <dict>
       <key>NSExtensionPointIdentifier</key>
@@ -45,10 +48,11 @@ module.exports = (config) => {
   return {
     type: 'widget',
     name: 'CalorieTracker',
+    displayName: 'X on Track Widgets',
     bundleIdentifier: isDev
       ? `${DEV_BUNDLE_IDENTIFIER}.widget`
-      : 'com.SparkyApps.SparkyFitnessMobile.widget',
-    icon: '../../assets/icons/adaptiveicon.png',
+      : `${IOS_PROD_BUNDLE_IDENTIFIER}.widget`,
+    icon: '../../assets/icons/x-on-track-app-icon.png',
     entitlements: {
       'com.apple.security.application-groups': [appGroup],
     },

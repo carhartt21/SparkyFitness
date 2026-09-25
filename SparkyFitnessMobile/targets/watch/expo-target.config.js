@@ -2,6 +2,7 @@ const {
   getIosAppGroup,
   isDevVariant,
   DEV_BUNDLE_IDENTIFIER,
+  IOS_PROD_BUNDLE_IDENTIFIER,
 } = require('../../app.identifiers.js');
 const fs = require('fs');
 const path = require('path');
@@ -39,6 +40,8 @@ const syncInfoPlist = (appGroup, bundleIdentifier) => {
   <dict>
     <key>APP_GROUP_IDENTIFIER</key>
     <string>${escapePlistString(appGroup)}</string>
+    <key>CFBundleDisplayName</key>
+    <string>X on Track</string>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -63,16 +66,15 @@ module.exports = (config) => {
   // Convention for watchOS companion apps: "<phone-bundle-id>.watchkitapp".
   const bundleIdentifier = isDev
     ? `${DEV_BUNDLE_IDENTIFIER}.watchkitapp`
-    : 'com.SparkyApps.SparkyFitnessMobile.watchkitapp';
+    : `${IOS_PROD_BUNDLE_IDENTIFIER}.watchkitapp`;
   syncInfoPlist(appGroup, bundleIdentifier);
 
   return {
     type: 'watch',
     name: 'SparkyFitnessWatch',
+    displayName: 'X on Track',
     bundleIdentifier,
-    // Reuses the phone app's adaptive icon for now — swap for a dedicated
-    // Watch icon (has its own required sizes) once the design is settled.
-    icon: '../../assets/icons/adaptiveicon.png',
+    icon: '../../assets/icons/x-on-track-app-icon.png',
     // watchOS 10 is the floor for the SwiftUI APIs used in this target.
     // Lower this if your physical Watch is running an older watchOS.
     deploymentTarget: '10.0',

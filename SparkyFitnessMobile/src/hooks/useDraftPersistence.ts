@@ -4,7 +4,10 @@ import {
   saveDraft,
   loadDraft,
   clearDraft,
+  getActiveDraftIdentity,
 } from '../services/workoutDraftService';
+import type { DraftIdentity } from '../services/workoutDraftService';
+import { subscribeNutritionIdentity } from '../services/nutritionIdentity';
 import type { FormDraft } from '../types/drafts';
 
 interface UseDraftPersistenceOptions<T extends FormDraft> {
@@ -18,6 +21,7 @@ interface UseDraftPersistenceOptions<T extends FormDraft> {
 
 interface DraftPersistenceControls {
   clearPersistedDraft: () => Promise<void>;
+  clearCurrentDraft: () => Promise<void>;
 }
 
 export function useDraftPersistence<T extends FormDraft>(
@@ -36,6 +40,7 @@ export function useDraftPersistence<T extends FormDraft>(
   const skipNextSaveRef = useRef(false);
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const persistenceEnabledRef = useRef(true);
+  const draftIdentityRef = useRef<DraftIdentity | null>(null);
   const stateRef = useRef(state);
   stateRef.current = state;
   const isEditModeRef = useRef(isEditMode);
@@ -53,21 +58,53 @@ export function useDraftPersistence<T extends FormDraft>(
     cancelPendingSave();
   }, [cancelPendingSave]);
 
+  const clearCurrentDraft = useCallback(async () => {
+    if (draftIdentityRef.current) {
+      await clearDraft(draftIdentityRef.current);
+    }
+  }, []);
+
   const clearPersistedDraft = useCallback(async () => {
     disablePersistence();
-    await clearDraft();
-  }, [disablePersistence]);
+    await clearCurrentDraft();
+  }, [clearCurrentDraft, disablePersistence]);
 
   useEffect(() => {
-    if (isEditMode || skipDraftLoad) {
-      if (skipDraftLoad) {
-        onInitialDate?.();
-        skipNextSaveRef.current = true;
-      }
+    if (isEditMode) {
       isDraftLoadedRef.current = true;
       return;
     }
-    loadDraft().then((draft) => {
+    if (skipDraftLoad) {
+      onInitialDate?.();
+      skipNextSaveRef.current = true;
+      isDraftLoadedRef.current = true;
+      let cancelled = false;
+      const bindIdentity = async () => {
+        const identity = await getActiveDraftIdentity();
+        if (!cancelled) draftIdentityRef.current = identity;
+      };
+      void bindIdentity();
+      const unsubscribe = subscribeNutritionIdentity(() => {
+        if (draftIdentityRef.current) {
+          disablePersistence();
+        } else {
+          void bindIdentity();
+        }
+      });
+      return () => {
+        cancelled = true;
+        unsubscribe();
+      };
+    }
+    let cancelled = false;
+    let generation = 0;
+    const initialize = async () => {
+      const currentGeneration = ++generation;
+      const identity = await getActiveDraftIdentity();
+      if (cancelled || currentGeneration !== generation) return;
+      draftIdentityRef.current = identity;
+      const draft = identity ? await loadDraft(identity) : null;
+      if (cancelled || currentGeneration !== generation) return;
       if (draft && draft.type === draftType) {
         skipNextSaveRef.current = true;
         onDraftLoaded(draft as T);
@@ -75,7 +112,19 @@ export function useDraftPersistence<T extends FormDraft>(
         onInitialDate?.();
       }
       isDraftLoadedRef.current = true;
+    };
+    void initialize();
+    const unsubscribe = subscribeNutritionIdentity(() => {
+      if (draftIdentityRef.current) {
+        disablePersistence();
+      } else {
+        void initialize();
+      }
     });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, skipDraftLoad, draftType]);
 
@@ -91,7 +140,9 @@ export function useDraftPersistence<T extends FormDraft>(
     cancelPendingSave();
     saveTimeoutRef.current = setTimeout(() => {
       saveTimeoutRef.current = null;
-      saveDraft(state);
+      if (draftIdentityRef.current) {
+        void saveDraft(state, draftIdentityRef.current);
+      }
     }, 300);
 
     return () => {
@@ -106,7 +157,9 @@ export function useDraftPersistence<T extends FormDraft>(
     return () => {
       cancelPendingSave();
       if (!isEditModeRef.current && persistenceEnabledRef.current) {
-        saveDraft(stateRef.current);
+        if (draftIdentityRef.current) {
+          void saveDraft(stateRef.current, draftIdentityRef.current);
+        }
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -118,7 +171,9 @@ export function useDraftPersistence<T extends FormDraft>(
       if (nextState === 'background' || nextState === 'inactive') {
         cancelPendingSave();
         if (!persistenceEnabledRef.current) return;
-        saveDraft(stateRef.current);
+        if (draftIdentityRef.current) {
+          void saveDraft(stateRef.current, draftIdentityRef.current);
+        }
       }
     });
     return () => subscription.remove();
@@ -126,5 +181,6 @@ export function useDraftPersistence<T extends FormDraft>(
 
   return {
     clearPersistedDraft,
+    clearCurrentDraft,
   };
 }

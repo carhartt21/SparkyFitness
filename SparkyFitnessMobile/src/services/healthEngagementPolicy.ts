@@ -1,13 +1,15 @@
 import type { NutritionCapture } from './api/nutritionCaptureApi';
 import type { PendingNutritionAction } from './nutritionActionOutbox';
 import type { FoodEntry } from '../types/foodEntries';
+import { toLocalDateString } from '../utils/dateUtils';
+import type { MobilityRoutine, MobilitySession } from './mobilityRoutineStore';
 
 export type EngagementDomain = 'nutrition' | 'hydration' | 'movement';
 
 export interface ReminderCandidate {
   id: string;
   domain: EngagementDomain;
-  kind: 'capture' | 'review' | 'drink' | 'move';
+  kind: 'capture' | 'review' | 'drink' | 'move' | 'mobility';
   preferredAt: number;
   earliestAt: number;
   expiresAt: number;
@@ -96,7 +98,10 @@ export function deriveNutritionEngagementState(
         incomplete: previous?.incomplete ?? true,
         pending: action.syncState !== 'synced',
       });
-    } else if (action.payload.entryDate === input.day) {
+    } else if (
+      action.type === 'completePhotoEntry' &&
+      action.payload.entryDate === input.day
+    ) {
       const previous = events.get(action.payload.captureId);
       if (previous)
         events.set(action.payload.captureId, {
@@ -196,6 +201,66 @@ export function nutritionReminderCandidates(input: {
   return candidates;
 }
 
+/** A chosen clock time is an invitation, not evidence of missing movement. */
+export function movementBreakReminderCandidate(input: {
+  day: string;
+  time: string;
+  enabled: boolean;
+  alreadyStartedToday: boolean;
+  activeSession: boolean;
+  now: number;
+}): ReminderCandidate | null {
+  if (!input.enabled || input.alreadyStartedToday || input.activeSession)
+    return null;
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.time)) return null;
+  const at = localTime(input.day, input.time);
+  if (at <= input.now) return null;
+  return {
+    id: `movement:break:${input.day}`,
+    domain: 'movement',
+    kind: 'move',
+    preferredAt: at,
+    earliestAt: at,
+    expiresAt: Math.min(at + 60 * 60_000, localTime(input.day, '23:59')),
+    flexibilityMinutes: 30,
+  };
+}
+
+/** A routine time is an invitation, not evidence that movement was done. */
+export function mobilityReminderCandidates(input: {
+  day: string;
+  routines: MobilityRoutine[];
+  activeSession: MobilitySession | null;
+  history: MobilitySession[];
+  now: number;
+}): ReminderCandidate[] {
+  if (input.activeSession) return [];
+  return input.routines.flatMap((routine) => {
+    if (!routine.reminderTime) return [];
+    const at = localTime(input.day, routine.reminderTime);
+    if (at <= input.now) return [];
+    if (
+      input.history.some(
+        (session) =>
+          session.routine.id === routine.id &&
+          toLocalDateString(session.startedAt) === input.day
+      )
+    )
+      return [];
+    return [
+      {
+        id: `movement:mobility:${input.day}:${routine.id}`,
+        domain: 'movement' as const,
+        kind: 'mobility' as const,
+        preferredAt: at,
+        earliestAt: at,
+        expiresAt: Math.min(at + 60 * 60_000, localTime(input.day, '23:59')),
+        flexibilityMinutes: 30,
+      },
+    ];
+  });
+}
+
 /** Discretionary cap and collision policy. Scheduled intakes never enter here. */
 export function arbitrateDiscretionaryCandidates(input: {
   candidates: ReminderCandidate[];
@@ -237,4 +302,68 @@ export function arbitrateDiscretionaryCandidates(input: {
     counts[candidate.domain] = domainCount + 1;
   }
   return accepted;
+}
+
+/** Give hydration the remaining daily slots after meal and movement prompts. */
+export function selectHydrationReminderSchedule(input: {
+  times: Date[];
+  sharedPlan: ReminderCandidate[];
+  reservedTimes?: number[];
+  spentByDay?: Record<string, number>;
+  now: number;
+  windowEnd: string;
+  maxScheduled: number;
+}): Date[] {
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(input.windowEnd)) return [];
+  const byDay = new Map<string, Date[]>();
+  for (const time of input.times) {
+    const at = time.getTime();
+    if (!Number.isFinite(at) || at <= input.now) continue;
+    const day = toLocalDateString(time);
+    const entries = byDay.get(day) ?? [];
+    entries.push(time);
+    byDay.set(day, entries);
+  }
+  const selected: Date[] = [];
+  for (const [day, times] of byDay) {
+    const reserved = input.sharedPlan.filter(
+      (candidate) => toLocalDateString(new Date(candidate.preferredAt)) === day
+    );
+    const end = new Date(times[0]);
+    const [hour, minute] = input.windowEnd.split(':').map(Number);
+    end.setHours(hour, minute, 0, 0);
+    const candidates: ReminderCandidate[] = times.map((time) => {
+      const at = time.getTime();
+      return {
+        id: `hydration:drink:${day}:${at}`,
+        domain: 'hydration',
+        kind: 'drink',
+        preferredAt: at,
+        earliestAt: at,
+        expiresAt: Math.min(at + 20 * 60_000, end.getTime() - 1_000),
+        flexibilityMinutes: 20,
+      };
+    });
+    const accepted = arbitrateDiscretionaryCandidates({
+      candidates,
+      dailyCap: Math.max(
+        0,
+        3 - (input.spentByDay?.[day] ?? 0) - reserved.length
+      ),
+      domainCaps: { hydration: 3 },
+      collisionMinutes: 20,
+      reservedTimes: [
+        ...reserved.map((candidate) => candidate.preferredAt),
+        ...(input.reservedTimes ?? []).filter(
+          (time) => toLocalDateString(new Date(time)) === day
+        ),
+      ],
+      now: input.now,
+    });
+    selected.push(
+      ...accepted.map((candidate) => new Date(candidate.preferredAt))
+    );
+    if (selected.length >= input.maxScheduled) break;
+  }
+  return selected.slice(0, input.maxScheduled);
 }

@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 import {
   findHeaderItemByAccessibilityLabel,
   pressActionByAccessibilityLabel,
@@ -485,6 +486,37 @@ describe('FoodEntryAddScreen', () => {
     );
     expect(mockAddEntry).not.toHaveBeenCalled();
     expect(navigation.dispatch).toHaveBeenCalledWith({ type: 'POP_TO_TOP' });
+  });
+
+  it('keeps an Add Food action reachable above the keyboard', () => {
+    const showKeyboard: ((event: any) => void)[] = [];
+    const hideKeyboard: (() => void)[] = [];
+    const listener = jest
+      .spyOn(Keyboard, 'addListener')
+      .mockImplementation((event, handler) => {
+        if (event === 'keyboardDidShow') showKeyboard.push(handler);
+        if (event === 'keyboardDidHide') hideKeyboard.push(handler);
+        return { remove: jest.fn() } as any;
+      });
+    try {
+      const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+      expect(screen.getAllByText('Add Food')).toHaveLength(1);
+
+      act(() =>
+        showKeyboard.forEach((handler) =>
+          handler({ endCoordinates: { screenY: 500 } })
+        )
+      );
+      const addActions = screen.getAllByText('Add Food');
+      expect(addActions).toHaveLength(2);
+      fireEvent.press(addActions[1]);
+      expect(mockAddEntry).toHaveBeenCalledTimes(1);
+
+      act(() => hideKeyboard.forEach((handler) => handler()));
+      expect(screen.getAllByText('Add Food')).toHaveLength(1);
+    } finally {
+      listener.mockRestore();
+    }
   });
 
   it('omits unknown provider nutrients instead of writing null or zero', async () => {
@@ -1012,6 +1044,9 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-05-15',
     });
 
+    expect(screen.queryByLabelText('Bold')).toBeNull();
+    expect(screen.queryByText('Preview')).toBeNull();
+
     fireEvent.changeText(
       screen.getByLabelText('Note for this entry'),
       'half portion'
@@ -1051,6 +1086,9 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
+    expect(screen.getByText('Log to')).toBeTruthy();
+    expect(screen.queryByText('Date')).toBeNull();
+    fireEvent.press(screen.getByLabelText('Edit log destination'));
     expect(screen.getByText('Date')).toBeTruthy();
     expect(screen.getByText('Meal')).toBeTruthy();
     expect(screen.getByText(/· 1 cup per serving/)).toBeTruthy();
@@ -1071,6 +1109,25 @@ describe('FoodEntryAddScreen', () => {
       },
     });
     expect(mockSetPendingMealIngredientSelection).not.toHaveBeenCalled();
+  });
+
+  it('submits the edited quantity once while its numeric input is focused', () => {
+    const screen = renderScreen({
+      item: baseLocalItem,
+      date: '2026-04-23',
+    });
+
+    const quantityInput = screen.getByTestId('quantity-input');
+    fireEvent(quantityInput, 'focus');
+    fireEvent.changeText(quantityInput, '2');
+    fireEvent.press(screen.getByText('Add Food'));
+
+    expect(mockAddEntry).toHaveBeenCalledTimes(1);
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({ quantity: 2 }),
+      })
+    );
   });
 
   it('returns to the diary root after a plain log-entry add', () => {
@@ -1170,7 +1227,7 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.getByText(/piece \(15 g\) per serving/)).toBeTruthy();
   });
 
-  it('keeps a 100 g reference available alongside a named local portion', () => {
+  it('keeps a 100 g reference available and applies a quick portion before logging', () => {
     mockUseFoodVariants.mockReturnValue({
       variants: [
         {
@@ -1228,6 +1285,23 @@ describe('FoodEntryAddScreen', () => {
 
     expect(screen.getByText('1 portion (150 g) (180 cal)')).toBeTruthy();
     expect(screen.getByText('100 g (120 cal)')).toBeTruthy();
+    expect(screen.getByLabelText(/^Change unit:/)).toBeTruthy();
+    expect(screen.getByText('Choose a portion')).toBeTruthy();
+    expect(screen.getByText('Log to')).toBeTruthy();
+    fireEvent.press(
+      screen.getByLabelText('Choose 1 portion (150 g) (180 cal)')
+    );
+    expect(screen.getByLabelText(/Change unit:.*portion/)).toBeTruthy();
+    fireEvent.press(screen.getByText('Add Food'));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          variant_id: 'variant-portion',
+          quantity: 1,
+          unit: 'portion',
+        }),
+      })
+    );
   });
 
   it('keeps converted local units in the adjust flow and logs the returned variant', async () => {

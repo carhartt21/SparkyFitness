@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Application from 'expo-application';
+import { useCSSVariable, useUniwind } from 'uniwind';
 
 import Icon from '../components/Icon';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
@@ -29,6 +30,12 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const usesNativeHeader = useNativeIOSHeadersActive();
+  const { theme } = useUniwind();
+  const iconColor = useCSSVariable('--color-icon-decorative') as string;
+  const logoSource =
+    theme === 'dark' || theme === 'amoled'
+      ? require('../../assets/brand/x-on-track-dark.png')
+      : require('../../assets/brand/x-on-track-light.png');
 
   const openUrl = (url: string) => {
     Linking.openURL(url).catch(() => {
@@ -58,12 +65,15 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
       >
         <View className="bg-surface rounded-xl p-5 mb-4 items-center shadow-sm">
           <Image
-            source={require('../../assets/images/logo.png')}
+            source={logoSource}
             className="w-20 h-20 mb-4"
             resizeMode="contain"
           />
           <Text className="text-xl font-bold text-text-primary mb-1">
-            SparkyFitness
+            {t('brand.name', { defaultValue: 'X on Track' })}
+          </Text>
+          <Text className="text-text-secondary text-sm mb-2">
+            {t('brand.tagline', { defaultValue: 'Keep getting better.' })}
           </Text>
           <Text className="text-text-secondary text-sm">
             {t('about.version', {
@@ -79,9 +89,9 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
             {t('about.descriptionTitle', { defaultValue: 'About this app' })}
           </Text>
           <Text className="text-text-secondary text-sm leading-5">
-            {t('about.description', {
+            {t('about.personalBestDescription', {
               defaultValue:
-                'SparkyFitness is an open-source nutrition, exercise, and health-data tracker that syncs to your own server. This app is the mobile companion for logging meals, workouts, and measurements on the go.',
+                'Log nutrition, training, and health data. Understand your patterns and improve relative to your own baseline.',
             })}
           </Text>
         </View>
@@ -93,16 +103,18 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
             activeOpacity={0.7}
             accessibilityRole="link"
             accessibilityLabel={t('about.github', {
-              defaultValue: 'Project on GitHub',
+              defaultValue: 'Upstream source and licenses',
             })}
             accessibilityHint={t('about.openExternalLink', {
               defaultValue: 'Opens in your browser',
             })}
           >
             <Text className="text-base font-semibold text-text-primary">
-              {t('about.github', { defaultValue: 'Project on GitHub' })}
+              {t('about.github', {
+                defaultValue: 'Upstream source and licenses',
+              })}
             </Text>
-            <Icon name="chevron-forward" size={20} color="#999" />
+            <Icon name="chevron-forward" size={20} color={iconColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -111,16 +123,18 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
             activeOpacity={0.7}
             accessibilityRole="link"
             accessibilityLabel={t('about.documentation', {
-              defaultValue: 'Documentation',
+              defaultValue: 'Upstream documentation',
             })}
             accessibilityHint={t('about.openExternalLink', {
               defaultValue: 'Opens in your browser',
             })}
           >
             <Text className="text-base font-semibold text-text-primary">
-              {t('about.documentation', { defaultValue: 'Documentation' })}
+              {t('about.documentation', {
+                defaultValue: 'Upstream documentation',
+              })}
             </Text>
-            <Icon name="chevron-forward" size={20} color="#999" />
+            <Icon name="chevron-forward" size={20} color={iconColor} />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -129,16 +143,18 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
             activeOpacity={0.7}
             accessibilityRole="link"
             accessibilityLabel={t('about.privacyPolicy', {
-              defaultValue: 'Privacy Policy',
+              defaultValue: 'Upstream privacy policy',
             })}
             accessibilityHint={t('about.openExternalLink', {
               defaultValue: 'Opens in your browser',
             })}
           >
             <Text className="text-base font-semibold text-text-primary">
-              {t('about.privacyPolicy', { defaultValue: 'Privacy Policy' })}
+              {t('about.privacyPolicy', {
+                defaultValue: 'Upstream privacy policy',
+              })}
             </Text>
-            <Icon name="chevron-forward" size={20} color="#999" />
+            <Icon name="chevron-forward" size={20} color={iconColor} />
           </TouchableOpacity>
         </View>
       </ScrollView>

@@ -37,6 +37,7 @@ import {
   SafeWaterContainers,
   SafeWaterContainerEdit,
   SafeExercisesLibrary,
+  SafeExerciseReview,
   SafeWorkoutPresetsLibrary,
   SafeFoodDetail,
   SafeMealDetail,
@@ -52,6 +53,7 @@ import {
   SafeFoodScan,
   SafeQuickMealPhoto,
   SafeMovementBreak,
+  SafeGuidedMobility,
   SafeFoodPhotoIntro,
   SafeMealAdd,
   SafeFoodEntryView,
@@ -125,8 +127,9 @@ import ActiveWorkoutBar, {
 import { ActiveWorkoutTransitionScreenLayout } from './src/components/ActiveWorkoutTransitionProbe';
 import ActiveWorkoutKeepAwake from './src/components/ActiveWorkoutKeepAwake';
 import MedicationReminderReconciler from './src/components/MedicationReminderReconciler';
-import HydrationReminderReconciler from './src/components/HydrationReminderReconciler';
 import NutritionEngagementCoordinator from './src/components/NutritionEngagementCoordinator';
+import RoutineWidgetCoordinator from './src/components/RoutineWidgetCoordinator';
+import WatchManualWaterCoordinator from './src/components/WatchManualWaterCoordinator';
 import { useNativeIOSTabsActive, useNativeIOSHeadersActive } from './src/services/nativeTabBarPreference';
 import { useWidgetLanguageRefresh } from './src/hooks/useWidgetLanguageRefresh';
 import { useIOSWidgetLanguageRefresh } from './src/hooks/useIOSWidgetLanguageRefresh';
@@ -307,6 +310,8 @@ function AppContent() {
         FoodScan: 'scan',
         QuickMealPhoto: 'meal-photo',
         MovementBreak: 'movement-break',
+        GuidedMobility: 'guided-mobility',
+        WorkoutPresetsLibrary: 'routines',
         FoodSearch: 'search',
         // Tapping the workout Live Activity opens its associated URL.
         ActiveWorkout: 'active-workout',
@@ -335,7 +340,7 @@ function AppContent() {
       <WatchCheckInGate />
       <NutritionActionSyncGate />
       <NutritionEngagementCoordinator />
-      <HydrationReminderReconciler />
+      <RoutineWidgetCoordinator />
       <SafeAreaProvider>
         {/* Inside SafeAreaProvider on purpose: the viewer positions its close
             button against the insets, so mounting it at the app root crashes
@@ -452,6 +457,11 @@ function AppContent() {
             name="ExercisesLibrary"
             component={SafeExercisesLibrary}
             options={createStackScreenOptions(t('screens.exercises', { defaultValue: 'Exercises' }), { headerBackTitle: t('navigation.library', { defaultValue: 'Library' }) })}
+          />
+          <Stack.Screen
+            name="ExerciseReview"
+            component={SafeExerciseReview}
+            options={createStackScreenOptions(t('exerciseReview.title', { defaultValue: 'Exercise review' }), { headerBackTitle: t('navigation.library', { defaultValue: 'Library' }) })}
           />
           <Stack.Screen
             name="WorkoutPresetsLibrary"
@@ -574,6 +584,13 @@ function AppContent() {
             }), { headerBackButtonDisplayMode: 'minimal' })}
           />
           <Stack.Screen
+            name="GuidedMobility"
+            component={SafeGuidedMobility}
+            options={createStackScreenOptions(t('mobility.title', {
+              defaultValue: 'Guided mobility',
+            }), { headerBackButtonDisplayMode: 'minimal' })}
+          />
+          <Stack.Screen
             name="FoodPhotoIntro"
             component={SafeFoodPhotoIntro}
             options={createStackScreenOptions(t('screens.photoFood', { defaultValue: 'Photo Food' }), {
@@ -594,7 +611,7 @@ function AppContent() {
           <Stack.Screen
             name="Chat"
             component={SafeChat}
-            options={createStackScreenOptions(t('screens.sparky', { defaultValue: 'Sparky' }), { headerBackButtonDisplayMode: 'minimal' })}
+            options={createStackScreenOptions(t('screens.sparky', { defaultValue: 'Assistant' }), { headerBackButtonDisplayMode: 'minimal' })}
           />
           <Stack.Screen
             name="MealAdd"
@@ -941,6 +958,7 @@ function App() {
                 the active server's origin and proxy headers, so there is no
                 reason for each screen to own a copy (or its own cache). */}
             <FoodImageSourceProvider>
+              <WatchManualWaterCoordinator />
               <AppContent />
             </FoodImageSourceProvider>
           </BottomSheetModalProvider>

@@ -102,7 +102,7 @@ struct TrendView: View {
     /// agrees with the chart underneath it.
     @ViewBuilder
     private var capturedSummary: some View {
-        if let last = store.lastCaptured {
+        if let last = store.visibleLastCaptured {
             HStack(alignment: .lastTextBaseline, spacing: 6) {
                 Text("\(String(format: "%.1f", unit.fromKg(last.weightKg))) \(unit.suffix)")
                     .font(currentMetric == .weight ? .headline : .subheadline)

@@ -1,11 +1,18 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
-import { reconcileNutritionEngagementReminders } from '../../src/services/nutritionEngagementReminders';
-import { initNutritionEngagementResponses } from '../../src/services/nutritionEngagementReminders';
+import {
+  reconcileNutritionEngagementReminders,
+  initNutritionEngagementResponses,
+} from '../../src/services/nutritionEngagementReminders';
 import { hasNotificationPermission } from '../../src/services/notifications';
 import { getActiveNutritionIdentity } from '../../src/services/nutritionIdentity';
 import { getTodayDate } from '../../src/utils/dateUtils';
 import type { ReminderCandidate } from '../../src/services/healthEngagementPolicy';
+import {
+  __resetDiscretionaryPromptLedgerForTests,
+  reserveDiscretionaryPrompt,
+} from '../../src/services/discretionaryPromptLedger';
 
 jest.mock('expo-notifications', () => ({
   getAllScheduledNotificationsAsync: jest.fn(),
@@ -42,7 +49,9 @@ const candidate: ReminderCandidate = {
   flexibilityMinutes: 0,
 };
 
-beforeEach(() => {
+beforeEach(async () => {
+  __resetDiscretionaryPromptLedgerForTests();
+  await AsyncStorage.clear();
   jest.clearAllMocks();
   jest.mocked(hasNotificationPermission).mockResolvedValue(true);
   jest
@@ -132,6 +141,71 @@ it('does not reschedule an unchanged request on repeated reconciliation', async 
   });
   expect(Notifications.cancelScheduledNotificationAsync).not.toHaveBeenCalled();
   expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
+});
+
+it('honors slots already reserved by hydration and movement', async () => {
+  const day = new Date(tomorrow);
+  day.setHours(10, 0, 0, 0);
+  for (const [index, family] of [
+    'hydration',
+    'movement',
+    'hydration',
+  ].entries()) {
+    await reserveDiscretionaryPrompt({
+      identity,
+      candidateId: `${family}:${index}`,
+      at: day.getTime() + index * 3_600_000,
+    });
+  }
+  await reconcileNutritionEngagementReminders({
+    identity,
+    enabled: true,
+    candidates: [{ ...candidate, preferredAt: day.getTime() + 3 * 3_600_000 }],
+  });
+  expect(Notifications.scheduleNotificationAsync).not.toHaveBeenCalled();
+});
+
+it('reuses a future slot after its old native request is cancelled', async () => {
+  const day = new Date(tomorrow);
+  day.setHours(10, 0, 0, 0);
+  const oldAt = day.getTime() + 2 * 3_600_000;
+  for (const [index, family] of ['hydration', 'movement'].entries()) {
+    await reserveDiscretionaryPrompt({
+      identity,
+      candidateId: `${family}:${index}`,
+      at: day.getTime() + index * 3_600_000,
+    });
+  }
+  await reserveDiscretionaryPrompt({
+    identity,
+    candidateId: 'nutrition:old',
+    at: oldAt,
+  });
+  jest
+    .mocked(Notifications.getAllScheduledNotificationsAsync)
+    .mockResolvedValue([
+      {
+        identifier: 'engagement:nutrition:old',
+        content: {
+          data: {
+            ...identity,
+            candidateId: 'nutrition:old',
+            scheduledAt: oldAt,
+          },
+        },
+      },
+    ] as Awaited<
+      ReturnType<typeof Notifications.getAllScheduledNotificationsAsync>
+    >);
+  await reconcileNutritionEngagementReminders({
+    identity,
+    enabled: true,
+    candidates: [{ ...candidate, preferredAt: day.getTime() + 3 * 3_600_000 }],
+  });
+  expect(Notifications.cancelScheduledNotificationAsync).toHaveBeenCalledWith(
+    'engagement:nutrition:old'
+  );
+  expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledTimes(1);
 });
 
 it('dismisses only obsolete delivered nutrition prompts after local capture', async () => {
