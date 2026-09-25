@@ -7,7 +7,7 @@ This document records tests that require a physical iPhone and paired Apple Watc
 - [x] Reconstruct light and dark SVG masters from the owner-authorized 320 px [Notion previews](https://app.notion.com/p/3e45fb777c5d81ce9afdfbb0c6e64524), inspect at small size, and export 2048 px PNGs. These are vector redraws, not the missing named originals.
 - [x] Build and sign the iOS app, iOS widget, Watch app, Watch widget, and Live Activity extension with the existing team and bundle IDs. Record the EAS or Xcode build ID and the inspected display names.
 - [x] Build and sign all five targets with the vector-derived artwork; the final `f2b01a34` IPA below replaces the preview-artwork build.
-- [ ] Confirm the signed artifact installs in place over the current development app without removing its synthetic diary, authentication state, or Watch pairing.
+- [x] Confirm the signed artifact installs in place over the current development app without removing its synthetic diary, authentication state, or Watch pairing.
 
 ## iPhone visual and behavior pass
 
@@ -70,3 +70,5 @@ The owner agreed to move Watch device tests to a later internal TestFlight stage
 The owner supplied App Store Connect ID `6803564460` for the `com.cg.phi` app, and it is now in the production submit profile with Apple team `4V6HSJQ4JP`. The [production EAS build](https://expo.dev/accounts/ilmtech/projects/personalbest/builds/508f68e3-e12e-4dde-95a3-9bf2882d7c9c) finished from commit `2c6647f8` as Store distribution, version 1.7.2 (build 4). The IPA SHA-256 is `b890ca460208d0b8057a0883238480b2c464d997d037a68901ed1c116fd2ad51`. Archive integrity and strict deep code-signature verification passed. All five embedded bundles display the X on Track names, use the approved `com.cg.phi` identifiers, and carry Apple team `4V6HSJQ4JP` App Store profiles with no registered-device restriction or development entitlement.
 
 The owner connected EAS to the App Store Connect record. EAS identified it as **X on Track**, App Store ID `6803564460`, bundle `com.cg.phi`, on the same Apple team as the signed IPA. [Submission `c5bab55a`](https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/c5bab55a-0fd2-42e1-8a8c-62f92a03a429) then finished successfully. App Store Connect subsequently reported version 1.7.2 (build 4) as `VALID` and `IN_BETA_TESTING` for internal TestFlight; external beta review has not been requested. Installation on the paired iPhone and Watch and the physical workout checks remain open.
+
+The owner installed and opened TestFlight version 1.7.2 (build 4) on both the iPhone and paired Watch. This resolves the stalled development-profile Watch installation as a distribution-path limitation for this device pair. They confirmed that sign-in works without resetting the app and that previous food and workout entries remain on the iPhone. The Watch widget and branded system surfaces and live phone–Watch workout behavior have not yet been reported.
