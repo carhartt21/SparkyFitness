@@ -24,7 +24,8 @@ This document records tests that require a physical iPhone and paired Apple Watc
 **Deferred to an internal TestFlight build.** The current development IPA cannot complete this pass on the watchOS 27.0 device: its Watch profile includes only the iPhone, Watch Developer Mode is not yet exposed, and the local Xcode 26.6 supports devices only through watchOS 26.5. Do not interpret the stalled Watch app installation as a product behavior result. Keep these checks open and complete them before a release that includes the Watch app. Apple confirms that [TestFlight includes watchOS](https://developer.apple.com/help/app-store-connect/test-a-beta-version/testflight-overview/) and that [Developer Mode does not apply to TestFlight participation](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device).
 
 - [ ] Watch app and Watch widget install as the same product family and show **X on Track** display names and the approved icon in relevant system surfaces.
-- [ ] A watch check-in and live workout round-trip through the phone without duplicating records; test offline queue and reconnect once.
+- [ ] A Watch check-in reaches the phone without duplicating records.
+- [x] A live workout round-trips through the phone; one queued Watch set reaches the phone exactly once after an offline period and reconnect.
 - [ ] Rest controls, notifications, and complication links open the expected screen and keep the workout session intact.
 
 ## Web, identity, and attribution pass
@@ -73,4 +74,4 @@ The owner connected EAS to the App Store Connect record. EAS identified it as **
 
 The owner installed and opened TestFlight version 1.7.2 (build 4) on both the iPhone and paired Watch. This resolves the stalled development-profile Watch installation as a distribution-path limitation for this device pair. They confirmed that sign-in works without resetting the app and that previous food and workout entries remain on the iPhone. The Watch widget and branded system surfaces have not yet been reported.
 
-In a synthetic live workout, the Watch displayed the session started on the iPhone. Completing one set on the Watch updated the iPhone and started the expected rest timer. This passes the first connected-device round trip; offline queue/reconnect, duplicate prevention, workout finalization, notifications, and widget links remain unverified.
+In a synthetic live workout, the Watch displayed the session started on the iPhone. Completing one set on the Watch updated the iPhone and started the expected rest timer. With iPhone Bluetooth and Wi-Fi disabled in Settings, the owner completed another set on the Watch; after reconnecting, that set appeared exactly once on the iPhone and the session was intact. The owner finished the workout once on the iPhone, saw exactly one completed workout in history, and the Watch left the live-workout screen. This passes the connected round trip, offline queue/reconnect, and basic finalization checks. A separate Watch check-in, HealthKit write, notifications, Watch widget, complication links, and branded system surfaces remain unverified.
