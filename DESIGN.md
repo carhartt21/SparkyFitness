@@ -94,6 +94,8 @@ This record describes the implemented Settings surfaces only: `SparkyFitnessMobi
 
 The light themes use warm cream backgrounds, darker text, and a restrained green accent; the dark themes keep the same semantic roles with darker surfaces and brighter green. Status copy reports observed connection and sync history, including checking and unavailable states. Sections and controls use the actual English locale strings, with translations supplied by each app's i18n system.
 
+**Verification boundary:** This record is based on source code, theme tokens, and English locale content. Authenticated screenshots and device viewport checks were unavailable during documentation, so rendered appearance and viewport behavior remain unverified.
+
 **Key Characteristics:**
 
 - Grouped settings with headings that name the user's task.
