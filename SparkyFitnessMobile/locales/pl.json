@@ -2,7 +2,7 @@
   "ios": {
     "NSCameraUsageDescription": "X on Track potrzebuje dostępu do aparatu, aby skanować kody kreskowe i etykiety produktów.",
     "NSHealthShareUsageDescription": "X on Track odczytuje dane zdrowotne, takie jak aktywność, treningi i pomiary ciała, aby wyświetlać je w aplikacji i synchronizować z Twoim samodzielnie hostowanym serwerem X on Track.",
-    "NSHealthUpdateUsageDescription": "X on Track zapisuje rejestrowane w aplikacji wartości odżywcze i nawodnienie w Apple Health, aby zachować synchronizację.",
+    "NSHealthUpdateUsageDescription": "X on Track zapisuje dane o żywieniu, nawodnieniu i ukończonych treningach w Apple Health, gdy włączysz dany eksport.",
     "NSLocalNetworkUsageDescription": "X on Track łączy się z samodzielnie hostowanymi serwerami w Twojej sieci lokalnej."
   }
 }

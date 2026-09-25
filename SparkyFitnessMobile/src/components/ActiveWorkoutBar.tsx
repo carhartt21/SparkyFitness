@@ -25,6 +25,7 @@ import Icon from './Icon';
 import { TAB_BAR_HEIGHT } from './CustomTabBar';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { flushActiveWorkoutBeforeClear } from '../hooks/useActiveWorkoutAutosave';
+import { queueCompletedWorkoutExport } from '../services/workoutHealthExport';
 import { usePreferences } from '../hooks/usePreferences';
 import { useRestCountdown } from '../hooks/useRestCountdown';
 import {
@@ -580,6 +581,29 @@ const ActiveWorkoutBar: React.FC<ActiveWorkoutBarProps> = ({
         ]
       );
       return;
+    }
+    const state = useActiveWorkoutStore.getState();
+    if (
+      isWorkoutComplete &&
+      state.sessionId &&
+      Object.keys(state.completedSetIds).length > 0
+    ) {
+      try {
+        await queueCompletedWorkoutExport({
+          sessionId: state.sessionId,
+          startedAt: state.startedAt,
+          finishedAt: Date.now(),
+          completedSetCount: Object.keys(state.completedSetIds).length,
+          sourceServerConfigId: state.sourceServerConfigId,
+        });
+      } catch (error) {
+        Alert.alert(
+          t('healthSync.workoutExportErrorTitle', {
+            defaultValue: 'Apple Health export unavailable',
+          }),
+          String(error)
+        );
+      }
     }
     useActiveWorkoutStore.getState().clearWorkout();
   };

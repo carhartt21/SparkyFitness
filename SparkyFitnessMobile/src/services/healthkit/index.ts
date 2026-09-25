@@ -1246,6 +1246,7 @@ const handleWorkout: RecordHandler = async (
         totalEnergyBurned,
         totalDistance,
         uuid: (w as unknown as { uuid?: string }).uuid,
+        sourceBundleId: w.sourceRevision?.source?.bundleIdentifier,
       };
       if (totalSteps !== undefined) record.totalSteps = totalSteps;
       // Forward timezone metadata so the transform layer can attach it to output records

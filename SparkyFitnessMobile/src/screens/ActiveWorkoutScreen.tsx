@@ -23,6 +23,7 @@ import { useIsFocused } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { LinearTransition } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
+import { queueCompletedWorkoutExport } from '../services/workoutHealthExport';
 import { useQueryClient } from '@tanstack/react-query';
 
 import ActiveWorkoutHeader, {
@@ -1139,6 +1140,29 @@ function ActiveWorkoutScreen({ navigation, route }: Props) {
       // be taken before clearWorkout. With zero completed sets there is
       // nothing to celebrate — finish exits straight back to the diary.
       const state = useActiveWorkoutStore.getState();
+      const finishedAt = Date.now();
+      if (state.sessionId && Object.keys(state.completedSetIds).length > 0) {
+        try {
+          await queueCompletedWorkoutExport({
+            sessionId: state.sessionId,
+            startedAt: state.startedAt,
+            finishedAt,
+            completedSetCount: Object.keys(state.completedSetIds).length,
+            sourceServerConfigId: state.sourceServerConfigId,
+          });
+        } catch (error) {
+          Alert.alert(
+            t('healthSync.workoutExportErrorTitle', {
+              defaultValue: 'Apple Health export unavailable',
+            }),
+            t('healthSync.workoutExportErrorMessage', {
+              defaultValue:
+                'Your workout was saved, but its Apple Health export could not be queued: {{error}}',
+              error: String(error),
+            })
+          );
+        }
+      }
       const celebration =
         state.session != null && Object.keys(state.completedSetIds).length > 0
           ? {
@@ -1146,7 +1170,7 @@ function ActiveWorkoutScreen({ navigation, route }: Props) {
               completedSetIds: state.completedSetIds,
               prSetIds: state.prSetIds,
               startedAt: state.startedAt,
-              finishedAt: Date.now(),
+              finishedAt,
               sourcePresetId: state.sourcePresetId,
               sourceServerConfigId: state.sourceServerConfigId,
               plannedSetValues: state.plannedSetValues,

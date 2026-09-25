@@ -5,10 +5,11 @@ import Button from './ui/Button';
 import BottomSheetPicker from './BottomSheetPicker';
 import Switch from './ui/Switch';
 import { useTranslation } from 'react-i18next';
-import { getHealthMetricLabel, getHealthCategoryLabel } from '../HealthMetrics';
+import { getHealthCategoryLabel } from '../HealthMetrics';
 import {
   WRITEBACK_METRICS,
   WRITEBACK_CATEGORY_ORDER,
+  WORKOUT_EXPORT_METRIC,
   type WritebackMetric,
 } from '../WritebackMetrics';
 
@@ -59,7 +60,11 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
     Platform.OS === 'ios'
       ? t('healthSync.appleHealth', { defaultValue: 'Apple Health' })
       : t('healthSync.healthConnect', { defaultValue: 'Health Connect' });
-  const grouped = groupByCategory(WRITEBACK_METRICS);
+  const grouped = groupByCategory(
+    Platform.OS === 'ios'
+      ? [...WRITEBACK_METRICS, WORKOUT_EXPORT_METRIC]
+      : WRITEBACK_METRICS
+  );
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories((prev) => {
@@ -74,7 +79,9 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
   };
 
   const renderMetricItem = (metric: WritebackMetric) => {
-    const metricLabel = getHealthMetricLabel(t, metric);
+    const metricLabel = t(metric.labelKey, {
+      defaultValue: metric.defaultLabel,
+    });
     return (
       <View
         key={metric.id}
@@ -120,7 +127,10 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
           store: storeName,
         })}
       </Text>
-      {WRITEBACK_CATEGORY_ORDER.map((category) => {
+      {[
+        ...WRITEBACK_CATEGORY_ORDER,
+        ...(Platform.OS === 'ios' ? ['Activity'] : []),
+      ].map((category) => {
         const metricsInCategory = grouped[category];
         if (!metricsInCategory || metricsInCategory.length === 0) {
           return null;
@@ -137,6 +147,14 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
           </CollapsibleSection>
         );
       })}
+      {Platform.OS === 'ios' && (
+        <Text className="text-xs text-text-muted mb-2">
+          {t('healthSync.workoutExportNote', {
+            defaultValue:
+              'Completed workouts are exported only after you turn this on. Turning it off stops future exports; the removal control below affects nutrition and hydration only.',
+          })}
+        </Text>
+      )}
       <BottomSheetPicker<RemoveScope>
         value={'' as RemoveScope}
         title={t('healthSync.removeFrom', {

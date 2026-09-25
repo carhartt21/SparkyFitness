@@ -1,5 +1,9 @@
 import { HEALTH_METRICS } from '../../HealthMetrics';
-import { WRITEBACK_METRICS } from '../../WritebackMetrics';
+import {
+  WRITEBACK_METRICS,
+  WORKOUT_EXPORT_METRIC,
+} from '../../WritebackMetrics';
+import { Platform } from 'react-native';
 import type {
   PermissionRequest,
   HealthMetricStates,
@@ -25,11 +29,16 @@ export const enabledWritebackPermissions = (
   writebackStates: Record<string, boolean>,
   recordTypes?: ReadonlySet<string>
 ): PermissionRequest[] =>
-  WRITEBACK_METRICS.filter(
-    (metric) =>
-      writebackStates[metric.id] === true &&
-      (!recordTypes || recordTypes.has(metric.permission.recordType))
-  ).map((metric) => metric.permission);
+  [
+    ...WRITEBACK_METRICS,
+    ...(Platform.OS === 'ios' ? [WORKOUT_EXPORT_METRIC] : []),
+  ]
+    .filter(
+      (metric) =>
+        writebackStates[metric.id] === true &&
+        (!recordTypes || recordTypes.has(metric.permission.recordType))
+    )
+    .map((metric) => metric.permission);
 
 /** Read permissions for enabled read metrics covering a record type. */
 export const enabledReadPermissionsForRecordType = (
@@ -64,7 +73,10 @@ export const loadAllEnabledPermissions = async (
   }
 
   const write: PermissionRequest[] = [];
-  for (const metric of WRITEBACK_METRICS) {
+  for (const metric of [
+    ...WRITEBACK_METRICS,
+    ...(Platform.OS === 'ios' ? [WORKOUT_EXPORT_METRIC] : []),
+  ]) {
     if ((await loadHealthPreference<boolean>(metric.preferenceKey)) === true) {
       write.push(metric.permission);
     }

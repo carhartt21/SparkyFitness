@@ -578,6 +578,7 @@ const DIRECT_TRANSFORMERS: Record<string, DirectTransformer> = {
   },
 
   Workout: (rec, record, _metricConfig, output) => {
+    if (isOwnRecord(rec)) return;
     if (!rec.startTime || !rec.endTime) return;
 
     const activityType = rec.activityType as number | undefined;

@@ -2,7 +2,7 @@
   "ios": {
     "NSCameraUsageDescription": "X on Track usa tu cámara para fotografiar alimentos y comidas, y para escanear códigos de barras y etiquetas nutricionales.",
     "NSHealthShareUsageDescription": "X on Track lee datos de Salud (como actividad, entrenamientos y medidas corporales) para mostrarlos en la app y sincronizarlos con tu servidor X on Track autoalojado.",
-    "NSHealthUpdateUsageDescription": "X on Track escribe en Apple Salud la nutrición y la hidratación que registras en la app, manteniendo ambas sincronizadas.",
+    "NSHealthUpdateUsageDescription": "X on Track escribe en Apple Salud los datos de nutrición, hidratación y entrenamientos completados cuando activas cada exportación.",
     "NSLocalNetworkUsageDescription": "X on Track se conecta a servidores autoalojados en tu red local."
   }
 }

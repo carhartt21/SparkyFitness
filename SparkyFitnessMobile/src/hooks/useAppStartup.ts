@@ -28,6 +28,7 @@ import { initHydrationQuickLogResponses } from '../services/hydrationQuickLogRes
 import { initWorkoutLiveActivity } from '../services/workoutLiveActivity';
 import { initWellbeingLiveActivity } from '../services/wellbeingLiveActivity';
 import { ensureTimezoneBootstrapped } from '../services/api/preferencesApi';
+import { retryPendingWorkoutExports } from '../services/workoutHealthExport';
 
 interface AppStartupArgs {
   /**
@@ -73,6 +74,14 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
         'ERROR'
       );
     });
+    if (Platform.OS === 'ios') {
+      void retryPendingWorkoutExports().catch((error) => {
+        addLog(
+          `[App] Workout Health export retry failed: ${String(error)}`,
+          'WARNING'
+        );
+      });
+    }
 
     initWorkoutNotificationActions();
     initMedicationNotificationActions();

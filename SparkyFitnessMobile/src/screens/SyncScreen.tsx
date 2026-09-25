@@ -27,6 +27,7 @@ import HealthDataSync from '../components/HealthDataSync';
 import HealthDataWriteback from '../components/HealthDataWriteback';
 import {
   WRITEBACK_METRICS,
+  WORKOUT_EXPORT_METRIC,
   type WritebackMetric,
   type WritebackDateRange,
 } from '../WritebackMetrics';
@@ -88,6 +89,10 @@ import ActionSheet, {
   type ActionSheetRef,
 } from '../components/ActionSheet';
 import { getErrorMessage } from '../utils/errors';
+import {
+  hasWorkoutWritePermission,
+  retryPendingWorkoutExports,
+} from '../services/workoutHealthExport';
 import { HEALTH_METRICS, getHealthMetricLabel } from '../HealthMetrics';
 import type { HealthMetric } from '../HealthMetrics';
 import type {
@@ -230,7 +235,10 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
     }
 
     const newWritebackStates: Record<string, boolean> = {};
-    for (const metric of WRITEBACK_METRICS) {
+    for (const metric of [
+      ...WRITEBACK_METRICS,
+      ...(Platform.OS === 'ios' ? [WORKOUT_EXPORT_METRIC] : []),
+    ]) {
       const enabled = await loadHealthPreference<boolean>(metric.preferenceKey);
       newWritebackStates[metric.id] = enabled === true;
     }
@@ -465,7 +473,10 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         ...(await loadAllEnabledPermissions()),
         metric.permission,
       ]);
-      if (!granted) {
+      if (
+        !granted ||
+        (metric.id === 'workout' && !hasWorkoutWritePermission())
+      ) {
         Alert.alert(
           t('syncScreen.permissionDenied.title', {
             defaultValue: 'Permission Denied',
@@ -473,7 +484,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           t('syncScreen.permissionDenied.write', {
             defaultValue:
               'Please grant {{metric}} write permission in {{settings}}.',
-            metric: getHealthMetricLabel(t, metric),
+            metric: t(metric.labelKey, { defaultValue: metric.defaultLabel }),
             settings: healthSettingsName,
           })
         );
@@ -485,6 +496,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           `${metric.id} writeback enabled and write permission granted.`,
           'INFO'
         );
+        if (metric.id === 'workout') void retryPendingWorkoutExports();
       }
     } catch (permissionError) {
       const errorMessage =
@@ -498,7 +510,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         t('syncScreen.permissionError.metricWrite', {
           defaultValue:
             'Failed to request {{metric}} write permission: {{error}}',
-          metric: getHealthMetricLabel(t, metric),
+          metric: t(metric.labelKey, { defaultValue: metric.defaultLabel }),
           error: errorMessage,
         })
       );
