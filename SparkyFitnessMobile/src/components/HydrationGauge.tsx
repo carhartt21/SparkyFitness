@@ -20,6 +20,7 @@ interface QuickAddPreset extends ContainerOption {
 }
 
 interface HydrationGaugeProps {
+  compact?: boolean;
   consumed: number;
   goal: number;
   fromFoodMl?: number;
@@ -46,6 +47,7 @@ interface HydrationGaugeProps {
 
 /** Compact hydration summary. Only explicit presses create or remove a drink. */
 const HydrationGauge: React.FC<HydrationGaugeProps> = ({
+  compact = false,
   consumed,
   goal,
   fromFoodMl,
@@ -96,7 +98,14 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
 
   return (
     <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-3">
-      <View className="flex-row items-center justify-between mb-3">
+      <View
+        style={{
+          flexDirection: compact ? 'column' : 'row',
+          alignItems: compact ? 'flex-start' : 'center',
+          gap: 8,
+        }}
+        className="justify-between mb-3"
+      >
         <View className="flex-row items-center gap-2">
           <Icon name="water" size={20} color={hydrationColor} />
           <Text className="text-base font-semibold text-text-primary">
@@ -280,7 +289,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
             disabled={!onConfigure}
             className="min-h-11 justify-center"
           >
-            <Text className="text-sm font-semibold text-accent-primary">
+            <Text className="text-sm font-semibold text-text-primary">
               {t('dashboard.chooseWaterContainer', {
                 defaultValue:
                   'Choose a water container to enable quick add/remove',
@@ -311,12 +320,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                     : 'bg-raised border-border-subtle')
                 }
               >
-                <Text
-                  className={
-                    'text-sm font-medium ' +
-                    (active ? 'text-accent-primary' : 'text-text-primary')
-                  }
-                >
+                <Text className="text-sm font-medium text-text-primary">
                   {container.name}
                 </Text>
               </Pressable>

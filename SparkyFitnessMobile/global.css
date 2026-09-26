@@ -59,6 +59,7 @@
       --color-form-disabled: hsl(220, 12%, 82%);
 
       --color-calories: #087257;
+      --color-energy-track: #d6e5df;
       --color-macro-protein: #95590f;
       --color-macro-carbs: #0e7746;
       --color-macro-fat: #116f8d;
@@ -152,6 +153,7 @@
       --color-form-disabled: hsl(220, 12%, 26%);
 
       --color-calories: #1bd8ad;
+      --color-energy-track: #24524a;
       --color-macro-protein: #f4bd4c;
       --color-macro-carbs: #65d99a;
       --color-macro-fat: #4ec6e8;
@@ -244,6 +246,7 @@
       --color-form-disabled: hsl(220, 12%, 18%);
 
       --color-calories: #1bd8ad;
+      --color-energy-track: #24524a;
       --color-macro-protein: #f4bd4c;
       --color-macro-carbs: #65d99a;
       --color-macro-fat: #4ec6e8;

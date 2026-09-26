@@ -21,6 +21,27 @@ const finalConfig = withUniwindConfig(config, {
   extraThemes: ['amoled'],
 });
 
+// Local simulator review uses the real app with a closed synthetic transport.
+// No review imports or credentials enter normal development/release bundles.
+if (process.env.XOT_UI_REVIEW === '1') {
+  const path = require('node:path');
+  const incumbent = finalConfig.resolver.resolveRequest;
+  finalConfig.resolver.resolveRequest = (context, moduleName, platform) => {
+    if (
+      context.originModulePath === path.join(__dirname, 'index.js') &&
+      moduleName === './App'
+    ) {
+      return {
+        type: 'sourceFile',
+        filePath: path.join(__dirname, 'review/ReviewApp.tsx'),
+      };
+    }
+    return incumbent
+      ? incumbent(context, moduleName, platform)
+      : context.resolveRequest(context, moduleName, platform);
+  };
+}
+
 // The development build requires an HTTPS server URL. Expo's tunnel supplies
 // that origin; when explicitly configured, relay only API calls to the isolated
 // local test server so the app can use the same secure URL for Metro and API.

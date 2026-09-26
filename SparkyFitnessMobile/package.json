@@ -33,7 +33,8 @@
     "validate": "pnpm run i18n:generate:check && pnpm run typecheck && pnpm run lint && pnpm run i18n:audit && pnpm run knip && pnpm run native-locales:check && pnpm run format:check",
     "i18n:generate": "node scripts/generate-locale-resources.mjs",
     "i18n:generate:check": "node scripts/generate-locale-resources.mjs --check",
-    "native-locales:check": "node scripts/validate-native-widget-locales.mjs"
+    "native-locales:check": "node scripts/validate-native-widget-locales.mjs",
+    "ui:review:ios": "node scripts/review-ios.mjs"
   },
   "dependencies": {
     "@assistant-ui/react-ai-sdk": "^1.4.10",

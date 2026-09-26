@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text } from 'react-native';
+import { formatLocalizedNumber } from '../localization';
+import Icon from './Icon';
+import { View, Text, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useDerivedValue,
@@ -139,6 +141,8 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 };
 
 interface ExerciseProgressCardProps {
+  compact?: boolean;
+  onLog?: () => void;
   exerciseMinutes: number;
   exerciseMinutesGoal: number;
   exerciseCalories: number;
@@ -146,6 +150,8 @@ interface ExerciseProgressCardProps {
 }
 
 const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
+  compact = false,
+  onLog,
   exerciseMinutes,
   exerciseMinutesGoal,
   exerciseCalories,
@@ -158,6 +164,52 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
   ]) as [string, string];
 
   const hasEntries = exerciseMinutes > 0 || exerciseCalories > 0;
+
+  if (compact)
+    return (
+      <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-3 w-full">
+        <View className="flex-row items-center gap-2 mb-3">
+          <Icon name="exercise-running" size={20} color={exerciseColor} />
+          <Text className="text-base font-semibold text-text-primary flex-shrink">
+            {t('dashboard.exercise', { defaultValue: 'Exercise' })}
+          </Text>
+        </View>
+        <Text className="text-xl font-bold text-text-primary">
+          {formatLocalizedNumber(Math.round(exerciseMinutes))}
+          <Text className="text-xs font-normal text-text-secondary">
+            {exerciseMinutesGoal > 0
+              ? ` / ${formatLocalizedNumber(exerciseMinutesGoal)}`
+              : ''}{' '}
+            {t('dashboard.minutesUnit', { defaultValue: 'min' })}
+          </Text>
+        </Text>
+        <Text className="text-sm text-text-secondary mt-2">
+          {formatLocalizedNumber(Math.round(exerciseCalories))}
+          {exerciseCaloriesGoal > 0
+            ? ` / ${formatLocalizedNumber(exerciseCaloriesGoal)}`
+            : ''}{' '}
+          {t('dashboard.kcal', { defaultValue: 'kcal' })}
+        </Text>
+        {!hasEntries && (
+          <Text className="text-xs text-text-secondary mt-2">
+            {t('dashboard.noExerciseEntries', {
+              defaultValue: 'No exercise entries yet',
+            })}
+          </Text>
+        )}
+        {onLog && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onLog}
+            className="min-h-11 mt-3 rounded-xl bg-accent-primary px-2 justify-center items-center"
+          >
+            <Text className="text-xs font-semibold text-accent-text text-center">
+              {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    );
 
   return (
     <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
@@ -192,6 +244,17 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
             defaultValue: 'No exercise entries yet',
           })}
         </Text>
+      )}
+      {onLog && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onLog}
+          className="min-h-11 mt-3 rounded-xl bg-accent-primary px-2 justify-center items-center"
+        >
+          <Text className="text-sm font-semibold text-accent-text">
+            {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
+          </Text>
+        </Pressable>
       )}
     </View>
   );

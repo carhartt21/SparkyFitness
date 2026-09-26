@@ -10,6 +10,7 @@ import {
   useDerivedValue,
   withTiming,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
 
@@ -28,6 +29,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   color,
   backgroundColor,
 }) => {
+  const reducedMotion = useReducedMotion();
   const radius = (size - strokeWidth) / 2;
   const center = size / 2;
   const progressCapped = Math.min(Math.max(progress, 0), 1);
@@ -56,10 +58,10 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       animatedProgress.value = 0;
     }
     animatedProgress.value = withTiming(progressCapped, {
-      duration: 500,
+      duration: reducedMotion ? 0 : 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [isFocused, progressCapped, animatedProgress]);
+  }, [isFocused, progressCapped, animatedProgress, reducedMotion]);
 
   const oval = useMemo(
     () => ({
@@ -81,7 +83,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   });
 
   return (
-    <Canvas style={{ width: size, height: size }}>
+    <Canvas debug={false} style={{ width: size, height: size }}>
       <SkiaCircle
         cx={center}
         cy={center}

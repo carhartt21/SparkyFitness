@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text } from 'react-native';
+import { View, Text, useWindowDimensions } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import ProgressRing from './ProgressRing';
 import { formatLocalizedNumber } from '../localization';
@@ -11,13 +11,13 @@ interface SideStatProps {
 }
 
 const SideStat: React.FC<SideStatProps> = ({ label, value }) => (
-  <View className="items-center justify-center flex-1">
-    <Text className="text-xl font-bold text-text-primary">
+  <View className="justify-center">
+    <Text className="text-lg font-bold text-text-primary">
       {typeof value === 'number'
         ? formatLocalizedNumber(Math.round(value))
         : value}
     </Text>
-    <Text className="text-text-secondary text-xs mt-1">{label}</Text>
+    <Text className="text-text-secondary text-xs">{label}</Text>
   </View>
 );
 
@@ -28,6 +28,7 @@ interface CalorieRingCardProps {
   calorieGoal: number;
   remainingCalories: number;
   progressPercent: number;
+  children?: React.ReactNode;
 }
 
 const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
@@ -37,10 +38,13 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   calorieGoal,
   remainingCalories,
   progressPercent,
+  children,
 }) => {
   const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const expanded = fontScale > 1.3;
   const [progressTrackColor, progressFillColor] = useCSSVariable([
-    '--color-progress-track',
+    '--color-energy-track',
     '--color-calories',
   ]) as [string, string];
 
@@ -60,55 +64,73 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
       <Text className="text-lg font-bold text-text-primary mb-3">
         {t('dashboard.dailyEnergy', { defaultValue: 'Daily energy' })}
       </Text>
-      <View className="items-center">
+      <View
+        style={{ flexDirection: expanded ? 'column' : 'row', gap: 20 }}
+        className="items-center"
+      >
         <View className="relative items-center justify-center">
-          <View>
+          {!expanded && (
             <ProgressRing
               progress={progressPercent}
-              size={160}
-              strokeWidth={12}
+              size={138}
+              strokeWidth={10}
               color={progressFillColor}
               backgroundColor={progressTrackColor}
             />
-          </View>
-          <View className="absolute items-center justify-center">
+          )}
+          <View
+            className="items-center justify-center"
+            style={expanded ? undefined : { position: 'absolute', width: 112 }}
+          >
             <Text className="text-2xl font-bold text-text-primary">
               {formatLocalizedNumber(ringValue)}
             </Text>
-            <Text className="text-text-secondary text-xs">
+            <Text className="text-text-secondary text-xs text-center">
               {hasGoal
                 ? isOverTarget
                   ? t('dashboard.overTarget', { defaultValue: 'over target' })
                   : t('dashboard.remaining', { defaultValue: 'remaining' })
                 : t('dashboard.consumed', { defaultValue: 'Consumed' })}
             </Text>
-            <Text className="text-text-muted text-xs mt-0.5">
+            <Text className="text-text-secondary text-xs">
               {t('dashboard.kcal', { defaultValue: 'kcal' })}
             </Text>
           </View>
         </View>
-      </View>
-      <View className="flex-row items-start mt-4 border-t border-border-subtle pt-4">
-        <SideStat
-          label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
-          value={caloriesConsumed}
-        />
-        <SideStat
-          label={t('dashboard.target', { defaultValue: 'Target' })}
-          value={hasGoal ? calorieGoal : '—'}
-        />
-        <SideStat
-          label={
-            burnedIncludesBmr
-              ? t('dashboard.totalExpenditure', {
-                  defaultValue: 'Total expenditure',
-                })
-              : t('dashboard.activityBurned', {
-                  defaultValue: 'Activity burned',
-                })
+        <View
+          className="gap-3"
+          style={
+            expanded
+              ? { width: '100%' }
+              : {
+                  flex: 1,
+                  borderLeftWidth: 1,
+                  borderLeftColor: progressTrackColor,
+                  paddingLeft: 16,
+                }
           }
-          value={caloriesBurned}
-        />
+        >
+          <SideStat
+            label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
+            value={caloriesConsumed}
+          />
+          <SideStat
+            label={t('dashboard.target', { defaultValue: 'Base target' })}
+            value={hasGoal ? calorieGoal : '—'}
+          />
+          <SideStat
+            label={
+              burnedIncludesBmr
+                ? t('dashboard.totalExpenditure', {
+                    defaultValue: 'Total expenditure',
+                  })
+                : t('dashboard.activityBurned', {
+                    defaultValue: 'Activity burned',
+                  })
+            }
+            value={caloriesBurned}
+          />
+        </View>
       </View>
       {balanceAdjustment !== 0 && (
         <Text className="mt-3 text-center text-xs text-text-secondary">
@@ -120,6 +142,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
           {t('dashboard.kcal', { defaultValue: 'kcal' })}
         </Text>
       )}
+      {children}
     </View>
   );
 };

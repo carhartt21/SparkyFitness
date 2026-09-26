@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { formatLocalizedNumber } from '../localization';
+import { View, Text, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useDerivedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
 import { useCSSVariable } from 'uniwind';
@@ -19,6 +22,7 @@ interface MacroCardProps {
   unit?: string;
   /** Shrinks label/value text and the bar height for use in denser layouts (e.g. a 3-up row). */
   compact?: boolean;
+  row?: boolean;
   /** Overrides the default 2-column `w-[48%]` container width. */
   widthClassName?: string;
 }
@@ -31,8 +35,12 @@ const MacroCard: React.FC<MacroCardProps> = ({
   overfillColor,
   unit = 'g',
   compact = false,
+  row = false,
   widthClassName = 'w-[48%]',
 }) => {
+  const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const reducedMotion = useReducedMotion();
   const [barWidth, setBarWidth] = useState(0);
   const hasGoal = !!(goal && goal > 0);
   const progress = hasGoal ? consumed / (goal as number) : 0;
@@ -51,10 +59,10 @@ const MacroCard: React.FC<MacroCardProps> = ({
     if (!isFocused) return;
     animatedProgress.value = 0;
     animatedProgress.value = withTiming(progress, {
-      duration: 500,
+      duration: reducedMotion ? 0 : 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [isFocused, progress, animatedProgress]);
+  }, [isFocused, progress, animatedProgress, reducedMotion]);
 
   const fillWidth = useDerivedValue(() => {
     const p = animatedProgress.value;
@@ -83,6 +91,54 @@ const MacroCard: React.FC<MacroCardProps> = ({
     left: overflowX.value,
     width: overflowWidth.value,
   }));
+
+  if (row)
+    return (
+      <View
+        className="w-full py-1"
+        accessible
+        accessibilityLabel={`${label}: ${formatLocalizedNumber(consumed)} ${unit}${hasGoal ? ` / ${formatLocalizedNumber(goal!)} ${unit}` : ''}`}
+      >
+        <View
+          style={{ flexDirection: fontScale > 1.3 ? 'column' : 'row' }}
+          className="justify-between gap-1 mb-1"
+        >
+          <Text className="text-sm font-medium text-text-primary flex-shrink">
+            {label}
+          </Text>
+          <Text className="text-xs text-text-secondary">
+            {formatLocalizedNumber(Math.round(consumed))}
+            {hasGoal
+              ? ` / ${formatLocalizedNumber(Math.round(goal!))}`
+              : ''}{' '}
+            {unit}
+          </Text>
+        </View>
+        {hasGoal && (
+          <View className="flex-row items-center gap-3">
+            <View
+              className="flex-1 h-2 rounded-full overflow-hidden"
+              style={{ backgroundColor: trackColor }}
+            >
+              <View
+                style={{
+                  width: `${Math.min(100, Math.max(0, progress * 100))}%`,
+                  height: '100%',
+                  backgroundColor: color,
+                  borderRadius: 4,
+                }}
+              />
+            </View>
+            <Text
+              className="text-xs text-text-secondary text-right"
+              style={{ minWidth: 40 }}
+            >
+              {formatLocalizedNumber(Math.round(progress * 100))}%
+            </Text>
+          </View>
+        )}
+      </View>
+    );
 
   return (
     <View className={`${widthClassName} p-1`}>
@@ -157,10 +213,22 @@ const MacroCard: React.FC<MacroCardProps> = ({
               {(() => {
                 const diff = goal - consumed;
                 return diff > 0
-                  ? `${Math.round(diff)}${unit} left`
+                  ? t('dashboard.nutrientRemaining', {
+                      defaultValue: '{{value}} {{unit}} left',
+                      value: formatLocalizedNumber(Math.round(diff)),
+                      unit,
+                    })
                   : diff < 0
-                    ? `${Math.round(Math.abs(diff))}${unit} over`
-                    : 'met';
+                    ? t('dashboard.nutrientOver', {
+                        defaultValue: '{{value}} {{unit}} over',
+                        value: formatLocalizedNumber(
+                          Math.round(Math.abs(diff))
+                        ),
+                        unit,
+                      })
+                    : t('dashboard.nutrientMet', {
+                        defaultValue: 'Target reached',
+                      });
               })()}
             </Text>
           )}
