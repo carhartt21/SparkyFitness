@@ -4,6 +4,8 @@ import checkPermissionMiddleware from '../middleware/checkPermissionMiddleware.j
 import foodEntryService from '../services/foodEntryService.js';
 import { canAccessUserData } from '../utils/permissionUtils.js';
 import { clearUserTdeeCache } from '../services/AdaptiveTdeeService.js';
+import { z } from 'zod';
+import { applyFoodEntryBulkAction } from '../models/foodEntryBulk.js';
 import {
   CopyReviewedFoodEntriesFromUserBodySchema,
   CopySelectedFoodEntriesFromUserBodySchema,
@@ -27,6 +29,32 @@ const actorScopedCopyPaths = new Set([
   '/copy-selected-from-user',
 ]);
 const diaryPermissionMiddleware = checkPermissionMiddleware('diary');
+const bulkActionSchema = z
+  .object({
+    ids: z
+      .array(z.string().uuid())
+      .min(1)
+      .max(100)
+      .refine(
+        (ids) => new Set(ids).size === ids.length,
+        'Entry IDs must be unique.'
+      ),
+    action: z.enum(['move', 'copy', 'delete']),
+    sourceDate: z.iso.date(),
+    targetDate: z.iso.date().optional(),
+    targetMealTypeId: z.string().uuid().optional(),
+  })
+  .superRefine((value, ctx) => {
+    if (
+      value.action !== 'delete' &&
+      (!value.targetDate || !value.targetMealTypeId)
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'A destination date and meal are required.',
+      });
+    }
+  });
 
 // Actor-scoped copy routes perform their own source-copy permission check and
 // always write to the authenticated actor, independent of an active family
@@ -37,6 +65,28 @@ router.use((req, res, next) => {
     return;
   }
   diaryPermissionMiddleware(req, res, next);
+});
+
+router.post('/bulk-action', authenticate, async (req, res, next) => {
+  const parsed = bulkActionSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: parsed.error.issues[0]?.message });
+  }
+  try {
+    const result = await applyFoodEntryBulkAction(req.userId, {
+      ...parsed.data,
+      actorId: req.authenticatedUserId || req.userId,
+    });
+    clearUserTdeeCache(req.userId);
+    return res.json(result);
+  } catch (error) {
+    if (error instanceof Error && 'statusCode' in error) {
+      return res
+        .status(Number(error.statusCode))
+        .json({ error: error.message });
+    }
+    return next(error);
+  }
 });
 
 /**

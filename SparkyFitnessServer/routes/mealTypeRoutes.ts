@@ -4,6 +4,7 @@ import {
   getAllMealTypes,
   getMealTypeById,
   updateMealType,
+  reorderMealTypes,
   deleteMealType,
   getMealTypeDeletionImpact,
   MEAL_TYPE_SYSTEM_MESSAGE,
@@ -57,6 +58,27 @@ router.get('/', async (req, res) => {
   } catch (error) {
     log('error', 'Route GET /meal-types error:', error);
     res.status(500).json({ error: 'Failed to fetch meal types' });
+  }
+});
+
+router.put('/order', async (req, res) => {
+  const ids = req.body?.ids;
+  if (
+    !Array.isArray(ids) ||
+    ids.some((id: unknown) => typeof id !== 'string')
+  ) {
+    return res
+      .status(400)
+      .json({ error: 'ids must be an array of meal type IDs.' });
+  }
+  try {
+    res.status(200).json(await reorderMealTypes(req.userId, ids));
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith('Meal order must')) {
+      return res.status(409).json({ error: error.message });
+    }
+    log('error', 'Route PUT /meal-types/order error:', error);
+    res.status(500).json({ error: 'Failed to reorder meal types' });
   }
 });
 /**
@@ -186,7 +208,7 @@ router.post('/', async (req, res) => {
  *   put:
  *     summary: Update a meal type
  *     tags: [Nutrition & Meals]
- *     description: Updates an existing custom meal type. System default meal types cannot be updated.
+ *     description: Updates a custom meal type or the current user's display settings for a system meal type.
  *     security:
  *       - bearerAuth: []
  *     parameters:
@@ -231,7 +253,7 @@ router.post('/', async (req, res) => {
  *       401:
  *         description: Unauthorized, authentication token is missing or invalid.
  *       403:
- *         description: Forbidden, system default meal types cannot be updated.
+ *         description: Forbidden.
  *       404:
  *         description: Meal type not found.
  *       500:
@@ -242,6 +264,24 @@ router.put('/:id', async (req, res) => {
     const userId = req.userId;
     const { id } = req.params;
     const { name, sort_order, is_visible, show_in_quick_log } = req.body;
+    if (
+      name !== undefined &&
+      (typeof name !== 'string' ||
+        name.trim().length < 1 ||
+        name.trim().length > 80)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'name must contain 1–80 characters.' });
+    }
+    if (
+      sort_order !== undefined &&
+      (!Number.isInteger(sort_order) || sort_order < 0)
+    ) {
+      return res
+        .status(400)
+        .json({ error: 'sort_order must be a nonnegative integer.' });
+    }
     // Distinguish "not provided" (undefined, preserve) from explicit null (clear)
     const hasDefaultTime = 'default_time' in req.body;
     const default_time = req.body.default_time;

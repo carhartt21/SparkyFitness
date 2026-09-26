@@ -1,7 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import axios from 'axios';
-import https from 'https';
 import { fileURLToPath } from 'url';
 import NodeCache from 'node-cache';
 import { log } from '../config/logging.js';
@@ -75,47 +73,15 @@ export function parseFrontmatter(markdownContent: string): {
   return { frontmatter, body };
 }
 
-function fetchDirectText(
-  url: string
-): Promise<{ data: string; lastModified?: string }> {
-  return new Promise((resolve, reject) => {
-    const options = {
-      headers: {
-        'User-Agent': 'SparkyFitness-App',
-      },
-      timeout: 8000,
-    };
-    const req = https.get(url, options, (res) => {
-      if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
-        res.resume();
-        reject(new Error(`Direct fetch failed with status: ${res.statusCode}`));
-        return;
-      }
-      let data = '';
-      res.on('data', (chunk) => {
-        data += chunk;
-      });
-      res.on('end', () => {
-        const lastModified = res.headers['last-modified'] || undefined;
-        resolve({ data, lastModified });
-      });
-    });
-
-    req.on('error', (err) => {
-      reject(err);
-    });
-
-    req.on('timeout', () => {
-      req.destroy();
-      reject(new Error('Direct fetch timed out after 8s'));
-    });
-  });
-}
-
 function getLocalFallbackAnnouncement(): AnnouncementResponse {
   try {
-    const localPath = path.resolve(__dirname, '../../../announcement.md');
-    if (fs.existsSync(localPath)) {
+    // The server runs from both TypeScript sources and dist/. Use the first
+    // project-owned announcement, never an upstream project's announcement.
+    const localPath = [
+      path.resolve(__dirname, '../../announcement.md'),
+      path.resolve(__dirname, '../../../announcement.md'),
+    ].find((candidate) => fs.existsSync(candidate));
+    if (localPath) {
       const content = fs.readFileSync(localPath, 'utf8');
       const stat = fs.statSync(localPath);
       const { frontmatter, body } = parseFrontmatter(content);
@@ -160,64 +126,9 @@ async function getLatestAnnouncement(
     }
   }
 
-  const rawUrl =
-    isDev || bypassCache
-      ? `https://raw.githubusercontent.com/CodeWithCJ/SparkyFitness/main/announcement.md?_t=${Date.now()}`
-      : 'https://raw.githubusercontent.com/CodeWithCJ/SparkyFitness/main/announcement.md';
-
-  let rawContent: string | null = null;
-  let lastModifiedStr: string | undefined;
-
-  try {
-    const res = await axios.get(rawUrl, {
-      timeout: 5000,
-      headers: { 'User-Agent': 'SparkyFitness-App' },
-    });
-    rawContent = typeof res.data === 'string' ? res.data : String(res.data);
-    lastModifiedStr = res.headers['last-modified'] || undefined;
-  } catch (axiosErr) {
-    log(
-      'warn',
-      '[ANNOUNCEMENT] Axios fetch failed, trying direct HTTPS fallback:',
-      axiosErr
-    );
-    try {
-      const fallbackRes = await fetchDirectText(rawUrl);
-      rawContent = fallbackRes.data;
-      lastModifiedStr = fallbackRes.lastModified;
-    } catch (fallbackError) {
-      log('warn', '[ANNOUNCEMENT] Direct fetch failed:', fallbackError);
-    }
-  }
-
-  if (!rawContent) {
-    log(
-      'info',
-      '[ANNOUNCEMENT] GitHub fetch skipped/failed, using local announcement.md fallback'
-    );
-    return getLocalFallbackAnnouncement();
-  }
-
-  try {
-    const { frontmatter, body } = parseFrontmatter(rawContent);
-    const result: AnnouncementResponse = {
-      id: String(frontmatter.id || 'notice-1'),
-      active: Boolean(frontmatter.active ?? false),
-      title: String(frontmatter.title || 'Announcement'),
-      message: body,
-      publishedAt: lastModifiedStr
-        ? new Date(lastModifiedStr).toISOString()
-        : new Date().toISOString(),
-      htmlUrl:
-        'https://github.com/CodeWithCJ/SparkyFitness/blob/main/announcement.md',
-    };
-
-    announcementCache.set(CACHE_KEY, result);
-    return result;
-  } catch (parseError) {
-    log('error', 'Failed parsing announcement frontmatter:', parseError);
-    return getLocalFallbackAnnouncement();
-  }
+  const result = getLocalFallbackAnnouncement();
+  announcementCache.set(CACHE_KEY, result);
+  return result;
 }
 
 export default {
