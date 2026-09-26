@@ -47,3 +47,12 @@ The independent Impeccable reviewer returned **fix** for four material findings:
 The scoped verdict returned **ship**, with all four scored fixes resolved. This is approval of those corrections, not a new whole-application audit. Actual summary values now appear in the first 390- and 430-point viewport. The reference's compact composition is adapted for native 44-point controls and enlarged text rather than shrinking content to match an image.
 
 Full mobile suite: **480 suites / 7,224 tests passed**. Focused suite: 112 tests passed. TypeScript, changed-file ESLint and production iOS export passed. Native flows passed at both specified widths, covering water add/ledger, Details/back, and food search/portion/long note/save/edit/delete. Seven presentation states were captured; a later capture-only confirmation covers the final German label width. The localization audit remains nonzero solely for three existing dynamic-key usages in HealthDataWriteback/SyncScreen; zero missing static keys, missing fallbacks, structural, placeholder or plural errors remain.
+
+## Internal build
+
+Implementation commit `8f578a22d`, evidence/design commit `c554ff3c0`, pushed to `feat/personalbest-rebrand`. EAS production build **1.7.2 (12)** was uploaded from a clean detached checkout of `c554ff3c0`; automatic App Store Connect/TestFlight submission was scheduled. This is not a claim that Apple has processed it or that a device upgrade has passed.
+
+- [EAS build](https://expo.dev/accounts/ilmtech/projects/personalbest/builds/d5f6dcc8-14af-40f1-a4c6-23a3b0b4788b)
+- [Scheduled submission](https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/f3ba1854-dbcc-4b48-9d2c-bb240d824d59)
+
+This batch changes mobile only; no web deployment or merge was performed. Existing unrelated audit files and the user-supplied reference archive remain untracked and were excluded from the clean build checkout.
