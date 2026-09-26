@@ -210,7 +210,9 @@ export function createNutritionFixture(scenario: string) {
           user_id: 'review-user',
           food_name: reviewFood.name,
           brand_name: reviewFood.brand!,
-          food_images: ['http://127.0.0.1:43991/fixture-thumbnail.png'],
+          food_images: [
+            `http://127.0.0.1:43991/fixture-thumbnail.png?run=${Date.now()}`,
+          ],
           meal_type: 'breakfast',
           serving_size: reviewFood.default_variant.serving_size,
           calories: reviewFood.default_variant.calories,

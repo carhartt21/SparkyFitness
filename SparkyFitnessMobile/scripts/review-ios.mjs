@@ -121,7 +121,7 @@ const server = createServer((req, res) => {
   }
   // Native image fetching bypasses the JS transport. This synthetic color
   // probe verifies parent-food image loading without invented food photography.
-  if (req.url === '/fixture-thumbnail.png') {
+  if (req.url?.split('?')[0] === '/fixture-thumbnail.png') {
     events.push({ method: 'GET', path: '/fixture-thumbnail.png' });
     res.setHeader('Content-Type', 'image/png');
     res.end(
@@ -347,6 +347,7 @@ try {
           'xcodebuild',
           [
             'test',
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

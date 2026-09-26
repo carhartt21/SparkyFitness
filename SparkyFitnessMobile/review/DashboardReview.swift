@@ -2,6 +2,12 @@ import XCTest
 
 final class DashboardReview: XCTestCase {
   func testDashboardScrollAndFoodNavigation() throws {
+    try reviewDashboard(logFood: true)
+  }
+  func testDashboardAlignment() throws {
+    try reviewDashboard(logFood: false)
+  }
+  private func reviewDashboard(logFood: Bool) throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
@@ -63,6 +69,7 @@ final class DashboardReview: XCTestCase {
     XCTAssertGreaterThanOrEqual(back.frame.height, 44)
     capture("exercise-details-safe-header", app)
     back.tap()
+    if !logFood { return }
     dashboard.swipeDown()
     dashboard.swipeDown()
     dashboard.swipeDown()

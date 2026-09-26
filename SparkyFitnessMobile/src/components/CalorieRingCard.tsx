@@ -15,9 +15,11 @@ interface SideStatProps {
 
 const SideStat: React.FC<SideStatProps> = ({ label, value, icon, color }) => (
   <View className="flex-row items-center gap-2">
-    <Icon name={icon} size={22} color={color} />
+    <View className="w-7 items-center">
+      <Icon name={icon} size={22} color={color} />
+    </View>
     <View className="flex-1">
-      <Text className="text-lg font-bold text-text-primary">
+      <Text className="text-lg font-semibold text-text-primary">
         {typeof value === 'number'
           ? formatLocalizedNumber(Math.round(value))
           : value}
@@ -49,13 +51,19 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const expanded = fontScale > 1.3;
-  const [progressTrackColor, progressFillColor, burnedColor, secondaryColor] =
-    useCSSVariable([
-      '--color-energy-track',
-      '--color-calories',
-      '--color-activity-energy',
-      '--color-text-secondary',
-    ]) as [string, string, string, string];
+  const [
+    progressTrackColor,
+    progressFillColor,
+    burnedColor,
+    secondaryColor,
+    separatorColor,
+  ] = useCSSVariable([
+    '--color-energy-track',
+    '--color-calories',
+    '--color-activity-energy',
+    '--color-text-secondary',
+    '--color-border-subtle',
+  ]) as [string, string, string, string, string];
 
   const hasGoal = calorieGoal > 0;
   const isOverTarget = hasGoal && remainingCalories < 0;
@@ -76,14 +84,14 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
       className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3"
     >
       <View
-        style={{ flexDirection: expanded ? 'column' : 'row', gap: 20 }}
+        style={{ flexDirection: expanded ? 'column' : 'row', gap: 16 }}
         className="items-center"
       >
         <View className="relative items-center justify-center">
           {!expanded && (
             <ProgressRing
               progress={progressPercent}
-              size={138}
+              size={144}
               strokeWidth={10}
               color={progressFillColor}
               backgroundColor={progressTrackColor}
@@ -91,9 +99,9 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
           )}
           <View
             className="items-center justify-center"
-            style={expanded ? undefined : { position: 'absolute', width: 112 }}
+            style={expanded ? undefined : { position: 'absolute', width: 116 }}
           >
-            <Text className="text-2xl font-bold text-text-primary">
+            <Text className="text-[28px] font-bold text-text-primary">
               {formatLocalizedNumber(ringValue)}
             </Text>
             <Text className="text-text-secondary text-xs text-center">
@@ -116,8 +124,8 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
               : {
                   flex: 1,
                   borderLeftWidth: 1,
-                  borderLeftColor: progressTrackColor,
-                  paddingLeft: 16,
+                  borderLeftColor: separatorColor,
+                  paddingLeft: 12,
                 }
           }
         >

@@ -20,16 +20,16 @@ export default function DashboardDayOverview({
 }) {
   const { t } = useTranslation();
   const { mealTypes } = useMealTypes();
-  const color = useCSSVariable('--color-text-secondary') as string;
+  const color = useCSSVariable('--color-text-link') as string;
   const groups = groupFoodEntriesByMealType(summary.foodEntries, mealTypes);
   return (
-    <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
+    <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
       <Pressable
         accessibilityRole="button"
         onPress={onOpenDiary}
         className="min-h-11 flex-row items-center justify-between gap-3 mb-1"
       >
-        <Text className="text-lg font-bold text-text-primary flex-shrink">
+        <Text className="text-base font-semibold text-text-primary flex-shrink">
           {t('dashboard.dayOverview', { defaultValue: 'Day at a glance' })}
         </Text>
         <Icon name="chevron-forward" size={18} color={color} />

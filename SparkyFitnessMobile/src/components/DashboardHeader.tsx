@@ -37,13 +37,18 @@ export default function DashboardHeader(props: Props) {
       >
         <Image
           source={require('../../assets/brand/x-on-track-dark.png')}
-          style={{ width: 40, height: 40 }}
+          style={{ width: 40, height: 40, borderRadius: 8 }}
           resizeMode="contain"
           accessible={false}
         />
-        <Text className="text-xl font-bold text-text-primary">
-          {t('app.name', { defaultValue: 'X on Track' })}
-        </Text>
+        <View className="flex-shrink">
+          <Text className="text-xl font-bold text-text-primary">
+            {t('brand.name', { defaultValue: 'X on Track' })}
+          </Text>
+          <Text className="text-xs text-text-secondary">
+            {t('brand.tagline', { defaultValue: 'Keep getting better.' })}
+          </Text>
+        </View>
       </Pressable>
       <View
         style={{ flexDirection: fontScale > 1.3 ? 'column' : 'row' }}
@@ -63,23 +68,23 @@ export default function DashboardHeader(props: Props) {
           </Text>
           <Icon name="chevron-down" size={12} color={color} />
         </Pressable>
-        <View className="flex-row items-center">
+        <View className="flex-row items-center gap-1">
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={t('familyDiary.previousDay', {
               defaultValue: 'Previous day',
             })}
             onPress={props.onPreviousDay}
-            className="min-w-11 min-h-11 items-center justify-center"
+            className="min-w-11 min-h-11 rounded-full border border-border-subtle items-center justify-center"
           >
             <Icon name="chevron-back" size={18} color={color} />
           </Pressable>
           <Pressable
             accessibilityRole="button"
             onPress={props.onToday}
-            className="min-w-11 min-h-11 px-2 rounded-full bg-surface items-center justify-center"
+            className="min-w-11 min-h-11 px-3 rounded-full border border-border-subtle bg-surface items-center justify-center"
           >
-            <Text className="text-sm font-medium text-text-primary">
+            <Text className="text-sm font-medium text-text-link">
               {t('dashboard.today', { defaultValue: 'Today' })}
             </Text>
           </Pressable>
@@ -89,7 +94,7 @@ export default function DashboardHeader(props: Props) {
               defaultValue: 'Next day',
             })}
             onPress={props.onNextDay}
-            className="min-w-11 min-h-11 items-center justify-center"
+            className="min-w-11 min-h-11 rounded-full border border-border-subtle items-center justify-center"
           >
             <Icon name="chevron-forward" size={18} color={color} />
           </Pressable>

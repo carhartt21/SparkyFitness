@@ -578,7 +578,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             style={{
               flexBasis: fontScale > 1.3 ? '46%' : '21%',
               flexGrow: 1,
-              minHeight: 64,
+              minHeight: 60,
             }}
             className="items-center justify-center rounded-xl border border-border-subtle bg-raised px-1 py-2"
           >
@@ -591,7 +591,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   : accentColor
               }
             />
-            <Text className="mt-2 text-center text-xs font-semibold text-text-primary">
+            <Text className="mt-2 text-center text-xs font-medium text-text-primary">
               {action.label}
             </Text>
           </Pressable>
@@ -683,7 +683,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               );
               if (dashboardNutrients.length === 0) return null;
               return (
-                <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
+                <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
                   <Pressable
                     onPress={() =>
                       navigation.navigate('DailyNutritionDetails', {
@@ -693,7 +693,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     accessibilityRole="button"
                     className="flex-row justify-between items-center min-h-11 mb-1 gap-3"
                   >
-                    <Text className="text-lg font-bold text-text-primary flex-shrink">
+                    <Text className="text-base font-semibold text-text-primary flex-shrink">
                       {t('dashboard.nutrients', { defaultValue: 'Nutrients' })}
                     </Text>
                     <View className="flex-row items-center">
@@ -777,6 +777,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         <MacroCard
                           key={nutrientKey}
                           label={displayLabel}
+                          compactLabel={
+                            nutrientKey === 'carbs'
+                              ? showNetCarbs
+                                ? t('foodEntryAdd.labels.netCarbsShort', {
+                                    defaultValue: 'Net carbs',
+                                  })
+                                : t('foodEntryAdd.labels.carbsShort', {
+                                    defaultValue: 'Carbs',
+                                  })
+                              : undefined
+                          }
                           consumed={consumed}
                           goal={goal}
                           color={color}

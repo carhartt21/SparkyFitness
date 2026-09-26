@@ -173,7 +173,7 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
 
   if (compact)
     return (
-      <View className="bg-surface rounded-xl border border-border-subtle p-3 mb-3 w-full">
+      <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3 w-full">
         <DashboardSectionHeader
           compact={compact}
           title={t('dashboard.exercise', { defaultValue: 'Exercise' })}
@@ -182,7 +182,7 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
           onDetails={onDetails}
           testID="dashboard-exercise-details"
         />
-        <View style={{ minHeight: 88 }}>
+        <View style={{ minHeight: 92 }}>
           <View className="flex-row items-center gap-2">
             <Icon name="clock" size={20} color={exerciseColor} />
             <Text className="text-xl font-bold text-text-primary flex-shrink">

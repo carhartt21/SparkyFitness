@@ -11,10 +11,11 @@ import Animated, {
   useReducedMotion,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
-import { useCSSVariable } from 'uniwind';
+import { useCSSVariable, useUniwind } from 'uniwind';
 
 interface MacroCardProps {
   label: string;
+  compactLabel?: string;
   consumed: number;
   goal?: number;
   color: string;
@@ -29,6 +30,7 @@ interface MacroCardProps {
 
 const MacroCard: React.FC<MacroCardProps> = ({
   label,
+  compactLabel,
   consumed,
   goal,
   color,
@@ -41,6 +43,8 @@ const MacroCard: React.FC<MacroCardProps> = ({
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const reducedMotion = useReducedMotion();
+  const { theme } = useUniwind();
+  const dark = theme === 'dark' || theme === 'amoled';
   const [barWidth, setBarWidth] = useState(0);
   const hasGoal = !!(goal && goal > 0);
   const progress = hasGoal ? consumed / (goal as number) : 0;
@@ -101,7 +105,7 @@ const MacroCard: React.FC<MacroCardProps> = ({
         style={{
           flexDirection: expanded ? 'column' : 'row',
           alignItems: expanded ? 'stretch' : 'center',
-          gap: 6,
+          gap: 5,
           minHeight: 28,
         }}
         accessible
@@ -109,9 +113,9 @@ const MacroCard: React.FC<MacroCardProps> = ({
       >
         <Text
           className="text-[13px] font-medium text-text-primary"
-          style={expanded ? undefined : { width: '32%' }}
+          style={expanded ? undefined : { width: '26%' }}
         >
-          {label}
+          {compactLabel ?? label}
         </Text>
         {hasGoal && (
           <View
@@ -137,7 +141,7 @@ const MacroCard: React.FC<MacroCardProps> = ({
             expanded
               ? undefined
               : {
-                  width: 78,
+                  width: 72,
                   textAlign: 'right',
                   marginLeft: hasGoal ? 0 : 'auto',
                 }
@@ -148,7 +152,10 @@ const MacroCard: React.FC<MacroCardProps> = ({
         {hasGoal && (
           <Text
             className="text-xs text-text-secondary"
-            style={expanded ? undefined : { width: 34, textAlign: 'right' }}
+            style={[
+              expanded ? undefined : { width: 30, textAlign: 'right' },
+              dark ? { color } : undefined,
+            ]}
           >
             {formatLocalizedNumber(Math.round(progress * 100))}%
           </Text>

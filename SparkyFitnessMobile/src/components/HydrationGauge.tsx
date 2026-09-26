@@ -100,7 +100,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
       : (linkedPressLabel ?? null);
 
   return (
-    <View className="bg-surface rounded-xl border border-border-subtle p-3 mb-3">
+    <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
       <DashboardSectionHeader
         compact={compact}
         title={t('dashboard.hydration', { defaultValue: 'Hydration' })}
@@ -109,7 +109,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
         onDetails={onDetails}
         testID="dashboard-hydration-details"
       />
-      <View style={compact ? { minHeight: 88 } : undefined}>
+      <View style={compact ? { minHeight: 92 } : undefined}>
         <Text className="text-xl font-bold text-text-primary mb-2">
           {displayConsumed} {unitLabel}
         </Text>

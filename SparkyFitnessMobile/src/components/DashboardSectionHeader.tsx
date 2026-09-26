@@ -27,11 +27,11 @@ export default function DashboardSectionHeader({
         accessibilityRole="button"
         accessibilityLabel={`${title}: ${t('common.details', { defaultValue: 'Details' })}`}
         onPress={onDetails}
-        className="flex-row items-center min-h-11 mb-2 gap-2"
+        className="flex-row items-center min-h-11 mb-1 gap-2"
       >
-        <Icon name={icon} size={22} color={color} />
+        <Icon name={icon} size={20} color={color} />
         <View className="flex-1">
-          <Text className="text-base font-semibold text-text-primary">
+          <Text className="text-sm font-semibold text-text-primary">
             {title}
           </Text>
           <Text className="text-xs font-medium text-text-link">
