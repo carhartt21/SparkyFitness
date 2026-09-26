@@ -48,4 +48,9 @@ Saved data is read-only, limited to seven days/seven summaries per authenticated
 
 Still unverified: physical-device offline Health reads, native FPS-overlay removal in the next installed binary, customer-photo provenance/lightbox, VoiceOver and full text-scale coverage beyond captured scenarios. Existing photo navigation/delete discoverability and Settings fixes were source-reviewed, not newly device-certified. Native app-icon quick actions are deliberately deferred to a separate implementation with cold/warm launch tests. No Todoist items were marked complete.
 
-This release changes mobile only. Private web remains on the previous deployed version; no web rebuild is necessary for these files. Internal TestFlight build will be recorded after EAS accepts it.
+This release changes mobile only. Private web remains on the previous deployed version; no web rebuild is necessary for these files. Implementation `ee9a796b8` and evidence/design `763a35186` are pushed to `feat/personalbest-rebrand`. A clean detached checkout of `763a35186` was uploaded for **1.7.2 (13)**; EAS accepted the build and scheduled automatic internal TestFlight submission. Apple processing/installability and device upgrade are not yet verified.
+
+- [EAS build 13](https://expo.dev/accounts/ilmtech/projects/personalbest/builds/9eac437f-5702-4cc9-a471-e381149acc92)
+- [Scheduled submission](https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/ab43642a-aec1-4227-aa83-33ec8bdc91be)
+
+Unrelated audit artifacts and the user-supplied reference archive remain untracked and were excluded from the clean build checkout. No merge or web deployment was performed.
