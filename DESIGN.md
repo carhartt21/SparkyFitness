@@ -3,15 +3,15 @@ name: X on Track Settings and Mobile Dashboard
 description: Bounded Settings patterns for mobile and web, plus the native mobile Dashboard
 colors:
   brand-green-mobile-light: "#0b5e46"
-  brand-green-mobile-dark: "#11a67e"
+  brand-green-mobile-dark: "#08d6ad"
   background-mobile-light: "#f6f0e3"
   surface-mobile-light: "#f0eadd"
   text-mobile-light: "#171c22"
   supporting-text-mobile-light: "#40554c"
   divider-mobile-light: "hsl(213, 16%, 90%)"
-  background-mobile-dark: "#171c22"
-  surface-mobile-dark: "#242d32"
-  text-mobile-dark: "hsl(220, 15%, 92%)"
+  background-mobile-dark: "#09161d"
+  surface-mobile-dark: "#13272f"
+  text-mobile-dark: "#edf5f7"
   brand-green-web-light: "hsl(163 79% 21%)"
   brand-green-web-dark: "hsl(164 81% 36%)"
   background-web-light: "hsl(41 51% 93%)"
@@ -25,9 +25,9 @@ colors:
   accent-web-dark: "hsl(153 22% 20%)"
   foreground-web-dark: "hsl(41 51% 93%)"
   dashboard-energy-light: "#087257"
-  dashboard-energy-dark: "#1bd8ad"
+  dashboard-energy-dark: "#08dfb4"
   dashboard-energy-track-light: "#d6e5df"
-  dashboard-energy-track-dark: "#24524a"
+  dashboard-energy-track-dark: "#154b47"
   dashboard-protein-light: "#95590f"
   dashboard-protein-dark: "#f4bd4c"
   dashboard-carbs-light: "#0e7746"
@@ -36,6 +36,17 @@ colors:
   dashboard-fat-dark: "#4ec6e8"
   dashboard-fiber-light: "#a3394b"
   dashboard-fiber-dark: "#ff7c83"
+  supporting-text-mobile-dark: "#b4c8d2"
+  raised-mobile-dark: "#1d343e"
+  divider-mobile-dark: "#30474f"
+  dashboard-hydration-light: "#146f8f"
+  dashboard-hydration-dark: "#39c9f1"
+  dashboard-exercise-light: "#09785d"
+  dashboard-exercise-dark: "#21ddb0"
+  dashboard-activity-energy-light: "#b54821"
+  dashboard-activity-energy-dark: "#ff8052"
+  dashboard-energy-amoled: "#1bd8ad"
+  dashboard-energy-track-amoled: "#24524a"
 typography:
   page-title:
     fontSize: "30px"
@@ -56,7 +67,7 @@ typography:
     fontSize: "14px"
   small-label:
     fontSize: "12px"
-  dashboard-brand-title:
+  dashboard-summary-value:
     fontSize: "20px"
     fontWeight: 700
   dashboard-energy-value:
@@ -112,6 +123,9 @@ components:
     textColor: "{colors.text-mobile-light}"
     rounded: "{rounded.dashboard-action}"
     padding: "8px 4px"
+  mobile-dashboard-details:
+    textColor: "{colors.brand-green-mobile-light}"
+    typography: "{typography.small-label}"
   mobile-dashboard-macro-row:
     textColor: "{colors.text-mobile-light}"
     padding: "4px 0"
@@ -127,9 +141,9 @@ This record covers the implemented Settings surfaces (`SparkyFitnessMobile/src/s
 
 The light themes use warm cream backgrounds, darker text, and a restrained green accent; the dark themes keep the same semantic roles with darker surfaces and brighter green. Status copy reports observed connection and sync history, including checking and unavailable states. Sections and controls use the actual English locale strings, with translations supplied by each app's i18n system.
 
-The mobile Dashboard is also an **Operate** surface: a compact daily summary connects the selected date to energy, logging actions, nutrients, hydration, exercise, and actual meal entries. Its branded header uses the approved X on Track artwork and “Keep getting better.” identity. The supplied reference establishes the compact composition; calculations, navigation, labels, and content remain grounded in the application.
+The mobile Dashboard is also an **Operate** surface: a compact daily summary connects the selected date to energy, logging actions, nutrients, hydration, exercise, and actual meal entries. Its compact top row puts the selected date and date actions first, following the explicit request to remove the Dashboard wordmark block. The approved X on Track artwork and “Keep getting better.” identity remain product commitments. The supplied reference establishes the compact composition and navy-teal dark palette; calculations, navigation, labels, and content remain grounded in the application.
 
-**Verification boundary:** The Settings record remains based on source code, theme tokens, and English locale content; its authenticated appearance and viewport behavior were not verified during that documentation pass. Dashboard additions describe the current native source and theme tokens. Bounded simulator captures and checks are recorded in `docs/implementation/evidence/dashboard-simulator-2026-09-26`; they do not establish physical-device, every-state, or whole-app acceptance. Native measurements in the portable frontmatter use px notation for React Native logical layout units.
+**Verification boundary:** The Settings record remains based on source code, theme tokens, and English locale content; its authenticated appearance and viewport behavior were not verified during that documentation pass. Dashboard additions describe the current native source and theme tokens. Prior bounded simulator evidence is recorded in `docs/implementation/evidence/dashboard-simulator-2026-09-26`; the current follow-up and its evidence boundary are recorded in `docs/implementation/dashboard-v11-followup-2026-09-26.md`. This documentation refresh adds no rendering or test verification and does not establish physical-device, every-state, or whole-app acceptance. Native measurements in the portable frontmatter use px notation for React Native logical layout units.
 
 **Key Characteristics:**
 
@@ -155,7 +169,7 @@ The mobile Dashboard is also an **Operate** surface: a compact daily summary con
 
 ### Mobile Dashboard
 
-The Dashboard reuses the mobile canvas, surface, and text roles above. Dedicated energy green distinguishes the energy ring from its quiet track. Protein ochre, carbohydrate green, fat blue, and fiber rose distinguish nutrient bars; labels and numeric amounts carry the meaning. Dark and AMOLED modes use the brighter energy and nutrient variants from `SparkyFitnessMobile/global.css`. These are Dashboard data accents, not new web palette rules. Selected water-container labels retain the primary text color on the muted accent fill.
+The Dashboard reuses the mobile canvas, surface, and text roles above. Its dark theme layers navy-teal canvas, card, and raised surfaces with cool light text, brighter mint controls, and visible muted borders. Dedicated energy green distinguishes the energy ring from its quiet track; cyan marks hydration, mint marks exercise, and orange marks activity-energy icons. Protein ochre, carbohydrate green, fat blue, and fiber rose retain the nutrient roles; labels and numeric amounts carry the meaning. Light remains a warm cream choice. AMOLED retains its black canvas, existing green surfaces, and separate energy/track values from `SparkyFitnessMobile/global.css`; it is not an alias of the dark palette. These are native mobile roles, not new web palette rules. Selected water-container labels retain the primary text color on the muted accent fill.
 
 ## Typography
 
@@ -165,7 +179,7 @@ The Settings surfaces inherit each platform's default font stack; neither target
 
 ### Mobile Dashboard
 
-Dashboard uses the native font stack, a compact bold brand heading, bold energy value, existing mobile section titles, and readable supporting text. Date controls, nutrient labels, values, and action labels retain native text scaling. At font scales above 1.3, the energy summary stacks and removes its decorative ring, nutrient label/value pairs stack, and quick actions wrap into two columns. The custom bottom tab bar is a bounded exception: visible labels fit on one line with a maximum multiplier of 1.2 and retain their full accessible names.
+Dashboard uses the native font stack, a medium-weight date control (14 points), a bold energy value (24 points), bold hydration/exercise summary values (20 points), and readable supporting text. Hydration and exercise headers use semibold titles (16 points) and medium-weight Details text (12 points) inside full-size touch targets. Date controls, nutrient labels, values, and action labels retain native text scaling. At font scales above 1.3, the energy summary stacks and removes its decorative ring, nutrient label/value pairs stack, and quick actions wrap into two columns. The custom bottom tab bar is a bounded exception: visible labels fit on one line with a maximum multiplier of 1.2 and retain their full accessible names.
 
 **The Dashboard Reading Rule.** Keep Dashboard text readable and let content scroll or stack; never scale the entire screen to reproduce the reference screenshot.
 
@@ -179,9 +193,9 @@ Web uses a centered container capped at 72rem. A heading and active-profile summ
 
 ### Mobile Dashboard
 
-The native Dashboard scrolls vertically with a 16-point horizontal gutter, 16-point card padding, and 12-point gaps between major cards. It accounts for native safe-area behavior and the active workout bar. The sequence is branded/date header where custom tabs are used, daily energy with four quick actions (Food, Exercise, Water, Scan), nutrient rows, hydration and exercise summaries, then the logged-meal overview. Existing optional tracking cards remain below this core sequence.
+The native Dashboard scrolls vertically with a 16-point horizontal gutter, 16-point standard card padding, and 12-point gaps between major cards. The energy card uses 12-point padding to keep its ring, side statistics, and logging actions compact. It accounts for native safe-area behavior and the active workout bar. The sequence is a compact date/action header where custom tabs are used, daily energy with four quick actions (Food, Exercise, Water, Scan), nutrient rows, hydration and exercise summaries, then the logged-meal overview. Existing optional tracking cards remain below this core sequence.
 
-Hydration and exercise share a row only at widths of at least 390 logical points and font scales no greater than 1.3; otherwise they stack. Quick-action tiles have a minimum height of 72 points. Date navigation, summary links, water actions, and exercise logging use at least 44-point action heights. Native-tab configurations use their existing header rather than duplicating the custom brand header.
+Hydration and exercise share a row only at widths of at least 390 logical points and font scales no greater than 1.3; otherwise they stack. Quick-action tiles have a minimum height of 64 points. Date navigation, summary links, water actions, and exercise logging use at least 44-point action heights. In compact paired cards, icon, title, Details caption, and disclosure form one full-width header action at least 44 points high; the caption sits below the title inside that action. Expanded headers retain a separate Details target in a wrapping row. The date/action header stacks at font scales above 1.3. Native-tab configurations use their existing header.
 
 ## Elevation & Depth
 
@@ -215,17 +229,21 @@ Tabs have text labels and decorative icons, with a visible active fill and keybo
 
 ### Mobile Dashboard energy and quick actions
 
-`DashboardHeader` uses existing approved light/dark artwork with the product name and approved tagline. `CalorieRingCard` exposes consumed energy, base target, and activity burned or total expenditure according to the BMR preference. Its center states remaining, over target, or consumed when no target exists. Any allowance adjustment is shown separately from expenditure, using the server-provided balance. The ring caps its visual fill while the text preserves the actual amount; `ProgressRing` uses a 500ms cubic-out transition and removes its duration when reduced motion is enabled.
+`DashboardHeader` places a localized date picker beside previous-day, Today, and next-day controls, with calendar and directional icons. It has no wordmark or tagline block. Controls keep spoken names and at least 44-point touch targets. The existing semantic `Icon` component supplies platform symbols, including SF Symbols on iOS; target, clock, and activity-energy indicators use native icons with their corresponding semantic colors. `CalorieRingCard` retains the “Daily energy” accessibility label without a visible section heading. It exposes consumed energy, base target, and activity burned or total expenditure according to the BMR preference. Its center states remaining, over target, or consumed when no target exists. Any allowance adjustment is shown separately from expenditure, using the server-provided balance. The ring caps its visual fill while the text preserves the actual amount; `ProgressRing` uses a 500ms cubic-out transition and removes its duration when reduced motion is enabled.
 
 The four labelled quick actions preserve their real destinations. Food opens dated food search, Exercise opens exercise logging, Water adds the configured amount or opens container setup, and Scan opens dated food scanning. They do not imply unimplemented profile, notification, or photo actions from the reference.
 
 ### Mobile Dashboard nutrient rows
 
-`MacroCard` in row mode places the nutrient name and amount above a slim progress rail and explicit percentage. The Dashboard follows nutrient visibility preferences, includes supplement nutrition, and offers the existing nutrition-detail destination. A missing goal omits the denominator, rail, and percentage rather than displaying a false zero target. Amounts and percentages use the app's localized number formatting; visual fill is capped while the numeric percentage can exceed the goal.
+`MacroCard` in row mode places the nutrient name, slim progress rail, amount/goal, and explicit percentage on one line at ordinary text sizes. Rows have a 28-point minimum height, 13-point medium labels, 12-point values, and an 8-point rail. At font scales above 1.3, the same content stacks across multiple lines. The Dashboard follows nutrient visibility preferences, includes supplement nutrition, and offers the existing nutrition-detail destination. A missing goal omits the denominator, rail, and percentage rather than displaying a false zero target. Amounts and percentages use the app's localized number formatting; visual fill is capped while the numeric percentage can exceed the goal.
 
 ### Mobile Dashboard hydration, exercise, and meal overview
 
-`HydrationGauge` keeps confirmed consumption, food-derived water, pending actions, and saved actions needing attention distinct in text. Its selected container exposes selected state and primary-colored text; logging and retry actions preserve their real behavior. `ExerciseProgressCard` shows the available exercise values and goals with its logging action, switching between compact and expanded layouts with the surrounding Dashboard.
+`HydrationGauge` keeps confirmed consumption, food-derived water, pending actions, and saved actions needing attention distinct in text. Its selected container exposes selected state and primary-colored text; logging and retry actions preserve their real behavior. Compact cards omit the selection chip when only one container exists, while retaining the add amount and all choices when multiple containers are available. Expanded cards retain the single-container chip. `ExerciseProgressCard` shows the available exercise values and goals with its logging action, switching between compact and expanded layouts with the surrounding Dashboard.
+
+Both cards use `DashboardSectionHeader` with a section-specific accessible name. In compact cards, the icon, title, Details caption, and disclosure are a single pressable header at least 44 points high; title and caption occupy two lines within that target. Expanded cards retain a separate Details action with a minimum 44-by-44-point target. Exercise Details opens the existing exercise report with the Dashboard’s selected date.
+
+`HydrationDetailsModal` is a read-only ledger for that selected day. Each recorded drink shows its amount in the preferred unit, container name, local time, and source. The dated ledger states that food water and older daily totals may have no matching individual entries; it does not claim to reconcile unknown aggregate amounts. Loading, error with retry, and empty states remain explicit. It opens as a native page sheet with a slide transition and swipe dismissal. Its close control stays in a fixed header outside the scroll content. The modal owns its background and bottom safe inset, uses 12-point top padding inside the iOS sheet, and uses the top safe inset on other platforms. A separate Water containers action opens configuration.
 
 `DashboardDayOverview` groups actual logged food entries by meal type, lists their names and calculated meal energy, and opens the selected day's diary. Empty days say that no food was logged. Its logged-entry note makes incomplete coverage explicit. The reference does not authorize invented meals, imagery, counts, or an unsupported “on track” status.
 
@@ -239,7 +257,8 @@ The four labelled quick actions preserve their real destinations. Food opens dat
 - **Do** preserve accessible names, focus indicators, navigation destinations, and URL section aliases.
 - **Do** keep native Dashboard actions at usable touch sizes and let larger text stack and scroll.
 - **Do** derive Dashboard balances, meals, goals, and pending hydration states from actual app data.
-- **Do** retain the approved X on Track assets and “Keep getting better.” identity on the Dashboard.
+- **Do** preserve the approved X on Track assets and “Keep getting better.” product identity while keeping the Dashboard top row focused on date controls.
+- **Do** preserve the selected day in Dashboard detail destinations and explain gaps between hydration totals and individual drink entries.
 
 ### Don't:
 

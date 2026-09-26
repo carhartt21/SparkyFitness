@@ -1,0 +1,28 @@
+{
+  "implementationCommit": "8f578a22d85d4655de501bfe315f2627a7fd436e",
+  "changedFiles": [
+    "SparkyFitnessMobile/__tests__/components/DashboardReview.test.tsx",
+    "SparkyFitnessMobile/__tests__/review/nutritionFixture.test.ts",
+    "SparkyFitnessMobile/__tests__/screens/ExerciseReviewScreen.test.tsx",
+    "SparkyFitnessMobile/global.css",
+    "SparkyFitnessMobile/review/DashboardReview.swift",
+    "SparkyFitnessMobile/review/nutritionFixture.ts",
+    "SparkyFitnessMobile/src/components/CalorieRingCard.tsx",
+    "SparkyFitnessMobile/src/components/DashboardHeader.tsx",
+    "SparkyFitnessMobile/src/components/DashboardSectionHeader.tsx",
+    "SparkyFitnessMobile/src/components/ExerciseProgressCard.tsx",
+    "SparkyFitnessMobile/src/components/FoodLibraryRow.tsx",
+    "SparkyFitnessMobile/src/components/HydrationDetailsModal.tsx",
+    "SparkyFitnessMobile/src/components/HydrationGauge.tsx",
+    "SparkyFitnessMobile/src/components/Icon.tsx",
+    "SparkyFitnessMobile/src/components/MacroCard.tsx",
+    "SparkyFitnessMobile/src/hooks/useScreenHeader.tsx",
+    "SparkyFitnessMobile/src/localization/locales/de/translation.json",
+    "SparkyFitnessMobile/src/localization/locales/en/translation.json",
+    "SparkyFitnessMobile/src/screens/DashboardScreen.tsx",
+    "SparkyFitnessMobile/src/screens/ExerciseReviewScreen.tsx",
+    "SparkyFitnessMobile/src/screens/ProgressPhotosScreen.tsx",
+    "SparkyFitnessMobile/src/types/navigation.ts"
+  ],
+  "privateTodoistImagesCommitted": false
+}

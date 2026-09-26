@@ -1,0 +1,15 @@
+Full mobile test suite:
+PASS __tests__/utils/providerColor.test.ts
+
+Test Suites: 480 passed, 480 total
+Tests:       7224 passed, 7224 total
+Snapshots:   0 total
+Time:        108.017 s, estimated 119 s
+Ran all test suites.
+
+Changed-file ESLint: exit 0
+TypeScript --noEmit: exit 0
+Production iOS export: exit 0
+Production bundle review-fixture marker scan: no matches
+
+Localization audit: exit 1 (three existing dynamic metric.labelKey references); zero structural, static key, fallback, placeholder or plural errors.
