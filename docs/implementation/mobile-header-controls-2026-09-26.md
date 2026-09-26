@@ -20,3 +20,11 @@ User direction: put the Dashboard date selector on the first line, retain the ap
 Before screenshots: [previous Dashboard alignment](evidence/dashboard-alignment-2026-09-26/). Final synthetic screenshots and result manifest: [header/control evidence](evidence/mobile-header-controls-2026-09-26/).
 
 Independent Impeccable review found no material visual defects in the scoped captures and requested one correction: stale DESIGN.md header/pill guidance. DESIGN.md and its sidecar were corrected; the reviewer scored that documentation fix **resolved**, final disposition **SHIP** at the stated review scope. UI was unchanged by the documentation correction, so no recapture was needed.
+
+## Release status
+
+Implementation/evidence commit `52d420f72` is pushed to `feat/personalbest-rebrand`. A clean detached checkout at `/tmp/xot-v15-release` was used for `eas-cli build --platform ios --profile production --non-interactive --auto-submit --no-wait`.
+
+EAS advanced the remote build number from 14 to **15**, validated credentials, uploaded the archive and computed its fingerprint, then rejected the request because account `ilmtech` exhausted its monthly free iOS build quota. EAS reports a reset on **October 1, 2026**. No build URL or TestFlight submission was created. No billing change was made. A future retry may advance the build number again.
+
+No web code changed or web deployment was performed. Unrelated untracked audit artifacts and the original reference archive were excluded from the commit and build checkout.
