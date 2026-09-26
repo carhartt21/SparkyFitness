@@ -93,7 +93,9 @@ private struct NutritionEngagementView: View {
         Group {
             switch family {
             case .accessoryInline:
-                Text(localizedWidgetString("widget.nutrition.photo")).lineLimit(1)
+                Text(localizedWidgetString("widget.nutrition.photo"))
+                    .lineLimit(1)
+                    .widgetURL(photoURL)
             case .accessoryCircular:
                 Link(destination: photoURL) {
                     VStack(spacing: 1) {

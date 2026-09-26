@@ -99,11 +99,15 @@ const WorkoutLiveActivity = (props: WorkoutLiveActivityProps) => {
       ? [monospacedDigit(), frame({ maxWidth })]
       : [monospacedDigit()];
 
-  // Count-up workout clock; frozen to a static label once the workout is
-  // complete so it doesn't read as "still going".
+  // Count-up workout clock. A paused recovery shows its frozen remainder in
+  // the small banner too, rather than a workout clock that keeps advancing.
   const elapsedClock = (maxWidth?: number) =>
-    props.phase === 'complete' ? (
-      <Text modifiers={[monospacedDigit()]}>{props.elapsedLabel ?? ''}</Text>
+    props.phase === 'complete' || props.phase === 'paused' ? (
+      <Text modifiers={[monospacedDigit()]}>
+        {(props.phase === 'paused'
+          ? props.pausedRemainingLabel
+          : props.elapsedLabel) ?? ''}
+      </Text>
     ) : (
       <Text
         date={new Date(props.startedAt)}
@@ -270,9 +274,13 @@ const WorkoutLiveActivity = (props: WorkoutLiveActivityProps) => {
         />
       );
     }
-    if (props.phase === 'complete') {
+    if (props.phase === 'complete' || props.phase === 'paused') {
       return (
-        <Text modifiers={[monospacedDigit()]}>{props.elapsedLabel ?? ''}</Text>
+        <Text modifiers={[monospacedDigit()]}>
+          {(props.phase === 'paused'
+            ? props.pausedRemainingLabel
+            : props.elapsedLabel) ?? ''}
+        </Text>
       );
     }
     const elapsedMs = Date.now() - props.startedAt;
@@ -375,13 +383,21 @@ const WorkoutLiveActivity = (props: WorkoutLiveActivityProps) => {
         {restProgress()}
       </VStack>
     ),
-    compactLeading: appIcon(24),
+    compactLeading: appIcon(24) ?? icon(),
     compactTrailing: compactTimer(),
     minimal: appIcon(22) ?? icon(),
     expandedLeading: (
       <HStack spacing={6} modifiers={[padding({ leading: 12 })]}>
         {appIcon(22) ?? icon()}
-        <Text modifiers={[font({ weight: 'bold' })]}>{props.workoutName}</Text>
+        <Text
+          modifiers={[
+            font({ weight: 'bold' }),
+            lineLimit(1),
+            minimumScaleFactor(0.8),
+          ]}
+        >
+          {props.workoutName}
+        </Text>
       </HStack>
     ),
     expandedTrailing: (

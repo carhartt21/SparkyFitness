@@ -66,7 +66,7 @@ func localizedWidgetString(_ key: String) -> String {
 private func fallbackWidgetString(_ key: String) -> String {
     switch key {
     case "widget.calorie.name": return "Calories"
-    case "widget.calorie.description": return "Today's calorie intake at a glance."
+    case "widget.calorie.description": return "Food, activity, and remaining energy today."
     case "widget.macro.name": return "Macros"
     case "widget.macro.description": return "Today's protein, carbs, and fat at a glance."
     case "widget.kcal_left": return "kcal left"

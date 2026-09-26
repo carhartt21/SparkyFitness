@@ -1,5 +1,5 @@
 "widget.calorie.name" = "Calories";
-"widget.calorie.description" = "Today's calorie intake at a glance.";
+"widget.calorie.description" = "Food, activity, and remaining energy today.";
 "widget.macro.name" = "Macros";
 "widget.macro.description" = "Today's protein, carbs, and fat at a glance.";
 "widget.kcal_left" = "kcal left";

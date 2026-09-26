@@ -100,6 +100,23 @@ describe('WorkoutLiveActivityLayout contract', () => {
     }
   });
 
+  it('shows a frozen recovery value in the compact and small regions while paused', () => {
+    const smallClock = LAYOUT_SRC.split('const elapsedClock =')[1]?.split(
+      'const restCountdown ='
+    )[0];
+    const compactClock = LAYOUT_SRC.split('const compactTimer =')[1]?.split(
+      'const restButtonModifiers ='
+    )[0];
+    for (const clock of [smallClock, compactClock]) {
+      expect(clock).toContain("props.phase === 'paused'");
+      expect(clock).toContain('props.pausedRemainingLabel');
+    }
+  });
+
+  it('keeps a compact identity when the shared app icon is unavailable', () => {
+    expect(LAYOUT_SRC).toContain('compactLeading: appIcon(24) ?? icon()');
+  });
+
   it('does not perform storage reads or use Intl in the layout', () => {
     expect(LAYOUT_SRC).not.toMatch(/UserDefaults|AsyncStorage|new File\(/);
     expect(LAYOUT_SRC).not.toMatch(/Intl\./);

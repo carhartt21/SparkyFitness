@@ -132,6 +132,15 @@ describe('iOS WidgetKit Swift contract', () => {
         'case "widget.meal_photo"'
       );
     });
+
+    it('gives the inline nutrition accessory an explicit photo destination', () => {
+      const source = readSwift('nutritionEngagementWidget.swift');
+      const inline = source
+        .split('case .accessoryInline:')[1]
+        ?.split('case .accessoryCircular:')[0];
+      expect(inline).toContain('.widgetURL(photoURL)');
+      expect(source).toContain('sparkyfitnessmobile://meal-photo');
+    });
     it('keeps the widget kinds unchanged', () => {
       expect(readSwift('widgets.swift')).toContain(
         'let kind: String = "widget"'

@@ -1,5 +1,12 @@
 import { Button, HStack, Image, Spacer, Text, VStack } from '@expo/ui/swift-ui';
-import { font, monospacedDigit, padding } from '@expo/ui/swift-ui/modifiers';
+import {
+  font,
+  frame,
+  lineLimit,
+  minimumScaleFactor,
+  monospacedDigit,
+  padding,
+} from '@expo/ui/swift-ui/modifiers';
 import { createLiveActivity } from 'expo-widgets';
 
 export type WellbeingLiveActivityProps = {
@@ -20,7 +27,12 @@ const WellbeingLiveActivity = (props: WellbeingLiveActivityProps) => {
         upper: new Date(props.endsAt),
       }}
       countsDown
-      modifiers={[monospacedDigit(), font({ weight: 'semibold' })]}
+      modifiers={[
+        monospacedDigit(),
+        font({ weight: 'semibold' }),
+        minimumScaleFactor(0.75),
+        frame({ maxWidth: 64, alignment: 'trailing' }),
+      ]}
     />
   );
   const icon = <Image systemName="figure.walk" />;
@@ -29,8 +41,10 @@ const WellbeingLiveActivity = (props: WellbeingLiveActivityProps) => {
       <HStack spacing={12} modifiers={[padding({ all: 16 })]}>
         {icon}
         <VStack alignment="leading" spacing={2}>
-          <Text modifiers={[font({ weight: 'semibold' })]}>{props.title}</Text>
-          <Text>{props.subtitle}</Text>
+          <Text modifiers={[font({ weight: 'semibold' }), lineLimit(1)]}>
+            {props.title}
+          </Text>
+          <Text modifiers={[lineLimit(1)]}>{props.subtitle}</Text>
         </VStack>
         <Spacer />
         {timer}
@@ -42,7 +56,9 @@ const WellbeingLiveActivity = (props: WellbeingLiveActivityProps) => {
     expandedLeading: (
       <HStack spacing={6} modifiers={[padding({ leading: 12 })]}>
         {icon}
-        <Text modifiers={[font({ weight: 'semibold' })]}>{props.title}</Text>
+        <Text modifiers={[font({ weight: 'semibold' }), lineLimit(1)]}>
+          {props.title}
+        </Text>
       </HStack>
     ),
     expandedTrailing: (
@@ -50,7 +66,7 @@ const WellbeingLiveActivity = (props: WellbeingLiveActivityProps) => {
     ),
     expandedBottom: (
       <HStack modifiers={[padding({ horizontal: 12, bottom: 10 })]}>
-        <Text>{props.subtitle}</Text>
+        <Text modifiers={[lineLimit(1)]}>{props.subtitle}</Text>
         <Spacer />
         <Button
           label={props.finishLabel}
