@@ -770,7 +770,18 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
   };
 
   if (!permission) {
-    return <View />;
+    return (
+      <View className="flex-1 justify-center items-center px-6">
+        <ActivityIndicator color={accentPrimary} />
+        <UIButton
+          accessibilityRole="button"
+          variant="ghost"
+          onPress={() => navigation.goBack()}
+        >
+          {t('common.cancel', { defaultValue: 'Cancel' })}
+        </UIButton>
+      </View>
+    );
   }
 
   if (!permission.granted) {
@@ -792,6 +803,13 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
             defaultValue: 'Grant Permission',
           })}
         />
+        <UIButton
+          accessibilityRole="button"
+          variant="ghost"
+          onPress={() => navigation.goBack()}
+        >
+          {t('common.cancel', { defaultValue: 'Cancel' })}
+        </UIButton>
       </View>
     );
   }

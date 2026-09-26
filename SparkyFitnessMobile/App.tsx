@@ -22,6 +22,7 @@ import { Uniwind, useUniwind, useCSSVariable } from 'uniwind';
 import { queryClient, serverConnectionQueryKey, serverConfigsQueryKey, useSyncHealthData, useCycleMode, useServerConnection, useWatchCheckInBridge } from './src/hooks';
 import { useAppStartup } from './src/hooks/useAppStartup';
 import { useAppBootstrap } from './src/hooks/useAppBootstrap';
+import { useLaunchIconActions } from './src/hooks/useLaunchIconActions';
 import { useAppLanguageForegroundSync } from './src/hooks/useAppLanguageForegroundSync';
 import { useAutoSyncOnOpen } from './src/hooks/useAutoSyncOnOpen';
 import { useAddSheetActions } from './src/hooks/useAddSheetActions';
@@ -209,12 +210,18 @@ function AppContent() {
     handleLogWorkout,
     handleAddActivity,
     handleAddMeasurements,
+    handleLaunchIconAction,
     handleAddProgressPhotos,
     handleAskSparky,
     handleOpenCycle,
     handleSyncHealthData,
     handleAddSheetDismissWithoutAction,
   } = useAddSheetActions({ syncMutation });
+
+  useLaunchIconActions({
+    enabled: linkingEnabled && !showReauthModal && !showSetupModal && !showApiKeySwitchModal,
+    onAction: handleLaunchIconAction,
+  });
 
   const { enabled: cycleEnabled, mode: cycleMode, discreetMode: cycleDiscreet } = useCycleMode();
   const cycleSheetLabel = cycleDiscreet

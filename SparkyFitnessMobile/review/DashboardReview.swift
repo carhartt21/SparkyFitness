@@ -1,6 +1,67 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  func testLaunchIconActions() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let actions = [
+      ["Scan Food", "Barcode scannen"],
+      ["Add Food", "Lebensmittel hinzufügen"],
+      ["Log an activity", "Aktivität erfassen"],
+      ["Measurements", "Messwerte"],
+    ]
+    for (index, labels) in actions.enumerated() {
+      // Food tests a true cold launch; the other three resume a live process.
+      if index == 1 {
+        app.terminate()
+      } else {
+        XCUIDevice.shared.press(.home)
+      }
+      let icon = springboard.icons["X on Track"].firstMatch
+      XCTAssertTrue(icon.waitForExistence(timeout: 10))
+      // A second Home press after termination returns to page one; the app
+      // icon may exist in the hierarchy but be offscreen on a later page.
+      for _ in 0..<4 {
+        if icon.isHittable { break }
+        springboard.swipeLeft()
+      }
+      XCTAssertTrue(icon.isHittable)
+      icon.press(forDuration: 1.5)
+      let menuItem = springboard.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+      XCTAssertTrue(menuItem.waitForExistence(timeout: 10), springboard.debugDescription)
+      if index == 0 { capture("launch-icon-menu", springboard) }
+      menuItem.tap()
+      XCTAssertTrue(app.wait(for: .runningForeground, timeout: 30))
+      // A SpringBoard cold launch has no simctl launch arguments, so the
+      // development client can show its first-run tutorial. Dismiss only that
+      // known development chrome; never treat an obscured editor as a pass.
+      let devContinue = app.buttons["Continue"]
+      if devContinue.waitForExistence(timeout: index == 1 ? 10 : 1) {
+        devContinue.tap()
+        let devClose = app.buttons["xmark"].firstMatch
+        XCTAssertTrue(devClose.waitForExistence(timeout: 5))
+        devClose.tap()
+      }
+      // Capture the actual native destination, never a simulated deep link.
+      switch index {
+      case 0:
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label IN %@", ["Close", "Schließen", "Cancel", "Abbrechen"])).firstMatch.waitForExistence(timeout: 20))
+      case 1:
+        XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 30))
+        XCTAssertTrue(app.textFields.firstMatch.isHittable)
+      case 2:
+        let activityForm = app.otherElements.matching(NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "Edit activity name", "Bearbeiten activity Name")).firstMatch
+        XCTAssertTrue(activityForm.waitForExistence(timeout: 20))
+        XCTAssertTrue(activityForm.isHittable)
+      default:
+        XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label IN %@", ["Measurements", "Messwerte"])).firstMatch.waitForExistence(timeout: 20))
+      }
+      capture("launch-icon-destination-\(index)", app)
+    }
+  }
   func testDashboardScrollAndFoodNavigation() throws {
     try reviewDashboard(logFood: true)
   }

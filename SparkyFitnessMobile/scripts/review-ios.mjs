@@ -291,6 +291,52 @@ try {
     } catch {
       /* first launch */
     }
+    if (process.argv.includes('--launch-icon-actions')) {
+      // SpringBoard launches omit the arguments below. Persist these defaults
+      // only inside the disposable review app's container for the cold test.
+      const container = sim(
+        'get_app_container',
+        device.udid,
+        'com.cg.phi',
+        'data'
+      ).trim();
+      const defaults = path.join(container, 'Library/Preferences/com.cg.phi');
+      for (const [key, value] of [
+        ['EXDevMenuIsOnboardingFinished', 'YES'],
+        ['EXDevMenuShowsAtLaunch', 'NO'],
+        ['EXDevMenuShowFloatingActionButton', 'NO'],
+      ])
+        sim(
+          'spawn',
+          device.udid,
+          'defaults',
+          'write',
+          defaults,
+          key,
+          '-bool',
+          value
+        );
+      sim(
+        'spawn',
+        device.udid,
+        'defaults',
+        'write',
+        defaults,
+        'AppleLanguages',
+        '-array',
+        item.language
+      );
+      sim(
+        'spawn',
+        device.udid,
+        'defaults',
+        'write',
+        defaults,
+        'AppleLocale',
+        '-string',
+        item.language === 'de' ? 'de_DE' : 'en_US'
+      );
+    }
     sim(
       'launch',
       device.udid,
@@ -342,6 +388,13 @@ try {
       screenshot: `${item.name}.png`,
       renderSmokePassed: passed,
       nativeInteractionPassed: null,
+      interactionScenario: process.argv.includes('--interactions')
+        ? process.argv.includes('--launch-icon-actions')
+          ? 'launch-icon-actions'
+          : process.argv.includes('--dashboard-only')
+            ? 'dashboard-alignment'
+            : 'food-entry-flow'
+        : null,
       logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
     });
     console.log(
@@ -366,7 +419,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

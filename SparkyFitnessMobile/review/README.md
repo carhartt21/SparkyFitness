@@ -36,3 +36,22 @@ Runner error detection has its own tests:
 ```sh
 node --test review/runtime-check.test.mjs
 ```
+
+## Launch-icon shortcuts
+
+After building a simulator app that includes `expo-quick-actions`, run:
+
+```sh
+node scripts/review-ios.mjs \
+  --app /absolute/path/to/DevelopmentSimulator.app \
+  --output /tmp/xot-launch-icon-review-unique-run \
+  --case '390-de-dark|430-en-dark' --interactions --launch-icon-actions
+```
+
+This selects a separate XCTest: long-press the real SpringBoard icon, open scan,
+food, activity and measurements, and capture the native menu and destinations.
+Food uses a terminated app to exercise the initial shortcut; other actions resume
+the process. Scan may land on the existing camera permission screen. Camera
+capture, saved entries and Android launcher behavior are outside this gate.
+Shortcuts register after the first launch and follow the app language; system
+menu rows follow the device language. Old native binaries need rebuilding.

@@ -217,6 +217,15 @@ export function createNutritionFixture(scenario: string) {
         )
           return [{ ...reviewFood.default_variant, food_id: reviewFood.id }];
         if (path === '/api/foods/review-food') return reviewFood;
+        // Launch-icon measurements opens an empty synthetic editor. Unknown
+        // history is absent, not a zero-valued body measurement.
+        if (path === '/api/measurements/check-in/latest-on-or-before-date')
+          return null;
+        if (
+          path ===
+          '/api/measurements/custom-entries/latest-manual-on-or-before-date'
+        )
+          return [];
         if (
           [
             '/api/identity/users/accessible-users',

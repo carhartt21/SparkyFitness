@@ -105,6 +105,7 @@ npx expo prebuild --clean
 ## React Query And Local State
 
 - Query setup lives in `src/hooks/queryClient.ts`; keys live in `src/hooks/queryKeys.ts`.
+- Launch-icon shortcuts are registered and gated by `hooks/useLaunchIconActions.ts`; the allowlist and translated native icons/labels live in `services/launchIconActions.ts`. `useAddSheetActions.handleLaunchIconAction` opens today's existing editors and preserves activity draft guards. Native dependency changes require a rebuilt app; `review/README.md` documents the SpringBoard test.
 - Default `staleTime` is `Infinity`, so mutations must explicitly invalidate or update affected caches.
 - `useRefetchOnFocus(refetch, enabled)` is the standard focus-refresh hook.
 - `useFoodsLibrary` is an intentional exception with an infinite query, finite stale window, and `resetQueries(...)` refreshes so focus/pull refresh reloads page 1 instead of every cached page.

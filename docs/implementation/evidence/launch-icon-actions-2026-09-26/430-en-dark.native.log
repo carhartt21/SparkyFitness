@@ -1,0 +1,304 @@
+Command line invocation:
+    /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild test "-only-testing:DashboardReview/DashboardReview/testLaunchIconActions" -project /tmp/xot-launch-icon-review-v6/native/DashboardReview.xcodeproj -scheme DashboardReview -destination "platform=iOS Simulator,id=AD8B5BF4-6393-4E57-B8F2-C1A7869EBE07" -derivedDataPath /tmp/xot-launch-icon-review-v6/native/build -parallel-testing-enabled NO -resultBundlePath /tmp/xot-launch-icon-review-v6/430-en-dark.xcresult
+
+Writing result bundle at path:
+	/tmp/xot-launch-icon-review-v6/430-en-dark.xcresult
+
+ComputePackagePrebuildTargetDependencyGraph
+
+Prepare packages
+
+CreateBuildRequest
+
+SendProjectDescription
+
+CreateBuildOperation
+
+ComputeTargetDependencyGraph
+note: Building targets in dependency order
+note: Target dependency graph (1 target)
+    Target 'DashboardReview' in project 'DashboardReview' (no dependencies)
+
+GatherProvisioningInputs
+
+CreateBuildDescription
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang -v -E -dM -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -x c -c /dev/null
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc --version
+
+ExecuteExternalTool /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld -version_details
+
+Build description signature: f8bcdd46230216a789ca7989fbe8d078
+Build description path: /tmp/xot-launch-icon-review-v6/native/build/Build/Intermediates.noindex/XCBuildData/f8bcdd46230216a789ca7989fbe8d078.xcbuilddata
+ClangStatCache /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk /tmp/xot-launch-icon-review-v6/native/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+    cd /tmp/xot-launch-icon-review-v6/native/DashboardReview.xcodeproj
+    /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang-stat-cache /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk -o /tmp/xot-launch-icon-review-v6/native/build/SDKStatCaches.noindex/iphonesimulator26.5-23F81a-6cfe768891a92b912361537c460fe42b.sdkstatcache
+
+ProcessInfoPlistFile /tmp/xot-launch-icon-review-v6/native/build/Build/Products/Debug-iphonesimulator/DashboardReview-Runner.app/PlugIns/DashboardReview.xctest/Info.plist /tmp/xot-launch-icon-review-v6/native/build/Build/Intermediates.noindex/DashboardReview.build/Debug-iphonesimulator/DashboardReview.build/empty-DashboardReview.plist (in target 'DashboardReview' from project 'DashboardReview')
+    cd /tmp/xot-launch-icon-review-v6/native
+    builtin-infoPlistUtility /tmp/xot-launch-icon-review-v6/native/build/Build/Intermediates.noindex/DashboardReview.build/Debug-iphonesimulator/DashboardReview.build/empty-DashboardReview.plist -producttype com.apple.product-type.bundle.ui-testing -expandbuildsettings -format binary -platform iphonesimulator -additionalcontentfile /tmp/xot-launch-icon-review-v6/native/build/Build/Intermediates.noindex/DashboardReview.build/Debug-iphonesimulator/DashboardReview.build/ProductTypeInfoPlistAdditions.plist -o /tmp/xot-launch-icon-review-v6/native/build/Build/Products/Debug-iphonesimulator/DashboardReview-Runner.app/PlugIns/DashboardReview.xctest/Info.plist
+
+2026-09-26 19:43:20.331879+0200 DashboardReview-Runner[74088:79656553] [Default] Running tests...
+    t =      nans Interface orientation changed to Portrait
+Test Suite 'Selected tests' started at 2026-09-26 19:43:20.808.
+Test Suite 'DashboardReview.xctest' started at 2026-09-26 19:43:20.809.
+Test Suite 'DashboardReview' started at 2026-09-26 19:43:20.809.
+Test Case '-[DashboardReview.DashboardReview testLaunchIconActions]' started.
+    t =     0.00s Start Test at 2026-09-26 19:43:20.809
+    t =     0.02s Set Up
+    t =     0.02s Open com.cg.phi
+    t =     0.02s     Activate com.cg.phi
+    t =     0.03s         Wait for com.cg.phi to idle
+    t =     0.09s Waiting 30.0s for "dashboard-scroll" Other to exist
+    t =     1.12s     Checking `Expect predicate `existsNoRetry == 1` for object "dashboard-scroll" Other`
+    t =     1.12s         Checking existence of `"dashboard-scroll" Other`
+    t =     1.20s Pressing Home button
+    t =     1.66s Waiting 10.0s for "X on Track" Icon to exist
+    t =     2.73s     Checking `Expect predicate `existsNoRetry == 1` for object "X on Track" Icon`
+    t =     2.73s         Checking existence of `"X on Track" Icon`
+    t =     2.83s Find the "X on Track" Icon
+    t =     2.87s Find the "X on Track" Icon
+    t =     2.90s Press "X on Track" Icon for 1.5 seconds
+    t =     2.90s     Wait for com.apple.springboard to idle
+    t =     2.90s     Find the "X on Track" Icon
+    t =     2.93s     Check for interrupting elements affecting "X on Track" Icon
+    t =     2.96s     Synthesize event
+    t =     4.69s     Wait for com.apple.springboard to idle
+    t =    64.72s App animations complete notification not received, will attempt to continue.
+    t =    64.73s Waiting 10.0s for Button (First Match) to exist
+    t =    65.79s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =    65.79s         Checking existence of `Button (First Match)`
+    t =    65.86s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =    65.86s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =    65.86s Find the Application 'com.apple.springboard'
+    t =    65.90s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =    65.90s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =    66.01s Added attachment named 'launch-icon-menu'
+    t =    66.01s Tap Button (First Match)
+    t =    66.01s     Wait for com.apple.springboard to idle
+    t =   126.05s App animations complete notification not received, will attempt to continue.
+    t =   126.05s     Find the Button (First Match)
+    t =   126.12s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   126.12s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   126.12s     Check for interrupting elements affecting "scan" Button
+    t =   126.16s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   126.17s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   126.17s     Synthesize event
+    t =   126.46s     Wait for com.apple.springboard to idle
+    t =   127.03s Wait for com.cg.phi to become Running Foreground
+    t =   127.03s Waiting 1.0s for "Continue" Button to exist
+    t =   128.04s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   128.04s         Checking existence of `"Continue" Button`
+    t =   128.08s         Capturing element debug description
+    t =   128.08s     Checking existence of `"Continue" Button`
+    t =   128.12s Collecting debug information to assist test failure triage
+    t =   128.12s     Requesting snapshot of accessibility hierarchy for app with pid 73256
+    t =   128.17s Waiting 20.0s for Button (First Match) to exist
+    t =   129.22s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   129.22s         Checking existence of `Button (First Match)`
+    t =   129.24s Find the Application 'com.cg.phi'
+    t =   129.36s Added attachment named 'launch-icon-destination-0'
+    t =   129.37s Terminate com.cg.phi:73256
+    t =   130.46s Waiting 10.0s for "X on Track" Icon to exist
+    t =   131.51s     Checking `Expect predicate `existsNoRetry == 1` for object "X on Track" Icon`
+    t =   131.51s         Checking existence of `"X on Track" Icon`
+    t =   131.55s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.56s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.56s Find the "X on Track" Icon
+    t =   131.59s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.59s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.60s Find the "X on Track" Icon
+    t =   131.63s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.63s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.64s Press "X on Track" Icon for 1.5 seconds
+    t =   131.64s     Wait for com.apple.springboard to idle
+    t =   131.64s     Find the "X on Track" Icon
+    t =   131.67s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.67s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.67s     Check for interrupting elements affecting "X on Track" Icon
+    t =   131.70s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.70s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   131.70s     Synthesize event
+    t =   133.43s     Wait for com.apple.springboard to idle
+    t =   193.46s App animations complete notification not received, will attempt to continue.
+    t =   193.46s Waiting 10.0s for Button (First Match) to exist
+    t =   194.51s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   194.51s         Checking existence of `Button (First Match)`
+    t =   194.57s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   194.57s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   194.58s Tap Button (First Match)
+    t =   194.58s     Wait for com.apple.springboard to idle
+    t =   254.61s App animations complete notification not received, will attempt to continue.
+    t =   254.62s     Find the Button (First Match)
+    t =   254.67s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   254.67s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   254.68s     Check for interrupting elements affecting "food" Button
+    t =   254.72s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   254.72s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   254.73s     Synthesize event
+    t =   255.02s     Wait for com.apple.springboard to idle
+    t =   255.62s Wait for com.cg.phi to become Running Foreground
+    t =   255.62s Waiting 10.0s for "Continue" Button to exist
+    t =   256.68s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   256.68s         Checking existence of `"Continue" Button`
+    t =   256.72s         Capturing element debug description
+    t =   257.66s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   257.67s         Checking existence of `"Continue" Button`
+    t =   257.67s         Capturing element debug description
+    t =   258.62s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   258.62s         Checking existence of `"Continue" Button`
+    t =   258.63s         Capturing element debug description
+    t =   259.68s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   259.68s         Checking existence of `"Continue" Button`
+    t =   259.75s         Capturing element debug description
+    t =   260.69s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   260.69s         Checking existence of `"Continue" Button`
+    t =   260.73s         Capturing element debug description
+    t =   261.69s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   261.69s         Checking existence of `"Continue" Button`
+    t =   261.76s         Capturing element debug description
+    t =   262.71s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   262.71s         Checking existence of `"Continue" Button`
+    t =   262.77s         Capturing element debug description
+    t =   263.62s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   263.62s         Checking existence of `"Continue" Button`
+    t =   263.68s         Capturing element debug description
+    t =   264.64s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   264.64s         Checking existence of `"Continue" Button`
+    t =   264.70s         Capturing element debug description
+    t =   265.63s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   265.63s         Checking existence of `"Continue" Button`
+    t =   265.69s         Capturing element debug description
+    t =   265.69s     Checking existence of `"Continue" Button`
+    t =   265.73s Collecting debug information to assist test failure triage
+    t =   265.73s     Requesting snapshot of accessibility hierarchy for app with pid 4131
+    t =   265.79s Waiting 30.0s for TextField (First Match) to exist
+    t =   266.85s     Checking `Expect predicate `existsNoRetry == 1` for object TextField (First Match)`
+    t =   266.85s         Checking existence of `TextField (First Match)`
+    t =   266.88s Find the TextField (First Match)
+    t =   266.90s Find the Application 'com.cg.phi'
+    t =   267.03s Added attachment named 'launch-icon-destination-1'
+    t =   267.03s Pressing Home button
+    t =   267.50s Waiting 10.0s for "X on Track" Icon to exist
+    t =   268.55s     Checking `Expect predicate `existsNoRetry == 1` for object "X on Track" Icon`
+    t =   268.55s         Checking existence of `"X on Track" Icon`
+    t =   268.60s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.60s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.60s Find the "X on Track" Icon
+    t =   268.63s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.63s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.64s Find the "X on Track" Icon
+    t =   268.67s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.67s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.68s Press "X on Track" Icon for 1.5 seconds
+    t =   268.68s     Wait for com.apple.springboard to idle
+    t =   268.68s     Find the "X on Track" Icon
+    t =   268.71s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.71s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.72s     Check for interrupting elements affecting "X on Track" Icon
+    t =   268.75s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.75s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   268.75s     Synthesize event
+    t =   270.47s     Wait for com.apple.springboard to idle
+    t =   330.50s App animations complete notification not received, will attempt to continue.
+    t =   330.51s Waiting 10.0s for Button (First Match) to exist
+    t =   331.55s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   331.55s         Checking existence of `Button (First Match)`
+    t =   331.62s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   331.62s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   331.62s Tap Button (First Match)
+    t =   331.63s     Wait for com.apple.springboard to idle
+    t =   391.65s App animations complete notification not received, will attempt to continue.
+    t =   391.66s     Find the Button (First Match)
+    t =   391.72s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   391.72s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   391.73s     Check for interrupting elements affecting "activity" Button
+    t =   391.77s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   391.77s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   391.77s     Synthesize event
+    t =   392.07s     Wait for com.apple.springboard to idle
+    t =   392.64s Wait for com.cg.phi to become Running Foreground
+    t =   392.64s Waiting 1.0s for "Continue" Button to exist
+    t =   393.65s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   393.65s         Checking existence of `"Continue" Button`
+    t =   393.72s         Capturing element debug description
+    t =   393.72s     Checking existence of `"Continue" Button`
+    t =   393.77s Collecting debug information to assist test failure triage
+    t =   393.77s     Requesting snapshot of accessibility hierarchy for app with pid 4131
+    t =   393.85s Waiting 20.0s for Other (First Match) to exist
+    t =   394.88s     Checking `Expect predicate `existsNoRetry == 1` for object Other (First Match)`
+    t =   394.88s         Checking existence of `Other (First Match)`
+    t =   394.94s Find the Other (First Match)
+    t =   394.97s Find the Application 'com.cg.phi'
+    t =   395.09s Added attachment named 'launch-icon-destination-2'
+    t =   395.09s Pressing Home button
+    t =   395.56s Waiting 10.0s for "X on Track" Icon to exist
+    t =   396.60s     Checking `Expect predicate `existsNoRetry == 1` for object "X on Track" Icon`
+    t =   396.60s         Checking existence of `"X on Track" Icon`
+    t =   396.65s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.65s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.65s Find the "X on Track" Icon
+    t =   396.68s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.69s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.69s Find the "X on Track" Icon
+    t =   396.72s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.72s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.73s Press "X on Track" Icon for 1.5 seconds
+    t =   396.73s     Wait for com.apple.springboard to idle
+    t =   396.74s     Find the "X on Track" Icon
+    t =   396.76s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.76s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.77s     Check for interrupting elements affecting "X on Track" Icon
+    t =   396.79s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.80s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   396.80s     Synthesize event
+    t =   398.52s     Wait for com.apple.springboard to idle
+    t =   458.56s App animations complete notification not received, will attempt to continue.
+    t =   458.56s Waiting 10.0s for Button (First Match) to exist
+    t =   459.60s     Checking `Expect predicate `existsNoRetry == 1` for object Button (First Match)`
+    t =   459.60s         Checking existence of `Button (First Match)`
+    t =   459.66s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   459.66s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   459.66s Tap Button (First Match)
+    t =   459.66s     Wait for com.apple.springboard to idle
+    t =   519.70s App animations complete notification not received, will attempt to continue.
+    t =   519.70s     Find the Button (First Match)
+    t =   519.77s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   519.77s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   519.78s     Check for interrupting elements affecting "measurements" Button
+    t =   519.82s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   519.82s Ignoring failure to get hierarchy for remote element in process 74580 (Error getting main window kAXErrorServerNotFound)
+    t =   519.82s     Synthesize event
+    t =   520.11s     Wait for com.apple.springboard to idle
+    t =   520.69s Wait for com.cg.phi to become Running Foreground
+    t =   520.69s Waiting 1.0s for "Continue" Button to exist
+    t =   521.70s     Checking `Expect predicate `existsNoRetry == 1` for object "Continue" Button`
+    t =   521.70s         Checking existence of `"Continue" Button`
+    t =   521.80s         Capturing element debug description
+    t =   521.80s     Checking existence of `"Continue" Button`
+    t =   521.86s Collecting debug information to assist test failure triage
+    t =   521.86s     Requesting snapshot of accessibility hierarchy for app with pid 4131
+    t =   521.96s Waiting 20.0s for StaticText (First Match) to exist
+    t =   523.02s     Checking `Expect predicate `existsNoRetry == 1` for object StaticText (First Match)`
+    t =   523.02s         Checking existence of `StaticText (First Match)`
+    t =   523.05s Find the Application 'com.cg.phi'
+    t =   523.20s Added attachment named 'launch-icon-destination-3'
+    t =   523.20s Tear Down
+Test Case '-[DashboardReview.DashboardReview testLaunchIconActions]' passed (523.368 seconds).
+Test Suite 'DashboardReview' passed at 2026-09-26 19:52:04.178.
+	 Executed 1 test, with 0 failures (0 unexpected) in 523.368 (523.369) seconds
+Test Suite 'DashboardReview.xctest' passed at 2026-09-26 19:52:04.179.
+	 Executed 1 test, with 0 failures (0 unexpected) in 523.368 (523.370) seconds
+Test Suite 'Selected tests' passed at 2026-09-26 19:52:04.179.
+	 Executed 1 test, with 0 failures (0 unexpected) in 523.368 (523.371) seconds
+2026-09-26 19:52:04.465 xcodebuild[73963:79656045] [MT] IDETestOperationsObserverDebug: 525.043 elapsed -- Testing started completed.
+2026-09-26 19:52:04.465 xcodebuild[73963:79656045] [MT] IDETestOperationsObserverDebug: 0.000 sec, +0.000 sec -- start
+2026-09-26 19:52:04.465 xcodebuild[73963:79656045] [MT] IDETestOperationsObserverDebug: 525.043 sec, +525.043 sec -- end
+
+Test session results, code coverage, and logs:
+	/tmp/xot-launch-icon-review-v6/430-en-dark.xcresult
+
+** TEST SUCCEEDED **
+
+Testing started

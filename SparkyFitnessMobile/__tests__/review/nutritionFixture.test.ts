@@ -16,6 +16,25 @@ const payload = {
 };
 
 describe('isolated nutrition review fixture', () => {
+  it('leaves body-measurement hints absent without recording zero measurements', () => {
+    const fixture = createNutritionFixture('populated');
+    expect(
+      fixture.respond(
+        url(
+          '/api/measurements/check-in/latest-on-or-before-date?date=2026-09-26'
+        ),
+        'GET'
+      )
+    ).toBeNull();
+    expect(
+      fixture.respond(
+        url(
+          '/api/measurements/custom-entries/latest-manual-on-or-before-date?date=2026-09-26'
+        ),
+        'GET'
+      )
+    ).toEqual([]);
+  });
   it('reconciles create, idempotent retry, edit and delete against the selected day', () => {
     const fixture = createNutritionFixture('populated');
     const post = () =>
