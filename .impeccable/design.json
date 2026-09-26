@@ -1,7 +1,7 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-25T07:32:58+00:00",
-  "title": "Design System: X on Track Settings",
+  "generatedAt": "2026-09-26T07:50:26.828414Z",
+  "title": "Design System: X on Track Settings and Mobile Dashboard",
   "extensions": {
     "colorMeta": {
       "brand-green-mobile-light": {
@@ -333,6 +333,186 @@
           "oklch(83% 0.018 86.1)",
           "oklch(95% 0.018 86.1)"
         ]
+      },
+      "dashboard-energy-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Energy Light",
+        "canonical": "#087257",
+        "tonalRamp": [
+          "oklch(15% 0.097 168.7)",
+          "oklch(26% 0.097 168.7)",
+          "oklch(37% 0.097 168.7)",
+          "oklch(48% 0.097 168.7)",
+          "oklch(59% 0.097 168.7)",
+          "oklch(71% 0.097 168.7)",
+          "oklch(83% 0.097 168.7)",
+          "oklch(95% 0.097 168.7)"
+        ]
+      },
+      "dashboard-energy-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Energy Dark",
+        "canonical": "#1bd8ad",
+        "tonalRamp": [
+          "oklch(15% 0.150 171.2)",
+          "oklch(26% 0.150 171.2)",
+          "oklch(37% 0.150 171.2)",
+          "oklch(48% 0.150 171.2)",
+          "oklch(59% 0.150 171.2)",
+          "oklch(71% 0.150 171.2)",
+          "oklch(83% 0.150 171.2)",
+          "oklch(95% 0.150 171.2)"
+        ]
+      },
+      "dashboard-energy-track-light": {
+        "role": "neutral",
+        "displayName": "Dashboard Energy Track Light",
+        "canonical": "#d6e5df",
+        "tonalRamp": [
+          "oklch(15% 0.018 170.0)",
+          "oklch(26% 0.018 170.0)",
+          "oklch(37% 0.018 170.0)",
+          "oklch(48% 0.018 170.0)",
+          "oklch(59% 0.018 170.0)",
+          "oklch(71% 0.018 170.0)",
+          "oklch(83% 0.018 170.0)",
+          "oklch(95% 0.018 170.0)"
+        ]
+      },
+      "dashboard-energy-track-dark": {
+        "role": "neutral",
+        "displayName": "Dashboard Energy Track Dark",
+        "canonical": "#24524a",
+        "tonalRamp": [
+          "oklch(15% 0.053 180.6)",
+          "oklch(26% 0.053 180.6)",
+          "oklch(37% 0.053 180.6)",
+          "oklch(48% 0.053 180.6)",
+          "oklch(59% 0.053 180.6)",
+          "oklch(71% 0.053 180.6)",
+          "oklch(83% 0.053 180.6)",
+          "oklch(95% 0.053 180.6)"
+        ]
+      },
+      "dashboard-protein-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Protein Light",
+        "canonical": "#95590f",
+        "tonalRamp": [
+          "oklch(15% 0.112 64.1)",
+          "oklch(26% 0.112 64.1)",
+          "oklch(37% 0.112 64.1)",
+          "oklch(48% 0.112 64.1)",
+          "oklch(59% 0.112 64.1)",
+          "oklch(71% 0.112 64.1)",
+          "oklch(83% 0.112 64.1)",
+          "oklch(95% 0.112 64.1)"
+        ]
+      },
+      "dashboard-protein-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Protein Dark",
+        "canonical": "#f4bd4c",
+        "tonalRamp": [
+          "oklch(15% 0.142 82.3)",
+          "oklch(26% 0.142 82.3)",
+          "oklch(37% 0.142 82.3)",
+          "oklch(48% 0.142 82.3)",
+          "oklch(59% 0.142 82.3)",
+          "oklch(71% 0.142 82.3)",
+          "oklch(83% 0.142 82.3)",
+          "oklch(95% 0.142 82.3)"
+        ]
+      },
+      "dashboard-carbs-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Carbs Light",
+        "canonical": "#0e7746",
+        "tonalRamp": [
+          "oklch(15% 0.118 155.8)",
+          "oklch(26% 0.118 155.8)",
+          "oklch(37% 0.118 155.8)",
+          "oklch(48% 0.118 155.8)",
+          "oklch(59% 0.118 155.8)",
+          "oklch(71% 0.118 155.8)",
+          "oklch(83% 0.118 155.8)",
+          "oklch(95% 0.118 155.8)"
+        ]
+      },
+      "dashboard-carbs-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Carbs Dark",
+        "canonical": "#65d99a",
+        "tonalRamp": [
+          "oklch(15% 0.140 157.3)",
+          "oklch(26% 0.140 157.3)",
+          "oklch(37% 0.140 157.3)",
+          "oklch(48% 0.140 157.3)",
+          "oklch(59% 0.140 157.3)",
+          "oklch(71% 0.140 157.3)",
+          "oklch(83% 0.140 157.3)",
+          "oklch(95% 0.140 157.3)"
+        ]
+      },
+      "dashboard-fat-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Fat Light",
+        "canonical": "#116f8d",
+        "tonalRamp": [
+          "oklch(15% 0.092 226.1)",
+          "oklch(26% 0.092 226.1)",
+          "oklch(37% 0.092 226.1)",
+          "oklch(48% 0.092 226.1)",
+          "oklch(59% 0.092 226.1)",
+          "oklch(71% 0.092 226.1)",
+          "oklch(83% 0.092 226.1)",
+          "oklch(95% 0.092 226.1)"
+        ]
+      },
+      "dashboard-fat-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Fat Dark",
+        "canonical": "#4ec6e8",
+        "tonalRamp": [
+          "oklch(15% 0.116 220.1)",
+          "oklch(26% 0.116 220.1)",
+          "oklch(37% 0.116 220.1)",
+          "oklch(48% 0.116 220.1)",
+          "oklch(59% 0.116 220.1)",
+          "oklch(71% 0.116 220.1)",
+          "oklch(83% 0.116 220.1)",
+          "oklch(95% 0.116 220.1)"
+        ]
+      },
+      "dashboard-fiber-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Fiber Light",
+        "canonical": "#a3394b",
+        "tonalRamp": [
+          "oklch(15% 0.140 13.7)",
+          "oklch(26% 0.140 13.7)",
+          "oklch(37% 0.140 13.7)",
+          "oklch(48% 0.140 13.7)",
+          "oklch(59% 0.140 13.7)",
+          "oklch(71% 0.140 13.7)",
+          "oklch(83% 0.140 13.7)",
+          "oklch(95% 0.140 13.7)"
+        ]
+      },
+      "dashboard-fiber-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Fiber Dark",
+        "canonical": "#ff7c83",
+        "tonalRamp": [
+          "oklch(15% 0.160 18.5)",
+          "oklch(26% 0.160 18.5)",
+          "oklch(37% 0.160 18.5)",
+          "oklch(48% 0.160 18.5)",
+          "oklch(59% 0.160 18.5)",
+          "oklch(71% 0.160 18.5)",
+          "oklch(83% 0.160 18.5)",
+          "oklch(95% 0.160 18.5)"
+        ]
       }
     },
     "typographyMeta": {
@@ -363,6 +543,14 @@
       "small-label": {
         "displayName": "Small label",
         "purpose": "Compact profile context and captions."
+      },
+      "dashboard-brand-title": {
+        "displayName": "Dashboard brand title",
+        "purpose": "Compact native X on Track header."
+      },
+      "dashboard-energy-value": {
+        "displayName": "Dashboard energy value",
+        "purpose": "Remaining, over-target, or consumed energy in the native daily summary."
       }
     },
     "motion": [
@@ -370,6 +558,11 @@
         "name": "web-accordion",
         "value": "0.2s ease-out",
         "purpose": "Open and close height transition for Settings accordion content."
+      },
+      {
+        "name": "mobile-dashboard-progress-ring",
+        "value": "500ms cubic-out; 0ms with reduced motion",
+        "purpose": "Native ProgressRing focus entrance and subsequent value updates; inactive screens do not schedule animation."
       }
     ],
     "breakpoints": [
@@ -380,6 +573,14 @@
       {
         "name": "lg",
         "value": "1024px"
+      },
+      {
+        "name": "mobile-dashboard-paired-summaries",
+        "value": "width >= 390 logical points and fontScale <= 1.3"
+      },
+      {
+        "name": "mobile-dashboard-expanded-text",
+        "value": "fontScale > 1.3: stack summaries and nutrient labels, wrap quick actions, omit decorative energy ring"
       }
     ]
   },
@@ -397,7 +598,7 @@
       "kind": "custom",
       "refersTo": "mobile-settings-row",
       "description": "Action row with a text status, destination cue, and semantic status dot.",
-      "html": "<button class=\"ds-mobile-status\"><span class=\"ds-mobile-status-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"8\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"8\" rx=\"2\"/></svg></span><span class=\"ds-mobile-status-copy\"><strong>Server</strong><small><i aria-hidden=\"true\"></i>Connected</small></span><span class=\"ds-mobile-status-chevron\" aria-hidden=\"true\">\u203a</span></button>",
+      "html": "<button class=\"ds-mobile-status\"><span class=\"ds-mobile-status-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"8\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"8\" rx=\"2\"/></svg></span><span class=\"ds-mobile-status-copy\"><strong>Server</strong><small><i aria-hidden=\"true\"></i>Connected</small></span><span class=\"ds-mobile-status-chevron\" aria-hidden=\"true\">›</span></button>",
       "css": ".ds-mobile-status{display:flex;align-items:center;width:100%;padding:16px;border:0;background:#f0eadd;color:#171c22;text-align:left;cursor:pointer}.ds-mobile-status:hover,.ds-mobile-status:active{opacity:.7}.ds-mobile-status:focus-visible{outline:2px solid #0b5e46;outline-offset:-2px}.ds-mobile-status-icon{width:40px;height:40px;display:grid;place-items:center;margin-right:12px;border-radius:8px;background:#fff;color:#0b5e46}.ds-mobile-status-copy{flex:1;display:grid;gap:2px}.ds-mobile-status-copy strong{font-size:16px;font-weight:600}.ds-mobile-status-copy small{font-size:14px;color:#40554c}.ds-mobile-status-copy i{display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;background:#0b5e46}.ds-mobile-status-chevron{font-size:22px;color:#40554c}"
     },
     {
@@ -423,16 +624,41 @@
       "description": "Bordered expandable setting with a title, description, and clear focus.",
       "html": "<button class=\"ds-web-accordion\" aria-expanded=\"false\"><span><strong>Allergen Preferences</strong><small>Track allergens you want to be warned about in foods</small></span><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
       "css": ".ds-web-accordion{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid hsl(40 22% 82%);border-radius:8px;background:transparent;color:hsl(213 19% 11%);text-align:left;cursor:pointer}.ds-web-accordion:hover{background:hsl(39 27% 89%)}.ds-web-accordion:focus-visible{outline:2px solid hsl(163 79% 21%);outline-offset:-2px}.ds-web-accordion span{display:grid;gap:4px}.ds-web-accordion strong{font-size:14px;font-weight:500}.ds-web-accordion small{font-size:14px;font-weight:400;color:hsl(153 12% 36%)}.ds-web-accordion svg{flex:none;transition:transform .2s}.ds-web-accordion[aria-expanded=true] svg{transform:rotate(180deg)}"
+    },
+    {
+      "name": "Mobile Dashboard quick action",
+      "kind": "button",
+      "refersTo": "mobile-dashboard-quick-action",
+      "description": "Native Food quick-action tile, translated into a static HTML preview; the real action opens food search for the selected date.",
+      "html": "<button class=\"ds-dashboard-action\"><svg aria-hidden=\"true\" width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M5 3v5a3 3 0 0 0 6 0V3M8 3v18M18 3c-3 3-3 8 0 8h1M19 3v18\"/></svg><span>Food</span></button>",
+      "css": ".ds-dashboard-action{min-height:72px;min-width:72px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border:1px solid hsl(213 16% 90%);border-radius:16px;background:#fff;color:#171c22;cursor:pointer}.ds-dashboard-action svg{color:#0b5e46}.ds-dashboard-action span{margin-top:8px;font-size:12px;font-weight:600}.ds-dashboard-action:hover{border-color:#0b5e46}.ds-dashboard-action:active{opacity:.8}.ds-dashboard-action:focus-visible{outline:2px solid #0b5e46;outline-offset:2px}"
+    },
+    {
+      "name": "Mobile Dashboard nutrient row",
+      "kind": "custom",
+      "refersTo": "mobile-dashboard-macro-row",
+      "description": "Native nutrient row with an illustrative amount and goal; labels carry meaning alongside the colored rail.",
+      "html": "<div class=\"ds-dashboard-macro\" aria-label=\"Protein: 60 g / 100 g\"><div class=\"ds-dashboard-macro-line\"><strong>Protein</strong><span>60 / 100 g</span></div><div class=\"ds-dashboard-macro-progress\"><div class=\"ds-dashboard-macro-track\"><div class=\"ds-dashboard-macro-fill\"></div></div><span>60%</span></div></div>",
+      "css": ".ds-dashboard-macro{padding:4px 0;color:#171c22}.ds-dashboard-macro-line{display:flex;justify-content:space-between;gap:4px;margin-bottom:4px}.ds-dashboard-macro-line strong{font-size:14px;font-weight:500}.ds-dashboard-macro span{font-size:12px;color:#40554c}.ds-dashboard-macro-progress{display:flex;align-items:center;gap:12px}.ds-dashboard-macro-track{flex:1;height:8px;border-radius:999px;overflow:hidden;background:hsl(218 29% 92%)}.ds-dashboard-macro-fill{width:60%;height:100%;border-radius:4px;background:#95590f}.ds-dashboard-macro-progress>span{min-width:40px;text-align:right}"
+    },
+    {
+      "name": "Mobile Dashboard meal overview",
+      "kind": "card",
+      "refersTo": "mobile-dashboard-card",
+      "description": "Native empty-day meal overview translated for the panel; populated rows come only from logged food entries.",
+      "html": "<div class=\"ds-dashboard-overview\"><button class=\"ds-dashboard-overview-link\"><strong>Day at a glance</strong><span aria-hidden=\"true\">›</span></button><p>No food logged for this day.</p><small>Based on logged entries. Your day may be incomplete.</small></div>",
+      "css": ".ds-dashboard-overview{background:#f0eadd;color:#171c22;border:1px solid hsl(213 16% 90%);border-radius:16px;padding:16px}.ds-dashboard-overview-link{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:0;margin-bottom:4px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}.ds-dashboard-overview-link strong{font-size:18px;font-weight:700}.ds-dashboard-overview-link span{font-size:18px;color:#40554c}.ds-dashboard-overview-link:hover,.ds-dashboard-overview-link:active{opacity:.8}.ds-dashboard-overview-link:focus-visible{outline:2px solid #0b5e46;outline-offset:2px}.ds-dashboard-overview p{font-size:14px;color:#40554c;margin:0}.ds-dashboard-overview small{display:block;margin-top:12px;font-size:12px;color:#40554c}"
     }
   ],
   "narrative": {
     "northStar": "Status overview plus clear sections",
-    "overview": "This record describes the implemented Settings surfaces only: `SparkyFitnessMobile/src/screens/SettingsScreen.tsx`, `SparkyFitnessMobile/src/components/SettingsRow.tsx`, and `SparkyFitnessFrontend/src/pages/Settings/SettingsPage.tsx`. It is not a claim about every screen in either app. The Settings experience is an **Operate** surface: people check their current context, find a category, and reach a specific setting. The mobile screen leads with server and sync state. The web screen leads with the active profile and five named sections.\n\nThe light themes use warm cream backgrounds, darker text, and a restrained green accent; the dark themes keep the same semantic roles with darker surfaces and brighter green. Status copy reports observed connection and sync history, including checking and unavailable states. Sections and controls use the actual English locale strings, with translations supplied by each app's i18n system.\n\n**Verification boundary:** This record is based on source code, theme tokens, and English locale content. Authenticated screenshots and device viewport checks were unavailable during documentation, so rendered appearance and viewport behavior remain unverified.",
+    "overview": "This record covers the implemented Settings surfaces (`SparkyFitnessMobile/src/screens/SettingsScreen.tsx`, `SparkyFitnessMobile/src/components/SettingsRow.tsx`, and `SparkyFitnessFrontend/src/pages/Settings/SettingsPage.tsx`) and the native mobile Dashboard (`SparkyFitnessMobile/src/screens/DashboardScreen.tsx` and its summary components). It is not a claim about every screen in either app. The Settings experience is an **Operate** surface: people check their current context, find a category, and reach a specific setting. The mobile Settings screen leads with server and sync state. The web Settings screen leads with the active profile and five named sections. Dashboard guidance below is scoped to native mobile and does not extend the web rules.\n\nThe light themes use warm cream backgrounds, darker text, and a restrained green accent; the dark themes keep the same semantic roles with darker surfaces and brighter green. Status copy reports observed connection and sync history, including checking and unavailable states. Sections and controls use the actual English locale strings, with translations supplied by each app's i18n system.\n\nThe mobile Dashboard is also an **Operate** surface: a compact daily summary connects the selected date to energy, logging actions, nutrients, hydration, exercise, and actual meal entries. Its branded header uses the approved X on Track artwork and “Keep getting better.” identity. The supplied reference establishes the compact composition; calculations, navigation, labels, and content remain grounded in the application.\n\n**Verification boundary:** The Settings record remains based on source code, theme tokens, and English locale content; its authenticated appearance and viewport behavior were not verified during that documentation pass. Dashboard additions describe the current native source and theme tokens. Bounded simulator captures and checks are recorded in `docs/implementation/evidence/dashboard-simulator-2026-09-26`; they do not establish physical-device, every-state, or whole-app acceptance. Native measurements in the portable frontmatter use px notation for React Native logical layout units.",
     "keyCharacteristics": [
       "Grouped settings with headings that name the user's task.",
       "Current account or connection context near the top of the page.",
       "One destination per mobile row; category tabs and expandable settings on web.",
-      "Visible text and accessibility labels for state, with color as a supporting cue."
+      "Visible text and accessibility labels for state, with color as a supporting cue.",
+      "A mobile Dashboard with readable summaries, four direct logging actions, and room to scroll as content or text size grows."
     ],
     "rules": [
       {
@@ -446,6 +672,11 @@
         "section": "typography"
       },
       {
+        "name": "The Dashboard Reading Rule",
+        "body": "Keep Dashboard text readable and let content scroll or stack; never scale the entire screen to reproduce the reference screenshot.",
+        "section": "typography"
+      },
+      {
         "name": "The Destination Rule",
         "body": "Keep a category label, its controls, and deep-link section IDs aligned when changing the Settings layout. Mobile rows continue to navigate to their existing screens.",
         "section": "layout"
@@ -455,12 +686,17 @@
       "Do put current context before the detailed controls on these Settings surfaces.",
       "Do keep labels task-oriented and use the English locale entries as the copy source.",
       "Do keep connection and sync information truthful in loading and error states.",
-      "Do preserve accessible names, focus indicators, navigation destinations, and URL section aliases."
+      "Do preserve accessible names, focus indicators, navigation destinations, and URL section aliases.",
+      "Do keep native Dashboard actions at usable touch sizes and let larger text stack and scroll.",
+      "Do derive Dashboard balances, meals, goals, and pending hydration states from actual app data.",
+      "Do retain the approved X on Track assets and “Keep getting better.” identity on the Dashboard."
     ],
     "donts": [
       "Don't present a color dot as the only status indicator.",
       "Don't invent account, connection, sync, or health status from decorative UI.",
-      "Don't collapse unrelated settings into one unlabelled group."
+      "Don't collapse unrelated settings into one unlabelled group.",
+      "Don't turn the Dashboard reference's sample calculations, profile, bell, imagery, or counts into product facts.",
+      "Don't shrink the Dashboard as a whole to fit a screenshot or apply its native composition to web Settings."
     ]
   }
 }

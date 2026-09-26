@@ -1,0 +1,31 @@
+Verification captured 2026-09-26. Base revision f4ad584fe5acfe6cc3f3fdee2da5ef8b46a99e09 plus working-tree Dashboard changes.
+
+Full mobile suite
+Test Suites: 479 passed, 479 total
+Tests:       7215 passed, 7215 total
+Snapshots:   0 total
+Time:        65.17 s
+Ran all test suites.
+
+Targeted Dashboard tests after fixture correction
+Test Suites: 1 passed, 1 total
+Tests:       5 passed, 5 total
+Snapshots:   0 total
+Time:        8.719 s
+Ran all test suites matching /__tests__\/components\/DashboardReview.test.tsx/i.
+
+Production iOS JS export
+› Files (1):
+metadata.json (5.6KB)
+
+Exported: /tmp/xot-dashboard-production-final
+
+390-de-dark native XCTest: TEST SUCCEEDED
+
+430-en-dark native XCTest: TEST SUCCEEDED
+
+TypeScript noEmit: passed; changed-source ESLint: passed; normal export has no ui-review.invalid / UI review requires markers.
+Pipeline runtime-check: 3 passed.
+Full validation is not green: pre-existing unused resetReorderDragPreview; Knip unused GAP_USER_LABEL; i18n dynamic keys remain.
+
+Final correction batch: TypeScript + targeted lint passed; 23 Dashboard/Hydration tests passed; 7 simulator scenarios + 2 native interaction cases rerun successfully. Production iOS JS export passed at /tmp/xot-dashboard-release-check, no review markers found.
