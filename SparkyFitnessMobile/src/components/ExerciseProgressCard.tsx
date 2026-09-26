@@ -228,7 +228,7 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
     );
 
   return (
-    <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
+    <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
       <DashboardSectionHeader
         compact={compact}
         title={t('dashboard.exercise', { defaultValue: 'Exercise' })}

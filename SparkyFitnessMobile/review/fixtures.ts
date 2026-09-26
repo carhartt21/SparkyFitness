@@ -127,7 +127,40 @@ export function reviewResponse(path: string, scenario: string): unknown {
   }
   if (path === '/api/identity/profiles')
     return { id: 'review-user', full_name: 'Review Account' };
-  if (path === '/api/water-containers') return [];
+  if (path === '/api/water-containers')
+    return scenario === 'hydration-options'
+      ? [
+          {
+            id: 1,
+            name: 'Glass',
+            volume: 250,
+            unit: 'ml',
+            is_primary: true,
+            servings_per_container: 1,
+          },
+          {
+            id: 2,
+            name: 'Bottle',
+            volume: 500,
+            unit: 'ml',
+            is_primary: false,
+            servings_per_container: 1,
+          },
+          {
+            id: 3,
+            name: 'Energy Drink',
+            volume: 250,
+            unit: 'ml',
+            is_primary: false,
+            servings_per_container: 1,
+            is_quick_add: true,
+            linked_food_id: 'review-drink',
+            linked_food_name: 'Energy Drink',
+            linked_quantity: 250,
+            linked_variant_serving_unit: 'ml',
+          },
+        ]
+      : [];
   if (path === '/api/v2/nutrition/caffeine/active')
     return { active_mg: 0, events: [], series: [] };
   if (

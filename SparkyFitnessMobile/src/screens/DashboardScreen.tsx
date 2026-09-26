@@ -108,8 +108,7 @@ type DashboardScreenProps = CompositeScreenProps<
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const dateLocale = useAppLocale();
-  const { fontScale, width } = useWindowDimensions();
-  const compactSummaries = width >= 390 && fontScale <= 1.3;
+  const { fontScale } = useWindowDimensions();
   const queryClient = useQueryClient();
   const selectedDate = useDiaryDateStore((s) => s.selectedDate);
   const setSelectedDate = useDiaryDateStore((s) => s.setSelectedDate);
@@ -804,24 +803,12 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             })()
           : null}
 
-        <View
-          style={{
-            flexDirection: compactSummaries ? 'row' : 'column',
-            gap: compactSummaries ? 12 : 0,
-            alignItems: 'flex-start',
-          }}
-        >
+        <View>
           {hydrationCardVisible && (
-            <View
-              style={{
-                flex: compactSummaries ? 1 : undefined,
-                width: compactSummaries ? undefined : '100%',
-              }}
-            >
+            <View className="w-full">
               {hydrationCardVisible && (
                 <HydrationGauge
                   onDetails={() => setHydrationDetailsVisible(true)}
-                  compact={compactSummaries}
                   consumed={summary.waterConsumed}
                   goal={summary.waterGoal}
                   fromFoodMl={summary.waterFromFood}
@@ -856,17 +843,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               )}
             </View>
           )}
-          <View
-            style={{
-              flex: compactSummaries ? 1 : undefined,
-              width: compactSummaries ? undefined : '100%',
-            }}
-          >
+          <View className="w-full">
             <ExerciseProgressCard
               onDetails={() =>
                 navigation.navigate('ExerciseReview', { date: selectedDate })
               }
-              compact={compactSummaries}
               onLog={() =>
                 addSheetRef.current?.present({ initialMenu: 'exercise' })
               }

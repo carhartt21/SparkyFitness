@@ -39,6 +39,20 @@ const allCases = process.argv.includes('--single')
     ]
   : [
       {
+        name: '390-de-hydration-options',
+        language: 'de',
+        theme: 'Dark',
+        scenario: 'hydration-options',
+        device: 'iPhone-13',
+      },
+      {
+        name: '430-en-hydration-options',
+        language: 'en',
+        theme: 'Dark',
+        scenario: 'hydration-options',
+        device: 'iPhone-14-Pro-Max',
+      },
+      {
         name: '390-de-dark',
         language: 'de',
         theme: 'Dark',
@@ -308,7 +322,7 @@ try {
           ? /Server unavailable/.test(text)
           : item.scenario === 'saved'
             ? /Saved summary/.test(text) && /1[.,]400/.test(text)
-            : (item.scenario === 'populated'
+            : (['populated', 'hydration-options'].includes(item.scenario)
                 ? /1[.,]400/.test(text)
                 : item.scenario === 'empty'
                   ? /2[.,]000/.test(text)
@@ -337,9 +351,14 @@ try {
       throw new Error(`No expected product content for ${item.name}`);
     if (
       process.argv.includes('--interactions') &&
-      ['baseline-de', '390-de-dark', '430-en-dark', '390-en-saved'].includes(
-        item.name
-      )
+      [
+        'baseline-de',
+        '390-de-dark',
+        '430-en-dark',
+        '390-en-saved',
+        '390-de-hydration-options',
+        '430-en-hydration-options',
+      ].includes(item.name)
     ) {
       const resultBundle = path.join(output, `${item.name}.xcresult`);
       try {

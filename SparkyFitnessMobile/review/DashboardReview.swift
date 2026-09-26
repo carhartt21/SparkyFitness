@@ -77,7 +77,12 @@ final class DashboardReview: XCTestCase {
     capture("hydration-details", app)
     app.buttons["hydration-details-close"].tap()
     let exerciseDetails = app.buttons["dashboard-exercise-details"]
+    for _ in 0..<4 {
+      if exerciseDetails.exists && exerciseDetails.isHittable { break }
+      dashboard.swipeUp()
+    }
     XCTAssertTrue(exerciseDetails.isHittable)
+    capture("stacked-exercise", app)
     exerciseDetails.tap()
     let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Back", "Zurück"])).firstMatch
     XCTAssertTrue(back.waitForExistence(timeout: 10))

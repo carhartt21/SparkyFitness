@@ -1,0 +1,52 @@
+{
+  "revision": "9ff60103746a46ee2df1566746b247af30dd6cd0",
+  "results": [
+    {
+      "name": "390-de-hydration-options",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "hydration-options",
+      "device": "iPhone-13",
+      "screenshot": "390-de-hydration-options.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-en-hydration-options",
+      "language": "en",
+      "theme": "Dark",
+      "scenario": "hydration-options",
+      "device": "iPhone-14-Pro-Max",
+      "screenshot": "430-en-hydration-options.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "logicalViewport": "430x932"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "430x932"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.",
+  "sourceState": "Working tree changes on 9ff601037; implementation recorded in dashboard-stacked-summaries-2026-09-26.md"
+}

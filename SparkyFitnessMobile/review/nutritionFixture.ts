@@ -1,4 +1,7 @@
-import type { WaterIntakeLogEntry } from '@workspace/shared';
+import {
+  containerWaterActionBodySchema,
+  type WaterIntakeLogEntry,
+} from '@workspace/shared';
 import type { FoodItem } from '../src/types/foods';
 import type { FoodEntry } from '../src/types/foodEntries';
 import type {
@@ -37,6 +40,7 @@ export function createNutritionFixture(scenario: string) {
   let nextId = 1;
   let waterMl = scenario === 'empty' ? 0 : summaryFixture.waterIntake;
   const waterLog: WaterIntakeLogEntry[] = [];
+  const waterOperations = new Set<string>();
 
   const snapshot = () => clone(entries);
   return {
@@ -50,6 +54,43 @@ export function createNutritionFixture(scenario: string) {
         path === '/api/user-preferences/bootstrap-timezone'
       )
         return { timezone: 'Europe/Berlin' };
+      if (
+        method === 'POST' &&
+        path === '/api/v2/measurements/water-intake/container-actions'
+      ) {
+        const payload = containerWaterActionBodySchema.parse(
+          JSON.parse(body ?? '{}')
+        );
+        if (
+          scenario !== 'hydration-options' ||
+          payload.container_id !== 1 ||
+          payload.entry_date !== reviewDate
+        )
+          throw new Error('Unconfigured container water write');
+        const alreadyApplied = waterOperations.has(payload.client_operation_id);
+        if (!alreadyApplied) {
+          waterOperations.add(payload.client_operation_id);
+          waterMl += 250;
+          waterLog.push({
+            id: payload.client_operation_id,
+            user_id: 'review-user',
+            entry_date: reviewDate,
+            water_ml: 250,
+            container_id: 1,
+            container_name: 'Glass',
+            source: 'manual',
+            created_at: payload.logged_at,
+            logged_at: payload.logged_at,
+          });
+        }
+        return {
+          waterLogId: payload.client_operation_id,
+          foodEntryId: null,
+          waterMl: 250,
+          alreadyApplied,
+          totals: { water_ml: waterMl },
+        };
+      }
       if (method === 'POST' && path === '/api/measurements/water-intake') {
         const payload = JSON.parse(body ?? '{}') as {
           entry_date: string;
