@@ -11,7 +11,7 @@ import type { ImageSourcePropType } from 'react-native';
 // will extend writeback to the other readable metrics (which is why this is a
 // category-grouped list rather than a flat pair).
 
-export type WritebackMetricId = 'nutrition' | 'hydration';
+export type WritebackMetricId = 'nutrition' | 'hydration' | 'workout';
 
 /** Inclusive local-calendar-day range (YYYY-MM-DD) for a targeted writeback removal.
  *  `null` removal means "all time" (full purge). */
@@ -33,13 +33,16 @@ export interface WritebackMetric {
   /** loadHealthPreference/saveHealthPreference key (under the @HealthConnect prefix on
    *  Android, @HealthKit on iOS — the platform-resolved preferences module owns it). */
   preferenceKey: string;
-  recordType: 'Nutrition' | 'Hydration';
-  permission: { accessType: 'write'; recordType: 'Nutrition' | 'Hydration' };
+  recordType: 'Nutrition' | 'Hydration' | 'Workout';
+  permission: {
+    accessType: 'write';
+    recordType: 'Nutrition' | 'Hydration' | 'Workout';
+  };
   icon: ImageSourcePropType;
   category: string;
 }
 
-export const WRITEBACK_METRICS: WritebackMetric[] = [
+export const WRITEBACK_METRICS = [
   {
     id: 'nutrition',
     labelKey: 'healthMetrics.nutrition',
@@ -60,7 +63,20 @@ export const WRITEBACK_METRICS: WritebackMetric[] = [
     icon: require('../assets/icons/health-metrics/hydration.png'),
     category: 'Nutrition',
   },
-];
+] satisfies WritebackMetric[];
+
+/** iOS-only, event-based export. Kept outside the periodic nutrition/hydration
+ * writeback list so a daily sync cannot create or remove workouts. */
+export const WORKOUT_EXPORT_METRIC: WritebackMetric = {
+  id: 'workout',
+  labelKey: 'healthSync.workoutExport',
+  defaultLabel: 'Completed workouts',
+  preferenceKey: 'writebackWorkoutEnabled',
+  recordType: 'Workout',
+  permission: { accessType: 'write', recordType: 'Workout' },
+  icon: require('../assets/icons/health-metrics/exercise_session.png'),
+  category: 'Activity',
+};
 
 /** Order categories render in (mirrors the read section's grouping). */
 export const WRITEBACK_CATEGORY_ORDER: string[] = ['Nutrition'];

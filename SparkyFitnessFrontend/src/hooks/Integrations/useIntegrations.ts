@@ -6,6 +6,7 @@ import {
   linkWithingsAccount,
   linkStravaAccount,
   syncHevyData,
+  HevySyncResult,
   syncLiftosaurData,
   LiftosaurSyncResult,
   loginGarmin,
@@ -175,6 +176,9 @@ interface SyncHevyVariables {
 
 export const useSyncHevyMutation = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const invalidateDiary = useDiaryInvalidation();
 
   return useMutation({
     mutationFn: ({
@@ -185,11 +189,31 @@ export const useSyncHevyMutation = () => {
       ...mock
     }: SyncHevyVariables) =>
       syncHevyData(fullSync, providerId, startDate, endDate, mock),
+    onSuccess: (data: HevySyncResult) => {
+      queryClient.invalidateQueries({
+        queryKey: externalProviderKeys.lists(),
+      });
+      invalidateDiary();
+      toast({
+        title: data.partial
+          ? t('integrations.hevySyncPartial', 'Hevy sync partially completed')
+          : t('integrations.hevySyncSuccess', 'Hevy data synced successfully.'),
+        description: t(
+          'integrations.hevySyncDetails',
+          '{{workoutsImported}} workouts and {{routinesImported}} saved routines imported; {{failures}} issues.',
+          {
+            workoutsImported: data.workouts.imported,
+            routinesImported: data.routines.imported,
+            failures:
+              data.workouts.failed.length +
+              data.routines.failed.length +
+              data.fetchWarnings.length,
+          }
+        ),
+        variant: data.partial ? 'destructive' : 'default',
+      });
+    },
     meta: {
-      successMessage: t(
-        'integrations.hevySyncSuccess',
-        'Hevy data synced successfully.'
-      ),
       errorMessage: t(
         'integrations.hevySyncError',
         'Hevy sync failed. Please check your API key in settings.'

@@ -1,0 +1,896 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-26T17:19:27Z",
+  "title": "Design System: X on Track Settings and Mobile Dashboard",
+  "extensions": {
+    "colorMeta": {
+      "brand-green-mobile-light": {
+        "role": "primary",
+        "displayName": "Brand Green Mobile Light",
+        "canonical": "#0b5e46",
+        "tonalRamp": [
+          "oklch(15% 0.084 167.2)",
+          "oklch(26% 0.084 167.2)",
+          "oklch(37% 0.084 167.2)",
+          "oklch(48% 0.084 167.2)",
+          "oklch(59% 0.084 167.2)",
+          "oklch(71% 0.084 167.2)",
+          "oklch(83% 0.084 167.2)",
+          "oklch(95% 0.084 167.2)"
+        ]
+      },
+      "brand-green-mobile-dark": {
+        "role": "primary",
+        "displayName": "Brand Green Mobile Dark",
+        "canonical": "#08d6ad",
+        "tonalRamp": [
+          "oklch(15% 0.150 172.2)",
+          "oklch(26% 0.150 172.2)",
+          "oklch(37% 0.150 172.2)",
+          "oklch(48% 0.150 172.2)",
+          "oklch(59% 0.150 172.2)",
+          "oklch(71% 0.150 172.2)",
+          "oklch(83% 0.150 172.2)",
+          "oklch(95% 0.150 172.2)"
+        ]
+      },
+      "background-mobile-light": {
+        "role": "neutral",
+        "displayName": "Background Mobile Light",
+        "canonical": "#f6f0e3",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "surface-mobile-light": {
+        "role": "neutral",
+        "displayName": "Surface Mobile Light",
+        "canonical": "#f0eadd",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "text-mobile-light": {
+        "role": "neutral",
+        "displayName": "Text Mobile Light",
+        "canonical": "#171c22",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.1)",
+          "oklch(26% 0.014 253.1)",
+          "oklch(37% 0.014 253.1)",
+          "oklch(48% 0.014 253.1)",
+          "oklch(59% 0.014 253.1)",
+          "oklch(71% 0.014 253.1)",
+          "oklch(83% 0.014 253.1)",
+          "oklch(95% 0.014 253.1)"
+        ]
+      },
+      "supporting-text-mobile-light": {
+        "role": "neutral",
+        "displayName": "Supporting Text Mobile Light",
+        "canonical": "#40554c",
+        "tonalRamp": [
+          "oklch(15% 0.030 166.9)",
+          "oklch(26% 0.030 166.9)",
+          "oklch(37% 0.030 166.9)",
+          "oklch(48% 0.030 166.9)",
+          "oklch(59% 0.030 166.9)",
+          "oklch(71% 0.030 166.9)",
+          "oklch(83% 0.030 166.9)",
+          "oklch(95% 0.030 166.9)"
+        ]
+      },
+      "divider-mobile-light": {
+        "role": "neutral",
+        "displayName": "Divider Mobile Light",
+        "canonical": "hsl(213, 16%, 90%)",
+        "tonalRamp": [
+          "oklch(15% 0.007 253.3)",
+          "oklch(26% 0.007 253.3)",
+          "oklch(37% 0.007 253.3)",
+          "oklch(48% 0.007 253.3)",
+          "oklch(59% 0.007 253.3)",
+          "oklch(71% 0.007 253.3)",
+          "oklch(83% 0.007 253.3)",
+          "oklch(95% 0.007 253.3)"
+        ]
+      },
+      "background-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Background Mobile Dark",
+        "canonical": "#09161d",
+        "tonalRamp": [
+          "oklch(15% 0.023 233.3)",
+          "oklch(26% 0.023 233.3)",
+          "oklch(37% 0.023 233.3)",
+          "oklch(48% 0.023 233.3)",
+          "oklch(59% 0.023 233.3)",
+          "oklch(71% 0.023 233.3)",
+          "oklch(83% 0.023 233.3)",
+          "oklch(95% 0.023 233.3)"
+        ]
+      },
+      "surface-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Surface Mobile Dark",
+        "canonical": "#13272f",
+        "tonalRamp": [
+          "oklch(15% 0.030 225.8)",
+          "oklch(26% 0.030 225.8)",
+          "oklch(37% 0.030 225.8)",
+          "oklch(48% 0.030 225.8)",
+          "oklch(59% 0.030 225.8)",
+          "oklch(71% 0.030 225.8)",
+          "oklch(83% 0.030 225.8)",
+          "oklch(95% 0.030 225.8)"
+        ]
+      },
+      "text-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Text Mobile Dark",
+        "canonical": "#edf5f7",
+        "tonalRamp": [
+          "oklch(15% 0.009 214.3)",
+          "oklch(26% 0.009 214.3)",
+          "oklch(37% 0.009 214.3)",
+          "oklch(48% 0.009 214.3)",
+          "oklch(59% 0.009 214.3)",
+          "oklch(71% 0.009 214.3)",
+          "oklch(83% 0.009 214.3)",
+          "oklch(95% 0.009 214.3)"
+        ]
+      },
+      "brand-green-web-light": {
+        "role": "primary",
+        "displayName": "Brand Green Web Light",
+        "canonical": "hsl(163 79% 21%)",
+        "tonalRamp": [
+          "oklch(15% 0.085 167.6)",
+          "oklch(26% 0.085 167.6)",
+          "oklch(37% 0.085 167.6)",
+          "oklch(48% 0.085 167.6)",
+          "oklch(59% 0.085 167.6)",
+          "oklch(71% 0.085 167.6)",
+          "oklch(83% 0.085 167.6)",
+          "oklch(95% 0.085 167.6)"
+        ]
+      },
+      "brand-green-web-dark": {
+        "role": "primary",
+        "displayName": "Brand Green Web Dark",
+        "canonical": "hsl(164 81% 36%)",
+        "tonalRamp": [
+          "oklch(15% 0.128 167.8)",
+          "oklch(26% 0.128 167.8)",
+          "oklch(37% 0.128 167.8)",
+          "oklch(48% 0.128 167.8)",
+          "oklch(59% 0.128 167.8)",
+          "oklch(71% 0.128 167.8)",
+          "oklch(83% 0.128 167.8)",
+          "oklch(95% 0.128 167.8)"
+        ]
+      },
+      "background-web-light": {
+        "role": "neutral",
+        "displayName": "Background Web Light",
+        "canonical": "hsl(41 51% 93%)",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "card-web-light": {
+        "role": "neutral",
+        "displayName": "Card Web Light",
+        "canonical": "hsl(43 100% 99%)",
+        "tonalRamp": [
+          "oklch(15% 0.005 88.8)",
+          "oklch(26% 0.005 88.8)",
+          "oklch(37% 0.005 88.8)",
+          "oklch(48% 0.005 88.8)",
+          "oklch(59% 0.005 88.8)",
+          "oklch(71% 0.005 88.8)",
+          "oklch(83% 0.005 88.8)",
+          "oklch(95% 0.005 88.8)"
+        ]
+      },
+      "accent-web-light": {
+        "role": "neutral",
+        "displayName": "Accent Web Light",
+        "canonical": "hsl(148 23% 87%)",
+        "tonalRamp": [
+          "oklch(15% 0.020 162.9)",
+          "oklch(26% 0.020 162.9)",
+          "oklch(37% 0.020 162.9)",
+          "oklch(48% 0.020 162.9)",
+          "oklch(59% 0.020 162.9)",
+          "oklch(71% 0.020 162.9)",
+          "oklch(83% 0.020 162.9)",
+          "oklch(95% 0.020 162.9)"
+        ]
+      },
+      "foreground-web-light": {
+        "role": "neutral",
+        "displayName": "Foreground Web Light",
+        "canonical": "hsl(213 19% 11%)",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.6)",
+          "oklch(26% 0.014 253.6)",
+          "oklch(37% 0.014 253.6)",
+          "oklch(48% 0.014 253.6)",
+          "oklch(59% 0.014 253.6)",
+          "oklch(71% 0.014 253.6)",
+          "oklch(83% 0.014 253.6)",
+          "oklch(95% 0.014 253.6)"
+        ]
+      },
+      "muted-foreground-web-light": {
+        "role": "neutral",
+        "displayName": "Muted Foreground Web Light",
+        "canonical": "hsl(153 12% 36%)",
+        "tonalRamp": [
+          "oklch(15% 0.031 166.0)",
+          "oklch(26% 0.031 166.0)",
+          "oklch(37% 0.031 166.0)",
+          "oklch(48% 0.031 166.0)",
+          "oklch(59% 0.031 166.0)",
+          "oklch(71% 0.031 166.0)",
+          "oklch(83% 0.031 166.0)",
+          "oklch(95% 0.031 166.0)"
+        ]
+      },
+      "border-web-light": {
+        "role": "neutral",
+        "displayName": "Border Web Light",
+        "canonical": "hsl(40 22% 82%)",
+        "tonalRamp": [
+          "oklch(15% 0.020 84.6)",
+          "oklch(26% 0.020 84.6)",
+          "oklch(37% 0.020 84.6)",
+          "oklch(48% 0.020 84.6)",
+          "oklch(59% 0.020 84.6)",
+          "oklch(71% 0.020 84.6)",
+          "oklch(83% 0.020 84.6)",
+          "oklch(95% 0.020 84.6)"
+        ]
+      },
+      "background-web-dark": {
+        "role": "neutral",
+        "displayName": "Background Web Dark",
+        "canonical": "hsl(213 19% 11%)",
+        "tonalRamp": [
+          "oklch(15% 0.014 253.6)",
+          "oklch(26% 0.014 253.6)",
+          "oklch(37% 0.014 253.6)",
+          "oklch(48% 0.014 253.6)",
+          "oklch(59% 0.014 253.6)",
+          "oklch(71% 0.014 253.6)",
+          "oklch(83% 0.014 253.6)",
+          "oklch(95% 0.014 253.6)"
+        ]
+      },
+      "card-web-dark": {
+        "role": "neutral",
+        "displayName": "Card Web Dark",
+        "canonical": "hsl(200 16% 16%)",
+        "tonalRamp": [
+          "oklch(15% 0.015 229.6)",
+          "oklch(26% 0.015 229.6)",
+          "oklch(37% 0.015 229.6)",
+          "oklch(48% 0.015 229.6)",
+          "oklch(59% 0.015 229.6)",
+          "oklch(71% 0.015 229.6)",
+          "oklch(83% 0.015 229.6)",
+          "oklch(95% 0.015 229.6)"
+        ]
+      },
+      "accent-web-dark": {
+        "role": "neutral",
+        "displayName": "Accent Web Dark",
+        "canonical": "hsl(153 22% 20%)",
+        "tonalRamp": [
+          "oklch(15% 0.033 164.7)",
+          "oklch(26% 0.033 164.7)",
+          "oklch(37% 0.033 164.7)",
+          "oklch(48% 0.033 164.7)",
+          "oklch(59% 0.033 164.7)",
+          "oklch(71% 0.033 164.7)",
+          "oklch(83% 0.033 164.7)",
+          "oklch(95% 0.033 164.7)"
+        ]
+      },
+      "foreground-web-dark": {
+        "role": "neutral",
+        "displayName": "Foreground Web Dark",
+        "canonical": "hsl(41 51% 93%)",
+        "tonalRamp": [
+          "oklch(15% 0.018 86.1)",
+          "oklch(26% 0.018 86.1)",
+          "oklch(37% 0.018 86.1)",
+          "oklch(48% 0.018 86.1)",
+          "oklch(59% 0.018 86.1)",
+          "oklch(71% 0.018 86.1)",
+          "oklch(83% 0.018 86.1)",
+          "oklch(95% 0.018 86.1)"
+        ]
+      },
+      "dashboard-energy-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Energy Light",
+        "canonical": "#087257",
+        "tonalRamp": [
+          "oklch(15% 0.097 168.7)",
+          "oklch(26% 0.097 168.7)",
+          "oklch(37% 0.097 168.7)",
+          "oklch(48% 0.097 168.7)",
+          "oklch(59% 0.097 168.7)",
+          "oklch(71% 0.097 168.7)",
+          "oklch(83% 0.097 168.7)",
+          "oklch(95% 0.097 168.7)"
+        ]
+      },
+      "dashboard-energy-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Energy Dark",
+        "canonical": "#08dfb4",
+        "tonalRamp": [
+          "oklch(15% 0.155 172.0)",
+          "oklch(26% 0.155 172.0)",
+          "oklch(37% 0.155 172.0)",
+          "oklch(48% 0.155 172.0)",
+          "oklch(59% 0.155 172.0)",
+          "oklch(71% 0.155 172.0)",
+          "oklch(83% 0.155 172.0)",
+          "oklch(95% 0.155 172.0)"
+        ]
+      },
+      "dashboard-energy-track-light": {
+        "role": "neutral",
+        "displayName": "Dashboard Energy Track Light",
+        "canonical": "#d6e5df",
+        "tonalRamp": [
+          "oklch(15% 0.018 170.0)",
+          "oklch(26% 0.018 170.0)",
+          "oklch(37% 0.018 170.0)",
+          "oklch(48% 0.018 170.0)",
+          "oklch(59% 0.018 170.0)",
+          "oklch(71% 0.018 170.0)",
+          "oklch(83% 0.018 170.0)",
+          "oklch(95% 0.018 170.0)"
+        ]
+      },
+      "dashboard-energy-track-dark": {
+        "role": "neutral",
+        "displayName": "Dashboard Energy Track Dark",
+        "canonical": "#154b47",
+        "tonalRamp": [
+          "oklch(15% 0.056 188.1)",
+          "oklch(26% 0.056 188.1)",
+          "oklch(37% 0.056 188.1)",
+          "oklch(48% 0.056 188.1)",
+          "oklch(59% 0.056 188.1)",
+          "oklch(71% 0.056 188.1)",
+          "oklch(83% 0.056 188.1)",
+          "oklch(95% 0.056 188.1)"
+        ]
+      },
+      "dashboard-protein-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Protein Light",
+        "canonical": "#95590f",
+        "tonalRamp": [
+          "oklch(15% 0.112 64.1)",
+          "oklch(26% 0.112 64.1)",
+          "oklch(37% 0.112 64.1)",
+          "oklch(48% 0.112 64.1)",
+          "oklch(59% 0.112 64.1)",
+          "oklch(71% 0.112 64.1)",
+          "oklch(83% 0.112 64.1)",
+          "oklch(95% 0.112 64.1)"
+        ]
+      },
+      "dashboard-protein-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Protein Dark",
+        "canonical": "#f4bd4c",
+        "tonalRamp": [
+          "oklch(15% 0.142 82.3)",
+          "oklch(26% 0.142 82.3)",
+          "oklch(37% 0.142 82.3)",
+          "oklch(48% 0.142 82.3)",
+          "oklch(59% 0.142 82.3)",
+          "oklch(71% 0.142 82.3)",
+          "oklch(83% 0.142 82.3)",
+          "oklch(95% 0.142 82.3)"
+        ]
+      },
+      "dashboard-carbs-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Carbs Light",
+        "canonical": "#0e7746",
+        "tonalRamp": [
+          "oklch(15% 0.118 155.8)",
+          "oklch(26% 0.118 155.8)",
+          "oklch(37% 0.118 155.8)",
+          "oklch(48% 0.118 155.8)",
+          "oklch(59% 0.118 155.8)",
+          "oklch(71% 0.118 155.8)",
+          "oklch(83% 0.118 155.8)",
+          "oklch(95% 0.118 155.8)"
+        ]
+      },
+      "dashboard-carbs-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Carbs Dark",
+        "canonical": "#65d99a",
+        "tonalRamp": [
+          "oklch(15% 0.140 157.3)",
+          "oklch(26% 0.140 157.3)",
+          "oklch(37% 0.140 157.3)",
+          "oklch(48% 0.140 157.3)",
+          "oklch(59% 0.140 157.3)",
+          "oklch(71% 0.140 157.3)",
+          "oklch(83% 0.140 157.3)",
+          "oklch(95% 0.140 157.3)"
+        ]
+      },
+      "dashboard-fat-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Fat Light",
+        "canonical": "#116f8d",
+        "tonalRamp": [
+          "oklch(15% 0.092 226.1)",
+          "oklch(26% 0.092 226.1)",
+          "oklch(37% 0.092 226.1)",
+          "oklch(48% 0.092 226.1)",
+          "oklch(59% 0.092 226.1)",
+          "oklch(71% 0.092 226.1)",
+          "oklch(83% 0.092 226.1)",
+          "oklch(95% 0.092 226.1)"
+        ]
+      },
+      "dashboard-fat-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Fat Dark",
+        "canonical": "#4ec6e8",
+        "tonalRamp": [
+          "oklch(15% 0.116 220.1)",
+          "oklch(26% 0.116 220.1)",
+          "oklch(37% 0.116 220.1)",
+          "oklch(48% 0.116 220.1)",
+          "oklch(59% 0.116 220.1)",
+          "oklch(71% 0.116 220.1)",
+          "oklch(83% 0.116 220.1)",
+          "oklch(95% 0.116 220.1)"
+        ]
+      },
+      "dashboard-fiber-light": {
+        "role": "secondary",
+        "displayName": "Dashboard Fiber Light",
+        "canonical": "#a3394b",
+        "tonalRamp": [
+          "oklch(15% 0.140 13.7)",
+          "oklch(26% 0.140 13.7)",
+          "oklch(37% 0.140 13.7)",
+          "oklch(48% 0.140 13.7)",
+          "oklch(59% 0.140 13.7)",
+          "oklch(71% 0.140 13.7)",
+          "oklch(83% 0.140 13.7)",
+          "oklch(95% 0.140 13.7)"
+        ]
+      },
+      "dashboard-fiber-dark": {
+        "role": "secondary",
+        "displayName": "Dashboard Fiber Dark",
+        "canonical": "#ff7c83",
+        "tonalRamp": [
+          "oklch(15% 0.160 18.5)",
+          "oklch(26% 0.160 18.5)",
+          "oklch(37% 0.160 18.5)",
+          "oklch(48% 0.160 18.5)",
+          "oklch(59% 0.160 18.5)",
+          "oklch(71% 0.160 18.5)",
+          "oklch(83% 0.160 18.5)",
+          "oklch(95% 0.160 18.5)"
+        ]
+      },
+      "supporting-text-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Supporting Text Mobile Dark",
+        "canonical": "#b4c8d2",
+        "tonalRamp": [
+          "oklch(15% 0.026 229.2)",
+          "oklch(26% 0.026 229.2)",
+          "oklch(37% 0.026 229.2)",
+          "oklch(48% 0.026 229.2)",
+          "oklch(59% 0.026 229.2)",
+          "oklch(71% 0.026 229.2)",
+          "oklch(83% 0.026 229.2)",
+          "oklch(95% 0.026 229.2)"
+        ]
+      },
+      "raised-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Raised Mobile Dark",
+        "canonical": "#1d343e",
+        "tonalRamp": [
+          "oklch(15% 0.034 227.6)",
+          "oklch(26% 0.034 227.6)",
+          "oklch(37% 0.034 227.6)",
+          "oklch(48% 0.034 227.6)",
+          "oklch(59% 0.034 227.6)",
+          "oklch(71% 0.034 227.6)",
+          "oklch(83% 0.034 227.6)",
+          "oklch(95% 0.034 227.6)"
+        ]
+      },
+      "divider-mobile-dark": {
+        "role": "neutral",
+        "displayName": "Divider Mobile Dark",
+        "canonical": "#30474f",
+        "tonalRamp": [
+          "oklch(15% 0.032 221.6)",
+          "oklch(26% 0.032 221.6)",
+          "oklch(37% 0.032 221.6)",
+          "oklch(48% 0.032 221.6)",
+          "oklch(59% 0.032 221.6)",
+          "oklch(71% 0.032 221.6)",
+          "oklch(83% 0.032 221.6)",
+          "oklch(95% 0.032 221.6)"
+        ]
+      },
+      "dashboard-hydration-light": {
+        "role": "primary",
+        "displayName": "Dashboard Hydration Light",
+        "canonical": "#146f8f",
+        "tonalRamp": [
+          "oklch(15% 0.093 228.1)",
+          "oklch(26% 0.093 228.1)",
+          "oklch(37% 0.093 228.1)",
+          "oklch(48% 0.093 228.1)",
+          "oklch(59% 0.093 228.1)",
+          "oklch(71% 0.093 228.1)",
+          "oklch(83% 0.093 228.1)",
+          "oklch(95% 0.093 228.1)"
+        ]
+      },
+      "dashboard-hydration-dark": {
+        "role": "primary",
+        "displayName": "Dashboard Hydration Dark",
+        "canonical": "#39c9f1",
+        "tonalRamp": [
+          "oklch(15% 0.129 221.2)",
+          "oklch(26% 0.129 221.2)",
+          "oklch(37% 0.129 221.2)",
+          "oklch(48% 0.129 221.2)",
+          "oklch(59% 0.129 221.2)",
+          "oklch(71% 0.129 221.2)",
+          "oklch(83% 0.129 221.2)",
+          "oklch(95% 0.129 221.2)"
+        ]
+      },
+      "dashboard-exercise-light": {
+        "role": "primary",
+        "displayName": "Dashboard Exercise Light",
+        "canonical": "#09785d",
+        "tonalRamp": [
+          "oklch(15% 0.099 169.7)",
+          "oklch(26% 0.099 169.7)",
+          "oklch(37% 0.099 169.7)",
+          "oklch(48% 0.099 169.7)",
+          "oklch(59% 0.099 169.7)",
+          "oklch(71% 0.099 169.7)",
+          "oklch(83% 0.099 169.7)",
+          "oklch(95% 0.099 169.7)"
+        ]
+      },
+      "dashboard-exercise-dark": {
+        "role": "primary",
+        "displayName": "Dashboard Exercise Dark",
+        "canonical": "#21ddb0",
+        "tonalRamp": [
+          "oklch(15% 0.153 170.6)",
+          "oklch(26% 0.153 170.6)",
+          "oklch(37% 0.153 170.6)",
+          "oklch(48% 0.153 170.6)",
+          "oklch(59% 0.153 170.6)",
+          "oklch(71% 0.153 170.6)",
+          "oklch(83% 0.153 170.6)",
+          "oklch(95% 0.153 170.6)"
+        ]
+      },
+      "dashboard-activity-energy-light": {
+        "role": "primary",
+        "displayName": "Dashboard Activity Energy Light",
+        "canonical": "#b54821",
+        "tonalRamp": [
+          "oklch(15% 0.151 38.9)",
+          "oklch(26% 0.151 38.9)",
+          "oklch(37% 0.151 38.9)",
+          "oklch(48% 0.151 38.9)",
+          "oklch(59% 0.151 38.9)",
+          "oklch(71% 0.151 38.9)",
+          "oklch(83% 0.151 38.9)",
+          "oklch(95% 0.151 38.9)"
+        ]
+      },
+      "dashboard-activity-energy-dark": {
+        "role": "primary",
+        "displayName": "Dashboard Activity Energy Dark",
+        "canonical": "#ff8052",
+        "tonalRamp": [
+          "oklch(15% 0.166 40.1)",
+          "oklch(26% 0.166 40.1)",
+          "oklch(37% 0.166 40.1)",
+          "oklch(48% 0.166 40.1)",
+          "oklch(59% 0.166 40.1)",
+          "oklch(71% 0.166 40.1)",
+          "oklch(83% 0.166 40.1)",
+          "oklch(95% 0.166 40.1)"
+        ]
+      },
+      "dashboard-energy-amoled": {
+        "role": "primary",
+        "displayName": "Dashboard Energy Amoled",
+        "canonical": "#1bd8ad",
+        "tonalRamp": [
+          "oklch(15% 0.150 171.2)",
+          "oklch(26% 0.150 171.2)",
+          "oklch(37% 0.150 171.2)",
+          "oklch(48% 0.150 171.2)",
+          "oklch(59% 0.150 171.2)",
+          "oklch(71% 0.150 171.2)",
+          "oklch(83% 0.150 171.2)",
+          "oklch(95% 0.150 171.2)"
+        ]
+      },
+      "dashboard-energy-track-amoled": {
+        "role": "neutral",
+        "displayName": "Dashboard Energy Track Amoled",
+        "canonical": "#24524a",
+        "tonalRamp": [
+          "oklch(15% 0.053 180.6)",
+          "oklch(26% 0.053 180.6)",
+          "oklch(37% 0.053 180.6)",
+          "oklch(48% 0.053 180.6)",
+          "oklch(59% 0.053 180.6)",
+          "oklch(71% 0.053 180.6)",
+          "oklch(83% 0.053 180.6)",
+          "oklch(95% 0.053 180.6)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "page-title": {
+        "displayName": "Mobile page title",
+        "purpose": "Settings screen heading when the native tab header is not active."
+      },
+      "web-page-title": {
+        "displayName": "Web page title",
+        "purpose": "Top heading for the Settings page."
+      },
+      "web-section-title": {
+        "displayName": "Web section title",
+        "purpose": "Current category heading."
+      },
+      "mobile-section-title": {
+        "displayName": "Mobile section title",
+        "purpose": "Names a related settings group."
+      },
+      "mobile-row-title": {
+        "displayName": "Mobile row title",
+        "purpose": "Names a destination or action."
+      },
+      "supporting-copy": {
+        "displayName": "Supporting copy",
+        "purpose": "Descriptions and status details."
+      },
+      "small-label": {
+        "displayName": "Small label",
+        "purpose": "Compact profile context and captions."
+      },
+      "dashboard-energy-value": {
+        "displayName": "Dashboard energy value",
+        "purpose": "Remaining, over-target, or consumed energy in the native daily summary."
+      },
+      "dashboard-summary-value": {
+        "displayName": "Dashboard summary value",
+        "purpose": "Bold hydration consumption and compact exercise minutes."
+      },
+      "dashboard-section-title": {
+        "displayName": "Dashboard section title",
+        "purpose": "Main Dashboard section titles and expanded hydration/exercise headers."
+      },
+      "dashboard-paired-title": {
+        "displayName": "Dashboard paired title",
+        "purpose": "Retained compact hydration and exercise component headers; these variants are not used by Dashboard."
+      }
+    },
+    "motion": [
+      {
+        "name": "web-accordion",
+        "value": "0.2s ease-out",
+        "purpose": "Open and close height transition for Settings accordion content."
+      },
+      {
+        "name": "mobile-dashboard-progress-ring",
+        "value": "500ms cubic-out; 0ms with reduced motion",
+        "purpose": "SVG ProgressRing focus entrance and subsequent value updates; inactive screens do not schedule animation."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "sm",
+        "value": "640px"
+      },
+      {
+        "name": "lg",
+        "value": "1024px"
+      },
+      {
+        "name": "mobile-dashboard-expanded-text",
+        "value": "fontScale > 1.3: move Today below while logo and grouped date controls stay on the first line; stack energy summary and nutrient row contents, wrap quick actions, omit decorative energy ring"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Mobile settings group",
+      "kind": "card",
+      "refersTo": "mobile-settings-group",
+      "description": "Shared rounded surface and thin divider for related mobile settings.",
+      "html": "<div class=\"ds-mobile-group\"><div class=\"ds-mobile-group-row\">Server</div><div class=\"ds-mobile-group-divider\"></div><div class=\"ds-mobile-group-row\">Health Data Sync</div></div>",
+      "css": ".ds-mobile-group{background:#f0eadd;border-radius:12px;overflow:hidden;box-shadow:var(--shadow-sm,0 1px 2px rgba(0,0,0,.05));color:#171c22}.ds-mobile-group-row{padding:16px;font-size:16px;font-weight:600}.ds-mobile-group-divider{height:1px;background:hsl(213 16% 90%)}"
+    },
+    {
+      "name": "Mobile status row",
+      "kind": "custom",
+      "refersTo": "mobile-settings-row",
+      "description": "Action row with a text status, destination cue, and semantic status dot.",
+      "html": "<button class=\"ds-mobile-status\"><span class=\"ds-mobile-status-icon\" aria-hidden=\"true\"><svg viewBox=\"0 0 24 24\" width=\"22\" height=\"22\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"8\" rx=\"2\"/><rect x=\"3\" y=\"13\" width=\"18\" height=\"8\" rx=\"2\"/></svg></span><span class=\"ds-mobile-status-copy\"><strong>Server</strong><small><i aria-hidden=\"true\"></i>Connected</small></span><span class=\"ds-mobile-status-chevron\" aria-hidden=\"true\">\u203a</span></button>",
+      "css": ".ds-mobile-status{display:flex;align-items:center;width:100%;padding:16px;border:0;background:#f0eadd;color:#171c22;text-align:left;cursor:pointer}.ds-mobile-status:hover,.ds-mobile-status:active{opacity:.7}.ds-mobile-status:focus-visible{outline:2px solid #0b5e46;outline-offset:-2px}.ds-mobile-status-icon{width:40px;height:40px;display:grid;place-items:center;margin-right:12px;border-radius:8px;background:#fff;color:#0b5e46}.ds-mobile-status-copy{flex:1;display:grid;gap:2px}.ds-mobile-status-copy strong{font-size:16px;font-weight:600}.ds-mobile-status-copy small{font-size:14px;color:#40554c}.ds-mobile-status-copy i{display:inline-block;width:8px;height:8px;margin-right:8px;border-radius:50%;background:#0b5e46}.ds-mobile-status-chevron{font-size:22px;color:#40554c}"
+    },
+    {
+      "name": "Web active profile card",
+      "kind": "card",
+      "refersTo": "web-profile-card",
+      "description": "Compact account context in the Settings header.",
+      "html": "<div class=\"ds-web-profile\"><small>Active profile</small><strong>Loading profile</strong><span>Your account</span></div>",
+      "css": ".ds-web-profile{min-width:208px;padding:12px 16px;border-radius:12px;background:hsl(43 100% 99%);color:hsl(213 19% 11%);display:grid;gap:4px}.ds-web-profile small,.ds-web-profile span{font-size:12px;color:hsl(153 12% 36%)}.ds-web-profile strong{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}"
+    },
+    {
+      "name": "Web section tab",
+      "kind": "nav",
+      "refersTo": "web-active-section-tab",
+      "description": "Category navigation; selected state uses the accent surface and stronger type.",
+      "html": "<div class=\"ds-web-tabs\" role=\"tablist\" aria-label=\"Settings sections\"><button class=\"ds-web-tab\" role=\"tab\" aria-selected=\"true\">Profile &amp; Account</button><button class=\"ds-web-tab\" role=\"tab\" aria-selected=\"false\">Nutrition &amp; Tracking</button></div>",
+      "css": ".ds-web-tabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}.ds-web-tab{min-height:48px;padding:8px 12px;border:0;border-radius:8px;background:transparent;color:hsl(153 12% 36%);text-align:left;font-size:14px;cursor:pointer}.ds-web-tab:hover{background:hsl(39 27% 89%);color:hsl(213 19% 11%)}.ds-web-tab:focus-visible{outline:2px solid hsl(163 79% 21%);outline-offset:2px}.ds-web-tab[aria-selected=true]{background:hsl(148 23% 87%);color:hsl(213 19% 11%);font-weight:600}@media(min-width:640px){.ds-web-tabs{grid-template-columns:repeat(3,minmax(0,1fr))}}@media(min-width:1024px){.ds-web-tabs{display:flex;flex-direction:column;width:240px}}"
+    },
+    {
+      "name": "Web settings accordion",
+      "kind": "custom",
+      "refersTo": "web-settings-accordion",
+      "description": "Bordered expandable setting with a title, description, and clear focus.",
+      "html": "<button class=\"ds-web-accordion\" aria-expanded=\"false\"><span><strong>Allergen Preferences</strong><small>Track allergens you want to be warned about in foods</small></span><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" aria-hidden=\"true\"><path d=\"m6 9 6 6 6-6\"/></svg></button>",
+      "css": ".ds-web-accordion{width:100%;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px;border:1px solid hsl(40 22% 82%);border-radius:8px;background:transparent;color:hsl(213 19% 11%);text-align:left;cursor:pointer}.ds-web-accordion:hover{background:hsl(39 27% 89%)}.ds-web-accordion:focus-visible{outline:2px solid hsl(163 79% 21%);outline-offset:-2px}.ds-web-accordion span{display:grid;gap:4px}.ds-web-accordion strong{font-size:14px;font-weight:500}.ds-web-accordion small{font-size:14px;font-weight:400;color:hsl(153 12% 36%)}.ds-web-accordion svg{flex:none;transition:transform .2s}.ds-web-accordion[aria-expanded=true] svg{transform:rotate(180deg)}"
+    },
+    {
+      "name": "Mobile Dashboard quick action",
+      "kind": "button",
+      "refersTo": "mobile-dashboard-quick-action",
+      "description": "Native Food quick-action tile, translated into a static HTML preview; the real action opens food search for the selected date. Its 60-point minimum allows natural content height to grow.",
+      "html": "<button class=\"ds-dashboard-action\"><svg aria-hidden=\"true\" width=\"23\" height=\"23\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M5 3v5a3 3 0 0 0 6 0V3M8 3v18M18 3c-3 3-3 8 0 8h1M19 3v18\"/></svg><span>Food</span></button>",
+      "css": ".ds-dashboard-action{min-height:60px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px 4px;border:1px solid hsl(213 16% 90%);border-radius:16px;background:#fff;color:#171c22;cursor:pointer}.ds-dashboard-action svg{color:#0b5e46}.ds-dashboard-action span{margin-top:8px;font-size:12px;font-weight:600}.ds-dashboard-action:hover{border-color:#0b5e46}.ds-dashboard-action:active{opacity:.8}.ds-dashboard-action:focus-visible{outline:2px solid #0b5e46;outline-offset:2px}"
+    },
+    {
+      "name": "Mobile Dashboard nutrient row",
+      "kind": "custom",
+      "refersTo": "mobile-dashboard-macro-row",
+      "description": "Native nutrient row with inline label, rail, illustrative amount/goal, and percentage; native text scales above 1.3 stack the contents. The light preview keeps secondary percentage text; dark themes use the nutrient color. Compact Carbs/KH labels retain the full accessible nutrient name.",
+      "html": "<div class=\"ds-dashboard-macro\" aria-label=\"Protein: 60 g / 100 g\"><strong>Protein</strong><div class=\"ds-dashboard-macro-track\"><div class=\"ds-dashboard-macro-fill\"></div></div><span class=\"ds-dashboard-macro-amount\">60 / 100 g</span><span class=\"ds-dashboard-macro-percent\">60%</span></div>",
+      "css": ".ds-dashboard-macro{display:flex;align-items:center;gap:5px;min-height:28px;padding:4px 0;color:#171c22}.ds-dashboard-macro strong{width:26%;font-size:13px;font-weight:500}.ds-dashboard-macro span{font-size:12px;color:#40554c}.ds-dashboard-macro-track{flex:1;height:8px;border-radius:999px;overflow:hidden;background:hsl(218 29% 92%)}.ds-dashboard-macro-fill{width:60%;height:100%;border-radius:4px;background:#95590f}.ds-dashboard-macro-amount{width:72px;text-align:right}.ds-dashboard-macro-percent{width:30px;text-align:right}.ds-dashboard-macro[data-expanded=true]{flex-direction:column;align-items:stretch}.ds-dashboard-macro[data-expanded=true] strong,.ds-dashboard-macro[data-expanded=true] span{width:auto;text-align:left}.ds-dashboard-macro[data-expanded=true] .ds-dashboard-macro-track{flex:none}"
+    },
+    {
+      "name": "Mobile Dashboard meal overview",
+      "kind": "card",
+      "refersTo": "mobile-dashboard-card",
+      "description": "Native empty-day meal overview translated for the panel; populated rows come only from logged food entries.",
+      "html": "<div class=\"ds-dashboard-overview\"><button class=\"ds-dashboard-overview-link\"><strong>Day at a glance</strong><span aria-hidden=\"true\">\u203a</span></button><p>No food logged for this day.</p><small>Based on logged entries. Your day may be incomplete.</small></div>",
+      "css": ".ds-dashboard-overview{background:#f0eadd;color:#171c22;border:1px solid hsl(213 16% 90%);border-radius:16px;padding:12px}.ds-dashboard-overview-link{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;padding:0;margin-bottom:4px;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer}.ds-dashboard-overview-link strong{font-size:16px;font-weight:600}.ds-dashboard-overview-link span{font-size:18px;color:#40554c}.ds-dashboard-overview-link:hover,.ds-dashboard-overview-link:active{opacity:.8}.ds-dashboard-overview-link:focus-visible{outline:2px solid #0b5e46;outline-offset:2px}.ds-dashboard-overview p{font-size:14px;color:#40554c;margin:0}.ds-dashboard-overview small{display:block;margin-top:12px;font-size:12px;color:#40554c}"
+    },
+    {
+      "name": "Mobile Dashboard section details",
+      "kind": "custom",
+      "refersTo": "mobile-dashboard-details",
+      "description": "Expanded native hydration/exercise header translated for the panel; the section title and separate Details target share a wrapping row. Details is at least 44 by 44 points. This dark preview reflects the full-width Dashboard stack: Hydration then Exercise, with content-driven heights and matching bordered surfaces.",
+      "html": "<div class=\"ds-dashboard-section\"><div class=\"ds-dashboard-section-header\"><div class=\"ds-dashboard-section-title\"><svg class=\"ds-dashboard-section-icon\" aria-hidden=\"true\" width=\"22\" height=\"22\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\"><path d=\"M12 3s-7 8-7 12a7 7 0 0 0 14 0c0-4-7-12-7-12Z\"/></svg><strong>Hydration</strong></div><button class=\"ds-dashboard-details\" aria-label=\"Hydration: Details\"><span>Details</span><svg aria-hidden=\"true\" width=\"12\" height=\"12\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><path d=\"m9 6 6 6-6 6\"/></svg></button></div></div>",
+      "css": ".ds-dashboard-section{padding:12px;margin-bottom:12px;background:#13272f;color:#edf5f7;border:1px solid #30474f;border-radius:16px}.ds-dashboard-section-header{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;column-gap:8px;margin-bottom:8px}.ds-dashboard-section-title{display:flex;align-items:center;gap:8px;min-height:32px}.ds-dashboard-section-title strong{font-size:16px;font-weight:600}.ds-dashboard-section-icon{color:#39c9f1;flex:none}.ds-dashboard-details{display:flex;align-items:center;gap:4px;min-width:44px;min-height:44px;padding:0;border:0;background:transparent;color:#08d6ad;text-align:left;cursor:pointer}.ds-dashboard-details span{font-size:12px;font-weight:500}.ds-dashboard-details:hover,.ds-dashboard-details:active{opacity:.8}.ds-dashboard-details:focus-visible{outline:2px solid #08d6ad;outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "Status overview plus clear sections",
+    "overview": "This record covers the implemented Settings surfaces (`SparkyFitnessMobile/src/screens/SettingsScreen.tsx`, `SparkyFitnessMobile/src/components/SettingsRow.tsx`, and `SparkyFitnessFrontend/src/pages/Settings/SettingsPage.tsx`) and the native mobile Dashboard (`SparkyFitnessMobile/src/screens/DashboardScreen.tsx` and its summary components). It also records the bounded food-search and Diary row patterns used by the mobile logging flow, plus the native launch-icon quick actions. It is not a claim about every screen in either app. The Settings experience is an **Operate** surface: people check their current context, find a category, and reach a specific setting. The mobile Settings screen leads with server and sync state. The web Settings screen leads with the active profile and five named sections. Dashboard guidance below is scoped to native mobile and does not extend the web rules.\n\nThe light themes use warm cream backgrounds, darker text, and a restrained green accent; the dark themes keep the same semantic roles with darker surfaces and brighter green. Status copy reports observed connection and sync history, including checking and unavailable states. Sections and controls use the actual English locale strings, with translations supplied by each app's i18n system.\n\nThe mobile Dashboard is also an **Operate** surface: a compact daily summary connects the selected date to energy, logging actions, nutrients, hydration, exercise, and actual meal entries. Its compact header places the approved logo Home action beside the grouped previous-day, date-picker, and next-day controls on the first line, with Today alongside at ordinary text sizes. The Dashboard header has no visible wordmark or tagline. The approved X on Track artwork and \u201cKeep getting better.\u201d identity remain product commitments. The supplied reference establishes the compact composition and navy-teal dark palette; calculations, navigation, labels, and content remain grounded in the application.\n\n**Verification boundary:** The Settings record remains based on source code, theme tokens, and English locale content; its authenticated appearance and viewport behavior were not verified during that documentation pass. Dashboard additions describe the current native source and theme tokens. Prior bounded simulator evidence is recorded in `docs/implementation/evidence/dashboard-simulator-2026-09-26`; the bounded Dashboard alignment is recorded in `docs/implementation/dashboard-alignment-2026-09-26.md`. The subsequent header and mobile control-shape changes, simulator matrix, checks, and remaining verification limits are recorded in `docs/implementation/mobile-header-controls-2026-09-26.md` and `docs/implementation/evidence/mobile-header-controls-2026-09-26`. The subsequent full-width summary stack, four simulator render checks, two dark-theme native interaction passes, 24 focused tests, TypeScript, and lint results are recorded in `docs/implementation/dashboard-stacked-summaries-2026-09-26.md` and `docs/implementation/evidence/dashboard-stacked-summaries-2026-09-26`. Light and enlarged-text cases verify the top viewport only; full-card interaction coverage is limited to the two dark cases. This documentation refresh adds no rendering or test verification and does not establish physical-device, every-state, or whole-app acceptance. Native measurements in the portable frontmatter use px notation for React Native logical layout units.",
+    "keyCharacteristics": [
+      "Grouped settings with headings that name the user's task.",
+      "Current account or connection context near the top of the page.",
+      "One destination per mobile row; category tabs and expandable settings on web.",
+      "Visible text and accessibility labels for state, with color as a supporting cue.",
+      "A mobile Dashboard with readable summaries, four direct logging actions, and room to scroll as content or text size grows."
+    ],
+    "rules": [
+      {
+        "name": "The Semantic State Rule",
+        "body": "A connection dot may reinforce status, but text must state whether the connection is checking, connected, or unavailable. Sync history must also expose its loading, missing, and unavailable states in words.",
+        "section": "colors"
+      },
+      {
+        "name": "The Scan First Rule",
+        "body": "Keep section names and setting titles stronger than explanatory text. Preserve meaningful labels when they wrap; the mobile row title has no line limit by default.",
+        "section": "typography"
+      },
+      {
+        "name": "The Dashboard Reading Rule",
+        "body": "Keep Dashboard text readable and let content scroll or stack; never scale the entire screen to reproduce the reference screenshot.",
+        "section": "typography"
+      },
+      {
+        "name": "The Destination Rule",
+        "body": "Keep a category label, its controls, and deep-link section IDs aligned when changing the Settings layout. Mobile rows continue to navigate to their existing screens.",
+        "section": "layout"
+      },
+      {
+        "name": "Mobile control shapes",
+        "body": "The grouped Dashboard date selector, Today, refreshed horizontal filters, badges, dosage actions, rest controls, copy/date shortcuts, photo guide controls, shared ui/Button variants, and Dashboard water/exercise actions use 8-point corners. Floating workout LiquidGlassSurface chrome uses 16-point container corners. Preserve circular progress, radio/check states, icon-only controls, camera shutters, and the central Add action; retain existing card and quick-action tile corners. These rules do not change Settings group or web shapes.",
+        "section": "shapes"
+      },
+      {
+        "name": "Dashboard summary stack",
+        "body": "Hydration followed by Exercise uses full-width expanded cards at every phone size and text scale. Keep content-driven heights, separate Details actions, and matching bordered surfaces with 16-point corners, 12-point padding, and 12-point bottom spacing. Retained compact component variants and their 92-point metric minimum are not used by Dashboard.",
+        "section": "layout"
+      },
+      {
+        "name": "The Native Launch Menu Rule",
+        "body": "Launch-icon quick actions use the operating system menu with localized task labels and semantic platform icons. The operating system owns menu typography, spacing, color, shape, and motion; app control tokens do not restyle this surface. Selecting an action opens an existing editor for local today without saving an entry or resetting the navigation stack.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do put current context before the detailed controls on these Settings surfaces.",
+      "Do keep labels task-oriented and use the English locale entries as the copy source.",
+      "Do keep connection and sync information truthful in loading and error states.",
+      "Do preserve accessible names, focus indicators, navigation destinations, and URL section aliases.",
+      "Do keep native Dashboard actions at usable touch sizes and let larger text stack and scroll.",
+      "Do derive Dashboard balances, meals, goals, and pending hydration states from actual app data.",
+      "Do preserve the approved X on Track assets and \u201cKeep getting better.\u201d product identity; show only the approved logo in the Dashboard Home target, beside the date controls on the first line.",
+      "Do preserve the selected day in Dashboard detail destinations and explain gaps between hydration totals and individual drink entries."
+    ],
+    "donts": [
+      "Don't present a color dot as the only status indicator.",
+      "Don't invent account, connection, sync, or health status from decorative UI.",
+      "Don't collapse unrelated settings into one unlabelled group.",
+      "Don't turn the Dashboard reference's sample calculations, profile, bell, imagery, or counts into product facts.",
+      "Don't shrink the Dashboard as a whole to fit a screenshot or apply its native composition to web Settings.",
+      "Don't use capsule shapes for the refreshed mobile filters, badges, or actions; retain the meaningful circular controls and progress indicators."
+    ]
+  }
+}

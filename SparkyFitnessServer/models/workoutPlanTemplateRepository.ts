@@ -1,9 +1,49 @@
 import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
+import type { PoolClient } from 'pg';
 // @ts-expect-error TS(7016): Could not find a declaration file for module 'pg-f... Remove this comment to see the full error message
 import format from 'pg-format';
+
+async function captureWorkoutPlanVersion(
+  client: PoolClient,
+  templateId: number | string,
+  userId: string,
+  effectiveDay: string,
+  isActiveOverride?: boolean
+): Promise<void> {
+  const result = await client.query(
+    `INSERT INTO public.workout_plan_template_versions
+       (user_id, template_id, effective_from, plan_name, start_date, end_date, is_active, assignments)
+     SELECT t.user_id, t.id, $3::date, t.plan_name, t.start_date, t.end_date,
+            COALESCE($4::boolean, t.is_active, false),
+            COALESCE((
+              SELECT jsonb_agg(
+                jsonb_build_object(
+                  'id', a.id,
+                  'dayOfWeek', a.day_of_week,
+                  'workoutPresetId', a.workout_preset_id,
+                  'exerciseId', a.exercise_id,
+                  'sortOrder', a.sort_order,
+                  'sets', COALESCE((
+                    SELECT jsonb_agg(to_jsonb(s) ORDER BY s.set_number, s.id)
+                    FROM public.workout_plan_assignment_sets s
+                    WHERE s.assignment_id = a.id
+                  ), '[]'::jsonb)
+                ) ORDER BY a.day_of_week, a.sort_order, a.id
+              )
+              FROM public.workout_plan_template_assignments a
+              WHERE a.template_id = t.id
+            ), '[]'::jsonb)
+     FROM public.workout_plan_templates t
+     WHERE t.id = $1 AND t.user_id = $2`,
+    [templateId, userId, effectiveDay, isActiveOverride ?? null]
+  );
+  if (result.rowCount !== 1) {
+    throw new Error('Workout plan template not found.');
+  }
+}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function createWorkoutPlanTemplate(planData: any) {
+async function createWorkoutPlanTemplate(planData: any, effectiveDay: string) {
   const client = await getClient(planData.user_id); // User-specific operation
   try {
     await client.query('BEGIN');
@@ -57,6 +97,12 @@ async function createWorkoutPlanTemplate(planData: any) {
         }
       }
     }
+    await captureWorkoutPlanVersion(
+      client,
+      newTemplate.id,
+      planData.user_id,
+      effectiveDay
+    );
     await client.query('COMMIT');
     const finalQuery = `
             SELECT
@@ -191,7 +237,8 @@ async function updateWorkoutPlanTemplate(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   userId: any,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  updateData: any
+  updateData: any,
+  effectiveDay: string
 ) {
   const client = await getClient(userId); // User-specific operation
   try {
@@ -326,6 +373,7 @@ async function updateWorkoutPlanTemplate(
         }
       }
     }
+    await captureWorkoutPlanVersion(client, templateId, userId, effectiveDay);
     await client.query('COMMIT');
     const finalQuery = `
             SELECT
@@ -373,15 +421,29 @@ async function updateWorkoutPlanTemplate(
   }
 }
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function deleteWorkoutPlanTemplate(templateId: any, userId: any) {
+async function deleteWorkoutPlanTemplate(
+  templateId: any,
+  userId: any,
+  effectiveDay: string
+) {
   const client = await getClient(userId); // User-specific operation
   try {
+    await client.query('BEGIN');
+    await captureWorkoutPlanVersion(
+      client,
+      templateId,
+      userId,
+      effectiveDay,
+      false
+    );
     const result = await client.query(
       'DELETE FROM workout_plan_templates WHERE id = $1 AND user_id = $2 RETURNING *',
       [templateId, userId]
     );
+    await client.query('COMMIT');
     return result.rows[0];
   } catch (error) {
+    await client.query('ROLLBACK');
     log(
       'error',
       // @ts-expect-error TS(2571): Object is of type 'unknown'.

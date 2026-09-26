@@ -52,6 +52,7 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
   const fastingCardVisible = useAppPreferencesStore(
     (s) => s.fastingCardVisible
   );
+  const fastingEnabled = useAppPreferencesStore((s) => s.fastingEnabled);
   const setFastingCardVisible = useAppPreferencesStore(
     (s) => s.setFastingCardVisible
   );
@@ -192,7 +193,7 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
           <Text className="text-text-secondary text-sm">
             {t('dashboardSettings.customNutrientsDescription', {
               defaultValue:
-                'Custom nutrients are created in the SparkyFitness web app. Once you add some, they will appear here so you can choose which show on your Dashboard.',
+                'Custom nutrients are created in the X on Track web app. Once you add some, they will appear here so you can choose which show on your Dashboard.',
             })}
           </Text>
         </View>
@@ -243,16 +244,15 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
         <SettingsRowGroup>
           <SettingsRow
             title={t('dashboardSettings.askSparky', {
-              defaultValue: 'Ask Sparky',
+              defaultValue: 'AI assistant',
             })}
             subtitle={t('dashboardSettings.askSparkySubtitle', {
-              defaultValue:
-                'Show the Ask Sparky chat launcher on the Dashboard',
+              defaultValue: 'Show the AI assistant launcher on the Dashboard',
             })}
             rightAccessory={
               <Switch
                 accessibilityLabel={t('dashboardSettings.askSparky', {
-                  defaultValue: 'Ask Sparky',
+                  defaultValue: 'AI assistant',
                 })}
                 value={askSparkyVisible}
                 onValueChange={setAskSparkyVisible}
@@ -295,15 +295,22 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
           />
           <SettingsRow
             title={t('dashboardSettings.fasting', { defaultValue: 'Fasting' })}
-            subtitle={t('dashboardSettings.fastingSubtitle', {
-              defaultValue: 'Show the fasting card on the Dashboard',
-            })}
+            subtitle={
+              fastingEnabled
+                ? t('dashboardSettings.fastingSubtitle', {
+                    defaultValue: 'Show the fasting card on the Dashboard',
+                  })
+                : t('dashboardSettings.fastingDisabledSubtitle', {
+                    defaultValue: 'Enable fasting in App Settings first',
+                  })
+            }
             rightAccessory={
               <Switch
                 accessibilityLabel={t('dashboardSettings.fasting', {
                   defaultValue: 'Fasting',
                 })}
                 value={fastingCardVisible}
+                disabled={!fastingEnabled}
                 onValueChange={setFastingCardVisible}
               />
             }

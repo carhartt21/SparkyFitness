@@ -1676,6 +1676,87 @@ export { getExternalBmrByDateRange };
 
 // ── Water Intake Entries (granular drink-by-drink tracking) ──────────────
 
+export class WaterActionConflictError extends Error {
+  constructor() {
+    super('Operation ID already belongs to a different water action.');
+  }
+}
+
+/**
+ * Insert one plain-water action exactly once while its ledger row exists.
+ * The existing source_id index is the idempotency key; a retry cannot mutate
+ * the original amount or day. Lock the owner/day while recomputing the manual
+ * aggregate so concurrent offline replays cannot leave an older total behind.
+ */
+async function insertManualWaterAction(
+  userId: string,
+  actingUserId: string,
+  operationId: string,
+  entryDate: string,
+  waterMl: number,
+  loggedAt: string
+): Promise<{ id: string; alreadyApplied: boolean }> {
+  const client = await getClient(userId, actingUserId);
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      'SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))',
+      [userId, entryDate]
+    );
+    const inserted = (await client.query(
+      `INSERT INTO water_intake_entries
+        (user_id, entry_date, water_ml, source, source_id, created_by_user_id, logged_at)
+       VALUES ($1, $2, $3, 'manual', $4, $5, $6)
+       ON CONFLICT (user_id, source, source_id)
+         WHERE source IS NOT NULL AND source_id IS NOT NULL
+       DO NOTHING RETURNING id`,
+      [userId, entryDate, waterMl, operationId, actingUserId, loggedAt]
+    )) as { rows: Array<{ id: string }> };
+    let id = inserted.rows[0]?.id;
+    const alreadyApplied = !id;
+    if (!id) {
+      const existing = (await client.query(
+        `SELECT id, entry_date::text, water_ml, logged_at
+         FROM water_intake_entries
+         WHERE user_id = $1 AND source = 'manual' AND source_id = $2`,
+        [userId, operationId]
+      )) as {
+        rows: Array<{
+          id: string;
+          entry_date: string;
+          water_ml: string;
+          logged_at: Date;
+        }>;
+      };
+      const row = existing.rows[0];
+      if (
+        !row ||
+        row.entry_date !== entryDate ||
+        Number(row.water_ml) !== waterMl ||
+        new Date(row.logged_at).getTime() !== new Date(loggedAt).getTime()
+      ) {
+        throw new WaterActionConflictError();
+      }
+      id = row.id;
+    } else {
+      await recomputeWaterAggregate(
+        client,
+        userId,
+        actingUserId,
+        entryDate,
+        'manual'
+      );
+    }
+    await client.query('COMMIT');
+    return { id, alreadyApplied };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function insertWaterIntakeLog(
   userId: string,
   actingUserId: string,
@@ -1690,15 +1771,16 @@ async function insertWaterIntakeLog(
   // must not rewrite history, following container_name's existing precedent.
   foodEntryId: string | null = null,
   hydrationFactor: number | null = null,
-  client?: PoolClient
+  client?: PoolClient,
+  sourceId: string | null = null
 ) {
   const ownClient = !client;
   const activeClient = client ?? (await getClient(actingUserId));
   try {
     const result = await activeClient.query(
       `INSERT INTO water_intake_entries
-        (user_id, entry_date, water_ml, container_id, container_name, source, created_at, created_by_user_id, logged_at, food_entry_id, hydration_factor)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, COALESCE($8, NOW()), $9, $10)
+        (user_id, entry_date, water_ml, container_id, container_name, source, created_at, created_by_user_id, logged_at, food_entry_id, hydration_factor, source_id)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), $7, COALESCE($8, NOW()), $9, $10, $11)
        RETURNING *`,
       [
         userId,
@@ -1711,6 +1793,7 @@ async function insertWaterIntakeLog(
         loggedAt,
         foodEntryId,
         hydrationFactor,
+        sourceId,
       ]
     );
     return result.rows[0];
@@ -2014,11 +2097,11 @@ async function getWaterIntakeLogByDate(
   try {
     const result = await client.query(
       source
-        ? `SELECT id, user_id, entry_date, water_ml, container_id, container_name, source, created_at, logged_at, food_entry_id, hydration_factor
+        ? `SELECT id, user_id, entry_date, water_ml, container_id, container_name, source, source_id, created_at, logged_at, food_entry_id, hydration_factor
            FROM water_intake_entries
            WHERE user_id = $1 AND entry_date = $2 AND source = $3
            ORDER BY logged_at DESC`
-        : `SELECT id, user_id, entry_date, water_ml, container_id, container_name, source, created_at, logged_at, food_entry_id, hydration_factor
+        : `SELECT id, user_id, entry_date, water_ml, container_id, container_name, source, source_id, created_at, logged_at, food_entry_id, hydration_factor
            FROM water_intake_entries
            WHERE user_id = $1 AND entry_date = $2
            ORDER BY logged_at DESC`,
@@ -2180,6 +2263,7 @@ export default {
   updateWaterIntake,
   deleteWaterIntake,
   insertWaterIntakeLog,
+  insertManualWaterAction,
   upsertWaterIntakeSamples,
   getWaterIntakeLogByDate,
   getWaterIntakeLogsByDates,

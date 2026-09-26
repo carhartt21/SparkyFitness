@@ -3,7 +3,7 @@ import AnchoredMenu, {
   type AnchoredMenuItem,
 } from './AnchoredMenu';
 import { useTranslation } from 'react-i18next';
-import { SET_TYPE_OPTIONS } from '../utils/workoutSession';
+import { SET_TYPE_OPTIONS, setTypeLetter } from '../utils/workoutSession';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import type { ActiveWorkoutMetricColumn } from '../stores/appPreferencesStore';
 
@@ -109,17 +109,33 @@ export function SetTypeMenu({
   onDelete?: () => void;
 }) {
   const { t } = useTranslation();
-  const typeLabels: Record<string, string> = {
+  const typeLabels: Record<(typeof SET_TYPE_OPTIONS)[number], string> = {
     normal: t('workout.setTypeNormal', { defaultValue: 'Normal' }),
     warmup: t('workout.setTypeWarmup', { defaultValue: 'Warm-up' }),
-    dropset: t('workout.setTypeDropSet', { defaultValue: 'Drop set' }),
+    drop: t('workout.setTypeDropSet', { defaultValue: 'Drop set' }),
     failure: t('workout.setTypeFailure', { defaultValue: 'Failure' }),
   };
-  const current = currentType ?? 'normal';
+  const marker = setTypeLetter(currentType);
+  const normalizedCurrent = currentType
+    ?.toLowerCase()
+    .replace(/[^a-z0-9]/g, '');
+  const current =
+    marker === 'W'
+      ? 'warmup'
+      : marker === 'D'
+        ? 'drop'
+        : marker === 'F'
+          ? 'failure'
+          : currentType == null ||
+              normalizedCurrent === 'normal' ||
+              normalizedCurrent === 'working' ||
+              normalizedCurrent === 'workingset'
+            ? 'normal'
+            : null;
   const items: AnchoredMenuItem[] = SET_TYPE_OPTIONS.map((type) => ({
     key: type,
     // i18n-audit-ignore-next-line hardcoded-ui-text -- checkmark is a UI glyph; translated semantic label follows.
-    label: `${type === current ? '✓ ' : ''}${typeLabels[type] ?? type}`,
+    label: `${type === current ? '✓ ' : ''}${typeLabels[type]}`,
     onPress: () => onSelect(type),
   }));
   if (onDelete) {

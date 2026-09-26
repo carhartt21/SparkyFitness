@@ -82,10 +82,11 @@ const ProgressPhotoTimelapseScreen: React.FC<Props> = ({
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const dateLocale = i18n.language.startsWith('pl') ? 'pl-PL' : 'en-US';
-  const [accentPrimary, mutedColor] = useCSSVariable([
+  const [accentPrimary, mutedColor, accentText] = useCSSVariable([
     '--color-accent-primary',
     '--color-icon-decorative',
-  ]) as [string, string];
+    '--color-accent-text',
+  ]) as [string, string, string];
 
   const angle: PhotoType = route.params?.angle ?? 'front';
 
@@ -406,7 +407,11 @@ const ProgressPhotoTimelapseScreen: React.FC<Props> = ({
                 : t('progressPhotos.play', { defaultValue: 'Play' })
             }
           >
-            <Icon name={isRunning ? 'pause' : 'play'} size={24} color="#fff" />
+            <Icon
+              name={isRunning ? 'pause' : 'play'}
+              size={24}
+              color={accentText}
+            />
           </TouchableOpacity>
 
           <TouchableOpacity

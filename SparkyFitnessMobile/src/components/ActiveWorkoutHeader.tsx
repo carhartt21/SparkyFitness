@@ -9,7 +9,7 @@ import { formatElapsed } from '../utils/workoutSession';
 import Icon, { type IconName } from './Icon';
 import KeyboardCollapsible from './KeyboardCollapsible';
 import LiquidGlassSurface, {
-  createLiquidGlassPillStyle,
+  createLiquidGlassChromeStyle,
 } from './LiquidGlassSurface';
 import ActionSheet, {
   type ActionSheetItem,
@@ -94,7 +94,7 @@ function HeaderIconButton({
   if (!usesGlass) return button;
   return (
     <LiquidGlassSurface
-      style={createLiquidGlassPillStyle(chromeBorder, {
+      style={createLiquidGlassChromeStyle(chromeBorder, {
         marginHorizontal: 0,
         marginBottom: 0,
       })}

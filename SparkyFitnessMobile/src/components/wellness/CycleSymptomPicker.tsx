@@ -216,7 +216,7 @@ const CycleSymptomPicker: React.FC<CycleSymptomPickerProps> = ({
               key={s.name}
               onPress={() => onToggle(s)}
               activeOpacity={0.7}
-              className={`flex-row items-center rounded-full px-3.5 py-2 border ${
+              className={`flex-row items-center rounded-md px-3.5 py-2 border ${
                 isActive
                   ? 'bg-accent-primary/10 border-accent-primary'
                   : 'bg-raised border-border-subtle'

@@ -495,7 +495,7 @@ const CycleOnboardingScreen: React.FC<CycleOnboardingScreenProps> = ({
               <Text className="text-text-secondary text-sm leading-5">
                 {t('cycleOnboarding.disclaimerBody', {
                   defaultValue:
-                    'The SparkyFitness Wellness and Reproductive Health Tracker is designed to help you track predictions, symptoms, and physiological parameters. It is NOT intended to be used as a contraceptive method or as a diagnostic/treatment tool.',
+                    'The X on Track Wellness and Reproductive Health Tracker is designed to help you track predictions, symptoms, and physiological parameters. It is NOT intended to be used as a contraceptive method or as a diagnostic/treatment tool.',
                 })}
                 {'\n\n'}
                 {t('cycleOnboarding.consultProfessional', {

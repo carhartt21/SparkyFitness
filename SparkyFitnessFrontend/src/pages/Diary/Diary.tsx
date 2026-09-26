@@ -20,6 +20,7 @@ import {
   UtensilsCrossed,
   Dumbbell,
   HeartPulse,
+  Plus,
 } from 'lucide-react';
 import { DailyHealthMetricsCard } from '@/components/Health/DailyHealthMetricsCard';
 import { useDailyHealthMetrics } from '@/hooks/useGenericHealth';
@@ -40,6 +41,8 @@ import {
   getMealTotals,
 } from '@/utils/nutritionCalculations';
 import { toast } from '@/hooks/use-toast';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 import type { Food, FoodVariant } from '@/types/food';
 import type { Meal as MealType, FoodEntryMeal } from '@/types/meal';
 import type { FoodEntry } from '@/types/food';
@@ -61,7 +64,7 @@ import { useDailySummary } from '@/hooks/Diary/useDailyProgress';
 
 const Diary = () => {
   const { t } = useTranslation();
-  const { activeUserId } = useActiveUser();
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
   const location = useLocation();
   const navigate = useNavigate();
   const { timezone, loggingLevel, energyUnit, convertEnergy } =
@@ -107,7 +110,12 @@ const Diary = () => {
     useCustomNutrients();
   const { data: availableMealTypes, isLoading: mealTypesLoading } =
     useMealTypes();
-  const { data: goals, isLoading: goalsLoading } = useDiaryGoals(selectedDate);
+  const {
+    data: goals,
+    isLoading: goalsLoading,
+    isError: goalsError,
+    refetch: refetchGoals,
+  } = useDiaryGoals(selectedDate);
   const { data: healthMetricsData, isLoading: loadingHealthMetrics } =
     useDailyHealthMetrics(selectedDate);
   const { data: summaryData, isLoading: summaryLoading } =
@@ -495,12 +503,50 @@ const Diary = () => {
     t,
   ]);
 
-  if (loading) return <div>{t('common.loading', 'Loading...')}</div>;
+  if (loading) {
+    return (
+      <div role="status" className="py-12 text-center text-muted-foreground">
+        {t('common.loading', 'Loading...')}
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b">
-        <div />
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+            {t('diary.pageTitle', 'Your day')}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t(
+              'diary.pageDescription',
+              'A clear view of your daily progress and entries.'
+            )}
+          </p>
+        </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto">
+          <Button
+            type="button"
+            className="min-h-11 gap-2"
+            disabled={visibleMealTypes.length === 0}
+            title={
+              visibleMealTypes.length === 0
+                ? t(
+                    'diary.noMealTypeForQuickAdd',
+                    'Create a meal type to log food'
+                  )
+                : undefined
+            }
+            onClick={() => {
+              const firstMealType = visibleMealTypes[0];
+              if (firstMealType) {
+                setOpenFoodSearchForMealType(firstMealType.name);
+              }
+            }}
+          >
+            <Plus aria-hidden="true" className="h-4 w-4" />
+            {t('diary.addFood', 'Add food')}
+          </Button>
           <div
             ref={setToolbarContainer}
             className="flex min-w-0 flex-wrap items-center gap-2"
@@ -521,6 +567,49 @@ const Diary = () => {
           widgets={widgets}
           toolbarContainer={toolbarContainer}
         />
+      )}
+      {!effectiveGoals && (
+        <Card role={goalsError ? 'alert' : undefined}>
+          <CardContent className="flex flex-col items-start gap-3 py-8">
+            <h2 className="text-lg font-semibold">
+              {goalsError
+                ? t(
+                    'diary.goalsLoadErrorTitle',
+                    'Your daily view could not load'
+                  )
+                : t('diary.goalsEmptyTitle', 'Set up your daily goals')}
+            </h2>
+            <p className="max-w-prose text-sm text-muted-foreground">
+              {goalsError
+                ? t(
+                    'diary.goalsLoadErrorDescription',
+                    'Try again to load your goals and daily entries.'
+                  )
+                : isActingOnBehalf
+                  ? t(
+                      'diary.goalsDelegateDescription',
+                      'The account owner needs to set daily goals before this view is available.'
+                    )
+                  : t(
+                      'diary.goalsEmptyDescription',
+                      'Add your goals to see your daily summary and start tracking here.'
+                    )}
+            </p>
+            {(goalsError || !isActingOnBehalf) && (
+              <Button
+                type="button"
+                onClick={() => {
+                  if (goalsError) void refetchGoals();
+                  else navigate('/goals');
+                }}
+              >
+                {goalsError
+                  ? t('common.retry', 'Try again')
+                  : t('diary.openGoals', 'Open goals')}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
       )}
 
       {/* Food Unit Selector Dialog */}

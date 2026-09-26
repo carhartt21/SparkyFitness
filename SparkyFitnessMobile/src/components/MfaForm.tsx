@@ -142,7 +142,9 @@ const MfaForm: React.FC<MfaFormProps> = ({
             >
               <Text
                 className={`text-sm font-semibold ${
-                  mfaMethod === method ? 'text-white' : 'text-text-secondary'
+                  mfaMethod === method
+                    ? 'text-accent-text'
+                    : 'text-text-secondary'
                 }`}
               >
                 {label}

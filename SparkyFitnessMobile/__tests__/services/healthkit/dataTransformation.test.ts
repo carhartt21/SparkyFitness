@@ -427,6 +427,26 @@ describe('transformHealthRecords', () => {
   });
 
   describe('ExerciseSession/Workout records', () => {
+    test('excludes workouts written by this app while retaining other sources', () => {
+      setOwnBundleId('com.cg.phi');
+      const records = ['com.cg.phi', 'com.other.app'].map((sourceBundleId) => ({
+        startTime: '2026-09-25T08:00:00Z',
+        endTime: '2026-09-25T09:00:00Z',
+        activityType: 50,
+        duration: 3600,
+        sourceBundleId,
+      }));
+      const result = transformHealthRecords(records, {
+        recordType: 'Workout',
+        unit: '',
+        type: 'workout',
+      });
+      expect(result).toHaveLength(1);
+      expect((result[0] as TransformedExerciseSession).raw_data).toMatchObject({
+        sourceBundleId: 'com.other.app',
+      });
+      setOwnBundleId(null);
+    });
     test('maps known activity code to name (37 -> Running)', () => {
       const records = [
         {
@@ -1324,6 +1344,22 @@ describe('Nutrition correlation transformer', () => {
     );
     expect(result).toHaveLength(0);
   });
+
+  test.each(['XOnTrackWritebackVersion', 'SparkyWritebackVersion'])(
+    'skips correlations stamped with %s even without a source bundle',
+    (marker) => {
+      const result = transformHealthRecords(
+        [
+          normalizedCorrelation({
+            sourceBundleId: undefined,
+            metadata: { [marker]: '1' },
+          }),
+        ],
+        NUTRITION_CONFIG
+      );
+      expect(result).toHaveLength(0);
+    }
+  );
 
   test('skips correlations without a uuid (no idempotency key)', () => {
     const result = transformHealthRecords(

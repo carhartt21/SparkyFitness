@@ -1,0 +1,716 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/user-preferences/bootstrap-timezone",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/measurements/water-intake",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/food-entries/",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 200,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/fixture-thumbnail.png"
+  },
+  {
+    "method": "PUT",
+    "path": "/api/food-entries/review-created-1",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 100,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 100,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      },
+      {
+        "id": "review-created-1",
+        "serving_size": 100,
+        "serving_unit": "g",
+        "calories": 150,
+        "protein": 10,
+        "carbs": 15,
+        "fat": 5,
+        "dietary_fiber": 2,
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 100,
+        "unit": "g",
+        "entry_date": "2026-09-26",
+        "entry_time": "14:45",
+        "notes": "Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. Synthetic review note with berries. END-REVIEW",
+        "food_id": "review-food",
+        "variant_id": "review-variant",
+        "user_id": "review-user",
+        "food_name": "Review yogurt with berries and toasted pumpkin seeds",
+        "brand_name": "Synthetic kitchen",
+        "food_images": [
+          "http://127.0.0.1:43991/fixture-thumbnail.png"
+        ],
+        "meal_type": "breakfast"
+      }
+    ]
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/food-entries/review-created-1",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  }
+]

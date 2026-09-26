@@ -26,6 +26,8 @@ const NATIVE_TABS_ROUTE_EXCLUSIONS = {
   ExerciseForm:
     'Root-stack exercise create/edit modal presented above the tab host.',
   FoodScan: 'Root-stack scanner modal presented from the tab host.',
+  QuickMealPhoto:
+    'Root-stack direct camera modal opened from the Diary or a cold-launch link.',
   FoodPhotoIntro: 'Root-stack food-photo modal presented from the tab host.',
   FoodPhotoFlow:
     'Root-stack nested food-photo modal with its own native stack.',

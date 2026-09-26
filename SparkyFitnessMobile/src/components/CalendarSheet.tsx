@@ -64,6 +64,7 @@ const CalendarContent = ({
 }: CalendarContentProps) => {
   const { appLocale, presentation } = useCalendarPresentation();
   const { t } = useTranslation();
+  const accentText = useCSSVariable('--color-accent-text') as string;
   const weekdayLabels = useMemo(
     () => getCalendarWeekdayShortNames(appLocale),
     [appLocale]
@@ -281,7 +282,7 @@ const CalendarContent = ({
         }}
         styles={{
           selected: { backgroundColor: accentPrimary },
-          selected_label: { color: '#FFFFFF' },
+          selected_label: { color: accentText },
           today: { borderColor: accentPrimary, borderWidth: 1 },
           day_label: { color: textPrimary },
           weekday_label: { color: textSecondary },
@@ -291,9 +292,9 @@ const CalendarContent = ({
           month_label: { color: textPrimary },
           year_label: { color: textPrimary },
           selected_month: { backgroundColor: accentPrimary },
-          selected_month_label: { color: '#FFFFFF' },
+          selected_month_label: { color: accentText },
           selected_year: { backgroundColor: accentPrimary },
-          selected_year_label: { color: '#FFFFFF' },
+          selected_year_label: { color: accentText },
         }}
       />
     </BottomSheetView>

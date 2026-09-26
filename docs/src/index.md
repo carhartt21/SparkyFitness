@@ -2,77 +2,65 @@
 layout: home
 
 hero:
-  name: "SparkyFitness"
-  text: "Self-Hosted Fitness & Nutrition with AI Coaching"
-  tagline: "Your fitness data, completely under your control. Track workouts, meals, body measurements, and menstrual cycles with AI nutrition assistance."
+  name: "X on Track"
+  text: "Log. Understand. Improve."
+  tagline: "Keep getting better."
   image:
     src: /logo.png
-    alt: SparkyFitness Logo
+    alt: X on Track logo
   actions:
     - theme: brand
-      text: ⚡ Interactive .env Generator
-      link: /install/env-generator
-    - theme: alt
-      text: 🚀 Quickstart Guide
+      text: Get started
       link: /install/docker-compose
     - theme: alt
-      text: 📖 View Features
-      link: /features/comparison
+      text: Explore features
+      link: /features/diary/meals
 
 features:
-  - icon: 🍎
-    title: Nutrition & Diary
-    details: Log meals, create custom foods, scan barcodes, and analyze macro & micro nutrient trends with zero cloud lock-in.
+  - title: Nutrition
+    details: Capture meals, log foods, and understand nutrient patterns over time.
     link: /features/diary/meals
     linkText: Explore Nutrition Diary →
-  - icon: 💪
-    title: Exercise & Workouts
-    details: Complete exercise database manager, workout plans, and seamless sync with external fitness trackers.
+  - title: Training
+    details: Record workouts and see how your training develops against your own history.
     link: /features/exercises/exercise-search
     linkText: Explore Exercises →
-  - icon: 🤖
-    title: AI Nutrition Assistant
-    details: Multi-provider AI (OpenAI, Anthropic, Google Gemini, local models) with vision logging and intelligent coaching.
+  - title: Food tools
+    details: Search food sources and use optional AI tools when you choose to.
     link: /features/ai-assistant
-    linkText: Learn About AI Coach →
-  - icon: 🌸
-    title: Cycle Hub
-    details: Comprehensive menstrual cycle tracking, fertility, symptoms, and pregnancy mode.
+    linkText: Explore food tools →
+  - title: Cycle Hub
+    details: Track cycle information and symptoms privately where that is useful to you.
     link: /features/cycle-hub/
     linkText: Explore Cycle Hub →
-  - icon: 👥
-    title: Family & Friends Sharing
-    details: Real-time diary sharing, permissions, and granular privacy controls between trusted users.
+  - title: Trusted access
+    details: Choose whether to share selected records with people you trust.
     link: /features/family-friends-sharing
     linkText: View Sharing Features →
-  - icon: 🔌
-    title: MCP Server (Model Context Protocol)
-    details: First-class native MCP tools for Claude Desktop, AI agents, and custom automations.
+  - title: Integrations
+    details: Connect supported health sources and optional developer tools.
     link: /features/mcp-server
-    linkText: View MCP Tools →
-  - icon: 📱
-    title: Mobile & Web Apps
-    details: Cross-platform mobile app (iOS/Android) and React 19 web interface with instant synchronization.
+    linkText: View integrations →
+  - title: Mobile and web
+    details: Use X on Track on your own server and supported devices.
     link: /mobile-app/mobile-app
     linkText: Mobile App Setup →
-  - icon: ⚙️
-    title: Settings & Integrations
-    details: Connect Garmin, Polar, Health Connect, Liftosaur, Oura, Fitbit, and custom providers.
+  - title: Settings
+    details: Choose the tracking, reminders, and connections that matter to you.
     link: /features/settings/preferences
     linkText: View Integrations →
-  - icon: 📊
-    title: Feature Comparison
-    details: See how SparkyFitness compares directly to MyFitnessPal, MacroFactor, Cronometer, and wger.
+  - title: Source and attribution
+    details: Review the upstream project and its source-available license.
     link: /features/comparison
-    linkText: Compare Features →
+    linkText: View upstream comparison →
 ---
 
 ## Overview
 
-Welcome to the comprehensive documentation for **SparkyFitness**, a self-hosted alternative to MyFitnessPal with AI-powered nutrition assistance.
+Welcome to the documentation for **X on Track**, a self-hosted companion for nutrition, training, activity, and progress relative to your own baseline. The current implementation is based on SparkyFitness; existing backend and package identifiers remain for data continuity.
 
 ::: info
-**Community & Discussions**: If you have questions, need help setting up, or want to contribute, join our [Discord community](https://discord.gg/vcnMT5cPEA) or post in our [GitHub Discussions](https://github.com/CodeWithCJ/SparkyFitness/discussions).
+**Upstream project**: Installation and feature references in this documentation originated with [CodeWithCJ/SparkyFitness](https://github.com/CodeWithCJ/SparkyFitness). The upstream [Discord community](https://discord.gg/vcnMT5cPEA) and [GitHub Discussions](https://github.com/CodeWithCJ/SparkyFitness/discussions) are not X on Track support channels.
 :::
 
 ## Documentation Navigation

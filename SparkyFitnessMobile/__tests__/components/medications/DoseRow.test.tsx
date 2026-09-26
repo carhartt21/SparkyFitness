@@ -135,6 +135,28 @@ describe('DoseRow', () => {
         'line-through'
       );
     });
+
+    it('keeps an offline response visible without offering a second log action', () => {
+      const onToggle = jest.fn();
+      const onTake = jest.fn();
+      const screen = render(
+        <DoseRow
+          kind="scheduled"
+          status="taken"
+          queuedStatus="pending"
+          onToggle={onToggle}
+          onTake={onTake}
+          onSkip={jest.fn()}
+          title="Supplement dose"
+        />
+      );
+
+      expect(screen.getByText('Waiting to sync')).toBeTruthy();
+      expect(screen.queryByText('Log')).toBeNull();
+      fireEvent.press(screen.getByLabelText('Unmark Supplement dose'));
+      expect(onToggle).not.toHaveBeenCalled();
+      expect(onTake).not.toHaveBeenCalled();
+    });
   });
 
   describe('prn', () => {

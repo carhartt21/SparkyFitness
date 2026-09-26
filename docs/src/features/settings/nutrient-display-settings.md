@@ -1,3 +1,3 @@
 # Nutrient Display Settings
 
-This page will explain how to configure nutrient display settings in SparkyFitness.
+This page will explain how to configure nutrient display settings in X on Track.

@@ -42,7 +42,8 @@ async function getAllMealTypes(userId: any) {
       `SELECT 
          mt.id,
          mt.name,
-         mt.sort_order,
+         COALESCE(umv.sort_order_override, mt.sort_order) AS sort_order,
+         COALESCE(umv.name_override, mt.name) AS display_name,
          mt.user_id,
          mt.created_at,
          COALESCE(umv.is_visible, mt.is_visible) AS is_visible,
@@ -52,7 +53,7 @@ async function getAllMealTypes(userId: any) {
        LEFT JOIN user_meal_visibilities umv
          ON mt.id = umv.meal_type_id AND umv.user_id = $1
        WHERE mt.user_id = $1 OR mt.user_id IS NULL
-       ORDER BY mt.sort_order ASC, mt.id ASC`,
+       ORDER BY COALESCE(umv.sort_order_override, mt.sort_order) ASC, mt.id ASC`,
       [userId]
     );
     return result.rows;
@@ -70,7 +71,12 @@ async function getMealTypeById(mealTypeId: any, userId: any) {
   try {
     const result = await client.query(
       `SELECT 
-         mt.*,
+         mt.id,
+         mt.name,
+         mt.user_id,
+         mt.created_at,
+         COALESCE(umv.name_override, mt.name) AS display_name,
+         COALESCE(umv.sort_order_override, mt.sort_order) AS sort_order,
          COALESCE(umv.is_visible, mt.is_visible) AS is_visible,
          COALESCE(umv.show_in_quick_log, mt.show_in_quick_log, true) AS show_in_quick_log,
          COALESCE(umv.default_time, mt.default_time) AS default_time
@@ -123,26 +129,44 @@ async function updateMealType(mealTypeId: any, data: any, userId: any) {
       );
     }
     if (data.name !== undefined || data.sort_order !== undefined) {
-      const updateResult = await client.query(
-        `UPDATE meal_types 
-         SET 
+      const owner = await client.query(
+        'SELECT user_id FROM meal_types WHERE id = $1 AND (user_id = $2 OR user_id IS NULL)',
+        [mealTypeId, userId]
+      );
+      if (owner.rows.length === 0) {
+        throw new Error('Meal type not found or access denied.');
+      }
+      if (owner.rows[0].user_id === null) {
+        await client.query(
+          `INSERT INTO user_meal_visibilities
+             (user_id, meal_type_id, name_override, sort_order_override)
+           VALUES ($1, $2, $3, $4)
+           ON CONFLICT (user_id, meal_type_id)
+           DO UPDATE SET
+             name_override = CASE WHEN $5::boolean THEN $3 ELSE user_meal_visibilities.name_override END,
+             sort_order_override = CASE WHEN $6::boolean THEN $4 ELSE user_meal_visibilities.sort_order_override END`,
+          [
+            userId,
+            mealTypeId,
+            data.name === undefined ? null : String(data.name).trim(),
+            data.sort_order ?? null,
+            data.name !== undefined,
+            data.sort_order !== undefined,
+          ]
+        );
+      } else {
+        const updateResult = await client.query(
+          `UPDATE meal_types
+         SET
            name = COALESCE($1, name),
            sort_order = COALESCE($2, sort_order)
          WHERE id = $3 AND user_id = $4
          RETURNING *`,
-        [data.name, data.sort_order, mealTypeId, userId]
-      );
-      if (updateResult.rows.length === 0) {
-        const check = await client.query(
-          'SELECT 1 FROM meal_types WHERE id = $1 AND user_id IS NULL',
-          [mealTypeId]
+          [data.name, data.sort_order, mealTypeId, userId]
         );
-        if (check.rows.length > 0) {
-          throw new Error(
-            'Cannot rename or reorder system default meal types.'
-          );
+        if (updateResult.rows.length === 0) {
+          throw new Error('Meal type not found or access denied.');
         }
-        throw new Error('Meal type not found or access denied.');
       }
     }
     await client.query('COMMIT');
@@ -150,6 +174,61 @@ async function updateMealType(mealTypeId: any, data: any, userId: any) {
   } catch (error) {
     await client.query('ROLLBACK');
     log('error', 'Error updating meal type:', error);
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
+/** Atomically replace the current account's complete meal order. */
+async function reorderMealTypes(userId: string, ids: string[]) {
+  const client = await getClient(userId);
+  try {
+    await client.query('BEGIN');
+    // Serialize order edits for this account without locking shared system rows.
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+      `meal_order:${userId}`,
+    ]);
+    const available = await client.query(
+      'SELECT id, user_id FROM meal_types WHERE user_id = $1 OR user_id IS NULL',
+      [userId]
+    );
+    const byId = new Map<string, string | null>(
+      available.rows.map((row: { id: string; user_id: string | null }) => [
+        row.id,
+        row.user_id,
+      ])
+    );
+    if (
+      ids.length !== byId.size ||
+      new Set(ids).size !== ids.length ||
+      ids.some((id) => !byId.has(id))
+    ) {
+      throw new Error(
+        'Meal order must include every available meal type exactly once.'
+      );
+    }
+    for (const [index, id] of ids.entries()) {
+      const order = (index + 1) * 10;
+      if (byId.get(id) === null) {
+        await client.query(
+          `INSERT INTO user_meal_visibilities (user_id, meal_type_id, sort_order_override)
+           VALUES ($1, $2, $3)
+           ON CONFLICT (user_id, meal_type_id)
+           DO UPDATE SET sort_order_override = EXCLUDED.sort_order_override`,
+          [userId, id, order]
+        );
+      } else {
+        await client.query(
+          'UPDATE meal_types SET sort_order = $1 WHERE id = $2 AND user_id = $3',
+          [order, id, userId]
+        );
+      }
+    }
+    await client.query('COMMIT');
+    return getAllMealTypes(userId);
+  } catch (error) {
+    await client.query('ROLLBACK');
     throw error;
   } finally {
     client.release();
@@ -421,6 +500,7 @@ export { createMealType };
 export { getAllMealTypes };
 export { getMealTypeById };
 export { updateMealType };
+export { reorderMealTypes };
 export { deleteMealType };
 export { getMealTypeDeletionImpact };
 export default {
@@ -428,6 +508,7 @@ export default {
   getAllMealTypes,
   getMealTypeById,
   updateMealType,
+  reorderMealTypes,
   deleteMealType,
   getMealTypeDeletionImpact,
 };

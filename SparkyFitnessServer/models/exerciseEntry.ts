@@ -931,6 +931,28 @@ async function createExerciseEntry(
     client.release();
   }
 }
+
+/** Find already imported provider rows before a history sync creates a session. */
+async function getExistingExerciseSourceIds(
+  userId: string,
+  source: string,
+  sourceIds: string[]
+): Promise<string[]> {
+  if (sourceIds.length === 0) return [];
+  const client = await getClient(userId);
+  try {
+    const result = await client.query(
+      `SELECT source_id FROM exercise_entries
+       WHERE user_id = $1 AND source = $2 AND source_id = ANY($3::text[])`,
+      [userId, source, sourceIds]
+    );
+    return (result.rows as Array<{ source_id: string }>).map(
+      (row) => row.source_id
+    );
+  } finally {
+    client.release();
+  }
+}
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getExerciseEntryById(id: any, userId: any) {
   const client = await getClient(userId);
@@ -1822,17 +1844,29 @@ async function getDailyExerciseCalorieSplitRange(
 async function getExerciseDiaryRange(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  page?: { limit: number; offset: number }
 ) {
   const client = await getClient(userId);
   try {
+    const countResult = page
+      ? await client.query(
+          `SELECT COUNT(*)::int AS total_count
+           FROM exercise_entries
+           WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3`,
+          [userId, startDate, endDate]
+        )
+      : null;
     const entriesResult = await client.query(
       `SELECT ee.*, e.name AS exercise_name_from_catalog, e.category AS exercise_category_from_catalog
        FROM exercise_entries ee
        LEFT JOIN exercises e ON e.id = ee.exercise_id
        WHERE ee.user_id = $1 AND ee.entry_date BETWEEN $2 AND $3
-       ORDER BY ee.entry_date ASC, ee.created_at ASC`,
-      [userId, startDate, endDate]
+       ORDER BY ee.entry_date ASC, ee.created_at ASC, ee.id ASC
+       ${page ? 'LIMIT $4 OFFSET $5' : ''}`,
+      page
+        ? [userId, startDate, endDate, page.limit, page.offset]
+        : [userId, startDate, endDate]
     );
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const entryIds = entriesResult.rows.map((row: any) => row.id);
@@ -1846,7 +1880,13 @@ async function getExerciseDiaryRange(
       );
       sets = setsResult.rows;
     }
-    return { entries: entriesResult.rows, sets };
+    return {
+      entries: entriesResult.rows,
+      sets,
+      ...(page
+        ? { totalCount: Number(countResult?.rows[0]?.total_count ?? 0) }
+        : {}),
+    };
   } finally {
     client.release();
   }
@@ -1949,6 +1989,7 @@ async function getWaterEstimatedSumForDateRange(
 export { upsertExerciseEntryData };
 export { _createExerciseEntryWithClient };
 export { createExerciseEntry };
+export { getExistingExerciseSourceIds };
 export { getExerciseEntryById };
 export { getExerciseEntryOwnerId };
 export { updateExerciseEntry };
@@ -1981,6 +2022,7 @@ export default {
   _deleteExerciseEntryWithClient,
   _reconcileExerciseEntrySetsWithClient,
   createExerciseEntry,
+  getExistingExerciseSourceIds,
   getExerciseEntryById,
   getExerciseEntryOwnerId,
   updateExerciseEntry,

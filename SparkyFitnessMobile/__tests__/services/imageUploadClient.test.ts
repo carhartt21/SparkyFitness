@@ -96,6 +96,24 @@ describe('postImageMultipart', () => {
     expect(typeof form.getAll('images')[1]).not.toBe('string');
   });
 
+  it('sends one private capture image under the server single-file field', async () => {
+    await postImageMultipart({
+      endpoint: '/api/nutrition-captures/c1/images/i1',
+      serviceName: 'Test',
+      operation: 'upload capture image',
+      method: 'PUT',
+      fileField: 'image',
+      includeOrder: false,
+      order: [],
+      newUris: ['file:///documents/meal.jpg'],
+    });
+    const init = mockFetch.mock.calls[0][1] as RequestInit;
+    const form = init.body as FormData;
+    expect(init.method).toBe('PUT');
+    expect(form.get('images')).toBeNull();
+    expect(form.get('image')).toBeInstanceOf(Blob);
+  });
+
   it('never sets Content-Type, so multer can supply the boundary', async () => {
     await postImageMultipart({
       endpoint: '/api/food-entries/e1/image',

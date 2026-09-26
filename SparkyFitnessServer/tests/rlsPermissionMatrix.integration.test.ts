@@ -192,6 +192,7 @@ describe.runIf(RUN)('RLS permission matrix', () => {
     user_water_containers: 'diary',
     water_intake: 'diary',
     water_intake_entries: 'diary',
+    water_container_actions: 'diary',
     weekly_goal_plans: 'diary',
     // check-in / wellness
     check_in_measurements: 'checkin',
@@ -212,6 +213,7 @@ describe.runIf(RUN)('RLS permission matrix', () => {
     // medication
     injection_entries: 'medication',
     medication_entries: 'medication',
+    planned_supplement_actions: 'medication',
     medication_pens: 'medication',
     medication_schedules: 'medication',
     medication_titration_steps: 'medication',
@@ -250,6 +252,7 @@ describe.runIf(RUN)('RLS permission matrix', () => {
     user_preferences: 'custom',
     workout_plan_assignment_sets: 'custom',
     workout_plan_template_assignments: 'custom',
+    workout_plan_template_versions: 'custom',
     workout_preset_exercise_sets: 'custom',
     workout_preset_exercises: 'custom',
     // system/internal: RLS-enabled with an explicit deny-all policy; only
@@ -508,6 +511,18 @@ describe.runIf(RUN)('RLS permission matrix', () => {
         policy: 'owner_policy',
         col: 'with_check',
         mustContain: 'workout_plan_template_assignments',
+      },
+      {
+        table: 'workout_plan_template_versions',
+        policy: 'select_policy',
+        col: 'qual',
+        mustContain: 'has_diary_read_access',
+      },
+      {
+        table: 'workout_plan_template_versions',
+        policy: 'insert_policy',
+        col: 'with_check',
+        mustContain: 'authenticated_user_id() = user_id',
       },
       // Workout-preset children: write gated to the preset owner.
       {

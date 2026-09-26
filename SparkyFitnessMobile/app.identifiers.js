@@ -3,14 +3,11 @@
 // can't load TypeScript/ESM.
 
 const DEV_BUNDLE_IDENTIFIER =
-  process.env.EXPO_DEV_BUNDLE_IDENTIFIER ||
-  'org.SparkyApps.SparkyFitnessMobile1.dev';
-const IOS_APP_GROUP_DEV =
-  process.env.IOS_APP_GROUP_DEV ||
-  'group.org.SparkyApps.SparkyFitnessMobile1.dev';
-const IOS_APP_GROUP_PROD =
-  process.env.IOS_APP_GROUP_PROD ||
-  'group.com.SparkyApps.SparkyFitnessMobile.shared';
+  process.env.EXPO_DEV_BUNDLE_IDENTIFIER || 'com.cg.phi';
+const IOS_PROD_BUNDLE_IDENTIFIER =
+  process.env.EXPO_PROD_BUNDLE_IDENTIFIER || 'com.cg.phi';
+const IOS_APP_GROUP_DEV = process.env.IOS_APP_GROUP_DEV || 'group.com.cg.phi';
+const IOS_APP_GROUP_PROD = process.env.IOS_APP_GROUP_PROD || 'group.com.cg.phi';
 
 const isDevVariant = () => {
   const env = process.env.APP_VARIANT || 'dev';
@@ -22,6 +19,7 @@ const getIosAppGroup = () =>
 
 module.exports = {
   DEV_BUNDLE_IDENTIFIER,
+  IOS_PROD_BUNDLE_IDENTIFIER,
   IOS_APP_GROUP_DEV,
   IOS_APP_GROUP_PROD,
   isDevVariant,

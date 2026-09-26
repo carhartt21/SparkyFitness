@@ -202,17 +202,7 @@ const Reports = () => {
     switch (activeTab) {
       case 'charts':
         return (
-          <div className="space-y-12">
-            <ChartErrorBoundary>
-              <WeeklyAlcoholCard date={endDate} userId={activeUserId} />
-            </ChartErrorBoundary>
-            <ChartErrorBoundary>
-              <HydrationTrendChart
-                startDate={startDate}
-                endDate={endDate}
-                userId={activeUserId}
-              />
-            </ChartErrorBoundary>
+          <div className="space-y-8">
             <ChartErrorBoundary>
               <NutritionPeriodSummary
                 nutritionData={nutritionData}
@@ -229,6 +219,18 @@ const Reports = () => {
                 goals={goalData}
               />
             </ChartErrorBoundary>
+            <div className="grid gap-6 xl:grid-cols-2">
+              <ChartErrorBoundary>
+                <HydrationTrendChart
+                  startDate={startDate}
+                  endDate={endDate}
+                  userId={activeUserId}
+                />
+              </ChartErrorBoundary>
+              <ChartErrorBoundary>
+                <WeeklyAlcoholCard date={endDate} userId={activeUserId} />
+              </ChartErrorBoundary>
+            </div>
           </div>
         );
       case 'measurements':

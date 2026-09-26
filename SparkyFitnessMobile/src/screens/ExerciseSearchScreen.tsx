@@ -814,7 +814,7 @@ const ExerciseSearchScreen: React.FC<ExerciseSearchScreenProps> = ({
                   setSelectedProvider(provider.id);
                 }}
                 activeOpacity={0.7}
-                className={`flex-row items-center rounded-full px-3 py-1 border ${
+                className={`flex-row items-center rounded-md px-3 py-1 border ${
                   isActive
                     ? 'border-accent-primary bg-accent-primary'
                     : 'border-border-subtle bg-raised'
@@ -822,7 +822,7 @@ const ExerciseSearchScreen: React.FC<ExerciseSearchScreenProps> = ({
               >
                 <Text
                   className={`text-sm font-medium ${
-                    isActive ? 'text-white' : 'text-text-primary'
+                    isActive ? 'text-accent-text' : 'text-text-primary'
                   }`}
                 >
                   {provider.provider_name}

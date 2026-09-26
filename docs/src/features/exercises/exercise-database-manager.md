@@ -1,3 +1,3 @@
 # Exercise Database Manager
 
-This page will explain how to use the Exercise Database Manager in SparkyFitness.
+This page will explain how to use the Exercise Database Manager in X on Track.

@@ -440,7 +440,7 @@ const MealPlanFormScreen: React.FC<MealPlanFormScreenProps> = ({
               <Text className="text-base font-semibold text-text-primary">
                 {name}
               </Text>
-              <View className="bg-raised rounded-full px-2 py-0.5">
+              <View className="bg-raised rounded-md px-2 py-0.5">
                 <Text className="text-xs font-medium text-text-secondary">
                   {assignment.item_type === 'meal'
                     ? t('mealPlans.mealBadge', { defaultValue: 'Meal' })
@@ -626,7 +626,7 @@ const MealPlanFormScreen: React.FC<MealPlanFormScreenProps> = ({
                 <Text
                   className={
                     isSelected
-                      ? 'text-sm font-semibold text-white'
+                      ? 'text-sm font-semibold text-accent-text'
                       : 'text-sm font-semibold text-text-primary'
                   }
                 >

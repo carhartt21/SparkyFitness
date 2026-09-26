@@ -104,6 +104,92 @@ export type ExerciseStatsSummaryResponse = z.infer<
   typeof exerciseStatsSummaryResponseSchema
 >;
 
+/** Recorded, comparable activity facts for an explicit review window. */
+export const exerciseReviewQuerySchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  previousStartDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+  previousEndDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional(),
+});
+export type ExerciseReviewQuery = z.infer<typeof exerciseReviewQuerySchema>;
+
+export const exerciseReviewBucketSchema = z.object({
+  sessions: z.number().int().nonnegative(),
+  exerciseEntries: z.number().int().nonnegative(),
+  distanceMeters: z.number().nonnegative(),
+  durationMinutes: z.number().nonnegative(),
+  liftedVolumeKg: z.number().nonnegative(),
+  reps: z.number().int().nonnegative(),
+  inferredEntries: z.number().int().nonnegative(),
+});
+export type ExerciseReviewBucket = z.infer<typeof exerciseReviewBucketSchema>;
+
+export const exerciseReviewPeriodSchema = z.object({
+  startDate: z.string(),
+  endDate: z.string(),
+  overall: exerciseReviewBucketSchema,
+  running: exerciseReviewBucketSchema,
+  cycling: exerciseReviewBucketSchema,
+  strength: exerciseReviewBucketSchema,
+  other: exerciseReviewBucketSchema,
+});
+export type ExerciseReviewPeriod = z.infer<typeof exerciseReviewPeriodSchema>;
+
+export const exerciseReviewTrendPointSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  running: exerciseReviewBucketSchema,
+  cycling: exerciseReviewBucketSchema,
+  strength: exerciseReviewBucketSchema,
+});
+export type ExerciseReviewTrendPoint = z.infer<
+  typeof exerciseReviewTrendPointSchema
+>;
+
+export const exerciseReviewSourceSessionSchema = z.object({
+  id: z.string(),
+  type: z.enum(["preset", "individual"]),
+  entryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  name: z.string().nullable(),
+  source: z.string().nullable(),
+});
+export type ExerciseReviewSourceSession = z.infer<
+  typeof exerciseReviewSourceSessionSchema
+>;
+
+export const exerciseReviewAdherencePeriodSchema = z.object({
+  startDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  elapsedDays: z.number().int().nonnegative(),
+  coveredDays: z.number().int().nonnegative(),
+  eligibleScheduledSessions: z.number().int().nonnegative(),
+  attendedScheduledSessions: z.number().int().nonnegative(),
+  adherencePercent: z.number().min(0).max(100).nullable(),
+});
+export type ExerciseReviewAdherencePeriod = z.infer<
+  typeof exerciseReviewAdherencePeriodSchema
+>;
+
+export const exerciseReviewResponseSchema = z.object({
+  current: exerciseReviewPeriodSchema,
+  previous: exerciseReviewPeriodSchema,
+  trend: z.array(exerciseReviewTrendPointSchema),
+  sources: z.array(exerciseReviewSourceSessionSchema),
+  adherence: z.object({
+    current: exerciseReviewAdherencePeriodSchema,
+    previous: exerciseReviewAdherencePeriodSchema,
+  }),
+});
+export type ExerciseReviewResponse = z.infer<
+  typeof exerciseReviewResponseSchema
+>;
+
 /** Request schema for POST /api/exercise-stats/query (Activity Interrogation Engine) */
 export const exerciseActivityQueryRequestSchema = z.object({
   userId: z.string().uuid().optional(),

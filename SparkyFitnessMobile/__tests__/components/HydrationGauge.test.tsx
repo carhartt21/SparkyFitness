@@ -7,6 +7,67 @@ import { initializeI18n } from '../../src/localization/i18n';
 // opted in to add_food_water_to_intake (server-side) and it produced a
 // non-zero value -- 0/undefined must render nothing extra.
 describe('HydrationGauge fromFoodMl caption', () => {
+  it('shows unsynced water separately from the server-backed total', () => {
+    render(
+      <HydrationGauge
+        consumed={500}
+        goal={2000}
+        pendingMl={250}
+        attentionMl={125}
+      />
+    );
+    expect(screen.getByText('500 ml')).toBeTruthy();
+    expect(screen.getByText('250 ml awaiting sync')).toBeTruthy();
+    expect(screen.getByText('125 ml needs attention')).toBeTruthy();
+  });
+
+  it('shows queued container drinks as counts without guessing their water credit', () => {
+    render(
+      <HydrationGauge
+        consumed={500}
+        goal={2000}
+        pendingContainerCount={2}
+        attentionContainerCount={1}
+      />
+    );
+    expect(screen.getByText('500 ml')).toBeTruthy();
+    expect(screen.getByText('2 drinks awaiting sync')).toBeTruthy();
+    expect(screen.getByText('1 drink needs attention')).toBeTruthy();
+  });
+
+  it('offers one retry for saved water needing attention without changing the confirmed total', () => {
+    const onRetryAttention = jest.fn();
+    render(
+      <HydrationGauge
+        consumed={500}
+        goal={2000}
+        attentionMl={250}
+        attentionContainerCount={1}
+        onRetryAttention={onRetryAttention}
+      />
+    );
+
+    fireEvent.press(
+      screen.getByRole('button', { name: 'Retry saved water entries' })
+    );
+    expect(onRetryAttention).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('500 ml')).toBeTruthy();
+  });
+
+  it('does not offer retry when no saved water needs attention', () => {
+    render(
+      <HydrationGauge
+        consumed={500}
+        goal={2000}
+        pendingMl={250}
+        onRetryAttention={jest.fn()}
+      />
+    );
+    expect(
+      screen.queryByRole('button', { name: 'Retry saved water entries' })
+    ).toBeNull();
+  });
+
   it('renders no "from food" caption when fromFoodMl is absent', () => {
     render(<HydrationGauge consumed={500} goal={2000} />);
     expect(screen.queryByText(/from food/i)).toBeNull();
@@ -195,5 +256,13 @@ describe('HydrationGauge headline totals', () => {
 
     expect(screen.getByText('50.7 oz')).toBeTruthy();
     expect(screen.getByText('of 67.6 oz')).toBeTruthy();
+  });
+
+  test('keeps recorded water visible without presenting a missing target as zero', () => {
+    render(<HydrationGauge consumed={500} goal={0} unit="ml" />);
+
+    expect(screen.getByText('500 ml')).toBeTruthy();
+    expect(screen.getByText('No daily target set')).toBeTruthy();
+    expect(screen.queryByText('of 0 ml')).toBeNull();
   });
 });

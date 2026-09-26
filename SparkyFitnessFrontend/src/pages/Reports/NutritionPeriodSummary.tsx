@@ -393,7 +393,7 @@ const NutritionPeriodSummary = ({
       ? getEnergyUnitString(energyUnit)
       : selectedOption?.unit || '';
 
-  const chartTitle = `${t('reports.cumulativeBalanceTitle', 'Cumulative Balance')} - ${selectedOption?.label}`;
+  const chartTitle = `${t('reports.loggedCumulativeVariance', 'Cumulative logged variance')} - ${selectedOption?.label}`;
 
   const showCumulativeChart =
     primaryNutrient !== 'sodium' ||
@@ -520,7 +520,7 @@ const NutritionPeriodSummary = ({
           <Card className="flex-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('reports.netEnergyBalance', 'Net Balance')}
+                {t('reports.loggedIntakeVsTarget', 'Logged intake vs target')}
               </CardTitle>
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
@@ -530,8 +530,8 @@ const NutritionPeriodSummary = ({
                 {displayNetBalance} {unitStr}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                {t('reports.totalEaten', 'Total Eaten')}: {displayTotalEaten}{' '}
-                {unitStr}
+                {t('reports.loggedTotalIntake', 'Logged intake')}:{' '}
+                {displayTotalEaten} {unitStr}
               </p>
               <p className="text-xs text-muted-foreground">
                 {t('reports.totalGoal', 'Total Goal')}: {displayTotalGoal}{' '}
@@ -553,13 +553,22 @@ const NutritionPeriodSummary = ({
                 </p>
               )}
               <p className="text-xs text-muted-foreground">{coverageMessage}</p>
+              <p className="mt-2 text-xs text-muted-foreground">
+                {t(
+                  'reports.loggedBalanceCaveat',
+                  'Based on logged entries. Missing meals can change this value; it is not a confirmed energy deficit.'
+                )}
+              </p>
             </CardContent>
           </Card>
 
           <Card className="flex-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                {t('reports.avgDailyVariance', 'Avg Daily Variance')}
+                {t(
+                  'reports.loggedAverageVariance',
+                  'Avg logged variance per day'
+                )}
               </CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>

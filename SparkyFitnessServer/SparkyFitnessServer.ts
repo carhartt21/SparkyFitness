@@ -12,6 +12,8 @@ import { bridgeBearerAuthHeader } from './utils/bearerAuthBridge.js';
 import { endPool } from './db/poolManager.js';
 import { log } from './config/logging.js';
 import { authenticate } from './middleware/authMiddleware.js';
+import { authenticateMcp } from './middleware/mcpAuthentication.js';
+import { rejectMcpReadOnlyCredential } from './middleware/rejectMcpReadOnlyCredential.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { applySignOutCookieCleanup } from './middleware/signOutCookieCleanup.js';
 import {
@@ -37,6 +39,7 @@ import v2ExerciseEntryRoutes from './routes/v2/exerciseEntryRoutes.js';
 import v2ExerciseRoutes from './routes/v2/exerciseRoutes.js';
 import mealRoutes from './routes/mealRoutes.js';
 import foodEntryRoutes from './routes/foodEntryRoutes.js';
+import nutritionCaptureRoutes from './routes/nutritionCaptureRoutes.js';
 import foodEntryMealRoutes from './routes/foodEntryMealRoutes.js';
 import reportRoutes from './routes/reportRoutes.js';
 import preferenceRoutes from './routes/preferenceRoutes.js';
@@ -246,12 +249,15 @@ app.use(
   requestLogger({ logCompletion: true }),
   express.json({ limit: isDemoMode() ? '1mb' : '50mb' }),
   cookieParser(),
-  authenticate,
+  authenticateMcp,
   // /mcp mounts ahead of the global route table, so it needs the demo guard
   // explicitly — the app-level one below never sees these requests.
   demoRestrictionGuard,
   mcpRoutes
 );
+// The dedicated MCP credential cannot authenticate to REST, Better Auth,
+// uploads, or other routes, even if a browser session accompanies the request.
+app.use(rejectMcpReadOnlyCredential);
 // Middleware to parse JSON bodies for all incoming requests
 // Increased limit to 50mb to accommodate image uploads. A public demo instance
 // takes a much lower cap: the routes that need the headroom (image analysis,
@@ -451,7 +457,11 @@ const uploadsStaticOptions = {
 // This block MUST stay above the express.static mounts below — moving it after
 // them silently re-exposes every file. tests/uploadsStaticMount.test.ts guards
 // both the behavior and the source ordering.
-const SENSITIVE_UPLOAD_SUBTREES = new Set(['check-in', 'pregnancy']);
+const SENSITIVE_UPLOAD_SUBTREES = new Set([
+  'check-in',
+  'pregnancy',
+  'nutrition_captures',
+]);
 app.use(['/uploads', '/api/uploads'], (req, res, next) => {
   // Match the path the way serve-static resolves it, not the way it was
   // written: a prefix test against the raw URL would not account for percent-
@@ -679,6 +689,7 @@ app.use('/api/v2/foods', v2FoodRoutes);
 app.use('/api/v2/exercise-entries', v2ExerciseEntryRoutes);
 app.use('/api/v2/exercises', v2ExerciseRoutes);
 app.use('/api/food-entries', foodEntryRoutes);
+app.use('/api/nutrition-captures', nutritionCaptureRoutes);
 app.use('/api/food-entry-meals', foodEntryMealRoutes);
 app.use('/api/meals', mealRoutes);
 app.use('/api/daily-summary', dailySummaryRoutes);
@@ -1101,7 +1112,12 @@ const scheduleLiftosaurSyncs = async () => {
       log('error', '[DEMO] Demo auto-purge check failed:', err);
     }
   }
-  const server = app.listen(PORT);
+  // A disposable device-test server may need to bind to a private interface.
+  // Keep the existing all-interface default for container deployments.
+  const bindHost = process.env.SPARKY_FITNESS_SERVER_BIND_HOST;
+  const server = bindHost
+    ? app.listen(Number(PORT), bindHost)
+    : app.listen(PORT);
   // A binding failure (EADDRINUSE, EACCES) arrives as the server's 'error'
   // event, not as a rejection of this chain. Left unhandled it terminates the
   // process before the catch below can drain the pools, so bridge the two

@@ -1,0 +1,61 @@
+
+> sparkyfitnessmobile@1.7.2 i18n:audit /Users/chge7185/Projects/SparkyFitness/SparkyFitnessMobile
+> node scripts/audit-mobile-i18n.mjs
+
+
+Dynamic t() keys:
+  - metric.labelKey at src/components/HealthDataWriteback.tsx:82
+  - metric.labelKey at src/screens/SyncScreen.tsx:487
+  - metric.labelKey at src/screens/SyncScreen.tsx:513
+
+=== Summary ===
+source locale: en
+fallback locale: en
+locale structural errors: 0
+missing static keys: 0
+placeholder errors: 0
+plural errors: 0
+user-facing t() without English fallback: 0
+dynamic t() keys: 3
+source scan errors: 0
+
+Translations:
+  ar: 0/4952 complete (0%), 4952 missing
+  ca: 0/4637 complete (0%), 4637 missing
+  cs: 0/4742 complete (0%), 4742 missing
+  da: 0/4532 complete (0%), 4532 missing
+  de: 4255/4532 complete (94%), 277 missing, 1 stale
+  es: 3730/4637 complete (80%), 907 missing
+  fi: 0/4532 complete (0%), 4532 missing
+  fr: 340/4637 complete (7%), 4297 missing
+  he: 0/4637 complete (0%), 4637 missing
+  hr: 0/4637 complete (0%), 4637 missing
+  hu: 22/4532 complete (0%), 4510 missing
+  id: 0/4427 complete (0%), 4427 missing
+  it: 4189/4637 complete (90%), 448 missing
+  ja: 0/4427 complete (0%), 4427 missing
+  kk: 0/4532 complete (0%), 4532 missing
+  ko: 0/4427 complete (0%), 4427 missing
+  lv: 32/4637 complete (1%), 4605 missing
+  nb-NO: 1681/4532 complete (37%), 2851 missing
+  nl: 3959/4532 complete (87%), 573 missing
+  pl: 3684/4742 complete (78%), 1058 missing
+  pt: 0/4637 complete (0%), 4637 missing
+  pt-BR: 117/4637 complete (3%), 4520 missing
+  ro: 0/4637 complete (0%), 4637 missing
+  ru: 4189/4742 complete (88%), 553 missing
+  sk: 0/4742 complete (0%), 4742 missing
+  sl: 0/4742 complete (0%), 4742 missing
+  sr: 0/4637 complete (0%), 4637 missing
+  sv: 0/4532 complete (0%), 4532 missing
+  ta: 0/4532 complete (0%), 4532 missing
+  te: 0/4532 complete (0%), 4532 missing
+  tr: 0/4532 complete (0%), 4532 missing
+  uk: 0/4742 complete (0%), 4742 missing
+  yue-Hant: 4007/4427 complete (91%), 420 missing
+  zh-Hans: 4007/4427 complete (91%), 420 missing
+  zh-Hant: 4007/4427 complete (91%), 420 missing
+hardcoded UI strings (blocking): 0
+locale-unsafe number formatting (blocking): 0
+manual pluralization antipatterns (blocking): 0
+ ELIFECYCLE  Command failed with exit code 1.

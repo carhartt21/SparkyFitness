@@ -1,6 +1,6 @@
 # Reports
 
-SparkyFitness provides powerful reporting tools to visualize your progress, analyze trends, and gain insights into your fitness journey.
+X on Track provides powerful reporting tools to visualize your progress, analyze trends, and gain insights into your fitness journey.
 Your reports page might look like this:
 <img width="1708" height="802" alt="grafik" src="https://github.com/user-attachments/assets/eef59393-e902-44e8-a351-20c8d6d6e4b2" />
 

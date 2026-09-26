@@ -127,7 +127,7 @@ describe('emailService', () => {
       expect(sendMailMock).toHaveBeenCalledWith(
         expect.objectContaining({
           to: 'user@example.com',
-          subject: 'SparkyFitness Password Reset',
+          subject: 'X on Track Password Reset',
           html: expect.stringContaining('https://example.com/reset?token=xyz'),
         })
       );
@@ -154,7 +154,7 @@ describe('emailService', () => {
       expect(sendMailMock).toHaveBeenCalledWith(
         expect.objectContaining({
           to: 'user@example.com',
-          subject: 'Your SparkyFitness MFA Code',
+          subject: 'Your X on Track MFA Code',
           html: expect.stringContaining('654321'),
         })
       );
@@ -184,7 +184,7 @@ describe('emailService', () => {
       expect(sendMailMock).toHaveBeenCalledWith(
         expect.objectContaining({
           to: 'user@example.com',
-          subject: 'Your SparkyFitness Login Link',
+          subject: 'Your X on Track Login Link',
           html: expect.stringContaining('https://example.com/magic?token=abc'),
         })
       );

@@ -1,0 +1,140 @@
+[
+  {
+    "method": "POST",
+    "path": "/api/user-preferences/bootstrap-timezone",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "POST",
+    "path": "/api/user-preferences/bootstrap-timezone",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "entries": [
+      {
+        "id": "review-breakfast",
+        "food_name": "Oat bowl with berries",
+        "meal_type": "breakfast",
+        "meal_type_id": "review-breakfast-type",
+        "quantity": 1,
+        "unit": "serving",
+        "serving_size": 1,
+        "serving_unit": "serving",
+        "entry_date": "2026-09-26",
+        "entry_time": "08:30",
+        "calories": 600,
+        "protein": 30,
+        "carbs": 80,
+        "fat": 18,
+        "dietary_fiber": 8
+      }
+    ]
+  }
+]

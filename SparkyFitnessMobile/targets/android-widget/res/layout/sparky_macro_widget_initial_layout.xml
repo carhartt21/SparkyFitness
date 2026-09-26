@@ -191,7 +191,7 @@
             android:layout_height="40dp"
             android:layout_weight="1"
             android:src="@drawable/ic_widget_search"
-            android:tint="#FF3B82F6"
+            android:tint="#FF1B5744"
             android:contentDescription="@string/widget_search_food" />
 
         <TextView
@@ -205,7 +205,7 @@
             android:layout_height="40dp"
             android:layout_weight="1"
             android:src="@drawable/ic_widget_scan"
-            android:tint="#FF3B82F6"
+            android:tint="#FF1B5744"
             android:contentDescription="@string/widget_scan_barcode" />
     </LinearLayout>
 </LinearLayout>

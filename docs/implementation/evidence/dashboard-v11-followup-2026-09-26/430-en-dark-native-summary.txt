@@ -1,0 +1,2 @@
+Test Case '-[DashboardReview.DashboardReview testDashboardScrollAndFoodNavigation]' passed (54.531 seconds).
+** TEST SUCCEEDED **

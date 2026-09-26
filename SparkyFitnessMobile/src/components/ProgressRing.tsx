@@ -1,17 +1,15 @@
-import React, { useEffect, useMemo, useRef } from 'react';
-import {
-  Canvas,
-  Path,
-  Circle as SkiaCircle,
-  Skia,
-} from '@shopify/react-native-skia';
-import {
+import React, { useEffect, useRef } from 'react';
+import Svg, { Circle } from 'react-native-svg';
+import Animated, {
   useSharedValue,
-  useDerivedValue,
+  useAnimatedProps,
   withTiming,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface ProgressRingProps {
   progress: number; // 0-1 value (capped at 1 for display)
@@ -28,6 +26,7 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   color,
   backgroundColor,
 }) => {
+  const reducedMotion = useReducedMotion();
   const radius = (size - strokeWidth) / 2;
   const center = size / 2;
   const progressCapped = Math.min(Math.max(progress, 0), 1);
@@ -56,48 +55,43 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
       animatedProgress.value = 0;
     }
     animatedProgress.value = withTiming(progressCapped, {
-      duration: 500,
+      duration: reducedMotion ? 0 : 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [isFocused, progressCapped, animatedProgress]);
+  }, [isFocused, progressCapped, animatedProgress, reducedMotion]);
 
-  const oval = useMemo(
-    () => ({
-      x: center - radius,
-      y: center - radius,
-      width: radius * 2,
-      height: radius * 2,
-    }),
-    [center, radius]
-  );
+  const circumference = 2 * Math.PI * radius;
+  const animatedProps = useAnimatedProps(() => ({
+    strokeDashoffset: circumference * (1 - animatedProgress.value),
+    opacity: animatedProgress.value > 0 ? 1 : 0,
+  }));
 
-  const progressPath = useDerivedValue(() => {
-    const builder = Skia.PathBuilder.Make();
-    const sweepAngle = animatedProgress.value * 360;
-    if (sweepAngle > 0) {
-      builder.addArc(oval, -90, sweepAngle);
-    }
-    return builder.build();
-  });
-
+  // SVG has no native FPS/debug overlay. Keep the same focus-aware motion
+  // without a Skia canvas for this simple geometric progress indicator.
   return (
-    <Canvas style={{ width: size, height: size }}>
-      <SkiaCircle
+    <Svg width={size} height={size} accessible={false}>
+      <Circle
         cx={center}
         cy={center}
         r={radius}
-        style="stroke"
+        fill="none"
+        stroke={backgroundColor}
         strokeWidth={strokeWidth}
-        color={backgroundColor}
       />
-      <Path
-        path={progressPath}
-        style="stroke"
+      <AnimatedCircle
+        cx={center}
+        cy={center}
+        r={radius}
+        fill="none"
+        stroke={color}
         strokeWidth={strokeWidth}
-        color={color}
-        strokeCap="round"
+        strokeLinecap="round"
+        strokeDasharray={[circumference, circumference]}
+        rotation={-90}
+        origin={`${center}, ${center}`}
+        animatedProps={animatedProps}
       />
-    </Canvas>
+    </Svg>
   );
 };
 

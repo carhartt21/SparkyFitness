@@ -30,9 +30,17 @@ import injectionRepository from '../../models/injectionRepository.js';
 import titrationRepository from '../../models/titrationRepository.js';
 import glp1Service from '../../services/glp1Service.js';
 import medicationEntryRepository from '../../models/medicationEntryRepository.js';
+import {
+  createPlannedSupplementAction,
+  PlannedSupplementActionError,
+} from '../../models/plannedSupplementActionRepository.js';
 import medicationDisplayPreferenceRepository from '../../models/medicationDisplayPreferenceRepository.js';
 import { loadUserTimezone } from '../../utils/timezoneLoader.js';
-import { instantToDay, todayInZone } from '@workspace/shared';
+import {
+  instantToDay,
+  plannedSupplementActionBodySchema,
+  todayInZone,
+} from '@workspace/shared';
 
 const router = express.Router();
 
@@ -410,6 +418,17 @@ const requireDiaryForSupplementDose = (
  *         application/json:
  *           schema: { type: object, required: [medication_id], properties: { medication_id: { type: string, format: uuid }, schedule_id: { type: string, format: uuid }, status: { type: string, enum: [taken, skipped, snoozed, prn_taken] }, taken_at: { type: string, format: date-time }, entry_date: { type: string, format: date }, notes: { type: string } } }
  *     responses: { 201: { description: Created. }, 400: { description: Invalid request. }, 403: { description: Supplement doses require food diary access for this profile. } }
+ * /v2/medications/entries/planned-supplement-actions:
+ *   post:
+ *     summary: Record one planned supplement reminder response with retry-safe operation identity
+ *     tags: [Medications & GLP-1]
+ *     security: [{ cookieAuth: [] }]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema: { type: object, required: [client_operation_id, medication_id, schedule_id, entry_date, status, occurred_at], properties: { client_operation_id: { type: string, format: uuid }, medication_id: { type: string, format: uuid }, schedule_id: { type: string, format: uuid }, entry_date: { type: string, format: date }, status: { type: string, enum: [taken, skipped] }, occurred_at: { type: string, format: date-time } } }
+ *     responses: { 201: { description: Entry created. }, 200: { description: Identical operation replayed; entry may be null if later deleted. }, 400: { description: Invalid request. }, 403: { description: Diary permission required. }, 404: { description: Supplement schedule not found. }, 409: { description: Operation or occurrence conflict. } }
  * /v2/medications/entries/{id}:
  *   put:
  *     summary: Update a logged dose (e.g. correct the taken-at time or notes)
@@ -599,6 +618,35 @@ const createEntry: RequestHandler = async (req, res, next) => {
   }
 };
 
+const logPlannedSupplementAction: RequestHandler = async (req, res, next) => {
+  const body = plannedSupplementActionBodySchema.safeParse(req.body);
+  if (!body.success) return badRequest(res, body.error);
+  try {
+    const authUserId =
+      req.originalUserId || req.authenticatedUserId || req.userId;
+    if (!(await canAccessUserData(req.userId, 'diary', authUserId))) {
+      res.status(403).json({
+        error:
+          'Managing supplement doses requires food diary access for this profile.',
+      });
+      return;
+    }
+    const timezone = await loadUserTimezone(req.userId);
+    const result = await createPlannedSupplementAction(
+      req.userId,
+      body.data,
+      timezone
+    );
+    res.status(result.replayed ? 200 : 201).json(result);
+  } catch (error) {
+    if (error instanceof PlannedSupplementActionError) {
+      res.status(error.statusCode).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+};
+
 const updateEntry: RequestHandler = async (req, res, next) => {
   try {
     const params = UuidParamSchema.safeParse(req.params);
@@ -645,6 +693,7 @@ router.post(
   createMedication
 );
 router.get('/entries', listEntries);
+router.post('/entries/planned-supplement-actions', logPlannedSupplementAction);
 router.post(
   '/entries',
   requireDiaryForSupplementDose((req) => ({

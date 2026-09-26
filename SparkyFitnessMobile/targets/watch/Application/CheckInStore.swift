@@ -23,30 +23,43 @@ final class CheckInStore: ObservableObject {
     /// can wait a long while for its confirmation, and until then this is the
     /// only record that it happened.
     @Published private(set) var pendingWaterTaps: [PendingWaterTap] = []
+    /// Changes when the local day rolls over, forcing pages that compute
+    /// day-filtered pending totals to redraw even without a phone snapshot.
+    @Published private(set) var localDay: String = CheckInDate.today()
+    @Published private(set) var pendingQuickWaterActions: [PendingQuickWaterAction] = []
+    @Published private(set) var pendingFoodActions: [PendingFoodLogAction] = []
+    @Published private(set) var pendingWorkoutOperations: [WorkoutSetOperation] = []
 
     private let defaults = UserDefaults.standard
     private let contextKey = "sparky.watch.context"
     private let pendingKey = "sparky.watch.pending"
     private let lastCapturedKey = "sparky.watch.lastCaptured"
     private let pendingWaterKey = "sparky.watch.pendingWaterTaps"
+    private let pendingQuickWaterKey = "personalbest.watch.pendingQuickWaterActions"
+    private let pendingFoodKey = "x-on-track.watch.pendingFoodActions"
+    private let pendingWorkoutKey = "personalbest.watch.pendingWorkoutOperations"
 
     private init() {
         load()
     }
+
+    /// Older phone contexts have no account marker. Never create a new action
+    /// that the phone cannot safely attribute after reconnecting.
+    var canCaptureActions: Bool { context.actionScope?.isEmpty == false }
 
     // MARK: - Seeding
 
     /// The value the Digital Crown starts on. Today's entry wins over history so
     /// re-logging is a correction of the right number, not a fresh guess.
     var seedWeightKg: Double? {
-        if let pendingToday = pending.last(where: { $0.entryDate == CheckInDate.today() }) {
+        if let pendingToday = retryable.last(where: { $0.entryDate == CheckInDate.today() }) {
             return pendingToday.weightKg
         }
         return context.todayWeightKg ?? context.lastWeightKg
     }
 
     var seedBodyFatPercentage: Double? {
-        if let pendingToday = pending.last(where: { $0.entryDate == CheckInDate.today() }),
+        if let pendingToday = retryable.last(where: { $0.entryDate == CheckInDate.today() }),
            let fat = pendingToday.bodyFatPercentage {
             return fat
         }
@@ -56,7 +69,7 @@ final class CheckInStore: ObservableObject {
     /// True when today already has a value — the header then reads "replacing"
     /// so an overwrite is never silent.
     var isReplacingToday: Bool {
-        if pending.contains(where: { $0.entryDate == CheckInDate.today() }) { return true }
+        if retryable.contains(where: { $0.entryDate == CheckInDate.today() }) { return true }
         return context.todayWeightKg != nil && context.today == CheckInDate.today()
     }
 
@@ -67,16 +80,17 @@ final class CheckInStore: ObservableObject {
 
     // MARK: - Capture
 
-    /// Records a check-in locally and returns it so the caller can hand it to
-    /// WatchConnectivity. Never throws and never blocks on reachability — the
-    /// Save tap is always terminal.
-    func capture(weightKg: Double, bodyFatPercentage: Double?) -> CheckIn {
+    /// Records a scoped check-in locally before WatchConnectivity delivery.
+    /// A missing account marker leaves the form open for a later phone sync.
+    func capture(weightKg: Double, bodyFatPercentage: Double?) -> CheckIn? {
+        guard let scope = context.actionScope, !scope.isEmpty else { return nil }
         let checkIn = CheckIn(
             id: UUID().uuidString,
             entryDate: CheckInDate.today(),
             weightKg: weightKg,
             bodyFatPercentage: bodyFatPercentage,
-            capturedAt: Date()
+            capturedAt: Date(),
+            scope: scope
         )
         pending.append(checkIn)
         lastCaptured = checkIn
@@ -97,23 +111,22 @@ final class CheckInStore: ObservableObject {
 
     // MARK: - Water
 
-    /// Records a tap and returns the id to send to the phone. Caller must use
-    /// this id as the tap's `clientId`: it is what the acknowledgement names,
-    /// and a second id generated at send time would never match.
-    func recordWaterTap(volumeMl: Double, containerId: Int) -> String {
-        let id = UUID().uuidString
-        pendingWaterTaps.append(
-            PendingWaterTap(
-                id: id,
-                volumeMl: volumeMl,
-                containerId: containerId,
-                createdAt: Date(),
-                day: CheckInDate.today(),
-                state: .queued
-            )
+    /// The same captured id and day must reach the phone, including on retry
+    /// after midnight. A fresh id or date would turn one tap into a new write.
+    func recordWaterTap(volumeMl: Double, containerId: Int) -> PendingWaterTap? {
+        guard let scope = context.actionScope, !scope.isEmpty else { return nil }
+        let tap = PendingWaterTap(
+            id: UUID().uuidString,
+            volumeMl: volumeMl,
+            containerId: containerId,
+            createdAt: Date(),
+            day: CheckInDate.today(),
+            scope: scope,
+            state: .queued
         )
+        pendingWaterTaps.append(tap)
         persist()
-        return id
+        return tap
     }
 
     /// Moves one tap to `.saved` or `.failed` once the phone reports on it.
@@ -121,6 +134,10 @@ final class CheckInStore: ObservableObject {
     /// settled, or one from a previous install.
     func markWaterTap(_ clientId: String, _ state: SyncState) {
         guard let index = pendingWaterTaps.firstIndex(where: { $0.id == clientId }) else { return }
+        // Application context is latest-value-only, but a previously cached
+        // failure can still be replayed after an immediate success ack.
+        // Never offer a retry once the phone confirmed the additive write.
+        if pendingWaterTaps[index].state == .saved && state == .failed { return }
         guard pendingWaterTaps[index].state != state else { return }
         pendingWaterTaps[index].state = state
         persist()
@@ -129,26 +146,185 @@ final class CheckInStore: ObservableObject {
     /// Written to the server, but not yet reflected in a pushed total — so it
     /// belongs in the fill, alongside the confirmed amount.
     var savedWaterMl: Double {
-        pendingWaterTaps.filter { $0.state == .saved }.reduce(0) { $0 + $1.volumeMl }
+        pendingWaterTaps.filter {
+            $0.isToday && $0.state == .saved &&
+                $0.scope == context.actionScope && $0.scope != nil
+        }.reduce(0) { $0 + $1.volumeMl }
     }
 
     /// Still waiting on the phone. Drawn as the line above the fill rather than
     /// as fill, so the gap is what the wearer is waiting on.
     var queuedWaterMl: Double {
-        pendingWaterTaps.filter { $0.state == .queued }.reduce(0) { $0 + $1.volumeMl }
+        pendingWaterTaps.filter {
+            $0.isToday && $0.state == .queued &&
+                $0.scope == context.actionScope && $0.scope != nil
+        }.reduce(0) { $0 + $1.volumeMl }
     }
 
     /// What the Water page's status pill shows: the worst outstanding state,
     /// since a single failure is the thing worth surfacing.
     var waterSyncState: SyncState {
-        if pendingWaterTaps.contains(where: { $0.state == .failed }) { return .failed }
-        if pendingWaterTaps.contains(where: { $0.state == .queued }) { return .queued }
+        if pendingWaterTaps.contains(where: { $0.state == .failed && $0.scope == context.actionScope && $0.scope != nil }) { return .failed }
+        if pendingWaterTaps.contains(where: { $0.state == .queued && $0.scope == context.actionScope && $0.scope != nil }) { return .queued }
         return .saved
     }
 
     /// Taps to send again, oldest first.
     var retryableWaterTaps: [PendingWaterTap] {
-        pendingWaterTaps.filter { $0.state == .failed }
+        pendingWaterTaps.filter { $0.state == .failed && $0.scope == context.actionScope && $0.scope != nil }
+    }
+
+    /// Unacknowledged taps may have reached the phone before it relaunched.
+    /// Re-sending their original IDs is safe with the server receipt.
+    var queuedWaterTaps: [PendingWaterTap] {
+        pendingWaterTaps.filter { $0.state == .queued && $0.scope == context.actionScope && $0.scope != nil }
+    }
+
+    /// New quick-water writes require a scope previously sent by the phone.
+    func captureQuickWater() -> PendingQuickWaterAction? {
+        guard let scope = context.actionScope, !scope.isEmpty else { return nil }
+        let action = PendingQuickWaterAction(
+            id: UUID().uuidString,
+            entryDate: CheckInDate.today(),
+            scope: scope,
+            loggedAt: Date(),
+            state: .queued
+        )
+        pendingQuickWaterActions.append(action)
+        persist()
+        return action
+    }
+
+    func markQuickWater(_ clientId: String, _ state: SyncState) {
+        guard let index = pendingQuickWaterActions.firstIndex(where: { $0.id == clientId }) else {
+            return
+        }
+        if state == .saved {
+            pendingQuickWaterActions.remove(at: index)
+        } else {
+            pendingQuickWaterActions[index].state = state
+        }
+        persist()
+    }
+
+    var queuedQuickWaterActions: [PendingQuickWaterAction] {
+        pendingQuickWaterActions.filter {
+            $0.state == .queued && $0.scope == context.actionScope
+        }
+    }
+
+    var failedQuickWaterActions: [PendingQuickWaterAction] {
+        pendingQuickWaterActions.filter {
+            $0.state == .failed && $0.scope == context.actionScope
+        }
+    }
+
+    // MARK: - Food shortcuts
+
+    func captureFoodLog(_ food: WatchFoodShortcut, mealTypeId: String) -> PendingFoodLogAction? {
+        guard let scope = context.actionScope, !scope.isEmpty,
+              context.foodShortcuts?.contains(where: { $0.id == food.id }) == true,
+              context.mealTypes?.contains(where: { $0.id == mealTypeId }) == true else { return nil }
+        let action = PendingFoodLogAction(
+            id: UUID().uuidString, scope: scope, entryDate: CheckInDate.today(),
+            loggedAt: Date(), foodId: food.foodId, variantId: food.variantId,
+            mealTypeId: mealTypeId, quantity: food.servingSize,
+            unit: food.servingUnit, name: food.name, state: .queued
+        )
+        pendingFoodActions.append(action)
+        // Keep bounded local history while retaining every unresolved write.
+        let saved = pendingFoodActions.filter { $0.state == .saved }.suffix(20)
+        pendingFoodActions = pendingFoodActions.filter { $0.state != .saved } + saved
+        persist()
+        return action
+    }
+
+    func markFoodLog(_ clientId: String, _ state: SyncState) {
+        guard let index = pendingFoodActions.firstIndex(where: { $0.id == clientId }) else { return }
+        if pendingFoodActions[index].state == .saved && state == .failed { return }
+        pendingFoodActions[index].state = state
+        persist()
+    }
+
+    var queuedFoodActions: [PendingFoodLogAction] {
+        pendingFoodActions.filter { $0.state == .queued && $0.scope == context.actionScope }
+    }
+
+    var failedFoodActions: [PendingFoodLogAction] {
+        pendingFoodActions.filter { $0.state == .failed && $0.scope == context.actionScope }
+    }
+
+    // MARK: - Workout set actions
+
+    func operation(for setKey: String, sessionId: String) -> WorkoutSetOperation? {
+        pendingWorkoutOperations.last {
+            $0.setKey == setKey && $0.sessionId == sessionId &&
+                $0.scope == context.actionScope && $0.scope != nil
+        }
+    }
+
+    func captureWorkoutOperation(
+        workout: WatchWorkoutSnapshot,
+        set: WatchWorkoutSnapshot.Exercise.SetRow
+    ) -> WorkoutSetOperation? {
+        guard let scope = context.actionScope, !scope.isEmpty else { return nil }
+        guard operation(for: set.key, sessionId: workout.sessionId) == nil else { return nil }
+        let operation = WorkoutSetOperation(
+            id: UUID().uuidString,
+            sessionId: workout.sessionId,
+            setKey: set.key,
+            setSignature: set.signature,
+            expectedCompleted: set.completed,
+            completed: !set.completed,
+            createdAt: Date(),
+            scope: scope,
+            state: .queued
+        )
+        pendingWorkoutOperations.append(operation)
+        persist()
+        return operation
+    }
+
+    func markWorkoutOperation(_ clientId: String, _ state: SyncState) {
+        guard let index = pendingWorkoutOperations.firstIndex(where: { $0.id == clientId }) else {
+            return
+        }
+        // The phone only acknowledges success after its server save. An older
+        // cached failure context may arrive later, but must not undo that ack.
+        if pendingWorkoutOperations[index].state == .saved && state == .failed {
+            return
+        }
+        pendingWorkoutOperations[index].state = state
+        persist()
+    }
+
+    func retryFailedWorkoutOperation(_ clientId: String) -> WorkoutSetOperation? {
+        guard let index = pendingWorkoutOperations.firstIndex(where: {
+            $0.id == clientId && $0.state == .failed &&
+                $0.scope == context.actionScope && $0.scope != nil
+        }) else { return nil }
+        pendingWorkoutOperations[index].state = .queued
+        persist()
+        return pendingWorkoutOperations[index]
+    }
+
+    func discardFailedWorkoutOperation(_ clientId: String) {
+        guard let index = pendingWorkoutOperations.firstIndex(where: {
+            $0.id == clientId && $0.state == .failed &&
+                $0.scope == context.actionScope && $0.scope != nil
+        }) else { return }
+        pendingWorkoutOperations.remove(at: index)
+        persist()
+    }
+
+    /// Only one unacknowledged action may be in transit. A confirmed action
+    /// no longer blocks the next one, but a failed action waits for retry or
+    /// explicit dismissal so later taps cannot overtake it after reconnect.
+    var nextQueuedWorkoutOperation: WorkoutSetOperation? {
+        guard let firstUnresolved = pendingWorkoutOperations.first(where: {
+            $0.state != .saved && $0.scope == context.actionScope && $0.scope != nil
+        }) else { return nil }
+        return firstUnresolved.state == .queued ? firstUnresolved : nil
     }
 
     // MARK: - Phone updates
@@ -171,10 +347,28 @@ final class CheckInStore: ObservableObject {
         // fills the bottle up to the line the queued state drew.
         for clientId in incoming.ackedClientIds { markWaterTap(clientId, .saved) }
         for clientId in incoming.failedClientIds { markWaterTap(clientId, .failed) }
+        for clientId in incoming.ackedClientIds { markQuickWater(clientId, .saved) }
+        for clientId in incoming.failedClientIds { markQuickWater(clientId, .failed) }
+        for clientId in incoming.ackedClientIds { markFoodLog(clientId, .saved) }
+        for clientId in incoming.failedClientIds { markFoodLog(clientId, .failed) }
+        for clientId in incoming.ackedClientIds { markWorkoutOperation(clientId, .saved) }
+        for clientId in incoming.failedClientIds { markWorkoutOperation(clientId, .failed) }
 
-        // Then settle the resolved ones. A total the phone built after the tap
-        // has had its chance to include it, so keeping our own copy would
-        // double-count.
+        // A saved action remains visible until the mirrored workout actually
+        // reflects it. In particular, a cached context with no workout must
+        // not clear a newly acknowledged action before the phone's next push.
+        pendingWorkoutOperations.removeAll { operation in
+            guard operation.state == .saved,
+                  operation.scope == context.actionScope else { return false }
+            guard let workout = incoming.workout,
+                  workout.sessionId == operation.sessionId else { return false }
+            let row = workout.exercises.flatMap(\.sets).first { $0.key == operation.setKey }
+            return row?.completed == operation.completed
+        }
+
+        // Then settle saved taps. A total the phone built after a successful
+        // tap has had its chance to include it, so keeping our own copy would
+        // double-count. Failed taps remain available for an explicit retry.
         //
         // Not simply "a today-snapshot arrived, drop everything": an inbound
         // context is not always a fresh one. `adoptReceivedContext()` replays
@@ -192,16 +386,20 @@ final class CheckInStore: ObservableObject {
         // settles the bottle on the server's number either way — where the
         // previous rule lost the tap outright.
         // Deliberately does NOT settle `.queued` taps. An unacknowledged tap
-        // has no evidence behind it either way, and dropping it would put the
-        // bottle back to a number the wearer knows is wrong — the exact
-        // complaint that started this. It waits for its ack, or for midnight.
+        // has no evidence behind it either way. It remains a delivery record
+        // across midnight, though only taps from today affect today's bottle.
         if context.water?.isToday == true, !pendingWaterTaps.isEmpty {
             if let generatedAt = context.generatedAt {
-                pendingWaterTaps.removeAll { $0.state != .queued && $0.createdAt <= generatedAt }
+                pendingWaterTaps.removeAll {
+                    $0.scope == context.actionScope && $0.scope != nil &&
+                        $0.state == .saved && $0.createdAt <= generatedAt
+                }
             } else {
                 // A phone build from before `pushedAt` existed: no timestamp to
-                // reason with, so settle everything already resolved.
-                pendingWaterTaps.removeAll { $0.state != .queued }
+                // reason with, so settle only saved taps.
+                pendingWaterTaps.removeAll {
+                    $0.scope == context.actionScope && $0.scope != nil && $0.state == .saved
+                }
             }
         }
 
@@ -218,7 +416,15 @@ final class CheckInStore: ObservableObject {
     }
 
     /// Check-ins still awaiting delivery, for the retry path.
-    var retryable: [CheckIn] { pending }
+    var retryable: [CheckIn] {
+        pending.filter { $0.scope == context.actionScope && $0.scope != nil }
+    }
+
+    var visibleLastCaptured: CheckIn? {
+        guard lastCaptured?.scope == context.actionScope,
+              lastCaptured?.scope != nil else { return nil }
+        return lastCaptured
+    }
 
     // MARK: - Trend data
 
@@ -229,7 +435,7 @@ final class CheckInStore: ObservableObject {
         for point in context.history {
             byDay[point.day] = point
         }
-        for checkIn in pending {
+        for checkIn in retryable {
             byDay[checkIn.entryDate] = HistoryPoint(
                 day: checkIn.entryDate,
                 weightKg: checkIn.weightKg,
@@ -237,7 +443,7 @@ final class CheckInStore: ObservableObject {
                     ?? byDay[checkIn.entryDate]?.bodyFatPercentage
             )
         }
-        if let last = lastCaptured, lastCapturedState == .saved {
+        if let last = visibleLastCaptured, lastCapturedState == .saved {
             byDay[last.entryDate] = HistoryPoint(
                 day: last.entryDate,
                 weightKg: last.weightKg,
@@ -253,7 +459,7 @@ final class CheckInStore: ObservableObject {
     /// True when today's point should be drawn hollow — captured here but not
     /// yet acknowledged by the phone.
     func isDayUnconfirmed(_ day: String) -> Bool {
-        pending.contains { $0.entryDate == day }
+        retryable.contains { $0.entryDate == day }
     }
 
     /// Centred 7-day rolling mean. The wearer verifies the *shape* of the
@@ -303,6 +509,12 @@ final class CheckInStore: ObservableObject {
     private func clearStaleDayData() -> Bool {
         var changed = false
 
+        let today = CheckInDate.today()
+        if localDay != today {
+            localDay = today
+            changed = true
+        }
+
         if let nutrition = context.nutrition, !nutrition.isToday {
             context.nutrition = nil
             changed = true
@@ -311,15 +523,9 @@ final class CheckInStore: ObservableObject {
             context.water = nil
             changed = true
         }
-        // Yesterday's unconfirmed taps are yesterday's problem — carrying them
-        // into a new day would show a bottle part-full before a drop was drunk.
-        // Keyed on each tap's own day, not on the water snapshot: an unsynced
-        // today has no snapshot either, and this morning's taps must survive
-        // exactly that case.
-        if pendingWaterTaps.contains(where: { !$0.isToday }) {
-            pendingWaterTaps.removeAll { !$0.isToday }
-            changed = true
-        }
+        // Pending taps are delivery records, not just today's presentation.
+        // Keep older ones until acknowledged or explicitly resolved; the
+        // bottle sums above filter by tap day so yesterday cannot prefill it.
 
         return changed
     }
@@ -335,6 +541,15 @@ final class CheckInStore: ObservableObject {
         }
         if let data = try? encoder.encode(pendingWaterTaps) {
             defaults.set(data, forKey: pendingWaterKey)
+        }
+        if let data = try? encoder.encode(pendingQuickWaterActions) {
+            defaults.set(data, forKey: pendingQuickWaterKey)
+        }
+        if let data = try? encoder.encode(pendingFoodActions) {
+            defaults.set(data, forKey: pendingFoodKey)
+        }
+        if let data = try? encoder.encode(pendingWorkoutOperations) {
+            defaults.set(data, forKey: pendingWorkoutKey)
         }
     }
 
@@ -357,6 +572,18 @@ final class CheckInStore: ObservableObject {
         if let data = defaults.data(forKey: pendingWaterKey),
            let decoded = try? decoder.decode([PendingWaterTap].self, from: data) {
             pendingWaterTaps = decoded
+        }
+        if let data = defaults.data(forKey: pendingQuickWaterKey),
+           let decoded = try? decoder.decode([PendingQuickWaterAction].self, from: data) {
+            pendingQuickWaterActions = decoded
+        }
+        if let data = defaults.data(forKey: pendingFoodKey),
+           let decoded = try? decoder.decode([PendingFoodLogAction].self, from: data) {
+            pendingFoodActions = decoded
+        }
+        if let data = defaults.data(forKey: pendingWorkoutKey),
+           let decoded = try? decoder.decode([WorkoutSetOperation].self, from: data) {
+            pendingWorkoutOperations = decoded
         }
 
         // What was just restored may describe a day that has since ended —

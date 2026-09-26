@@ -215,7 +215,7 @@ function MessageBubble({ role }: { role: MessageRole }) {
             // renders as themed markdown.
             renderText={({ part }) =>
               isUser ? (
-                <Text className="text-base text-white">{part.text}</Text>
+                <Text className="text-base text-accent-text">{part.text}</Text>
               ) : (
                 <MarkdownMessage text={part.text} streaming={isStreaming} />
               )
@@ -412,7 +412,9 @@ function Composer({ autoFocusReady }: { autoFocusReady: boolean }) {
     >
       <LocalComposerInput
         autoFocusReady={autoFocusReady}
-        placeholder={t('chat.placeholder', { defaultValue: 'Message Sparky…' })}
+        placeholder={t('chat.placeholder', {
+          defaultValue: 'Message the assistant…',
+        })}
         placeholderTextColor={muted}
         multiline
         style={{
@@ -589,8 +591,7 @@ function ChatThread({
             <View className="flex-1 items-center justify-center p-8">
               <Text className="text-text-muted text-center text-base mb-6">
                 {t('chat.emptyPrompt', {
-                  defaultValue:
-                    'Ask Sparky anything about your nutrition, exercise, or goals.',
+                  defaultValue: 'Ask about your nutrition, exercise, or goals.',
                 })}
               </Text>
               {/* ThreadPrimitive.Suggestion IS the Pressable, so its child must be a
@@ -720,7 +721,7 @@ export default function ChatScreen({
       t('chat.clearTitle', { defaultValue: 'Clear chat' }),
       t('chat.clearMessage', {
         defaultValue:
-          'This permanently deletes your Sparky chat history. This cannot be undone.',
+          'This permanently deletes your assistant chat history. This cannot be undone.',
       }),
       [
         {
@@ -759,7 +760,7 @@ export default function ChatScreen({
   // Clear chat is disabled while a stream runs so the server's in-flight
   // onFinish save can't resurrect the exchange after the DELETE.
   const header = useScreenHeader({
-    title: t('chat.title', { defaultValue: 'Sparky' }),
+    title: t('chat.title', { defaultValue: 'Assistant' }),
     left: { kind: 'back' },
     right: baseUrl
       ? {

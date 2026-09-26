@@ -553,8 +553,7 @@ function buildOpenAiFamilyRequest(ctx: BuildContext): BuiltRequest {
     headers: {
       'Content-Type': 'application/json',
       ...(ctx.provider.service_type === 'openrouter' && {
-        'HTTP-Referer': 'https://sparky-fitness.com',
-        'X-Title': 'Sparky Fitness',
+        'X-Title': 'X on Track',
       }),
       // Local/self-hosted types may have no key; send the chat path's `no-key`
       // sentinel so a keyless server sees the same header from both paths.

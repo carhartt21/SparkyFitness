@@ -67,7 +67,9 @@ export const useSyncAllMutation = () => {
               await handleManualSyncGarmin();
               break;
             case 'hevy':
-              await syncHevyData(false, provider.id);
+              if ((await syncHevyData(false, provider.id)).partial) {
+                throw new Error('Hevy sync partially completed');
+              }
               break;
             case 'liftosaur':
               await syncLiftosaurData(false, provider.id);

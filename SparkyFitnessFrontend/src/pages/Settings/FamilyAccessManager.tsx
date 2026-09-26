@@ -337,7 +337,7 @@ const FamilyAccessManager = () => {
                 <p className="text-xs text-muted-foreground mt-1">
                   {t(
                     'settings.familyAccess.accountHint',
-                    "They'll get access once they create a SparkyFitness account (if they don't have one already)"
+                    "They'll get access once they create a X on Track account (if they don't have one already)"
                   )}
                 </p>
               </div>

@@ -5,10 +5,7 @@ import { Alert, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import MealTypeSettingsScreen from '../../src/screens/MealTypeSettingsScreen';
-import {
-  resetReorderDragPreview,
-  useReorderRowPreviewStyle,
-} from '../../src/components/WorkoutReorderList';
+import { useReorderRowPreviewStyle } from '../../src/components/WorkoutReorderList';
 import {
   TIME_WHEEL_CONTAINER_HEIGHT,
   TIME_WHEEL_WRAPPER_HEIGHT,
@@ -348,13 +345,40 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     expect(await findByTestId('icon-meal-snack')).toBeTruthy();
   });
 
-  it('system rows are not draggable (no drag handle)', async () => {
+  it('system rows expose reorder actions', async () => {
     const { findByText, queryByLabelText, getAllByLabelText } = renderScreen();
     await findByText('Breakfast');
-    expect(queryByLabelText('Reorder breakfast')).toBeNull();
-    expect(queryByLabelText('Reorder lunch')).toBeNull();
+    expect(queryByLabelText('Reorder Breakfast')).not.toBeNull();
+    expect(queryByLabelText('Reorder Lunch')).not.toBeNull();
     // Custom rows keep their accessible reorder handle.
     expect(getAllByLabelText(/^Reorder /).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('moves a system meal with the same accessible action used by drag and sends a complete order', async () => {
+    const orderSpy = jest
+      .spyOn(mealTypesApi, 'updateMealTypeOrder')
+      .mockImplementation(async (ids) =>
+        ids.map((id, index) => ({
+          ...allMealTypes.find((type) => type.id === id)!,
+          sort_order: (index + 1) * 10,
+        }))
+      );
+    const { findByText, getByLabelText } = renderScreen();
+    await findByText('Breakfast');
+
+    fireEvent(getByLabelText('Reorder Breakfast'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'increment' },
+    });
+
+    await waitFor(() =>
+      expect(orderSpy).toHaveBeenCalledWith([
+        'sys-l',
+        'sys-b',
+        'custom-pw',
+        'sys-d',
+        'sys-s',
+      ])
+    );
   });
 
   it('never exposes raw sort_order / Order numbers', async () => {
@@ -570,229 +594,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     expect(queryByLabelText('Clear default time')).toBeNull();
   });
 
-  it('reorders a custom across an anchor gap and persists sequential slots with ONE invalidate', async () => {
-    const types = [
-      ...systemMealTypes,
-      {
-        id: 'brunch',
-        name: 'Brunch',
-        sort_order: 11,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-      {
-        id: 'l2',
-        name: 'Lunch 2.0',
-        sort_order: 21,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-    ];
-    const { findByText, getByLabelText } = renderScreen({ mealTypes: types });
-    const updateSpy = jest
-      .spyOn(mealTypesApi, 'updateMealType')
-      .mockResolvedValue({} as any);
-    const invalidateSpy = jest.spyOn(Toast, 'show');
-    invalidateSpy.mockClear();
-
-    await findByText('Brunch');
-    // Move Brunch DOWN (across Lunch into the Lunch→Dinner gap).
-    fireEvent(getByLabelText('Reorder Brunch'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-
-    await waitFor(() => {
-      expect(updateSpy).toHaveBeenCalledWith('brunch', {
-        sort_order: expect.any(Number),
-      });
-      const write = updateSpy.mock.calls[0][1] as any;
-      expect(write.sort_order).toBeGreaterThanOrEqual(21);
-      expect(write.sort_order).toBeLessThanOrEqual(29);
-    });
-    // No generic "Failed to update" toast for reorder rows.
-    expect(Toast.show).not.toHaveBeenCalledWith(
-      expect.objectContaining({ text1: 'Failed to update' })
-    );
-    await act(async () => {});
-  });
-
-  it('rejects a move into a FULL gap with one concise toast (max 9)', async () => {
-    const fullGap = Array.from({ length: 9 }, (_, i) => ({
-      id: `l${i}`,
-      name: `Lunch ${i}`,
-      sort_order: 21 + i,
-      user_id: 'u',
-      created_at: '',
-      is_visible: true,
-      show_in_quick_log: true,
-      default_time: null,
-    }));
-    const types = [
-      ...systemMealTypes,
-      {
-        id: 'brunch',
-        name: 'Brunch',
-        sort_order: 11,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-      ...fullGap,
-    ];
-    const { findByText, getByLabelText } = renderScreen({ mealTypes: types });
-    const updateSpy = jest
-      .spyOn(mealTypesApi, 'updateMealType')
-      .mockResolvedValue({} as any);
-
-    await findByText('Brunch');
-    fireEvent(getByLabelText('Reorder Brunch'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-
-    await waitFor(() => {
-      expect(Toast.show).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'error',
-          text1: expect.stringContaining(
-            'No more meal types can be placed between Lunch and Dinner'
-          ),
-        })
-      );
-    });
-    // No partial writes.
-    expect(updateSpy).not.toHaveBeenCalled();
-    await act(async () => {});
-  });
-
-  it('rapid reorders (deferred): newest order B stays visible and is persisted exactly once', async () => {
-    const types = [
-      ...systemMealTypes,
-      {
-        id: 'a',
-        name: 'A',
-        sort_order: 11,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-      {
-        id: 'b',
-        name: 'B',
-        sort_order: 21,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-    ];
-    const serverState: any[] = JSON.parse(JSON.stringify(types));
-    const fetchMock = async () => JSON.parse(JSON.stringify(serverState));
-    const { findByText, getByLabelText, getAllByLabelText } = renderScreen({
-      fetchMock,
-    });
-
-    // Deferred promises: first persistence (A) stays pending while B arrives.
-    let resolveA!: (v: any) => void;
-    let resolveB!: (v: any) => void;
-    const pendingA = new Promise((res) => {
-      resolveA = res;
-    });
-    const pendingB = new Promise((res) => {
-      resolveB = res;
-    });
-    const updateSpy = jest
-      .spyOn(mealTypesApi, 'updateMealType')
-      .mockImplementation(async (id: string, data: any) => {
-        const idx = serverState.findIndex((t) => t.id === id);
-        if (id === 'a') {
-          await pendingA;
-          serverState[idx] = { ...serverState[idx], ...data };
-          return { ...serverState[idx] };
-        }
-        await pendingB;
-        serverState[idx] = { ...serverState[idx], ...data };
-        return { ...serverState[idx] };
-      });
-
-    await findByText('A');
-    // 1. Drag A down (into l_d) — first persistence request stays pending.
-    fireEvent(getByLabelText('Reorder A'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-    await waitFor(() =>
-      expect(updateSpy.mock.calls.filter((c) => c[0] === 'a').length).toBe(1)
-    );
-
-    // 2. Drag B up (into b_l) while A is still pending.
-    fireEvent(getByLabelText('Reorder B'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'decrement' },
-    });
-
-    // 3. B is visible as the optimistic order (B sits before Lunch).
-    await waitFor(() => {
-      expect(
-        getAllByLabelText(/^Default time for B(?:,| )/).length
-      ).toBeGreaterThan(0);
-    });
-
-    // 4. Resolve A's persistence (its snapshot also writes B's l_d slot).
-    await act(async () => {
-      resolveA({});
-    });
-    // 5. A's completion must NOT clear B's newer optimistic override.
-    await act(async () => {});
-    expect(
-      getAllByLabelText(/^Default time for B(?:,| )/).length
-    ).toBeGreaterThan(0);
-
-    // 6-7. Allow B's persistence; final list/cache = B (B in b_l, A in l_d).
-    await act(async () => {
-      resolveB({});
-    });
-    await act(async () => {});
-    await act(async () => {});
-    await waitFor(() => {
-      // Move A -> l_d=[A,B]; move B (one decrement) -> l_d=[B,A].
-      // Snapshot A writes a:21, b:22; snapshot B (newest) writes b:21, a:22.
-      // The FINAL order (B before A in l_d) is persisted exactly once by
-      // snapshot B — never repeated by a third worker sequence.
-      const bCalls = updateSpy.mock.calls.filter((c) => c[0] === 'b').length;
-      expect(bCalls).toBe(2);
-      const bLast = updateSpy.mock.calls.filter((c) => c[0] === 'b').pop();
-      const s = (bLast![1] as any).sort_order;
-      expect(s).toBeGreaterThanOrEqual(21);
-      expect(s).toBeLessThanOrEqual(29);
-    });
-    // 8. Unconditional write assertions for both records in BOTH snapshots.
-    const aWrites = updateSpy.mock.calls.filter((c) => c[0] === 'a');
-    const bWrites = updateSpy.mock.calls.filter((c) => c[0] === 'b');
-    expect(aWrites.length).toBe(2); // a:21 (snapshot A), a:22 (snapshot B)
-    expect(bWrites.length).toBe(2); // b:22 (snapshot A), b:21 (snapshot B)
-    expect((aWrites[0][1] as any).sort_order).toBe(21);
-    expect((bWrites[0][1] as any).sort_order).toBe(22);
-    expect((bWrites[1][1] as any).sort_order).toBe(21);
-    expect((aWrites[1][1] as any).sort_order).toBe(22);
-    // 9. No third redundant persistence sequence — the write set is stable.
-    await act(async () => {});
-    await act(async () => {});
-    expect(updateSpy.mock.calls.length).toBe(4);
-    // Final server state is B's newest order: B before A in l_d (21, 22).
-    expect(serverState.find((t) => t.id === 'b').sort_order).toBe(21);
-    expect(serverState.find((t) => t.id === 'a').sort_order).toBe(22);
-  });
-
-  it('creates a custom type: auto end-of-list slot in d_s, no is_visible in payload, then quick-log follow-up', async () => {
+  it('creates a custom type after the current list, then applies quick-log choice', async () => {
     const { findByText, getByLabelText, getByPlaceholderText } = renderScreen();
     const createSpy = jest
       .spyOn(mealTypesApi, 'createMealType')
@@ -815,7 +617,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
       expect(createSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Dessert',
-          sort_order: 31, // d_s first slot (end of list)
+          sort_order: 50, // after the four system types
           // The inline wheel shows a concrete time; untouched Create saves
           // exactly the displayed HH:MM (visual state == payload state).
           default_time: expect.stringMatching(/^\d{2}:\d{2}$/),
@@ -896,17 +698,13 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     await act(async () => {});
   });
 
-  it('system edit: name display-only, no Delete, per-user quick log switch present', async () => {
-    const { findByText, getByLabelText, queryByLabelText, getAllByText } =
-      renderScreen();
+  it('system edit: account name editable, no Delete, per-user quick log switch present', async () => {
+    const { findByText, getByLabelText, queryByLabelText } = renderScreen();
     await findByText('Breakfast');
     // Visibility is on the MAIN LIST for system rows too.
     expect(getByLabelText('Visible Breakfast')).toBeTruthy();
     await openEditSheet({ getByLabelText, queryByLabelText }, 'Breakfast');
-    // Display-only name (no editable TextInput); the name appears on the row
-    // AND in the read-only field.
-    expect(getAllByText('Breakfast').length).toBeGreaterThanOrEqual(2);
-    expect(queryByLabelText('Meal type name')).toBeNull();
+    expect(getByLabelText('Meal type name').props.value).toBe('Breakfast');
     expect(queryByLabelText('Delete Meal Type')).toBeNull();
     // Per-user quick log switch is present and labelled in the sheet.
     expect(getByLabelText('Quick log Breakfast')).toBeTruthy();
@@ -1072,8 +870,10 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
       expect(b?.is_visible).toBe(true); // rolled back to previous
       expect(l?.is_visible).toBe(false); // B's success preserved
     });
-    expect(getByLabelText('Visible Breakfast').props.value).toBe(true);
-    expect(getByLabelText('Visible Lunch').props.value).toBe(false);
+    await waitFor(() => {
+      expect(getByLabelText('Visible Breakfast').props.value).toBe(true);
+      expect(getByLabelText('Visible Lunch').props.value).toBe(false);
+    });
     await act(async () => {});
   });
 
@@ -1357,110 +1157,6 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
 
     await waitFor(() => {
       expect(getByLabelText('Visible Breakfast').props.value).toBe(false);
-    });
-    await act(async () => {});
-  });
-
-  it('reorder failure with a NEWER desired order: B stays and is persisted after reconciliation', async () => {
-    const types = [
-      ...systemMealTypes,
-      {
-        id: 'a',
-        name: 'A',
-        sort_order: 11,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-      {
-        id: 'b',
-        name: 'B',
-        sort_order: 21,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-    ];
-    const serverState: any[] = JSON.parse(JSON.stringify(types));
-    const fetchMock = async () => JSON.parse(JSON.stringify(serverState));
-    const { findByText, getByLabelText, getAllByLabelText } = renderScreen({
-      fetchMock,
-    });
-    let rejectA!: (e: Error) => void;
-    let resolveB!: (v: any) => void;
-    const pendingA = new Promise((_res, rej) => {
-      rejectA = rej;
-    });
-    const pendingB = new Promise((res) => {
-      resolveB = res;
-    });
-    let aCalls = 0;
-    const updateSpy = jest
-      .spyOn(mealTypesApi, 'updateMealType')
-      .mockImplementation(async (id: string, data: any) => {
-        const idx = serverState.findIndex((t) => t.id === id);
-        if (id === 'a') {
-          aCalls += 1;
-          if (aCalls === 1) {
-            await pendingA;
-            throw new Error('boom'); // A persistence fails once
-          }
-          // A re-written by B's snapshot succeeds.
-          serverState[idx] = { ...serverState[idx], ...data };
-          return { ...serverState[idx] };
-        }
-        await pendingB;
-        serverState[idx] = { ...serverState[idx], ...data };
-        return { ...serverState[idx] };
-      });
-
-    await findByText('A');
-    fireEvent(getByLabelText('Reorder A'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-    await waitFor(() => expect(aCalls).toBe(1));
-    // Newer desired order arrives while A is pending.
-    fireEvent(getByLabelText('Reorder B'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'decrement' },
-    });
-
-    // A fails: exactly one reorder error; B remains the desired order.
-    await act(async () => {
-      rejectA(new Error('boom'));
-    });
-    await act(async () => {});
-    await act(async () => {});
-    // B still visible (optimistic override preserved — stale A did not clear it).
-    expect(
-      getAllByLabelText(/^Default time for B(?:,| )/).length
-    ).toBeGreaterThan(0);
-    const reorderErrors = (Toast.show as jest.Mock).mock.calls.filter(
-      (c) => (c[0] as any)?.text1 === 'Failed to reorder meal types'
-    ).length;
-    expect(reorderErrors).toBe(1);
-
-    // B gets persisted after reconciliation; final order B wins.
-    // A failed (l_d=[A,B] snapshot) — B's newer desired order is l_d=[B,A]
-    // (one decrement moves B up within l_d, before A). B is re-persisted with
-    // its canonical slot after reconciliation.
-    await act(async () => {
-      resolveB({});
-    });
-    await act(async () => {});
-    await act(async () => {});
-    await waitFor(() => {
-      const bWrites = updateSpy.mock.calls.filter((c) => c[0] === 'b');
-      // A's snapshot failed before writing b (a failed first); B's own
-      // snapshot (the newest order) persists b once with its canonical slot.
-      expect(bWrites.length).toBe(1);
-      expect((bWrites[0][1] as any).sort_order).toBe(21);
-      // Final server state reflects B's newest order: B before A in l_d.
-      expect(serverState.find((t) => t.id === 'b').sort_order).toBe(21);
-      expect(serverState.find((t) => t.id === 'a').sort_order).toBe(22);
     });
     await act(async () => {});
   });
@@ -2206,163 +1902,5 @@ describe('Meal type drag preview — live sibling shift (device bugfix)', () => 
       { translateY: 0 },
       { scale: 1 },
     ]);
-  });
-
-  it('system rows are animated shells with NO drag handle and NO reorder accessibility actions', async () => {
-    const {
-      findByText,
-      getByTestId,
-      getByLabelText,
-      queryByTestId,
-      queryByLabelText,
-    } = renderScreen();
-    await findByText('Pre-Workout');
-    // System row renders (animated shell) with its content.
-    expect(getByTestId('meal-type-system-sys-b')).toBeTruthy();
-    expect(getByLabelText('Edit Breakfast')).toBeTruthy();
-    // But: no drag handle, no adjustable/reorder semantics.
-    expect(queryByTestId('drag-handle-sys-b')).toBeNull();
-    expect(queryByLabelText('Reorder Breakfast')).toBeNull();
-    // Custom rows keep the handle + Move up/down actions.
-    expect(getByTestId('drag-handle-custom-pw')).toBeTruthy();
-    expect(getByLabelText('Reorder Pre-Workout')).toBeTruthy();
-  });
-
-  it('full-gap drop rejection releases the frozen drag preview (CodeRabbit P1)', async () => {
-    const fullGap = Array.from({ length: 9 }, (_, i) => ({
-      id: `l${i}`,
-      name: `Lunch ${i}`,
-      sort_order: 21 + i,
-      user_id: 'u',
-      created_at: '',
-      is_visible: true,
-      show_in_quick_log: true,
-      default_time: null,
-    }));
-    const types = [
-      ...systemMealTypes,
-      {
-        id: 'brunch',
-        name: 'Brunch',
-        sort_order: 11,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-      ...fullGap,
-    ];
-    const { findByText, getByLabelText } = renderScreen({ mealTypes: types });
-    const updateSpy = jest
-      .spyOn(mealTypesApi, 'updateMealType')
-      .mockResolvedValue({} as any);
-    await findByText('Brunch');
-
-    // Screen-level: the rejected drop shows one toast and writes nothing.
-    // (fireEvent FIRST — the harness renders below would unmount/disconnect
-    // the screen tree for further event dispatch.)
-    fireEvent(getByLabelText('Reorder Brunch'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-    await waitFor(() => {
-      expect(Toast.show).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'error',
-          text1: expect.stringContaining(
-            'No more meal types can be placed between Lunch and Dinner'
-          ),
-        })
-      );
-    });
-    expect(updateSpy).not.toHaveBeenCalled();
-
-    // The frozen-preview state the gesture leaves behind on a rejected drop:
-    const frozen = render(
-      <DragPreviewHarness
-        rowIndex={1}
-        active={1}
-        panY={0}
-        committing={129}
-        target={3}
-        strideList={UNIFORM_STRIDES}
-      />
-    );
-    expect(frozen.getByTestId('preview-row').props.style.transform).toEqual([
-      { translateY: 129 },
-      { scale: 1.02 },
-    ]);
-    // resetReorderDragPreview is EXACTLY what the rejection path calls; after
-    // it, the row's preview style returns to idle (identity transform).
-    const activeDragIndex = { value: 1 };
-    const panY = { value: 0 };
-    const committingTranslate = { value: 129 };
-    resetReorderDragPreview(
-      activeDragIndex as any,
-      panY as any,
-      committingTranslate as any
-    );
-    expect(committingTranslate.value).toBe(0);
-    expect(activeDragIndex.value).toBe(-1);
-    expect(panY.value).toBe(0);
-    const idle = render(
-      <DragPreviewHarness
-        rowIndex={1}
-        active={-1}
-        panY={0}
-        committing={0}
-        target={-1}
-        strideList={UNIFORM_STRIDES}
-      />
-    );
-    expect(idle.getByTestId('preview-row').props.style.transform).toEqual([
-      { translateY: 0 },
-      { scale: 1 },
-    ]);
-    await act(async () => {});
-  });
-
-  it('accessibility Move up/down still uses the SAME reorder semantics as the gesture', async () => {
-    const types = [
-      ...systemMealTypes,
-      {
-        id: 'a',
-        name: 'A',
-        sort_order: 11,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-      {
-        id: 'b',
-        name: 'B',
-        sort_order: 21,
-        user_id: 'u',
-        created_at: '',
-        is_visible: true,
-        show_in_quick_log: true,
-        default_time: null,
-      },
-    ];
-    const { findByText, getByLabelText } = renderScreen({ mealTypes: types });
-    const updateSpy = jest
-      .spyOn(mealTypesApi, 'updateMealType')
-      .mockResolvedValue({} as any);
-    await findByText('A');
-    // Move A down (into the Lunch→Dinner gap) via the accessible action.
-    fireEvent(getByLabelText('Reorder A'), 'accessibilityAction', {
-      nativeEvent: { actionName: 'increment' },
-    });
-    await waitFor(() => {
-      expect(updateSpy).toHaveBeenCalledWith('a', {
-        sort_order: expect.any(Number),
-      });
-      const write = updateSpy.mock.calls[0][1] as any;
-      expect(write.sort_order).toBeGreaterThanOrEqual(21);
-      expect(write.sort_order).toBeLessThanOrEqual(29);
-    });
-    await act(async () => {});
   });
 });

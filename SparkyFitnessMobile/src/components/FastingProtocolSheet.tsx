@@ -113,6 +113,7 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
         '--color-text-primary',
         '--color-text-secondary',
       ]) as [string, string, string, string, string];
+    const accentText = useCSSVariable('--color-accent-text') as string;
 
     const [selectedPresetId, setSelectedPresetId] =
       useState<string>(DEFAULT_PRESET_ID);
@@ -376,7 +377,7 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
               }}
               styles={{
                 selected: { backgroundColor: accentPrimary },
-                selected_label: { color: '#FFFFFF' },
+                selected_label: { color: accentText },
                 today: { borderColor: accentPrimary, borderWidth: 1 },
                 day_label: { color: textPrimary },
                 weekday_label: { color: textSecondary },
@@ -388,9 +389,9 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
                 year_label: { color: textPrimary },
                 time_label: { color: textPrimary },
                 selected_month: { backgroundColor: accentPrimary },
-                selected_month_label: { color: '#FFFFFF' },
+                selected_month_label: { color: accentText },
                 selected_year: { backgroundColor: accentPrimary },
-                selected_year_label: { color: '#FFFFFF' },
+                selected_year_label: { color: accentText },
               }}
             />
           )}

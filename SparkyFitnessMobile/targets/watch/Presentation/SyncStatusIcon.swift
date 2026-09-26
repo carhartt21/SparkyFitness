@@ -19,7 +19,7 @@ struct SyncStatusIcon: View {
     @EnvironmentObject private var session: WatchSessionManager
 
     var body: some View {
-        let state = state ?? store.lastCapturedState
+        let state = state ?? (store.visibleLastCaptured == nil ? .saved : store.lastCapturedState)
         Button {
             guard state == .failed else { return }
             if let onRetry {

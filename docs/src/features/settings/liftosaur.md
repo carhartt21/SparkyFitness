@@ -1,6 +1,6 @@
 # Liftosaur Integration
 
-The Liftosaur integration allows you to automatically import workouts, exercise sets, and body measurements from [Liftosaur](https://www.liftosaur.com) into SparkyFitness.
+The Liftosaur integration allows you to automatically import workouts, exercise sets, and body measurements from [Liftosaur](https://www.liftosaur.com) into X on Track.
 
 ---
 
@@ -24,9 +24,9 @@ The Liftosaur integration allows you to automatically import workouts, exercise 
 
 ![Liftosaur API Keys](/liftosaur_api_keys.jpg)
 
-### 2. Connect in SparkyFitness
+### 2. Connect in X on Track
 
-1. In SparkyFitness, navigate to **Settings → External Providers** (or **Food & Exercise Data Providers**).
+1. In X on Track, navigate to **Settings → External Providers** (or **Food & Exercise Data Providers**).
 2. Click **Add New Data Provider** and select **Liftosaur**.
 3. Paste your **Liftosaur API Key** (`lftsk_...`).
 4. (Optional) Toggle **Full sync on connect** if you wish to import your entire historical Liftosaur workout and measurement log immediately.
@@ -39,21 +39,21 @@ The Liftosaur integration allows you to automatically import workouts, exercise 
 ## Data Synchronized
 
 ### Workouts & Exercises
-- **Workouts**: Workouts completed in Liftosaur are automatically parsed and imported into SparkyFitness.
+- **Workouts**: Workouts completed in Liftosaur are automatically parsed and imported into X on Track.
 - **Sets, Reps, and Weights**: Completed sets, warmup sets, repetitions, weights (kg/lb), RPE, and notes are preserved. Reusable workout presets and session entries are created so workouts group cleanly in your Diary.
 
 ![Liftosaur Exercise Diary Entry](/liftosaur_exercise_log.png)
 
 ### Body Measurements
-- **Measurements**: Body weight and measurement entries logged in Liftosaur are automatically imported into SparkyFitness.
+- **Measurements**: Body weight and measurement entries logged in Liftosaur are automatically imported into X on Track.
 - **Which ones**: weight, body fat, neck, waist and hips map to your check-in measurements; chest, shoulders, biceps, calves, thighs and forearms map to custom measurement categories of the same name.
-- **Left and right**: SparkyFitness keeps one value per limb measurement, so the right-side value from Liftosaur is the one imported (for example, Liftosaur's `biceps_right` becomes `Biceps`). Left-side values are not imported.
+- **Left and right**: X on Track keeps one value per limb measurement, so the right-side value from Liftosaur is the one imported (for example, Liftosaur's `biceps_right` becomes `Biceps`). Left-side values are not imported.
 
 ---
 
 ## Sync Schedule & Manual Controls
 
-- **Automatic Hourly Sync**: SparkyFitness schedules a background synchronization task every hour for all active Liftosaur providers.
+- **Automatic Hourly Sync**: X on Track schedules a background synchronization task every hour for all active Liftosaur providers.
 - **Sync Now**: Click **Sync Now** on the Liftosaur provider card at any time to trigger an immediate sync.
 - **Sync Range**: Click **Sync Range** to selectively import data within a custom date range.
 

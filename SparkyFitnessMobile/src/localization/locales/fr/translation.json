@@ -141,7 +141,7 @@
     }
   },
   "languageSettings": {
-    "subtitle": "Utilisez la langue de votre appareil ou choisissez une langue pour SparkyFitness."
+    "subtitle": "Utilisez la langue de votre appareil ou choisissez une langue pour X on Track."
   },
   "navigation": {
     "settings": "Paramètres",
@@ -234,7 +234,7 @@
     },
     "exactAlarm": {
       "title": "Alertes en temps voulu",
-      "message": "Android retarde les alertes programmées si SparkyFitness n'est pas autorisé à définir des alarmes précises. Activez « Alarmes et rappels » pour que les minuteurs de repos et les rappels de prise de médicaments se déclenchent à l'heure prévue.",
+      "message": "Android retarde les alertes programmées si X on Track n'est pas autorisé à définir des alarmes précises. Activez « Alarmes et rappels » pour que les minuteurs de repos et les rappels de prise de médicaments se déclenchent à l'heure prévue.",
       "notNow": "Pas maintenant",
       "openSettings": "Ouvrir les paramètres"
     },
@@ -389,7 +389,7 @@
     "frameCountRanged": "{{current}} de {{total}} · {{range}}",
     "deltaBadge": "Δ {{value}}",
     "cameraPermission": "L'autorisation de caméra requise",
-    "cameraPermissionHint": "Autorisez l'accès à la caméra pour SparkyFitness dans les paramètres.",
+    "cameraPermissionHint": "Autorisez l'accès à la caméra pour X on Track dans les paramètres.",
     "compare": "Comparer",
     "compareTitle": "Comparer",
     "before": "Avant",

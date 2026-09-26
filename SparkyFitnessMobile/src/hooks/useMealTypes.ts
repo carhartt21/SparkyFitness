@@ -2,13 +2,27 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchMealTypes } from '../services/api/mealTypesApi';
 import { getDefaultMealTypeId } from '../constants/meals';
 import { mealTypesQueryKey } from './queryKeys';
+import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
+import { cacheQuickMealTypes } from '../services/nutritionFavoriteCache';
+import { fetchProfile } from '../services/api/profileApi';
 
 export function useMealTypes(options?: { enabled?: boolean }) {
   const { enabled = true } = options ?? {};
 
   const query = useQuery({
     queryKey: mealTypesQueryKey,
-    queryFn: fetchMealTypes,
+    queryFn: async () => {
+      const mealTypes = await fetchMealTypes();
+      try {
+        const profile = await fetchProfile();
+        const identity = await getActiveNutritionIdentity();
+        if (identity?.userId === profile.id)
+          await cacheQuickMealTypes(identity, mealTypes);
+      } catch {
+        // Keep online meal-type display independent of local cache availability.
+      }
+      return mealTypes;
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
     select: (data) => {

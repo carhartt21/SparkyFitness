@@ -1,0 +1,69 @@
+{
+  "date": "2026-09-26",
+  "baseCommit": "853b63688",
+  "checks": [
+    {
+      "name": "Full mobile Jest",
+      "status": "passed",
+      "suites": 484,
+      "tests": 7247,
+      "log": "/tmp/xot-shortcuts-final-full-tests.log"
+    },
+    {
+      "name": "Additional review fixture suite",
+      "status": "passed",
+      "tests": 5,
+      "log": "/tmp/xot-shortcuts-fixture-tests.log"
+    },
+    {
+      "name": "TypeScript",
+      "status": "passed",
+      "log": "/tmp/xot-shortcuts-final-typecheck.log"
+    },
+    {
+      "name": "ESLint",
+      "status": "passed",
+      "log": "/tmp/xot-shortcuts-final-lint.log"
+    },
+    {
+      "name": "Production iOS export",
+      "status": "passed",
+      "log": "/tmp/xot-shortcuts-final-export.log",
+      "reviewMarkersFound": []
+    },
+    {
+      "name": "Native prebuild and simulator build",
+      "status": "passed",
+      "errors": 0,
+      "existingWarnings": 2,
+      "log": "/tmp/xot-shortcuts-native-build.log"
+    },
+    {
+      "name": "Review runner runtime tests",
+      "status": "passed",
+      "tests": 3
+    },
+    {
+      "name": "Combined validate",
+      "status": "existing-failures",
+      "detail": "3 existing dynamic translation keys in HealthDataWriteback/Sync"
+    },
+    {
+      "name": "Knip",
+      "status": "existing-failure",
+      "detail": "Unused GAP_USER_LABEL export"
+    },
+    {
+      "name": "Physical iPhone/TestFlight",
+      "status": "unverified"
+    },
+    {
+      "name": "Android launcher",
+      "status": "unverified"
+    },
+    {
+      "name": "Real camera barcode capture",
+      "status": "unverified"
+    }
+  ]
+}

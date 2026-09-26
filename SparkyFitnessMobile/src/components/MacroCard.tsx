@@ -1,17 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text } from 'react-native';
+import { useTranslation } from 'react-i18next';
+import { formatLocalizedNumber } from '../localization';
+import { View, Text, useWindowDimensions } from 'react-native';
 import Animated, {
   useSharedValue,
   useDerivedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
-import { useCSSVariable } from 'uniwind';
+import { useCSSVariable, useUniwind } from 'uniwind';
 
 interface MacroCardProps {
   label: string;
+  compactLabel?: string;
   consumed: number;
   goal?: number;
   color: string;
@@ -19,20 +23,28 @@ interface MacroCardProps {
   unit?: string;
   /** Shrinks label/value text and the bar height for use in denser layouts (e.g. a 3-up row). */
   compact?: boolean;
+  row?: boolean;
   /** Overrides the default 2-column `w-[48%]` container width. */
   widthClassName?: string;
 }
 
 const MacroCard: React.FC<MacroCardProps> = ({
   label,
+  compactLabel,
   consumed,
   goal,
   color,
   overfillColor,
   unit = 'g',
   compact = false,
+  row = false,
   widthClassName = 'w-[48%]',
 }) => {
+  const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const reducedMotion = useReducedMotion();
+  const { theme } = useUniwind();
+  const dark = theme === 'dark' || theme === 'amoled';
   const [barWidth, setBarWidth] = useState(0);
   const hasGoal = !!(goal && goal > 0);
   const progress = hasGoal ? consumed / (goal as number) : 0;
@@ -51,10 +63,10 @@ const MacroCard: React.FC<MacroCardProps> = ({
     if (!isFocused) return;
     animatedProgress.value = 0;
     animatedProgress.value = withTiming(progress, {
-      duration: 500,
+      duration: reducedMotion ? 0 : 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [isFocused, progress, animatedProgress]);
+  }, [isFocused, progress, animatedProgress, reducedMotion]);
 
   const fillWidth = useDerivedValue(() => {
     const p = animatedProgress.value;
@@ -83,6 +95,74 @@ const MacroCard: React.FC<MacroCardProps> = ({
     left: overflowX.value,
     width: overflowWidth.value,
   }));
+
+  if (row) {
+    const expanded = fontScale > 1.3;
+    const amount = `${formatLocalizedNumber(Math.round(consumed))}${hasGoal ? ` / ${formatLocalizedNumber(Math.round(goal!))}` : ''} ${unit}`;
+    return (
+      <View
+        className="w-full py-1"
+        style={{
+          flexDirection: expanded ? 'column' : 'row',
+          alignItems: expanded ? 'stretch' : 'center',
+          gap: 5,
+          minHeight: 28,
+        }}
+        accessible
+        accessibilityLabel={`${label}: ${formatLocalizedNumber(consumed)} ${unit}${hasGoal ? ` / ${formatLocalizedNumber(goal!)} ${unit}` : ''}`}
+      >
+        <Text
+          className="text-[13px] font-medium text-text-primary"
+          style={expanded ? undefined : { width: '26%' }}
+        >
+          {compactLabel ?? label}
+        </Text>
+        {hasGoal && (
+          <View
+            className="h-2 rounded-full overflow-hidden"
+            style={{
+              backgroundColor: trackColor,
+              flex: expanded ? undefined : 1,
+            }}
+          >
+            <View
+              style={{
+                width: `${Math.min(100, Math.max(0, progress * 100))}%`,
+                height: '100%',
+                backgroundColor: color,
+                borderRadius: 4,
+              }}
+            />
+          </View>
+        )}
+        <Text
+          className="text-xs text-text-secondary"
+          style={
+            expanded
+              ? undefined
+              : {
+                  width: 72,
+                  textAlign: 'right',
+                  marginLeft: hasGoal ? 0 : 'auto',
+                }
+          }
+        >
+          {amount}
+        </Text>
+        {hasGoal && (
+          <Text
+            className="text-xs text-text-secondary"
+            style={[
+              expanded ? undefined : { width: 30, textAlign: 'right' },
+              dark ? { color } : undefined,
+            ]}
+          >
+            {formatLocalizedNumber(Math.round(progress * 100))}%
+          </Text>
+        )}
+      </View>
+    );
+  }
 
   return (
     <View className={`${widthClassName} p-1`}>
@@ -157,10 +237,22 @@ const MacroCard: React.FC<MacroCardProps> = ({
               {(() => {
                 const diff = goal - consumed;
                 return diff > 0
-                  ? `${Math.round(diff)}${unit} left`
+                  ? t('dashboard.nutrientRemaining', {
+                      defaultValue: '{{value}} {{unit}} left',
+                      value: formatLocalizedNumber(Math.round(diff)),
+                      unit,
+                    })
                   : diff < 0
-                    ? `${Math.round(Math.abs(diff))}${unit} over`
-                    : 'met';
+                    ? t('dashboard.nutrientOver', {
+                        defaultValue: '{{value}} {{unit}} over',
+                        value: formatLocalizedNumber(
+                          Math.round(Math.abs(diff))
+                        ),
+                        unit,
+                      })
+                    : t('dashboard.nutrientMet', {
+                        defaultValue: 'Target reached',
+                      });
               })()}
             </Text>
           )}

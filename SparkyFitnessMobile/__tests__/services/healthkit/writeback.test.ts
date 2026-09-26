@@ -167,6 +167,7 @@ describe('writebackPhase', () => {
     expect(mockSaveCorrelation.mock.calls[0][4]).toMatchObject({
       HKFoodType: 'Eggs',
       Meal: 'Breakfast', // meal_type 'breakfast' → canonical label (HealthKit has no meal field)
+      XOnTrackWritebackVersion: expect.any(Number),
     });
   });
 
@@ -192,6 +193,7 @@ describe('writebackPhase', () => {
       expect(s.metadata).toMatchObject({
         HKFoodType: 'Eggs',
         Meal: 'Breakfast',
+        XOnTrackWritebackVersion: expect.any(Number),
       });
     });
   });

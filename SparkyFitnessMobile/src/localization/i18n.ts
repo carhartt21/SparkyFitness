@@ -20,12 +20,29 @@ export type { SupportedLanguage } from './localeRegistry';
 export type LanguagePreference = 'system' | SupportedLanguage;
 
 const i18n = createInstance();
+// Weblate catalogs are maintained upstream. Keep the product identity current
+// for all existing translations without mutating their translation keys.
+const xOnTrackBrand = {
+  type: 'postProcessor' as const,
+  name: 'xOnTrackBrand',
+  process(value: string): string {
+    return value
+      .replaceAll('PersonalBest', 'X on Track')
+      .replaceAll('SparkyFitnessMobile', 'X on Track')
+      .replaceAll('SparkyFitness', 'X on Track')
+      .replaceAll('Sparky Fitness', 'X on Track')
+      .replaceAll('HealthIntel', 'X on Track')
+      .replaceAll('ASK SPARKY', 'AI ASSISTANT')
+      .replaceAll('Sparky', 'X on Track');
+  },
+};
 const I18N_INIT_OPTIONS = {
   resources: RESOURCE_MAP,
   fallbackLng: FALLBACK_LOCALE,
   supportedLngs: [...SUPPORTED_LANGUAGES],
   initImmediate: false,
   interpolation: { escapeValue: false },
+  postProcess: ['xOnTrackBrand'],
   returnEmptyString: false,
   react: { useSuspense: false },
 };
@@ -130,6 +147,7 @@ function installFractionalPluralFallback(): void {
 async function initI18nLanguage(language: SupportedLanguage): Promise<void> {
   await i18n
     .use(initReactI18next)
+    .use(xOnTrackBrand)
     .init({ ...I18N_INIT_OPTIONS, lng: language });
   // The resolver only exists once init has built the instance's services.
   installFractionalPluralFallback();

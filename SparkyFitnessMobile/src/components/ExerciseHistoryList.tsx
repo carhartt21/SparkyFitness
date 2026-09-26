@@ -53,7 +53,7 @@ const SetChip: React.FC<{
   return (
     <View
       testID={isPr ? 'pr-chip' : isPrMatch ? 'pr-match-chip' : undefined}
-      className={`px-2.5 py-1 rounded-full border ${
+      className={`px-2.5 py-1 rounded-md border ${
         isPr
           ? 'bg-accent-primary/15 border-transparent'
           : isPrMatch

@@ -39,6 +39,11 @@ export const updateMealType = async (
   return response;
 };
 
+export const reorderMealTypes = async (
+  ids: string[]
+): Promise<MealTypeDefinition[]> =>
+  apiCall('/meal-types/order', { method: 'PUT', body: { ids } });
+
 export type MealTypeDeleteMode = 'strict' | 'reassign' | 'force';
 
 export interface MealTypeDeletionImpact {

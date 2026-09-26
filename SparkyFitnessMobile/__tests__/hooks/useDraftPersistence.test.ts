@@ -7,13 +7,25 @@ jest.mock('../../src/services/workoutDraftService', () => ({
   loadDraft: jest.fn(),
   saveDraft: jest.fn(),
   clearDraft: jest.fn(),
+  getActiveDraftIdentity: jest.fn(),
+}));
+
+const mockIdentityListeners = new Set<() => void>();
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  subscribeNutritionIdentity: (listener: () => void) => {
+    mockIdentityListeners.add(listener);
+    return () => mockIdentityListeners.delete(listener);
+  },
 }));
 
 const {
   loadDraft: mockLoadDraft,
   saveDraft: mockSaveDraft,
   clearDraft: mockClearDraft,
+  getActiveDraftIdentity: mockGetActiveDraftIdentity,
 } = jest.requireMock('../../src/services/workoutDraftService');
+
+const testIdentity = { serverConfigId: 'server-1', userId: 'user-1' };
 
 const makeActivityDraft = (
   overrides?: Partial<ActivityDraft>
@@ -80,6 +92,8 @@ describe('useDraftPersistence', () => {
     jest.clearAllMocks();
     jest.useFakeTimers();
     mockLoadDraft.mockResolvedValue(null);
+    mockGetActiveDraftIdentity.mockResolvedValue(testIdentity);
+    mockIdentityListeners.clear();
     appStateCallbacks = [];
     jest
       .spyOn(AppState, 'addEventListener')
@@ -194,7 +208,7 @@ describe('useDraftPersistence', () => {
       // Advance past the 300ms debounce
       act(() => jest.advanceTimersByTime(300));
 
-      expect(mockSaveDraft).toHaveBeenCalledWith(state2);
+      expect(mockSaveDraft).toHaveBeenCalledWith(state2, testIdentity);
     });
 
     it('does not save in edit mode', async () => {
@@ -251,7 +265,7 @@ describe('useDraftPersistence', () => {
       rerender({ state: state3 });
       act(() => jest.advanceTimersByTime(300));
 
-      expect(mockSaveDraft).toHaveBeenCalledWith(state3);
+      expect(mockSaveDraft).toHaveBeenCalledWith(state3, testIdentity);
     });
 
     it('debounces rapid state changes', async () => {
@@ -273,7 +287,21 @@ describe('useDraftPersistence', () => {
 
       // Only the last state should be saved
       expect(mockSaveDraft).toHaveBeenCalledTimes(1);
-      expect(mockSaveDraft).toHaveBeenCalledWith(finalState);
+      expect(mockSaveDraft).toHaveBeenCalledWith(finalState, testIdentity);
+    });
+
+    it('stops saving a form after its verified identity changes', async () => {
+      const { rerender, unmount } = renderDraftPersistence({
+        state: makeActivityDraft(),
+      });
+      await act(async () => {});
+
+      rerender({ state: makeActivityDraft({ duration: '30' }) });
+      act(() => mockIdentityListeners.forEach((listener) => listener()));
+      act(() => jest.advanceTimersByTime(300));
+      unmount();
+
+      expect(mockSaveDraft).not.toHaveBeenCalled();
     });
   });
 
@@ -287,7 +315,7 @@ describe('useDraftPersistence', () => {
       // Trigger background via the captured AppState listener
       act(() => appStateCallbacks[0]('background'));
 
-      expect(mockSaveDraft).toHaveBeenCalledWith(state);
+      expect(mockSaveDraft).toHaveBeenCalledWith(state, testIdentity);
     });
 
     it('does not listen for AppState changes in edit mode', async () => {
@@ -316,7 +344,7 @@ describe('useDraftPersistence', () => {
       // Unmount before debounce completes — should flush
       unmount();
 
-      expect(mockSaveDraft).toHaveBeenCalledWith(state2);
+      expect(mockSaveDraft).toHaveBeenCalledWith(state2, testIdentity);
     });
 
     it('does not save on unmount in edit mode', async () => {
@@ -349,7 +377,7 @@ describe('useDraftPersistence', () => {
 
       unmount();
 
-      expect(mockClearDraft).toHaveBeenCalled();
+      expect(mockClearDraft).toHaveBeenCalledWith(testIdentity);
       expect(mockSaveDraft).not.toHaveBeenCalled();
     });
   });

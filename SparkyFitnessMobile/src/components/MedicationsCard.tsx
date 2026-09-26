@@ -22,6 +22,7 @@ import { formatLocalizedTimeOfDay } from '../utils/medicationScheduleLocalizatio
 
 import { medicationTypeLabel } from '../utils/medicationLocalization';
 import { doseSlotStatus } from '../utils/medications';
+import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
 
 type MedicationsCardNavigation = CompositeNavigationProp<
   BottomTabNavigationProp<TabParamList, 'Dashboard'>,
@@ -49,6 +50,10 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
     fromDate: selectedDate,
     toDate: selectedDate,
   });
+  const {
+    bySchedule: localSupplementActions,
+    storageError: supplementStorageError,
+  } = usePlannedSupplementActions(selectedDate, entries);
   const { entryForDue, logDose, toggleTaken, logPrn } = useLogDose(
     selectedDate,
     entries
@@ -114,8 +119,23 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
         </View>
       </TouchableOpacity>
 
+      {supplementStorageError && (
+        <Text className="text-sm text-text-danger mb-2">
+          {t('medications.dose.savedActionError', {
+            defaultValue:
+              'A saved supplement response could not be read. Check the diary before logging again.',
+          })}
+        </Text>
+      )}
+
       {dueDoses.map((due) => {
         const med = due.medication;
+        const local = med.is_supplement
+          ? localSupplementActions.get(due.schedule.id)
+          : undefined;
+        const removedOnServer =
+          local?.syncState === 'synced' &&
+          local.serverIdentity === local.clientOperationId;
         const subtitle = [
           typeLabelFor(med.type_id, t),
           formatDose(med, due.schedule),
@@ -126,7 +146,14 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
           <DoseRow
             key={`${med.id}-${due.schedule.id}`}
             kind="scheduled"
-            status={doseSlotStatus(entryForDue(due))}
+            status={
+              local &&
+              local.syncState !== 'attentionRequired' &&
+              !removedOnServer
+                ? local.payload.status
+                : doseSlotStatus(entryForDue(due))
+            }
+            queuedStatus={removedOnServer ? undefined : local?.syncState}
             onToggle={() => toggleTaken(due)}
             onTake={() => logDose(due, 'taken')}
             onSkip={() => logDose(due, 'skipped')}

@@ -22,12 +22,12 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'SparkyFitness API',
+      title: 'X on Track API',
       version: '1.0.0',
       description:
-        'API documentation for the SparkyFitness application, providing a comprehensive guide to all available endpoints. Have caution using the API directly, as improper use may lead to data loss or corruption.  Also note that the API is subject to change without notice due to heavy development, so always refer to the latest documentation for up-to-date information. It might have flaw and due to vite/nginx internal proxy actual end point accessed via front end URL might be different than hitting them directly on the server.',
+        'API documentation for the X on Track application, providing a comprehensive guide to all available endpoints. Have caution using the API directly, as improper use may lead to data loss or corruption.  Also note that the API is subject to change without notice due to heavy development, so always refer to the latest documentation for up-to-date information. It might have flaw and due to vite/nginx internal proxy actual end point accessed via front end URL might be different than hitting them directly on the server.',
       contact: {
-        name: 'SparkyFitness Support',
+        name: 'X on Track Support',
       },
     },
     servers: [

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -205,174 +205,252 @@ const NutritionChartsGrid = ({
     return allNutritionCharts;
   }, [reportChartPreferences, allNutritionCharts]);
 
+  // The period summary above already leads with calories. Start the secondary
+  // chart on a macro when available, while keeping calories selectable.
+  const [selectedChartKey, setSelectedChartKey] = useState('protein');
+  const [showAllCharts, setShowAllCharts] = useState(false);
+  const focusedChart =
+    visibleCharts.find((chart) => chart.key === selectedChartKey) ??
+    visibleCharts.find((chart) => chart.key !== 'calories') ??
+    visibleCharts[0];
+  const chartsToRender = showAllCharts
+    ? visibleCharts
+    : focusedChart
+      ? [focusedChart]
+      : [];
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 min-w-0">
-      {visibleCharts.map((chart) => {
-        const chartData = prepareChartData(effectiveNutritionData, chart.key);
-        const yAxisDomain = getYAxisDomain(chartData, chart.key);
-        const average = calculateAverage(chartData, chart.key);
-        // The split is shown as a SHARE, not a second and third average. The question
-        // behind it is "how much of this comes from a pill", which is a proportion;
-        // and averaging the supplement arm understates it badly on intermittent
-        // dosing, where non-dosing days drag the mean toward zero. A share is also
-        // range-independent and needs no y-axis room, which is why the split is not
-        // drawn as extra series: the domain comes from the total, so lines sitting
-        // well below it never render inside the plot.
-        const supplementAverage = calculateAverage(
-          chartData,
-          `supplement_${chart.key}`
-        );
-        const supplementShare =
-          average > 0 ? Math.round((supplementAverage / average) * 100) : 0;
-        // Hidden entirely when nothing was supplemented, so users who track no
-        // supplements see their charts exactly as before.
-        const showSupplementShare = supplementAverage > 0;
-        const formatAverage = (value: number) =>
-          chart.key === 'calories'
-            ? Math.round(convertEnergy(value, 'kcal', energyUnit)).toString()
-            : formatNutrientValue(chart.key, value, customNutrients);
-        const formattedAverage = formatAverage(average);
-
-        return (
-          <ZoomableChart
-            key={chart.key}
-            title={`${chart.label} (${chart.unit})`}
+    <section
+      aria-label={t('reports.nutrientTrends', 'Nutrient trends')}
+      className="min-w-0 space-y-4"
+    >
+      {visibleCharts.length > 0 ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div
+            className="flex min-w-0 max-w-full gap-2 overflow-x-auto pb-1"
+            role="group"
+            aria-label={t('reports.selectNutrient', 'Select nutrient')}
           >
-            {(isMaximized, zoomLevel) => (
-              <Card className={isMaximized ? 'h-full flex flex-col' : ''}>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm">
-                      {chart.label} ({chart.unit})
-                    </CardTitle>
-                    <div className="text-right text-xs text-muted-foreground font-normal">
-                      <div>
-                        {t('reports.average', 'Avg')}: {formattedAverage}{' '}
-                        {chart.unit}
-                      </div>
-                      {showSupplementShare && (
-                        <div>
-                          {t(
-                            'reports.supplementShare',
-                            '{{percent}}% from supplements',
-                            { percent: supplementShare }
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent
-                  className={`grow min-h-0 ${isMaximized ? 'flex flex-col' : ''}`}
-                >
-                  <div
-                    className={
-                      (isMaximized ? 'grow min-h-0' : 'h-48') + ' min-w-0'
-                    }
-                  >
-                    <ResponsiveContainer
-                      width={isMaximized ? `${100 * zoomLevel}%` : '100%'}
-                      height="100%"
-                      minWidth={0}
-                      minHeight={0}
-                      debounce={100}
-                    >
-                      <LineChart
-                        data={chartData}
-                        syncId={REPORTS_CHART_SYNC_ID}
-                        syncMethod={syncMethod}
-                      >
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis
-                          {...getTimeXAxisProps({
-                            chartScaleMode,
-                            formatDate: formatDateInUserTimezone,
-                          })}
-                          fontSize={10}
-                          tickCount={
-                            isMaximized
-                              ? Math.max(chartData.length, 10)
-                              : undefined
-                          } // More ticks when maximized
-                        />
-                        <YAxis
-                          fontSize={10}
-                          domain={yAxisDomain || undefined}
-                          tickFormatter={(value: number) => {
-                            if (chart.key === 'calories') {
-                              return Math.round(
-                                convertEnergy(value, 'kcal', energyUnit)
-                              ).toString();
-                            }
-                            return formatNutrientValue(
-                              chart.key,
-                              value,
-                              customNutrients
-                            );
-                          }}
-                        />
-                        <Tooltip
-                          labelFormatter={(value) => formatDateForChart(value)} // Apply formatter
-                          formatter={(
-                            value:
-                              | string
-                              | number
-                              | ReadonlyArray<string | number>
-                              | undefined,
-                            name: string | number | undefined
-                          ) => {
-                            if (value === null || value === undefined) {
-                              return ['N/A', name];
-                            }
+            {visibleCharts.map((chart) => (
+              <button
+                key={chart.key}
+                type="button"
+                aria-pressed={!showAllCharts && focusedChart?.key === chart.key}
+                onClick={() => {
+                  setSelectedChartKey(chart.key);
+                  setShowAllCharts(false);
+                }}
+                className="min-h-11 shrink-0 rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring aria-pressed:border-primary aria-pressed:bg-primary/10 aria-pressed:text-primary"
+              >
+                {chart.label}
+              </button>
+            ))}
+          </div>
+          {visibleCharts.length > 1 && (
+            <button
+              type="button"
+              aria-pressed={showAllCharts}
+              onClick={() => setShowAllCharts((current) => !current)}
+              className="min-h-11 shrink-0 rounded-lg border border-border px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+            >
+              {showAllCharts
+                ? t('reports.focusChart', 'Focus one chart')
+                : t('reports.showAllCharts', 'Show all charts')}
+            </button>
+          )}
+        </div>
+      ) : (
+        <p className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">
+          {t(
+            'reports.noVisibleNutrientCharts',
+            'No nutrient charts are selected. Update your chart preferences to see a trend.'
+          )}
+        </p>
+      )}
+      <div
+        className={
+          showAllCharts
+            ? 'grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2'
+            : 'grid min-w-0 grid-cols-1 gap-4'
+        }
+      >
+        {chartsToRender.map((chart) => {
+          const chartData = prepareChartData(effectiveNutritionData, chart.key);
+          const yAxisDomain = getYAxisDomain(chartData, chart.key);
+          const average = calculateAverage(chartData, chart.key);
+          // The split is shown as a SHARE, not a second and third average. The question
+          // behind it is "how much of this comes from a pill", which is a proportion;
+          // and averaging the supplement arm understates it badly on intermittent
+          // dosing, where non-dosing days drag the mean toward zero. A share is also
+          // range-independent and needs no y-axis room, which is why the split is not
+          // drawn as extra series: the domain comes from the total, so lines sitting
+          // well below it never render inside the plot.
+          const supplementAverage = calculateAverage(
+            chartData,
+            `supplement_${chart.key}`
+          );
+          const supplementShare =
+            average > 0 ? Math.round((supplementAverage / average) * 100) : 0;
+          // Hidden entirely when nothing was supplemented, so users who track no
+          // supplements see their charts exactly as before.
+          const showSupplementShare = supplementAverage > 0;
+          const formatAverage = (value: number) =>
+            chart.key === 'calories'
+              ? Math.round(convertEnergy(value, 'kcal', energyUnit)).toString()
+              : formatNutrientValue(chart.key, value, customNutrients);
+          const formattedAverage = formatAverage(average);
 
-                            const numValue = Number(
-                              Array.isArray(value) ? value[0] : value
-                            );
-                            const formattedValue =
-                              chart.key === 'calories'
-                                ? Math.round(
-                                    convertEnergy(numValue, 'kcal', energyUnit)
-                                  )
-                                : formatNutrientValue(
-                                    chart.key,
-                                    numValue,
-                                    customNutrients
-                                  );
-                            return [`${formattedValue} ${chart.unit}`, name];
-                          }}
-                          contentStyle={{
-                            backgroundColor: 'hsl(var(--background))',
-                          }}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey={chart.key}
-                          stroke={chart.color}
-                          strokeWidth={2}
-                          dot={false}
-                          isAnimationActive={false}
-                          name={chart.label}
-                        />
-                        <Line
-                          type="monotone"
-                          dataKey={`${chart.key}_goal`}
-                          stroke={chart.color}
-                          strokeWidth={1}
-                          strokeDasharray="7 3"
-                          dot={false}
-                          isAnimationActive={false}
-                          name={t('reports.goal', 'Goal')}
-                        />
-                      </LineChart>
-                    </ResponsiveContainer>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </ZoomableChart>
-        );
-      })}
-    </div>
+          return (
+            <ZoomableChart
+              key={chart.key}
+              title={`${chart.label} (${chart.unit})`}
+            >
+              {(isMaximized, zoomLevel) => (
+                <Card className={isMaximized ? 'h-full flex flex-col' : ''}>
+                  <CardHeader className="pb-2">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm">
+                        {chart.label} ({chart.unit})
+                      </CardTitle>
+                      <div className="text-right text-xs text-muted-foreground font-normal">
+                        <div>
+                          {t('reports.average', 'Avg')}: {formattedAverage}{' '}
+                          {chart.unit}
+                        </div>
+                        {showSupplementShare && (
+                          <div>
+                            {t(
+                              'reports.supplementShare',
+                              '{{percent}}% from supplements',
+                              { percent: supplementShare }
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent
+                    className={`grow min-h-0 ${isMaximized ? 'flex flex-col' : ''}`}
+                  >
+                    <div
+                      className={
+                        (isMaximized
+                          ? 'grow min-h-0'
+                          : showAllCharts
+                            ? 'h-48'
+                            : 'h-72') + ' min-w-0'
+                      }
+                    >
+                      <ResponsiveContainer
+                        width={isMaximized ? `${100 * zoomLevel}%` : '100%'}
+                        height="100%"
+                        minWidth={0}
+                        minHeight={0}
+                        debounce={100}
+                      >
+                        <LineChart
+                          data={chartData}
+                          syncId={REPORTS_CHART_SYNC_ID}
+                          syncMethod={syncMethod}
+                        >
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis
+                            {...getTimeXAxisProps({
+                              chartScaleMode,
+                              formatDate: formatDateInUserTimezone,
+                            })}
+                            fontSize={10}
+                            tickCount={
+                              isMaximized
+                                ? Math.max(chartData.length, 10)
+                                : undefined
+                            } // More ticks when maximized
+                          />
+                          <YAxis
+                            fontSize={10}
+                            domain={yAxisDomain || undefined}
+                            tickFormatter={(value: number) => {
+                              if (chart.key === 'calories') {
+                                return Math.round(
+                                  convertEnergy(value, 'kcal', energyUnit)
+                                ).toString();
+                              }
+                              return formatNutrientValue(
+                                chart.key,
+                                value,
+                                customNutrients
+                              );
+                            }}
+                          />
+                          <Tooltip
+                            labelFormatter={(value) =>
+                              formatDateForChart(value)
+                            } // Apply formatter
+                            formatter={(
+                              value:
+                                | string
+                                | number
+                                | ReadonlyArray<string | number>
+                                | undefined,
+                              name: string | number | undefined
+                            ) => {
+                              if (value === null || value === undefined) {
+                                return ['N/A', name];
+                              }
+
+                              const numValue = Number(
+                                Array.isArray(value) ? value[0] : value
+                              );
+                              const formattedValue =
+                                chart.key === 'calories'
+                                  ? Math.round(
+                                      convertEnergy(
+                                        numValue,
+                                        'kcal',
+                                        energyUnit
+                                      )
+                                    )
+                                  : formatNutrientValue(
+                                      chart.key,
+                                      numValue,
+                                      customNutrients
+                                    );
+                              return [`${formattedValue} ${chart.unit}`, name];
+                            }}
+                            contentStyle={{
+                              backgroundColor: 'hsl(var(--background))',
+                            }}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey={chart.key}
+                            stroke={chart.color}
+                            strokeWidth={2}
+                            dot={false}
+                            isAnimationActive={false}
+                            name={chart.label}
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey={`${chart.key}_goal`}
+                            stroke={chart.color}
+                            strokeWidth={1}
+                            strokeDasharray="7 3"
+                            dot={false}
+                            isAnimationActive={false}
+                            name={t('reports.goal', 'Goal')}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </ZoomableChart>
+          );
+        })}
+      </div>
+    </section>
   );
 };
 

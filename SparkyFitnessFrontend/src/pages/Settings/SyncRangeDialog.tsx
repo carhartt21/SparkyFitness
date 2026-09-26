@@ -139,7 +139,7 @@ const SyncRangeDialog = ({
             <AlertDescription className="text-xs text-blue-700">
               {t(
                 'syncRangeDialog.polarWarning',
-                'Note: Polar only allows syncing data recorded after you connected your account to SparkyFitness.'
+                'Note: Polar only allows syncing data recorded after you connected your account to X on Track.'
               )}
             </AlertDescription>
           </Alert>

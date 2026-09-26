@@ -435,7 +435,7 @@ const Auth = () => {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center bg-background py-12 px-4 sm:px-6 lg:px-8">
         {loading ? (
           <div className="flex flex-col items-center justify-center p-8 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700 animate-in fade-in zoom-in duration-300">
             <Loader2 className="h-12 w-12 animate-spin text-primary mb-6" />
@@ -443,28 +443,30 @@ const Auth = () => {
               Almost there!
             </h2>
             <p className="text-muted-foreground animate-pulse text-sm">
-              Securing your family dashboard...
+              Loading X on Track...
             </p>
           </div>
         ) : showMfaChallenge && mfaChallengeProps ? (
           <MfaChallenge {...mfaChallengeProps} />
         ) : (
-          <Card className="w-full max-w-md">
+          <Card className="w-full max-w-md shadow-sm">
             <CardHeader className="text-center">
               <div className="flex items-center justify-center mb-4">
                 <img
-                  src="/images/SparkyFitness.webp"
-                  alt="SparkyFitness Logo"
-                  className="h-10 w-10 mr-2"
+                  src="/images/brand/x-on-track-light.png"
+                  alt="X on Track logo"
+                  className="h-10 w-10 mr-2 dark:hidden"
+                />
+                <img
+                  src="/images/brand/x-on-track-dark.png"
+                  alt="X on Track logo"
+                  className="hidden h-10 w-10 mr-2 dark:block"
                 />
                 <CardTitle className="text-2xl font-bold text-gray-900 dark:text-gray-300">
-                  SparkyFitness
+                  X on Track
                 </CardTitle>
               </div>
-              <CardDescription>
-                Built for Families. Powered by AI. Track food, fitness, water,
-                and health — together.
-              </CardDescription>
+              <CardDescription>Keep getting better.</CardDescription>
             </CardHeader>
             <CardContent>
               {loginSettings?.warning && (
@@ -505,8 +507,11 @@ const Auth = () => {
                     </TabsList>
                   )}
                   {loginSettings?.signup_disabled && (
-                    <p className="text-center text-xs text-muted-foreground">
-                      Registration is currently disabled.
+                    <p className="rounded-md bg-muted/50 px-3 py-2 text-center text-sm text-muted-foreground">
+                      {t(
+                        'auth.privateAccess',
+                        'This is a private space. If you need access, contact the person who manages this instance.'
+                      )}
                     </p>
                   )}
                   <TabsContent value="signin">

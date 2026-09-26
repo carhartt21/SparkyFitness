@@ -27,6 +27,7 @@ import HealthDataSync from '../components/HealthDataSync';
 import HealthDataWriteback from '../components/HealthDataWriteback';
 import {
   WRITEBACK_METRICS,
+  WORKOUT_EXPORT_METRIC,
   type WritebackMetric,
   type WritebackDateRange,
 } from '../WritebackMetrics';
@@ -88,6 +89,10 @@ import ActionSheet, {
   type ActionSheetRef,
 } from '../components/ActionSheet';
 import { getErrorMessage } from '../utils/errors';
+import {
+  hasWorkoutWritePermission,
+  retryPendingWorkoutExports,
+} from '../services/workoutHealthExport';
 import { HEALTH_METRICS, getHealthMetricLabel } from '../HealthMetrics';
 import type { HealthMetric } from '../HealthMetrics';
 import type {
@@ -166,6 +171,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const accentPrimary = useCSSVariable('--color-accent-primary') as
     string | undefined;
+  const accentText = useCSSVariable('--color-accent-text') as string;
   const usesNativeHeader = useNativeIOSHeadersActive();
   const [healthMetricStates, setHealthMetricStates] =
     useState<HealthMetricStates>({});
@@ -229,7 +235,10 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
     }
 
     const newWritebackStates: Record<string, boolean> = {};
-    for (const metric of WRITEBACK_METRICS) {
+    for (const metric of [
+      ...WRITEBACK_METRICS,
+      ...(Platform.OS === 'ios' ? [WORKOUT_EXPORT_METRIC] : []),
+    ]) {
       const enabled = await loadHealthPreference<boolean>(metric.preferenceKey);
       newWritebackStates[metric.id] = enabled === true;
     }
@@ -464,7 +473,10 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         ...(await loadAllEnabledPermissions()),
         metric.permission,
       ]);
-      if (!granted) {
+      if (
+        !granted ||
+        (metric.id === 'workout' && !hasWorkoutWritePermission())
+      ) {
         Alert.alert(
           t('syncScreen.permissionDenied.title', {
             defaultValue: 'Permission Denied',
@@ -472,7 +484,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           t('syncScreen.permissionDenied.write', {
             defaultValue:
               'Please grant {{metric}} write permission in {{settings}}.',
-            metric: getHealthMetricLabel(t, metric),
+            metric: t(metric.labelKey, { defaultValue: metric.defaultLabel }),
             settings: healthSettingsName,
           })
         );
@@ -484,6 +496,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           `${metric.id} writeback enabled and write permission granted.`,
           'INFO'
         );
+        if (metric.id === 'workout') void retryPendingWorkoutExports();
       }
     } catch (permissionError) {
       const errorMessage =
@@ -497,7 +510,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         t('syncScreen.permissionError.metricWrite', {
           defaultValue:
             'Failed to request {{metric}} write permission: {{error}}',
-          metric: getHealthMetricLabel(t, metric),
+          metric: t(metric.labelKey, { defaultValue: metric.defaultLabel }),
           error: errorMessage,
         })
       );
@@ -528,7 +541,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           type: 'success',
           text1: t('syncScreen.removal.removed', { defaultValue: 'Removed' }),
           text2: t('syncScreen.removal.deleted', {
-            defaultValue: 'Deleted SparkyFitness data from {{store}}.',
+            defaultValue: 'Deleted X on Track data from {{store}}.',
             store: writebackStoreName,
           }),
         });
@@ -571,7 +584,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
       }),
       t('syncScreen.removal.confirmMessage', {
         defaultValue:
-          'Delete every nutrition and hydration record SparkyFitness wrote to {{store}}, and turn writeback off? Your SparkyFitness diary and records from other apps are not affected.',
+          'Delete every nutrition and hydration record X on Track wrote to {{store}}, and turn writeback off? Your X on Track diary and records from other apps are not affected.',
         store: writebackStoreName,
       }),
       [
@@ -880,15 +893,15 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           <Image
             source={require('../../assets/icons/sync_now_alt.png')}
             className="w-6 h-6 mr-3"
-            tintColor="#fff"
+            tintColor={accentText}
           />
           <View className="flex-1">
-            <Text className="text-white text-lg font-semibold">
+            <Text className="text-accent-text text-lg font-semibold">
               {syncMutation.isPending
                 ? t('syncScreen.syncing', { defaultValue: 'Syncing…' })
                 : t('syncScreen.syncNow', { defaultValue: 'Sync Now' })}
             </Text>
-            <Text className="text-white/80 text-sm mt-0.5">
+            <Text className="text-accent-text/80 text-sm mt-0.5">
               {t('syncScreen.sendToServer', {
                 defaultValue: 'Send your health data to your server',
               })}

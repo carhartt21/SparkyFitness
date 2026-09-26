@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, Image, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, Platform, ActivityIndicator } from 'react-native';
 import {
   HEALTH_METRICS,
   HealthMetric,
@@ -76,11 +76,11 @@ const HealthDataSync: React.FC<HealthDataSyncProps> = ({
   const platformDetail = isIOS
     ? t('healthSync.appleDetail', {
         defaultValue:
-          'SparkyFitness reads the health data you select below using Apple Health (HealthKit). If sync is enabled, data is synchronized only between your device and your self-hosted SparkyFitness server (manual or background).\n\nManage or remove access in Settings → Health → Data Access & Devices → SparkyFitnessMobile',
+          'X on Track reads the health data you select below using Apple Health (HealthKit). If sync is enabled, data is synchronized only between your device and your self-hosted X on Track server (manual or background).\n\nManage or remove access in Settings → Health → Data Access & Devices → X on Track',
       })
     : t('healthSync.connectDetail', {
         defaultValue:
-          'SparkyFitness reads the health data you select below using Health Connect. If sync is enabled, data is synchronized only between your device and your self-hosted SparkyFitness server (manual or background).',
+          'X on Track reads the health data you select below using Health Connect. If sync is enabled, data is synchronized only between your device and your self-hosted X on Track server (manual or background).',
       });
 
   const handleLearnMoreToggle = useCallback(() => {
@@ -132,9 +132,8 @@ const HealthDataSync: React.FC<HealthDataSyncProps> = ({
         className="flex-row justify-between items-center mb-2"
       >
         <View className="flex-row items-center flex-1 mr-2">
-          <Image source={metric.icon} className="w-6 h-6" />
           <Text
-            className="ml-2 text-base text-text-primary flex-shrink"
+            className="text-base text-text-primary flex-shrink"
             numberOfLines={1}
             ellipsizeMode="tail"
           >

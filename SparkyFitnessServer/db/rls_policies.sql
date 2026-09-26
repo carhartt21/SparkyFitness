@@ -23,6 +23,7 @@ DECLARE
 BEGIN
   FOR table_name IN SELECT unnest(ARRAY[
     'ai_service_settings',
+    'bls4_foods',
     'check_in_measurements',
     'check_in_photos',
     'custom_categories',
@@ -35,6 +36,8 @@ BEGIN
     'external_data_providers',
     'family_access',
     'food_entries',
+    'nutrition_captures',
+    'nutrition_capture_images',
     'food_entry_meals',
     'food_favorites',
     'food_variants',
@@ -64,10 +67,12 @@ BEGIN
     'user_water_containers',
     'water_intake',
     'water_intake_entries',
+    'water_container_actions',
     'weekly_goal_plans',
     'workout_plan_assignment_sets',
     'workout_plan_template_assignments',
     'workout_plan_templates',
+    'workout_plan_template_versions',
     'workout_preset_exercise_sets',
     'workout_preset_exercises',
     'workout_presets',
@@ -84,6 +89,7 @@ BEGIN
     'medications',
     'medication_schedules',
     'medication_entries',
+    'planned_supplement_actions',
     'medication_pens',
     'injection_entries',
     'medication_titration_steps',
@@ -513,6 +519,11 @@ BEGIN
 END;
 $$;
 
+-- Public reference data is available only within an authenticated app session.
+-- No app-role INSERT/UPDATE/DELETE policy exists; imports use the owner role.
+CREATE POLICY bls4_foods_select_policy ON public.bls4_foods
+FOR SELECT TO PUBLIC USING (authenticated_user_id() IS NOT NULL);
+
 -- Step 5: Apply policies to all tables.
 -- Custom policy for ai_service_settings to support admin-global + user-owned settings
 -- Drop ALL possible old policy names before recreating
@@ -619,6 +630,12 @@ SELECT create_checkin_policy('check_in_photos');
 SELECT create_checkin_policy('custom_categories');
 SELECT create_checkin_policy('custom_measurements');
 SELECT create_diary_policy('exercise_entries');
+-- Dated plan snapshots are readable alongside exercise reports. Only the
+-- owner may append one; existing snapshots cannot be rewritten or deleted.
+CREATE POLICY select_policy ON public.workout_plan_template_versions FOR SELECT TO PUBLIC
+USING (has_diary_read_access(user_id));
+CREATE POLICY insert_policy ON public.workout_plan_template_versions FOR INSERT TO PUBLIC
+WITH CHECK (authenticated_user_id() = user_id);
 -- Custom policy for exercise_entries to allow access if linked to an owned exercise_preset_entry
 CREATE POLICY select_exercise_preset_entry_linked_policy ON public.exercise_entries FOR SELECT TO PUBLIC
 USING (
@@ -629,12 +646,15 @@ USING (
 );
 -- The modify policy for exercise_entries is already handled by create_diary_policy('exercise_entries')
 
+-- Imported workout source IDs remain diary data; their nullable identity
+-- columns inherit the same owner/delegate access as the session rows.
 SELECT create_diary_policy('exercise_preset_entries');
 SELECT create_diary_policy('food_entry_meals');
 SELECT create_checkin_policy('sleep_entries');
 SELECT create_checkin_policy('sleep_entry_stages');
 SELECT create_diary_policy('water_intake');
 SELECT create_diary_policy('water_intake_entries');
+SELECT create_diary_policy('water_container_actions');
 
 -- Library access tables
 SELECT create_library_policy('exercises', 'shared_with_public', ARRAY['can_view_exercise_library', 'can_manage_diary']);
@@ -642,6 +662,8 @@ SELECT create_library_policy('foods', 'shared_with_public', ARRAY['can_view_food
 SELECT create_library_policy('meals', 'is_public', ARRAY['can_view_food_library', 'can_manage_diary']);
 SELECT create_library_policy('meal_plan_templates', 'false', ARRAY['can_view_food_library']);
 SELECT create_library_policy('workout_plan_templates', 'false', ARRAY['can_view_exercise_library']);
+-- Imported routine source IDs remain library data; they do not grant access
+-- to the provider's private credentials or change preset sharing rules.
 SELECT create_library_policy('workout_presets', 'is_public', ARRAY['can_view_exercise_library','can_manage_diary']);
 
 -- Medication & GLP-1 tracker (see migration 20260624000000_add_medication_glp1_schema.sql).
@@ -752,6 +774,8 @@ CREATE POLICY modify_policy ON public.family_access FOR ALL TO PUBLIC
 USING (authenticated_user_id() = owner_user_id)
 WITH CHECK (authenticated_user_id() = owner_user_id);
 
+-- client_operation_id is part of the existing diary row. It inherits these
+-- owner/delegate permissions; the unique index is scoped by row user_id.
 CREATE POLICY select_policy ON public.food_entries FOR SELECT TO PUBLIC
 USING (has_diary_read_access(user_id));
 CREATE POLICY insert_policy ON public.food_entries FOR INSERT TO PUBLIC
@@ -761,11 +785,39 @@ WITH CHECK (
     (meal_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.meals m WHERE m.id = food_entries.meal_id))
   )
 );
+-- These standalone logging-time snapshots are only writable by their owner.
+-- Keep this here, not solely in a migration: startup purges all policies.
+CREATE POLICY food_entries_offline_snapshot_insert_policy
+ON public.food_entries FOR INSERT TO PUBLIC
+WITH CHECK (
+  user_id = authenticated_user_id()
+  AND client_operation_id IS NOT NULL
+  AND food_id IS NULL AND meal_id IS NULL
+  AND food_name IS NOT NULL AND btrim(food_name) <> ''
+  AND serving_size > 0 AND calories >= 0
+);
 CREATE POLICY update_policy ON public.food_entries FOR UPDATE TO PUBLIC
 USING (has_diary_access(user_id))
 WITH CHECK (has_diary_access(user_id));
 CREATE POLICY delete_policy ON public.food_entries FOR DELETE TO PUBLIC
 USING (has_diary_access(user_id));
+
+-- A meal capture contains private images and belongs only to its author;
+-- family diary delegation does not grant access to the photo occurrence.
+CREATE POLICY nutrition_captures_owner ON public.nutrition_captures
+FOR ALL TO PUBLIC
+USING (user_id = authenticated_user_id())
+WITH CHECK (user_id = authenticated_user_id());
+CREATE POLICY nutrition_capture_images_owner ON public.nutrition_capture_images
+FOR ALL TO PUBLIC
+USING (
+  EXISTS (SELECT 1 FROM public.nutrition_captures c
+    WHERE c.id = capture_id AND c.user_id = authenticated_user_id())
+)
+WITH CHECK (
+  EXISTS (SELECT 1 FROM public.nutrition_captures c
+    WHERE c.id = capture_id AND c.user_id = authenticated_user_id())
+);
 
 CREATE POLICY select_policy ON public.food_variants FOR SELECT TO PUBLIC
 USING (
@@ -911,6 +963,7 @@ WITH CHECK (authenticated_user_id() = user_id);
 SELECT create_medication_policy('medications');
 SELECT create_medication_policy('medication_schedules');
 SELECT create_medication_policy('medication_entries');
+SELECT create_medication_policy('planned_supplement_actions');
 SELECT create_medication_policy('medication_pens');
 SELECT create_medication_policy('injection_entries');
 SELECT create_medication_policy('medication_titration_steps');

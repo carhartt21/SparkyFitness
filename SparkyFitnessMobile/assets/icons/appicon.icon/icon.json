@@ -1,263 +1,149 @@
 {
-  "fill-specializations" : [
+  "fill-specializations": [
     {
-      "value" : "system-light"
+      "value": "system-light"
     },
     {
-      "appearance" : "dark",
-      "value" : "system-dark"
+      "appearance": "dark",
+      "value": "system-dark"
     }
   ],
-  "groups" : [
+  "groups": [
     {
-      "blend-mode-specializations" : [
+      "blend-mode-specializations": [
         {
-          "appearance" : "dark",
-          "value" : "lighten"
+          "appearance": "dark",
+          "value": "lighten"
         }
       ],
-      "blur-material-specializations" : [
+      "blur-material-specializations": [
         {
-          "value" : null
+          "value": null
         },
         {
-          "appearance" : "dark",
-          "value" : null
+          "appearance": "dark",
+          "value": null
         },
         {
-          "appearance" : "tinted",
-          "value" : null
+          "appearance": "tinted",
+          "value": null
         }
       ],
-      "layers" : [
+      "layers": [
         {
-          "image-name" : "Asset 2.png",
-          "name" : "Asset 2",
-          "opacity-specializations" : [
+          "image-name": "X on Track Light.png",
+          "name": "X on Track Light",
+          "opacity-specializations": [
             {
-              "appearance" : "tinted",
-              "value" : 0.6
+              "value": 1
+            },
+            {
+              "appearance": "dark",
+              "value": 0
             }
           ],
-          "position" : {
-            "scale" : 1,
-            "translation-in-points" : [
-              158.8671875,
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
               0
             ]
           }
         },
         {
-          "hidden" : false,
-          "image-name" : "Asset 1.png",
-          "name" : "Asset 1",
-          "opacity-specializations" : [
+          "image-name": "X on Track Dark.png",
+          "name": "X on Track Dark",
+          "opacity-specializations": [
             {
-              "appearance" : "tinted",
-              "value" : 0.6
+              "value": 0
+            },
+            {
+              "appearance": "dark",
+              "value": 1
             }
           ],
-          "position" : {
-            "scale" : 1,
-            "translation-in-points" : [
-              -16.8125,
-              160.0625
+          "position": {
+            "scale": 1,
+            "translation-in-points": [
+              0,
+              0
             ]
           }
         }
       ],
-      "lighting-specializations" : [
+      "lighting-specializations": [
         {
-          "value" : "individual"
+          "value": "individual"
         },
         {
-          "appearance" : "dark",
-          "value" : "combined"
+          "appearance": "dark",
+          "value": "combined"
         },
         {
-          "appearance" : "tinted",
-          "value" : "combined"
+          "appearance": "tinted",
+          "value": "combined"
         }
       ],
-      "opacity-specializations" : [
+      "opacity-specializations": [
         {
-          "appearance" : "dark",
-          "value" : 1
+          "appearance": "dark",
+          "value": 1
         }
       ],
-      "shadow-specializations" : [
+      "shadow-specializations": [
         {
-          "value" : {
-            "kind" : "neutral",
-            "opacity" : 0.5
+          "value": {
+            "kind": "neutral",
+            "opacity": 0
           }
         },
         {
-          "appearance" : "dark",
-          "value" : {
-            "kind" : "neutral",
-            "opacity" : 0.49
-          }
-        },
-        {
-          "appearance" : "tinted",
-          "value" : {
-            "kind" : "neutral",
-            "opacity" : 0.5
+          "appearance": "dark",
+          "value": {
+            "kind": "neutral",
+            "opacity": 0
           }
         }
       ],
-      "specular-specializations" : [
+      "specular-specializations": [
         {
-          "value" : false
+          "value": false
         },
         {
-          "appearance" : "dark",
-          "value" : false
+          "appearance": "dark",
+          "value": false
         },
         {
-          "appearance" : "tinted",
-          "value" : false
+          "appearance": "tinted",
+          "value": false
         }
       ],
-      "translucency-specializations" : [
+      "translucency-specializations": [
         {
-          "value" : {
-            "enabled" : false,
-            "value" : 0.45
+          "value": {
+            "enabled": false,
+            "value": 0.45
           }
         },
         {
-          "appearance" : "dark",
-          "value" : {
-            "enabled" : false,
-            "value" : 1
+          "appearance": "dark",
+          "value": {
+            "enabled": false,
+            "value": 1
           }
         },
         {
-          "appearance" : "tinted",
-          "value" : {
-            "enabled" : false,
-            "value" : 0.45
-          }
-        }
-      ]
-    },
-    {
-      "blur-material-specializations" : [
-        {
-          "appearance" : "dark",
-          "value" : null
-        }
-      ],
-      "layers" : [
-        {
-          "blend-mode-specializations" : [
-            {
-              "appearance" : "dark",
-              "value" : "normal"
-            }
-          ],
-          "fill-specializations" : [
-            {
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.81569,0.25882,0.24314,1.00000",
-                  "display-p3:0.59093,0.25786,0.24711,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.390029296875,
-                    "y" : 0.07980387667887667
-                  },
-                  "stop" : {
-                    "x" : 0.793701171875,
-                    "y" : 1.1477220695970696
-                  }
-                }
-              }
-            },
-            {
-              "appearance" : "dark",
-              "value" : {
-                "linear-gradient" : [
-                  "display-p3:0.81569,0.25882,0.24314,1.00000",
-                  "display-p3:0.49774,0.21720,0.20815,1.00000"
-                ],
-                "orientation" : {
-                  "start" : {
-                    "x" : 0.179521484375,
-                    "y" : -0.0688816391941392
-                  },
-                  "stop" : {
-                    "x" : 0.766806640625,
-                    "y" : 1
-                  }
-                }
-              }
-            }
-          ],
-          "image-name" : "Asset 3.png",
-          "name" : "Asset 3",
-          "opacity-specializations" : [
-            {
-              "appearance" : "tinted",
-              "value" : 0.75
-            }
-          ]
-        }
-      ],
-      "lighting" : "combined",
-      "shadow-specializations" : [
-        {
-          "value" : {
-            "kind" : "layer-color",
-            "opacity" : 0.5
-          }
-        },
-        {
-          "appearance" : "dark",
-          "value" : {
-            "kind" : "neutral",
-            "opacity" : 0.5
-          }
-        }
-      ],
-      "specular-specializations" : [
-        {
-          "value" : false
-        },
-        {
-          "appearance" : "dark",
-          "value" : false
-        }
-      ],
-      "translucency-specializations" : [
-        {
-          "value" : {
-            "enabled" : false,
-            "value" : 0.5
-          }
-        },
-        {
-          "appearance" : "dark",
-          "value" : {
-            "enabled" : false,
-            "value" : 0.5
-          }
-        },
-        {
-          "appearance" : "tinted",
-          "value" : {
-            "enabled" : false,
-            "value" : 0.5
+          "appearance": "tinted",
+          "value": {
+            "enabled": false,
+            "value": 0.45
           }
         }
       ]
     }
   ],
-  "supported-platforms" : {
-    "squares" : [
+  "supported-platforms": {
+    "squares": [
       "iOS"
     ]
   }

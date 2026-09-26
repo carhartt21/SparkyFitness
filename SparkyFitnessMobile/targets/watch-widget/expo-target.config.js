@@ -2,6 +2,7 @@ const {
   getIosAppGroup,
   isDevVariant,
   DEV_BUNDLE_IDENTIFIER,
+  IOS_PROD_BUNDLE_IDENTIFIER,
 } = require('../../app.identifiers.js');
 const fs = require('fs');
 const path = require('path');
@@ -31,6 +32,8 @@ const syncInfoPlist = (appGroup) => {
   <dict>
     <key>APP_GROUP_IDENTIFIER</key>
     <string>${escapedAppGroup}</string>
+    <key>CFBundleDisplayName</key>
+    <string>X on Track Watch Widgets</string>
     <key>NSExtension</key>
     <dict>
       <key>NSExtensionPointIdentifier</key>
@@ -54,11 +57,12 @@ module.exports = (config) => {
     // which the explicit `entitlements` below makes unambiguous.
     type: 'watch-widget',
     name: 'SparkyFitnessWatchWidget',
+    displayName: 'X on Track Watch Widgets',
     // Convention: "<watch-app-bundle-id>.watch-widget", same relationship
     // targets/widget has to the phone app.
     bundleIdentifier: isDev
       ? `${DEV_BUNDLE_IDENTIFIER}.watchkitapp.watch-widget`
-      : 'com.SparkyApps.SparkyFitnessMobile.watchkitapp.watch-widget',
+      : `${IOS_PROD_BUNDLE_IDENTIFIER}.watchkitapp.watch-widget`,
     // Deliberately no `icon` here. @bacons/apple-targets only special-cases
     // watchOS's single-1024/universal icon format for `type: 'watch'`; every
     // other type (including this one) falls through to its generic

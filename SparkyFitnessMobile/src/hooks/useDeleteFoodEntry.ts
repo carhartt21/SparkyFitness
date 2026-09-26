@@ -9,12 +9,14 @@ import { invalidateFoodCache } from './invalidateFoodCache';
 interface UseDeleteFoodEntryOptions {
   entryId: string;
   entryDate: string;
+  nutritionCaptureId?: string | null;
   onSuccess?: () => void;
 }
 
 export function useDeleteFoodEntry({
   entryId,
   entryDate,
+  nutritionCaptureId,
   onSuccess,
 }: UseDeleteFoodEntryOptions) {
   const queryClient = useQueryClient();
@@ -60,6 +62,11 @@ export function useDeleteFoodEntry({
 
   const invalidateCache = () => {
     invalidateFoodCache(queryClient, normalizedDate);
+    if (nutritionCaptureId) {
+      void queryClient.invalidateQueries({
+        queryKey: ['nutritionCaptures', normalizedDate],
+      });
+    }
   };
 
   return {

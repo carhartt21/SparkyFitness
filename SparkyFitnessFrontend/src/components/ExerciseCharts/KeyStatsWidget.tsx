@@ -27,7 +27,7 @@ export const KeyStatsWidget = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 text-white shadow-lg h-full">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
           <span className="text-3xl font-bold">
             {formatNumber(data.keyStats.totalWorkouts)}
           </span>
@@ -35,7 +35,7 @@ export const KeyStatsWidget = ({
             {t('exerciseReportsDashboard.totalWorkouts', 'Total Workouts')}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-green-500 to-teal-600 text-white shadow-lg h-full">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
           <span className="text-3xl font-bold">
             {formatWeight(totalTonnage, weightUnit)}
           </span>
@@ -43,7 +43,7 @@ export const KeyStatsWidget = ({
             {t('exerciseReportsDashboard.totalTonnage', 'Total Tonnage')}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-600 text-white shadow-lg h-full">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
           <span className="text-3xl font-bold">
             {formatWeight(data.keyStats.totalVolume, weightUnit)}
           </span>
@@ -51,7 +51,7 @@ export const KeyStatsWidget = ({
             {t('exerciseReportsDashboard.totalVolume', 'Total Volume')}
           </span>
         </div>
-        <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-red-500 to-pink-600 text-white shadow-lg h-full">
+        <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
           <span className="text-3xl font-bold">
             {formatNumber(data.keyStats.totalReps)}
           </span>
@@ -61,7 +61,7 @@ export const KeyStatsWidget = ({
         </div>
         {data.consistencyData && (
           <>
-            <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg h-full">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
               <span className="text-3xl font-bold">
                 {data.consistencyData.currentStreak}
               </span>
@@ -72,7 +72,7 @@ export const KeyStatsWidget = ({
                 )}
               </span>
             </div>
-            <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-cyan-500 to-sky-600 text-white shadow-lg h-full">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
               <span className="text-3xl font-bold">
                 {data.consistencyData.longestStreak}
               </span>
@@ -83,7 +83,7 @@ export const KeyStatsWidget = ({
                 )}
               </span>
             </div>
-            <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-emerald-500 to-lime-600 text-white shadow-lg h-full">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
               <span className="text-3xl font-bold">
                 {data.consistencyData.weeklyFrequency.toFixed(1)}
               </span>
@@ -94,7 +94,7 @@ export const KeyStatsWidget = ({
                 )}
               </span>
             </div>
-            <div className="flex flex-col items-center justify-center p-4 rounded-lg bg-gradient-to-br from-rose-500 to-fuchsia-600 text-white shadow-lg h-full">
+            <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-accent/50 p-4 text-foreground h-full">
               <span className="text-3xl font-bold">
                 {data.consistencyData.monthlyFrequency.toFixed(1)}
               </span>

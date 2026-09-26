@@ -200,7 +200,7 @@ const FoodSearchSectionHeader: React.FC<FoodSearchSectionHeaderProps> = ({
             {provider.provider_name}
           </Text>
           {expandable ? (
-            <View className="px-1.5 py-0.5 rounded-full bg-surface">
+            <View className="px-1.5 py-0.5 rounded-md bg-surface">
               <Text className="text-text-secondary text-xs">{count}</Text>
             </View>
           ) : null}

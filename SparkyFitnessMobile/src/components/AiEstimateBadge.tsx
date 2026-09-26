@@ -30,7 +30,7 @@ const AiEstimateBadge: React.FC<AiEstimateBadgeProps> = ({
       accessible={true}
       accessibilityRole="text"
       style={style}
-      className="px-1.5 py-0.5 rounded-full bg-bg-warning"
+      className="px-1.5 py-0.5 rounded-md bg-bg-warning"
       accessibilityLabel={t('foodProvenance.aiEstimateAccessibility', {
         defaultValue: 'Nutrition estimated by AI',
       })}

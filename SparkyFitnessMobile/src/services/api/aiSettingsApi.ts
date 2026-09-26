@@ -1,3 +1,4 @@
+import { isPermittedHttpUrl } from '../../utils/serverUrl';
 import { addLog } from '../LogService';
 import { normalizeUrl } from './apiClient';
 import { getAuthHeaders, notifySessionExpired } from './authService';
@@ -21,7 +22,10 @@ export async function fetchUserAiConfigAllowed(): Promise<boolean> {
   if (!config) return false;
 
   const baseUrl = normalizeUrl(config.url);
-  if (!__DEV__ && baseUrl.toLowerCase().startsWith('http://')) {
+  if (
+    baseUrl.toLowerCase().startsWith('http://') &&
+    !isPermittedHttpUrl(baseUrl)
+  ) {
     return false;
   }
 
@@ -68,7 +72,10 @@ export async function fetchActiveAiServiceSetting(): Promise<ActiveAiServiceSett
   if (!config) return null;
 
   const baseUrl = normalizeUrl(config.url);
-  if (!__DEV__ && baseUrl.toLowerCase().startsWith('http://')) {
+  if (
+    baseUrl.toLowerCase().startsWith('http://') &&
+    !isPermittedHttpUrl(baseUrl)
+  ) {
     return null;
   }
 

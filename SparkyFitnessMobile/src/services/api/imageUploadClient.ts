@@ -1,3 +1,4 @@
+import { isPermittedHttpUrl } from '../../utils/serverUrl';
 import { File } from 'expo-file-system';
 import { normalizeUrl } from './apiClient';
 import { ApiError } from './errors';
@@ -26,6 +27,9 @@ export async function postImageMultipart<T>(params: {
   serviceName: string;
   operation: string;
   method?: 'POST' | 'PUT';
+  /** Existing routes use images; photo-capture upload uses one image part. */
+  fileField?: 'images' | 'image';
+  includeOrder?: boolean;
   /** Ordered `images` array with `__new__<n>` placeholders for uploads. */
   order: string[];
   /** Local URIs to upload, in placeholder order. */
@@ -39,6 +43,8 @@ export async function postImageMultipart<T>(params: {
     serviceName,
     operation,
     method = 'POST',
+    fileField = 'images',
+    includeOrder = true,
     order,
     newUris,
     payload,
@@ -49,8 +55,11 @@ export async function postImageMultipart<T>(params: {
   if (!config) throw new Error('Server configuration not found.');
   const baseUrl = normalizeUrl(config.url);
   // Same transport guard `apiFetch` applies: these requests carry auth headers
-  // and user photos, so never send them over plaintext in a release build.
-  if (!__DEV__ && baseUrl.toLowerCase().startsWith('http://')) {
+  // and user photos, so production variants never send them over plaintext.
+  if (
+    baseUrl.toLowerCase().startsWith('http://') &&
+    !isPermittedHttpUrl(baseUrl)
+  ) {
     throw new Error(
       'HTTPS is required for server connections. Please update your server URL in Settings.'
     );
@@ -76,12 +85,12 @@ export async function postImageMultipart<T>(params: {
       wrapperField,
       JSON.stringify({ ...(payload as object), images: order })
     );
-  } else {
+  } else if (includeOrder) {
     form.append('images', JSON.stringify(order));
   }
 
   for (const uri of newUris) {
-    form.append('images', new File(uri));
+    form.append(fileField, new File(uri));
   }
 
   let response: Response;

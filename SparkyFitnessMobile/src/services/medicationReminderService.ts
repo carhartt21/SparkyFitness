@@ -13,6 +13,8 @@ import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import type { MedicationDetail, MedicationEntry } from '@workspace/shared';
 import { isDoseLogged } from '../utils/medications';
 import { addLog } from './LogService';
+import { getActiveNutritionIdentity } from './nutritionIdentity';
+import { listNutritionActions } from './nutritionActionOutbox';
 
 const REPEAT_MINUTES = [10, 20, 30];
 // iOS keeps only the 64 soonest pending notifications, so base reminders get a
@@ -121,6 +123,28 @@ export async function reconcileMedicationReminders(
     const hideNames = prefs.medicationReminderHideNames;
     const reminderLocale =
       i18n.resolvedLanguage?.split('-')[0] === 'pl' ? 'pl' : 'en';
+    const identity = await getActiveNutritionIdentity().catch(() => null);
+    let queuedSupplementOccurrences = new Set<string>();
+    let supplementOutboxUnreadable = false;
+    if (identity) {
+      try {
+        const actions = await listNutritionActions(identity);
+        queuedSupplementOccurrences = new Set(
+          actions
+            .filter((action) => action.type === 'logPlannedSupplement')
+            .map(
+              (action) =>
+                `${action.payload.schedule_id}:${action.payload.entry_date}`
+            )
+        );
+      } catch (error) {
+        supplementOutboxUnreadable = true;
+        addLog(
+          `Supplement reminder outbox unreadable: ${(error as Error).message}`,
+          'ERROR'
+        );
+      }
+    }
 
     const desiredKeys = new Set<string>();
     const dosesToSchedule: {
@@ -137,6 +161,17 @@ export async function reconcileMedicationReminders(
       for (const due of getDueDosesForDate(medications, date, tz)) {
         const timeOfDay = due.schedule.time_of_day;
         if (!timeOfDay) continue;
+        if (
+          due.medication.is_supplement === true &&
+          // A supplement response must be durably queued for this exact account.
+          // Without that identity the notification's action buttons cannot work.
+          (!identity ||
+            identity.userId !== due.medication.user_id ||
+            supplementOutboxUnreadable ||
+            queuedSupplementOccurrences.has(`${due.schedule.id}:${date}`))
+        ) {
+          continue;
+        }
 
         // Entries only cover today; future doses can't have been logged yet.
         if (
@@ -166,16 +201,41 @@ export async function reconcileMedicationReminders(
     }
 
     const allPending = await Notifications.getAllScheduledNotificationsAsync();
+    const doseByKey = new Map<string, (typeof dosesToSchedule)[number]>();
+    for (const dose of dosesToSchedule) {
+      const baseKey = medReminderKey(
+        dose.due.medication.id,
+        dose.due.schedule.id,
+        dose.date,
+        dose.timeOfDay
+      );
+      doseByKey.set(baseKey, dose);
+      if (dose.withRepeats) {
+        for (const offset of REPEAT_MINUTES) {
+          doseByKey.set(repeatMedReminderKey(baseKey, offset), dose);
+        }
+      }
+    }
     const toCancel = allPending
       .filter((n) => {
         if (!n.content.data?.medicationId) return false;
         const key = n.content.data.key as string | undefined;
         if (!key || !desiredKeys.has(key)) return true;
+        const expectedDose = doseByKey.get(key);
+        if (!expectedDose) return true;
         // Notification copy is language-sensitive as well as privacy-sensitive:
         // changing EN ↔ PL must replace pending notifications created earlier.
         return (
           (n.content.data.hideNames === 'true') !== hideNames ||
-          (n.content.data.locale ?? 'en') !== reminderLocale
+          (n.content.data.locale ?? 'en') !== reminderLocale ||
+          n.content.data.responseVersion !== '2' ||
+          n.content.data.serverConfigId !== (identity?.serverConfigId ?? '') ||
+          n.content.data.accountUserId !==
+            expectedDose.due.medication.user_id ||
+          n.content.data.isSupplement !==
+            (expectedDose.due.medication.is_supplement === true
+              ? 'true'
+              : 'false')
         );
       })
       .map((n) => n.identifier);
@@ -221,6 +281,10 @@ export async function reconcileMedicationReminders(
         baseKey,
         hideNames: String(hideNames),
         locale: reminderLocale,
+        responseVersion: '2',
+        accountUserId: due.medication.user_id,
+        serverConfigId: identity?.serverConfigId ?? '',
+        isSupplement: due.medication.is_supplement === true ? 'true' : 'false',
       };
 
       const [year, month, day] = date.split('-').map(Number);

@@ -3,6 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { AppState } from 'react-native';
 import {
   cancelWaterReminders,
+  cancelWaterRemindersForDifferentIdentity,
   reconcileWaterReminders,
   useHydrationReminderReconciler,
   __resetWaterReminderStateForTests,
@@ -11,8 +12,13 @@ import {
 } from '../../src/hooks/useHydrationReminder';
 import {
   cancelScheduledNotification,
+  cancelScheduledNotificationWithResult,
   scheduleWaterReminderNotifications,
 } from '../../src/services/notifications';
+import {
+  __resetDiscretionaryPromptLedgerForTests,
+  reserveDiscretionaryPrompt,
+} from '../../src/services/discretionaryPromptLedger';
 import {
   useAppPreferencesStore,
   __resetAppPreferencesStoreForTests,
@@ -21,6 +27,7 @@ import {
 jest.mock('../../src/services/notifications', () => ({
   scheduleWaterReminderNotifications: jest.fn(),
   cancelScheduledNotification: jest.fn(),
+  cancelScheduledNotificationWithResult: jest.fn(),
 }));
 
 const mockSchedule = scheduleWaterReminderNotifications as jest.MockedFunction<
@@ -29,6 +36,10 @@ const mockSchedule = scheduleWaterReminderNotifications as jest.MockedFunction<
 const mockCancel = cancelScheduledNotification as jest.MockedFunction<
   typeof cancelScheduledNotification
 >;
+const mockCancelWithResult =
+  cancelScheduledNotificationWithResult as jest.MockedFunction<
+    typeof cancelScheduledNotificationWithResult
+  >;
 
 const STORAGE_KEY = '@SparkyFitness/waterReminderSchedule';
 const at = (day: number, hours: number, minutes = 0) =>
@@ -55,11 +66,13 @@ async function storedIds(): Promise<string[] | null> {
 }
 
 beforeEach(async () => {
+  __resetDiscretionaryPromptLedgerForTests();
   __resetWaterReminderStateForTests();
   __resetAppPreferencesStoreForTests();
   await AsyncStorage.clear();
   mockSchedule.mockReset().mockResolvedValue(['n1', 'n2']);
   mockCancel.mockReset().mockResolvedValue(undefined);
+  mockCancelWithResult.mockReset().mockResolvedValue(true);
 });
 
 describe('reconcileWaterReminders', () => {
@@ -80,6 +93,21 @@ describe('reconcileWaterReminders', () => {
     expect(mockCancel).not.toHaveBeenCalled();
   });
 
+  it('replaces reminders when an account mapping becomes available for quick log', async () => {
+    await reconcileWaterReminders(reconcileInput(), NOW);
+    await reconcileWaterReminders(
+      reconcileInput({
+        identity: { serverConfigId: 'server-A', userId: 'user-A' },
+      }),
+      NOW
+    );
+    expect(mockCancel).toHaveBeenCalledWith('n1');
+    expect(mockSchedule.mock.calls[1][1]).toEqual({
+      serverConfigId: 'server-A',
+      userId: 'user-A',
+    });
+  });
+
   it('replaces the chain when a new drink is logged', async () => {
     await reconcileWaterReminders(reconcileInput(), NOW);
     mockSchedule.mockResolvedValueOnce(['n3']);
@@ -93,6 +121,21 @@ describe('reconcileWaterReminders', () => {
     expect(mockCancel).toHaveBeenCalledWith('n2');
     expect(mockSchedule.mock.calls[1][0][0]).toEqual(at(15, 12));
     expect(await storedIds()).toEqual(['n3']);
+  });
+
+  it('uses the shared policy times and replaces the chain when its budget changes', async () => {
+    await reconcileWaterReminders(
+      reconcileInput({ plannedTimes: [at(15, 11), at(16, 8)] }),
+      NOW
+    );
+    expect(mockSchedule.mock.calls[0][0]).toEqual([at(15, 11), at(16, 8)]);
+
+    await reconcileWaterReminders(
+      reconcileInput({ plannedTimes: [at(15, 11, 20), at(16, 8)] }),
+      NOW
+    );
+    expect(mockCancel).toHaveBeenCalledWith('n1');
+    expect(mockSchedule.mock.calls[1][0]).toEqual([at(15, 11, 20), at(16, 8)]);
   });
 
   it("moves the chain to tomorrow's window once today's goal is met", async () => {
@@ -130,6 +173,85 @@ describe('reconcileWaterReminders', () => {
 });
 
 describe('cancelWaterReminders', () => {
+  it('retains a scheduled offline chain for the same account on relaunch', async () => {
+    const identity = { serverConfigId: 'server-A', userId: 'user-A' };
+    await reconcileWaterReminders(reconcileInput({ identity }), NOW);
+
+    await cancelWaterRemindersForDifferentIdentity(identity);
+
+    expect(await storedIds()).toEqual(['n1', 'n2']);
+    expect(mockCancel).not.toHaveBeenCalled();
+    expect(mockCancelWithResult).not.toHaveBeenCalled();
+  });
+
+  it('cancels a stored chain from another account', async () => {
+    await reconcileWaterReminders(
+      reconcileInput({
+        identity: { serverConfigId: 'server-A', userId: 'user-A' },
+      }),
+      NOW
+    );
+
+    await cancelWaterRemindersForDifferentIdentity({
+      serverConfigId: 'server-A',
+      userId: 'user-B',
+    });
+
+    expect(await storedIds()).toBeNull();
+    expect(mockCancel).toHaveBeenCalledWith('n1');
+    expect(mockCancel).toHaveBeenCalledWith('n2');
+  });
+
+  it('cancels an old chain without an account marker', async () => {
+    await reconcileWaterReminders(reconcileInput(), NOW);
+
+    await cancelWaterRemindersForDifferentIdentity({
+      serverConfigId: 'server-A',
+      userId: 'user-A',
+    });
+
+    expect(await storedIds()).toBeNull();
+    expect(mockCancel).toHaveBeenCalledWith('n1');
+  });
+
+  it('releases a future budget slot after a confirmed native cancellation', async () => {
+    const identity = { serverConfigId: 'server-A', userId: 'user-A' };
+    const day = new Date(Date.now() + 86_400_000);
+    day.setHours(10, 0, 0, 0);
+    const plannedAt = day.getTime() + 2 * 3_600_000;
+    for (const [index, family] of ['nutrition', 'movement'].entries()) {
+      await reserveDiscretionaryPrompt({
+        identity,
+        candidateId: `${family}:${index}`,
+        at: day.getTime() + index * 3_600_000,
+      });
+    }
+    await reserveDiscretionaryPrompt({
+      identity,
+      candidateId: `hydration:drink:${plannedAt}`,
+      at: plannedAt,
+    });
+    mockSchedule.mockImplementationOnce(
+      async (times, _identity, onScheduled) => {
+        onScheduled?.('n1', times[0]);
+        return ['n1'];
+      }
+    );
+    await reconcileWaterReminders(
+      reconcileInput({ identity, plannedTimes: [new Date(plannedAt)] }),
+      NOW
+    );
+    await cancelWaterReminders();
+    expect(mockCancelWithResult).toHaveBeenCalledWith('n1');
+    expect(
+      await reserveDiscretionaryPrompt({
+        identity,
+        candidateId: 'nutrition:replacement',
+        at: day.getTime() + 3 * 3_600_000,
+      })
+    ).toBe(true);
+  });
+
   it('cancels and forgets the scheduled chain', async () => {
     await reconcileWaterReminders(reconcileInput(), NOW);
     await cancelWaterReminders();

@@ -168,7 +168,7 @@ describe('DiaryScreen on a supplement-only day', () => {
     );
     renderDiary();
 
-    expect(screen.queryByText('Add Food')).toBeNull();
+    expect(screen.queryByText('No entries recorded for this day')).toBeNull();
   });
 
   // A magnesium or vitamin D supplement carries nothing in any fixed field, because those
@@ -183,7 +183,7 @@ describe('DiaryScreen on a supplement-only day', () => {
     );
     renderDiary();
 
-    expect(screen.queryByText('Add Food')).toBeNull();
+    expect(screen.queryByText('No entries recorded for this day')).toBeNull();
   });
 
   it('still shows the empty day when nothing at all was logged', () => {
@@ -191,6 +191,6 @@ describe('DiaryScreen on a supplement-only day', () => {
     mockUseDailySummary.mockReturnValue(summary(EMPTY_SUPPLEMENT_TOTALS));
     renderDiary();
 
-    expect(screen.getByText('Add Food')).toBeTruthy();
+    expect(screen.getByText('No entries recorded for this day')).toBeTruthy();
   });
 });

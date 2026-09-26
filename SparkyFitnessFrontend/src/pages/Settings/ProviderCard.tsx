@@ -1,12 +1,7 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
 import { Trash2, Edit, Lock, RefreshCw, Link2Off } from 'lucide-react';
 import { decodeYazioAppId } from '@/utils/settings';
 import { useExternalProviderTypesQuery } from '@/hooks/Settings/useExternalProviderSettings';
@@ -105,6 +100,7 @@ export const ProviderCard = ({
   startEditing,
   isAdminMode = false,
 }: ProviderCardProps) => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { data: providerTypes } = useExternalProviderTypesQuery();
   const yazioDisplay = decodeYazioAppId(provider.app_id);
@@ -597,6 +593,32 @@ export const ProviderCard = ({
           </p>
         )}
 
+        {provider.provider_type === 'bls4' && (
+          <p className="text-xs text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
+            {t('providers.bls4Attribution', {
+              defaultValue:
+                'Food composition data: Max Rubner-Institut (2025), Bundeslebensmittelschlüssel 4.0. Values per 100 g edible portion.',
+            })}{' '}
+            <a
+              href="https://www.blsdb.de/download"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              {t('providers.bls4Source', { defaultValue: 'Dataset' })}
+            </a>
+            {' · '}
+            <a
+              href="https://creativecommons.org/licenses/by/4.0/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-primary hover:underline font-medium"
+            >
+              CC BY 4.0
+            </a>
+          </p>
+        )}
+
         {provider.provider_type === 'free-exercise-db' && (
           <p className="text-xs text-muted-foreground mt-1.5 max-w-2xl leading-relaxed">
             Fetches exercise data directly from the community repository at{' '}
@@ -669,60 +691,6 @@ export const ProviderCard = ({
           </p>
         )}
       </div>
-
-      {[
-        'fitbit',
-        'oura',
-        'googlehealth',
-        'withings',
-        'polar',
-        'garmin',
-        'hevy',
-        'liftosaur',
-        'strava',
-      ].includes(provider.provider_type) && (
-        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-2 text-xs text-yellow-800 dark:text-yellow-200 mt-2 flex items-center gap-1">
-          <strong>Note from CodewithCJ:</strong> I don't own{' '}
-          {provider.provider_name} device/subscription.
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="underline cursor-help decoration-dotted ml-1">
-                  How to improve this?
-                </span>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-xs p-4">
-                <p>
-                  Help improve this integration by sharing anonymized mock data!
-                </p>
-                <p className="mt-2 font-mono text-xs bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 p-2 rounded border border-gray-200 dark:border-gray-700">
-                  SPARKY_FITNESS_SAVE_MOCK_DATA=true
-                </p>
-                <p className="mt-2 text-xs">
-                  Add this variable to the{' '}
-                  <strong>
-                    {provider.provider_type === 'garmin'
-                      ? 'SparkyFitnessGarmin'
-                      : 'SparkyFitnessServer'}
-                  </strong>{' '}
-                  container & restart the container. Syncing after setup will
-                  generate JSON files in{' '}
-                  <code>
-                    {provider.provider_type === 'garmin'
-                      ? '/app/mock_data'
-                      : '/app/SparkyFitnessServer/mock_data'}
-                  </code>
-                  .
-                </p>
-                <p className="mt-2 text-xs">
-                  Share files with <strong>CodewithCJ</strong> on Discord.
-                  Ensure data is anonymized.
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-      )}
 
       <SyncRangeDialog
         isOpen={isSyncDialogOpen}

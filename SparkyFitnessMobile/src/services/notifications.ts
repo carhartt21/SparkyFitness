@@ -7,6 +7,13 @@ import i18n from '../localization/i18n';
 import { fireSuccessHaptic } from './haptics';
 import { playRestCompleteSound, willPlayRestCompleteSound } from './sounds';
 import { ExactAlarmBridge } from './ExactAlarmBridge';
+import type { NutritionActionIdentity } from './nutritionActionOutbox';
+import {
+  releaseFutureDiscretionaryPrompt,
+  reserveDiscretionaryPrompt,
+} from './discretionaryPromptLedger';
+import { newUuid } from '../utils/ids';
+import { toLocalDateString } from '../utils/dateUtils';
 import {
   useAppPreferencesStore,
   __resetAppPreferencesStoreForTests,
@@ -34,6 +41,12 @@ export const COMPLETE_SET_ACTION = 'complete-set';
 export const MEDICATION_REMINDER_CATEGORY = 'medication-reminder';
 export const MEDICATION_TAKEN_ACTION = 'medication-taken';
 export const MEDICATION_SKIP_ACTION = 'medication-skip';
+export const NUTRITION_CAPTURE_CATEGORY = 'engagement-nutrition-capture';
+export const NUTRITION_CAPTURE_ACTION = 'engagement-take-photo';
+export const NUTRITION_REVIEW_CATEGORY = 'engagement-nutrition-review';
+export const NUTRITION_REVIEW_ACTION = 'engagement-review-photos';
+export const HYDRATION_QUICK_LOG_CATEGORY = 'hydration-quick-log';
+export const HYDRATION_QUICK_LOG_ACTION = 'hydration-log-250ml';
 
 export type AppNotificationPermission = 'granted' | 'denied' | 'undetermined';
 
@@ -91,6 +104,33 @@ export async function registerLocalizedNotificationPresentation(): Promise<void>
       options: { opensAppToForeground: false },
     },
   ]);
+  await Notifications.setNotificationCategoryAsync(NUTRITION_CAPTURE_CATEGORY, [
+    {
+      identifier: NUTRITION_CAPTURE_ACTION,
+      buttonTitle: notificationCopy('engagement.takePhotoAction', 'Take photo'),
+      options: { opensAppToForeground: true },
+    },
+  ]);
+  await Notifications.setNotificationCategoryAsync(NUTRITION_REVIEW_CATEGORY, [
+    {
+      identifier: NUTRITION_REVIEW_ACTION,
+      buttonTitle: notificationCopy('engagement.reviewAction', 'Review photos'),
+      options: { opensAppToForeground: true },
+    },
+  ]);
+  await Notifications.setNotificationCategoryAsync(
+    HYDRATION_QUICK_LOG_CATEGORY,
+    [
+      {
+        identifier: HYDRATION_QUICK_LOG_ACTION,
+        buttonTitle: notificationCopy(
+          'notifications.hydration.log250ml',
+          'Log 250 ml'
+        ),
+        options: { opensAppToForeground: true },
+      },
+    ]
+  );
   await Notifications.setNotificationCategoryAsync(
     MEDICATION_REMINDER_CATEGORY,
     [
@@ -303,7 +343,7 @@ export async function maybePromptForExactAlarmPermission(): Promise<void> {
       notificationCopy('notifications.exactAlarm.title', 'On-time alerts'),
       notificationCopy(
         'notifications.exactAlarm.message',
-        'Android delays scheduled alerts unless SparkyFitness is allowed to set exact alarms. Enable \"Alarms & reminders\" so rest timers and medication reminders ring on time.'
+        'Android delays scheduled alerts unless X on Track is allowed to set exact alarms. Enable \"Alarms & reminders\" so rest timers and medication reminders ring on time.'
       ),
       [
         {
@@ -441,7 +481,11 @@ export async function scheduleFastGoalNotification(
   targetEndTime: string
 ): Promise<string | null> {
   const prefs = useAppPreferencesStore.getState();
-  if (!prefs.notificationsEnabled || !prefs.fastingGoalNotificationsEnabled)
+  if (
+    !prefs.fastingEnabled ||
+    !prefs.notificationsEnabled ||
+    !prefs.fastingGoalNotificationsEnabled
+  )
     return null;
 
   const target = new Date(targetEndTime);
@@ -487,18 +531,30 @@ export async function scheduleFastGoalNotification(
  * reconcile, and the settings toggle only turns on once permission is granted.
  */
 export async function scheduleWaterReminderNotifications(
-  times: Date[]
+  times: Date[],
+  identity: NutritionActionIdentity | null = null,
+  onScheduled?: (id: string, time: Date) => void
 ): Promise<string[]> {
   const prefs = useAppPreferencesStore.getState();
   if (!prefs.notificationsEnabled || !prefs.waterReminderEnabled) return [];
   if (!(await hasNotificationPermission())) return [];
 
   const nowMs = Date.now();
+  // The response checks the account mapping again before persisting anything.
   const ids: string[] = [];
+  const scheduled: { id: string; at: number }[] = [];
   for (const time of times) {
     const timeMs = time.getTime();
     if (Number.isNaN(timeMs) || timeMs <= nowMs) continue;
     try {
+      if (
+        !(await reserveDiscretionaryPrompt({
+          identity,
+          candidateId: `hydration:drink:${timeMs}`,
+          at: timeMs,
+        }))
+      )
+        continue;
       const id = await Notifications.scheduleNotificationAsync({
         content: {
           title: notificationCopy(
@@ -509,6 +565,20 @@ export async function scheduleWaterReminderNotifications(
             'notifications.hydration.body',
             "You haven't logged any water in a while."
           ),
+          ...(identity
+            ? {
+                categoryIdentifier: HYDRATION_QUICK_LOG_CATEGORY,
+                data: {
+                  version: 1,
+                  serverConfigId: identity.serverConfigId,
+                  userId: identity.userId,
+                  entryDate: toLocalDateString(time),
+                  clientOperationId: newUuid(),
+                  waterMl: 250,
+                  scheduledAt: timeMs,
+                },
+              }
+            : {}),
           sound: true,
         },
         trigger: {
@@ -518,6 +588,8 @@ export async function scheduleWaterReminderNotifications(
         },
       });
       ids.push(id);
+      scheduled.push({ id, at: timeMs });
+      onScheduled?.(id, time);
     } catch (err) {
       addLog(
         `scheduleWaterReminderNotifications failed: ${(err as Error).message}`,
@@ -527,11 +599,35 @@ export async function scheduleWaterReminderNotifications(
       // and the signature guard then blocks a retry for the reminders that
       // never made it. Returning nothing keeps the caller on its "an empty
       // result is not persisted" path, so the next reconcile tries again.
-      await Promise.all(ids.map((id) => cancelScheduledNotification(id)));
+      for (const item of scheduled) {
+        if (await cancelScheduledNotificationWithResult(item.id)) {
+          await releaseFutureDiscretionaryPrompt({
+            identity,
+            candidateId: `hydration:drink:${item.at}`,
+            at: item.at,
+          });
+        }
+      }
       return [];
     }
   }
   return ids;
+}
+
+/** Cancellation result is needed before a future budget slot can be released. */
+export async function cancelScheduledNotificationWithResult(
+  id: string
+): Promise<boolean> {
+  try {
+    await Notifications.cancelScheduledNotificationAsync(id);
+    return true;
+  } catch (err) {
+    addLog(
+      `cancelScheduledNotification failed: ${(err as Error).message}`,
+      'ERROR'
+    );
+    return false;
+  }
 }
 
 export async function cancelScheduledNotification(

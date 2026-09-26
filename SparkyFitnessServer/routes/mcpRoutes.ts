@@ -174,15 +174,22 @@ router.post('/', async (req, res) => {
     }
 
     const mcpServer = new McpServer({
-      name: 'sparkyfitness-mcp-server',
+      name: 'x-on-track-mcp-server',
       version: SERVER_VERSION,
     });
     // McpServer wraps the low-level Server as `.server`.
     mcpServer.server.onerror = (e) => log('error', '[MCP] server error', e);
-    registerRegistryTools(mcpServer, userId, tz, profile);
+    registerRegistryTools(
+      mcpServer,
+      userId,
+      tz,
+      profile,
+      req.mcpReadOnly === true
+    );
     // Admin-only dev tools, off by default; gating at registration keeps them
     // out of non-admins' tools/list. authenticate already populated req.user.
     const devToolsAllowed =
+      req.mcpReadOnly !== true &&
       ((await isDevToolsEnabled()) ||
         process.env.DEV_TOOLS_ENABLED === 'true') &&
       (await resolveIsAdmin(req.user, req.authenticatedUserId));

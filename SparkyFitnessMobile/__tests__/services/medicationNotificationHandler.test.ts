@@ -1,6 +1,7 @@
 import { initMedicationNotificationActions } from '../../src/services/medicationNotificationHandler';
 import {
   addNotificationResponseListener,
+  dismissDeliveredNotification,
   MEDICATION_TAKEN_ACTION,
 } from '../../src/services/notifications';
 import {
@@ -8,6 +9,9 @@ import {
   listEntries,
 } from '../../src/services/api/medicationsApi';
 import { queryClient } from '../../src/hooks/queryClient';
+import { getActiveNutritionIdentity } from '../../src/services/nutritionIdentity';
+import { enqueuePlannedSupplementAction } from '../../src/services/nutritionActionOutbox';
+import { reconcileNutritionActions } from '../../src/services/nutritionActionSync';
 
 jest.mock('../../src/services/notifications', () => ({
   addNotificationResponseListener: jest.fn(),
@@ -22,6 +26,15 @@ jest.mock('../../src/services/api/medicationsApi', () => ({
 }));
 
 jest.mock('../../src/services/LogService', () => ({ addLog: jest.fn() }));
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  getActiveNutritionIdentity: jest.fn(),
+}));
+jest.mock('../../src/services/nutritionActionOutbox', () => ({
+  enqueuePlannedSupplementAction: jest.fn(),
+}));
+jest.mock('../../src/services/nutritionActionSync', () => ({
+  reconcileNutritionActions: jest.fn(),
+}));
 
 const DATE = '2026-08-12';
 
@@ -68,6 +81,17 @@ describe('logging a dose from a notification action', () => {
       .mockImplementation(() => undefined as never);
     (listEntries as jest.Mock).mockResolvedValue([]);
     (createEntry as jest.Mock).mockResolvedValue({ id: 'e1' });
+    (getActiveNutritionIdentity as jest.Mock).mockResolvedValue({
+      userId: 'user-1',
+      serverConfigId: 'server-1',
+    });
+    (enqueuePlannedSupplementAction as jest.Mock).mockResolvedValue({
+      clientOperationId: 'op-1',
+    });
+    (reconcileNutritionActions as jest.Mock).mockResolvedValue({
+      processed: 1,
+      nextDelayMs: null,
+    });
   });
 
   afterEach(() => spy.mockRestore());
@@ -100,5 +124,68 @@ describe('logging a dose from a notification action', () => {
 
     expect(invalidatedPrefix('medications', 'entries')).toBe(true);
     expect(invalidatedPrefix('medications')).toBe(true);
+  });
+
+  it('durably queues a supplement action before dismissing its reminder', async () => {
+    listener({
+      ...takenResponse(),
+      notification: {
+        request: {
+          identifier: 'supplement-notif',
+          content: {
+            data: {
+              medicationId: 'm1',
+              scheduleId: 's1',
+              entryDate: DATE,
+              isSupplement: 'true',
+              accountUserId: 'user-1',
+              serverConfigId: 'server-1',
+            },
+          },
+        },
+      },
+    });
+    await new Promise(process.nextTick);
+    await new Promise(process.nextTick);
+    expect(enqueuePlannedSupplementAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        userId: 'user-1',
+        medicationId: 'm1',
+        scheduleId: 's1',
+        status: 'taken',
+      })
+    );
+    expect(dismissDeliveredNotification).toHaveBeenCalledWith(
+      'supplement-notif'
+    );
+    expect(createEntry).not.toHaveBeenCalled();
+    expect(reconcileNutritionActions).toHaveBeenCalled();
+  });
+
+  it('leaves a supplement reminder visible when the account changed or storage fails', async () => {
+    (getActiveNutritionIdentity as jest.Mock).mockResolvedValueOnce({
+      userId: 'other-user',
+      serverConfigId: 'server-1',
+    });
+    const response = takenResponse();
+    response.notification.request.content.data = {
+      medicationId: 'm1',
+      scheduleId: 's1',
+      entryDate: DATE,
+      isSupplement: 'true',
+      accountUserId: 'user-1',
+      serverConfigId: 'server-1',
+    };
+    listener(response);
+    await new Promise(process.nextTick);
+    expect(enqueuePlannedSupplementAction).not.toHaveBeenCalled();
+    expect(dismissDeliveredNotification).not.toHaveBeenCalled();
+
+    (enqueuePlannedSupplementAction as jest.Mock).mockRejectedValueOnce(
+      new Error('storage unavailable')
+    );
+    listener(response);
+    await new Promise(process.nextTick);
+    expect(dismissDeliveredNotification).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,4 @@
 import { useReducer, useCallback } from 'react';
-import { clearDraft } from '../services/workoutDraftService';
 import { useDraftPersistence } from './useDraftPersistence';
 import { getTodayDate, normalizeDate } from '../utils/dateUtils';
 import { kmToMiles, distanceToKm } from '../utils/unitConversions';
@@ -242,7 +241,7 @@ export function useActivityForm({
     createEmptyDraft
   );
 
-  const { clearPersistedDraft } = useDraftPersistence({
+  const { clearPersistedDraft, clearCurrentDraft } = useDraftPersistence({
     state,
     draftType: 'activity',
     isEditMode,
@@ -288,9 +287,9 @@ export function useActivityForm({
   const reset = useCallback(() => {
     dispatch({ type: 'RESET' });
     if (!isEditMode) {
-      void clearDraft();
+      void clearCurrentDraft();
     }
-  }, [isEditMode]);
+  }, [clearCurrentDraft, isEditMode]);
 
   const discardDraft = useCallback(async () => {
     if (!isEditMode) {

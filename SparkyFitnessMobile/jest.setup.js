@@ -80,6 +80,8 @@ jest.mock('@kingstinct/react-native-healthkit', () => ({
     ],
   }),
   saveWorkoutSample: jest.fn().mockResolvedValue({}),
+  WorkoutActivityType: { traditionalStrengthTraining: 50 },
+  ComparisonPredicateOperator: { equalTo: 4 },
   deleteObjects: jest.fn().mockResolvedValue(0),
   // Default sharingAuthorized (2) so unrelated suites touching the healthkit module
   // don't change behavior; the writeback partial-auth test overrides per-type.

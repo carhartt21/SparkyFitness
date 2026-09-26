@@ -377,8 +377,12 @@ async function isImageReferencedByDiary(image: string): Promise<boolean> {
        SELECT 1
          FROM food_entry_meals
         WHERE images @> $1::jsonb
+        UNION ALL
+       SELECT 1
+         FROM nutrition_capture_images
+        WHERE file_path = $2
         LIMIT 1`,
-      [JSON.stringify([image])]
+      [JSON.stringify([image]), image]
     );
     return result.rows.length > 0;
   } catch (error) {

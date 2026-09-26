@@ -71,7 +71,7 @@ export default function TwoWeekWait({
     return (
       <Card className="overflow-hidden border-rose-500/30 shadow-md bg-gradient-to-br from-rose-50/50 via-card to-rose-100/10 dark:from-rose-950/20 dark:to-rose-900/5">
         <CardContent className="pt-6 pb-6 text-center space-y-4">
-          <div className="mx-auto w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center animate-bounce">
+          <div className="mx-auto w-14 h-14 rounded-full bg-rose-100 dark:bg-rose-900/30 flex items-center justify-center">
             <Sparkles className="h-7 w-7 text-rose-500" />
           </div>
           <div className="space-y-1">
@@ -98,10 +98,10 @@ export default function TwoWeekWait({
   }
 
   return (
-    <Card className="overflow-hidden border-indigo-500/20 shadow-md bg-gradient-to-br from-card to-indigo-50/10 dark:to-indigo-950/5">
+    <Card className="overflow-hidden border-border bg-card shadow-sm">
       <CardHeader className="pb-3">
         <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
-          <Calendar className="h-4 w-4 text-indigo-500" />
+          <Calendar className="h-4 w-4 text-primary" />
           {t('cycle.ttc.twoWeekWaitTitle', 'Two-Week Wait (TWW)')}
         </CardTitle>
       </CardHeader>

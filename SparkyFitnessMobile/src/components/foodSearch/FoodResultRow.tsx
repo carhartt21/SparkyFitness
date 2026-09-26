@@ -13,6 +13,7 @@ import { primaryImageOf, usableFoodImages } from '../../utils/foodImages';
 import { useOpenLightbox } from '../LightboxProvider';
 import type { FoodInfoItem } from '../../types/foodInfo';
 import type { FoodItem, TopFoodItem } from '../../types/foods';
+import FoodNutritionComparison from './FoodNutritionComparison';
 
 /**
  * Multi-select affordance for the food-search landing lists (#1980). When
@@ -58,11 +59,11 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
   // FoodLibraryRow.
   return (
     <View className="flex-row items-center border-b border-border-subtle">
-      <View className="pl-4 py-2">
+      <View className="pl-4 pr-3 py-3">
         <FoodThumbnail
           image={primaryImageOf(item)}
           getImageSource={getImageSource}
-          size={40}
+          size={48}
           onPress={
             images.length > 0
               ? () => openLightbox(images, 0, item.name)
@@ -71,7 +72,7 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
         />
       </View>
       <TouchableOpacity
-        className="flex-1 flex-row justify-between items-center pr-4 py-2"
+        className="flex-1 flex-row justify-between items-center pr-4 py-3"
         activeOpacity={0.7}
         accessibilityRole={selection ? 'checkbox' : undefined}
         accessibilityState={
@@ -132,20 +133,15 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
               {item.brand}
             </Text>
           ) : null}
+          <FoodNutritionComparison serving={item.default_variant} />
         </View>
-        <View className="items-end">
-          <Text className="text-text-primary text-base font-semibold">
-            {Math.round(item.default_variant.calories)}{' '}
-            {t('foodSearch.labels.caloriesUnit', { defaultValue: 'cal' })}
-          </Text>
-          <Text className="text-text-secondary text-xs">
-            {/* i18n-audit-ignore-next-line hardcoded-ui-text -- quantity and unit are literal data values. */}
-            <>
-              {item.default_variant.serving_size}{' '}
-              {formatServingUnit(item.default_variant.serving_unit)}
-            </>
-          </Text>
-        </View>
+        <Text className="text-text-secondary text-xs">
+          {/* i18n-audit-ignore-next-line hardcoded-ui-text -- quantity and unit are literal data values. */}
+          <>
+            {item.default_variant.serving_size}{' '}
+            {formatServingUnit(item.default_variant.serving_unit)}
+          </>
+        </Text>
       </TouchableOpacity>
     </View>
   );

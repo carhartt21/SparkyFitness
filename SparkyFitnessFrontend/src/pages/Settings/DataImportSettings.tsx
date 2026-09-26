@@ -25,6 +25,7 @@ import ExerciseImportCSV, {
 } from '@/pages/Exercises/ExerciseImportCSV';
 import ExerciseEntryHistoryImportCSV from '@/pages/Exercises/ExerciseEntryHistoryImportCSV';
 import ExerciseImportFit from '@/pages/Exercises/ExerciseImportFit';
+import HevyWorkoutImportCSV from '@/pages/Exercises/HevyWorkoutImportCSV';
 import { useImportCsvMutation } from '@/hooks/Foods/useFoods';
 import { useImportFoodDiaryCsvMutation } from '@/hooks/Diary/useFoodEntries';
 import { useImportExercisesJsonMutation } from '@/hooks/Exercises/useExercises';
@@ -210,6 +211,20 @@ export const DataImportSettings = () => {
           {(close) => (
             <ExerciseEntryHistoryImportCSV onImportComplete={close} />
           )}
+        </ImportLauncher>
+
+        <ImportLauncher
+          icon={Dumbbell}
+          title={t(
+            'settings.dataImport.hevy.title',
+            'Hevy Workout History (CSV)'
+          )}
+          description={t(
+            'settings.dataImport.hevy.description',
+            'Import completed workouts from a Hevy history export. Saved routines require a Hevy API connection.'
+          )}
+        >
+          {() => <HevyWorkoutImportCSV />}
         </ImportLauncher>
 
         <ImportLauncher

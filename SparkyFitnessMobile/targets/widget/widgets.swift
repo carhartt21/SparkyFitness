@@ -250,7 +250,12 @@ struct widgetEntryView: View {
                     .frame(width: 1)
                     .frame(maxHeight: .infinity)
 
-                VStack(spacing: 16) {
+                VStack(spacing: 8) {
+                    ActionButton(
+                        icon: "camera",
+                        destination: URL(string: "sparkyfitnessmobile://meal-photo")!,
+                        accessibilityLabel: localizedWidgetString("widget.meal_photo")
+                    )
                     ActionButton(
                         icon: "magnifyingglass",
                         destination: URL(string: "sparkyfitnessmobile://search")!,

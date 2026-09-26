@@ -389,7 +389,8 @@ describe('ActiveWorkoutScreen workout-plan end-to-end save', () => {
           ],
         }),
         expect.any(Number),
-        expect.any(Array)
+        ['ex-a'],
+        [['101', '102']]
       );
 
       // No failure warning, and the celebration screen replaced the stack.

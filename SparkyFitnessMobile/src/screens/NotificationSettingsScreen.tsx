@@ -1,6 +1,12 @@
-import React, { useCallback, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, ScrollView, Text } from 'react-native';
+import { AppState, View, ScrollView, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
@@ -28,6 +34,14 @@ import { useScreenHeader } from '../hooks/useScreenHeader';
 import { usePreferences } from '../hooks/usePreferences';
 import { formatTimeLabel } from '../utils/entryTimeDisplay';
 import { isValidReminderWindow } from '../utils/hydrationReminder';
+import {
+  getTodayDiscretionaryPromptBudget,
+  subscribeDiscretionaryPromptBudget,
+} from '../services/discretionaryPromptLedger';
+import {
+  getActiveNutritionIdentity,
+  subscribeNutritionIdentity,
+} from '../services/nutritionIdentity';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type IntervalKey = `${WaterReminderIntervalHours}`;
@@ -35,9 +49,9 @@ type IntervalKey = `${WaterReminderIntervalHours}`;
 type NotificationSettingsScreenProps =
   RootStackScreenProps<'NotificationSettings'>;
 
-const NotificationSettingsScreen: React.FC<
-  NotificationSettingsScreenProps
-> = () => {
+const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
+  navigation,
+}) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
@@ -92,11 +106,88 @@ const NotificationSettingsScreen: React.FC<
   const setWaterReminderWindow = useAppPreferencesStore(
     (s) => s.setWaterReminderWindow
   );
+  const mealCaptureReminderEnabled = useAppPreferencesStore(
+    (s) => s.mealCaptureReminderEnabled
+  );
+  const setMealCaptureReminderEnabled = useAppPreferencesStore(
+    (s) => s.setMealCaptureReminderEnabled
+  );
+  const mealStart = useAppPreferencesStore((s) => s.mealCaptureWindowStart);
+  const mealEnd = useAppPreferencesStore((s) => s.mealCaptureWindowEnd);
+  const mealPrompt = useAppPreferencesStore((s) => s.mealCapturePromptTime);
+  const setMealWindow = useAppPreferencesStore((s) => s.setMealCaptureWindow);
+  const reviewEnabled = useAppPreferencesStore((s) => s.mealPhotoReviewEnabled);
+  const setReviewEnabled = useAppPreferencesStore(
+    (s) => s.setMealPhotoReviewEnabled
+  );
+  const reviewTime = useAppPreferencesStore((s) => s.mealPhotoReviewTime);
+  const setReviewTime = useAppPreferencesStore((s) => s.setMealPhotoReviewTime);
+  const movementReminderEnabled = useAppPreferencesStore(
+    (s) => s.movementBreakReminderEnabled
+  );
+  const setMovementReminderEnabled = useAppPreferencesStore(
+    (s) => s.setMovementBreakReminderEnabled
+  );
+  const movementReminderTime = useAppPreferencesStore(
+    (s) => s.movementBreakReminderTime
+  );
+  const setMovementReminderTime = useAppPreferencesStore(
+    (s) => s.setMovementBreakReminderTime
+  );
   const { preferences } = usePreferences();
   const startTimeSheetRef = useRef<TimeSheetRef>(null);
   const endTimeSheetRef = useRef<TimeSheetRef>(null);
+  const mealStartSheetRef = useRef<TimeSheetRef>(null);
+  const mealEndSheetRef = useRef<TimeSheetRef>(null);
+  const mealPromptSheetRef = useRef<TimeSheetRef>(null);
+  const reviewTimeSheetRef = useRef<TimeSheetRef>(null);
+  const movementTimeSheetRef = useRef<TimeSheetRef>(null);
   const usesNativeHeader = useNativeIOSHeadersActive();
   const bannerRef = useRef<NotificationPermissionBannerHandle>(null);
+  const [dailyOptionalBudgetUsed, setDailyOptionalBudgetUsed] = useState<
+    number | null
+  >(null);
+
+  useEffect(() => {
+    let mounted = true;
+    let latestRefresh = 0;
+    const refresh = async () => {
+      const request = ++latestRefresh;
+      try {
+        const identity = await getActiveNutritionIdentity();
+        const budget = await getTodayDiscretionaryPromptBudget(identity);
+        if (mounted && request === latestRefresh)
+          setDailyOptionalBudgetUsed(budget.used);
+      } catch {
+        if (mounted && request === latestRefresh)
+          setDailyOptionalBudgetUsed(null);
+      }
+    };
+    void refresh();
+    const unsubscribeBudget = subscribeDiscretionaryPromptBudget(() => {
+      void refresh();
+    });
+    const unsubscribeIdentity = subscribeNutritionIdentity(() => {
+      void refresh();
+    });
+    const unsubscribeFocus = navigation.addListener?.('focus', () => {
+      void refresh();
+    });
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+    const interval = setInterval(() => {
+      void refresh();
+    }, 60_000);
+    return () => {
+      mounted = false;
+      unsubscribeBudget();
+      unsubscribeIdentity();
+      unsubscribeFocus?.();
+      appState.remove();
+      clearInterval(interval);
+    };
+  }, [navigation]);
 
   const handleNotificationsToggle = useCallback(async (value: boolean) => {
     if (!value) {
@@ -142,6 +233,61 @@ const NotificationSettingsScreen: React.FC<
       if (status === 'granted') setWaterReminderEnabled(true);
     },
     [setWaterReminderEnabled]
+  );
+
+  const handleMealReminderToggle = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        setMealCaptureReminderEnabled(false);
+        return;
+      }
+      const status = await requestNotificationPermission();
+      bannerRef.current?.refresh();
+      if (status === 'granted') setMealCaptureReminderEnabled(true);
+    },
+    [setMealCaptureReminderEnabled]
+  );
+
+  const handleReviewReminderToggle = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        setReviewEnabled(false);
+        return;
+      }
+      const status = await requestNotificationPermission();
+      bannerRef.current?.refresh();
+      if (status === 'granted') setReviewEnabled(true);
+    },
+    [setReviewEnabled]
+  );
+
+  const handleMovementReminderToggle = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        setMovementReminderEnabled(false);
+        return;
+      }
+      const status = await requestNotificationPermission();
+      bannerRef.current?.refresh();
+      if (status === 'granted') setMovementReminderEnabled(true);
+    },
+    [setMovementReminderEnabled]
+  );
+
+  const changeMealWindow = useCallback(
+    (start: string, end: string, prompt: string) => {
+      if (!(start < prompt && prompt < end)) {
+        Toast.show({
+          type: 'error',
+          text1: t('engagement.invalidWindow', {
+            defaultValue: 'The reminder time must fall inside the meal window.',
+          }),
+        });
+        return;
+      }
+      setMealWindow(start, end, prompt);
+    },
+    [setMealWindow, t]
   );
 
   const intervalSegments = useMemo(
@@ -226,7 +372,7 @@ const NotificationSettingsScreen: React.FC<
             defaultValue: 'Allow Notifications',
           })}
           subtitle={t('notificationSettings.allowSubtitle', {
-            defaultValue: 'Master switch for all alerts from SparkyFitness.',
+            defaultValue: 'Master switch for all alerts from X on Track.',
           })}
           subtitleNumberOfLines={0}
           rightAccessory={
@@ -241,6 +387,30 @@ const NotificationSettingsScreen: React.FC<
         />
 
         <NotificationPermissionBanner ref={bannerRef} />
+
+        {notificationsEnabled && (
+          <SettingsRowGroup>
+            <SettingsRow
+              title={t('engagement.dailyOptionalBudget', {
+                defaultValue: 'Optional reminders today',
+              })}
+              subtitle={
+                dailyOptionalBudgetUsed === null
+                  ? t('engagement.dailyOptionalBudgetUnavailable', {
+                      defaultValue:
+                        'Daily reminder count unavailable. Meal, movement, and water reminders share three slots.',
+                    })
+                  : t('engagement.dailyOptionalBudgetSummary', {
+                      defaultValue:
+                        '{{used}} of 3 daily slots used. Meal, movement, and water share them; medication and rest alerts are separate.',
+                      used: dailyOptionalBudgetUsed,
+                    })
+              }
+              subtitleNumberOfLines={0}
+              testID="optional-reminder-budget"
+            />
+          </SettingsRowGroup>
+        )}
 
         {notificationsEnabled && (
           <SettingsRowGroup
@@ -375,7 +545,7 @@ const NotificationSettingsScreen: React.FC<
               })}
               subtitle={t('notificationSettings.waterRemindersSubtitle', {
                 defaultValue:
-                  "Remind you to drink when you haven't logged water in a while.",
+                  'Water reminders follow your interval and share available reminder slots with meal and movement prompts.',
               })}
               subtitleNumberOfLines={0}
               rightAccessory={
@@ -442,6 +612,167 @@ const NotificationSettingsScreen: React.FC<
             )}
           </SettingsRowGroup>
         )}
+        {notificationsEnabled && (
+          <SettingsRowGroup
+            title={t('engagement.settingsTitle', {
+              defaultValue: 'Meal check-in',
+            })}
+          >
+            <SettingsRow
+              title={t('engagement.captureReminderSetting', {
+                defaultValue: 'Meal photo reminder',
+              })}
+              subtitle={t('engagement.captureReminderSettingSubtitle', {
+                defaultValue:
+                  'One optional check-in during your chosen window. Saving a photo resolves it, even offline.',
+              })}
+              subtitleNumberOfLines={0}
+              rightAccessory={
+                <Switch
+                  accessibilityLabel={t('engagement.captureReminderSetting', {
+                    defaultValue: 'Meal photo reminder',
+                  })}
+                  value={mealCaptureReminderEnabled}
+                  onValueChange={(value) =>
+                    void handleMealReminderToggle(value)
+                  }
+                />
+              }
+            />
+            {mealCaptureReminderEnabled && (
+              <>
+                <SettingsRow
+                  title={t('engagement.windowStart', {
+                    defaultValue: 'Window starts',
+                  })}
+                  onPress={() => mealStartSheetRef.current?.present()}
+                  rightAccessory={
+                    <Text className="text-sm text-text-secondary">
+                      {formatTimeLabel(mealStart, preferences?.time_format) ??
+                        mealStart}
+                    </Text>
+                  }
+                />
+                <SettingsRow
+                  title={t('engagement.promptTime', {
+                    defaultValue: 'Reminder time',
+                  })}
+                  onPress={() => mealPromptSheetRef.current?.present()}
+                  rightAccessory={
+                    <Text className="text-sm text-text-secondary">
+                      {formatTimeLabel(mealPrompt, preferences?.time_format) ??
+                        mealPrompt}
+                    </Text>
+                  }
+                />
+                <SettingsRow
+                  title={t('engagement.windowEnd', {
+                    defaultValue: 'Window ends',
+                  })}
+                  onPress={() => mealEndSheetRef.current?.present()}
+                  rightAccessory={
+                    <Text className="text-sm text-text-secondary">
+                      {formatTimeLabel(mealEnd, preferences?.time_format) ??
+                        mealEnd}
+                    </Text>
+                  }
+                />
+              </>
+            )}
+            <SettingsRow
+              title={t('engagement.reviewSetting', {
+                defaultValue: 'Meal photo review reminder',
+              })}
+              subtitle={t('engagement.reviewSettingSubtitle', {
+                defaultValue:
+                  'Optional later prompt only when an incomplete photo is known on this device.',
+              })}
+              subtitleNumberOfLines={0}
+              rightAccessory={
+                <Switch
+                  accessibilityLabel={t('engagement.reviewSetting', {
+                    defaultValue: 'Meal photo review reminder',
+                  })}
+                  value={reviewEnabled}
+                  onValueChange={(value) =>
+                    void handleReviewReminderToggle(value)
+                  }
+                />
+              }
+            />
+            {reviewEnabled && (
+              <SettingsRow
+                title={t('engagement.reviewTime', {
+                  defaultValue: 'Review time',
+                })}
+                onPress={() => reviewTimeSheetRef.current?.present()}
+                rightAccessory={
+                  <Text className="text-sm text-text-secondary">
+                    {formatTimeLabel(reviewTime, preferences?.time_format) ??
+                      reviewTime}
+                  </Text>
+                }
+              />
+            )}
+          </SettingsRowGroup>
+        )}
+
+        <SettingsRowGroup
+          title={t('engagement.movementSettingsTitle', {
+            defaultValue: 'Movement break',
+          })}
+        >
+          {notificationsEnabled && (
+            <SettingsRow
+              title={t('engagement.movementReminderSetting', {
+                defaultValue: 'Movement break reminder',
+              })}
+              subtitle={t('engagement.movementReminderSettingSubtitle', {
+                defaultValue:
+                  'One optional invitation at your chosen time. It does not track or log movement.',
+              })}
+              subtitleNumberOfLines={0}
+              rightAccessory={
+                <Switch
+                  accessibilityLabel={t('engagement.movementReminderSetting', {
+                    defaultValue: 'Movement break reminder',
+                  })}
+                  value={movementReminderEnabled}
+                  onValueChange={(value) =>
+                    void handleMovementReminderToggle(value)
+                  }
+                />
+              }
+            />
+          )}
+          {notificationsEnabled && movementReminderEnabled && (
+            <SettingsRow
+              title={t('engagement.movementReminderTime', {
+                defaultValue: 'Reminder time',
+              })}
+              onPress={() => movementTimeSheetRef.current?.present()}
+              rightAccessory={
+                <Text className="text-sm text-text-secondary">
+                  {formatTimeLabel(
+                    movementReminderTime,
+                    preferences?.time_format
+                  ) ?? movementReminderTime}
+                </Text>
+              }
+            />
+          )}
+          <SettingsRow
+            title={t('engagement.openBreakTimer', {
+              defaultValue: 'Open break timer',
+            })}
+            subtitle={t('engagement.breakSettingSubtitle', {
+              defaultValue:
+                'Start a short, explicit timer. Finishing it does not log movement.',
+            })}
+            subtitleNumberOfLines={0}
+            onPress={() => navigation.navigate('MovementBreak')}
+          />
+        </SettingsRowGroup>
       </ScrollView>
 
       <TimeSheet
@@ -454,6 +785,36 @@ const NotificationSettingsScreen: React.FC<
         ref={endTimeSheetRef}
         value={waterReminderWindowEnd}
         onSelectTime={handleEndTimeSelect}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={mealStartSheetRef}
+        value={mealStart}
+        onSelectTime={(value) => changeMealWindow(value, mealEnd, mealPrompt)}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={mealPromptSheetRef}
+        value={mealPrompt}
+        onSelectTime={(value) => changeMealWindow(mealStart, mealEnd, value)}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={mealEndSheetRef}
+        value={mealEnd}
+        onSelectTime={(value) => changeMealWindow(mealStart, value, mealPrompt)}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={reviewTimeSheetRef}
+        value={reviewTime}
+        onSelectTime={setReviewTime}
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={movementTimeSheetRef}
+        value={movementReminderTime}
+        onSelectTime={setMovementReminderTime}
         commitOn="done"
       />
     </View>

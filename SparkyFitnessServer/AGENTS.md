@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-19_
+_Last updated: 2026-09-25_
 
 SparkyFitness Server is the backend API package for the SparkyFitness monorepo. Use this file as the primary guide for work inside `SparkyFitnessServer/`.
 
@@ -29,6 +29,8 @@ If a task also touches `shared/`, the frontend, or the mobile app, read the rele
 - Module system: ESM with `type: "module"` and `moduleResolution: "NodeNext"`
 - The package is now effectively TypeScript-first; almost all source files are `.ts`
 - Main domains: food and meal tracking, exercise logging, health and sleep data, sleep science, fasting, medications, mood, menstrual cycle and pregnancy, reporting, AI chat, onboarding, identity, admin tooling, and external provider integrations
+- Hydration container presses can create a water log and linked food entry in one user-scoped transaction; `water_container_actions` retains the retry receipt after either diary row is deleted
+- Workout-plan reviews use immutable `workout_plan_template_versions` snapshots and a retained origin assignment ID on exercise entries so completed activity survives plan edits or deletion
 
 ## Verified Commands
 
@@ -64,6 +66,8 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 - `routes/v2/openFoodFactsContributionRoutes.ts` - owner-only single-food preview and explicit photo-backed publication; background contributions are disabled for this release
 - `routes/v2/reportRoutes.ts` - weekly alcohol rollup and the zero-padded hydration/caffeine/alcohol range used by the Trends charts (`reports` permission)
 - `routes/v2/nutritionKineticsRoutes.ts` - active-caffeine estimate and bedtime cutoff (`diary` permission)
+- `routes/v2/waterIntakeRoutes.ts` and `services/containerWaterActionService.ts` - diary-permitted container action endpoint, immutable operation receipt, and atomic food/water effects
+- `routes/exerciseStatsRoutes.ts`, `services/exerciseReviewService.ts`, and `models/workoutPlanTemplateRepository.ts` - recorded exercise reviews, dated plan adherence, and transactional plan-version capture
 - `routes/auth/` - auth-specific route fragments mounted through `routes/authRoutes.ts`
 - `services/` - business logic and orchestration
 - `models/` - PostgreSQL repositories and persistence helpers
@@ -162,8 +166,8 @@ When searching, ignore noisy/generated directories unless you explicitly need th
 - **Never manually edit `../db_schema_backup.sql`** — after merge, CI regenerates it from the migrations and opens an automated sync PR (`.github/workflows/schema-backup.yml`). Do not commit copies generated from a local database.
 - If you add a new table or change user-visible access behavior, follow `../agent-docs/new-migration-checklist.md`. In short, you MUST:
   1. Add/modify the RLS policies in `db/rls_policies.sql`.
-  2. Update the user-facing documentation in `../docs/content/2.features/9.family-friends-sharing.md`.
-  3. Update the developer-facing documentation in `../docs/content/8.developer/11.database-security-tiers.md` to define its security tier (Tier 1, Tier 2, or Tier 3).
+  2. Update the user-facing documentation in `../docs/src/features/family-friends-sharing.md`.
+  3. Update the developer-facing documentation in `../docs/src/developer/database-security-tiers.md` to define its security tier (Tier 1, Tier 2, or Tier 3).
   4. Add or update the matching Zod schema in `../shared/src/schemas/database/`.
 - Keep future schema-startup steps in `utils/initializeDatabase.ts` and pass its shared client through all database work. The lock and schema work must use the same connection so initialization cannot continue on another connection after the lock-owning session is lost. Do not create alternate migration mechanisms.
 - Migrations run from `index.ts`, **before any application module is imported**, and via dynamic `await import()`. Both details are load-bearing: Better Auth validates the schema eagerly at `auth.ts` module scope and caches a mismatch for the life of the process (issues #2469 / #2470), and `db/poolManager.ts` builds its pools at module load, so a static import would be hoisted above the env/secret loading. `tests/bootOrder.test.ts` guards this
@@ -251,7 +255,9 @@ When searching, ignore noisy/generated directories unless you explicitly need th
 - Health data or date bucketing issue:
   inspect `integrations/healthData/healthDataRoutes.ts`, `services/measurementService.ts`, and `utils/timezoneLoader.ts`
 - Water, hydration, caffeine, or alcohol issue:
-  inspect `services/hydrationTotalsService.ts` (the single owner of the daily water formula), `services/measurementService.ts` (the container "+/-" path and the container->food link), `services/caffeineKineticsService.ts` / `services/alcoholWeekService.ts`, `models/waterContainerRepository.ts`, and the shared maths in `../shared/src/nutrients/`
+  inspect `services/hydrationTotalsService.ts` (the single owner of the daily water formula), `services/containerWaterActionService.ts` and `db/migrations/20260924130000_add_water_container_actions.sql` (idempotent container presses), `services/measurementService.ts` (the legacy container "+/-" path), `services/caffeineKineticsService.ts` / `services/alcoholWeekService.ts`, `models/waterContainerRepository.ts`, and the shared maths in `../shared/src/nutrients/`
+- Workout-plan review or adherence issue:
+  inspect `services/exerciseReviewService.ts`, `models/workoutPlanTemplateRepository.ts`, `models/exerciseTemplate.ts`, and `db/migrations/20260925000000_add_workout_plan_review_history.sql`; plans before the first snapshot have unknown historical coverage
 - Self-service "delete synced data by source" issue:
   inspect `routes/syncedDataRoutes.ts`, `services/syncedDataService.ts`, and `models/syncedDataRepository.ts` (the `SYNCED_SOURCE_TABLES` whitelist)
 - AI chat or chatbot tool issue:
@@ -267,8 +273,8 @@ When searching, ignore noisy/generated directories unless you explicitly need th
 
 Before adding a feature or changing auth/permission behavior, read:
 
-- `../docs/content/8.developer/4.database.md` — Quick table index (all ~120 tables with purpose) + migration best practices
-- `../docs/content/8.developer/11.database-security-tiers.md` — Security tier, permission type, and RLS rules for every table (authoritative)
+- `../docs/src/developer/database.md` — Quick table index (all ~120 tables with purpose) + migration best practices
+- `../docs/src/developer/database-security-tiers.md` — Security tier, permission type, and RLS rules for every table (authoritative)
 - `../agent-docs/architecture-permissions.md` — Permission types, links to tier classification doc
 - `../agent-docs/data-flow-patterns.md` — Data flow from frontend through server to database, safe RLS patterns
 - `../agent-docs/new-domain-template.md` — Checklist for adding a major feature domain

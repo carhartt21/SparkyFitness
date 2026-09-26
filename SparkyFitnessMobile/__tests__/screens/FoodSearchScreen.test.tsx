@@ -21,6 +21,8 @@ import {
 } from '../../src/hooks';
 import type { Meal } from '../../src/types/meals';
 import type { FoodItem } from '../../src/types/foods';
+import type { RootStackScreenProps } from '../../src/types/navigation';
+import { addDays, getTodayDate } from '../../src/utils/dateUtils';
 import {
   useAppPreferencesStore,
   __resetAppPreferencesStoreForTests,
@@ -202,7 +204,7 @@ describe('FoodSearchScreen', () => {
     goBack: jest.fn(),
     navigate: jest.fn(),
   } as any;
-  const route = {
+  const route: RootStackScreenProps<'FoodSearch'>['route'] = {
     key: 'FoodSearch-key',
     name: 'FoodSearch' as const,
     params: undefined,
@@ -285,6 +287,71 @@ describe('FoodSearchScreen', () => {
     fireEvent.changeText(screen.getByPlaceholderText('Search foods...'), term);
     return screen;
   }
+
+  it('filters a typed query to favorites or recent foods and disables online fan-out', () => {
+    const favorite = buildFood({ id: 'fav', name: 'Favorite chicken' });
+    const recent = buildFood({ id: 'recent', name: 'Recent chicken' });
+    mockUseFoodSearch.mockReturnValue({
+      searchResults: [favorite, recent],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+    } as ReturnType<typeof useFoodSearch>);
+    mockUseFavorites.mockReturnValue({
+      favoriteFoods: [favorite],
+      favoriteMeals: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFavorites>);
+    mockUseFoods.mockReturnValue({
+      recentFoods: [recent],
+      topFoods: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFoods>);
+    const screen = renderSearching();
+    fireEvent.press(screen.getByText('Favorites'));
+    expect(screen.getByText('Favorite chicken')).toBeTruthy();
+    expect(screen.queryByText('Recent chicken')).toBeNull();
+    expect(mockUseAllProvidersSearch).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ enabled: false })
+    );
+    fireEvent.press(screen.getByText('Recent'));
+    expect(screen.getByText('Recent chicken')).toBeTruthy();
+    expect(screen.queryByText('Favorite chicken')).toBeNull();
+    fireEvent.press(screen.getByText('All'));
+    expect(screen.getByText('Favorite chicken')).toBeTruthy();
+    expect(screen.getByText('Recent chicken')).toBeTruthy();
+  });
+
+  it('keeps the quick photo action on today and avoids silently logging a historical day as today', () => {
+    const todayScreen = render(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodSearchScreen
+          navigation={navigation}
+          route={{ ...route, params: { date: getTodayDate() } }}
+        />
+      </SafeAreaProvider>
+    );
+    fireEvent.press(todayScreen.getByLabelText('Meal photo'));
+    expect(navigation.navigate).toHaveBeenCalledWith('QuickMealPhoto');
+    todayScreen.unmount();
+
+    const historicalScreen = render(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodSearchScreen
+          navigation={navigation}
+          route={{ ...route, params: { date: addDays(getTodayDate(), -1) } }}
+        />
+      </SafeAreaProvider>
+    );
+    expect(historicalScreen.queryByLabelText('Meal photo')).toBeNull();
+    expect(historicalScreen.getByLabelText('New Food')).toBeTruthy();
+  });
 
   it('renders local foods, saved meals, and the online provider together in one search', () => {
     mockUseFoodSearch.mockReturnValue({
@@ -500,6 +567,39 @@ describe('FoodSearchScreen', () => {
       expect.objectContaining({
         mealTypeId: 'custom-pw',
       })
+    );
+  });
+
+  it('carries the original photo through food selection and hides unsupported meal templates', () => {
+    mockUseFoodSearch.mockReturnValue({
+      searchResults: [buildFood()],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+    } as any);
+    mockUseMealSearch.mockReturnValue({
+      searchResults: [buildMeal()],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+      refetch: jest.fn(),
+    });
+    const photoCapture = {
+      id: '3116b172-7248-4c9e-aa4a-000000000001',
+      consumedAt: '2026-09-23T12:05:00.000Z',
+      entryDate: '2026-09-23',
+      mealTypeId: 'custom-pw',
+    };
+    const screen = renderSearching({
+      key: 'FoodSearch-key',
+      name: 'FoodSearch',
+      params: { date: '2026-09-23', mealTypeId: 'custom-pw', photoCapture },
+    });
+    expect(screen.queryByText('Lunch Bowl')).toBeNull();
+    fireEvent.press(screen.getByText('Grilled Chicken'));
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'FoodEntryAdd',
+      expect.objectContaining({ photoCapture, mealTypeId: 'custom-pw' })
     );
   });
 
@@ -943,7 +1043,7 @@ describe('FoodSearchScreen', () => {
       ).toBeTruthy();
     });
 
-    it('opens on the stored single provider when the preference is off', () => {
+    it('starts broadly across providers even with a legacy single-provider default', () => {
       mockUsePreferences.mockReturnValue({
         preferences: {
           food_search_all_providers_default: false,
@@ -951,17 +1051,12 @@ describe('FoodSearchScreen', () => {
         },
       } as any);
       mockUseExternalProviders.mockReturnValue(twoProviders);
-      mockUseExternalFoodSearch.mockReturnValue(
-        activeExternalSearch({ searchResults: [externalItem] })
-      );
+      mockUseAllProvidersSearch.mockReturnValue(activeAllProvidersSearch());
 
       const screen = renderSearching();
 
       expect(
-        screen.queryByLabelText('Provider All Providers, tap to change')
-      ).toBeNull();
-      expect(
-        screen.getByLabelText('Provider OpenFoodFacts, tap to change')
+        screen.getByLabelText('Provider All Providers, tap to change')
       ).toBeTruthy();
     });
 

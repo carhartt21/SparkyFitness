@@ -458,7 +458,7 @@ const CycleTodayView: React.FC<CycleTodayViewProps> = ({
                   <TouchableOpacity
                     key={opt.labelKey}
                     onPress={() => setIntercourse(opt.val)}
-                    className={`rounded-full px-4 py-2 border ${
+                    className={`rounded-md px-4 py-2 border ${
                       isSelected
                         ? 'bg-accent-primary/10 border-accent-primary'
                         : 'bg-raised border-transparent'
@@ -490,7 +490,7 @@ const CycleTodayView: React.FC<CycleTodayViewProps> = ({
                     <TouchableOpacity
                       key={opt.labelKey}
                       onPress={() => setIntercourseProtected(opt.val)}
-                      className={`rounded-full px-4 py-2 border ${
+                      className={`rounded-md px-4 py-2 border ${
                         isSelected
                           ? 'bg-accent-primary/10 border-accent-primary'
                           : 'bg-raised border-transparent'

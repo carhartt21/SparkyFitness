@@ -167,9 +167,7 @@ const FoodPhotoIngredientRow: React.FC<FoodPhotoIngredientRowProps> = ({
               ) : null}
             </Text>
             {isPickedFood ? null : (
-              <View
-                className={`px-2 py-0.5 rounded-full ${TONE_BG_CLASS[tone]}`}
-              >
+              <View className={`px-2 py-0.5 rounded-md ${TONE_BG_CLASS[tone]}`}>
                 <Text
                   className={`text-xs font-semibold ${TONE_TEXT_CLASS[tone]}`}
                 >

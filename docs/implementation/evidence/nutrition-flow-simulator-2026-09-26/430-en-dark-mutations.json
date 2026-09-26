@@ -1,0 +1,146 @@
+[
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 0,
+    "quantity": null,
+    "noteLength": null,
+    "noteEndsWithMarker": null,
+    "dailyCalories": 600.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 0,
+    "quantity": null,
+    "noteLength": null,
+    "noteEndsWithMarker": null,
+    "dailyCalories": 600.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 0,
+    "quantity": null,
+    "noteLength": null,
+    "noteEndsWithMarker": null,
+    "dailyCalories": 600.0
+  },
+  {
+    "method": "POST",
+    "path": "/api/food-entries/",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 200,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 900.0
+  },
+  {
+    "method": "PUT",
+    "path": "/api/food-entries/review-created-1",
+    "createdCount": 1,
+    "quantity": 100,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 750.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 100,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 750.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 1,
+    "quantity": 100,
+    "noteLength": 442,
+    "noteEndsWithMarker": true,
+    "dailyCalories": 750.0
+  },
+  {
+    "method": "DELETE",
+    "path": "/api/food-entries/review-created-1",
+    "createdCount": 0,
+    "quantity": null,
+    "noteLength": null,
+    "noteEndsWithMarker": null,
+    "dailyCalories": 600.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 0,
+    "quantity": null,
+    "noteLength": null,
+    "noteEndsWithMarker": null,
+    "dailyCalories": 600.0
+  },
+  {
+    "method": "GET",
+    "path": "/api/daily-summary",
+    "createdCount": 0,
+    "quantity": null,
+    "noteLength": null,
+    "noteEndsWithMarker": null,
+    "dailyCalories": 600.0
+  }
+]

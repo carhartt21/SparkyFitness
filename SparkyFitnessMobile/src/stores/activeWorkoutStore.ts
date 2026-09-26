@@ -46,6 +46,8 @@ import {
 } from '../services/notifications';
 import { fireSelectionHaptic, fireSuccessHaptic } from '../services/haptics';
 import { addLog } from '../services/LogService';
+import type { WatchWorkoutSetOperationPayload } from '../../modules/watch-connectivity';
+import { watchSetSignature } from '../utils/watchSetIdentity';
 
 const STORAGE_KEY = '@SparkyFitness/active-workout';
 
@@ -163,15 +165,16 @@ export interface ActiveWorkoutState {
    * that churn keeps the focused row's `TextInput` instance alive, so the
    * keyboard and any uncommitted draft text survive the save.
    *
-   * Transient — never persisted. Keys only need stability while the screen is
-   * mounted; keyboard focus doesn't survive a cold start anyway, and after a
-   * restart the map is empty so keys fall back to ids (correct).
+   * Persisted because the Watch also uses this birth identity for queued set
+   * actions that may arrive after an autosave or phone restart.
    *
    * DISCIPLINE: any future set-keyed *UI* state (focus, expansion, animation,
    * refs) must key on this render key, not the raw set id — the id is not
    * stable across an autosave.
    */
   setRenderKeys: Record<string, string>;
+  /** Recently applied Watch operation IDs, persisted to reject redelivery. */
+  processedWatchOperationIds: string[];
   /**
    * Planned weight/reps per set id, captured at live start from the preset
    * before the create payload is stripped (see `stripPlannedSetValues`). A
@@ -208,7 +211,11 @@ export interface ActiveWorkoutState {
       sourceServerConfigId?: string;
     }
   ) => void;
-  startWorkoutAtSet: (session: PresetSessionResponse, setId: string) => void;
+  startWorkoutAtSet: (
+    session: PresetSessionResponse,
+    setId: string,
+    opts?: { sourceServerConfigId?: string }
+  ) => void;
   /**
    * Capture the historical PR baseline for an exercise, once. No-op unless a
    * live workout is active and the key is absent — so view/edit renders of the
@@ -237,7 +244,7 @@ export interface ActiveWorkoutState {
    * order, so this can leave earlier sets unchecked (holes); each hole stays
    * re-loggable from its own row control.
    */
-  completeSet: (setId: string) => void;
+  completeSet: (setId: string, watchOperationId?: string) => void;
   /** Complete the current cursor set. Thin wrapper over {@link completeSet}. */
   completeActiveSet: () => void;
   /**
@@ -256,7 +263,12 @@ export interface ActiveWorkoutState {
    * is re-logged from its own row control — except when the workout had already
    * finished (no active set), where reopening re-anchors the next-up onto it.
    */
-  uncompleteSet: (setId: string) => void;
+  uncompleteSet: (setId: string, watchOperationId?: string) => void;
+  /** Apply a Watch completion change only to the matching active account/set. */
+  applyWatchSetOperation: (
+    operation: WatchWorkoutSetOperationPayload,
+    activeServerConfigId: string | null
+  ) => 'applied' | 'duplicate' | 'conflict';
   /**
    * Un-complete every set of one exercise (checkmarks only; the sets and their
    * values are kept). Restores the cursor invariant like {@link uncompleteSet}.
@@ -292,8 +304,8 @@ export interface ActiveWorkoutState {
   deleteSet: (setId: string) => void;
   /**
    * Set rest_time on every set of an exercise. For a superset member the
-   * write covers every set of every member — rest is per-round, so the
-   * chips must stay in agreement.
+   * write covers every set of every member, keeping the rest setting in
+   * agreement for both within-round and between-round transitions.
    */
   setExerciseRest: (entryId: string, seconds: number) => void;
   /**
@@ -358,15 +370,15 @@ export interface ActiveWorkoutState {
    * edits landed mid-flight the server session is adopted wholesale (and the
    * dirty flag cleared); otherwise only server ids are grafted positionally
    * into the local session, which keeps its newer values and stays dirty.
-   * `sentEntryIds` is the exercise-entry id order captured at the same
-   * moment: a mid-flight reorder or delete breaks the positional graft, so
-   * the graft is skipped when the local prefix no longer matches (the still-
-   * dirty session is resent by the pending debounce or trailing save).
+   * `sentEntryIds` and `sentSetIds` capture identities at send time. A
+   * mid-flight exercise reorder or delete skips the graft; a set insertion or
+   * deletion can still graft surviving sets by their sent identities.
    */
   applyServerSession: (
     serverSession: PresetSessionResponse,
     sentRevision: number,
-    sentEntryIds: string[]
+    sentEntryIds: string[],
+    sentSetIds?: string[][]
   ) => void;
 }
 
@@ -400,6 +412,7 @@ const initialData: Pick<
   | 'prBaseline'
   | 'prSetIds'
   | 'setRenderKeys'
+  | 'processedWatchOperationIds'
   | 'plannedSetValues'
   | 'previousSessionSets'
   | 'sourcePresetId'
@@ -418,6 +431,7 @@ const initialData: Pick<
   prBaseline: {},
   prSetIds: {},
   setRenderKeys: {},
+  processedWatchOperationIds: [],
   plannedSetValues: {},
   previousSessionSets: {},
   sourcePresetId: null,
@@ -433,11 +447,10 @@ const initialData: Pick<
  * exercise's first set standing in for all of them. Superset runs (adjacent
  * 2+ exercises sharing a `superset_group`) are interleaved into rounds: round
  * `n` is one set of each member in order (positional — members whose sets
- * are exhausted drop out). `restSec` is the rest taken *before* a step, so
- * each round's first step carries that round's group rest (the anchor
- * member's same-round set) and the rest of the round carries 0 and rest
- * happens after a full round, not between partners. Drop-set steps always
- * carry 0: a drop continues the previous set with no pause.
+ * are exhausted drop out). Every step carries its set's configured rest,
+ * including members within a superset round: a completed set starts that
+ * rest before the next exercise. Drop-set steps carry 0 so each reduction
+ * follows the preceding segment without a pause.
  */
 export function buildStepsFromSession(
   session: PresetSessionResponse
@@ -479,19 +492,12 @@ export function buildStepsFromSession(
     const members = run.entryIds.map((id) => byEntryId.get(id)!);
     for (const id of run.entryIds) consumed.add(id);
 
-    // Rest is per-round; group actions harmonize every member's rest_time
-    // within a round, so the anchor's set for that round speaks for the
-    // whole group, but different rounds may still carry different rest.
     const roundCount = Math.max(...members.map((m) => m.sets.length));
     for (let round = 0; round < roundCount; round++) {
-      const groupRest =
-        members[0].sets[round]?.rest_time ?? getDefaultRestSec();
-      let firstInRound = true;
       for (const member of members) {
         const set = member.sets[round];
         if (!set) continue;
-        pushStep(member, set, firstInRound ? groupRest : 0);
-        firstInRound = false;
+        pushStep(member, set, set.rest_time ?? getDefaultRestSec());
       }
     }
   }
@@ -499,33 +505,40 @@ export function buildStepsFromSession(
 }
 
 /**
- * Map local set ids → server set ids by position (exercise index, set index).
+ * Map local set ids → server set ids through their positions in the sent
+ * request. Newly added local sets are left unmapped; deleted sets are absent
+ * from the local session and therefore cannot receive another set's id.
  *
- * Valid because the autosave payload preserves order and the server recreates
- * in order. Most shape-changing edits are append-only (`addSet`/`addExercise`
- * append, `deleteSet` shifts down), but `supersetWith`/`ungroupExercise` can
- * reorder exercises — so `applyServerSession` guards its graft branch by
- * comparing the local entry-id prefix against the ids captured at send time
- * and skips the graft (staying dirty) when they diverge.
+ * The server response preserves the sent order. `applyServerSession` guards
+ * exercise positions by comparing the local entry-id prefix against the ids
+ * captured at send time and skips the graft when they diverge.
  *
  * Positions beyond the shorter side are unmapped — callers keep the local id
  * (temp ids re-save on the next autosave; id churn only, no data loss).
  */
 export function buildPositionalSetIdMap(
   local: PresetSessionResponse,
-  server: PresetSessionResponse
+  server: PresetSessionResponse,
+  sentSetIds?: string[][]
 ): Map<string, string> {
   const map = new Map<string, string>();
+  const localIds = new Set(
+    local.exercises.flatMap((exercise) =>
+      exercise.sets.map((set) => String(set.id))
+    )
+  );
   const exerciseCount = Math.min(
     local.exercises.length,
     server.exercises.length
   );
   for (let i = 0; i < exerciseCount; i++) {
-    const localSets = local.exercises[i].sets;
+    const localSets =
+      sentSetIds?.[i] ?? local.exercises[i].sets.map((set) => String(set.id));
     const serverSets = server.exercises[i].sets;
     const setCount = Math.min(localSets.length, serverSets.length);
     for (let j = 0; j < setCount; j++) {
-      map.set(String(localSets[j].id), String(serverSets[j].id));
+      const localId = String(localSets[j]);
+      if (localIds.has(localId)) map.set(localId, String(serverSets[j].id));
     }
   }
   return map;
@@ -539,7 +552,8 @@ export function buildPositionalSetIdMap(
  */
 export function graftServerSessionIds(
   local: PresetSessionResponse,
-  server: PresetSessionResponse
+  server: PresetSessionResponse,
+  setIdMap: Map<string, string> = buildPositionalSetIdMap(local, server)
 ): PresetSessionResponse {
   return {
     ...local,
@@ -549,9 +563,9 @@ export function graftServerSessionIds(
       return {
         ...exercise,
         id: serverExercise.id,
-        sets: exercise.sets.map((set, j) => {
-          const serverSet = serverExercise.sets[j];
-          return serverSet ? { ...set, id: serverSet.id } : set;
+        sets: exercise.sets.map((set) => {
+          const mappedId = setIdMap.get(String(set.id));
+          return mappedId ? { ...set, id: Number(mappedId) } : set;
         }),
       };
     }),
@@ -698,12 +712,8 @@ function adoptAssumedSetValues(
 
 /**
  * The rest to run before `nextSetId` given that `completedSetId` was just
- * logged. Rest is per-round: superset partners in the same round go
- * back-to-back (0), and the group rest is taken before moving on to a new
- * round or exercise. The step-baked `restSec` also encodes this, but only for
- * the planned interleaving — out-of-order logging makes the cursor land on an
- * interior partner (baked 0) when a real between-rounds rest is actually owed,
- * so derive the rest from the true relationship between the two sets instead.
+ * logged. The completed set's configured rest applies before the next
+ * exercise, whether that set is a solo exercise or a superset member.
  * Rest recovers from the work just done: the completed set's own `rest_time`
  * speaks for it (not another set's — a preset can vary rest per set), so the
  * timer after an exercise's final set still uses that set's own rest, not the
@@ -723,18 +733,6 @@ function restSecBeforeNextSet(
   if (!from)
     return to.exercise.sets[to.setIndex]?.rest_time ?? getDefaultRestSec();
 
-  // Back-to-back superset partners: same run, different member, same round.
-  const toRun = getSupersetRuns(session.exercises).find((r) =>
-    r.entryIds.includes(to.exercise.id)
-  );
-  if (
-    toRun != null &&
-    toRun.entryIds.includes(from.exercise.id) &&
-    from.exercise.id !== to.exercise.id &&
-    from.setIndex === to.setIndex
-  ) {
-    return 0;
-  }
   return from.exercise.sets[from.setIndex]?.rest_time ?? getDefaultRestSec();
 }
 
@@ -1024,6 +1022,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           prSetIds: seedPrFromSession(session),
           // A fresh start has no id churn yet — every set keys by its own id.
           setRenderKeys: {},
+          processedWatchOperationIds: [],
           plannedSetValues,
           // Previous-session sets are captured lazily per exercise by the
           // live card, like the PR baseline.
@@ -1033,7 +1032,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         });
       },
 
-      startWorkoutAtSet: (session, setId) => {
+      startWorkoutAtSet: (session, setId, opts) => {
         cancelCurrentRestNotification(get().rest);
         const steps = buildStepsFromSession(session);
         const targetIndex = steps.findIndex((s) => s.setId === setId);
@@ -1070,6 +1069,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           prSetIds: seedPrFromSession(session),
           // A fresh start has no id churn yet — every set keys by its own id.
           setRenderKeys: {},
+          processedWatchOperationIds: [],
           // A resumed diary workout has no live-start plan; its set values
           // are real. Previous-session sets re-capture lazily.
           plannedSetValues: {},
@@ -1077,7 +1077,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           // Nor was it started from a preset this session — no update-preset
           // prompt on finish.
           sourcePresetId: null,
-          sourceServerConfigId: null,
+          sourceServerConfigId: opts?.sourceServerConfigId ?? null,
         });
       },
 
@@ -1116,7 +1116,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         set({ ...initialData });
       },
 
-      completeSet: (setId) => {
+      completeSet: (setId, watchOperationId) => {
         const state = get();
         const targetIndex = state.steps.findIndex((s) => s.setId === setId);
         if (targetIndex < 0) return;
@@ -1172,14 +1172,15 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
             rest: READY_REST,
             sessionRevision: state.sessionRevision + 1,
             hasUnsavedChanges: true,
+            processedWatchOperationIds: watchOperationId
+              ? [...(state.processedWatchOperationIds ?? []), watchOperationId]
+              : state.processedWatchOperationIds,
           });
           return;
         }
 
-        // The rest is the break before the next-up set, derived from the true
-        // relationship between the two sets rather than the step-baked
-        // `restSec` — so out-of-order logging still rests between superset
-        // rounds instead of skipping the timer on an interior partner.
+        // Rest follows the set just logged. The next set's drop-set type can
+        // suppress that break so reductions remain consecutive.
         const restSec =
           session != null
             ? restSecBeforeNextSet(session, setId, nextStep.setId)
@@ -1190,14 +1191,17 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           completedSetIds,
           prSetIds,
           activeSetId: nextStep.setId,
-          // Zero rest (back-to-back superset partners, or an explicit rest_time
-          // of 0) advances straight to ready — no timer flash.
+          // An explicit zero rest or a following drop set advances straight
+          // to ready without a timer flash.
           rest:
             restSec > 0
               ? startRestForStep(state.steps, nextStep.setId, session, restSec)
               : READY_REST,
           sessionRevision: state.sessionRevision + 1,
           hasUnsavedChanges: true,
+          processedWatchOperationIds: watchOperationId
+            ? [...(state.processedWatchOperationIds ?? []), watchOperationId]
+            : state.processedWatchOperationIds,
         });
       },
 
@@ -1220,7 +1224,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         return true;
       },
 
-      uncompleteSet: (setId) => {
+      uncompleteSet: (setId, watchOperationId) => {
         const state = get();
         if (state.completedSetIds[setId] == null) return;
         const next = { ...state.completedSetIds };
@@ -1245,7 +1249,52 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           activeSetId: nextActiveSetId,
           sessionRevision: state.sessionRevision + 1,
           hasUnsavedChanges: true,
+          processedWatchOperationIds: watchOperationId
+            ? [...(state.processedWatchOperationIds ?? []), watchOperationId]
+            : state.processedWatchOperationIds,
         });
+      },
+
+      applyWatchSetOperation: (operation, activeServerConfigId) => {
+        const state = get();
+        if (
+          !operation.clientId ||
+          !operation.setKey ||
+          operation.expectedCompleted === operation.completed ||
+          !activeServerConfigId ||
+          state.sourceServerConfigId !== activeServerConfigId ||
+          state.sessionId !== operation.sessionId ||
+          !state.session
+        ) {
+          return 'conflict';
+        }
+        if (state.processedWatchOperationIds?.includes(operation.clientId))
+          return 'duplicate';
+
+        const matches = state.session.exercises.flatMap((exercise) =>
+          exercise.sets.filter(
+            (set) =>
+              (state.setRenderKeys[String(set.id)] ?? String(set.id)) ===
+              operation.setKey
+          )
+        );
+        if (matches.length !== 1) return 'conflict';
+        const set = matches[0];
+        const setId = String(set.id);
+        if (watchSetSignature(set) !== operation.setSignature)
+          return 'conflict';
+        const currentlyCompleted = state.completedSetIds[setId] != null;
+        // A crash can leave the server save ahead of the persisted operation
+        // ID. The requested end state is already true, so retrying must not
+        // complete the set a second time or restart its rest timer.
+        if (currentlyCompleted === operation.completed) return 'duplicate';
+        if (currentlyCompleted !== operation.expectedCompleted)
+          return 'conflict';
+        if (operation.completed) get().completeSet(setId, operation.clientId);
+        else get().uncompleteSet(setId, operation.clientId);
+        return get().processedWatchOperationIds?.includes(operation.clientId)
+          ? 'applied'
+          : 'conflict';
       },
 
       clearExerciseCompletions: (entryId) => {
@@ -1614,7 +1663,8 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         if (!session) return;
         if (!session.exercises.some((e) => e.id === entryId)) return;
 
-        // Superset rest is per-round: a member's chip writes every member.
+        // A member's rest chip configures every superset transition, including
+        // transitions within a round and into the next round.
         const run = getSupersetRuns(session.exercises).find((r) =>
           r.entryIds.includes(entryId)
         );
@@ -1831,7 +1881,12 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         set(buildSessionEditState(state, { ...session, exercises: moved }));
       },
 
-      applyServerSession: (serverSession, sentRevision, sentEntryIds) => {
+      applyServerSession: (
+        serverSession,
+        sentRevision,
+        sentEntryIds,
+        sentSetIds
+      ) => {
         const state = get();
         // The workout may have been cleared or replaced while the save was in
         // flight — a response for a different (or no) session is dropped.
@@ -1840,7 +1895,11 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         const local = state.session;
         if (!local) return;
 
-        const setIdMap = buildPositionalSetIdMap(local, serverSession);
+        const setIdMap = buildPositionalSetIdMap(
+          local,
+          serverSession,
+          sentSetIds
+        );
 
         if (state.sessionRevision !== sentRevision) {
           // Edits landed after the payload was built. If they reordered or
@@ -1862,7 +1921,7 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           // Keep the newer local values; only graft the server-assigned ids
           // into place. Every logical set survives this, so the rest timer
           // is never touched.
-          const grafted = graftServerSessionIds(local, serverSession);
+          const grafted = graftServerSessionIds(local, serverSession, setIdMap);
           const newSteps = buildStepsFromSession(grafted);
 
           const nextCompleted: CompletedSetMap = {};
@@ -1991,6 +2050,8 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
         // Baseline and stamps survive a cold-start resume.
         prBaseline: state.prBaseline,
         prSetIds: state.prSetIds,
+        setRenderKeys: state.setRenderKeys,
+        processedWatchOperationIds: state.processedWatchOperationIds,
         // Placeholder sources survive a cold start: the plan can't be
         // recaptured (the create payload is gone), and lock-screen completes
         // may adopt before any card remounts to re-capture history.

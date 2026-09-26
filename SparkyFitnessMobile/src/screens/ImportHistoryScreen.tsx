@@ -363,6 +363,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
 
   const pausedReason = pausedReasonCopy(t, lastOutcome, lastError);
   const iconWarning = useCSSVariable('--color-icon-warning') as string;
+  const accentText = useCSSVariable('--color-accent-text') as string;
 
   return (
     <View
@@ -395,7 +396,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
             <Text className="text-text-primary text-base">
               {t('importHistory.idle.description', {
                 defaultValue:
-                  'Import all of your past {{source}} data into SparkyFitness with a one-time backfill of every enabled metric, from your earliest recorded data up to today.',
+                  'Import all of your past {{source}} data into X on Track with a one-time backfill of every enabled metric, from your earliest recorded data up to today.',
                 source: healthSourceName,
               })}
             </Text>
@@ -441,7 +442,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
               onPress={handleStart}
               disabled={startDisabled}
             >
-              <Text className="text-white text-lg font-semibold">
+              <Text className="text-accent-text text-lg font-semibold">
                 {t('importHistory.actions.start', {
                   defaultValue: 'Start Import',
                 })}
@@ -594,8 +595,8 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
               disabled={startDisabled}
             >
               <View className="flex-row items-center gap-2">
-                <Icon name="play" size={18} color="#fff" />
-                <Text className="text-white text-lg font-semibold">
+                <Icon name="play" size={18} color={accentText} />
+                <Text className="text-accent-text text-lg font-semibold">
                   {t('importHistory.actions.resume', {
                     defaultValue: 'Resume',
                   })}

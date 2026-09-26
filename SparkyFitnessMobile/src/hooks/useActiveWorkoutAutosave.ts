@@ -15,12 +15,28 @@ export const AUTOSAVE_DEBOUNCE_MS = 1500;
 
 export type ActiveWorkoutSaveOutcome = 'clean' | 'saved' | 'failed';
 
+// Watch actions and the active screen can request a save at the same time.
+// Serialize all callers so an older session payload cannot finish last and
+// overwrite a newer set change on the server.
+let saveTail: Promise<void> = Promise.resolve();
+
 /**
  * One-shot save of the live session's unsaved edits. Shared by the autosave
  * hook and by callers that must flush without the hook mounted (the HUD's
  * workout-complete dismiss paths after a cold start).
  */
-export async function saveActiveWorkoutSession(
+export function saveActiveWorkoutSession(
+  queryClient: QueryClient
+): Promise<ActiveWorkoutSaveOutcome> {
+  const attempt = saveTail.then(() => performActiveWorkoutSave(queryClient));
+  saveTail = attempt.then(
+    () => undefined,
+    () => undefined
+  );
+  return attempt;
+}
+
+async function performActiveWorkoutSave(
   queryClient: QueryClient
 ): Promise<ActiveWorkoutSaveOutcome> {
   const state = useActiveWorkoutStore.getState();
@@ -46,6 +62,9 @@ export async function saveActiveWorkoutSession(
   // Entry-id order at send time: applyServerSession compares it against the
   // local session so a mid-flight reorder/delete can't be grafted positionally.
   const sentEntryIds = state.session.exercises.map((e) => e.id);
+  const sentSetIds = state.session.exercises.map((exercise) =>
+    exercise.sets.map((set) => String(set.id))
+  );
   // Captured before the request: the user may end or swap the session while
   // it is in flight, so the failure log must describe the session that was
   // being saved, not whatever the store holds at catch time.
@@ -66,7 +85,7 @@ export async function saveActiveWorkoutSession(
     });
     useActiveWorkoutStore
       .getState()
-      .applyServerSession(result, sentRevision, sentEntryIds);
+      .applyServerSession(result, sentRevision, sentEntryIds, sentSetIds);
     syncExerciseSessionInCache(queryClient, result);
     return 'saved';
   } catch (error) {

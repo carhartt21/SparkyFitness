@@ -8,6 +8,7 @@ import { addLog } from '../services/LogService';
 
 const WIDGET_KIND = 'widget';
 const MACRO_WIDGET_KIND = 'macroWidget';
+const ROUTINE_WIDGET_KIND = 'routineWidget';
 
 /**
  * The exact state the WidgetKit layer was last fully synced to. Dedupe only
@@ -34,7 +35,7 @@ type IOSWidgetSyncState = {
  *
  * Reloads are deduped by the effective en/pl language, serialized so a later
  * signal can never lose to an in-flight run, and independent per timeline: a
- * failure in one widget never blocks the other, never rejects out of the hook,
+ * failure in one widget never blocks the others, never rejects out of the hook,
  * and never marks the state applied, so the next signal retries.
  */
 export function useIOSWidgetLanguageRefresh(): void {
@@ -77,6 +78,15 @@ export function useIOSWidgetLanguageRefresh(): void {
       } catch (error) {
         addLog(
           `[useIOSWidgetLanguageRefresh] Macro widget reload failed: ${error}`,
+          'ERROR'
+        );
+        fullyApplied = false;
+      }
+      try {
+        ExtensionStorage.reloadWidget(ROUTINE_WIDGET_KIND);
+      } catch (error) {
+        addLog(
+          `[useIOSWidgetLanguageRefresh] Routine widget reload failed: ${error}`,
           'ERROR'
         );
         fullyApplied = false;

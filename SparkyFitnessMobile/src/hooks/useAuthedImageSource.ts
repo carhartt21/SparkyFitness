@@ -6,6 +6,7 @@ import {
 } from '../services/storage';
 import { getAuthHeaders } from '../services/api/authService';
 import { normalizeUrl } from '../services/api/apiClient';
+import { isPermittedHttpUrl } from '../utils/serverUrl';
 import type { ServerConfig } from '../services/storage';
 
 export type AuthedImageSource = {
@@ -66,7 +67,12 @@ export function useAuthedImageSource(pathPrefix: string) {
       // token, so a plaintext base URL would put it on the wire. Null renders
       // SafeImage's fallback, which every caller here already handles.
       const base = normalizeUrl(config.url);
-      if (!__DEV__ && base.toLowerCase().startsWith('http://')) return null;
+      if (
+        base.toLowerCase().startsWith('http://') &&
+        !isPermittedHttpUrl(base)
+      ) {
+        return null;
+      }
 
       const cached = cacheRef.current.get(photoId);
       if (cached) return cached;

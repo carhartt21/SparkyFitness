@@ -1,0 +1,134 @@
+import { useEffect, useState } from 'react';
+import { Text } from 'react-native';
+import * as Device from 'expo-device';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import App from '../App';
+import { markCurrentVersionSeen } from '../src/services/whatsNewBanner';
+import { saveServerConfig } from '../src/services/storage';
+import { useAppPreferencesStore } from '../src/stores/appPreferencesStore';
+import { useDiaryDateStore } from '../src/stores/diaryDateStore';
+import { setThemePreference } from '../src/services/themeService';
+import { saveDashboardSnapshot } from '../src/services/dashboardSnapshot';
+import { rememberActiveNutritionUser } from '../src/services/nutritionIdentity';
+import { buildDailySummary } from '../src/services/dailySummaryService';
+import { reviewDate, summaryFixture } from './fixtures';
+import { createNutritionFixture } from './nutritionFixture';
+
+const transport = global.fetch;
+export default function ReviewApp() {
+  const [ready, setReady] = useState(false);
+  const [failure, setFailure] = useState('');
+  useEffect(() => {
+    async function prepare() {
+      if (!__DEV__ || Device.isDevice)
+        throw new Error('UI review requires a development simulator');
+      const config = (await (
+        await transport('http://127.0.0.1:43991/scenario')
+      ).json()) as {
+        language: 'en' | 'de';
+        theme: 'Dark' | 'Light' | 'Amoled';
+        scenario: string;
+      };
+      const fixture = createNutritionFixture(config.scenario);
+      global.fetch = async (input, options) => {
+        const url = new URL(
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.href
+              : input.url
+        );
+        if (url.origin !== 'https://ui-review.invalid')
+          throw new Error(`Review blocked network origin: ${url.origin}`);
+        const method = options?.method ?? 'GET';
+        try {
+          if (
+            ['error', 'saved'].includes(config.scenario) &&
+            url.pathname === '/api/daily-summary'
+          )
+            return new Response('{}', { status: 503 });
+          if (options?.body !== undefined && typeof options.body !== 'string')
+            throw new Error('Review only accepts JSON request bodies');
+          const result = fixture.respond(url, method, options?.body);
+          if (method !== 'GET' || url.pathname === '/api/daily-summary') {
+            await transport('http://127.0.0.1:43991/event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                method,
+                path: url.pathname,
+                entries: fixture.snapshot(),
+              }),
+            });
+          }
+          return new Response(JSON.stringify(result), {
+            headers: { 'Content-Type': 'application/json' },
+          });
+        } catch (error) {
+          console.warn(String(error));
+          return new Response(JSON.stringify({ error: String(error) }), {
+            status: 501,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+      };
+      // Every scenario starts with isolated synthetic cache data. Error captures
+      // must not accidentally reuse the preceding over-target scenario.
+      const cacheKeys = (await AsyncStorage.getAllKeys()).filter((key) =>
+        key.startsWith('@SparkyFitness/dashboard-cache/')
+      );
+      await AsyncStorage.multiRemove(cacheKeys);
+      await markCurrentVersionSeen();
+      await useAppPreferencesStore.persist.rehydrate();
+      useAppPreferencesStore.setState({
+        languagePreference: config.language,
+        liquidGlassTabBarEnabled: false,
+        hiddenHealthTrends: ['steps', 'weight', 'sleep', 'hydration'],
+        notificationsEnabled: false,
+        fastingEnabled: false,
+        caffeineCardVisible: false,
+        cycleCardVisible: false,
+        medicationsCardVisible: false,
+        progressPhotosCardVisible: false,
+      });
+      await AsyncStorage.multiSet([
+        ['syncOnOpenEnabled', 'false'],
+        ['backgroundSyncEnabled', 'false'],
+      ]);
+      await saveServerConfig({
+        id: 'ui-review',
+        url: 'https://ui-review.invalid',
+        apiKey: 'synthetic-not-a-credential',
+        authType: 'apiKey',
+      });
+      if (config.scenario === 'saved') {
+        await rememberActiveNutritionUser('review-user');
+        await saveDashboardSnapshot(
+          { serverConfigId: 'ui-review', userId: 'review-user' },
+          {
+            version: 1,
+            date: reviewDate,
+            savedAt: Date.now() - 3600000,
+            preferences: {
+              energy_unit: 'kcal',
+              water_display_unit: 'ml',
+              time_format: 'HH:mm',
+            },
+            summary: buildDailySummary(reviewDate, {
+              ...summaryFixture,
+              exerciseEntries: summaryFixture.exerciseSessions,
+              waterIntake: { water_ml: summaryFixture.waterIntake },
+              stepCalories: 0,
+            }),
+          }
+        );
+      }
+      await setThemePreference(config.theme);
+      useDiaryDateStore.getState().setSelectedDate(reviewDate);
+      setReady(true);
+    }
+    void prepare().catch((error) => setFailure(String(error)));
+  }, []);
+  if (failure) return <Text accessibilityRole="alert">{failure}</Text>;
+  return ready ? <App /> : null;
+}

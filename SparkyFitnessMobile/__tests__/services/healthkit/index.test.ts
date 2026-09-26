@@ -1676,6 +1676,7 @@ describe('readHealthRecords', () => {
             quantity: number;
             unit: string;
             source: { bundleIdentifier?: string };
+            metadata?: Record<string, unknown>;
           }[]
         >
       ) =>
@@ -1686,6 +1687,7 @@ describe('readHealthRecords', () => {
             startDate: s.startDate,
             quantity: s.quantity,
             unit: s.unit,
+            metadata: s.metadata,
             sourceRevision: { source: s.source },
           })) ?? []
         );
@@ -1726,6 +1728,52 @@ describe('readHealthRecords', () => {
           },
         })
       );
+    });
+
+    test('preserves our writeback marker when HealthKit omits the source', async () => {
+      await initHealthConnect();
+      mockQueryCorrelationSamples.mockResolvedValue([
+        correlation({
+          sourceRevision: undefined,
+          metadata: { XOnTrackWritebackVersion: 1 },
+        }),
+      ]);
+
+      const result = await readHealthRecords(
+        'Nutrition',
+        new Date('2024-01-15T00:00:00Z'),
+        new Date('2024-01-15T23:59:59Z')
+      );
+
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({
+        metadata: { XOnTrackWritebackVersion: 1 },
+      });
+    });
+
+    test('ignores our loose nutrient samples when HealthKit omits the source', async () => {
+      await initHealthConnect();
+      mockQueryQuantitySamples.mockImplementation(
+        looseByIdentifier({
+          HKQuantityTypeIdentifierDietaryEnergyConsumed: [
+            {
+              uuid: 'own-energy',
+              startDate: '2024-01-15T12:30:00Z',
+              quantity: 150,
+              unit: 'kcal',
+              source: {},
+              metadata: { XOnTrackWritebackVersion: 1 },
+            },
+          ],
+        })
+      );
+
+      const result = await readHealthRecords(
+        'Nutrition',
+        new Date('2024-01-15T00:00:00Z'),
+        new Date('2024-01-15T23:59:59Z')
+      );
+      expect(result).toHaveLength(0);
     });
 
     test('filters correlations outside the date range', async () => {

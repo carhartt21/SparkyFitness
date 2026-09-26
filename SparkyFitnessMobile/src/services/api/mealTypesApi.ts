@@ -28,6 +28,15 @@ export const updateMealType = async (
   });
 };
 
+export const updateMealTypeOrder = async (ids: string[]): Promise<MealType[]> =>
+  apiFetch<MealType[]>({
+    endpoint: '/api/meal-types/order',
+    method: 'PUT',
+    body: { ids },
+    serviceName: 'Meal Types API',
+    operation: 'reorder meal types',
+  });
+
 /**
  * Creates a new custom meal type.
  */

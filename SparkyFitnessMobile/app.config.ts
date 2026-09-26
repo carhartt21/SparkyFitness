@@ -5,16 +5,18 @@ import { nativeLanguageTags } from './src/localization/localeRegistry';
 const {
   getIosAppGroup,
   DEV_BUNDLE_IDENTIFIER,
+  IOS_PROD_BUNDLE_IDENTIFIER,
 } = require('./app.identifiers.js');
 
-const APP_NAME = 'SparkyFitness';
-const APP_SLUG = 'sparkyfitnessmobile';
+const APP_NAME = 'X on Track';
+const APP_SLUG = 'personalbest';
 const ANDROID_PROD_BUNDLE_IDENTIFIER = 'com.SparkyApps.SparkyFitnessMobile';
-const IOS_PROD_BUNDLE_IDENTIFIER = 'com.SparkyApps.SparkyFitnessMobile';
 const DEV_APPLE_TEAM_ID = process.env.EXPO_DEV_APPLE_TEAM_ID || '';
 const PROD_APPLE_TEAM_ID = process.env.EXPO_PROD_APPLE_TEAM_ID || '';
 
-const DEV_PACKAGE = DEV_BUNDLE_IDENTIFIER;
+const DEV_PACKAGE =
+  process.env.EXPO_DEV_ANDROID_PACKAGE ||
+  'org.SparkyApps.SparkyFitnessMobile1.dev';
 const PROD_PACKAGE = ANDROID_PROD_BUNDLE_IDENTIFIER;
 
 const androidPermissions = [
@@ -115,6 +117,10 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
   const environment = process.env.APP_VARIANT || 'dev';
 
   const isDev = environment === 'dev' || environment === 'development';
+  const devHttpHost = isDev ? process.env.EXPO_DEV_TEST_HTTP_HOST : undefined;
+  const devTestHttpOrigin = isDev
+    ? process.env.EXPO_DEV_TEST_HTTP_ORIGIN
+    : undefined;
 
   if (isDev) {
     androidPermissions.push(...devAndroidPermissions);
@@ -144,6 +150,7 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
     ...config,
     name: APP_NAME,
     slug: APP_SLUG,
+    owner: 'ilmtech',
     version: packageJson.version,
     locales: Object.fromEntries(
       nativeLanguageTags().map((language) => [
@@ -159,17 +166,28 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
       supportsTablet: false,
       infoPlist: {
         NSLocalNetworkUsageDescription:
-          'SparkyFitness connects to self-hosted servers on your local network.',
+          'X on Track connects to self-hosted servers on your local network.',
         // Required by the food/meal photo picker and the label/barcode
         // scanner. iOS terminates the app on first use without these, and App
         // Review rejects a binary that requests either without a purpose
         // string.
         NSCameraUsageDescription:
-          'SparkyFitness uses the camera to photograph foods and meals, and to scan barcodes and nutrition labels.',
+          'X on Track uses the camera to photograph foods and meals, and to scan barcodes and nutrition labels.',
         NSPhotoLibraryUsageDescription:
-          'SparkyFitness lets you choose photos from your library for your foods, meals, and diary entries.',
+          'X on Track lets you choose photos from your library for your foods, meals, and diary entries.',
         NSAppTransportSecurity: {
           NSAllowsArbitraryLoads: false,
+          // A device-test server may use HTTP inside an encrypted private
+          // tunnel. Scope the exception to one host and only to dev builds.
+          ...(devHttpHost
+            ? {
+                NSExceptionDomains: {
+                  [devHttpHost]: {
+                    NSExceptionAllowsInsecureHTTPLoads: true,
+                  },
+                },
+              }
+            : {}),
         },
         ITSAppUsesNonExemptEncryption: false,
         // Keep the native per-app Language entry visible in iOS Settings even
@@ -185,6 +203,7 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
         // `scheduleRestNotification`); without it a Focus mode silences it.
         'com.apple.developer.usernotifications.time-sensitive': true,
       },
+      // Layered Icon Composer source supports light, dark and tinted system appearances.
       icon: './assets/icons/appicon.icon',
     },
     android: {
@@ -192,7 +211,7 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
       permissions: androidPermissions,
       adaptiveIcon: {
         foregroundImage: './assets/icons/adaptiveicon.png',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#FFFBF3',
       },
     },
     plugins: [
@@ -213,6 +232,9 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
       './plugins/withGlanceAndroidSupport',
       './plugins/withAppLanguage',
       './plugins/withCalorieWidget',
+      // Registered before expo-widgets so this Xcode mod runs after its
+      // target is generated; target and bundle identifiers remain stable.
+      './plugins/withXOnTrackWidgetDisplayName',
       './plugins/withExactAlarmModule',
       './plugins/withEnrichedMarkdownNoMath',
       [
@@ -232,7 +254,7 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
             process.env.WIDGET_BUNDLE_IDENTIFIER ||
             (isDev
               ? `${DEV_BUNDLE_IDENTIFIER}.ExpoWidgetsTarget`
-              : 'com.SparkyApps.SparkyFitnessMobile.ExpoWidgetsTarget'),
+              : `${IOS_PROD_BUNDLE_IDENTIFIER}.ExpoWidgetsTarget`),
           // Live Activities register at runtime via createLiveActivity and must
           // NOT be listed here — widgets[] is only for home/Lock Screen widgets
           // (an entry without supportedFamilies breaks the generated target).
@@ -244,9 +266,10 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
     extra: {
       ...config.extra,
       APP_VARIANT: environment,
+      ...(devTestHttpOrigin ? { devTestHttpOrigin } : {}),
       iosAppGroup: getIosAppGroup(),
       eas: {
-        projectId: '498a86c5-344f-4d2c-9033-dfd720e4a383',
+        projectId: 'd0d1c7d2-deb1-4675-9411-2a1bd0a3a967',
       },
     },
   };

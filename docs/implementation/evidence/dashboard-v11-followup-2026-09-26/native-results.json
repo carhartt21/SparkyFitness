@@ -1,0 +1,84 @@
+{
+  "revision": "d967633ef3cc9e4397a382b1371623c56782e300",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-en-dark",
+      "language": "en",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-14-Pro-Max",
+      "screenshot": "430-en-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "logicalViewport": "430x932"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "430x932"
+    },
+    {
+      "name": "390-en-empty",
+      "language": "en",
+      "theme": "Dark",
+      "scenario": "empty",
+      "device": "iPhone-13",
+      "screenshot": "390-en-empty.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-en-over",
+      "language": "en",
+      "theme": "Amoled",
+      "scenario": "over-target",
+      "device": "iPhone-13",
+      "screenshot": "390-en-over.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-en-error",
+      "language": "en",
+      "theme": "Dark",
+      "scenario": "error",
+      "device": "iPhone-13",
+      "screenshot": "390-en-error.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": null,
+      "logicalViewport": "390x844"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval."
+}

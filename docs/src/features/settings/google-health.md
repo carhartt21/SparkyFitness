@@ -1,6 +1,6 @@
 # Google Health Integration
 
-The Google Health integration allows you to sync fitness metrics, sleep data, and health measurements from your Google Health account directly to SparkyFitness. It is the recommended replacement for Fitbit after the Fitbit Web API is deprecated in September 2026.
+The Google Health integration allows you to sync fitness metrics, sleep data, and health measurements from your Google Health account directly to X on Track. It is the recommended replacement for Fitbit after the Fitbit Web API is deprecated in September 2026.
 
 ---
 
@@ -36,11 +36,11 @@ Go to **APIs & Services → OAuth consent screen**:
 Go to **APIs & Services → Credentials → Create Credentials → OAuth 2.0 Client ID**:
 
 - **Application type**: Web application
-- **Authorized redirect URIs**: paste the Callback URL shown in SparkyFitness (**Settings → External Data Sources → Google Health → edit icon → Callback URL**)
+- **Authorized redirect URIs**: paste the Callback URL shown in X on Track (**Settings → External Data Sources → Google Health → edit icon → Callback URL**)
 
 Save and copy the **Client ID** and **Client Secret**.
 
-### 5. Connect in SparkyFitness
+### 5. Connect in X on Track
 
 1. Go to **Settings → External Data Sources** and find the **Google Health** entry
 2. Click the edit icon and paste in your **Client ID** and **Client Secret**
@@ -66,7 +66,7 @@ https://www.googleapis.com/auth/googlehealth.settings.readonly
 
 ## Data Synchronized
 
-SparkyFitness pulls the following data from Google Health:
+X on Track pulls the following data from Google Health:
 
 - **Activity**: Steps, Active Zone Minutes (fat burn / cardio / peak), Activity Minutes (sedentary / lightly / moderately / very active), Distance, Floors
 - **Health metrics**: Resting heart rate, Heart rate variability (HRV), Blood oxygen (SpO2), Respiratory rate, Skin temperature variation, Body fat percentage, VO2 Max, Daily calories, Weight
@@ -80,7 +80,7 @@ SparkyFitness pulls the following data from Google Health:
 > [!IMPORTANT]
 > **Google Health API Restrictions**:
 >
-> - **Sleep history depth**: The Google Health API limits session-based data (sleep, exercises) to approximately 30 days per query. SparkyFitness automatically splits wide date ranges into 30-day chunks to work around this, so a 365-day import will succeed — it just takes a little longer.
+> - **Sleep history depth**: The Google Health API limits session-based data (sleep, exercises) to approximately 30 days per query. X on Track automatically splits wide date ranges into 30-day chunks to work around this, so a 365-day import will succeed — it just takes a little longer.
 > - **Device-specific metrics**: Some metrics (hydration, core temperature) require a device that explicitly writes them to Health Connect. Fitbit Versa 4 does not record these; a Pixel Watch or similar device is needed.
 > - **Token refresh**: Access tokens expire after 1 hour and are refreshed automatically. If you encounter authentication errors after editing your credentials, use **Disconnect** then **Connect** again — editing credentials alone does not re-authorize the connection.
 > - **App publication required**: If you skip publishing the OAuth app, Google will revoke your refresh token after 7 days, causing the integration to stop syncing.

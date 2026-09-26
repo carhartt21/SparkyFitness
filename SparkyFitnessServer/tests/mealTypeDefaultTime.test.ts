@@ -22,6 +22,88 @@ describe('mealTypeRepository default_time tests', () => {
   });
 
   describe('updateMealType default_time', () => {
+    it('reorders system and custom meals in one transaction', async () => {
+      const userId = uuidv4();
+      const systemId = uuidv4();
+      const customId = uuidv4();
+      mockClient.query.mockImplementation((sql: string) => {
+        if (sql.startsWith('SELECT id, user_id FROM meal_types'))
+          return Promise.resolve({
+            rows: [
+              { id: systemId, user_id: null },
+              { id: customId, user_id: userId },
+            ],
+          });
+        return Promise.resolve({ rows: [] });
+      });
+
+      await mealTypeRepository.reorderMealTypes(userId, [customId, systemId]);
+      expect(
+        mockClient.query.mock.calls.map((call: any[]) => call[0])
+      ).toContain('COMMIT');
+      expect(
+        mockClient.query.mock.calls.find((call: any[]) =>
+          call[0].includes('sort_order_override = EXCLUDED.sort_order_override')
+        )?.[1]
+      ).toEqual([userId, systemId, 20]);
+      expect(
+        mockClient.query.mock.calls.find((call: any[]) =>
+          call[0].startsWith('UPDATE meal_types SET sort_order')
+        )?.[1]
+      ).toEqual([10, customId, userId]);
+    });
+
+    it('rolls back an incomplete or duplicate order', async () => {
+      const userId = uuidv4();
+      const systemId = uuidv4();
+      mockClient.query.mockImplementation((sql: string) =>
+        Promise.resolve({
+          rows: sql.startsWith('SELECT id, user_id FROM meal_types')
+            ? [{ id: systemId, user_id: null }]
+            : [],
+        })
+      );
+      await expect(
+        mealTypeRepository.reorderMealTypes(userId, [systemId, systemId])
+      ).rejects.toThrow('exactly once');
+      expect(
+        mockClient.query.mock.calls.map((call: any[]) => call[0])
+      ).toContain('ROLLBACK');
+    });
+
+    it('stores system meal names and order per user without changing the shared type', async () => {
+      const mealTypeId = uuidv4();
+      const userId = uuidv4();
+      mockClient.query.mockImplementation((sql: string) => {
+        if (sql.startsWith('SELECT user_id FROM meal_types'))
+          return Promise.resolve({ rows: [{ user_id: null }] });
+        return Promise.resolve({ rows: [{ id: mealTypeId }] });
+      });
+
+      await mealTypeRepository.updateMealType(
+        mealTypeId,
+        { name: 'Second breakfast', sort_order: 3 },
+        userId
+      );
+
+      const override = mockClient.query.mock.calls.find((call: any[]) =>
+        call[0].includes('name_override, sort_order_override')
+      );
+      expect(override?.[1]).toEqual([
+        userId,
+        mealTypeId,
+        'Second breakfast',
+        3,
+        true,
+        true,
+      ]);
+      expect(
+        mockClient.query.mock.calls.some((call: any[]) =>
+          call[0].startsWith('UPDATE meal_types')
+        )
+      ).toBe(false);
+    });
+
     it('should upsert default_time in user_meal_visibilities when provided', async () => {
       const mealTypeId = uuidv4();
       const userId = uuidv4();

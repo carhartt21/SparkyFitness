@@ -9,11 +9,16 @@ import WatchConnectivity, {
   type WatchWaterIntakePayload,
   type WatchWaterDeletePayload,
   type WatchWaterLogPayload,
+  type WatchWorkoutSetOperationPayload,
+  type WatchFoodLogPayload,
 } from '../../modules/watch-connectivity';
+import { fetchFoods } from '../services/api/foodsApi';
+import { fetchFavorites } from '../services/api/favoritesApi';
+import { fetchMealTypes } from '../services/api/mealTypesApi';
+import { getDefaultMealTypeId } from '../constants/meals';
 import {
   upsertCheckIn,
   fetchMeasurementsRange,
-  changeWaterIntake,
   fetchWaterContainers,
   fetchWaterIntakeLog,
   deleteWaterIntakeLogEntry,
@@ -24,16 +29,35 @@ import {
   dailySummaryQueryKey,
   waterContainersQueryKey,
   waterIntakeLogQueryKey,
+  foodsQueryKey,
+  favoritesQueryKey,
+  mealTypesQueryKey,
 } from './queryKeys';
 import { refreshHealthSyncCache } from './refreshHealthSyncCache';
 import { getTodayDate, addDays } from '../utils/dateUtils';
 import { getServingVolume } from '../utils/unitConversions';
 import { formatTimeLabel } from '../utils/entryTimeDisplay';
 import { addLog } from '../services/LogService';
+import { getActiveServerConfig } from '../services/storage';
+import {
+  getActiveNutritionIdentity,
+  subscribeNutritionIdentity,
+} from '../services/nutritionIdentity';
+import { isCurrentWatchActionScope } from '../services/watchActionScope';
+import { handleWatchContainerWaterAction } from '../services/watchContainerWaterAction';
+import {
+  enqueueFoodEntry,
+  listNutritionActions,
+  subscribeNutritionActions,
+} from '../services/nutritionActionOutbox';
 import { queryClient } from './queryClient';
 import { usePreferences } from './usePreferences';
 import { useDailySummary } from './useDailySummary';
 import type { CheckInMeasurement } from '../types/measurements';
+import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
+import { buildWatchWorkoutSnapshot } from '../utils/watchWorkoutSnapshot';
+import { buildWatchFoodShortcuts } from '../utils/watchFoodShortcuts';
+import { saveActiveWorkoutSession } from './useActiveWorkoutAutosave';
 
 /** Clamps a goal-progress fraction to 0...1 — passing a goal always reads as 1. */
 function goalProgress(consumed: number, goal: number): number {
@@ -75,6 +99,25 @@ const NO_FIGURES_FOR_TODAY = {
   waterLog: [] as WatchWaterLogPayload[],
 } as const;
 
+function emptyWatchContext(): WatchContextPayload {
+  return {
+    pushedAt: Date.now(),
+    today: getTodayDate(),
+    actionScope: null,
+    history: [],
+    ackedClientIds: [],
+    failedClientIds: [],
+    containers: [],
+    foodShortcuts: [],
+    mealTypes: [],
+    defaultMealTypeId: null,
+    waterGoalMl: null,
+    waterDisplayUnit: null,
+    workout: null,
+    ...NO_FIGURES_FOR_TODAY,
+  };
+}
+
 /**
  * Turns a `logged_at` timestamp into the 'HH:MM' shape `formatTimeLabel`
  * expects, in the device's own timezone.
@@ -103,6 +146,11 @@ function localHourMinute(timestamp: string): string | null {
  * iOS-only; a no-op everywhere else.
  */
 export function useWatchCheckInBridge(enabled: boolean): void {
+  const activeWorkoutState = useActiveWorkoutStore();
+  const workoutSnapshot = useMemo(
+    () => buildWatchWorkoutSnapshot(activeWorkoutState),
+    [activeWorkoutState]
+  );
   // Acks are relayed inside the application context (which is latest-value-only
   // and survives the watch app being asleep), so they must accumulate across
   // pushes rather than being sent once and forgotten.
@@ -110,6 +158,21 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   // Increments on every `pushContext` call, so each one can tell whether it is
   // still the newest by the time it has something to send.
   const pushGenerationRef = useRef(0);
+  const contextWriteQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const enqueueContext = useCallback(
+    (context: WatchContextPayload, generation?: number): Promise<void> => {
+      const write = contextWriteQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          if (generation != null && generation !== pushGenerationRef.current)
+            return;
+          await WatchConnectivity?.updateContext(context);
+        });
+      contextWriteQueueRef.current = write;
+      return write;
+    },
+    []
+  );
   // Guards against a queued transfer being delivered twice — WatchConnectivity
   // makes no once-only promise.
   const handledClientIdsRef = useRef<Set<string>>(new Set());
@@ -117,6 +180,8 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   // handledClientIdsRef) since check-in ids and water-tap ids are separate
   // namespaces the watch generates independently.
   const handledWaterClientIdsRef = useRef<Set<string>>(new Set());
+  const pendingWaterClientIdsRef = useRef<Set<string>>(new Set());
+  const pendingFoodClientIdsRef = useRef<Set<string>>(new Set());
   // Client ids the server refused. Rides in every context push beside
   // `ackedClientIds`, so a failed water tap reaches a watch whose phone was
   // never reachable — the immediate `sendAck` below can't manage that, and the
@@ -127,6 +192,39 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   // extra fetch. 'st_lbs' collapses to 'lbs' for the watch: its crown dial only
   // has room for one number, not a stone+lb split.
   const { preferences } = usePreferences();
+  const { data: foodLists } = useQuery({
+    queryKey: foodsQueryKey,
+    queryFn: fetchFoods,
+    enabled,
+    staleTime: 300_000,
+  });
+  const { data: favorites } = useQuery({
+    queryKey: favoritesQueryKey,
+    queryFn: fetchFavorites,
+    enabled,
+    staleTime: 300_000,
+  });
+  const { data: allMealTypes } = useQuery({
+    queryKey: mealTypesQueryKey,
+    queryFn: fetchMealTypes,
+    enabled,
+    staleTime: 300_000,
+  });
+  const mealTypes = useMemo(
+    () =>
+      (allMealTypes ?? [])
+        .filter((meal) => meal.is_visible)
+        .sort((a, b) => a.sort_order - b.sort_order),
+    [allMealTypes]
+  );
+  const watchFoodShortcuts = useMemo(
+    () =>
+      buildWatchFoodShortcuts(
+        favorites?.favoriteFoods ?? [],
+        foodLists?.recentFoods ?? []
+      ),
+    [favorites?.favoriteFoods, foodLists?.recentFoods]
+  );
   const weightUnit: 'kg' | 'lbs' =
     preferences?.default_weight_unit === 'lbs' ||
     preferences?.default_weight_unit === 'st_lbs'
@@ -357,7 +455,15 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     try {
       const today = getTodayDate();
       const startDate = addDays(today, -(HISTORY_DAYS - 1));
-      const range = await fetchMeasurementsRange(startDate, today);
+      const actionIdentity = await getActiveNutritionIdentity();
+      if (!actionIdentity) {
+        await enqueueContext(emptyWatchContext(), generation);
+        return;
+      }
+      const [range, activeConfig] = await Promise.all([
+        fetchMeasurementsRange(startDate, today),
+        getActiveServerConfig(),
+      ]);
 
       // The API returns DESC by updated_at, so the first row seen for a date is
       // the most recent one for that date.
@@ -408,12 +514,26 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       const figures =
         summaryDate === today ? figuresForSummaryDate : NO_FIGURES_FOR_TODAY;
 
+      // The callback identity tracks React's subscribed snapshot, but a Watch
+      // action can arrive while this async push is awaiting measurements. Use
+      // the store's current state if it changed during that wait.
+      const currentWorkoutState = useActiveWorkoutStore.getState();
+      const currentWorkoutSnapshot =
+        currentWorkoutState === activeWorkoutState
+          ? workoutSnapshot
+          : buildWatchWorkoutSnapshot(currentWorkoutState);
       const context: WatchContextPayload = {
         // Keeps consecutive pushes distinct — see the field's own comment.
         // Without it an unchanged day pushes an identical dictionary, which
         // WatchConnectivity silently declines to redeliver.
         pushedAt: Date.now(),
         today,
+        actionScope: actionIdentity
+          ? JSON.stringify([
+              actionIdentity.serverConfigId,
+              actionIdentity.userId,
+            ])
+          : null,
         todayWeightKg: todayRow?.weight ?? null,
         todayBodyFatPercentage: todayRow?.bodyFat ?? null,
         lastWeightKg: lastWithWeight?.weightKg ?? null,
@@ -424,19 +544,39 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         failedClientIds: failedClientIdsRef.current.slice(-20),
         weightUnit,
         containers: watchContainers,
+        foodShortcuts: watchFoodShortcuts,
+        mealTypes: mealTypes.map((meal) => ({
+          id: meal.id,
+          name: meal.display_name?.trim() || meal.name,
+        })),
+        defaultMealTypeId: getDefaultMealTypeId(mealTypes),
         // Goal and display unit ride outside the day gate: the watch treats
         // both as account configuration and carries them forward, which is
         // what lets a phone-free morning still draw a tap against a scale.
         waterGoalMl,
         waterDisplayUnit,
+        workout:
+          activeConfig?.id != null &&
+          activeConfig.id === currentWorkoutState.sourceServerConfigId
+            ? currentWorkoutSnapshot
+            : null,
         ...figures,
       };
+
+      // A response fetched under a departed account must never be relabelled
+      // with the new account's scope if identity changed during the await.
+      const currentIdentity = await getActiveNutritionIdentity();
+      if (
+        currentIdentity?.serverConfigId !== actionIdentity.serverConfigId ||
+        currentIdentity.userId !== actionIdentity.userId
+      )
+        return;
 
       // Superseded while the fetch above was in flight — a newer push has
       // already sent, or is about to, from fresher state than this one holds.
       if (generation !== pushGenerationRef.current) return;
 
-      await WatchConnectivity.updateContext(context);
+      await enqueueContext(context, generation);
     } catch (error) {
       // A failed push is recoverable: the watch keeps its cached context and asks
       // again next time it becomes reachable.
@@ -454,7 +594,30 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     summaryDate,
     figuresForSummaryDate,
     watchContainers,
+    watchFoodShortcuts,
+    mealTypes,
+    activeWorkoutState,
+    workoutSnapshot,
+    enqueueContext,
   ]);
+
+  useEffect(() => {
+    if (!WatchConnectivity || !WatchConnectivity.isSupported()) return;
+    return subscribeNutritionIdentity(() => {
+      // Queue the blank after any native write already in flight. The account
+      // change also invalidates in-progress fetches before they can enqueue.
+      pushGenerationRef.current += 1;
+      ackedClientIdsRef.current = [];
+      failedClientIdsRef.current = [];
+      handledClientIdsRef.current.clear();
+      handledWaterClientIdsRef.current.clear();
+      pendingWaterClientIdsRef.current.clear();
+      pendingFoodClientIdsRef.current.clear();
+      void enqueueContext(emptyWatchContext()).catch((error) => {
+        addLog(`Watch account reset failed: ${String(error)}`, 'WARNING');
+      });
+    });
+  }, [enqueueContext]);
 
   /**
    * The newest `pushContext`, for the write handlers below.
@@ -472,6 +635,10 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   const handleCheckIn = useCallback(
     async (payload: WatchCheckInPayload): Promise<void> => {
       if (!WatchConnectivity) return;
+      if (!(await isCurrentWatchActionScope(payload.scope))) {
+        await WatchConnectivity.sendAck(payload.clientId, false);
+        return;
+      }
       if (
         payload.clientId &&
         handledClientIdsRef.current.has(payload.clientId)
@@ -527,43 +694,49 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   );
 
   /**
-   * A container tap captured on the watch. Unlike `handleCheckIn`, this has no
-   * ack path back to the watch: the watch's own bottle fill is already
-   * showing an optimistic bump the instant it sent this, and the fresh
-   * `waterConsumedMl` in the next `pushContext` below is confirmation enough.
-   * A failed write here simply never shows up in that push, and the watch's
-   * bump quietly settles back on its own short timeout — see
-   * `WatchSessionManager.sendWaterTap`.
+   * A container tap captured on the watch. The immediate ack and context
+   * ack/failure lists settle its persisted Watch record; the refreshed water
+   * total then replaces any optimistic fill.
    */
   const handleWaterTap = useCallback(
     async (payload: WatchWaterIntakePayload): Promise<void> => {
       if (!WatchConnectivity) return;
+      if (!(await isCurrentWatchActionScope(payload.scope))) {
+        await WatchConnectivity.sendAck(payload.clientId, false);
+        return;
+      }
       if (
         payload.clientId &&
         handledWaterClientIdsRef.current.has(payload.clientId)
       ) {
         return;
       }
-      // Reserved BEFORE the write rather than after it. `changeWaterIntake` is
-      // additive — one tap adds one serving — so two deliveries of the same
-      // clientId add two servings. WatchConnectivity makes no once-only
-      // delivery promise (which is why this set exists at all), and a
-      // redelivery arriving while the first request is still in flight sails
-      // past a check that only records the id on completion.
-      //
-      // `handleCheckIn` can keep recording afterwards: it upserts by date, so
-      // writing the same check-in twice is writing it once.
+      // Reserve in memory to avoid parallel deliveries. The server's durable
+      // operation receipt is the authority across phone relaunches or a lost
+      // response after the food and water rows already committed.
       if (payload.clientId)
         handledWaterClientIdsRef.current.add(payload.clientId);
 
       try {
-        await changeWaterIntake({
-          entryDate: payload.entryDate,
-          // One tap = one full serving of that container, same as the phone's
-          // own +/- button.
-          changeDrinks: 1,
-          containerId: payload.containerId,
-        });
+        const result = await handleWatchContainerWaterAction(payload);
+        if (result === 'queued') {
+          pendingWaterClientIdsRef.current.add(payload.clientId);
+          handledWaterClientIdsRef.current.delete(payload.clientId);
+          addLog(`Watch water tap queued for ${payload.entryDate}`, 'INFO');
+          return;
+        }
+        if (result === 'rejected') {
+          handledWaterClientIdsRef.current.delete(payload.clientId);
+          pendingWaterClientIdsRef.current.delete(payload.clientId);
+          failedClientIdsRef.current = [
+            ...failedClientIdsRef.current,
+            payload.clientId,
+          ].slice(-20);
+          await WatchConnectivity.sendAck(payload.clientId, false);
+          await pushContextRef.current();
+          return;
+        }
+        pendingWaterClientIdsRef.current.delete(payload.clientId);
 
         // Acknowledged both ways: immediately when the watch is reachable,
         // and durably through the context push. A retry of a tap that
@@ -593,11 +766,10 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         );
         await pushContextRef.current();
       } catch (error) {
-        // Released again, so the id isn't spent on a write that never landed:
-        // a redelivery of the queued transfer, or the watch's own retry of a
-        // failed tap, can still get through under the same id.
+        // Storage failure is different from a successfully queued API retry.
         if (payload.clientId) {
           handledWaterClientIdsRef.current.delete(payload.clientId);
+          pendingWaterClientIdsRef.current.delete(payload.clientId);
           failedClientIdsRef.current = [
             ...failedClientIdsRef.current,
             payload.clientId,
@@ -613,6 +785,167 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     []
   );
 
+  const handleFoodLog = useCallback(
+    async (payload: WatchFoodLogPayload): Promise<void> => {
+      if (!WatchConnectivity) return;
+      const uuid =
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+      const valid =
+        uuid.test(payload.clientId) &&
+        uuid.test(payload.foodId) &&
+        uuid.test(payload.variantId) &&
+        uuid.test(payload.mealTypeId) &&
+        /^\d{4}-\d{2}-\d{2}$/.test(payload.entryDate) &&
+        Number.isFinite(payload.quantity) &&
+        payload.quantity > 0 &&
+        payload.quantity <= 10000 &&
+        payload.unit.length > 0 &&
+        payload.unit.length <= 40 &&
+        !Number.isNaN(Date.parse(payload.loggedAt));
+      if (!valid || !(await isCurrentWatchActionScope(payload.scope))) {
+        await WatchConnectivity.sendAck(payload.clientId, false);
+        return;
+      }
+      if (pendingFoodClientIdsRef.current.has(payload.clientId)) return;
+      pendingFoodClientIdsRef.current.add(payload.clientId);
+      try {
+        const identity = await getActiveNutritionIdentity();
+        if (!identity || !(await isCurrentWatchActionScope(payload.scope))) {
+          pendingFoodClientIdsRef.current.delete(payload.clientId);
+          return;
+        }
+        const action = await enqueueFoodEntry({
+          ...identity,
+          clientOperationId: payload.clientId,
+          occurredAt: payload.loggedAt,
+          payload: {
+            meal_type_id: payload.mealTypeId,
+            quantity: payload.quantity,
+            unit: payload.unit,
+            entry_date: payload.entryDate,
+            entry_time: localHourMinute(payload.loggedAt),
+            food_id: payload.foodId,
+            variant_id: payload.variantId,
+          },
+        });
+        if (
+          action.syncState === 'synced' ||
+          action.syncState === 'attentionRequired'
+        ) {
+          pendingFoodClientIdsRef.current.delete(payload.clientId);
+          const success = action.syncState === 'synced';
+          const destination = success ? ackedClientIdsRef : failedClientIdsRef;
+          const opposite = success ? failedClientIdsRef : ackedClientIdsRef;
+          opposite.current = opposite.current.filter(
+            (id) => id !== payload.clientId
+          );
+          destination.current = [
+            ...destination.current.filter((id) => id !== payload.clientId),
+            payload.clientId,
+          ].slice(-20);
+          await WatchConnectivity.sendAck(payload.clientId, success);
+          await pushContextRef.current();
+        }
+      } catch (error) {
+        pendingFoodClientIdsRef.current.delete(payload.clientId);
+        ackedClientIdsRef.current = ackedClientIdsRef.current.filter(
+          (id) => id !== payload.clientId
+        );
+        failedClientIdsRef.current = [
+          ...failedClientIdsRef.current.filter((id) => id !== payload.clientId),
+          payload.clientId,
+        ].slice(-20);
+        addLog(
+          `Watch food action could not be queued: ${String(error)}`,
+          'ERROR'
+        );
+        await WatchConnectivity.sendAck(payload.clientId, false);
+        await pushContextRef.current();
+      }
+    },
+    []
+  );
+
+  // A tap accepted while the API was offline stays queued on the Watch. When
+  // the app-scope outbox later settles it, deliver the acknowledgement without
+  // requiring another Watch tap or a foregrounded water screen.
+  useEffect(() => {
+    const transport = WatchConnectivity;
+    if (!enabled || !transport?.isSupported()) return;
+    const inspect = async () => {
+      if (
+        pendingWaterClientIdsRef.current.size === 0 &&
+        pendingFoodClientIdsRef.current.size === 0
+      )
+        return;
+      const identity = await getActiveNutritionIdentity();
+      if (!identity) return;
+      const actions = await listNutritionActions(identity);
+      for (const action of actions) {
+        const isWater =
+          action.type === 'logContainerWater' &&
+          pendingWaterClientIdsRef.current.has(action.clientOperationId);
+        const isFood =
+          action.type === 'logFoodEntry' &&
+          pendingFoodClientIdsRef.current.has(action.clientOperationId);
+        if (
+          (!isWater && !isFood) ||
+          (action.syncState !== 'synced' &&
+            action.syncState !== 'attentionRequired')
+        ) {
+          continue;
+        }
+        if (
+          !(await isCurrentWatchActionScope(
+            JSON.stringify([identity.serverConfigId, identity.userId])
+          ))
+        ) {
+          return;
+        }
+        pendingWaterClientIdsRef.current.delete(action.clientOperationId);
+        pendingFoodClientIdsRef.current.delete(action.clientOperationId);
+        const success = action.syncState === 'synced';
+        if (success) {
+          handledWaterClientIdsRef.current.add(action.clientOperationId);
+          ackedClientIdsRef.current = [
+            ...ackedClientIdsRef.current,
+            action.clientOperationId,
+          ].slice(-20);
+          failedClientIdsRef.current = failedClientIdsRef.current.filter(
+            (id) => id !== action.clientOperationId
+          );
+          void queryClient.invalidateQueries({
+            queryKey: dailySummaryQueryKey(action.payload.entry_date),
+          });
+          if (isWater)
+            void queryClient.invalidateQueries({
+              queryKey: waterIntakeLogQueryKey(action.payload.entry_date),
+            });
+        } else {
+          ackedClientIdsRef.current = ackedClientIdsRef.current.filter(
+            (id) => id !== action.clientOperationId
+          );
+          failedClientIdsRef.current = [
+            ...failedClientIdsRef.current.filter(
+              (id) => id !== action.clientOperationId
+            ),
+            action.clientOperationId,
+          ].slice(-20);
+        }
+        await transport.sendAck(action.clientOperationId, success);
+        await pushContextRef.current();
+      }
+    };
+    return subscribeNutritionActions(() => {
+      void inspect().catch((error) => {
+        addLog(
+          `Watch nutrition sync acknowledgement failed: ${String(error)}`,
+          'WARNING'
+        );
+      });
+    });
+  }, [enabled]);
+
   /**
    * A delete requested from the watch's water log view. The watch has already
    * removed the row optimistically; the authoritative list arrives in the
@@ -621,6 +954,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   const handleWaterDelete = useCallback(
     async (payload: WatchWaterDeletePayload): Promise<void> => {
       if (!WatchConnectivity) return;
+      if (!(await isCurrentWatchActionScope(payload.scope))) return;
       if (
         payload.clientId &&
         handledWaterClientIdsRef.current.has(payload.clientId)
@@ -655,6 +989,62 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     []
   );
 
+  const handleWorkoutSetOperation = useCallback(
+    async (operation: WatchWorkoutSetOperationPayload): Promise<void> => {
+      if (!WatchConnectivity) return;
+      let accepted = false;
+      try {
+        if (!(await isCurrentWatchActionScope(operation.scope))) {
+          throw new Error(
+            'Watch action account does not match the active account.'
+          );
+        }
+        if (!useActiveWorkoutStore.persist.hasHydrated()) {
+          await useActiveWorkoutStore.persist.rehydrate();
+        }
+        const activeConfigId = (await getActiveServerConfig())?.id ?? null;
+        const result = useActiveWorkoutStore
+          .getState()
+          .applyWatchSetOperation(operation, activeConfigId);
+        if (result === 'applied' || result === 'duplicate') {
+          // The screen's autosave hook may be unmounted while the wearer uses
+          // the Watch. A success ack means the server save has finished, not
+          // merely that the phone accepted a local tap.
+          accepted = (await saveActiveWorkoutSession(queryClient)) !== 'failed';
+        }
+        if (!accepted) {
+          addLog(
+            `Watch workout action conflicted: ${operation.clientId}`,
+            'WARNING'
+          );
+        }
+      } catch (error) {
+        addLog(`Watch workout action failed: ${String(error)}`, 'ERROR');
+      }
+
+      const currentIds = accepted
+        ? ackedClientIdsRef.current
+        : failedClientIdsRef.current;
+      const oppositeIds = accepted
+        ? failedClientIdsRef.current
+        : ackedClientIdsRef.current;
+      if (!currentIds.includes(operation.clientId)) {
+        currentIds.push(operation.clientId);
+        if (currentIds.length > 100) currentIds.shift();
+      }
+      const oppositeIndex = oppositeIds.indexOf(operation.clientId);
+      if (oppositeIndex >= 0) oppositeIds.splice(oppositeIndex, 1);
+
+      try {
+        await WatchConnectivity.sendAck(operation.clientId, accepted);
+      } catch (error) {
+        addLog(`Watch workout ack failed: ${String(error)}`, 'WARNING');
+      }
+      await pushContextRef.current();
+    },
+    []
+  );
+
   // Latest handlers, read by the subscriptions below.
   //
   // Without this, the subscription effect had to list every handler as a dep,
@@ -669,6 +1059,8 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     handleCheckIn,
     handleWaterTap,
     handleWaterDelete,
+    handleWorkoutSetOperation,
+    handleFoodLog,
     pushContext,
     catchUpToToday,
   });
@@ -677,6 +1069,8 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       handleCheckIn,
       handleWaterTap,
       handleWaterDelete,
+      handleWorkoutSetOperation,
+      handleFoodLog,
       pushContext,
       catchUpToToday,
     };
@@ -712,6 +1106,15 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         onEvent(handlersRef.current.handleWaterDelete)(payload);
       }
     );
+    const workoutSetSub = WatchConnectivity.addListener(
+      'onWorkoutSetOperation',
+      (payload) => {
+        onEvent(handlersRef.current.handleWorkoutSetOperation)(payload);
+      }
+    );
+    const foodLogSub = WatchConnectivity.addListener('onFoodLog', (payload) => {
+      onEvent(handlersRef.current.handleFoodLog)(payload);
+    });
     const contextRequestSub = WatchConnectivity.addListener(
       'onContextRequest',
       () => {
@@ -740,6 +1143,8 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       checkInSub.remove();
       waterIntakeSub.remove();
       waterDeleteSub.remove();
+      workoutSetSub.remove();
+      foodLogSub.remove();
       contextRequestSub.remove();
       reachabilitySub.remove();
       appStateSub.remove();

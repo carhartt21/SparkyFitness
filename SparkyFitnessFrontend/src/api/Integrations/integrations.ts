@@ -61,12 +61,29 @@ export const syncHevyData = async (
   startDate?: string,
   endDate?: string,
   mock?: { saveMockData?: boolean; dataSource?: string }
-): Promise<void> => {
+): Promise<HevySyncResult> => {
   return apiCall(`/integrations/hevy/sync${fullSync ? '?fullSync=true' : ''}`, {
     method: 'POST',
     body: JSON.stringify({ providerId, startDate, endDate, ...mock }),
   });
 };
+
+export interface HevySyncResult {
+  success: boolean;
+  partial: boolean;
+  processedCount: number;
+  workouts: {
+    imported: number;
+    skipped: number;
+    failed: Array<{ id: string; message: string }>;
+  };
+  routines: {
+    imported: number;
+    skipped: number;
+    failed: Array<{ id: string; message: string }>;
+  };
+  fetchWarnings: string[];
+}
 
 export interface LiftosaurSyncResult {
   message?: string;

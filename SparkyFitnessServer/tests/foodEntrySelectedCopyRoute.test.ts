@@ -129,3 +129,65 @@ describe('POST /copy-selected-from-user', () => {
     });
   });
 });
+
+describe('POST / with a client operation ID', () => {
+  const payload = {
+    meal_type_id: '33333333-3333-4333-8333-333333333333',
+    food_id: '44444444-4444-4444-8444-444444444444',
+    variant_id: '55555555-5555-4555-8555-555555555555',
+    quantity: 1,
+    unit: 'g',
+    entry_date: '2026-09-23',
+  };
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(foodEntryService.createFoodEntry).mockResolvedValue({
+      id: 'entry-1',
+    });
+  });
+
+  it('passes a valid stable ID to the service', async () => {
+    const body = {
+      ...payload,
+      client_operation_id: '66666666-6666-4666-8666-666666666666',
+    };
+    const response = await request(app).post('/').send(body);
+    expect(response.status).toBe(201);
+    expect(foodEntryService.createFoodEntry).toHaveBeenCalledWith(
+      'active-family-context',
+      '11111111-1111-4111-8111-111111111111',
+      body
+    );
+  });
+
+  it('rejects a malformed operation ID before writing', async () => {
+    const response = await request(app)
+      .post('/')
+      .send({
+        ...payload,
+        client_operation_id: 'not-a-uuid',
+      });
+    expect(response.status).toBe(400);
+    expect(foodEntryService.createFoodEntry).not.toHaveBeenCalled();
+  });
+
+  it('rejects mixing immutable action IDs with provider upserts', async () => {
+    const response = await request(app)
+      .post('/')
+      .send({
+        ...payload,
+        client_operation_id: '66666666-6666-4666-8666-666666666666',
+        source: 'health_connect',
+        source_id: 'provider-record',
+      });
+    expect(response.status).toBe(400);
+    expect(foodEntryService.createFoodEntry).not.toHaveBeenCalled();
+  });
+
+  it('accepts legacy clients that omit the operation ID', async () => {
+    const response = await request(app).post('/').send(payload);
+    expect(response.status).toBe(201);
+    expect(foodEntryService.createFoodEntry).toHaveBeenCalledOnce();
+  });
+});

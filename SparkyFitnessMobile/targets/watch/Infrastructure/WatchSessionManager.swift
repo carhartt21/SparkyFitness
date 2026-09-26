@@ -52,11 +52,8 @@ final class WatchSessionManager: NSObject, ObservableObject {
     /// it is exactly the one a complication tap lands in: the app cold-starts
     /// straight onto the Water page and a square is one tap away.
     ///
-    /// In memory rather than persisted, deliberately. Activation completes
-    /// moments after launch, and a tap lost with the process is reconciled
-    /// anyway: the optimistic bump in `CheckInStore.pendingWaterTaps` clears
-    /// on the next context push carrying today's water, so the bottle settles
-    /// back to the truth rather than lying indefinitely.
+    /// In memory until activation. All captured water actions also retain their
+    /// original IDs in the store for replay after a Watch relaunch.
     private var deferredTransfers: [[String: Any]] = []
 
     private var isActivated: Bool {
@@ -65,11 +62,9 @@ final class WatchSessionManager: NSObject, ObservableObject {
 
     /// The single door every queued send goes through.
     ///
-    /// Water taps and deletes need the deferral: neither has an ack path or a
-    /// replayable backing list, so dropping one silently is indistinguishable
-    /// to the wearer from the app being broken. Check-ins would survive
-    /// without it — they sit in `CheckInStore.pending` until `retryPending()`
-    /// — but routing them through here too keeps one rule instead of two.
+    /// Deletes have no backing outbox. Deferring until activation prevents a
+    /// normal startup from silently dropping a send; captured actions use
+    /// their persisted IDs again if acknowledgement was lost.
     private func transfer(_ payload: [String: Any]) {
         guard WCSession.isSupported() else { return }
         guard isActivated else {
@@ -98,7 +93,10 @@ final class WatchSessionManager: NSObject, ObservableObject {
     /// `.queued` always, because even a reachable phone hasn't written to the
     /// server yet — the ack flips it to `.saved`.
     func send(_ checkIn: CheckIn) -> SyncState {
-        guard WCSession.isSupported() else { return .failed }
+        guard WCSession.isSupported(),
+              let scope = checkIn.scope,
+              !scope.isEmpty,
+              scope == store.context.actionScope else { return .failed }
         transfer(OutboundPayloads.checkIn(checkIn))
         // Still `.queued` even when the transfer was deferred: the check-in is
         // in `CheckInStore.pending` either way, and the ack is the only thing
@@ -116,6 +114,28 @@ final class WatchSessionManager: NSObject, ObservableObject {
         for checkIn in store.retryable {
             transfer(OutboundPayloads.checkIn(checkIn))
         }
+        for tap in store.queuedWaterTaps {
+            sendWaterTap(tap)
+        }
+        sendQueuedQuickWaterActions()
+        for action in store.queuedFoodActions { sendFoodLog(action) }
+        sendNextWorkoutOperation()
+    }
+
+    private func sendQueuedQuickWaterActions() {
+        for action in store.queuedQuickWaterActions {
+            transfer(OutboundPayloads.manualWater(action))
+        }
+    }
+
+    func sendWorkoutSetOperation(_ operation: WorkoutSetOperation) {
+        guard store.nextQueuedWorkoutOperation?.id == operation.id else { return }
+        sendNextWorkoutOperation()
+    }
+
+    private func sendNextWorkoutOperation() {
+        guard let operation = store.nextQueuedWorkoutOperation else { return }
+        transfer(OutboundPayloads.workoutSetOperation(operation))
     }
 
     /// Logs one full serving of `containerId` against today, straight to the
@@ -128,16 +148,19 @@ final class WatchSessionManager: NSObject, ObservableObject {
     /// Water page can show the tap as queued, then saved, then failed. It used
     /// to be fire-and-forget, which meant a tap that never landed looked
     /// exactly like one that did.
-    /// `clientId` comes from `CheckInStore.recordWaterTap` rather than being
-    /// generated here: the store's copy of the tap and the phone's
-    /// acknowledgement have to be talking about the same id, and two `UUID()`
-    /// calls never are.
-    func sendWaterTap(containerId: Int, clientId: String) {
-        guard WCSession.isSupported() else { return }
+    /// The stored tap supplies its original id, date, and account scope. A
+    /// retry after midnight must still write to the day the wearer tapped.
+    func sendWaterTap(_ pending: PendingWaterTap) {
+        guard WCSession.isSupported(),
+              let scope = pending.scope,
+              !scope.isEmpty,
+              scope == store.context.actionScope else { return }
         let tap = WaterTap(
-            id: clientId,
-            entryDate: CheckInDate.today(),
-            containerId: containerId
+            id: pending.id,
+            entryDate: pending.day,
+            containerId: pending.containerId,
+            loggedAt: pending.createdAt,
+            scope: scope
         )
         transfer(OutboundPayloads.waterTap(tap))
     }
@@ -148,7 +171,31 @@ final class WatchSessionManager: NSObject, ObservableObject {
     func retryFailedWaterTaps() {
         for tap in store.retryableWaterTaps {
             store.markWaterTap(tap.id, .queued)
-            sendWaterTap(containerId: tap.containerId, clientId: tap.id)
+            sendWaterTap(tap)
+        }
+    }
+
+    func sendQuickWater(_ action: PendingQuickWaterAction) {
+        guard action.scope == store.context.actionScope else { return }
+        transfer(OutboundPayloads.manualWater(action))
+    }
+
+    func sendFoodLog(_ action: PendingFoodLogAction) {
+        guard action.scope == store.context.actionScope else { return }
+        transfer(OutboundPayloads.foodLog(action))
+    }
+
+    func retryFailedFoodActions() {
+        for action in store.failedFoodActions {
+            store.markFoodLog(action.id, .queued)
+            sendFoodLog(action)
+        }
+    }
+
+    func retryFailedQuickWaterActions() {
+        for action in store.failedQuickWaterActions {
+            store.markQuickWater(action.id, .queued)
+            sendQuickWater(action)
         }
     }
 
@@ -158,7 +205,8 @@ final class WatchSessionManager: NSObject, ObservableObject {
     /// (row gone) or restores it (delete failed).
     func sendWaterDelete(entryId: String) {
         guard WCSession.isSupported() else { return }
-        let request = WaterDeleteRequest(id: UUID().uuidString, entryId: entryId)
+        guard let scope = store.context.actionScope, !scope.isEmpty else { return }
+        let request = WaterDeleteRequest(id: UUID().uuidString, entryId: entryId, scope: scope)
         transfer(OutboundPayloads.waterDelete(request))
     }
 
@@ -185,6 +233,7 @@ final class WatchSessionManager: NSObject, ObservableObject {
     /// than from a payload — see `handle(context:)` for the normal one.
     func refreshComplications() {
         let context = store.context
+        ComplicationPublisher.setScope(context.actionScope)
 
         // The `isToday` checks are now belt to the publisher's braces — it
         // rejects a non-today `day` itself. Kept because they also skip the
@@ -271,8 +320,19 @@ final class WatchSessionManager: NSObject, ObservableObject {
         // queued request is allowed again.
         hasQueuedContextRequest = false
 
+        let previousHead = store.nextQueuedWorkoutOperation?.id
+        let previousActionScope = store.context.actionScope
         let incoming = ContextPayloadMapper.context(from: payload, previous: store.context)
         store.apply(context: incoming)
+        ComplicationPublisher.setScope(incoming.actionScope)
+        if incoming.actionScope != previousActionScope {
+            // An action captured under account A remains in the outbox while
+            // B is active. When A returns, replay only A's fixed-scope items.
+            retryPending()
+        }
+        if store.nextQueuedWorkoutOperation?.id != previousHead {
+            sendNextWorkoutOperation()
+        }
 
         // The day this payload is ABOUT — not necessarily today. Anything
         // routed through here may be a replay of the cached context by
@@ -310,8 +370,21 @@ final class WatchSessionManager: NSObject, ObservableObject {
         // space, so one ack message serves both — whichever recognises the id
         // acts on it, and neither can mistake the other's.
         if let checkIn = store.retryable.first(where: { $0.id == ack.clientId })
-            ?? (store.lastCaptured?.id == ack.clientId ? store.lastCaptured : nil) {
+            ?? (store.visibleLastCaptured?.id == ack.clientId ? store.visibleLastCaptured : nil) {
             store.markState(ack.ok ? .saved : .failed, for: checkIn)
+            return
+        }
+        if store.pendingWorkoutOperations.contains(where: { $0.id == ack.clientId }) {
+            store.markWorkoutOperation(ack.clientId, ack.ok ? .saved : .failed)
+            if ack.ok { sendNextWorkoutOperation() }
+            return
+        }
+        if store.pendingQuickWaterActions.contains(where: { $0.id == ack.clientId }) {
+            store.markQuickWater(ack.clientId, ack.ok ? .saved : .failed)
+            return
+        }
+        if store.pendingFoodActions.contains(where: { $0.id == ack.clientId }) {
+            store.markFoodLog(ack.clientId, ack.ok ? .saved : .failed)
             return
         }
         store.markWaterTap(ack.clientId, ack.ok ? .saved : .failed)

@@ -58,7 +58,7 @@ export const DataManagementSettings = () => {
       const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'sparkyfitness_diary_export.csv');
+      link.setAttribute('download', 'x-on-track_diary_export.csv');
       document.body.appendChild(link);
       link.click();
 

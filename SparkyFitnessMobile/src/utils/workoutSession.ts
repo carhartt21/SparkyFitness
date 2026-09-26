@@ -130,9 +130,11 @@ export function getWorkoutIcon(session: ExerciseSessionResponse): IconName {
 }
 
 const SOURCE_DISPLAY_NAMES: Record<string, string> = {
-  manual: 'Sparky',
-  sparky: 'Sparky',
-  'workout plan': 'Sparky',
+  manual: 'X on Track',
+  sparky: 'X on Track',
+  personalbest: 'X on Track',
+  'x on track': 'X on Track',
+  'workout plan': 'X on Track',
   healthkit: 'Apple Health',
   'health connect': 'Health Connect',
   garmin: 'Garmin',
@@ -149,7 +151,7 @@ const SOURCE_DISPLAY_NAMES: Record<string, string> = {
  */
 export function getSourceLabel(source: string | null | undefined): string {
   if (source == null) {
-    return 'Sparky';
+    return 'X on Track';
   }
 
   const trimmed = source.trim();
@@ -512,7 +514,7 @@ export function getExerciseVolumeKg(exercise: {
 }): number {
   return exercise.sets.reduce(
     (total, set) =>
-      set.set_type === 'warmup' ? total : total + setVolumeKg(set),
+      isWarmupSetType(set.set_type) ? total : total + setVolumeKg(set),
     0
   );
 }
@@ -724,7 +726,7 @@ export function formatVolume(volumeKg: number, weightUnit: string): string {
   return `${formatLocalizedNumber(Math.round(value))} ${weightUnit}`;
 }
 
-/** Compact historical-set text, e.g. `W 60 × 8`, `100 × 5`, `12 reps`, `45s`, or `30:00 · 5.2 km`; weight is unitless display units. */
+/** Compact historical-set text, e.g. `W 60 × 8`, `D 40 × 8`, `100 × 5`, `12 reps`, or `30:00 · 5.2 km`; weight is unitless display units. */
 export function formatRecentSessionSet(
   set: ExerciseRecentSessionSet,
   weightUnit: 'kg' | 'lbs',
@@ -732,7 +734,8 @@ export function formatRecentSessionSet(
   modality?: ExerciseModality,
   distanceUnit: 'km' | 'miles' = 'km'
 ): string {
-  const prefix = set.setType === 'warmup' ? 'W ' : '';
+  const marker = setTypeLetter(set.setType);
+  const prefix = marker == null ? '' : `${marker} `;
   if (modality != null && isDurationModality(modality)) {
     const seconds = effectiveSetDurationSec(
       { duration: set.duration ?? null, reps: set.reps },
@@ -854,7 +857,7 @@ export function resolveAssumedSetValues(
     } as AssumedSetValues,
   };
   return sets.map((set, index) => {
-    const tier = set.set_type === 'warmup' ? 'warmup' : 'working';
+    const tier = isWarmupSetType(set.set_type) ? 'warmup' : 'working';
     const previous = previousSets?.[index];
     const planned = plannedBySetId?.[String(set.id)];
 
@@ -1141,22 +1144,19 @@ export const SET_TYPE_OPTIONS = [
 ] as const;
 
 export function isDropSetType(setType: string | null | undefined): boolean {
-  return setType === 'drop';
+  if (setType == null) return false;
+  const normalized = setType.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return normalized === 'drop' || normalized === 'dropset';
 }
 
 export function setTypeLetter(
   setType: string | null | undefined
 ): 'W' | 'D' | 'F' | null {
-  switch (setType) {
-    case 'warmup':
-      return 'W';
-    case 'drop':
-      return 'D';
-    case 'failure':
-      return 'F';
-    default:
-      return null;
-  }
+  if (isWarmupSetType(setType)) return 'W';
+  if (isDropSetType(setType)) return 'D';
+  const normalized = setType?.toLowerCase().replace(/[^a-z0-9]/g, '');
+  if (normalized === 'tofailure' || normalized === 'failure') return 'F';
+  return null;
 }
 
 export function isWarmupSetType(setType: string | null | undefined): boolean {

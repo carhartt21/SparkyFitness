@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
-import { View, Text, Image, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import CollapsibleSection from './CollapsibleSection';
 import Button from './ui/Button';
 import BottomSheetPicker from './BottomSheetPicker';
 import Switch from './ui/Switch';
 import { useTranslation } from 'react-i18next';
-import { getHealthMetricLabel, getHealthCategoryLabel } from '../HealthMetrics';
+import { getHealthCategoryLabel } from '../HealthMetrics';
 import {
   WRITEBACK_METRICS,
   WRITEBACK_CATEGORY_ORDER,
+  WORKOUT_EXPORT_METRIC,
   type WritebackMetric,
 } from '../WritebackMetrics';
 
 interface HealthDataWritebackProps {
   writebackStates: Record<string, boolean>;
   handleToggleWriteback: (metric: WritebackMetric, newValue: boolean) => void;
-  /** Delete all SparkyFitness-written records (full purge — caller confirms). */
+  /** Delete all X on Track-written records (full purge — caller confirms). */
   onRemoveAllData: () => void;
   /** Open the date-range picker to remove a window of records. */
   onRemoveDateRange: () => void;
@@ -36,7 +37,7 @@ const groupByCategory = (
   );
 
 /**
- * Opt-in toggles for writing SparkyFitness diary data out to the OS health store
+ * Opt-in toggles for writing X on Track diary data out to the OS health store
  * (Health Connect on Android, Apple Health on iOS). Grouped into accordion categories
  * to match the read "Health Data to Sync" card. Mobile-only; renders nothing elsewhere.
  */
@@ -59,7 +60,11 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
     Platform.OS === 'ios'
       ? t('healthSync.appleHealth', { defaultValue: 'Apple Health' })
       : t('healthSync.healthConnect', { defaultValue: 'Health Connect' });
-  const grouped = groupByCategory(WRITEBACK_METRICS);
+  const grouped = groupByCategory(
+    Platform.OS === 'ios'
+      ? [...WRITEBACK_METRICS, WORKOUT_EXPORT_METRIC]
+      : WRITEBACK_METRICS
+  );
 
   const toggleCategory = (category: string) => {
     setCollapsedCategories((prev) => {
@@ -74,16 +79,17 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
   };
 
   const renderMetricItem = (metric: WritebackMetric) => {
-    const metricLabel = getHealthMetricLabel(t, metric);
+    const metricLabel = t(metric.labelKey, {
+      defaultValue: metric.defaultLabel,
+    });
     return (
       <View
         key={metric.id}
         className="flex-row justify-between items-center mb-2"
       >
         <View className="flex-row items-center flex-1 mr-2">
-          <Image source={metric.icon} className="w-6 h-6" />
           <Text
-            className="ml-2 text-base text-text-primary flex-shrink"
+            className="text-base text-text-primary flex-shrink"
             numberOfLines={1}
           >
             {metricLabel}
@@ -116,11 +122,14 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
       <Text className="text-sm text-text-muted mb-3">
         {t('healthSync.writeSummary', {
           defaultValue:
-            'Syncs the data you log in SparkyFitness out to {{store}}, keeping the two in sync.',
+            'Syncs the data you log in X on Track out to {{store}}, keeping the two in sync.',
           store: storeName,
         })}
       </Text>
-      {WRITEBACK_CATEGORY_ORDER.map((category) => {
+      {[
+        ...WRITEBACK_CATEGORY_ORDER,
+        ...(Platform.OS === 'ios' ? ['Activity'] : []),
+      ].map((category) => {
         const metricsInCategory = grouped[category];
         if (!metricsInCategory || metricsInCategory.length === 0) {
           return null;
@@ -137,6 +146,14 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
           </CollapsibleSection>
         );
       })}
+      {Platform.OS === 'ios' && (
+        <Text className="text-xs text-text-muted mb-2">
+          {t('healthSync.workoutExportNote', {
+            defaultValue:
+              'Completed workouts are exported only after you turn this on. Turning it off stops future exports; the removal control below affects nutrition and hydration only.',
+          })}
+        </Text>
+      )}
       <BottomSheetPicker<RemoveScope>
         value={'' as RemoveScope}
         title={t('healthSync.removeFrom', {
@@ -166,7 +183,7 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
           >
             <Text className="text-sm font-medium text-text-danger-subtle">
               {t('healthSync.removeData', {
-                defaultValue: 'Remove SparkyFitness data from {{store}}',
+                defaultValue: 'Remove X on Track data from {{store}}',
                 store: storeName,
               })}
             </Text>

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -15,9 +15,12 @@ import { useDailySummary } from '../hooks/useDailySummary';
 import { useNutrientDisplayPreferences } from '../hooks/useNutrientDisplayPreferences';
 import { useCustomNutrients } from '../hooks/useCustomNutrients';
 import { useServerConnection } from '../hooks/useServerConnection';
+import { usePreferences } from '../hooks/usePreferences';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
 import { NUTRIENT_META, getNutrientLabel } from '../constants/nutrients';
 import NutritionMacroCard from '../components/NutritionMacroCard';
+import NutrientBarChart from '../components/NutrientBarChart';
+import SegmentedControl from '../components/SegmentedControl';
 import StatusView from '../components/StatusView';
 import Icon from '../components/Icon';
 import {
@@ -27,7 +30,13 @@ import {
 import type { FoodVariantNutrientField } from '@workspace/shared';
 import type { RootStackScreenProps } from '../types/navigation';
 import type { FoodEntry } from '../types/foodEntries';
-import { formatLocalizedNumber } from '../localization';
+import { formatLocalizedNumber, getAppLocale } from '../localization';
+import { formatDateLabel } from '../utils/dateUtils';
+import { getNetCarbsValue } from '../utils/nutrientUtils';
+import {
+  useNutritionTrends,
+  type TrendRange,
+} from '../hooks/useNutritionTrends';
 
 type DailyNutritionDetailsScreenProps =
   RootStackScreenProps<'DailyNutritionDetails'>;
@@ -69,9 +78,33 @@ const DailyNutritionDetailsScreen: React.FC<
 > = ({ route, navigation }) => {
   const { t } = useTranslation();
   const { date } = route.params;
+  const [trendRange, setTrendRange] = useState<TrendRange>('7d');
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const { isConnected } = useServerConnection();
+  const { preferences: appPreferences } = usePreferences({
+    enabled: isConnected,
+  });
+  const {
+    data: trendData,
+    recordedDates,
+    isLoading: trendsLoading,
+    isError: trendsError,
+  } = useNutritionTrends({
+    range: trendRange,
+    endDate: date,
+    enabled: isConnected,
+  });
+  const calorieTrend = useMemo(
+    () =>
+      trendData
+        .filter(
+          (point) =>
+            recordedDates.has(point.date) && Number.isFinite(point.calories)
+        )
+        .map((point) => ({ day: point.date, value: point.calories })),
+    [trendData, recordedDates]
+  );
 
   const { summary, isLoading, isError } = useDailySummary({ date });
   const { preferences } = useNutrientDisplayPreferences({
@@ -284,7 +317,13 @@ const DailyNutritionDetailsScreen: React.FC<
         : null,
     carbs:
       summary.carbs.goal > 0
-        ? Math.round((summary.carbs.consumed / summary.carbs.goal) * 100)
+        ? Math.round(
+            ((appPreferences?.show_net_carbs === true
+              ? getNetCarbsValue(summary.carbs.consumed, summary.fiber.consumed)
+              : summary.carbs.consumed) /
+              summary.carbs.goal) *
+              100
+          )
         : null,
     fat:
       summary.fat.goal > 0
@@ -415,6 +454,45 @@ const DailyNutritionDetailsScreen: React.FC<
         }}
         showsVerticalScrollIndicator={false}
       >
+        <View className="mb-3">
+          <Text className="text-xl font-bold text-text-primary">
+            {formatDateLabel(date, t, getAppLocale())}
+          </Text>
+          <Text className="mt-1 text-sm text-text-secondary">
+            {t('dailyNutritionDetails.loggedIntakeNote', {
+              defaultValue:
+                'Based on logged food and supplements; missing meals are unknown.',
+            })}
+          </Text>
+        </View>
+        <View className="mb-3">
+          <SegmentedControl<TrendRange>
+            segments={[
+              { key: '7d', label: t('ranges.7d', { defaultValue: '7d' }) },
+              { key: '30d', label: t('ranges.30d', { defaultValue: '30d' }) },
+              { key: '90d', label: t('ranges.90d', { defaultValue: '90d' }) },
+            ]}
+            activeKey={trendRange}
+            onSelect={setTrendRange}
+          />
+          <NutrientBarChart
+            data={calorieTrend}
+            isLoading={trendsLoading}
+            isError={trendsError}
+            range={trendRange}
+            nutrientLabel={t('nutrients.calories', {
+              defaultValue: 'Calories',
+            })}
+            unit={t('dashboard.kcal', { defaultValue: 'kcal' })}
+            goal={summary.calorieGoal}
+          />
+          <Text className="text-xs text-text-secondary">
+            {t('nutrientTrends.loggedDaysNote', {
+              defaultValue:
+                'Trends include logged days only; days without entries are unknown.',
+            })}
+          </Text>
+        </View>
         {/* Macronutrients Card */}
         <NutritionMacroCard
           calories={summary.caloriesConsumed}
@@ -423,12 +501,38 @@ const DailyNutritionDetailsScreen: React.FC<
           fat={summary.fat.consumed}
           fiber={summary.fiber.consumed}
           goalPercentages={goalPercentages}
-          showNetCarbs={false}
+          showNetCarbs={appPreferences?.show_net_carbs === true}
           calorieGoal={summary.calorieGoal}
           proteinGoal={summary.protein.goal}
           carbsGoal={summary.carbs.goal}
           fatGoal={summary.fat.goal}
         />
+
+        <TouchableOpacity
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={t('dailyNutritionDetails.viewCalorieTrends', {
+            defaultValue: 'View calorie trends',
+          })}
+          onPress={() =>
+            navigation.navigate('NutrientTrends', {
+              nutrientKey: 'calories',
+              nutrientLabel: t('dashboard.calories', {
+                defaultValue: 'Calories',
+              }),
+              unit: t('nutrition.caloriesShort', { defaultValue: 'kcal' }),
+              goal: summary.calorieGoal > 0 ? summary.calorieGoal : undefined,
+            })
+          }
+          className="mt-4 min-h-14 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-4 py-3"
+        >
+          <Text className="text-base font-semibold text-text-primary">
+            {t('dailyNutritionDetails.viewCalorieTrends', {
+              defaultValue: 'View calorie trends',
+            })}
+          </Text>
+          <Icon name="chevron-forward" size={18} color={accentColor} />
+        </TouchableOpacity>
 
         {/* Predefined Nutrients Section */}
         {displayGroups && displayGroups.standardItems.length > 0 && (

@@ -92,6 +92,7 @@ const ICON_MAP = {
   'meal-snack': { sf: 'clock.fill', ion: 'time' },
 
   // Exercise
+  target: { sf: 'target', ion: 'locate-outline' },
   timer: { sf: 'timer', ion: 'timer-outline' },
   clock: { sf: 'clock', ion: 'time-outline' },
   history: { sf: 'clock.arrow.circlepath', ion: 'time-outline' },

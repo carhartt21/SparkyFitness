@@ -1,0 +1,33 @@
+{
+  "fullJest": {
+    "suitesPassed": 482,
+    "testsPassed": 7232,
+    "scope": "After initial header/shape edits"
+  },
+  "finalFocusedJest": {
+    "suitesPassed": 4,
+    "testsPassed": 52,
+    "scope": "DashboardReview, ActiveWorkoutRestBar, SetRowChrome, HydrationGauge after final edits"
+  },
+  "finalTypecheck": "passed",
+  "finalLint": "passed",
+  "finalPackageFormatting": "passed",
+  "diffWhitespace": "passed",
+  "aggregateValidate": {
+    "status": "blocked by existing findings",
+    "findings": "3 dynamic translation keys in HealthDataWriteback and SyncScreen"
+  },
+  "nativeInteractionScenarios": [
+    "390-de-dark",
+    "430-en-dark"
+  ],
+  "renderOnlyScenarios": [
+    "390-de-light",
+    "430-de-large"
+  ],
+  "unverified": [
+    "Physical device",
+    "VoiceOver",
+    "Every secondary screen affected by shared/control corner styling"
+  ]
+}

@@ -381,13 +381,13 @@ describe('WorkoutDetailScreen', () => {
       expect(screen.getByLabelText('Add set to Bench Press')).toBeTruthy();
     });
 
-    it('starts the workout at the long-pressed set', () => {
+    it('starts the workout at the long-pressed set', async () => {
       const screen = renderScreen(buildSession());
       expandAndLongPressSet(screen);
 
       const start = mockSheet.props?.items.find((i) => i.key === 'start-here');
       expect(start).toBeDefined();
-      act(() => start!.onPress());
+      await act(async () => start!.onPress());
 
       expect(useActiveWorkoutStore.getState().sessionId).toBe('session-1');
       expect(useActiveWorkoutStore.getState().activeSetId).toBe('101');

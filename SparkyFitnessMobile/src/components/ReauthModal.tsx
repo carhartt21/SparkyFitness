@@ -42,6 +42,7 @@ import {
   type ServerConfig,
 } from '../services/storage';
 import { addLog } from '../services/LogService';
+import { isPermittedHttpUrl } from '../utils/serverUrl';
 
 interface ReauthModalProps {
   visible: boolean;
@@ -269,7 +270,10 @@ const ReauthModal: React.FC<ReauthModalProps> = ({
       );
       return;
     }
-    if (!__DEV__ && currentUrl.toLowerCase().startsWith('http://')) {
+    if (
+      currentUrl.toLowerCase().startsWith('http://') &&
+      !isPermittedHttpUrl(currentUrl)
+    ) {
       setError(
         t('auth.errors.httpsRequired', {
           defaultValue: 'HTTPS is required for server connections.',
@@ -314,7 +318,10 @@ const ReauthModal: React.FC<ReauthModalProps> = ({
       );
       return;
     }
-    if (!__DEV__ && currentUrl.toLowerCase().startsWith('http://')) {
+    if (
+      currentUrl.toLowerCase().startsWith('http://') &&
+      !isPermittedHttpUrl(currentUrl)
+    ) {
       setError(
         t('auth.errors.httpsRequired', {
           defaultValue: 'HTTPS is required for server connections.',

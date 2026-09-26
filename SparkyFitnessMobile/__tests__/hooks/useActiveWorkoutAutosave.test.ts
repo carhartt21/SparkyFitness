@@ -388,6 +388,39 @@ describe('useActiveWorkoutAutosave', () => {
         'ex-uuid-1',
       ]);
     });
+
+    it('a first-set deletion mid-flight sends the surviving server set id', async () => {
+      renderAutosave();
+      startAndEdit(80);
+
+      let resolveFirst!: (session: PresetSessionResponse) => void;
+      mockUpdateWorkout.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          })
+      );
+      await advance(AUTOSAVE_DEBOUNCE_MS);
+      const response = makeSession();
+      response.exercises[0].sets[0].id = 501;
+      response.exercises[0].sets[1].id = 502;
+
+      act(() => {
+        getStore().deleteSet('101');
+      });
+      await advance(AUTOSAVE_DEBOUNCE_MS);
+      await act(async () => {
+        resolveFirst(response);
+        await jest.advanceTimersByTimeAsync(0);
+      });
+
+      const trailingPayload = mockUpdateWorkout.mock.calls[1][1] as {
+        exercises: { sets: { id?: number }[] }[];
+      };
+      expect(trailingPayload.exercises[0].sets).toEqual([
+        expect.objectContaining({ id: 502, set_number: 1 }),
+      ]);
+    });
   });
 
   describe('failures', () => {
@@ -596,6 +629,33 @@ describe('useActiveWorkoutAutosave', () => {
   });
 
   describe('saveActiveWorkoutSession', () => {
+    it('serializes an outside save behind an in-flight save and sends the newer edit last', async () => {
+      startAndEdit();
+      let resolveFirst!: (session: PresetSessionResponse) => void;
+      mockUpdateWorkout.mockImplementationOnce(
+        () =>
+          new Promise<PresetSessionResponse>((resolve) => {
+            resolveFirst = resolve;
+          })
+      );
+      const first = saveActiveWorkoutSession(queryClient);
+      await Promise.resolve();
+      expect(mockUpdateWorkout).toHaveBeenCalledTimes(1);
+
+      getStore().updateSetField('101', { weight: 85 });
+      const second = saveActiveWorkoutSession(queryClient);
+      expect(mockUpdateWorkout).toHaveBeenCalledTimes(1);
+      resolveFirst(makeSession());
+      await expect(first).resolves.toBe('saved');
+      await expect(second).resolves.toBe('saved');
+      expect(mockUpdateWorkout).toHaveBeenCalledTimes(2);
+      expect(
+        mockUpdateWorkout.mock.calls[1][1].exercises?.[0].sets?.[0]
+      ).toMatchObject({
+        weight: 85,
+      });
+    });
+
     it("returns 'clean' when there is nothing to save", async () => {
       await expect(saveActiveWorkoutSession(queryClient)).resolves.toBe(
         'clean'
@@ -622,7 +682,7 @@ describe('useActiveWorkoutAutosave', () => {
       );
     });
 
-    it('captures the revision and entry-id order at send time and hands them to applyServerSession', async () => {
+    it('captures the revision and entry/set-id order at send time and hands them to applyServerSession', async () => {
       startAndEdit();
       const revisionAtSend = getStore().sessionRevision;
       const original = getStore().applyServerSession;
@@ -633,7 +693,8 @@ describe('useActiveWorkoutAutosave', () => {
         expect(spy).toHaveBeenCalledWith(
           expect.objectContaining({ id: 'session-1' }),
           revisionAtSend,
-          ['ex-uuid-1']
+          ['ex-uuid-1'],
+          [['101', '102']]
         );
       } finally {
         useActiveWorkoutStore.setState({ applyServerSession: original });

@@ -37,6 +37,8 @@ import {
 import type { MedicationEntry } from '@workspace/shared';
 import { doseSlotStatus } from '../utils/medications';
 import { addLog } from '../services/LogService';
+import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
+import { discardRejectedPlannedSupplementAction } from '../services/nutritionActionOutbox';
 
 type MedicationDetailScreenProps = RootStackScreenProps<'MedicationDetail'>;
 
@@ -61,6 +63,11 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
     toDate: selectedDate,
     medicationId,
   });
+  const {
+    bySchedule: localSupplementActions,
+    identity: supplementIdentity,
+    storageError: supplementStorageError,
+  } = usePlannedSupplementActions(selectedDate, entries);
   const deleteMedicationMutation = useDeleteMedication();
   const deleteEntryMutation = useDeleteMedicationEntry();
   const { entryForDue, logDose, toggleTaken, logPrn } = useLogDose(
@@ -179,6 +186,45 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
     [deleteEntryMutation, preferences?.time_format, t]
   );
 
+  const handleDiscardRejected = useCallback(
+    (operationId: string) => {
+      if (!supplementIdentity) return;
+      Alert.alert(
+        t('medications.dose.discardRejectedTitle', {
+          defaultValue: 'Clear rejected response?',
+        }),
+        t('medications.dose.discardRejectedMessage', {
+          defaultValue:
+            'The server did not accept this saved response. Check the dose history before logging it again.',
+        }),
+        [
+          {
+            text: t('common.cancel', { defaultValue: 'Cancel' }),
+            style: 'cancel',
+          },
+          {
+            text: t('medications.dose.clearRejected', {
+              defaultValue: 'Clear response',
+            }),
+            style: 'destructive',
+            onPress: () => {
+              void discardRejectedPlannedSupplementAction(
+                supplementIdentity,
+                operationId
+              ).catch((error: unknown) => {
+                addLog(
+                  `Failed to clear rejected supplement response: ${(error as Error).message}`,
+                  'ERROR'
+                );
+              });
+            },
+          },
+        ]
+      );
+    },
+    [supplementIdentity, t]
+  );
+
   const header = useScreenHeader({
     title:
       med?.name ?? t('medications.medication', { defaultValue: 'Medication' }),
@@ -254,32 +300,86 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
               <Text className="text-sm font-semibold text-text-secondary mb-1">
                 {formatDateLabel(selectedDate, t, dateLocale)}
               </Text>
-              {dueDoses.map((due) => (
-                <DoseRow
-                  key={due.schedule.id}
-                  kind="scheduled"
-                  status={doseSlotStatus(entryForDue(due))}
-                  onToggle={() => toggleTaken(due)}
-                  onTake={() => logDose(due, 'taken')}
-                  onSkip={() => logDose(due, 'skipped')}
-                  title={
-                    due.schedule.time_of_day
-                      ? formatLocalizedTimeOfDay(
-                          due.schedule.time_of_day,
-                          undefined,
-                          preferences?.time_format
-                        )
-                      : localizedDescribeSchedule(
-                          t,
-                          due.schedule,
-                          preferences?.time_format
-                        )
-                  }
-                  subtitle={
-                    formatDose(due.medication, due.schedule) ?? undefined
-                  }
-                />
-              ))}
+              {supplementStorageError && med.is_supplement && (
+                <Text className="text-sm text-text-danger mb-2">
+                  {t('medications.dose.savedActionError', {
+                    defaultValue:
+                      'A saved supplement response could not be read. Check the diary before logging again.',
+                  })}
+                </Text>
+              )}
+              {dueDoses.map((due) => {
+                const local = med.is_supplement
+                  ? localSupplementActions.get(due.schedule.id)
+                  : undefined;
+                const removedOnServer =
+                  local?.syncState === 'synced' &&
+                  local.serverIdentity === local.clientOperationId;
+                return (
+                  <DoseRow
+                    key={due.schedule.id}
+                    kind="scheduled"
+                    status={
+                      local &&
+                      local.syncState !== 'attentionRequired' &&
+                      !removedOnServer
+                        ? local.payload.status
+                        : doseSlotStatus(entryForDue(due))
+                    }
+                    queuedStatus={
+                      removedOnServer ? undefined : local?.syncState
+                    }
+                    onToggle={() => toggleTaken(due)}
+                    onTake={() => logDose(due, 'taken')}
+                    onSkip={() => logDose(due, 'skipped')}
+                    title={
+                      due.schedule.time_of_day
+                        ? formatLocalizedTimeOfDay(
+                            due.schedule.time_of_day,
+                            undefined,
+                            preferences?.time_format
+                          )
+                        : localizedDescribeSchedule(
+                            t,
+                            due.schedule,
+                            preferences?.time_format
+                          )
+                    }
+                    subtitle={
+                      formatDose(due.medication, due.schedule) ?? undefined
+                    }
+                  />
+                );
+              })}
+              {[...localSupplementActions.values()]
+                .filter(
+                  (action) =>
+                    action.payload.medication_id === medicationId &&
+                    action.syncState === 'attentionRequired'
+                )
+                .map((action) => (
+                  <TouchableOpacity
+                    key={action.clientOperationId}
+                    onPress={() =>
+                      handleDiscardRejected(action.clientOperationId)
+                    }
+                    accessibilityRole="button"
+                    className="rounded-lg bg-raised p-3 my-2"
+                  >
+                    <Text className="text-sm font-semibold text-text-danger">
+                      {t('medications.dose.rejectedAction', {
+                        defaultValue:
+                          'A saved supplement response needs attention.',
+                      })}
+                    </Text>
+                    <Text className="text-sm text-text-secondary mt-1">
+                      {t('medications.dose.reviewAndClear', {
+                        defaultValue:
+                          'Review the dose, then clear this response',
+                      })}
+                    </Text>
+                  </TouchableOpacity>
+                ))}
               {dueDoses.length === 0 && !isPrn && (
                 <Text className="text-sm text-text-muted py-2">
                   {t('medications.detail.noDoses', {

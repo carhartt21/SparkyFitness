@@ -28,6 +28,25 @@ describe('appPreferencesStore', () => {
       expect(state.defaultRestSec).toBe(90);
       expect(state.languagePreference).toBe('system');
       expect(state.restTimerSoundEnabled).toBe(true);
+      expect(state.movementBreakReminderEnabled).toBe(false);
+    });
+  });
+
+  it('persists both optional reminder settings and their chosen times', async () => {
+    const store = useAppPreferencesStore.getState();
+    store.setMealPhotoReviewEnabled(true);
+    store.setMealPhotoReviewTime('19:30');
+    store.setMovementBreakReminderEnabled(true);
+    store.setMovementBreakReminderTime('16:30');
+
+    const persisted = await AsyncStorage.getItem(
+      '@SparkyFitness/app-preferences'
+    );
+    expect(JSON.parse(persisted ?? '{}').state).toMatchObject({
+      mealPhotoReviewEnabled: true,
+      mealPhotoReviewTime: '19:30',
+      movementBreakReminderEnabled: true,
+      movementBreakReminderTime: '16:30',
     });
   });
 

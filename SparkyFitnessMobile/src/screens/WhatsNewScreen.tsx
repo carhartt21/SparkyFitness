@@ -193,10 +193,11 @@ const ChatMockup: React.FC = () => {
 
 const LiquidGlassMockup: React.FC = () => {
   const { t } = useTranslation();
-  const [textPrimary, accentPrimary] = useCSSVariable([
+  const [textPrimary, accentPrimary, background] = useCSSVariable([
     '--color-text-primary',
     '--color-accent-primary',
-  ]) as [string, string];
+    '--color-background',
+  ]) as [string, string, string];
 
   const tabs: { name: IconName; label: string; active?: boolean }[] = [
     {
@@ -227,7 +228,7 @@ const LiquidGlassMockup: React.FC = () => {
     <View
       className="h-44 justify-end overflow-hidden"
       style={{
-        experimental_backgroundImage: `linear-gradient(0deg, #FFFFFF, ${accentPrimary}20)`,
+        experimental_backgroundImage: `linear-gradient(0deg, ${background}, ${accentPrimary}20)`,
       }}
     >
       <View className="flex-row items-center mx-4 mb-6">
@@ -246,12 +247,12 @@ const LiquidGlassMockup: React.FC = () => {
               <Icon
                 name={tab.name}
                 size={20}
-                color={tab.active ? accentPrimary : '#000000'}
+                color={tab.active ? accentPrimary : textPrimary}
                 weight={tab.active ? 'semibold' : 'regular'}
               />
               <Text
                 className="text-xs mt-0.5"
-                style={{ color: tab.active ? accentPrimary : '#000000' }}
+                style={{ color: tab.active ? accentPrimary : textPrimary }}
               >
                 {tab.label}
               </Text>
@@ -263,7 +264,7 @@ const LiquidGlassMockup: React.FC = () => {
           className="ml-2 rounded-full items-center justify-center"
           style={{ width: 52, height: 52, ...glassStyle }}
         >
-          <Icon name="add" size={24} color="#000000" />
+          <Icon name="add" size={24} color={textPrimary} />
         </View>
       </View>
     </View>
@@ -349,7 +350,7 @@ const PhotoMockup: React.FC = () => {
       </View>
 
       <View
-        className="bg-surface rounded-full px-3 py-1.5 shadow-md flex-row items-center"
+        className="bg-surface rounded-md px-3 py-1.5 shadow-md flex-row items-center"
         style={{
           position: 'absolute',
           bottom: 22,
@@ -407,7 +408,7 @@ const CycleMockup: React.FC = () => {
             </Text>
           </View>
           <View
-            className="px-2 py-0.5 rounded-full"
+            className="px-2 py-0.5 rounded-md"
             style={{ backgroundColor: `${catPink}25` }}
           >
             <Text
@@ -467,7 +468,7 @@ const WorkoutMockup: React.FC = () => {
             </Text>
           </View>
           <View
-            className="px-2 py-0.5 rounded-full"
+            className="px-2 py-0.5 rounded-md"
             style={{ backgroundColor: `${exercise}25` }}
           >
             <Text
@@ -529,7 +530,7 @@ const MedicationsMockup: React.FC = () => {
             </Text>
           </View>
           <View
-            className="px-2 py-0.5 rounded-full"
+            className="px-2 py-0.5 rounded-md"
             style={{ backgroundColor: `${catTeal}25` }}
           >
             <Text
@@ -640,14 +641,14 @@ const WhatsNewScreen: React.FC<WhatsNewScreenProps> = ({ navigation }) => {
       : []),
     {
       eyebrow: t('whatsNewPage.features.chat.eyebrow', {
-        defaultValue: 'ASK SPARKY',
+        defaultValue: 'AI ASSISTANT',
       }),
       headline: t('whatsNewPage.features.chat.headline', {
         defaultValue: 'Chat with your AI coach',
       }),
       body: t('whatsNewPage.features.chat.body', {
         defaultValue:
-          'Ask Sparky to log meals, plan what to eat, and answer questions about your day through chat.',
+          'Ask the assistant to log meals, plan food, and answer questions about your day through chat.',
       }),
       hero: <ChatMockup />,
       cta: {
@@ -666,7 +667,7 @@ const WhatsNewScreen: React.FC<WhatsNewScreenProps> = ({ navigation }) => {
       }),
       body: t('whatsNewPage.features.widget.body', {
         defaultValue:
-          "See where your day stands at a glance. Add SparkyFitness from your home screen's widget gallery.",
+          "See where your day stands at a glance. Add X on Track from your home screen's widget gallery.",
       }),
       hero: <WidgetMockup />,
     },

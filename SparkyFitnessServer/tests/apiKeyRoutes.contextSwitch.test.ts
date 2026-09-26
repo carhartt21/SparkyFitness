@@ -81,6 +81,32 @@ describe('apiKeyRoutes: credentials target the authenticated actor, not the swit
     expect(arg.body.userId).not.toBe(VICTIM_ID);
   });
 
+  it('issues MCP-only credentials in the non-session configuration', async () => {
+    mockCreateApiKey.mockResolvedValue({
+      id: 'mcp-key',
+      key: 'secret',
+      name: 'MCP Reader',
+      createdAt: new Date(0).toISOString(),
+    });
+    const res = await request(app)
+      .post('/api/identity/user/generate-api-key')
+      .send({ name: 'MCP Reader', scope: 'mcp-read-only' });
+    expect(res.status).toBe(201);
+    expect(res.body.apiKey.scope).toBe('mcp-read-only');
+    expect(mockCreateApiKey.mock.calls[0][0].body).toMatchObject({
+      userId: DELEGATE_ID,
+      configId: 'mcp-read-only',
+    });
+  });
+
+  it('rejects unrecognized key scopes', async () => {
+    const res = await request(app)
+      .post('/api/identity/user/generate-api-key')
+      .send({ name: 'Escalate', scope: 'admin' });
+    expect(res.status).toBe(400);
+    expect(mockCreateApiKey).not.toHaveBeenCalled();
+  });
+
   it('delete api-key names the key under body.keyId and never the victim', async () => {
     mockDeleteApiKey.mockResolvedValue(undefined);
 
@@ -99,6 +125,18 @@ describe('apiKeyRoutes: credentials target the authenticated actor, not the swit
     expect(arg.headers).toBeDefined();
     // Nothing anywhere in the call may name the victim.
     expect(JSON.stringify(arg)).not.toContain(VICTIM_ID);
+  });
+
+  it('deletes MCP-only keys from their configuration', async () => {
+    mockDeleteApiKey.mockResolvedValue(undefined);
+    const res = await request(app).delete(
+      '/api/identity/user/api-key/mcp-key?scope=mcp-read-only'
+    );
+    expect(res.status).toBe(200);
+    expect(mockDeleteApiKey.mock.calls[0][0].body).toEqual({
+      keyId: 'mcp-key',
+      configId: 'mcp-read-only',
+    });
   });
 
   it('list api-keys forwards the session headers and never names the victim', async () => {

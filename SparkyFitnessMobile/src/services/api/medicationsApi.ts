@@ -10,6 +10,8 @@ import type {
   UpdateMedicationEntryInput,
   CreateScheduleInput,
   UpdateScheduleInput,
+  PlannedSupplementActionBody,
+  PlannedSupplementActionResult,
 } from '@workspace/shared';
 
 const SERVICE_NAME = 'Medications API';
@@ -123,6 +125,17 @@ export const createEntry = (
     endpoint: '/api/v2/medications/entries',
     serviceName: SERVICE_NAME,
     operation: 'create entry',
+    method: 'POST',
+    body,
+  });
+
+export const createPlannedSupplementAction = (
+  body: PlannedSupplementActionBody
+): Promise<PlannedSupplementActionResult> =>
+  apiFetch<PlannedSupplementActionResult>({
+    endpoint: '/api/v2/medications/entries/planned-supplement-actions',
+    serviceName: SERVICE_NAME,
+    operation: 'log planned supplement action',
     method: 'POST',
     body,
   });

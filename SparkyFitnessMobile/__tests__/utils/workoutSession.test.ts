@@ -43,6 +43,7 @@ import {
   moveSessionExerciseItem,
   moveDraftExerciseItem,
   isWarmupSetType,
+  isDropSetType,
   setTypeLetter,
   summarizeWorkoutSpan,
   WORKOUT_LONG_GAP_MINUTES,
@@ -296,28 +297,28 @@ describe('workoutSession', () => {
   });
 
   describe('getSourceLabel', () => {
-    it('returns Sparky for null source', () => {
-      expect(getSourceLabel(null)).toBe('Sparky');
+    it('returns X on Track for null source', () => {
+      expect(getSourceLabel(null)).toBe('X on Track');
     });
 
-    it('returns Sparky for undefined source', () => {
-      expect(getSourceLabel(undefined)).toBe('Sparky');
+    it('returns X on Track for undefined source', () => {
+      expect(getSourceLabel(undefined)).toBe('X on Track');
     });
 
-    it('returns Sparky for "manual" source', () => {
-      expect(getSourceLabel('manual')).toBe('Sparky');
+    it('returns X on Track for "manual" source', () => {
+      expect(getSourceLabel('manual')).toBe('X on Track');
     });
 
-    it('returns Sparky for "sparky" source', () => {
-      expect(getSourceLabel('sparky')).toBe('Sparky');
+    it('returns X on Track for legacy "sparky" source', () => {
+      expect(getSourceLabel('sparky')).toBe('X on Track');
     });
 
-    it('returns Sparky for "Workout Plan" source', () => {
-      expect(getSourceLabel('Workout Plan')).toBe('Sparky');
+    it('returns X on Track for "Workout Plan" source', () => {
+      expect(getSourceLabel('Workout Plan')).toBe('X on Track');
     });
 
-    it('returns Sparky for a padded "WORKOUT PLAN" source', () => {
-      expect(getSourceLabel('  WORKOUT PLAN  ')).toBe('Sparky');
+    it('returns X on Track for a padded "WORKOUT PLAN" source', () => {
+      expect(getSourceLabel('  WORKOUT PLAN  ')).toBe('X on Track');
     });
 
     it('returns Apple Health for HealthKit source', () => {
@@ -2795,6 +2796,14 @@ describe('workoutSession', () => {
       expect(setTypeLetter(null)).toBeNull();
       expect(setTypeLetter(undefined)).toBeNull();
     });
+
+    it('recognizes set labels from Hevy and older imports', () => {
+      expect(isDropSetType('Drop Set')).toBe(true);
+      expect(isDropSetType('dropset')).toBe(true);
+      expect(setTypeLetter('Drop Set')).toBe('D');
+      expect(setTypeLetter('Warm-up')).toBe('W');
+      expect(setTypeLetter('To Failure')).toBe('F');
+    });
   });
 
   describe('compareSetRecords', () => {
@@ -3446,6 +3455,12 @@ describe('workoutSession', () => {
           sets: [set(40, 12, 'warmup'), set(60, 10), set(70, 8)],
         };
         expect(getExerciseVolumeKg(exercise as any)).toBe(600 + 560);
+        expect(
+          getExerciseVolumeKg({
+            ...exercise,
+            sets: [set(40, 12, 'Warm-up'), set(60, 10, 'Working Set')],
+          } as any)
+        ).toBe(600);
       });
     });
 
@@ -3477,6 +3492,18 @@ describe('workoutSession', () => {
         expect(
           formatRecentSessionSet(recentSet(60, 10, 'warmup'), 'kg', i18n.t)
         ).toBe('W 60 × 10');
+        expect(
+          formatRecentSessionSet(recentSet(60, 10, 'Warm-up Set'), 'kg', i18n.t)
+        ).toBe('W 60 × 10');
+      });
+
+      it('labels imported drop and failure sets in recent sessions', () => {
+        expect(
+          formatRecentSessionSet(recentSet(40, 8, 'Drop Set'), 'kg', i18n.t)
+        ).toBe('D 40 × 8');
+        expect(
+          formatRecentSessionSet(recentSet(60, 5, 'To Failure'), 'kg', i18n.t)
+        ).toBe('F 60 × 5');
       });
 
       it('handles weight-only and reps-only sets', () => {
@@ -3993,6 +4020,15 @@ describe('workoutSession', () => {
           duration: null,
           distance: null,
         });
+
+        const importedWarmup = resolveAssumedSetValues(
+          [
+            makeSet(1, { set_type: 'Warm-up', weight: 40, reps: 12 }),
+            makeSet(2),
+          ],
+          undefined
+        );
+        expect(importedWarmup[1]?.weight).toBeNull();
       });
 
       it('resolves nothing for a brand-new exercise with no sources', () => {

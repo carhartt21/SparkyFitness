@@ -11,9 +11,7 @@ export const upsertWaterIntakeBodySchema = z.object({
   change_drinks: z.number(),
   container_id: z.number().nullable(),
 });
-export type UpsertWaterIntakeBody = z.infer<
-  typeof upsertWaterIntakeBodySchema
->;
+export type UpsertWaterIntakeBody = z.infer<typeof upsertWaterIntakeBodySchema>;
 
 // The day-totals endpoint returns a single aggregated object. `manual_ml`,
 // `ledger_ml` and `food_ml` are the breakdown added in Phase 4; they are
@@ -28,6 +26,27 @@ export const waterIntakeDayTotalsSchema = z.object({
   source: z.string().optional(),
 });
 export type WaterIntakeDayTotals = z.infer<typeof waterIntakeDayTotalsSchema>;
+
+export const containerWaterActionBodySchema = z.strictObject({
+  client_operation_id: z.uuid(),
+  entry_date: z.iso.date(),
+  container_id: z.number().int().positive(),
+  logged_at: z.iso.datetime({ offset: true }),
+});
+export type ContainerWaterActionBody = z.infer<
+  typeof containerWaterActionBodySchema
+>;
+
+export const containerWaterActionResponseSchema = z.object({
+  waterLogId: z.uuid().nullable(),
+  foodEntryId: z.uuid().nullable(),
+  waterMl: z.number(),
+  alreadyApplied: z.boolean(),
+  totals: waterIntakeDayTotalsSchema,
+});
+export type ContainerWaterActionResponse = z.infer<
+  typeof containerWaterActionResponseSchema
+>;
 
 // #2115: a "-" on a linked container removes its food entry too. Optional --
 // only present when at least one removed row was linked, and absent on a
@@ -49,6 +68,7 @@ export const waterIntakeLogEntrySchema = z.object({
   container_id: z.number().nullable(),
   container_name: z.string().nullable(),
   source: z.string(),
+  source_id: z.string().nullable().optional(),
   created_at: z.string(),
   logged_at: z.string(),
   // #2115: set when this drink was logged by a linked container.

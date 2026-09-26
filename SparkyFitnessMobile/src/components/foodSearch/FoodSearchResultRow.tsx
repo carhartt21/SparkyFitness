@@ -21,6 +21,7 @@ import type { ExternalFoodItem } from '../../types/externalFoods';
 import type { ExternalProvider } from '../../types/externalProviders';
 import type { ResultRow } from './types';
 import type { OwnershipFilter } from '../../utils/shareStatus';
+import FoodNutritionComparison from './FoodNutritionComparison';
 
 interface OnlineResultRowProps {
   item: ExternalFoodItem;
@@ -41,7 +42,6 @@ const OnlineResultRow: React.FC<OnlineResultRowProps> = ({
   getProviderColor,
   onSelect,
 }) => {
-  const { t } = useTranslation();
   const getImageSource = useFoodImageSourceContext();
   const openLightbox = useOpenLightbox();
   const image = externalFoodImage(item);
@@ -105,22 +105,17 @@ const OnlineResultRow: React.FC<OnlineResultRowProps> = ({
               ) : null}
             </View>
           ) : null}
+          <FoodNutritionComparison serving={item} />
         </View>
         <View className="items-end">
           {loadingFoodId === item.id ? (
             <ActivityIndicator size="small" color={accentColor} />
           ) : (
-            <>
-              <Text className="text-text-primary text-base font-semibold">
-                {Math.round(item.calories)}{' '}
-                {t('foodSearch.labels.caloriesUnit', { defaultValue: 'cal' })}
-              </Text>
-              <Text className="text-text-secondary text-xs">
-                {item.serving_description
-                  ? formatServingDescription(item.serving_description)
-                  : `${item.serving_size} ${formatServingUnit(item.serving_unit)}`}
-              </Text>
-            </>
+            <Text className="text-text-secondary text-xs">
+              {item.serving_description
+                ? formatServingDescription(item.serving_description)
+                : `${item.serving_size} ${formatServingUnit(item.serving_unit)}`}
+            </Text>
           )}
         </View>
       </TouchableOpacity>

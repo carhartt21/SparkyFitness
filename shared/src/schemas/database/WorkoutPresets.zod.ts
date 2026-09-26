@@ -15,6 +15,8 @@ export const workoutPresetsSchema = z.object({
   name: z.string(),
   description: z.string().nullable(),
   is_public: z.boolean().nullable(),
+  source: z.string().nullable(),
+  source_id: z.string().nullable(),
   created_at: z.date().nullable(),
   updated_at: z.date().nullable(),
 });
@@ -25,6 +27,8 @@ export const workoutPresetsInitializerSchema = z.object({
   name: z.string(),
   description: z.string().optional().nullable(),
   is_public: z.boolean().optional().nullable(),
+  source: z.string().optional().nullable(),
+  source_id: z.string().optional().nullable(),
   created_at: z.date().optional().nullable(),
   updated_at: z.date().optional().nullable(),
 });
@@ -35,6 +39,8 @@ export const workoutPresetsMutatorSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional().nullable(),
   is_public: z.boolean().optional().nullable(),
+  source: z.string().optional().nullable(),
+  source_id: z.string().optional().nullable(),
   created_at: z.date().optional().nullable(),
   updated_at: z.date().optional().nullable(),
 });

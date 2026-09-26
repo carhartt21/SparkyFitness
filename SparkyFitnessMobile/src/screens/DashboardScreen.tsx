@@ -1,3 +1,6 @@
+import OfflineHealthSummary from '../components/OfflineHealthSummary';
+import { useServerConfigs } from '../hooks/useServerConfigs';
+import { useDashboardSnapshot } from '../hooks/useDashboardSnapshot';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -13,29 +16,40 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatLocalizedNumber } from '../localization';
+import Toast from 'react-native-toast-message';
+import { formatLocalizedNumber, useAppLocale } from '../localization';
 import {
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
+import { addSheetRef } from '../components/AddSheet';
 import CalendarSheet, {
   type CalendarSheetRef,
 } from '../components/CalendarSheet';
 import CalorieRingCard from '../components/CalorieRingCard';
 import CycleCard from '../components/CycleCard';
-import DateNavigator from '../components/DateNavigator';
+import DashboardHeader from '../components/DashboardHeader';
+import DashboardDayOverview from '../components/DashboardDayOverview';
 import ExerciseProgressCard from '../components/ExerciseProgressCard';
 import FastingCard from '../components/FastingCard';
 import FastingGoalReconciler from '../components/FastingGoalReconciler';
-import HydrationReminderReconciler from '../components/HydrationReminderReconciler';
 import HealthTrendsPager from '../components/HealthTrendsPager';
 import HydrationGauge from '../components/HydrationGauge';
+import HydrationDetailsModal from '../components/HydrationDetailsModal';
+import { useManualWaterActions } from '../hooks/useManualWaterActions';
+import {
+  listNutritionActions,
+  retryNutritionAction,
+} from '../services/nutritionActionOutbox';
+import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
+import { reconcileNutritionActions } from '../services/nutritionActionSync';
 import CaffeineCard from '../components/CaffeineCard';
 import Icon from '../components/Icon';
 import MacroCard from '../components/MacroCard';
@@ -92,10 +106,9 @@ type DashboardScreenProps = CompositeScreenProps<
 >;
 
 const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
+  const { fontScale } = useWindowDimensions();
   const queryClient = useQueryClient();
   const selectedDate = useDiaryDateStore((s) => s.selectedDate);
   const setSelectedDate = useDiaryDateStore((s) => s.setSelectedDate);
@@ -175,18 +188,34 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   ]);
 
   const { isConnected, isLoading: isConnectionLoading } = useServerConnection();
-  const { summary, isLoading, isError, refetch } = useDailySummary({
+  const {
+    summary: liveSummary,
+    isLoading,
+    isError,
+    refetch,
+  } = useDailySummary({
     date: selectedDate,
     enabled: isConnected,
   });
   const {
-    preferences,
+    preferences: livePreferences,
     isLoading: isPreferencesLoading,
     isError: isPreferencesError,
     refetch: refetchPreferences,
   } = usePreferences({
     enabled: isConnected,
   });
+  const { activeConfig, isLoading: isConfigLoading } = useServerConfigs();
+  const saved = useDashboardSnapshot(
+    selectedDate,
+    activeConfig?.id,
+    liveSummary,
+    livePreferences,
+    isConnected && !isError && !isPreferencesError
+  );
+  const showingSaved = !isConnected || isError || isPreferencesError;
+  const summary = showingSaved ? saved?.summary : liveSummary;
+  const preferences = showingSaved ? saved?.preferences : livePreferences;
   const {
     isLoading: isMeasurementsLoading,
     isError: isMeasurementsError,
@@ -210,6 +239,42 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     date: selectedDate,
     enabled: isConnected,
   });
+  const manualWater = useManualWaterActions(selectedDate);
+  const [retryingSavedWater, setRetryingSavedWater] = useState(false);
+  const retryingSavedWaterRef = useRef(false);
+  const retrySavedWater = useCallback(async () => {
+    if (retryingSavedWaterRef.current) return;
+    retryingSavedWaterRef.current = true;
+    setRetryingSavedWater(true);
+    try {
+      const identity = await getActiveNutritionIdentity();
+      if (!identity) throw new Error('No active nutrition account');
+      const actions = await listNutritionActions(identity);
+      const failedWater = actions.filter(
+        (action) =>
+          (action.type === 'logManualWater' ||
+            action.type === 'logContainerWater') &&
+          action.payload.entry_date === selectedDate &&
+          action.syncState === 'attentionRequired'
+      );
+      for (const action of failedWater) {
+        await retryNutritionAction(identity, action.clientOperationId);
+      }
+      if (failedWater.length > 0) {
+        await reconcileNutritionActions(queryClient);
+      }
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: t('dashboard.retrySavedWaterFailed', {
+          defaultValue: 'Could not retry saved water entries',
+        }),
+      });
+    } finally {
+      retryingSavedWaterRef.current = false;
+      setRetryingSavedWater(false);
+    }
+  }, [queryClient, selectedDate, t]);
 
   // A linked container has no volume of its own, so state what one press logs
   // in the linked variant's own unit instead of a millilitre figure it does
@@ -304,12 +369,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const accentColor = useCSSVariable('--color-accent-primary') as string;
 
+  const [hydrationDetailsVisible, setHydrationDetailsVisible] = useState(false);
   const [chartPage, setChartPage] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
   const fastingCardVisible = useAppPreferencesStore(
     (s) => s.fastingCardVisible
   );
+  const fastingEnabled = useAppPreferencesStore((s) => s.fastingEnabled);
   const cycleCardVisible = useAppPreferencesStore((s) => s.cycleCardVisible);
   const hydrationCardVisible = useAppPreferencesStore(
     (s) => s.hydrationCardVisible
@@ -372,7 +439,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Render content based on state
   const renderContent = () => {
     // No server configured
-    if (!isConnectionLoading && !isConnected) {
+    if (!isConfigLoading && !activeConfig) {
       return (
         <View className="flex-1">
           {!usesNativeTabs && (
@@ -407,10 +474,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
     // Loading state
     if (
-      isLoading ||
-      isConnectionLoading ||
-      isPreferencesLoading ||
-      isMeasurementsLoading
+      isConfigLoading ||
+      (isConnected &&
+        !summary &&
+        (isLoading ||
+          isConnectionLoading ||
+          isPreferencesLoading ||
+          isMeasurementsLoading))
     ) {
       return (
         <StatusView
@@ -423,24 +493,40 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
 
     // Error state
-    if (isError || isPreferencesError || isMeasurementsError) {
+    if (
+      (!summary || !preferences) &&
+      (!isConnected || isError || isPreferencesError || isMeasurementsError)
+    ) {
       return (
-        <StatusView
-          icon="alert-circle"
-          iconTone="danger"
-          iconSize={64}
-          title={t('dashboard.loadFailed', {
-            defaultValue: 'Failed to load summary',
-          })}
-          subtitle={t('dashboard.checkConnection', {
-            defaultValue: 'Please check your connection and try again.',
-          })}
-          action={{
-            label: t('common.retry', { defaultValue: 'Retry' }),
-            onPress: () => refetch(),
-            variant: 'primary',
-          }}
-        />
+        <View className="flex-1 px-4 pb-4">
+          {!usesNativeTabs && (
+            <DashboardHeader
+              selectedDate={selectedDate}
+              onPreviousDay={goToPreviousDay}
+              onNextDay={goToNextDay}
+              onToday={goToToday}
+              onDatePress={openCalendar}
+            />
+          )}
+          <StatusView
+            icon="alert-circle"
+            iconTone="danger"
+            iconSize={64}
+            title={t('dashboard.offlineTitle', {
+              defaultValue: 'Server unavailable',
+            })}
+            subtitle={t('dashboard.offlineEmpty', {
+              defaultValue:
+                'No summary for this day is saved on this device yet. Reconnect to load it.',
+            })}
+            action={{
+              label: t('common.retry', { defaultValue: 'Retry' }),
+              onPress: () => onRefresh(),
+              variant: 'primary',
+            }}
+          />
+          <OfflineHealthSummary date={selectedDate} />
+        </View>
       );
     }
 
@@ -452,8 +538,68 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     const { eaten, burned, remaining, goal, progress } = summary.calorieBalance;
     const showNetCarbs = preferences.show_net_carbs === true;
 
+    const quickActions = (
+      <View className="flex-row flex-wrap gap-2 mt-3">
+        {[
+          {
+            label: t('dashboard.quickFood', { defaultValue: 'Food' }),
+            icon: 'food' as const,
+            onPress: () =>
+              navigation.navigate('FoodSearch', { date: selectedDate }),
+          },
+          {
+            label: t('dashboard.quickExercise', { defaultValue: 'Exercise' }),
+            icon: 'exercise-running' as const,
+            onPress: () =>
+              addSheetRef.current?.present({ initialMenu: 'exercise' }),
+          },
+          {
+            label: t('dashboard.quickWater', { defaultValue: 'Water' }),
+            icon: 'water' as const,
+            onPress: () =>
+              isContainersLoaded
+                ? incrementWater()
+                : navigation.navigate('WaterContainers'),
+          },
+          {
+            label: t('dashboard.quickScan', { defaultValue: 'Scan' }),
+            icon: 'scan' as const,
+            onPress: () =>
+              navigation.navigate('FoodScan', { date: selectedDate }),
+          },
+        ].map((action) => (
+          <Pressable
+            testID={`dashboard-${action.icon}`}
+            key={action.label}
+            accessibilityRole="button"
+            accessibilityLabel={action.label}
+            onPress={action.onPress}
+            style={{
+              flexBasis: fontScale > 1.3 ? '46%' : '21%',
+              flexGrow: 1,
+              minHeight: 60,
+            }}
+            className="items-center justify-center rounded-xl border border-border-subtle bg-raised px-1 py-2"
+          >
+            <Icon
+              name={action.icon}
+              size={23}
+              color={
+                action.icon === 'water' || action.icon === 'exercise-running'
+                  ? fatColor
+                  : accentColor
+              }
+            />
+            <Text className="mt-2 text-center text-xs font-medium text-text-primary">
+              {action.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+    );
     return (
       <ScrollView
+        testID="dashboard-scroll"
         ref={scrollViewRef}
         className="flex-1 bg-background"
         style={{ flex: 1 }}
@@ -469,40 +615,48 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            tintColor={accentColor || '#3B82F6'}
+            tintColor={accentColor || '#1B5744'}
           />
         }
       >
-        {(summary.foodEntries.length > 0 ||
-          hasSupplementNutrition(summary.supplementTotals) ||
-          summary.exerciseEntries.length > 0 ||
-          goal > 0) && (
-          <CalorieRingCard
-            caloriesConsumed={eaten}
-            caloriesBurned={burned}
-            calorieGoal={goal}
-            remainingCalories={remaining}
-            progressPercent={progress / 100}
+        {!usesNativeTabs && (
+          <DashboardHeader
+            selectedDate={selectedDate}
+            onPreviousDay={goToPreviousDay}
+            onNextDay={goToNextDay}
+            onToday={goToToday}
+            onDatePress={openCalendar}
           />
         )}
-        {/* Tap-to-open launcher for the Sparky chat. Styled like an input to
-            invite, but it pushes the full chat screen rather than capturing text
-            here — the Dashboard's scroll + date-fling gestures make a live input
-            on this screen more trouble than it's worth. The composer autofocuses
-            on arrival so the affordance is honored immediately. Visibility is a
-            local app setting toggled from Dashboard Settings. */}
-        {askSparkyVisible && (
-          <Pressable
-            onPress={() => navigation.navigate('Chat')}
-            className="flex-row items-center bg-surface rounded-lg  px-4 py-3 mb-3 shadow-sm"
+        {showingSaved && (
+          <View
+            accessibilityRole="text"
+            className="bg-surface rounded-xl p-3 mb-3"
           >
-            <Icon name="sparkles" size={18} color={accentColor} />
-            <Text className="text-text-muted text-base ml-3">
-              {t('dashboard.askSparky', { defaultValue: 'Ask Sparky…' })}
+            <Text className="text-sm text-text-secondary">
+              {t('dashboard.cachedSummary', {
+                defaultValue:
+                  'Saved summary · {{time}}. More recent changes may not be included.',
+                time: saved
+                  ? new Date(saved.savedAt).toLocaleString(dateLocale)
+                  : t('dashboard.offlineTitle', {
+                      defaultValue: 'Server unavailable',
+                    }),
+              })}
             </Text>
-          </Pressable>
+          </View>
         )}
-
+        {showingSaved && <OfflineHealthSummary date={selectedDate} />}
+        <CalorieRingCard
+          caloriesConsumed={eaten}
+          caloriesBurned={burned}
+          burnedIncludesBmr={preferences.include_bmr_in_net_calories === true}
+          calorieGoal={goal}
+          remainingCalories={remaining}
+          progressPercent={progress / 100}
+        >
+          {quickActions}
+        </CalorieRingCard>
         {/* Macros Section — driven by nutrient display preferences (summary/mobile).
             Only the 4 core macros (with goals) and user-defined custom nutrients are
             shown here. Other enabled nutrients (sodium, sugars, etc.) belong in a
@@ -528,16 +682,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               );
               if (dashboardNutrients.length === 0) return null;
               return (
-                <View className="bg-surface rounded-xl p-3 mb-3 shadow-sm">
+                <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
                   <Pressable
                     onPress={() =>
                       navigation.navigate('DailyNutritionDetails', {
                         date: summary.date,
                       })
                     }
-                    className="flex-row justify-between items-center mb-2 px-1"
+                    accessibilityRole="button"
+                    className="flex-row justify-between items-center min-h-11 mb-1 gap-3"
                   >
-                    <Text className="text-md font-bold text-text-secondary">
+                    <Text className="text-base font-semibold text-text-primary flex-shrink">
                       {t('dashboard.nutrients', { defaultValue: 'Nutrients' })}
                     </Text>
                     <View className="flex-row items-center">
@@ -621,11 +776,24 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                         <MacroCard
                           key={nutrientKey}
                           label={displayLabel}
+                          compactLabel={
+                            nutrientKey === 'carbs'
+                              ? showNetCarbs
+                                ? t('foodEntryAdd.labels.netCarbsShort', {
+                                    defaultValue: 'Net carbs',
+                                  })
+                                : t('foodEntryAdd.labels.carbsShort', {
+                                    defaultValue: 'Carbs',
+                                  })
+                              : undefined
+                          }
                           consumed={consumed}
                           goal={goal}
                           color={color}
                           overfillColor={progressTrackOverfillColor}
                           unit={unit}
+                          row
+                          widthClassName="w-full"
                         />
                       );
                     })}
@@ -635,64 +803,91 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             })()
           : null}
 
-        {summary.foodEntries.length === 0 && (
-          <Pressable
-            className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
-            onPress={() =>
-              navigation.navigate('FoodSearch', { date: selectedDate })
-            }
-          >
-            <Text className="text-md font-bold text-text-primary mb-4">
-              {t('dashboard.food', { defaultValue: 'Food' })}
-            </Text>
-            <Text className="text-text-muted text-sm text-center mb-4">
-              {t('dashboard.tapToAddFood', { defaultValue: 'Tap to add food' })}
-            </Text>
-          </Pressable>
-        )}
-
-        {(summary.foodEntries.length > 0 ||
-          summary.exerciseEntries.length > 0) &&
-          (summary.exerciseMinutesGoal > 0 ||
-            summary.exerciseCaloriesGoal > 0 ||
-            summary.exerciseMinutes > 0 ||
-            summary.otherExerciseCalories > 0) && (
+        <View>
+          {hydrationCardVisible && (
+            <View className="w-full">
+              {hydrationCardVisible && (
+                <HydrationGauge
+                  onDetails={() => setHydrationDetailsVisible(true)}
+                  consumed={summary.waterConsumed}
+                  goal={summary.waterGoal}
+                  fromFoodMl={summary.waterFromFood}
+                  pendingMl={manualWater.pendingMl}
+                  attentionMl={manualWater.attentionMl}
+                  pendingContainerCount={manualWater.pendingContainerCount}
+                  attentionContainerCount={manualWater.attentionContainerCount}
+                  pendingStorageError={manualWater.storageError}
+                  onRetryAttention={retrySavedWater}
+                  retryingAttention={retryingSavedWater}
+                  unit={waterDisplayUnit}
+                  containerVolume={servingVolume}
+                  linkedPressLabel={linkedPressLabel}
+                  onConfigure={
+                    isContainersLoaded && !activeWaterContainer
+                      ? () => navigation.navigate('WaterContainers')
+                      : undefined
+                  }
+                  onIncrement={isContainersLoaded ? incrementWater : undefined}
+                  onDecrement={isContainersLoaded ? decrementWater : undefined}
+                  disableDecrement={summary.waterConsumed <= 0}
+                  containers={waterContainers}
+                  activeContainerId={activeWaterContainer?.id}
+                  onSelectContainer={selectWaterContainer}
+                  quickAddPresets={quickAddOptions}
+                  onQuickAdd={
+                    isContainersLoaded
+                      ? (id: number) => logWaterPreset(id)
+                      : undefined
+                  }
+                />
+              )}
+            </View>
+          )}
+          <View className="w-full">
             <ExerciseProgressCard
+              onDetails={() =>
+                navigation.navigate('ExerciseReview', { date: selectedDate })
+              }
+              onLog={() =>
+                addSheetRef.current?.present({ initialMenu: 'exercise' })
+              }
               exerciseMinutes={summary.exerciseMinutes}
               exerciseMinutesGoal={summary.exerciseMinutesGoal}
               exerciseCalories={summary.otherExerciseCalories}
               exerciseCaloriesGoal={summary.exerciseCaloriesGoal}
             />
-          )}
-
-        {/* Hydration card visibility is a local app setting toggled from
-            Dashboard Settings. */}
-        {hydrationCardVisible && (
-          <HydrationGauge
-            consumed={summary.waterConsumed}
-            goal={summary.waterGoal}
-            fromFoodMl={summary.waterFromFood}
-            unit={waterDisplayUnit}
-            containerVolume={servingVolume}
-            linkedPressLabel={linkedPressLabel}
-            onConfigure={
-              isContainersLoaded && !activeWaterContainer
-                ? () => navigation.navigate('WaterContainers')
-                : undefined
-            }
-            onIncrement={isContainersLoaded ? incrementWater : undefined}
-            onDecrement={isContainersLoaded ? decrementWater : undefined}
-            disableDecrement={summary.waterConsumed <= 0}
-            containers={waterContainers}
-            activeContainerId={activeWaterContainer?.id}
-            onSelectContainer={selectWaterContainer}
-            quickAddPresets={quickAddOptions}
-            onQuickAdd={
-              isContainersLoaded
-                ? (id: number) => logWaterPreset(id)
-                : undefined
-            }
-          />
+          </View>
+        </View>
+        <HydrationDetailsModal
+          visible={hydrationDetailsVisible}
+          date={selectedDate}
+          unit={waterDisplayUnit}
+          onClose={() => setHydrationDetailsVisible(false)}
+          onConfigure={() => {
+            setHydrationDetailsVisible(false);
+            navigation.navigate('WaterContainers');
+          }}
+        />
+        <DashboardDayOverview
+          summary={summary}
+          onOpenDiary={() => navigation.navigate('Diary', { selectedDate })}
+        />
+        {/* Tap-to-open launcher for the Sparky chat. Styled like an input to
+            invite, but it pushes the full chat screen rather than capturing text
+            here — the Dashboard's scroll + date-fling gestures make a live input
+            on this screen more trouble than it's worth. The composer autofocuses
+            on arrival so the affordance is honored immediately. Visibility is a
+            local app setting toggled from Dashboard Settings. */}
+        {askSparkyVisible && (
+          <Pressable
+            onPress={() => navigation.navigate('Chat')}
+            className="flex-row items-center bg-surface rounded-lg  px-4 py-3 mb-3 shadow-sm"
+          >
+            <Icon name="sparkles" size={18} color={accentColor} />
+            <Text className="text-text-muted text-base ml-3">
+              {t('dashboard.askSparky', { defaultValue: 'Ask the assistant…' })}
+            </Text>
+          </Pressable>
         )}
 
         {/* Active caffeine, like hydration, is a local visibility setting. The
@@ -713,7 +908,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             to `selectedDate`. Visibility is a local app setting toggled from
             Dashboard Settings. */}
         <FastingGoalReconciler />
-        {fastingCardVisible && <FastingCard navigation={navigation} />}
+        {fastingEnabled && fastingCardVisible && (
+          <FastingCard navigation={navigation} />
+        )}
         {cycleCardVisible && <CycleCard navigation={navigation} />}
 
         {medicationsCardVisible && <MedicationsCard navigation={navigation} />}
@@ -756,11 +953,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   if (usesNativeTabs) {
     return (
       <>
-        {/* Outside `renderContent` on purpose: the no-server, loading, and
-            error branches return early, and a reconciler that is not mounted
-            cannot cancel a chain when reminders are switched off. It owns its
-            own queries, so it needs nothing from the rendered state. */}
-        <HydrationReminderReconciler />
         {renderedContent}
         <CalendarSheet
           ref={calendarRef}
@@ -773,19 +965,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   }
 
   return (
-    <View className="flex-1 bg-background">
-      <HydrationReminderReconciler />
-      {!isConnectionLoading && isConnected ? (
-        <DateNavigator
-          title={t('navigation.dashboard', { defaultValue: 'Dashboard' })}
-          selectedDate={selectedDate}
-          onPreviousDay={goToPreviousDay}
-          onNextDay={goToNextDay}
-          onToday={goToToday}
-          onDatePress={openCalendar}
-          showDateAlways
-        />
-      ) : null}
+    <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
       {renderedContent}
       <CalendarSheet
         ref={calendarRef}

@@ -747,7 +747,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
 
   const handlePhotoGateLogManually = () => {
     setPhotoGateVisible(false);
-    navigation.replace('FoodSearch', { date });
+    navigation.replace('FoodSearch', { date, mealTypeId });
   };
 
   const handleShowManualEntry = () => {
@@ -770,7 +770,18 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
   };
 
   if (!permission) {
-    return <View />;
+    return (
+      <View className="flex-1 justify-center items-center px-6">
+        <ActivityIndicator color={accentPrimary} />
+        <UIButton
+          accessibilityRole="button"
+          variant="ghost"
+          onPress={() => navigation.goBack()}
+        >
+          {t('common.cancel', { defaultValue: 'Cancel' })}
+        </UIButton>
+      </View>
+    );
   }
 
   if (!permission.granted) {
@@ -792,6 +803,13 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
             defaultValue: 'Grant Permission',
           })}
         />
+        <UIButton
+          accessibilityRole="button"
+          variant="ghost"
+          onPress={() => navigation.goBack()}
+        >
+          {t('common.cancel', { defaultValue: 'Cancel' })}
+        </UIButton>
       </View>
     );
   }
@@ -1076,7 +1094,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
             <Text className="text-text-secondary text-sm">
               {t('foodScan.photo.setupHelp', {
                 defaultValue:
-                  'Open SparkyFitness in a browser and visit Settings → AI to add an AI provider, then return here.',
+                  'Open X on Track in a browser and visit Settings → AI to add an AI provider, then return here.',
               })}
             </Text>
             <View className="gap-2 mt-2">

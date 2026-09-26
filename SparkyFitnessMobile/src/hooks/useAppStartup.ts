@@ -21,8 +21,14 @@ import {
   registerLocalizedNotificationPresentation,
 } from '../services/notifications';
 import { initMedicationNotificationActions } from '../services/medicationNotificationHandler';
+import { initNutritionEngagementResponses } from '../services/nutritionEngagementReminders';
+import { initMovementEngagementResponses } from '../services/movementEngagementReminders';
+import { initMobilityEngagementResponses } from '../services/mobilityEngagementReminders';
+import { initHydrationQuickLogResponses } from '../services/hydrationQuickLogResponses';
 import { initWorkoutLiveActivity } from '../services/workoutLiveActivity';
+import { initWellbeingLiveActivity } from '../services/wellbeingLiveActivity';
 import { ensureTimezoneBootstrapped } from '../services/api/preferencesApi';
+import { retryPendingWorkoutExports } from '../services/workoutHealthExport';
 
 interface AppStartupArgs {
   /**
@@ -68,9 +74,21 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
         'ERROR'
       );
     });
+    if (Platform.OS === 'ios') {
+      void retryPendingWorkoutExports().catch((error) => {
+        addLog(
+          `[App] Workout Health export retry failed: ${String(error)}`,
+          'WARNING'
+        );
+      });
+    }
 
     initWorkoutNotificationActions();
     initMedicationNotificationActions();
+    initNutritionEngagementResponses();
+    initMovementEngagementResponses();
+    initMobilityEngagementResponses();
+    initHydrationQuickLogResponses();
 
     // iOS-only (no-op on Android): keeps the workout Live Activity in sync
     // with the active-workout store.
@@ -81,6 +99,7 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
         'ERROR'
       );
     });
+    initWellbeingLiveActivity();
 
     // Initialize log service (warms cache, prunes old logs, registers AppState listener)
     initLogService().catch((error) => {

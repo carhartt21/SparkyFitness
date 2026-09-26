@@ -1,12 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text } from 'react-native';
+import { formatLocalizedNumber } from '../localization';
+import Icon from './Icon';
+import DashboardSectionHeader from './DashboardSectionHeader';
+import { View, Text, Pressable } from 'react-native';
 import Animated, {
   useSharedValue,
   useDerivedValue,
   useAnimatedStyle,
   withTiming,
   Easing,
+  useReducedMotion,
 } from 'react-native-reanimated';
 import { useIsFocused } from '@react-navigation/native';
 import { useCSSVariable } from 'uniwind';
@@ -43,14 +47,15 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   // shared-value write lives in a real effect that React's compiler can
   // optimize around.
   const isFocused = useIsFocused();
+  const reducedMotion = useReducedMotion();
   useEffect(() => {
     if (!isFocused) return;
     animatedProgress.value = 0;
     animatedProgress.value = withTiming(progress, {
-      duration: 500,
+      duration: reducedMotion ? 0 : 500,
       easing: Easing.out(Easing.cubic),
     });
-  }, [isFocused, progress, animatedProgress]);
+  }, [isFocused, progress, animatedProgress, reducedMotion]);
 
   const fillWidth = useDerivedValue(() => {
     const p = animatedProgress.value;
@@ -139,6 +144,9 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
 };
 
 interface ExerciseProgressCardProps {
+  compact?: boolean;
+  onLog?: () => void;
+  onDetails?: () => void;
   exerciseMinutes: number;
   exerciseMinutesGoal: number;
   exerciseCalories: number;
@@ -146,24 +154,89 @@ interface ExerciseProgressCardProps {
 }
 
 const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
+  compact = false,
+  onLog,
+  onDetails,
   exerciseMinutes,
   exerciseMinutesGoal,
   exerciseCalories,
   exerciseCaloriesGoal,
 }) => {
   const { t } = useTranslation();
-  const [exerciseColor, trackColor] = useCSSVariable([
-    '--color-calories',
+  const [exerciseColor, trackColor, burnedColor] = useCSSVariable([
+    '--color-exercise',
     '--color-progress-track',
-  ]) as [string, string];
+    '--color-activity-energy',
+  ]) as [string, string, string];
 
   const hasEntries = exerciseMinutes > 0 || exerciseCalories > 0;
 
+  if (compact)
+    return (
+      <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3 w-full">
+        <DashboardSectionHeader
+          compact={compact}
+          title={t('dashboard.exercise', { defaultValue: 'Exercise' })}
+          icon="exercise-running"
+          color={exerciseColor}
+          onDetails={onDetails}
+          testID="dashboard-exercise-details"
+        />
+        <View style={{ minHeight: 92 }}>
+          <View className="flex-row items-center gap-2">
+            <Icon name="clock" size={20} color={exerciseColor} />
+            <Text className="text-xl font-bold text-text-primary flex-shrink">
+              {formatLocalizedNumber(Math.round(exerciseMinutes))}
+              <Text className="text-xs font-normal text-text-secondary">
+                {exerciseMinutesGoal > 0
+                  ? ` / ${formatLocalizedNumber(exerciseMinutesGoal)}`
+                  : ''}{' '}
+                {t('dashboard.minutesUnit', { defaultValue: 'min' })}
+              </Text>
+            </Text>
+          </View>
+          <View className="flex-row items-center gap-2 mt-1">
+            <Icon name="exercise" size={20} color={burnedColor} />
+            <Text className="text-sm text-text-secondary flex-shrink">
+              {formatLocalizedNumber(Math.round(exerciseCalories))}
+              {exerciseCaloriesGoal > 0
+                ? ` / ${formatLocalizedNumber(exerciseCaloriesGoal)}`
+                : ''}{' '}
+              {t('dashboard.kcal', { defaultValue: 'kcal' })}
+            </Text>
+          </View>
+          {!hasEntries && (
+            <Text className="text-xs text-text-secondary mt-2">
+              {t('dashboard.noExerciseEntries', {
+                defaultValue: 'No exercise entries yet',
+              })}
+            </Text>
+          )}
+        </View>
+        {onLog && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onLog}
+            className="min-h-11 mt-3 rounded-md bg-accent-primary px-2 justify-center items-center"
+          >
+            <Text className="text-sm font-semibold text-accent-text text-center">
+              {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    );
+
   return (
-    <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
-      <Text className="text-md font-bold text-text-secondary mb-4">
-        {t('dashboard.exercise', { defaultValue: 'Exercise' })}
-      </Text>
+    <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
+      <DashboardSectionHeader
+        compact={compact}
+        title={t('dashboard.exercise', { defaultValue: 'Exercise' })}
+        icon="exercise-running"
+        color={exerciseColor}
+        onDetails={onDetails}
+        testID="dashboard-exercise-details"
+      />
       {hasEntries ? (
         <>
           <ProgressBar
@@ -192,6 +265,17 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
             defaultValue: 'No exercise entries yet',
           })}
         </Text>
+      )}
+      {onLog && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={onLog}
+          className="min-h-11 mt-3 rounded-md bg-accent-primary px-2 justify-center items-center"
+        >
+          <Text className="text-sm font-semibold text-accent-text">
+            {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
+          </Text>
+        </Pressable>
       )}
     </View>
   );

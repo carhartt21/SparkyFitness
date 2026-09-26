@@ -30,8 +30,15 @@ enum ContextPayloadMapper {
         from payload: [String: Any],
         previous: WatchContext
     ) -> WatchContext {
-        WatchContext(
+        let actionScope = payload["actionScope"] as? String
+        // A partial update may reuse account configuration only while it
+        // belongs to the same account. Carrying an old goal or container list
+        // across a scope change exposes the previous wearer's data and makes
+        // its containers tappable under the new account.
+        let sameScope = previous.actionScope == actionScope
+        return WatchContext(
             today: payload["today"] as? String,
+            actionScope: actionScope,
             todayWeightKg: payload["todayWeightKg"] as? Double,
             todayBodyFatPercentage: payload["todayBodyFatPercentage"] as? Double,
             lastWeightKg: payload["lastWeightKg"] as? Double,
@@ -46,12 +53,22 @@ enum ContextPayloadMapper {
             weightUnit: (payload["weightUnit"] as? String).flatMap(WeightUnit.init(rawValue:)),
             nutrition: nutrition(from: payload),
             water: water(from: payload),
-            waterContainers: waterContainers(from: payload) ?? previous.waterContainers,
+            waterContainers: waterContainers(from: payload)
+                ?? (sameScope ? previous.waterContainers : nil),
+            foodShortcuts: foodShortcuts(from: payload)
+                ?? (sameScope ? previous.foodShortcuts : nil),
+            mealTypes: mealTypes(from: payload)
+                ?? (sameScope ? previous.mealTypes : nil),
+            defaultMealTypeId: payload["defaultMealTypeId"] as? String
+                ?? (sameScope ? previous.defaultMealTypeId : nil),
             // Carried forward for the same reason containers are: these are
             // account settings, and a push that happens not to mention them
             // must not blank the bottle's scale.
-            waterGoalMl: payload["waterGoalMl"] as? Double ?? previous.waterGoalMl,
-            waterDisplayUnit: payload["waterDisplayUnit"] as? String ?? previous.waterDisplayUnit,
+            waterGoalMl: payload["waterGoalMl"] as? Double
+                ?? (sameScope ? previous.waterGoalMl : nil),
+            waterDisplayUnit: payload["waterDisplayUnit"] as? String
+                ?? (sameScope ? previous.waterDisplayUnit : nil),
+            workout: workout(from: payload),
             // Milliseconds since the epoch on the phone's clock. Carried
             // forward is wrong here — a payload with no timestamp is exactly
             // the one we can't reason about, so it stays nil.
@@ -157,6 +174,85 @@ enum ContextPayloadMapper {
             else { return nil }
             return WaterContainer(id: id, name: name, servingVolumeMl: servingVolumeMl, unit: unit)
         }
+    }
+
+    static func foodShortcuts(from payload: [String: Any]) -> [WatchFoodShortcut]? {
+        guard let raw = payload["foodShortcuts"] as? [[String: Any]] else { return nil }
+        return raw.compactMap { entry in
+            guard let foodId = entry["foodId"] as? String,
+                  let variantId = entry["variantId"] as? String,
+                  let name = entry["name"] as? String,
+                  let servingSize = entry["servingSize"] as? Double,
+                  let servingUnit = entry["servingUnit"] as? String,
+                  let calories = entry["calories"] as? Double,
+                  let group = entry["group"] as? String,
+                  servingSize > 0, servingSize.isFinite else { return nil }
+            return WatchFoodShortcut(
+                foodId: foodId, variantId: variantId, name: name,
+                brand: entry["brand"] as? String, servingSize: servingSize,
+                servingUnit: servingUnit, calories: calories, group: group
+            )
+        }
+    }
+
+    static func mealTypes(from payload: [String: Any]) -> [WatchMealType]? {
+        guard let raw = payload["mealTypes"] as? [[String: Any]] else { return nil }
+        return raw.compactMap { entry in
+            guard let id = entry["id"] as? String,
+                  let name = entry["name"] as? String else { return nil }
+            return WatchMealType(id: id, name: name)
+        }
+    }
+
+    /// A missing key means the phone has ended the session. Do not carry the
+    /// previous workout forward or the Watch could show a finished workout.
+    static func workout(from payload: [String: Any]) -> WatchWorkoutSnapshot? {
+        guard
+            let raw = payload["workout"] as? [String: Any],
+            let sessionId = raw["sessionId"] as? String,
+            let name = raw["name"] as? String,
+            let rawExercises = raw["exercises"] as? [[String: Any]]
+        else { return nil }
+
+        let exercises = rawExercises.compactMap { entry -> WatchWorkoutSnapshot.Exercise? in
+            guard
+                let id = entry["id"] as? String,
+                let name = entry["name"] as? String,
+                let rawSets = entry["sets"] as? [[String: Any]]
+            else { return nil }
+            let sets = rawSets.compactMap { row -> WatchWorkoutSnapshot.Exercise.SetRow? in
+                guard
+                    let id = row["id"] as? String,
+                    let key = row["key"] as? String,
+                    let signature = row["signature"] as? String,
+                    let number = row["number"] as? Int,
+                    let completed = row["completed"] as? Bool
+                else { return nil }
+                return .init(
+                    id: id,
+                    key: key,
+                    signature: signature,
+                    number: number,
+                    type: row["type"] as? String,
+                    weightKg: row["weightKg"] as? Double,
+                    reps: row["reps"] as? Int,
+                    durationSeconds: row["durationSeconds"] as? Double,
+                    completed: completed
+                )
+            }
+            guard sets.count == rawSets.count else { return nil }
+            return .init(id: id, name: name, sets: sets)
+        }
+        guard exercises.count == rawExercises.count else { return nil }
+        return .init(
+            sessionId: sessionId,
+            name: name,
+            activeSetId: raw["activeSetId"] as? String,
+            restEndsAt: (raw["restEndsAt"] as? Double).map {
+                Date(timeIntervalSince1970: $0 / 1000)
+            },
+            exercises: exercises
+        )
     }
 
     // MARK: - Complications

@@ -3,6 +3,8 @@ import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import Toast from 'react-native-toast-message';
 
 import NotificationSettingsScreen from '../../src/screens/NotificationSettingsScreen';
+import { getTodayDiscretionaryPromptBudget } from '../../src/services/discretionaryPromptLedger';
+import { getActiveNutritionIdentity } from '../../src/services/nutritionIdentity';
 import {
   maybePromptForExactAlarmPermission,
   requestNotificationPermission,
@@ -19,6 +21,15 @@ jest.mock('../../src/services/notifications', () => ({
   setNotificationsEnabled: jest.fn(async () => undefined),
   setRestTimerNotificationsEnabled: jest.fn(async () => undefined),
   maybePromptForExactAlarmPermission: jest.fn(async () => undefined),
+}));
+
+jest.mock('../../src/services/discretionaryPromptLedger', () => ({
+  getTodayDiscretionaryPromptBudget: jest.fn(),
+  subscribeDiscretionaryPromptBudget: jest.fn(() => jest.fn()),
+}));
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  getActiveNutritionIdentity: jest.fn(),
+  subscribeNutritionIdentity: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../src/components/NotificationPermissionBanner', () => {
@@ -73,7 +84,11 @@ function latestTimeSheet(value: string): MockTimeSheetProps {
   return match;
 }
 
-const mockNavigation = { goBack: jest.fn(), setOptions: jest.fn() } as never;
+const mockNavigation = {
+  goBack: jest.fn(),
+  setOptions: jest.fn(),
+  navigate: jest.fn(),
+} as never;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => mockNavigation,
@@ -120,6 +135,27 @@ describe('NotificationSettingsScreen', () => {
     __resetAppPreferencesStoreForTests();
     mockRequestPermission.mockResolvedValue('granted');
     mockTimeSheetRenders.length = 0;
+    jest.mocked(getActiveNutritionIdentity).mockResolvedValue({
+      serverConfigId: 'server-A',
+      userId: 'user-A',
+    });
+    jest.mocked(getTodayDiscretionaryPromptBudget).mockResolvedValue({
+      used: 2,
+      remaining: 1,
+    });
+  });
+
+  it('previews the combined optional reminder budget without counting medication', async () => {
+    const { findByText } = renderScreen();
+    expect(
+      await findByText(
+        /2 of 3 daily slots used.*medication and rest alerts are separate/i
+      )
+    ).toBeTruthy();
+    expect(getTodayDiscretionaryPromptBudget).toHaveBeenCalledWith({
+      serverConfigId: 'server-A',
+      userId: 'user-A',
+    });
   });
 
   it('hides category rows while the master toggle is off', () => {
@@ -351,5 +387,89 @@ describe('NotificationSettingsScreen', () => {
     expect(switches[1].props.accessibilityLabel).toBe('Rest Timer');
     expect(switches[2].props.accessibilityLabel).toBe('Fasting Goals');
     expect(switches[3].props.accessibilityLabel).toBe('Medication Reminders');
+  });
+
+  it('keeps the meal reminder off if notification permission is denied', async () => {
+    mockRequestPermission.mockResolvedValue('denied');
+    const { getByLabelText } = renderScreen();
+    fireEvent(getByLabelText('Meal photo reminder'), 'valueChange', true);
+    await waitFor(() => expect(mockRequestPermission).toHaveBeenCalled());
+    expect(useAppPreferencesStore.getState().mealCaptureReminderEnabled).toBe(
+      false
+    );
+  });
+
+  it('enables only the selected meal window and rejects an invalid reminder time', async () => {
+    const { getByLabelText } = renderScreen();
+    fireEvent(getByLabelText('Meal photo reminder'), 'valueChange', true);
+    await waitFor(() =>
+      expect(useAppPreferencesStore.getState().mealCaptureReminderEnabled).toBe(
+        true
+      )
+    );
+    act(() => latestTimeSheet('12:30').onSelectTime('15:00'));
+    expect(useAppPreferencesStore.getState().mealCapturePromptTime).toBe(
+      '12:30'
+    );
+    expect(Toast.show).toHaveBeenCalledWith(
+      expect.objectContaining({
+        text1: 'The reminder time must fall inside the meal window.',
+      })
+    );
+  });
+
+  it('opens the explicit movement timer without logging an action', () => {
+    const { getByText } = renderScreen();
+    fireEvent.press(getByText('Open break timer'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('MovementBreak');
+  });
+
+  it('keeps movement reminders off when permission is denied', async () => {
+    mockRequestPermission.mockResolvedValue('denied');
+    const { getByLabelText } = renderScreen();
+    await act(async () => {
+      fireEvent(getByLabelText('Movement break reminder'), 'valueChange', true);
+    });
+    await waitFor(() => expect(mockRequestPermission).toHaveBeenCalled());
+    expect(useAppPreferencesStore.getState().movementBreakReminderEnabled).toBe(
+      false
+    );
+  });
+
+  it('enables an optional movement reminder and saves its time', async () => {
+    const { getByLabelText } = renderScreen();
+    await act(async () => {
+      fireEvent(getByLabelText('Movement break reminder'), 'valueChange', true);
+    });
+    await waitFor(() =>
+      expect(
+        useAppPreferencesStore.getState().movementBreakReminderEnabled
+      ).toBe(true)
+    );
+    await act(async () => {
+      latestTimeSheet('15:00').onSelectTime('16:30');
+    });
+    expect(useAppPreferencesStore.getState().movementBreakReminderTime).toBe(
+      '16:30'
+    );
+  });
+
+  it('keeps photo review opt-in and saves its chosen later time', async () => {
+    const { getByLabelText } = renderScreen();
+    expect(useAppPreferencesStore.getState().mealPhotoReviewEnabled).toBe(
+      false
+    );
+    fireEvent(
+      getByLabelText('Meal photo review reminder'),
+      'valueChange',
+      true
+    );
+    await waitFor(() =>
+      expect(useAppPreferencesStore.getState().mealPhotoReviewEnabled).toBe(
+        true
+      )
+    );
+    act(() => latestTimeSheet('20:00').onSelectTime('19:30'));
+    expect(useAppPreferencesStore.getState().mealPhotoReviewTime).toBe('19:30');
   });
 });

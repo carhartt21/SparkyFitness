@@ -18,6 +18,9 @@ import { loadActiveDraft, clearDraft } from '../services/workoutDraftService';
 import { navigationRef as rootNavigationRef } from '../components/ActiveWorkoutBar';
 import { NON_ADD_TABS, type NonAddTabName } from '../components/TabsLayout';
 import type { RootStackParamList } from '../types/navigation';
+import type { LaunchIconAction } from '../services/launchIconActions';
+import { getTodayDate } from '../utils/dateUtils';
+import { checkServerConnection } from '../services/api/healthDataApi';
 
 function getServerConnectionMessage(
   t: (key: string, options: { defaultValue: string }) => string,
@@ -197,7 +200,7 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
   );
 
   const handleStartExerciseForm = useCallback(
-    async (screen: 'WorkoutAdd' | 'ActivityAdd') => {
+    async (screen: 'WorkoutAdd' | 'ActivityAdd', dateOverride?: string) => {
       if (
         !checkServerConnected(
           'addSheetActions.configureForExercise',
@@ -207,7 +210,7 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
         return;
       }
 
-      const date = getActiveDiaryDate();
+      const date = dateOverride ?? getActiveDiaryDate();
       const draft = await loadActiveDraft();
       if (draft) {
         Alert.alert(
@@ -301,6 +304,35 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
     navigateFromSheet('MeasurementsAdd', { date });
   }, [getActiveDiaryDate, navigateFromSheet]);
 
+  const handleLaunchIconAction = useCallback(
+    async (action: LaunchIconAction) => {
+      // Launcher actions are independent of a previously selected diary day.
+      // Do not reset the existing stack or discard an editor behind this screen.
+      const date = getTodayDate();
+      switch (action) {
+        case 'food':
+          navigateFromSheet('FoodSearch', { date });
+          break;
+        case 'scan':
+          navigateFromSheet('FoodScan', { date });
+          break;
+        case 'measurements':
+          navigateFromSheet('MeasurementsAdd', { date });
+          break;
+        case 'activity':
+          // A cold launch can beat the Dashboard's connection query. Join it
+          // before applying the existing activity/draft guard.
+          await queryClient.ensureQueryData({
+            queryKey: serverConnectionQueryKey,
+            queryFn: checkServerConnection,
+          });
+          await handleStartExerciseForm('ActivityAdd', date);
+          break;
+      }
+    },
+    [navigateFromSheet, handleStartExerciseForm]
+  );
+
   const handleAddProgressPhotos = useCallback(() => {
     const date = getActiveDiaryDate();
     navigateFromSheet('ProgressPhotos', { date });
@@ -382,6 +414,7 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
     handleLogWorkout,
     handleAddActivity,
     handleAddMeasurements,
+    handleLaunchIconAction,
     handleAddProgressPhotos,
     handleAskSparky,
     handleOpenCycle,

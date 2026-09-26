@@ -1,6 +1,6 @@
 # Custom Food Form
 
-This page will explain how to use the Custom Food Form in SparkyFitness.
+This page will explain how to use the Custom Food Form in X on Track.
 When you add a food, you'll have the option to add a custom food like here:
 <img width="1101" height="538" alt="grafik" src="https://github.com/user-attachments/assets/fad48cce-b235-4a92-ad55-b69ca618b49c" />
 

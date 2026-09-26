@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2048" height="2048" viewBox="0 0 320 320" role="img" aria-labelledby="title">
+  <title id="title">X on Track — light</title>
+  <defs>
+    <linearGradient id="track" x1="0" y1="174" x2="0" y2="291" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#B7D4CB"/>
+      <stop offset="0.4" stop-color="#52947E"/>
+      <stop offset="1" stop-color="#086B50"/>
+    </linearGradient>
+  </defs>
+  <rect width="320" height="320" fill="#FFFBF3"/>
+  <g fill="url(#track)">
+    <path d="M86 174h41L42 281c-16-12-26-26-30-44z"/>
+    <path d="M135 174h46l75 117H64z"/>
+    <path d="M188 174h39l81 63c-4 18-14 32-30 44z"/>
+  </g>
+  <path d="M85 64h42l45 52.5L127 169H85l46-52.5z" fill="#07543F"/>
+  <g fill="#FF5424">
+    <path d="M181 64h47l-45 51-23-26z"/>
+    <path d="m183 119 45 50h-47l-22-24z"/>
+  </g>
+</svg>

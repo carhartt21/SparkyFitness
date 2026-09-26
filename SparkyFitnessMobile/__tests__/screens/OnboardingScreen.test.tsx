@@ -5,6 +5,7 @@ import OnboardingScreen from '../../src/screens/OnboardingScreen';
 import { login, fetchAuthSettings } from '../../src/services/api/authService';
 import { saveServerConfig } from '../../src/services/storage';
 import { TimeoutError } from '../../src/utils/concurrency';
+import { fetchProfile } from '../../src/services/api/profileApi';
 
 // Mock navigation
 const mockReplace = jest.fn();
@@ -41,6 +42,10 @@ jest.mock('../../src/services/LogService', () => ({
   addLog: jest.fn(),
 }));
 
+jest.mock('../../src/services/api/profileApi', () => ({
+  fetchProfile: jest.fn().mockResolvedValue({ id: 'test-user' }),
+}));
+
 jest.mock('../../src/hooks', () => ({
   queryClient: { invalidateQueries: jest.fn() },
   serverConnectionQueryKey: ['serverConnection'],
@@ -61,6 +66,7 @@ const mockFetchAuthSettings = fetchAuthSettings as jest.MockedFunction<
 describe('OnboardingScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (fetchProfile as jest.Mock).mockResolvedValue({ id: 'test-user' });
     mockFetch.mockReset();
     // Settings fetch fails by default so page-1 navigation exercises the
     // reachability fallback (global fetch), like the pre-existing tests expect.
@@ -83,9 +89,9 @@ describe('OnboardingScreen', () => {
     test('renders welcome content and URL input', () => {
       const { getByText, getByPlaceholderText } = renderScreen();
 
-      expect(getByText('SparkyFitness')).toBeTruthy();
-      expect(getByText('Your self-hosted fitness tracker')).toBeTruthy();
-      expect(getByPlaceholderText('https://your-sparky-app.com')).toBeTruthy();
+      expect(getByText('X on Track')).toBeTruthy();
+      expect(getByText('Keep getting better.')).toBeTruthy();
+      expect(getByPlaceholderText('https://your-server.example')).toBeTruthy();
       expect(getByText('Next')).toBeTruthy();
       expect(getByText('Later')).toBeTruthy();
     });
@@ -97,7 +103,7 @@ describe('OnboardingScreen', () => {
       const { getByPlaceholderText, getByText } = renderScreen();
 
       fireEvent.changeText(
-        getByPlaceholderText('https://your-sparky-app.com'),
+        getByPlaceholderText('https://your-server.example'),
         'https://a-long-enough-server-url.example.com'
       );
 
@@ -109,11 +115,11 @@ describe('OnboardingScreen', () => {
     test('learn more section toggles on press', () => {
       const { getByText, queryByText } = renderScreen();
 
-      expect(queryByText(/SparkyFitness helps you track/)).toBeNull();
+      expect(queryByText(/X on Track helps you track/)).toBeNull();
 
-      fireEvent.press(getByText('Learn more about SparkyFitness'));
+      fireEvent.press(getByText('Learn more about X on Track'));
 
-      expect(getByText(/SparkyFitness helps you track/)).toBeTruthy();
+      expect(getByText(/X on Track helps you track/)).toBeTruthy();
     });
 
     test('Next shows error when URL is empty', async () => {
@@ -133,7 +139,7 @@ describe('OnboardingScreen', () => {
       const { getByText, getByPlaceholderText } = renderScreen();
 
       fireEvent.changeText(
-        getByPlaceholderText('https://your-sparky-app.com'),
+        getByPlaceholderText('https://your-server.example'),
         'https://example.com'
       );
 
@@ -154,7 +160,7 @@ describe('OnboardingScreen', () => {
       const { getByText, getByPlaceholderText } = renderScreen();
 
       fireEvent.changeText(
-        getByPlaceholderText('https://your-sparky-app.com'),
+        getByPlaceholderText('https://your-server.example'),
         'https://example.com'
       );
 
@@ -163,7 +169,7 @@ describe('OnboardingScreen', () => {
       });
 
       await waitFor(() => {
-        expect(getByText('Connect to SparkyFitness')).toBeTruthy();
+        expect(getByText('Connect to X on Track')).toBeTruthy();
         expect(getByText('https://example.com')).toBeTruthy();
       });
     });
@@ -186,7 +192,7 @@ describe('OnboardingScreen', () => {
       const { getByText, getByPlaceholderText } = renderScreen();
 
       fireEvent.changeText(
-        getByPlaceholderText('https://your-sparky-app.com'),
+        getByPlaceholderText('https://your-server.example'),
         'https://example.com'
       );
 
@@ -212,7 +218,7 @@ describe('OnboardingScreen', () => {
       mockFetch.mockResolvedValueOnce({ ok: true });
 
       fireEvent.changeText(
-        result.getByPlaceholderText('https://your-sparky-app.com'),
+        result.getByPlaceholderText('https://your-server.example'),
         'https://example.com'
       );
 
@@ -221,7 +227,7 @@ describe('OnboardingScreen', () => {
       });
 
       await waitFor(() => {
-        expect(result.getByText('Connect to SparkyFitness')).toBeTruthy();
+        expect(result.getByText('Connect to X on Track')).toBeTruthy();
       });
     };
 
@@ -245,7 +251,7 @@ describe('OnboardingScreen', () => {
 
       // Should be back on page 1 with URL preserved
       expect(
-        result.getByPlaceholderText('https://your-sparky-app.com').props.value
+        result.getByPlaceholderText('https://your-server.example').props.value
       ).toBe('https://example.com');
     });
 
@@ -297,6 +303,7 @@ describe('OnboardingScreen', () => {
             authType: 'apiKey',
           })
         );
+        expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(mockReplace).toHaveBeenCalledWith('Tabs', {
           screen: 'Dashboard',
         });
@@ -340,6 +347,7 @@ describe('OnboardingScreen', () => {
             sessionToken: 'tok-123',
           })
         );
+        expect(fetchProfile).toHaveBeenCalledTimes(1);
         expect(mockReplace).toHaveBeenCalledWith('Tabs', {
           screen: 'Dashboard',
         });

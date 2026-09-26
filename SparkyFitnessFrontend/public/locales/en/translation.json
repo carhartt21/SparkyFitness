@@ -712,6 +712,10 @@
     }
   },
   "nav": {
+    "primary": "Primary navigation",
+    "mobile": "Mobile navigation",
+    "more": "More",
+    "skipToContent": "Skip to content",
     "diary": "Diary",
     "checkin": "Check-In",
     "reports": "Reports",
@@ -797,12 +801,14 @@
     "useExternalBmrHint": "Off by default — your chosen formula is always used until you turn this on. When enabled, a BMR recorded on a check-in or synced from a smart scale or health provider replaces the formula for that day, provided it is physiologically plausible for you. Some devices report BMR as a running daily total rather than a rate, which is why this is opt-in."
   },
   "aboutDialog": {
-    "title": "About SparkyFitness",
-    "description1": "SparkyFitness: Built for Families. Powered by AI. Track food, fitness, water, and health — together.",
+    "title": "About X on Track",
+    "description1": "X on Track helps you log what matters, understand your patterns, and improve relative to your own baseline. Keep getting better.",
+    "personalBestDescription": "X on Track helps you log what matters, understand your patterns, and improve relative to your own baseline. Keep getting better.",
     "applicationVersion": "Application Version: ",
-    "joinDiscord": "Join our community on Discord: ",
+    "joinDiscord": "Upstream community on Discord: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
-    "moreInfoVisit": "For more information, visit the ",
+    "moreInfoVisit": "Upstream source and license: ",
+    "upstreamSourceAndLicense": "Upstream source and license:",
     "githubRepo": "GitHub repository",
     "technologiesUsed": "Technologies Used:",
     "frontend": "Frontend:",
@@ -816,9 +822,11 @@
     "gotIt": "Got it",
     "close": "Close",
     "swissFoodApi": "Swiss Food Composition Database API",
+    "bls4Credit": "Bundeslebensmittelschlüssel 4.0 · Max Rubner-Institut (2025), CC BY 4.0",
     "usdaApi": "USDA Food Database API"
   },
   "exercise": {
+    "readInstructionsAloud": "Read instructions aloud",
     "title": "Exercises",
     "addExerciseDialog": {
       "title": "Add Exercise",
@@ -905,6 +913,8 @@
       "targetBand": "target {{min}}–{{max}}",
       "eaten": "eaten",
       "burned": "burned",
+      "activityBurned": "activity burned",
+      "totalExpenditure": "total expenditure",
       "burnedCaloriesBreakdown": "Burned Calories Breakdown:",
       "otherExerciseCalories": "Other Exercise: {{exerciseCalories}} {{energyUnit}}",
       "activeCalories": "Active Calories: {{activeCaloriesFromExercise}} {{energyUnit}}",
@@ -939,7 +949,7 @@
       "healthConnectProjectionSource": "Health Connect total calories",
       "fallbackProjectionSource": "BMR + active calories fallback",
       "legacyProjectionSource": "Device projection",
-      "sparkyfitnessBurned": "SparkyFitness Burned",
+      "sparkyfitnessBurned": "X on Track Burned",
       "summaryUnavailableDesc": "Could not load your daily energy summary. Try refreshing the page.",
       "summaryUnavailableTitle": "Daily summary unavailable",
       "updateProfile": "Update Profile",
@@ -1465,6 +1475,19 @@
     "syncFailed_other": "Failed to synchronize {{count}} providers."
   },
   "settings": {
+    "overview": {
+      "description": "Manage your account, tracking preferences, and connected services.",
+      "activeProfile": "Active profile",
+      "loading": "Loading profile",
+      "familyContext": "Family member",
+      "yourContext": "Your account",
+      "sections": "Settings sections",
+      "profileDescription": "Your identity, app preferences, and account security.",
+      "nutritionDescription": "Food, nutrients, energy targets, and water tracking.",
+      "wellnessDescription": "Cycle settings and custom health measurements.",
+      "familyDescription": "Choose who can access your data and what they can manage.",
+      "dataDescription": "Import, export, integrations, and developer tools."
+    },
     "profileInformation": {
       "title": "Profile Information",
       "description": "Manage your personal information and profile picture",
@@ -1656,7 +1679,7 @@
       "addDialogTitle": "Add Family Access",
       "familyMemberEmail": "Family Member Email",
       "emailPlaceholder": "Enter family member's email",
-      "accountHint": "They'll get access once they create a SparkyFitness account (if they don't have one already)",
+      "accountHint": "They'll get access once they create a X on Track account (if they don't have one already)",
       "accessPermissions": "Access Permissions",
       "canManageDiary": "Can Manage Diary",
       "canManageDiaryHelp": "Allows delegate to log meals, workouts, water, and goals on your behalf. Wellness logs (sleep, mood, fasting) are blocked. Gives read-only profile access.",
@@ -1767,10 +1790,10 @@
       "openFoodFacts": {
         "baseUrlLabel": "Base URL (Optional)",
         "baseUrlHelp": "Leave blank to use the public Open Food Facts server, or point this at your own self-hosted instance. Authenticated contributions require HTTPS.",
-        "credentialContributionHelp": "Username and password are optional for searches, but both are required to contribute foods from SparkyFitness. Credentials are encrypted at rest. Saving an account does not enable uploads; every user controls their own consent separately.",
+        "credentialContributionHelp": "Username and password are optional for searches, but both are required to contribute foods from X on Track. Credentials are encrypted at rest. Saving an account does not enable uploads; every user controls their own consent separately.",
         "credentialKeepExistingHelp": "Leave both fields blank to keep the stored credentials.",
         "contributionsTitle": "Open Food Facts contributions",
-        "contributionsDescription": "Improve the shared Open Food Facts database and make product data better for every SparkyFitness server.",
+        "contributionsDescription": "Improve the shared Open Food Facts database and make product data better for every X on Track server.",
         "consentTitle": "Uploads require your consent",
         "personalConsentWarning": "Contribute one product at a time from your custom food form or food menu. Choose your own packaging photo, review the exact preview, then confirm publication. Saving a food or these settings does not upload anything.",
         "sharedDataWarning": "Only data you entered from physical packaging is eligible. Open Food Facts publishes structured data under the ODbL and Database Contents License and your own photos under CC BY-SA. Each contribution requires separate data and photo rights confirmations.",
@@ -1805,7 +1828,7 @@
         "clientSecretLabel": "YAZIO Client Secret",
         "clientSecretPlaceholder": "Enter YAZIO Client Secret",
         "allFieldsRequired": "All fields (Email/Username, Password, Client ID, and Client Secret) are required.",
-        "languageSupportHelp": "YAZIO food searches automatically adjust to your active language preference in SparkyFitness (supporting English, German, French, Russian, Spanish, Italian, Dutch, Polish, Portuguese, Danish, Finnish, Swedish, Czech, Hungarian, Greek, Norwegian, Turkish, Chinese, Japanese, and Korean). Other languages default to standard international database parameters."
+        "languageSupportHelp": "YAZIO food searches automatically adjust to your active language preference in X on Track (supporting English, German, French, Russian, Spanish, Italian, Dutch, Polish, Portuguese, Danish, Finnish, Swedish, Czech, Hungarian, Greek, Norwegian, Turkish, Chinese, Japanese, and Korean). Other languages default to standard international database parameters."
       },
       "oauthDashboards": {
         "fallback": "provider's developer dashboard",
@@ -2019,7 +2042,10 @@
     "apiKeyManagement": {
       "title": "API Key Management",
       "description": "Generate and manage API keys for external integrations",
-      "infoText": "Generate API keys to securely submit data from external applications like iPhone Shortcuts. These keys are tied to your account and can be revoked at any time.",
+      "infoText": "Choose MCP read-only for assistants that only need to inspect your data, or full API access for integrations that submit data. Keys can be revoked at any time.",
+      "scope": "Access",
+      "mcpReadOnly": "MCP read-only",
+      "fullAccess": "Full API access",
       "wikiWarning": "Refer to the Wiki page in Github for sample setup instructions for iPhone and Android.",
       "descriptionPlaceholder": "Description (e.g., 'iPhone Health Shortcut')",
       "generateNewKey": "Generate New Key",
@@ -2152,6 +2178,32 @@
         "description": "Import workouts and activity data from binary .fit files.",
         "title": "Workout Activities (FIT)"
       },
+      "hevy": {
+        "alreadyImported": "Already imported (will skip)",
+        "description": "Import completed workouts from a Hevy history export. Saved routines require a Hevy API connection.",
+        "exerciseCount": "{{count}} exercises",
+        "exerciseMappingSummary": "{{existing}} exercise names match your library · {{create}} will be created",
+        "unmatchedExercises": "New exercise names",
+        "duplicateReviewTitle": "Possible duplicate workouts need review",
+        "duplicateReviewHint": "These workouts share a date and title with existing sessions from another source or an older import. They are not merged automatically.",
+        "duplicateReviewed": "I reviewed these possible duplicates and want to continue.",
+        "unknownSource": "Unknown source",
+        "file": "Hevy workout CSV",
+        "fileTooLarge": "The CSV must be under 20 MB.",
+        "import": "Import these workouts",
+        "importing": "Importing…",
+        "noWorkouts": "No workouts found.",
+        "preview": "Preview workouts",
+        "previewCount": "{{workouts}} workouts · {{sets}} set rows",
+        "previewing": "Checking…",
+        "readFailed": "Could not read this file.",
+        "result": "Imported {{imported}}, skipped {{skipped}}, failed {{failed}}.",
+        "retry": "Retry failed workouts",
+        "routineNote": "This file contains completed workouts only. It will not create saved routines.",
+        "timezone": "Workout timezone",
+        "timezoneHint": "Hevy CSV times have no UTC offset. Enter the IANA timezone where the workouts were recorded; ambiguous daylight-saving times cannot be imported.",
+        "title": "Hevy Workout History (CSV)"
+      },
       "importButton": "Import",
       "title": "Data Import"
     },
@@ -2233,7 +2285,7 @@
       "perWeek": "/ week",
       "rate": "Rate:",
       "bodyWeightRate": "{{percent}}% of body weight / week",
-      "estimatedTargetNote": "Note: This target is currently based on an estimated activity level. After {{required}}+ days of weight and calorie data, SparkyFitness will calculate a more personalized adaptive TDEE.",
+      "estimatedTargetNote": "Note: This target is currently based on an estimated activity level. After {{required}}+ days of weight and calorie data, X on Track will calculate a more personalized adaptive TDEE.",
       "minimumMetabolismWarningTitle": "Safety Alert: Calorie target below minimum metabolism",
       "minimumMetabolismWarningText": "Your calorie target is below your estimated minimum metabolism (RMR). This may not be sustainable long-term. Consider selecting a less aggressive Goal Mode or enabling a Standard or Custom safety floor.",
       "absoluteFloorWarningTitle": "Critical Health Alert: Calorie target below absolute floor",
@@ -2289,8 +2341,11 @@
     "tabs": {
       "developerIntegrations": "Developer & Integrations",
       "nutritionDiet": "Nutrition & Diet",
+      "nutritionTracking": "Nutrition & Tracking",
       "profileAccount": "Profile & Account",
-      "wellness": "Wellness"
+      "wellness": "Wellness",
+      "familySharing": "Family & Sharing",
+      "dataConnections": "Data & Connections"
     },
     "breakdown": {
       "goalSurplusLabel": "Goal Surplus:",
@@ -2705,6 +2760,7 @@
     "startCascadingPlan": "Start 6-Month Cascading Plan"
   },
   "common": {
+    "retry": "Try again",
     "add": "Add",
     "saving": "Saving...",
     "cancel": "Cancel",
@@ -2794,6 +2850,16 @@
     "max": "Max"
   },
   "diary": {
+    "addFood": "Add Food",
+    "noMealTypeForQuickAdd": "Set up a meal to add food",
+    "pageTitle": "Your day",
+    "pageDescription": "A clear view of your daily progress and entries.",
+    "goalsLoadErrorTitle": "Your daily view could not load",
+    "goalsLoadErrorDescription": "Try again to load your goals and daily entries.",
+    "goalsEmptyTitle": "Set up your daily goals",
+    "goalsEmptyDescription": "Add your goals to see your daily summary and start tracking here.",
+    "goalsDelegateDescription": "The account owner needs to set daily goals before this view is available.",
+    "openGoals": "Open goals",
     "nutritionSummary": "Nutrition Summary",
     "dailyEnergyGoal": "Daily Energy Goal",
     "waterIntake": "Water Intake",
@@ -2859,6 +2925,12 @@
     "addError": "Failed to add food.",
     "addSuccess": "Food added successfully.",
     "calculateExplanation": {
+      "assumedInputs": "This preview uses assumed values for {{inputs}}. Add these measurements in Check-In and profile settings for a personal calculation.",
+      "weightAssumed": "weight (70 kg)",
+      "heightAssumed": "height (170 cm)",
+      "genderAssumed": "sex (male)",
+      "ageAssumed": "age (30 years)",
+      "bodyFatAssumed": "body fat (0%)",
       "bmrMeasured": "Measured",
       "bmrMeasuredDesc": "Using a measured BMR of {{value}} {{unit}} recorded for this day, from a smart scale or health app sync. Your {{algorithm}} formula is not applied.",
       "bmrMeasuredScope": "A measured value only counts on the day it was recorded. Days without one fall back to the formula. To stop using measured values, turn off “Use measured BMR from check-ins and synced devices” in Calculation Settings.",
@@ -3685,6 +3757,11 @@
     "pasteButton": "Paste"
   },
   "reports": {
+    "nutrientTrends": "Nutrient trends",
+    "selectNutrient": "Select nutrient",
+    "focusChart": "Focus one chart",
+    "showAllCharts": "Show all charts",
+    "noVisibleNutrientCharts": "No nutrient charts are selected. Update your chart preferences to see a trend.",
     "alcohol": {
       "weeklyAlcohol": "Weekly Alcohol Intake",
       "standardDrinks": "std drinks",
@@ -3937,11 +4014,13 @@
     "heartRateHigh": "High",
     "bpm": "bpm",
     "average": "Average",
-    "avgDailyVariance": "Avg Daily Variance",
+    "avgDailyVariance": "Avg logged variance per day",
+    "loggedAverageVariance": "Avg logged variance per day",
     "avgVarianceDescription": "Average deviation from goal per day",
     "avgVarianceTargetRangeDescription": "Average deviation outside target range per day",
     "awakeAvg": "Awake Avg",
-    "cumulativeBalanceTitle": "Cumulative Balance",
+    "cumulativeBalanceTitle": "Cumulative logged variance",
+    "loggedCumulativeVariance": "Cumulative logged variance",
     "customMeasurementChartTitle": "{{categoryName}} ({{measurementType}})",
     "dailyAverages": "Daily Averages",
     "dailySteps": "Daily Steps",
@@ -3990,7 +4069,10 @@
     "medicationsTab": "Medications",
     "miniNutritionTrendsError": "Failed to load nutrition trend data.",
     "moodChartTitle": "Daily Mood",
-    "netEnergyBalance": "Net Balance",
+    "netEnergyBalance": "Logged intake vs target",
+    "loggedIntakeVsTarget": "Logged intake vs target",
+    "loggedBalanceCaveat": "Based on logged entries. Missing meals can change this value; it is not a confirmed energy deficit.",
+    "loggedTotalIntake": "Logged intake",
     "noMoodData": "No daily mood data available.",
     "noStressData": "No raw stress data available.",
     "normalRange": "Normal adult resting range",
@@ -4007,7 +4089,7 @@
     "sleepAvg": "Sleep Avg",
     "stressChartTitle": "Raw Stress Levels",
     "stressTab": "Stress",
-    "totalEaten": "Total Eaten",
+    "totalEaten": "Logged intake",
     "totalGoal": "Total Goal",
     "uniqueExercises": "Unique Exercises",
     "primary": "Primary",
@@ -4436,7 +4518,8 @@
     "failedToLoadMuscles": "Failed to load muscle groups."
   },
   "addComp": {
-    "addNew": "Add New"
+    "addNew": "Add New",
+    "chooseAction": "Choose what you want to add."
   },
   "barcodeScanner": {
     "error": {
@@ -5141,13 +5224,14 @@
     "cancel": "Cancel"
   },
   "auth": {
+    "privateAccess": "This is a private space. If you need access, contact the person who manages this instance.",
     "agreeAndEnter": "I Agree & Enter Demo",
     "demoAgreeCheckbox": "I accept the License terms and agree not to misuse this evaluation sandbox.",
     "demoLicenseDesc": "By using this demo, you agree to the project license.",
     "demoLicenseTitle": "License & Terms",
     "demoLockedDesc": "Credential modifications, MFA / passkey setups, and external device OAuth integrations are disabled on the shared demo account for stability.",
     "demoLockedTitle": "Protected Settings",
-    "demoLoginSuccess": "Welcome to SparkyFitness Demo!",
+    "demoLoginSuccess": "Welcome to X on Track Demo!",
     "demoPrivacyDesc": "This is a shared public demonstration instance. Do NOT enter real medical records, passwords, or confidential personal data.",
     "demoPrivacyTitle": "Public Sandbox Notice",
     "demoResetDesc": "All food diary entries, workouts, and measurements automatically reset every 24 hours to keep the sample dataset fresh.",
@@ -5157,7 +5241,7 @@
     "demoTermsDesc": "This sandbox is strictly for software evaluation. Security probing, automated scraping/bots, DDoS, vulnerability exploitation, and malicious activity are strictly prohibited.",
     "demoTermsTitle": "Acceptable Use & Anti-Misuse Policy",
     "demoWelcomeSubtitle": "Please review and acknowledge the demo terms before entering.",
-    "demoWelcomeTitle": "Welcome to SparkyFitness Demo",
+    "demoWelcomeTitle": "Welcome to X on Track Demo",
     "emailExists": "User with this email already exists.",
     "enteringDemo": "Entering Demo...",
     "exploreDemo": "🚀 Explore Live Demo (1-Click Login)",
@@ -5258,6 +5342,8 @@
     "googleHealthLinkSuccess": "Google Health account successfully linked!",
     "hevySyncError": "Hevy sync failed. Please check your API key in settings.",
     "hevySyncSuccess": "Hevy data synced successfully.",
+    "hevySyncPartial": "Hevy sync partially completed",
+    "hevySyncDetails": "{{workoutsImported}} workouts and {{routinesImported}} saved routines imported; {{failures}} issues.",
     "liftosaurSyncError": "Liftosaur sync failed. Please check your API key in settings.",
     "liftosaurSyncErrorDesc": "Liftosaur sync failed. Please check your API key in settings.",
     "liftosaurSyncSuccess": "Liftosaur data synced successfully.",
@@ -5294,6 +5380,7 @@
     "deleteSuccess": "Meal category deleted.",
     "description": "Customize meal categories and default start times. Suggested meal types adapt dynamically to your schedule when logging food.",
     "editTitle": "Edit Meals",
+    "edit": "Edit {{name}}",
     "forceDeleteWarning": "Deleting everything permanently removes these records, including their logged nutrition. This cannot be undone.",
     "impactFoodEntries": "{{count}} diary entries",
     "impactLoadError": "Could not check what uses this meal category. Please try again.",
@@ -5302,9 +5389,12 @@
     "impactTemplateAssignments": "{{count}} meal plan template items",
     "loadError": "Failed to load meal categories.",
     "moveAndDelete": "Move items and delete",
+    "moveDown": "Move {{name}} down",
+    "moveUp": "Move {{name}} up",
     "moveItemsHint": "Nutrition, dates and times are preserved. Only the meal category changes.",
     "moveItemsTo": "Move these items to",
     "nameLabel": "Name",
+    "reorderError": "Could not reorder meal categories.",
     "sortHelp": "Lower numbers appear first. (Breakfast=10, Lunch=20, Dinner=40)",
     "sortOrderLabel": "Sort Order",
     "title": "Meal Categories",
@@ -5485,6 +5575,8 @@
     }
   },
   "providers": {
+    "bls4Attribution": "Food composition data: Max Rubner-Institut (2025), Bundeslebensmittelschlüssel 4.0. Values per 100 g edible portion.",
+    "bls4Source": "Dataset",
     "createError": "Failed to add external data provider.",
     "createSuccess": "External data provider added successfully.",
     "deleteError": "Failed to delete external data provider",
@@ -5512,7 +5604,7 @@
     "last365Days": "Last 365 Days",
     "last7Days": "Last 7 Days",
     "last90Days": "Last 90 Days",
-    "polarWarning": "Note: Polar only allows syncing data recorded after you connected your account to SparkyFitness.",
+    "polarWarning": "Note: Polar only allows syncing data recorded after you connected your account to X on Track.",
     "startDate": "Start Date",
     "syncNow": "Start Sync",
     "timeoutWarning": "For large date ranges, the browser may time out, but the server will continue syncing in the background.",
@@ -5718,7 +5810,8 @@
     "entryNotes": "Note for this entry (optional)"
   },
   "release": {
-    "whatsNew": "What's New"
+    "whatsNew": "What's New",
+    "upstreamReleases": "Upstream releases"
   },
   "foodUnitSelector": {
     "editTitle": "Edit {{name}}",

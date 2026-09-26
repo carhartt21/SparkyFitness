@@ -80,6 +80,7 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
         '--color-text-primary',
         '--color-border-subtle',
       ]) as [string, string, string, string, string];
+    const accentText = useCSSVariable('--color-accent-text') as string;
 
     // The time the wheel is showing, committed by Done even if never scrolled.
     // Seeded at present() so an open sheet doesn't re-seed to "now" on parent
@@ -126,9 +127,9 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
           borderRadius: 10,
         },
         selected_month: { backgroundColor: accentPrimary },
-        selected_month_label: { color: '#FFFFFF' },
+        selected_month_label: { color: accentText },
       }),
-      [accentPrimary, textPrimary, borderSubtle]
+      [accentPrimary, accentText, textPrimary, borderSubtle]
     );
 
     return (

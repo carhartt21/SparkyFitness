@@ -1,12 +1,12 @@
 # Calculation Settings
 
-This page explains how BMR formulas, body fat algorithms, daily energy adjustments, and calorie deficit targets are calculated in **SparkyFitness**.
+This page explains how BMR formulas, body fat algorithms, daily energy adjustments, and calorie deficit targets are calculated in **X on Track**.
 
 ---
 
 ## 1. Basal Metabolic Rate (BMR) Algorithms
 
-Your Basal Metabolic Rate (BMR) represents the energy your body requires to perform basic life-sustaining functions at rest. SparkyFitness supports multiple clinical formulas to estimate BMR:
+Your Basal Metabolic Rate (BMR) represents the energy your body requires to perform basic life-sustaining functions at rest. X on Track supports multiple clinical formulas to estimate BMR:
 
 | Algorithm                       | Required Inputs             | Best For                          | Formula                                                                                          |
 | :------------------------------ | :-------------------------- | :-------------------------------- | :--------------------------------------------------------------------------------------------- |
@@ -20,7 +20,7 @@ _Note: Weight (`W`) is in kg, Height (`H`) is in cm, and Age (`A`) is in years._
 
 ### Measured BMR
 
-If a smart scale or a connected health app reports a BMR, SparkyFitness can use that
+If a smart scale or a connected health app reports a BMR, X on Track can use that
 measured value for that day instead of the formula above, and the calculation
 breakdown on the Diary labels it **Measured**.
 
@@ -56,7 +56,7 @@ which is why the Calculation Settings toggle exists.
 
 ## 2. Body Fat Algorithms
 
-Body Fat Percentage is used directly in lean-mass BMR formulas (Katch-McArdle/Cunningham). SparkyFitness can estimate body fat percentage from your measurements using two algorithms:
+Body Fat Percentage is used directly in lean-mass BMR formulas (Katch-McArdle/Cunningham). X on Track can estimate body fat percentage from your measurements using two algorithms:
 
 ### U.S. Navy Method
 
@@ -92,7 +92,7 @@ This setting determines **how physical activity changes your calorie budget** th
 - **Dynamic Goal:** Increases your budget as you burn active calories or take steps (adds exercise directly back to your budget).
 - **Fixed Goal:** Your calorie target remains completely static, ignoring daily exercise.
 - **Percentage Earn-Back:** Adds back a custom percentage (e.g., 50%) of active calories burned to create a buffer against device calorie over-estimations.
-- **Device Projection:** Uses the cumulative **Total Calories** value synced from Health Connect (resting plus active energy). For the current day, it projects that value from its dedicated source capture time to midnight and treats the result as your live TDEE; completed days use the recorded total without extrapolation. Goal Mode is then applied directly: for example, a projected TDEE of 2,400 kcal becomes 2,400 kcal at Maintain, 2,160 kcal at Body Recomposition (-10%), or 2,640 kcal at Lean Bulk (+10%). Enable **Total Calories** in the Android Health Connect sync settings. When that value is unavailable, too early, or implausible for a complete daily total, SparkyFitness falls back to BMR plus projected active calories.
+- **Device Projection:** Uses the cumulative **Total Calories** value synced from Health Connect (resting plus active energy). For the current day, it projects that value from its dedicated source capture time to midnight and treats the result as your live TDEE; completed days use the recorded total without extrapolation. Goal Mode is then applied directly: for example, a projected TDEE of 2,400 kcal becomes 2,400 kcal at Maintain, 2,160 kcal at Body Recomposition (-10%), or 2,640 kcal at Lean Bulk (+10%). Enable **Total Calories** in the Android Health Connect sync settings. When that value is unavailable, too early, or implausible for a complete daily total, X on Track falls back to BMR plus projected active calories.
 
 > [!NOTE]
 > If you use [Nutrient Goal Direction](/features/goals)'s **Target range** for calories, note that Adaptive, Dynamic, Percentage Earn-Back, and Device Projection all recalculate your calorie goal value regularly — a manually entered target band won't move with it. Target range for calories works best paired with **Fixed Goal**.
@@ -133,7 +133,7 @@ Device Projection always uses the projected device TDEE as the live baseline for
 
 ## 5. Metabolic Safety Floors
 
-SparkyFitness shows two recommended safety limits for calorie goals:
+X on Track shows two recommended safety limits for calorie goals:
 
 1.  **Resting Metabolism (RMR) Floor:** Your target should not fall below your resting metabolic rate.
 2.  **Absolute Clinical Floor:** 1,200 kcal for biological females; 1,500 kcal for biological males.
@@ -141,7 +141,7 @@ SparkyFitness shows two recommended safety limits for calorie goals:
 > [!IMPORTANT]
 > **Adaptive Safety Floor:**
 >
-> - **Standard (default):** The higher of your estimated RMR and the sex-specific clinical minimum is enforced. If an Adaptive target falls below it, SparkyFitness raises the target and explains which limit bound.
+> - **Standard (default):** The higher of your estimated RMR and the sex-specific clinical minimum is enforced. If an Adaptive target falls below it, X on Track raises the target and explains which limit bound.
 > - **Custom minimum:** Replaces the Standard floor with a calorie value you choose. This can be below or above the recommended limits; those recommendations and health warnings remain visible.
 > - **Disabled:** Does not automatically raise Adaptive targets. The calculated target is used as-is, while recommended limits and health warnings remain visible.
 > - Under the **Manual** method, the target is **not automatically raised**, but a prominent warning banner is displayed warning you that your budget is in an unsafe range.

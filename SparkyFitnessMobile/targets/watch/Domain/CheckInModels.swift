@@ -15,6 +15,16 @@ struct CheckIn: Codable, Equatable, Identifiable {
     let weightKg: Double
     let bodyFatPercentage: Double?
     let capturedAt: Date
+    /// Fixed at capture time. Older persisted captures decode with nil and
+    /// stay local until their account can be identified explicitly.
+    var scope: String? = nil
+}
+
+/// Bounds shared by the first-run form and the later typed-entry sheet.
+/// These exclude invalid payloads, not plausible changes from the wearer.
+enum CheckInInputBounds {
+    static let weightKg: ClosedRange<Double> = 2...500
+    static let bodyFatPercentage: ClosedRange<Double> = 0...100
 }
 
 /// A day on the trend chart. Body fat is optional for the same reason as above.
@@ -168,6 +178,7 @@ struct PendingWaterTap: Codable, Equatable, Identifiable {
     /// glass logged at 23:58 and still unconfirmed at 00:02 belongs to
     /// yesterday, and must not pre-fill the new day's bottle.
     let day: String
+    var scope: String? = nil
     /// `.queued` draws the line above the fill; `.saved` joins the fill;
     /// `.failed` draws nothing and turns the page's status pill red.
     var state: SyncState = .queued
@@ -175,13 +186,56 @@ struct PendingWaterTap: Codable, Equatable, Identifiable {
     var isToday: Bool { day == CheckInDate.today() }
 }
 
-/// One container tap captured on the watch, sent straight to the phone. There
-/// is no queued/saved/failed state kept for these on the watch the way there
-/// is for `CheckIn` — see `WatchSessionManager.sendWaterTap`.
+/// One container tap captured on the watch, sent to the phone with the same
+/// id and date held in `PendingWaterTap` until its acknowledgement arrives.
 struct WaterTap: Codable, Equatable {
     let id: String
     let entryDate: String
     let containerId: Int
+    let loggedAt: Date
+    let scope: String
+}
+
+/// Standalone water action; its id and capture time survive every retry.
+struct PendingQuickWaterAction: Codable, Equatable, Identifiable {
+    let id: String
+    let entryDate: String
+    let scope: String
+    let loggedAt: Date
+    var state: SyncState
+}
+
+struct WatchFoodShortcut: Codable, Equatable, Identifiable {
+    let foodId: String
+    let variantId: String
+    let name: String
+    let brand: String?
+    let servingSize: Double
+    let servingUnit: String
+    let calories: Double
+    let group: String
+
+    var id: String { "\(foodId):\(variantId)" }
+}
+
+struct WatchMealType: Codable, Equatable, Identifiable {
+    let id: String
+    let name: String
+}
+
+/// Persisted before delivery; a retry uses the original operation ID and day.
+struct PendingFoodLogAction: Codable, Equatable, Identifiable {
+    let id: String
+    let scope: String
+    let entryDate: String
+    let loggedAt: Date
+    let foodId: String
+    let variantId: String
+    let mealTypeId: String
+    let quantity: Double
+    let unit: String
+    let name: String
+    var state: SyncState
 }
 
 /// A request to delete one logged drink, sent to the phone (which owns the
@@ -190,6 +244,49 @@ struct WaterTap: Codable, Equatable {
 struct WaterDeleteRequest: Codable, Equatable {
     let id: String
     let entryId: String
+    let scope: String
+}
+
+/// Latest active workout mirrored from the phone. The phone remains the source
+/// of truth; the Watch can show this even when temporarily out of range.
+struct WatchWorkoutSnapshot: Codable, Equatable {
+    struct Exercise: Codable, Equatable, Identifiable {
+        struct SetRow: Codable, Equatable, Identifiable {
+            let id: String
+            let key: String
+            let signature: String
+            let number: Int
+            let type: String?
+            let weightKg: Double?
+            let reps: Int?
+            let durationSeconds: Double?
+            let completed: Bool
+        }
+
+        let id: String
+        let name: String
+        let sets: [SetRow]
+    }
+
+    let sessionId: String
+    let name: String
+    let activeSetId: String?
+    let restEndsAt: Date?
+    let exercises: [Exercise]
+}
+
+/// A single desired-state change. Kept on the Watch until the phone confirms
+/// the result, so an offline tap survives app termination and can be retried.
+struct WorkoutSetOperation: Codable, Equatable, Identifiable {
+    let id: String
+    let sessionId: String
+    let setKey: String
+    let setSignature: String
+    let expectedCompleted: Bool
+    let completed: Bool
+    let createdAt: Date
+    var scope: String? = nil
+    var state: SyncState
 }
 
 /// Everything the phone relays to the watch: what to seed the crown with, and
@@ -197,6 +294,8 @@ struct WaterDeleteRequest: Codable, Equatable {
 /// `updateApplicationContext`, so a missed update is simply superseded.
 struct WatchContext: Codable, Equatable {
     var today: String?
+    /// Account scope for new Watch actions. Missing on older phone builds.
+    var actionScope: String?
     /// Today's already-logged values, if any. Present => the wearer is
     /// correcting rather than creating, and the crown seeds from these.
     var todayWeightKg: Double?
@@ -252,11 +351,18 @@ struct WatchContext: Codable, Equatable {
     /// = synced and the server genuinely has none configured, non-empty =
     /// usable. The page says something different for each.
     var waterContainers: [WaterContainer]?
+    /// Phone-owned catalogue, scoped to the account that pushed it.
+    var foodShortcuts: [WatchFoodShortcut]?
+    var mealTypes: [WatchMealType]?
+    var defaultMealTypeId: String?
     /// Today's water target, and the unit to draw amounts in. Account
     /// configuration, not day data — see `WaterSnapshot` for why they moved
     /// out of it — so both are carried forward when a push omits them.
     var waterGoalMl: Double?
     var waterDisplayUnit: String?
+    /// Active workout from the phone; nil means no workout is available.
+    /// Optional so context saved by an earlier Watch build still decodes.
+    var workout: WatchWorkoutSnapshot?
     /// When the phone built this payload (its `pushedAt`), as opposed to
     /// `updatedAt` above, which is when this watch received it. Needed to tell
     /// a genuinely fresh push from `adoptReceivedContext()` replaying a cached
@@ -265,6 +371,7 @@ struct WatchContext: Codable, Equatable {
 
     static let empty = WatchContext(
         today: nil,
+        actionScope: nil,
         todayWeightKg: nil,
         todayBodyFatPercentage: nil,
         lastWeightKg: nil,
@@ -278,8 +385,12 @@ struct WatchContext: Codable, Equatable {
         nutrition: nil,
         water: nil,
         waterContainers: nil,
+        foodShortcuts: nil,
+        mealTypes: nil,
+        defaultMealTypeId: nil,
         waterGoalMl: nil,
         waterDisplayUnit: nil,
+        workout: nil,
         generatedAt: nil
     )
 
@@ -360,7 +471,7 @@ enum SyncState: String, Codable, Equatable {
 
     var label: String {
         switch self {
-        case .saved: return "Saved to SparkyFitness"
+        case .saved: return "Saved to X on Track"
         case .queued: return "Saved on watch · sends near phone"
         case .failed: return "Couldn't send · tap to retry"
         }

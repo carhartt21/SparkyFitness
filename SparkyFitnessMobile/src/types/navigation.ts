@@ -36,6 +36,14 @@ export type FoodPickerMode =
   // logging a diary entry. See services/waterContainerLinkSelection.ts.
   | 'container-link';
 
+/** Immutable occurrence context carried through search and portion review. */
+export interface PhotoCompletionRouteContext {
+  id: string;
+  consumedAt: string;
+  entryDate: string;
+  mealTypeId: string | null;
+}
+
 export type TabParamList = {
   Dashboard: undefined;
   Diary: { selectedDate?: string } | undefined;
@@ -77,6 +85,7 @@ export type RootStackParamList = {
   WaterContainers: undefined;
   WaterContainerEdit: { containerId?: number } | undefined;
   ExercisesLibrary: undefined;
+  ExerciseReview: { date?: string } | undefined;
   WorkoutPresetsLibrary: undefined;
   WorkoutPresetDetail: { preset: WorkoutPreset; updatedPreset?: WorkoutPreset };
   WorkoutPresetForm:
@@ -125,6 +134,7 @@ export type RootStackParamList = {
     | {
         date?: string;
         pickerMode?: FoodPickerMode;
+        photoCapture?: PhotoCompletionRouteContext;
         /** Optional canonical meal type id to pre-select when logging. */
         mealTypeId?: string;
         mealPlanTarget?: MealPlanPickerTarget;
@@ -132,6 +142,7 @@ export type RootStackParamList = {
     | undefined;
   FoodEntryAdd: {
     item: FoodInfoItem;
+    photoCapture?: PhotoCompletionRouteContext;
     date?: string;
     adjustedValues?: FoodFormData;
     adjustedUnitSelection?: FoodUnitSelectionResult;
@@ -227,6 +238,9 @@ export type RootStackParamList = {
       }
     | undefined;
   FoodPhotoIntro: { date?: string; mealTypeId?: string } | undefined;
+  QuickMealPhoto: undefined;
+  MovementBreak: undefined;
+  GuidedMobility: undefined;
   FoodPhotoFlow: NavigatorScreenParams<FoodPhotoFlowParamList>;
   MealAdd:
     | {

@@ -4,6 +4,7 @@ import {
   type MockDbClient,
 } from './helpers/mockDbClient.js';
 import medicationEntryRepository from '../models/medicationEntryRepository.js';
+import { MedicationEntryConflictError } from '../models/medicationEntryRepository.js';
 import { v4 as uuidv4 } from 'uuid';
 import { getClient } from '../db/poolManager.js';
 
@@ -16,6 +17,7 @@ describe('medicationEntryRepository.createEntry — nutrient snapshot', () => {
   const userId = uuidv4();
   const medicationId = uuidv4();
   const entryId = uuidv4();
+  const scheduleId = uuidv4();
 
   beforeEach(() => {
     mockClient = createMockDbClient();
@@ -129,5 +131,71 @@ describe('medicationEntryRepository.createEntry — nutrient snapshot', () => {
     const insertParams = insertCall![1] as unknown[];
     // dose_amount_snapshot is the 9th INSERT column (index 8).
     expect(insertParams[8]).toBe(2);
+  });
+
+  it('locks the schedule and rejects a concurrent manual duplicate for a supplement slot', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ id: scheduleId }] }) // schedule lock
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            name: 'Vitamin D',
+            display_name: null,
+            dose_amount: 1,
+            dose_unit: 'tablet',
+            is_supplement: true,
+            nutrients: { vitamin_d: 10 },
+          },
+        ],
+      }) // medication snapshot
+      .mockResolvedValueOnce({ rows: [{ id: entryId }] }) // slot already logged
+      .mockResolvedValueOnce({ rows: [] }); // ROLLBACK
+
+    await expect(
+      medicationEntryRepository.createEntry(userId, {
+        medication_id: medicationId,
+        schedule_id: scheduleId,
+        entry_date: '2026-09-24',
+        status: 'taken',
+      })
+    ).rejects.toBeInstanceOf(MedicationEntryConflictError);
+    expect(mockClient.query.mock.calls[1]?.[0]).toContain('FOR UPDATE');
+    expect(
+      mockClient.query.mock.calls.some((call: unknown[]) =>
+        String(call[0]).includes('INSERT INTO medication_entries')
+      )
+    ).toBe(false);
+    expect(mockClient.query.mock.calls.at(-1)?.[0]).toBe('ROLLBACK');
+  });
+
+  it('commits one manual supplement slot when no entry exists', async () => {
+    mockClient.query
+      .mockResolvedValueOnce({ rows: [] }) // BEGIN
+      .mockResolvedValueOnce({ rows: [{ id: scheduleId }] }) // schedule lock
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            name: 'Vitamin D',
+            display_name: null,
+            dose_amount: 1,
+            dose_unit: 'tablet',
+            is_supplement: true,
+            nutrients: { vitamin_d: 10 },
+          },
+        ],
+      }) // medication snapshot
+      .mockResolvedValueOnce({ rows: [] }) // no slot entry
+      .mockResolvedValueOnce({ rows: [{ id: entryId }] }) // INSERT
+      .mockResolvedValueOnce({ rows: [] }); // COMMIT
+
+    const entry = await medicationEntryRepository.createEntry(userId, {
+      medication_id: medicationId,
+      schedule_id: scheduleId,
+      entry_date: '2026-09-24',
+      status: 'taken',
+    });
+    expect(entry.id).toBe(entryId);
+    expect(mockClient.query.mock.calls.at(-1)?.[0]).toBe('COMMIT');
   });
 });

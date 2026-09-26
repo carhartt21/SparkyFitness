@@ -7,13 +7,8 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatLocalizedNumber } from '../localization';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Pressable,
-  ScrollView,
-} from 'react-native';
+import { View, Text, TouchableOpacity, Pressable } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Button from '../components/ui/Button';
 import Animated, {
   FadeIn,
@@ -33,6 +28,7 @@ import CalendarSheet, {
 } from '../components/CalendarSheet';
 import TimeSheet, { type TimeSheetRef } from '../components/TimeSheet';
 import MarkdownNotesField from '../components/MarkdownNotesField';
+import { useKeepNoteVisible } from '../hooks/useKeepNoteVisible';
 import { NoteMarkdown } from '../components/NoteMarkdown';
 import { toHourMinute } from '@workspace/shared';
 import { formatTimeLabel } from '../utils/entryTimeDisplay';
@@ -172,6 +168,17 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
     });
   const isEntryImagePending = isSettingEntryImage || isClearingEntryImage;
   const insets = useSafeAreaInsets();
+  const {
+    scrollRef: noteScrollRef,
+    onScroll: onNoteScroll,
+    onScrollBeginDrag: onNoteScrollBeginDrag,
+    noteRef,
+    onFocus: onNoteFocus,
+    onBlur: onNoteBlur,
+    onNoteLayout,
+    onContentSizeChange: onNoteContentSizeChange,
+    onDraftChange: onNoteDraftChange,
+  } = useKeepNoteVisible(12);
   const usesNativeHeader = useNativeIOSHeadersActive();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const { profile } = useProfile();
@@ -831,6 +838,7 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   } = useDeleteFoodEntry({
     entryId: entry.id,
     entryDate: entry.entry_date,
+    nutritionCaptureId: entry.nutrition_capture_id,
     onSuccess: () => {
       invalidateDeleteCache();
       navigation.goBack();
@@ -996,12 +1004,20 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
     >
       {header}
 
-      <ScrollView
+      <KeyboardAwareScrollView
+        mode="layout"
+        ref={noteScrollRef}
+        onScroll={onNoteScroll}
+        onScrollBeginDrag={onNoteScrollBeginDrag}
+        scrollEventThrottle={16}
+        onContentSizeChange={onNoteContentSizeChange}
         className="flex-1"
         contentContainerClassName="px-4 py-4 gap-4"
         contentContainerStyle={{
           paddingBottom: insets.bottom + 16 + activeWorkoutBarPadding,
         }}
+        keyboardShouldPersistTaps="handled"
+        bottomOffset={20}
       >
         <Animated.View layout={LinearTransition.duration(300)}>
           <View className="flex-row items-start gap-2">
@@ -1506,17 +1522,26 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
 
         <Animated.View layout={LinearTransition.duration(300)} className="mt-3">
           {isEditing ? (
-            <MarkdownNotesField
-              images={[
-                ...usableFoodImages(entry.images),
-                ...usableFoodImages(entry.food_images),
-              ]}
-              value={entryNotes}
-              onCommit={(text) => updateEdit({ entryNotes: text })}
-              label={t('foodEntryView.entryNotes', {
-                defaultValue: 'Note for this entry',
-              })}
-            />
+            <View ref={noteRef} onLayout={onNoteLayout}>
+              <MarkdownNotesField
+                showFormattingControls={false}
+                maxInputHeight={144}
+                onFocus={onNoteFocus}
+                onBlur={onNoteBlur}
+                images={[
+                  ...usableFoodImages(entry.images),
+                  ...usableFoodImages(entry.food_images),
+                ]}
+                value={entryNotes}
+                onCommit={(text) => {
+                  updateEdit({ entryNotes: text });
+                  onNoteDraftChange();
+                }}
+                label={t('foodEntryView.entryNotes', {
+                  defaultValue: 'Note for this entry',
+                })}
+              />
+            </View>
           ) : entry.notes ? (
             <>
               <Text className="text-xs font-semibold uppercase text-text-muted mb-1">
@@ -1556,7 +1581,7 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
                 })}
           </Button>
         </Animated.View>
-      </ScrollView>
+      </KeyboardAwareScrollView>
 
       {isEditing && (
         <CalendarSheet

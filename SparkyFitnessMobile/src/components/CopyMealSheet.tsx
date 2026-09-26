@@ -16,8 +16,11 @@ import Button from './ui/Button';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import Icon from './Icon';
 import { useMealTypes } from '../hooks/useMealTypes';
-import { getLocalizedMealLabel } from '../constants/meals';
-import { getHistoricalMealTypeLabel } from '../utils/mealNutrition';
+import {
+  getHistoricalMealTypeLabel,
+  getMealTypeDisplayLabel,
+} from '../utils/mealNutrition';
+import { useAppLocale } from '../localization/i18n';
 import { formatDateLabel } from '../utils/dateUtils';
 import { useCalendarPresentation } from '../utils/calendarLocalization';
 import { dayToPickerDate, localDateToDay } from '@workspace/shared';
@@ -39,10 +42,8 @@ interface CopyMealSheetProps {
 
 const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
   ({ isPending = false, onCopy }, ref) => {
-    const { t, i18n: translationI18n } = useTranslation();
-    const dateLocale = translationI18n.language.startsWith('pl')
-      ? 'pl-PL'
-      : 'en-US';
+    const { t } = useTranslation();
+    const dateLocale = useAppLocale();
     const { presentation } = useCalendarPresentation();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
 
@@ -54,6 +55,7 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
         '--color-text-primary',
         '--color-text-secondary',
       ]) as [string, string, string, string, string];
+    const accentText = useCSSVariable('--color-accent-text') as string;
 
     const [source, setSource] = useState<{
       date: string;
@@ -113,14 +115,11 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
     );
 
     const displayMealType = useCallback(
-      (mealType: { name: string; user_id: string | null }) => {
-        if (mealType.user_id != null) return mealType.name;
-        const key =
-          mealType.name.toLowerCase() === 'snack'
-            ? 'snacks'
-            : mealType.name.toLowerCase();
-        return getLocalizedMealLabel(t, key);
-      },
+      (mealType: {
+        name: string;
+        user_id: string | null;
+        display_name?: string;
+      }) => getMealTypeDisplayLabel(mealType, t),
       [t]
     );
 
@@ -227,7 +226,7 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
                 }}
                 styles={{
                   selected: { backgroundColor: accentPrimary },
-                  selected_label: { color: '#FFFFFF' },
+                  selected_label: { color: accentText },
                   today: { borderColor: accentPrimary, borderWidth: 1 },
                   day_label: { color: textPrimary },
                   weekday_label: { color: textSecondary },
@@ -243,9 +242,9 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
                   month_label: { color: textPrimary },
                   year_label: { color: textPrimary },
                   selected_month: { backgroundColor: accentPrimary },
-                  selected_month_label: { color: '#FFFFFF' },
+                  selected_month_label: { color: accentText },
                   selected_year: { backgroundColor: accentPrimary },
-                  selected_year_label: { color: '#FFFFFF' },
+                  selected_year_label: { color: accentText },
                 }}
               />
 
@@ -264,7 +263,7 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
                       accessibilityState={{ selected: isSelected }}
                       onPress={() => setTargetMealTypeId(mt.id)}
                       activeOpacity={0.7}
-                      className={`px-4 py-2 rounded-full border ${
+                      className={`px-4 py-2 rounded-md border ${
                         isSelected
                           ? 'bg-accent-primary border-accent-primary'
                           : 'bg-raised border-border-subtle'
@@ -273,7 +272,7 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
                       <Text
                         className={`text-sm ${
                           isSelected
-                            ? 'text-white font-semibold'
+                            ? 'text-accent-text font-semibold'
                             : 'text-text-primary'
                         }`}
                       >

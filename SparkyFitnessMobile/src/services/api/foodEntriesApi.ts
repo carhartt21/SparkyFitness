@@ -6,6 +6,8 @@ import type {
 } from '@workspace/shared';
 
 export interface CreateFoodEntryPayload {
+  /** Stable UUID reused for every retry of this logical logging action. */
+  client_operation_id?: string;
   meal_type_id: string;
   quantity: number;
   unit: string;
@@ -121,6 +123,25 @@ export const deleteFoodEntry = async (id: string): Promise<void> => {
     method: 'DELETE',
   });
 };
+
+export interface BulkFoodEntryAction {
+  ids: string[];
+  action: 'move' | 'copy' | 'delete';
+  sourceDate: string;
+  targetDate?: string;
+  targetMealTypeId?: string;
+}
+
+export const applyBulkFoodEntryAction = (
+  payload: BulkFoodEntryAction
+): Promise<{ count: number }> =>
+  apiFetch<{ count: number }>({
+    endpoint: '/api/food-entries/bulk-action',
+    serviceName: 'Food Entries API',
+    operation: `${payload.action} selected food entries`,
+    method: 'POST',
+    body: payload,
+  });
 
 export interface CopyFoodEntriesPayload {
   sourceDate: string;

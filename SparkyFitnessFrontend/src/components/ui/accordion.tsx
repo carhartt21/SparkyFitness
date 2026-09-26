@@ -33,10 +33,10 @@ const AccordionTrigger = React.forwardRef<
       )}
       {...props}
     >
-      <div className="flex flex-col items-start">
-        {children}
+      <div className="flex min-w-0 flex-col items-start text-left">
+        <span className="flex items-center gap-3 text-left">{children}</span>
         {description && (
-          <span className="text-sm text-muted-foreground font-normal">
+          <span className="text-left text-sm text-muted-foreground font-normal">
             {description}
           </span>
         )}

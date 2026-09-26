@@ -193,8 +193,8 @@ const MealPlansScreen: React.FC<MealPlansScreenProps> = ({ navigation }) => {
           <View
             className={
               item.is_active
-                ? 'bg-success-soft px-2.5 py-1 rounded-full'
-                : 'bg-raised px-2.5 py-1 rounded-full'
+                ? 'bg-success-soft px-2.5 py-1 rounded-md'
+                : 'bg-raised px-2.5 py-1 rounded-md'
             }
           >
             <Text

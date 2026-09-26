@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-15_
+_Last updated: 2026-09-24_
 
 SparkyFitness Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and the Sparky AI chat.
 
@@ -105,6 +105,7 @@ npx expo prebuild --clean
 ## React Query And Local State
 
 - Query setup lives in `src/hooks/queryClient.ts`; keys live in `src/hooks/queryKeys.ts`.
+- Launch-icon shortcuts are registered and gated by `hooks/useLaunchIconActions.ts`; the allowlist and translated native icons/labels live in `services/launchIconActions.ts`. `useAddSheetActions.handleLaunchIconAction` opens today's existing editors and preserves activity draft guards. Native dependency changes require a rebuilt app; `review/README.md` documents the SpringBoard test.
 - Default `staleTime` is `Infinity`, so mutations must explicitly invalidate or update affected caches.
 - `useRefetchOnFocus(refetch, enabled)` is the standard focus-refresh hook.
 - `useFoodsLibrary` is an intentional exception with an infinite query, finite stale window, and `resetQueries(...)` refreshes so focus/pull refresh reloads page 1 instead of every cached page.
@@ -196,7 +197,7 @@ npx expo prebuild --clean
 
 - `DashboardScreen` and `DiaryScreen` share date navigation patterns and support gesture-driven date movement.
 - `DashboardScreen` drives hydration quick-add, card visibility, fasting summary, health trends, and widget sync.
-- Hydration reminders are local notifications owned by the headless `HydrationReminderReconciler` on `DashboardScreen` (always today, never `selectedDate`). `computeReminderSchedule` (`utils/hydrationReminder.ts`) builds a chain of up to 12 reminder times from the day's latest water `logged_at`, each inside the user's `[start, end)` window; `reconcileWaterReminders` (`hooks/useHydrationReminder.ts`) persists the scheduled ids under a signature and cancels/reschedules only when that signature changes. A chain rather than one ping because a scheduled notification cannot reschedule itself while the app is closed. Any mutation that logs water must invalidate `waterIntakeLogQueryKey(date)` or the reconciler keeps the old anchor. Paired watches receive these through OS notification mirroring; there is no watch-side code.
+- Hydration reminders are local notifications owned by the headless `HydrationReminderReconciler` at app scope (always today, never `selectedDate`). `computeReminderSchedule` (`utils/hydrationReminder.ts`) builds a chain of up to 12 reminder times from the day's latest water `logged_at`, including durable unsynced plain-water actions; the itemized server log exposes `source_id` so replayed actions are deduplicated. `reconcileWaterReminders` (`hooks/useHydrationReminder.ts`) persists the scheduled ids under a signature and cancels/reschedules only when that signature changes. A chain rather than one ping because a scheduled notification cannot reschedule itself while the app is closed. Any mutation that logs water must invalidate `waterIntakeLogQueryKey(date)` or the reconciler keeps the old anchor. Paired watches receive these through OS notification mirroring; there is no watch-side code.
 - `DiaryScreen` owns meal type sections, measurement summaries, serving quick-adjust, swipe/long-press deletes, and AddSheet date propagation.
 - `DashboardSettingsScreen` controls dashboard card visibility and custom nutrient display preferences, and is the entry point to `HealthTrendsSettingsScreen`.
 - `HealthTrendsSettingsScreen` orders and hides the Health Trends graphs. One drag list holds the shown graphs, a `Hidden` divider, then the hidden ones; dragging a graph across the divider is what hides or shows it, so there are no switches. Every row including the divider shares `REORDER_ROW_HEIGHT`, keeping the stride uniform for the reorder worklets it shares with `WorkoutReorderList` and `MealTypeSettingsScreen` (`useReorderRowGeometry`, `useReorderRowPreviewStyle`, `createReorderRowPanGesture`, `resetReorderDragPreview`, all exported from `components/WorkoutReorderList.tsx`). Register a new graph in `constants/healthTrends.ts`; `HealthTrendsPager`'s render map is a total `Record<HealthTrendKey, ...>`, so registering one without rendering it is a compile error.
@@ -260,7 +261,7 @@ npx expo prebuild --clean
 ## Widgets And Native Config
 
 - iOS widgets live under `targets/widget/`, share data through the app group from `app.identifiers.js`, and reload through `ExtensionStorage` in `useWidgetSync`.
-- Current iOS widgets are calorie and macro widgets. When changing display, update Swift views, shared helpers, TS snapshot shape, and reload kind handling together.
+- Current iOS widgets are calorie, macro, nutrition capture, and routine widgets. When changing display, update Swift views, shared helpers, TS snapshot shape, and reload kind handling together.
 - Widget string keys are derived from the Swift sources, not tracked by hand: `__tests__/config/helpers/widgetSwiftKeys.ts` discovers every `.swift` file under `targets/widget/` (recursively) and extracts the literal keys passed to `localizedWidgetString`, `configurationDisplayName` and `.description`. A new key must therefore be added to `targets/widget/en.lproj/Localizable.strings`, and — for `localizedWidgetString` keys — to the `fallbackWidgetString` map, or the contract tests fail. Target-language files stay optional and fall back to EN.
 - Android widgets live under `targets/android-widget/`. `plugins/withCalorieWidget.ts` copies Kotlin/templates/resources, registers receivers, wires the native module package, and documents the pattern for adding another widget.
 - `src/services/CalorieWidgetBridge.ts` is the JS bridge for Android widget snapshot writes and Glance reloads.
@@ -329,6 +330,13 @@ const androidService = require('../../src/services/healthConnectService.ts');
 - Food scan/photo changes: rerun food scan, food photo flow screens, AI settings/external food APIs, food photo intro, food photo utils, and haptics tests.
 - Settings/auth/networking changes: rerun onboarding, server settings, server config modal, auth hooks/services, storage, API client, raw fetch client tests, and proxy-header tests.
 - Widgets/HUD/tab/add-sheet changes: rerun `useWidgetSync`, active workout store, `AddSheet`, `CustomTabBar`, `ActiveWorkoutBar`, and error-boundary tests.
+- Health engagement changes: rerun `healthEngagementPolicy`, `nutritionEngagementReminders`, `movementEngagementReminders`, `wellbeingSessionStore`, notification settings, widget resources/Swift contracts, and navigation-header tests; rebuild maintained iOS widget/Expo targets when their sources change.
+
+## Health Engagement (partial implementation)
+
+`NutritionEngagementCoordinator` is mounted at app scope. It derives a conservative nutrition status from the existing scoped nutrition outbox and server queries, then owns `engagement:nutrition:` and `engagement:movement:` local notifications and the versioned `nutritionEngagementSnapshot` app-group widget payload. It renders the sole `HydrationReminderReconciler` with its accepted future meal/movement plan so water takes remaining discretionary slots. The opt-in meal, photo-review, movement, and water reminders are in app preferences. `healthEngagementPolicy.ts` contains clock-injected candidate/arbitration functions; nutrition, movement, and water prompts share a three-attempt per account/local-day ledger and collision spacing. `discretionaryPromptLedger.ts` writes reservations before native scheduling, counts past attempts, and releases only confirmed-cancelled requests safely in the future. This conservative cap does not prove OS delivery. `medicationReminderReservations.ts` reads pending medication base/repeat requests and reserves their times for collision spacing without altering the medication scheduler. The shared scheduler serializes nutrition/movement reconciliation while each feature cancels only its own namespace. Never cancel medication or hydration notifications from the nutrition/movement scheduler. The separate `wellbeingSessionStore` persists presentation state for an explicit bounded movement-break Live Activity; it is not an intake or movement action store. A movement reminder tap only opens the timer. See `../docs/implementation/health-engagement-progress.md` for stage gates and known limitations.
+
+Guided mobility routines are separate from the movement-break timer. `src/services/mobilityRoutineStore.ts` persists account-scoped routine definitions, active sessions, explicit step outcomes, history, and optional daily reminder times. `src/screens/GuidedMobilityScreen.tsx` owns editing and the phone runner. `mobilityEngagementReminders.ts` owns only `engagement:mobility:` notifications, while `NutritionEngagementCoordinator` includes its candidates in the shared movement cap and collision policy. Countdown expiry is visual and may cue the user, but only the user's “I did this step” action records completion. A session snapshots its routine so editing or deleting the saved definition cannot change a running session. See `../docs/implementation/guided-mobility-progress.md` and the separate physical-device checklist.
 
 ## Quick Routing
 

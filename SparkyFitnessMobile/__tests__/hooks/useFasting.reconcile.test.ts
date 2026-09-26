@@ -220,6 +220,18 @@ describe('useFastingGoalReconciler notification preferences', () => {
     expect(await AsyncStorage.getItem(GOAL_NOTIF_STORAGE_KEY)).toBeNull();
   });
 
+  test('disabling fasting in App Settings cancels its scheduled goal ping', async () => {
+    renderHook(() => useFastingGoalReconciler(activeFast(), false, jest.fn()));
+    await waitFor(() => expect(mockSchedule).toHaveBeenCalledTimes(1));
+
+    act(() => {
+      useAppPreferencesStore.getState().setFastingEnabled(false);
+    });
+
+    await waitFor(() => expect(mockCancel).toHaveBeenCalledWith('notif-1'));
+    expect(await AsyncStorage.getItem(GOAL_NOTIF_STORAGE_KEY)).toBeNull();
+  });
+
   test('does not schedule while the fasting toggle is off', async () => {
     useAppPreferencesStore.getState().setFastingGoalNotificationsEnabled(false);
     renderHook(() => useFastingGoalReconciler(activeFast(), false, jest.fn()));

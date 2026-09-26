@@ -235,16 +235,23 @@ describe('useStartLiveWorkout', () => {
     );
   });
 
-  it('leaves the source preset link null for starts without a preset', async () => {
+  it('scopes starts without a preset to the active server for Watch mirroring', async () => {
     const { result } = setup();
+    mockGetActiveServerConfig.mockResolvedValue({
+      id: 'config-1',
+      url: 'https://example.com',
+      apiKey: 'key',
+    });
 
     await act(async () => {
       await result.current.startLiveWorkout({ exercises: EXERCISES });
     });
 
-    expect(mockGetActiveServerConfig).not.toHaveBeenCalled();
+    expect(mockGetActiveServerConfig).toHaveBeenCalledTimes(1);
     expect(useActiveWorkoutStore.getState().sourcePresetId).toBeNull();
-    expect(useActiveWorkoutStore.getState().sourceServerConfigId).toBeNull();
+    expect(useActiveWorkoutStore.getState().sourceServerConfigId).toBe(
+      'config-1'
+    );
     expect(mockCreateWorkout).toHaveBeenCalledWith(
       expect.not.objectContaining({ workout_preset_id: expect.anything() })
     );

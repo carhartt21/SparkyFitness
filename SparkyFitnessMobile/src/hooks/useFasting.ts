@@ -291,8 +291,9 @@ export function useFastingGoalReconciler(
   const fastingGoalNotificationsEnabled = useAppPreferencesStore(
     (s) => s.fastingGoalNotificationsEnabled
   );
+  const fastingEnabled = useAppPreferencesStore((s) => s.fastingEnabled);
   const goalNotificationsActive =
-    notificationsEnabled && fastingGoalNotificationsEnabled;
+    fastingEnabled && notificationsEnabled && fastingGoalNotificationsEnabled;
   const appLocale = useAppLocale();
 
   useEffect(() => {

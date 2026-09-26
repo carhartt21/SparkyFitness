@@ -16,6 +16,7 @@ import { useScreenHeader } from '../hooks/useScreenHeader';
 import { preferencesQueryKey } from '../hooks/queryKeys';
 import SettingsRow, { SettingsRowGroup } from '../components/SettingsRow';
 import { ALL_PROVIDERS_VALUE } from '../constants/foodProviders';
+import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import type { UserPreferences } from '../types/preferences';
 import type { RootStackScreenProps } from '../types/navigation';
 
@@ -60,24 +61,19 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
   );
 
   const barcodeProviderId = preferences?.default_barcode_provider_id ?? '';
-  // "All Providers" is only offered above one provider, so below that the sentinel
-  // has no matching option and the picker would show the placeholder; fall back
-  // to the stored single-provider choice without clearing the preference.
-  //
-  // A stored provider that is no longer active resolves to the first active one,
-  // matching the search screen and web's resolveFoodProviderId. That is the
-  // provider the next search actually runs against, so showing the placeholder
-  // here would contradict it. An unset default stays empty, so the placeholder
-  // still means "nothing chosen" rather than "chose something that is gone".
-  const storedFoodProviderId = preferences?.default_food_data_provider_id;
-  const foodDataProviderId =
-    preferences?.food_search_all_providers_default && providers.length > 1
+  // Mobile searches broadly unless a user explicitly narrows the default here.
+  // A removed/account-specific provider falls back to all active providers.
+  const providerDefault = useAppPreferencesStore(
+    (s) => s.mobileFoodProviderDefault
+  );
+  const setProviderDefault = useAppPreferencesStore(
+    (s) => s.setMobileFoodProviderDefault
+  );
+  const foodDataProviderId = providers.some((p) => p.id === providerDefault)
+    ? providerDefault
+    : providers.length > 1
       ? ALL_PROVIDERS_VALUE
-      : storedFoodProviderId
-        ? (providers.find((p) => p.id === storedFoodProviderId)?.id ??
-          providers[0]?.id ??
-          '')
-        : '';
+      : (providers[0]?.id ?? '');
   const autoScale = preferences?.auto_scale_open_food_facts_imports ?? true;
   const barcodeFallback = preferences?.barcode_fallback_open_food_facts ?? true;
   const showNetCarbs = preferences?.show_net_carbs ?? false;
@@ -117,6 +113,7 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
 
   const handleFoodProviderChange = useCallback(
     (value: string) => {
+      setProviderDefault(value);
       if (value === ALL_PROVIDERS_VALUE) {
         // Leave default_food_data_provider_id alone: it is a uuid column that
         // cannot store the sentinel, and keeping it means turning "All Providers"
@@ -129,7 +126,7 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
         food_search_all_providers_default: false,
       });
     },
-    [mutation]
+    [mutation, setProviderDefault]
   );
 
   const handleAutoScaleToggle = useCallback(

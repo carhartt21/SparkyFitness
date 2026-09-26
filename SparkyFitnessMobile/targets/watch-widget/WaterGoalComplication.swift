@@ -37,6 +37,7 @@ struct WaterGoalSnapshot {
 }
 
 private struct WaterGoalSnapshotPayload: Decodable {
+    let scope: String?
     let date: String?
     let progress: Double?
 }
@@ -46,8 +47,11 @@ private func loadWaterGoalSnapshot() -> WaterGoalSnapshot {
         let appGroup = waterAppGroupIdentifier(),
         !appGroup.isEmpty,
         let defaults = UserDefaults(suiteName: appGroup),
+        let scope = defaults.string(forKey: "watchComplicationScope"),
         let data = defaults.data(forKey: "waterGoalSnapshot"),
         let payload = try? JSONDecoder().decode(WaterGoalSnapshotPayload.self, from: data),
+        !scope.isEmpty,
+        payload.scope == scope,
         waterIsToday(payload.date)
     else {
         return .empty

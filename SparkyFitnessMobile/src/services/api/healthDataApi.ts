@@ -1,3 +1,4 @@
+import { isPermittedHttpUrl } from '../../utils/serverUrl';
 import {
   getActiveServerConfig,
   proxyHeadersToRecord,
@@ -456,7 +457,7 @@ export const syncHealthData = async (
 
   const url = normalizeUrl(config.url);
 
-  if (!__DEV__ && url.toLowerCase().startsWith('http://')) {
+  if (url.toLowerCase().startsWith('http://') && !isPermittedHttpUrl(url)) {
     throw new Error(
       'HTTPS is required for server connections. Please update your server URL in Settings.'
     );
@@ -531,7 +532,7 @@ export const checkServerConnection = async (): Promise<boolean> => {
 
   const url = normalizeUrl(config.url);
 
-  if (!__DEV__ && url.toLowerCase().startsWith('http://')) {
+  if (url.toLowerCase().startsWith('http://') && !isPermittedHttpUrl(url)) {
     addLog('[API] Connection check blocked: HTTPS is required', 'WARNING');
     return false;
   }

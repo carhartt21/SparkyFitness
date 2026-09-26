@@ -48,6 +48,7 @@ describe('FoodPhotoImproveScreen', () => {
     params: {
       date: '2026-05-18',
       photo: { uri: 'file:///photo.jpg' },
+      mealTypeId: undefined as string | undefined,
     },
   };
 
@@ -115,6 +116,50 @@ describe('FoodPhotoImproveScreen', () => {
       })
     );
     expect(input.signal).toBeInstanceOf(AbortSignal);
+  });
+
+  it('does not start a second estimate while the photo is being read', async () => {
+    let finishRead: ((value: string) => void) | undefined;
+    mockBase64.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          finishRead = resolve;
+        })
+    );
+    const screen = renderScreen();
+
+    fireEvent.press(screen.getByText('Generate estimate'));
+    fireEvent.press(screen.getByText('Generate estimate'));
+
+    expect(mockBase64).toHaveBeenCalledTimes(1);
+    expect(mockMutate).not.toHaveBeenCalled();
+    await act(async () => {
+      finishRead?.('AAAA-base64');
+    });
+    expect(mockMutate).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not submit a photo after leaving for manual logging during the local read', async () => {
+    let finishRead: ((value: string) => void) | undefined;
+    mockBase64.mockImplementationOnce(
+      () =>
+        new Promise<string>((resolve) => {
+          finishRead = resolve;
+        })
+    );
+    const screen = renderScreen({ mealTypeId: 'snack' });
+
+    fireEvent.press(screen.getByText('Generate estimate'));
+    fireEvent.press(screen.getByText('Log manually'));
+    await act(async () => {
+      finishRead?.('AAAA-base64');
+    });
+
+    expect(mockMutate).not.toHaveBeenCalled();
+    expect(parentNavigation.replace).toHaveBeenCalledWith('FoodSearch', {
+      date: '2026-05-18',
+      mealTypeId: 'snack',
+    });
   });
 
   it('Generate path forwards weight+unit+description to the mutation', async () => {
@@ -200,6 +245,103 @@ describe('FoodPhotoImproveScreen', () => {
     expect(Toast.show).not.toHaveBeenCalled();
     expect(navigation.navigate).not.toHaveBeenCalled();
   });
+
+  it('ignores a late success after Cancel, even when another estimate has started', async () => {
+    const resetFn = jest.fn();
+    let pending = false;
+    mockUseEstimate.mockImplementation(
+      () =>
+        ({
+          mutate: mockMutate,
+          isPending: pending,
+          reset: resetFn,
+        }) as any
+    );
+    const screen = renderScreen();
+
+    fireEvent.press(screen.getByText('Generate estimate'));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(1));
+    const firstCallbacks = mockMutate.mock.calls[0][1];
+
+    pending = true;
+    screen.rerender(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodPhotoImproveScreen
+          navigation={navigation}
+          route={baseRoute as any}
+        />
+      </SafeAreaProvider>
+    );
+    fireEvent.press(screen.getByText('Cancel'));
+
+    pending = false;
+    screen.rerender(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodPhotoImproveScreen
+          navigation={navigation}
+          route={baseRoute as any}
+        />
+      </SafeAreaProvider>
+    );
+    fireEvent.press(screen.getByText('Generate estimate'));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(2));
+    const secondCallbacks = mockMutate.mock.calls[1][1];
+
+    firstCallbacks.onSuccess({ source: 'stale' });
+    expect(navigation.navigate).not.toHaveBeenCalled();
+
+    secondCallbacks.onSuccess({ source: 'current' });
+    expect(navigation.navigate).toHaveBeenCalledTimes(1);
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'EstimateReview',
+      expect.objectContaining({ estimate: { source: 'current' } })
+    );
+  });
+
+  it('offers manual logging after a provider timeout with the selected diary context', async () => {
+    const screen = renderScreen({ mealTypeId: 'snack' });
+
+    fireEvent.press(screen.getByText('Generate estimate'));
+    await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(1));
+    const [, callbacks] = mockMutate.mock.calls[0];
+
+    callbacks.onError({ code: 'TIMEOUT', message: 'synthetic timeout' });
+    fireEvent.press(screen.getByText('Log manually'));
+
+    expect(parentNavigation.replace).toHaveBeenCalledWith('FoodSearch', {
+      date: '2026-05-18',
+      mealTypeId: 'snack',
+    });
+    callbacks.onSuccess({ source: 'stale' });
+    expect(navigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ['NO_AI_CONFIGURED', 'AI not configured', true],
+    ['TIMEOUT', 'AI provider timed out', false],
+    ['PARSE_ERROR', "Couldn't reach AI provider", false],
+  ])(
+    'handles %s without opening an estimate review',
+    async (code, title, leavesEstimateFlow) => {
+      const screen = renderScreen();
+      fireEvent.press(screen.getByText('Generate estimate'));
+      await waitFor(() => expect(mockMutate).toHaveBeenCalledTimes(1));
+
+      const callbacks = mockMutate.mock.calls[0][1];
+      callbacks.onError({ code, message: 'synthetic provider failure' });
+
+      expect(Toast.show).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error', text1: title })
+      );
+      expect(navigation.navigate).not.toHaveBeenCalled();
+      if (leavesEstimateFlow) {
+        expect(parentNavigation.popToTop).toHaveBeenCalledTimes(1);
+      } else {
+        expect(parentNavigation.popToTop).not.toHaveBeenCalled();
+        expect(screen.getByText('Generate estimate')).toBeTruthy();
+      }
+    }
+  );
 
   // Regression: the descriptionHint subject must use i18next count pluralization
   // (subjectLabel_one/few/many/other) instead of a manual ternary. PL requires

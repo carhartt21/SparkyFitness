@@ -34,7 +34,24 @@ interface FormState {
   pharmacy: string;
   notes: string;
   isActive: boolean;
+  isSupplement: boolean;
+  nutrients: Record<string, string>;
 }
+
+const SUPPLEMENT_NUTRIENTS = [
+  { key: 'calories', unit: 'kcal' },
+  { key: 'protein', unit: 'g' },
+  { key: 'carbs', unit: 'g' },
+  { key: 'fat', unit: 'g' },
+  { key: 'sodium', unit: 'mg' },
+  { key: 'potassium', unit: 'mg' },
+  { key: 'vitamin_c', unit: 'mg' },
+  { key: 'calcium', unit: 'mg' },
+  { key: 'iron', unit: 'mg' },
+  { key: 'caffeine_mg', unit: 'mg' },
+  { key: 'water_ml', unit: 'ml' },
+  { key: 'alcohol_g', unit: 'g' },
+] as const;
 
 const EMPTY_FORM: FormState = {
   name: '',
@@ -48,6 +65,8 @@ const EMPTY_FORM: FormState = {
   pharmacy: '',
   notes: '',
   isActive: true,
+  isSupplement: false,
+  nutrients: {},
 };
 
 const hasDetailsContent = (form: FormState): boolean =>
@@ -73,6 +92,12 @@ function baseFromMed(
     pharmacy: existingMed.pharmacy ?? '',
     notes: existingMed.notes ?? '',
     isActive: existingMed.is_active,
+    isSupplement: existingMed.is_supplement === true,
+    nutrients: Object.fromEntries(
+      Object.entries(existingMed.nutrients ?? {})
+        .filter(([, value]) => typeof value === 'number')
+        .map(([key, value]) => [key, String(value)])
+    ),
   };
 }
 
@@ -81,6 +106,38 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
   navigation,
 }) => {
   const { t } = useTranslation();
+  const nutrientLabels = {
+    calories: t('medications.form.nutrient.calories', {
+      defaultValue: 'Energy',
+    }),
+    protein: t('medications.form.nutrient.protein', {
+      defaultValue: 'Protein',
+    }),
+    carbs: t('medications.form.nutrient.carbs', {
+      defaultValue: 'Carbohydrates',
+    }),
+    fat: t('medications.form.nutrient.fat', { defaultValue: 'Fat' }),
+    sodium: t('medications.form.nutrient.sodium', { defaultValue: 'Sodium' }),
+    potassium: t('medications.form.nutrient.potassium', {
+      defaultValue: 'Potassium',
+    }),
+    vitamin_c: t('medications.form.nutrient.vitamin_c', {
+      defaultValue: 'Vitamin C',
+    }),
+    calcium: t('medications.form.nutrient.calcium', {
+      defaultValue: 'Calcium',
+    }),
+    iron: t('medications.form.nutrient.iron', { defaultValue: 'Iron' }),
+    caffeine_mg: t('medications.form.nutrient.caffeine_mg', {
+      defaultValue: 'Caffeine',
+    }),
+    water_ml: t('medications.form.nutrient.water_ml', {
+      defaultValue: 'Water',
+    }),
+    alcohol_g: t('medications.form.nutrient.alcohol_g', {
+      defaultValue: 'Alcohol',
+    }),
+  };
   const medicationId = route.params?.medicationId;
   const isEditing = !!medicationId;
   const insets = useSafeAreaInsets();
@@ -130,6 +187,29 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
       ? parseFloat(form.strengthValue)
       : null;
     const doseNum = form.doseAmount ? parseFloat(form.doseAmount) : null;
+    const nutrientAmounts: Record<string, number | Record<string, number>> = {
+      ...(existingMed?.nutrients ?? {}),
+    };
+    for (const { key } of SUPPLEMENT_NUTRIENTS) {
+      const raw = form.nutrients[key]?.trim();
+      if (!raw) {
+        delete nutrientAmounts[key];
+        continue;
+      }
+      const value = Number(raw.replace(',', '.'));
+      if (!Number.isFinite(value) || value < 0) {
+        Alert.alert(
+          t('medications.form.invalidNumber', {
+            defaultValue: 'Invalid number',
+          }),
+          t('medications.form.invalidNutrient', {
+            defaultValue: 'Enter a non-negative number for each nutrient.',
+          })
+        );
+        return;
+      }
+      nutrientAmounts[key] = value;
+    }
 
     if (
       (form.strengthValue && !Number.isFinite(strengthNum)) ||
@@ -156,6 +236,8 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
       prescriber: form.prescriber.trim() || null,
       pharmacy: form.pharmacy.trim() || null,
       notes: form.notes.trim() || null,
+      is_supplement: form.isSupplement,
+      nutrients: form.isSupplement ? nutrientAmounts : null,
     };
 
     if (isEditing && medicationId) {
@@ -195,6 +277,7 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     form,
     isEditing,
     medicationId,
+    existingMed,
     createMedication,
     updateMedication,
     navigation,
@@ -299,6 +382,61 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
               />
             </View>
           </View>
+
+          <View className="flex-row items-center justify-between gap-4 py-2">
+            <View className="flex-1">
+              <Text className="text-base text-text-primary">
+                {t('medications.form.isSupplement', {
+                  defaultValue: 'This is a supplement',
+                })}
+              </Text>
+              <Text className="text-sm text-text-secondary">
+                {t('medications.form.supplementHint', {
+                  defaultValue: 'Nutrients are counted when a dose is logged.',
+                })}
+              </Text>
+            </View>
+            <Switch
+              value={form.isSupplement}
+              onValueChange={(value) => updateField('isSupplement', value)}
+            />
+          </View>
+
+          {form.isSupplement && (
+            <View className="gap-3 rounded-2xl border border-border bg-surface p-4">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('medications.form.nutrientsPerDose', {
+                  defaultValue: 'Nutrition per dose',
+                })}
+              </Text>
+              <Text className="text-sm text-text-secondary">
+                {t('medications.form.nutrientsOptional', {
+                  defaultValue: 'Leave unknown values blank.',
+                })}
+              </Text>
+              {SUPPLEMENT_NUTRIENTS.map(({ key, unit }) => (
+                <View key={key} className="flex-row items-center gap-3">
+                  <Text className="flex-1 text-sm text-text-primary">
+                    {nutrientLabels[key]} ({unit})
+                  </Text>
+                  <View style={{ width: 110 }}>
+                    <FormInput
+                      accessibilityLabel={`${nutrientLabels[key]} ${unit}`}
+                      value={form.nutrients[key] ?? ''}
+                      onChangeText={(value) =>
+                        updateField('nutrients', {
+                          ...form.nutrients,
+                          [key]: value,
+                        })
+                      }
+                      keyboardType="decimal-pad"
+                      placeholder="—"
+                    />
+                  </View>
+                </View>
+              ))}
+            </View>
+          )}
 
           <View className="flex-row gap-4">
             <View className="flex-1 gap-1.5">

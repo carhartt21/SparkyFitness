@@ -512,7 +512,7 @@ const MealDetailScreen: React.FC<MealDetailScreenProps> = ({
             navigation.navigate('FoodEntryAdd', { item: mealToFoodInfo(meal) })
           }
         >
-          <Text className="text-white text-base font-semibold">
+          <Text className="text-accent-text text-base font-semibold">
             {t('mealDetail.logMeal', { defaultValue: 'Log Meal' })}
           </Text>
         </Button>

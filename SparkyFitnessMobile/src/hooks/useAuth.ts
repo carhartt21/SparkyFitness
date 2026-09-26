@@ -12,6 +12,7 @@ import { clearServerConfigCache } from '../services/storage';
 import type { ServerConfig } from '../services/storage';
 import { addLog } from '../services/LogService';
 import { useFoodSearchSelectionStore } from '../stores/foodSearchSelectionStore';
+import { forgetActiveNutritionIdentity } from '../services/nutritionIdentity';
 
 export type AuthModalReason = 'session_expired' | 'no_configs' | null;
 
@@ -42,6 +43,9 @@ export function useAuth() {
     // reads it until each query happens to refetch.
     setOnIdentityChanged(async () => {
       queryClient.clear();
+      // Pending actions remain partitioned in the outbox, but the new active
+      // account must re-establish its identity before it can enqueue or replay.
+      await forgetActiveNutritionIdentity();
       // The multi-select food basket store is the same kind of identity-
       // carrying global as the caches and the cookie jar below: it holds the
       // previous account's food ids, meal-type ids, and batch outcomes, and

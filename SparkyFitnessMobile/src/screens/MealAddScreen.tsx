@@ -820,7 +820,7 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
                           </Text>
                           {ingredient.item_type === 'meal' ? (
                             <View
-                              className="self-start rounded-full px-2 py-0.5 mt-1"
+                              className="self-start rounded-md px-2 py-0.5 mt-1"
                               style={{ backgroundColor: `${textMuted}1A` }}
                             >
                               <Text

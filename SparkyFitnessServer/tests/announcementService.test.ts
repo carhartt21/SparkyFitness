@@ -43,11 +43,11 @@ title: Extra Line Test
     expect(parsed.body).toContain('### Content Here');
   });
 
-  test('should return local fallback announcement when offline or fetching', async () => {
+  test('loads only the project-owned announcement and keeps stale notices inactive', async () => {
     const result = await announcementService.getLatestAnnouncement();
-    expect(result).toBeDefined();
-    expect(typeof result.id).toBe('string');
-    expect(typeof result.active).toBe('boolean');
-    expect(typeof result.message).toBe('string');
+    expect(result.id).toBe('x-on-track-no-announcement');
+    expect(result.active).toBe(false);
+    expect(result.title).toBe('X on Track');
+    expect(result.message).not.toContain('SparkyFitness');
   });
 });

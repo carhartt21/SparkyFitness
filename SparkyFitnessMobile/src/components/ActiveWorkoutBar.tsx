@@ -25,6 +25,7 @@ import Icon from './Icon';
 import { TAB_BAR_HEIGHT } from './CustomTabBar';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { flushActiveWorkoutBeforeClear } from '../hooks/useActiveWorkoutAutosave';
+import { queueCompletedWorkoutExport } from '../services/workoutHealthExport';
 import { usePreferences } from '../hooks/usePreferences';
 import { useRestCountdown } from '../hooks/useRestCountdown';
 import {
@@ -37,7 +38,7 @@ import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
 import type { RootStackParamList } from '../types/navigation';
 import LiquidGlassSurface, {
   LIQUID_GLASS_VERTICAL_GAP,
-  createLiquidGlassPillStyle,
+  createLiquidGlassChromeStyle,
 } from './LiquidGlassSurface';
 import { withAlpha } from '../utils/colors';
 
@@ -581,6 +582,33 @@ const ActiveWorkoutBar: React.FC<ActiveWorkoutBarProps> = ({
       );
       return;
     }
+    const state = useActiveWorkoutStore.getState();
+    if (
+      isWorkoutComplete &&
+      state.sessionId &&
+      Object.keys(state.completedSetIds).length > 0
+    ) {
+      try {
+        await queueCompletedWorkoutExport({
+          sessionId: state.sessionId,
+          startedAt: state.startedAt,
+          finishedAt: Date.now(),
+          completedSetCount: Object.keys(state.completedSetIds).length,
+          sourceServerConfigId: state.sourceServerConfigId,
+        });
+      } catch (error) {
+        Alert.alert(
+          t('healthSync.workoutExportErrorTitle', {
+            defaultValue: 'Apple Health export unavailable',
+          }),
+          t('healthSync.workoutExportErrorMessage', {
+            defaultValue:
+              'Your workout was saved, but Apple Health export failed: {{error}}',
+            error: String(error),
+          })
+        );
+      }
+    }
     useActiveWorkoutStore.getState().clearWorkout();
   };
 
@@ -829,7 +857,7 @@ const ActiveWorkoutBar: React.FC<ActiveWorkoutBarProps> = ({
 
   const barBody = (
     <LiquidGlassSurface
-      style={createLiquidGlassPillStyle(chromeBorder, {
+      style={createLiquidGlassChromeStyle(chromeBorder, {
         height: BAR_CONTENT_HEIGHT,
         position: 'relative',
       })}

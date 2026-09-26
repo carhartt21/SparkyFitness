@@ -211,6 +211,13 @@ struct CheckInEntryView: View {
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
             .tint(looksWrong && active == .bodyFat ? .orange : .accentColor)
+            .disabled(active == .bodyFat && !store.canCaptureActions)
+
+            if active == .bodyFat && !store.canCaptureActions {
+                Text("Open X on Track on your phone to sync before saving")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
+            }
 
             // Impedance readings fail routinely on dry feet. Skipping OMITS the
             // field rather than sending null, so a previously recorded value for
@@ -223,6 +230,7 @@ struct CheckInEntryView: View {
                 .buttonStyle(.plain)
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                .disabled(!store.canCaptureActions)
             }
         }
     }
@@ -256,13 +264,11 @@ struct CheckInEntryView: View {
     /// check-in vanishes without a word. A wrong-but-plausible number is
     /// `weightLooksWrong`'s job, not this one's.
     private var typedEntryRange: ClosedRange<Double> {
-        guard active == .weight else { return 0...100 }
-        let lower = unit.fromKg(Self.typedWeightKgRange.lowerBound)
-        let upper = unit.fromKg(Self.typedWeightKgRange.upperBound)
+        guard active == .weight else { return CheckInInputBounds.bodyFatPercentage }
+        let lower = unit.fromKg(CheckInInputBounds.weightKg.lowerBound)
+        let upper = unit.fromKg(CheckInInputBounds.weightKg.upperBound)
         return lower...upper
     }
-
-    private static let typedWeightKgRange: ClosedRange<Double> = 2...500
 
     private var crownRange: ClosedRange<Double> {
         if active == .weight {
@@ -303,10 +309,10 @@ struct CheckInEntryView: View {
         // dialled/typed), then convert — rounding in kg afterward would distort
         // a lbs entry that doesn't land on a clean 0.1 kg boundary.
         let roundedWeight = (weight * 10).rounded() / 10
-        let checkIn = store.capture(
+        guard let checkIn = store.capture(
             weightKg: unit.toKg(roundedWeight),
             bodyFatPercentage: bodyFatSkipped ? nil : (bodyFat * 10).rounded() / 10
-        )
+        ) else { return }
         let state = session.send(checkIn)
         store.markState(state, for: checkIn)
         WKInterfaceDevice.current().play(.success)

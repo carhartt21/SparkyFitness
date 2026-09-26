@@ -33,6 +33,7 @@ export interface DayData {
 export interface MealTypeDefinition {
   id: string;
   name: string;
+  display_name?: string;
   sort_order: number;
   user_id: string | null;
   is_visible?: boolean;

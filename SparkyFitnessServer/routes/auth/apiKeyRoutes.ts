@@ -2,7 +2,10 @@ import express from 'express';
 import { authenticate } from '../../middleware/authMiddleware.js';
 import { demoGuard } from '../../middleware/demoGuardMiddleware.js';
 import { auth } from '../../auth.js';
+import { z } from 'zod';
+import { MCP_READ_ONLY_KEY_CONFIG_ID } from '../../utils/mcpReadOnlyKey.js';
 const router = express.Router();
+const apiKeyScopeSchema = z.enum(['full', 'mcp-read-only']);
 // auth is required lazily within handlers to avoid early initialization issues during migrations
 // const { auth } = require('../../auth');
 /**
@@ -26,6 +29,10 @@ const router = express.Router();
  *               expiresIn:
  *                 type: number
  *                 description: Expiration time in seconds
+ *               scope:
+ *                 type: string
+ *                 enum: [full, mcp-read-only]
+ *                 description: MCP read-only keys cannot authenticate to REST routes.
  *     responses:
  *       201:
  *         description: API key generated successfully.
@@ -38,6 +45,10 @@ router.post(
   demoGuard,
   async (req, res, next) => {
     const { name, expiresIn } = req.body;
+    const scope = apiKeyScopeSchema.safeParse(req.body.scope ?? 'full');
+    if (!scope.success) {
+      return res.status(400).json({ error: 'Invalid API key scope.' });
+    }
     if (!name) {
       return res.status(400).json({ error: 'Name is required' });
     }
@@ -60,6 +71,9 @@ router.post(
           userId: req.authenticatedUserId,
           name,
           expiresIn: expiresIn || 31536000, // Default 1 year
+          ...(scope.data === 'mcp-read-only'
+            ? { configId: MCP_READ_ONLY_KEY_CONFIG_ID }
+            : {}),
         },
       });
       res.status(201).json({
@@ -69,6 +83,7 @@ router.post(
           key: result.key, // Only returned on creation
           name: result.name,
           createdAt: result.createdAt,
+          scope: scope.data,
         },
       });
     } catch (error) {
@@ -89,6 +104,12 @@ router.post(
  *         required: true
  *         schema:
  *           type: string
+ *       - in: query
+ *         name: scope
+ *         schema:
+ *           type: string
+ *           enum: [full, mcp-read-only]
+ *         description: Required for deleting an MCP read-only key.
  *     responses:
  *       200:
  *         description: API key deleted successfully.
@@ -101,13 +122,22 @@ router.delete(
   demoGuard,
   async (req, res, next) => {
     const { apiKeyId } = req.params;
+    const scope = apiKeyScopeSchema.safeParse(req.query.scope ?? 'full');
+    if (!scope.success) {
+      return res.status(400).json({ error: 'Invalid API key scope.' });
+    }
     try {
       // @ts-expect-error TS(2339): Property 'deleteApiKey' does not exist on type 'In... Remove this comment to see the full error message
       await auth.api.deleteApiKey({
         // Two corrections beyond the `body` wrapper: the delete schema names
         // the field `keyId` (not `apiKeyId`), and it has no `userId` field at
         // all, so the previous binding was silently dropped.
-        body: { keyId: apiKeyId },
+        body: {
+          keyId: apiKeyId,
+          ...(scope.data === 'mcp-read-only'
+            ? { configId: MCP_READ_ONLY_KEY_CONFIG_ID }
+            : {}),
+        },
         // /api-key/delete runs behind Better Auth's sessionMiddleware, so the
         // owner comes from the session rather than a passed id. Forwarding the
         // request headers preserves the guarantee the removed `userId` was

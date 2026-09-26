@@ -1246,6 +1246,7 @@ const handleWorkout: RecordHandler = async (
         totalEnergyBurned,
         totalDistance,
         uuid: (w as unknown as { uuid?: string }).uuid,
+        sourceBundleId: w.sourceRevision?.source?.bundleIdentifier,
       };
       if (totalSteps !== undefined) record.totalSteps = totalSteps;
       // Forward timezone metadata so the transform layer can attach it to output records
@@ -1548,6 +1549,7 @@ const toNutritionRecord = (params: {
   startIso: string;
   sourceBundleId?: string;
   timeZone?: string;
+  writebackVersion?: unknown;
 }): Record<string, unknown> => {
   const record: Record<string, unknown> = {
     objects: params.objects,
@@ -1558,9 +1560,11 @@ const toNutritionRecord = (params: {
   };
   // Normalize the flattened metadataTimeZone into metadata.HKTimeZone so the transform
   // layer's extractTimezoneMetadata finds it — same hop createQuantityHandler does.
-  if (params.timeZone) {
-    record.metadata = { HKTimeZone: params.timeZone };
-  }
+  const metadata: Record<string, unknown> = {};
+  if (params.timeZone) metadata.HKTimeZone = params.timeZone;
+  if (params.writebackVersion !== undefined)
+    metadata.XOnTrackWritebackVersion = params.writebackVersion;
+  if (Object.keys(metadata).length > 0) record.metadata = metadata;
   return record;
 };
 
@@ -1602,12 +1606,18 @@ const readLooseNutrition = async (
         startDate: string | Date;
         quantity: number;
         unit: string;
+        metadata?: Record<string, unknown>;
         metadataTimeZone?: string;
         sourceRevision?: { source?: { bundleIdentifier?: string } };
       };
       if (!isInDateRange(new Date(sample.startDate), startDate, endDate))
         continue;
       if (sample.uuid && correlationUuids.has(sample.uuid)) continue; // already in a correlation
+      if (
+        sample.metadata?.XOnTrackWritebackVersion !== undefined ||
+        sample.metadata?.SparkyWritebackVersion !== undefined
+      )
+        continue; // our own loose nutrient, even when HealthKit omits its source
 
       const bundleId = sample.sourceRevision?.source?.bundleIdentifier;
       const startIso = toIsoString(sample.startDate);
@@ -1680,6 +1690,7 @@ const handleNutrition: RecordHandler = async (
       startDate: string | Date;
       metadataFoodType?: string;
       metadataTimeZone?: string;
+      metadata?: Record<string, unknown>;
       sourceRevision?: { source?: { bundleIdentifier?: string } };
       objects?: {
         uuid?: string;
@@ -1703,6 +1714,9 @@ const handleNutrition: RecordHandler = async (
       startIso: toIsoString(correlation.startDate),
       sourceBundleId: correlation.sourceRevision?.source?.bundleIdentifier,
       timeZone: correlation.metadataTimeZone,
+      writebackVersion:
+        correlation.metadata?.XOnTrackWritebackVersion ??
+        correlation.metadata?.SparkyWritebackVersion,
     });
   });
 

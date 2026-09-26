@@ -162,13 +162,17 @@ const NutritionMacroCard: React.FC<NutritionMacroCardProps> = ({
                 <Text className="text-text-primary text-xl font-bold">
                   {hasCalorieGoal
                     ? formatLocalizedNumber(
-                        Math.max(0, Math.round(calorieGoal - calories))
+                        Math.abs(Math.round(calorieGoal - calories))
                       )
                     : formatLocalizedNumber(Math.round(calories))}
                 </Text>
                 <Text className="text-text-muted text-[10px] uppercase font-semibold mt-0.5">
                   {hasCalorieGoal
-                    ? t('nutrition.left', { defaultValue: 'left' })
+                    ? calories > calorieGoal
+                      ? t('nutrition.overTarget', {
+                          defaultValue: 'over target',
+                        })
+                      : t('nutrition.left', { defaultValue: 'left' })
                     : t('nutrition.caloriesShort', { defaultValue: 'kcal' })}
                 </Text>
               </View>

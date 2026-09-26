@@ -4,17 +4,20 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAppLocale } from '../localization';
 import {
   cancelScheduledNotification,
+  cancelScheduledNotificationWithResult,
   scheduleWaterReminderNotifications,
 } from '../services/notifications';
 import { addLog } from '../services/LogService';
+import { releaseFutureDiscretionaryPrompt } from '../services/discretionaryPromptLedger';
 import {
   useAppPreferencesStore,
   type WaterReminderIntervalHours,
 } from '../stores/appPreferencesStore';
 import { computeReminderSchedule } from '../utils/hydrationReminder';
+import type { NutritionActionIdentity } from '../services/nutritionActionOutbox';
 
-// Reconciliation runs in exactly one mounted place — the headless
-// `HydrationReminderReconciler` on the Dashboard — and persists the scheduled
+// Reconciliation runs in exactly one mounted place — the app-scope
+// `HydrationReminderReconciler` — and persists the scheduled
 // chain so an unchanged input never reschedules. Every operation goes through
 // one promise queue: a log tap and an app resume can both reconcile at once,
 // and two interleaved passes would each schedule a chain.
@@ -23,9 +26,12 @@ const WATER_REMINDER_STORAGE_KEY = '@SparkyFitness/waterReminderSchedule';
 interface StoredWaterReminderSchedule {
   signature: string;
   notificationIds: string[];
+  scheduledTimes?: number[];
+  identity?: NutritionActionIdentity | null;
 }
 
 export interface WaterReminderReconcileInput {
+  identity?: NutritionActionIdentity | null;
   today: string;
   lastLoggedAt: Date | null;
   goalMetToday: boolean;
@@ -33,6 +39,8 @@ export interface WaterReminderReconcileInput {
   windowStart: string;
   windowEnd: string;
   language?: string | null;
+  /** Selected by the combined discretionary policy; absent for legacy callers. */
+  plannedTimes?: Date[];
 }
 
 let queue: Promise<void> = Promise.resolve();
@@ -46,6 +54,9 @@ function enqueue(task: () => Promise<void>): Promise<void> {
 
 function signatureOf(input: WaterReminderReconcileInput): string {
   return JSON.stringify([
+    2,
+    input.identity?.serverConfigId ?? null,
+    input.identity?.userId ?? null,
     input.today,
     input.lastLoggedAt?.getTime() ?? null,
     input.goalMetToday,
@@ -53,6 +64,7 @@ function signatureOf(input: WaterReminderReconcileInput): string {
     input.windowStart,
     input.windowEnd,
     input.language ?? null,
+    input.plannedTimes?.map((time) => time.getTime()) ?? null,
   ]);
 }
 
@@ -64,11 +76,19 @@ async function readStoredSchedule(): Promise<StoredWaterReminderSchedule | null>
     if (
       typeof parsed.signature === 'string' &&
       Array.isArray(parsed.notificationIds) &&
-      parsed.notificationIds.every((id) => typeof id === 'string')
+      parsed.notificationIds.every((id) => typeof id === 'string') &&
+      (parsed.scheduledTimes === undefined ||
+        (Array.isArray(parsed.scheduledTimes) &&
+          parsed.scheduledTimes.length === parsed.notificationIds.length &&
+          parsed.scheduledTimes.every(
+            (time) => typeof time === 'number' && Number.isFinite(time)
+          )))
     ) {
       return {
         signature: parsed.signature,
         notificationIds: parsed.notificationIds,
+        scheduledTimes: parsed.scheduledTimes,
+        identity: parsed.identity ?? null,
       };
     }
     return null;
@@ -80,9 +100,18 @@ async function readStoredSchedule(): Promise<StoredWaterReminderSchedule | null>
 async function clearStoredSchedule(
   stored: StoredWaterReminderSchedule
 ): Promise<void> {
-  await Promise.all(
-    stored.notificationIds.map((id) => cancelScheduledNotification(id))
-  );
+  for (const [index, id] of stored.notificationIds.entries()) {
+    const at = stored.scheduledTimes?.[index];
+    if (at === undefined) {
+      await cancelScheduledNotification(id);
+    } else if (await cancelScheduledNotificationWithResult(id)) {
+      await releaseFutureDiscretionaryPrompt({
+        identity: stored.identity ?? null,
+        candidateId: `hydration:drink:${at}`,
+        at,
+      });
+    }
+  }
   await AsyncStorage.removeItem(WATER_REMINDER_STORAGE_KEY);
 }
 
@@ -102,29 +131,49 @@ export function reconcileWaterReminders(
     if (stored?.signature === signature) return;
     if (stored) await clearStoredSchedule(stored);
 
-    const times = computeReminderSchedule({
-      lastLoggedAt: input.lastLoggedAt,
-      now,
-      intervalHours: input.intervalHours,
-      windowStart: input.windowStart,
-      windowEnd: input.windowEnd,
-      goalMetToday: input.goalMetToday,
-    });
-    const notificationIds = await scheduleWaterReminderNotifications(times);
+    const times =
+      input.plannedTimes ??
+      computeReminderSchedule({
+        lastLoggedAt: input.lastLoggedAt,
+        now,
+        intervalHours: input.intervalHours,
+        windowStart: input.windowStart,
+        windowEnd: input.windowEnd,
+        goalMetToday: input.goalMetToday,
+      });
+    const scheduledTimes: number[] = [];
+    const notificationIds = await scheduleWaterReminderNotifications(
+      times,
+      input.identity ?? null,
+      (_id, time) => scheduledTimes.push(time.getTime())
+    );
     if (notificationIds.length === 0) return;
 
     try {
       await AsyncStorage.setItem(
         WATER_REMINDER_STORAGE_KEY,
-        JSON.stringify({ signature, notificationIds })
+        JSON.stringify({
+          signature,
+          notificationIds,
+          identity: input.identity ?? null,
+          ...(scheduledTimes.length === notificationIds.length
+            ? { scheduledTimes }
+            : {}),
+        })
       );
     } catch (error) {
       // `cancelWaterReminders` can only cancel what was persisted, so a failed
       // write would leave a live chain nothing can reach — including the
       // toggle-off path. Cancel it here and let the queue log the failure.
-      await Promise.all(
-        notificationIds.map((id) => cancelScheduledNotification(id))
-      );
+      await clearStoredSchedule({
+        signature,
+        notificationIds,
+        scheduledTimes:
+          scheduledTimes.length === notificationIds.length
+            ? scheduledTimes
+            : undefined,
+        identity: input.identity ?? null,
+      });
       throw error;
     }
   });
@@ -138,13 +187,33 @@ export function cancelWaterReminders(): Promise<void> {
   });
 }
 
+/** Preserve an offline chain on relaunch only when it belongs to this account. */
+export function cancelWaterRemindersForDifferentIdentity(
+  identity: NutritionActionIdentity | null
+): Promise<void> {
+  return enqueue(async () => {
+    const stored = await readStoredSchedule();
+    if (!stored) return;
+    if (
+      identity &&
+      stored.identity?.serverConfigId === identity.serverConfigId &&
+      stored.identity.userId === identity.userId
+    ) {
+      return;
+    }
+    await clearStoredSchedule(stored);
+  });
+}
+
 export interface HydrationReminderReconcilerInput {
+  identity?: NutritionActionIdentity | null;
   today: string;
   lastLoggedAt: Date | null;
   waterMl: number;
   waterGoalMl: number | null;
   isLoading: boolean;
   refetch: () => void;
+  plannedTimes?: Date[];
 }
 
 /**
@@ -153,12 +222,14 @@ export interface HydrationReminderReconcilerInput {
  * for the same log does not re-run the effect.
  */
 export function useHydrationReminderReconciler({
+  identity,
   today,
   lastLoggedAt,
   waterMl,
   waterGoalMl,
   isLoading,
   refetch,
+  plannedTimes,
 }: HydrationReminderReconcilerInput): void {
   const remindersActive = useAppPreferencesStore(
     (s) => s.notificationsEnabled && s.waterReminderEnabled
@@ -171,6 +242,8 @@ export function useHydrationReminderReconciler({
   const appLocale = useAppLocale();
 
   const lastLoggedAtMs = lastLoggedAt?.getTime() ?? null;
+  const plannedTimesMs = plannedTimes?.map((time) => time.getTime());
+  const plannedTimesSignature = JSON.stringify(plannedTimesMs ?? null);
   const goalMetToday =
     waterGoalMl !== null && waterGoalMl > 0 && waterMl >= waterGoalMl;
 
@@ -181,6 +254,7 @@ export function useHydrationReminderReconciler({
     }
     if (isLoading) return;
     void reconcileWaterReminders({
+      identity,
       today,
       lastLoggedAt: lastLoggedAtMs === null ? null : new Date(lastLoggedAtMs),
       goalMetToday,
@@ -188,6 +262,12 @@ export function useHydrationReminderReconciler({
       windowStart,
       windowEnd,
       language: appLocale,
+      plannedTimes:
+        plannedTimesSignature === 'null'
+          ? undefined
+          : (JSON.parse(plannedTimesSignature) as number[]).map(
+              (time) => new Date(time)
+            ),
     });
   }, [
     remindersActive,
@@ -199,6 +279,8 @@ export function useHydrationReminderReconciler({
     windowStart,
     windowEnd,
     appLocale,
+    identity,
+    plannedTimesSignature,
   ]);
 
   // On resume, refetch so a drink logged elsewhere or a day rollover is seen;

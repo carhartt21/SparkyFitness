@@ -16,6 +16,7 @@ import {
   type ThemePreference,
 } from '../services/themeService';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
+import { cancelFastGoalNotification } from '../hooks/useFasting';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { canUseLiquidGlass } from '../utils/liquidGlass';
@@ -40,6 +41,24 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
   const setHapticsEnabled = useAppPreferencesStore((s) => s.setHapticsEnabled);
   const soundsEnabled = useAppPreferencesStore((s) => s.soundsEnabled);
   const setSoundsEnabled = useAppPreferencesStore((s) => s.setSoundsEnabled);
+  const fastingEnabled = useAppPreferencesStore((s) => s.fastingEnabled);
+  const setFastingEnabled = useAppPreferencesStore((s) => s.setFastingEnabled);
+  const handleFastingEnabledChange = useCallback(
+    (enabled: boolean) => {
+      setFastingEnabled(enabled);
+      if (!enabled) {
+        // The Dashboard reconciler may be unmounted while App Settings is open.
+        // Cancel immediately; it will also repair state on its next mount.
+        void cancelFastGoalNotification().catch(() => {
+          void addLog(
+            '[AppSettings] Could not cancel a fasting goal reminder',
+            'WARNING'
+          );
+        });
+      }
+    },
+    [setFastingEnabled]
+  );
   const liquidGlassEnabled = useAppPreferencesStore(
     (s) => s.liquidGlassTabBarEnabled
   );
@@ -190,7 +209,7 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
             title={t('settings.language.title', 'Language')}
             subtitle={t(
               'languageSettings.subtitle',
-              'Use your device language or choose a language for SparkyFitness.'
+              'Use your device language or choose a language for X on Track.'
             )}
             subtitleNumberOfLines={0}
             rightAccessory={
@@ -227,6 +246,24 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
           />
         )}
         <SettingsRow
+          title={t('settings.fasting.title', { defaultValue: 'Fasting' })}
+          subtitle={t('settings.fasting.subtitle', {
+            defaultValue:
+              'Show fasting on the Dashboard and allow its goal reminders.',
+          })}
+          subtitleNumberOfLines={0}
+          rightAccessory={
+            <Switch
+              accessibilityLabel={t('settings.fasting.title', {
+                defaultValue: 'Fasting',
+              })}
+              value={fastingEnabled}
+              onValueChange={handleFastingEnabledChange}
+            />
+          }
+        />
+
+        <SettingsRow
           title={t('settings.notifications.title', {
             defaultValue: 'Notifications',
           })}
@@ -247,7 +284,13 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
           })}
           subtitleNumberOfLines={0}
           rightAccessory={
-            <Switch value={hapticsEnabled} onValueChange={setHapticsEnabled} />
+            <Switch
+              accessibilityLabel={t('settings.haptics.title', {
+                defaultValue: 'Haptic Feedback',
+              })}
+              value={hapticsEnabled}
+              onValueChange={setHapticsEnabled}
+            />
           }
         />
 
@@ -260,7 +303,13 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
           })}
           subtitleNumberOfLines={0}
           rightAccessory={
-            <Switch value={soundsEnabled} onValueChange={setSoundsEnabled} />
+            <Switch
+              accessibilityLabel={t('settings.cameraShutter.title', {
+                defaultValue: 'Camera shutter',
+              })}
+              value={soundsEnabled}
+              onValueChange={setSoundsEnabled}
+            />
           }
         />
       </ScrollView>

@@ -49,7 +49,7 @@ export default function AskUserToolCard({
             accessibilityState={{ disabled }}
             disabled={disabled}
             onPress={() => send(option)}
-            className={`rounded-full border border-border-subtle bg-background px-3 py-2 ${
+            className={`rounded-md border border-border-subtle bg-background px-3 py-2 ${
               disabled ? 'opacity-50' : 'active:bg-surface'
             }`}
           >

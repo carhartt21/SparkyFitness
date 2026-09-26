@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { paginationSchema } from "./Pagination.api.zod.ts";
 import { exerciseModalitySchema } from "./Exercises.api.zod.ts";
+import { exerciseSetTypeRequestSchema } from "./ExerciseSetType.api.zod.ts";
 
 // --- Query contracts ---
 
@@ -107,7 +108,10 @@ export const exerciseEntrySetResponseSchema = z
     // Km. Optional: pre-distance servers omit it.
     distance: z.number().nullable().optional(),
     // Progression & Equipment Fields
-    progression_mode: z.enum(["rep_goal", "fixed", "step_load", "manual"]).nullable().optional(),
+    progression_mode: z
+      .enum(["rep_goal", "fixed", "step_load", "manual"])
+      .nullable()
+      .optional(),
     rep_goal: z.number().int().nullable().optional(),
     increment_type: z.enum(["weight", "reps"]).nullable().optional(),
     increment_value: z.number().nullable().optional(),
@@ -131,7 +135,7 @@ export const exerciseEntrySetRequestSchema = z
   .object({
     id: z.union([z.string(), z.number()]).nullable().optional(),
     set_number: z.number().int().positive(),
-    set_type: z.string().nullable().optional(),
+    set_type: exerciseSetTypeRequestSchema.nullable().optional(),
     reps: z.number().nullable().optional(),
     weight: z.number().nullable().optional(),
     // Per-set duration is integer SECONDS.

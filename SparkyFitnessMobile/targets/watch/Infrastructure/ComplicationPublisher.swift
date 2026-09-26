@@ -23,6 +23,7 @@ struct GoalProgress: Equatable {
 /// deliberately one-way — nothing here ever reads back what a complication
 /// did, and the app's own pages never read from here.
 enum ComplicationPublisher {
+    private static let scopeKey = "watchComplicationScope"
     // MARK: - Wire constants
     //
     // Every value below is a contract with targets/watch-widget, which decodes
@@ -42,6 +43,7 @@ enum ComplicationPublisher {
 
     /// Field names here are decoded by `EnergyGoalComplication`.
     private struct EnergySnapshot: Codable, Equatable {
+        let scope: String
         let date: String
         let calorieGoalProgress: Double
         let proteinGoalProgress: Double
@@ -51,20 +53,41 @@ enum ComplicationPublisher {
 
     /// Field names here are decoded by `WaterGoalComplication`.
     private struct WaterSnapshotPayload: Codable, Equatable {
+        let scope: String
         let date: String
         let progress: Double
     }
 
     // MARK: - Publishing
 
+    /// Removes the previous account's rings before any new snapshot arrives.
+    /// The widget extension also checks this marker when loading either ring.
+    static func setScope(_ scope: String?) {
+        guard let defaults = sharedDefaults() else { return }
+        let next = scope.flatMap { $0.isEmpty ? nil : $0 }
+        if defaults.string(forKey: scopeKey) == next { return }
+        if let next {
+            defaults.set(next, forKey: scopeKey)
+        } else {
+            defaults.removeObject(forKey: scopeKey)
+        }
+        defaults.removeObject(forKey: Energy.key)
+        defaults.removeObject(forKey: Water.key)
+        WidgetCenter.shared.reloadTimelines(ofKind: Energy.kind)
+        WidgetCenter.shared.reloadTimelines(ofKind: Water.kind)
+    }
+
     /// Publishes nutrition progress for the Daily Energy Goal complication.
     ///
     /// `day` is the calendar day these numbers describe. It is checked rather
     /// than trusted — see `isPublishable(_:)`.
     static func publish(goals: GoalProgress, for day: String) {
-        guard isPublishable(day) else { return }
+        guard isPublishable(day),
+              let scope = sharedDefaults()?.string(forKey: scopeKey),
+              !scope.isEmpty else { return }
         write(
             EnergySnapshot(
+                scope: scope,
                 date: day,
                 calorieGoalProgress: goals.calories,
                 proteinGoalProgress: goals.protein,
@@ -78,9 +101,12 @@ enum ComplicationPublisher {
 
     /// Publishes water progress for the Water Intake complication.
     static func publish(waterProgress: Double, for day: String) {
-        guard isPublishable(day) else { return }
+        guard isPublishable(day),
+              let scope = sharedDefaults()?.string(forKey: scopeKey),
+              !scope.isEmpty else { return }
         write(
             WaterSnapshotPayload(
+                scope: scope,
                 date: day,
                 progress: max(0, min(1, waterProgress))
             ),

@@ -22,6 +22,7 @@ import { Uniwind, useUniwind, useCSSVariable } from 'uniwind';
 import { queryClient, serverConnectionQueryKey, serverConfigsQueryKey, useSyncHealthData, useCycleMode, useServerConnection, useWatchCheckInBridge } from './src/hooks';
 import { useAppStartup } from './src/hooks/useAppStartup';
 import { useAppBootstrap } from './src/hooks/useAppBootstrap';
+import { useLaunchIconActions } from './src/hooks/useLaunchIconActions';
 import { useAppLanguageForegroundSync } from './src/hooks/useAppLanguageForegroundSync';
 import { useAutoSyncOnOpen } from './src/hooks/useAutoSyncOnOpen';
 import { useAddSheetActions } from './src/hooks/useAddSheetActions';
@@ -37,6 +38,7 @@ import {
   SafeWaterContainers,
   SafeWaterContainerEdit,
   SafeExercisesLibrary,
+  SafeExerciseReview,
   SafeWorkoutPresetsLibrary,
   SafeFoodDetail,
   SafeMealDetail,
@@ -50,6 +52,9 @@ import {
   SafeExerciseForm,
   SafeWorkoutPresetForm,
   SafeFoodScan,
+  SafeQuickMealPhoto,
+  SafeMovementBreak,
+  SafeGuidedMobility,
   SafeFoodPhotoIntro,
   SafeMealAdd,
   SafeFoodEntryView,
@@ -123,9 +128,13 @@ import ActiveWorkoutBar, {
 import { ActiveWorkoutTransitionScreenLayout } from './src/components/ActiveWorkoutTransitionProbe';
 import ActiveWorkoutKeepAwake from './src/components/ActiveWorkoutKeepAwake';
 import MedicationReminderReconciler from './src/components/MedicationReminderReconciler';
+import NutritionEngagementCoordinator from './src/components/NutritionEngagementCoordinator';
+import RoutineWidgetCoordinator from './src/components/RoutineWidgetCoordinator';
+import WatchManualWaterCoordinator from './src/components/WatchManualWaterCoordinator';
 import { useNativeIOSTabsActive, useNativeIOSHeadersActive } from './src/services/nativeTabBarPreference';
 import { useWidgetLanguageRefresh } from './src/hooks/useWidgetLanguageRefresh';
 import { useIOSWidgetLanguageRefresh } from './src/hooks/useIOSWidgetLanguageRefresh';
+import { useNutritionActionSync } from './src/hooks/useNutritionActionSync';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -151,6 +160,11 @@ const androidModalAnimation =
 function WatchCheckInGate() {
   const { isConnected: isServerConnected } = useServerConnection();
   useWatchCheckInBridge(isServerConnected);
+  return null;
+}
+
+function NutritionActionSyncGate() {
+  useNutritionActionSync();
   return null;
 }
 
@@ -196,12 +210,18 @@ function AppContent() {
     handleLogWorkout,
     handleAddActivity,
     handleAddMeasurements,
+    handleLaunchIconAction,
     handleAddProgressPhotos,
     handleAskSparky,
     handleOpenCycle,
     handleSyncHealthData,
     handleAddSheetDismissWithoutAction,
   } = useAddSheetActions({ syncMutation });
+
+  useLaunchIconActions({
+    enabled: linkingEnabled && !showReauthModal && !showSetupModal && !showApiKeySwitchModal,
+    onAction: handleLaunchIconAction,
+  });
 
   const { enabled: cycleEnabled, mode: cycleMode, discreetMode: cycleDiscreet } = useCycleMode();
   const cycleSheetLabel = cycleDiscreet
@@ -291,9 +311,14 @@ function AppContent() {
         Tabs: {
           screens: {
             Dashboard: '',
+            Diary: 'diary',
           },
         },
         FoodScan: 'scan',
+        QuickMealPhoto: 'meal-photo',
+        MovementBreak: 'movement-break',
+        GuidedMobility: 'guided-mobility',
+        WorkoutPresetsLibrary: 'routines',
         FoodSearch: 'search',
         // Tapping the workout Live Activity opens its associated URL.
         ActiveWorkout: 'active-workout',
@@ -320,6 +345,9 @@ function AppContent() {
       }}
     >
       <WatchCheckInGate />
+      <NutritionActionSyncGate />
+      <NutritionEngagementCoordinator />
+      <RoutineWidgetCoordinator />
       <SafeAreaProvider>
         {/* Inside SafeAreaProvider on purpose: the viewer positions its close
             button against the insets, so mounting it at the app root crashes
@@ -438,6 +466,11 @@ function AppContent() {
             options={createStackScreenOptions(t('screens.exercises', { defaultValue: 'Exercises' }), { headerBackTitle: t('navigation.library', { defaultValue: 'Library' }) })}
           />
           <Stack.Screen
+            name="ExerciseReview"
+            component={SafeExerciseReview}
+            options={createStackScreenOptions(t('exerciseReview.title', { defaultValue: 'Exercise review' }), { headerBackTitle: t('navigation.library', { defaultValue: 'Library' }) })}
+          />
+          <Stack.Screen
             name="WorkoutPresetsLibrary"
             component={SafeWorkoutPresetsLibrary}
             options={createStackScreenOptions(t('screens.workoutPresets', { defaultValue: 'Workout Presets' }), { headerBackTitle: t('navigation.library', { defaultValue: 'Library' }) })}
@@ -546,6 +579,25 @@ function AppContent() {
             })}
           />
           <Stack.Screen
+            name="QuickMealPhoto"
+            component={SafeQuickMealPhoto}
+            options={{ headerShown: false, presentation: 'modal' }}
+          />
+          <Stack.Screen
+            name="MovementBreak"
+            component={SafeMovementBreak}
+            options={createStackScreenOptions(t('engagement.breakTitle', {
+              defaultValue: 'Movement break',
+            }), { headerBackButtonDisplayMode: 'minimal' })}
+          />
+          <Stack.Screen
+            name="GuidedMobility"
+            component={SafeGuidedMobility}
+            options={createStackScreenOptions(t('mobility.title', {
+              defaultValue: 'Guided mobility',
+            }), { headerBackButtonDisplayMode: 'minimal' })}
+          />
+          <Stack.Screen
             name="FoodPhotoIntro"
             component={SafeFoodPhotoIntro}
             options={createStackScreenOptions(t('screens.photoFood', { defaultValue: 'Photo Food' }), {
@@ -566,7 +618,7 @@ function AppContent() {
           <Stack.Screen
             name="Chat"
             component={SafeChat}
-            options={createStackScreenOptions(t('screens.sparky', { defaultValue: 'Sparky' }), { headerBackButtonDisplayMode: 'minimal' })}
+            options={createStackScreenOptions(t('screens.sparky', { defaultValue: 'Assistant' }), { headerBackButtonDisplayMode: 'minimal' })}
           />
           <Stack.Screen
             name="MealAdd"
@@ -913,6 +965,7 @@ function App() {
                 the active server's origin and proxy headers, so there is no
                 reason for each screen to own a copy (or its own cache). */}
             <FoodImageSourceProvider>
+              <WatchManualWaterCoordinator />
               <AppContent />
             </FoodImageSourceProvider>
           </BottomSheetModalProvider>

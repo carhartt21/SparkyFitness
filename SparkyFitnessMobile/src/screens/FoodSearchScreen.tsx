@@ -13,8 +13,10 @@ import {
   SectionList,
   TextInput,
   Platform,
+  Linking,
 } from 'react-native';
 import Button from '../components/ui/Button';
+import SegmentedControl from '../components/SegmentedControl';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import Icon from '../components/Icon';
@@ -76,6 +78,7 @@ import {
 import type { NativeStackHeaderItemMenu } from '@react-navigation/native-stack';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { ALL_PROVIDERS_VALUE } from '../constants/foodProviders';
+import { getTodayDate } from '../utils/dateUtils';
 
 type FoodSearchScreenProps = RootStackScreenProps<'FoodSearch'>;
 
@@ -102,6 +105,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   const date = route.params?.date;
   const pickerMode = route.params?.pickerMode ?? 'log-entry';
   const mealTypeId = route.params?.mealTypeId;
+  const photoCapture = route.params?.photoCapture;
   const mealPlanTarget = route.params?.mealPlanTarget;
   const isMealBuilderMode = pickerMode === 'meal-builder';
   const isMealPlanMode = pickerMode === 'meal-plan';
@@ -123,6 +127,9 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   const usesNativeHeader = useNativeIOSHeadersActive();
 
   const { isConnected } = useServerConnection();
+  const [browseTab, setBrowseTab] = useState<'all' | 'recent' | 'favorites'>(
+    'all'
+  );
   const { profile } = useProfile();
   const ownershipFilter = useAppPreferencesStore(
     (s) => s.foodSearchOwnershipFilter
@@ -135,7 +142,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // public catalog data, so those filters suppress online search and its
   // sections entirely, matching web.
   const onlineAllowedByOwnership =
-    ownershipFilter === 'all' || ownershipFilter === 'public';
+    (ownershipFilter === 'all' || ownershipFilter === 'public') &&
+    browseTab === 'all';
   const { preferences } = usePreferences({ enabled: isConnected });
   const { recentFoods, topFoods, isLoading, isError, refetch } = useFoods({
     enabled: isConnected,
@@ -203,7 +211,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // untouched. The basket is deliberately independent of select MODE: mode
   // only switches the row affordances, so a basket survives typing a search
   // and single-tap adds; only Clear or a completed batch empties it.
-  const multiSelectAvailable = pickerMode === 'log-entry';
+  const multiSelectAvailable = pickerMode === 'log-entry' && !photoCapture;
   const {
     count: selectionCount,
     maxItems: selectionMaxItems,
@@ -271,7 +279,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // outlives Cancel.
   const basketTapReturnDepth = selectionPickerMode
     ? 2
-    : isSelectMode || selectionCount > 0
+    : multiSelectAvailable && (isSelectMode || selectionCount > 0)
       ? 1
       : undefined;
 
@@ -285,7 +293,9 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
   // Local meals (never mixed in while building a meal).
   const { searchResults: mealResults, isSearching: isMealSearching } =
-    useMealSearch(searchText, { enabled: isConnected && !isMealBuilderMode });
+    useMealSearch(searchText, {
+      enabled: isConnected && !isMealBuilderMode && !photoCapture,
+    });
 
   // Online provider results stream in below the local results, always fetched
   // (no separate Online tab). Provider is the user's default.
@@ -293,6 +303,9 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   const getProviderColor = useProviderColor(providers);
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const hasUserSelectedProvider = useRef(false);
+  const providerDefault = useAppPreferencesStore(
+    (s) => s.mobileFoodProviderDefault
+  );
 
   // Sync to the user's default (or first) provider until the user taps the
   // online section header to peek at a different provider's results.
@@ -305,30 +318,16 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     ) {
       return;
     }
-    // Persisted "All Providers" default. It has its own boolean preference rather
-    // than living in default_food_data_provider_id, which is a uuid column and
-    // cannot hold the sentinel. Applied only above one provider, matching the
-    // option list below: with a single provider the aggregated option is not
-    // offered, so fall through to that provider without clearing the stored
-    // preference, and re-activating a second provider restores the default.
-    if (
-      preferences?.food_search_all_providers_default &&
-      providers.length > 1
-    ) {
-      setSelectedProvider(ALL_PROVIDERS_VALUE);
-      return;
-    }
-    const defaultId = preferences?.default_food_data_provider_id;
-    const defaultProvider = defaultId
-      ? providers.find((provider) => provider.id === defaultId)
-      : undefined;
-    setSelectedProvider(defaultProvider?.id ?? providers[0].id);
-  }, [
-    preferences?.default_food_data_provider_id,
-    preferences?.food_search_all_providers_default,
-    providers,
-    selectedProvider,
-  ]);
+    // Search broadly by default. The provider picker narrows only this search;
+    // barcode-provider and account preferences retain their own semantics.
+    setSelectedProvider(
+      providers.some((p) => p.id === providerDefault)
+        ? providerDefault
+        : providers.length > 1
+          ? ALL_PROVIDERS_VALUE
+          : providers[0].id
+    );
+  }, [providerDefault, providers, selectedProvider]);
 
   const providerOptions = useMemo(() => {
     const opts = providers.map((p) => ({
@@ -436,6 +435,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       navigation.navigate('FoodEntryAdd', {
         item,
         date,
+        photoCapture,
         pickerMode: selectionPickerMode,
         // basketTapReturnDepth keeps a basket alive across a single add;
         // picker modes keep their existing depth-2 return past this screen.
@@ -449,6 +449,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       date,
       mealPlanTarget,
       mealTypeId,
+      photoCapture,
       selectionPickerMode,
       basketTapReturnDepth,
     ]
@@ -779,15 +780,15 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     [searchResults, ownershipFilter, profile?.id]
   );
   const filteredMealResults = useMemo(
-    () => filterByOwnership(mealResults, ownershipFilter, profile?.id),
-    [mealResults, ownershipFilter, profile?.id]
+    () =>
+      photoCapture
+        ? []
+        : filterByOwnership(mealResults, ownershipFilter, profile?.id),
+    [mealResults, ownershipFilter, profile?.id, photoCapture]
   );
 
   // Based on the FILTERED lists: results the ownership filter hides must still
   // produce the status row (which names the filter), not a silently blank list.
-  const hasLocalResults =
-    filteredSearchResults.length > 0 ||
-    (!isMealBuilderMode && filteredMealResults.length > 0);
 
   // Favorites: the first landing section, starred foods and meals intermixed,
   // most recently starred first. Modelled as LandingEntry so every landing
@@ -801,7 +802,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // Favorites is the only surface that offers a meal and then refuses it two
   // screens later. Drop the gate once the picker learns to emit child_meal_id.
   const favoriteEntries = useMemo<LandingEntry[]>(() => {
-    const selectableMeals = isMealBuilderMode ? [] : filteredFavoriteMeals;
+    const selectableMeals =
+      isMealBuilderMode || photoCapture ? [] : filteredFavoriteMeals;
     const tagged = [
       ...selectableMeals.map((meal) => ({
         entry: {
@@ -831,7 +833,12 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     return tagged
       .sort((a, b) => b.favoritedAt - a.favoritedAt)
       .map((t) => t.entry);
-  }, [filteredFavoriteFoods, filteredFavoriteMeals, isMealBuilderMode]);
+  }, [
+    filteredFavoriteFoods,
+    filteredFavoriteMeals,
+    isMealBuilderMode,
+    photoCapture,
+  ]);
 
   // One notion of "starred", shared by the landing (which excludes favorites
   // from the sections below Favorites) and the search results (which float them
@@ -852,17 +859,29 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       favoriteKeys.has(landingKey('food', food.id));
     return [
       ...filteredSearchResults.filter(isFavorite),
-      ...filteredSearchResults.filter((food) => !isFavorite(food)),
-    ];
-  }, [filteredSearchResults, favoriteKeys]);
+      ...(browseTab === 'favorites'
+        ? []
+        : filteredSearchResults.filter((food) => !isFavorite(food))),
+    ].filter(
+      (food) =>
+        browseTab !== 'recent' ||
+        filteredRecentFoods.some((recent) => recent.id === food.id)
+    );
+  }, [filteredSearchResults, favoriteKeys, browseTab, filteredRecentFoods]);
   const searchMealsFavFirst = useMemo(() => {
     const isFavorite = (meal: Meal) =>
       favoriteKeys.has(landingKey('meal', meal.id));
     return [
       ...filteredMealResults.filter(isFavorite),
-      ...filteredMealResults.filter((meal) => !isFavorite(meal)),
-    ];
-  }, [filteredMealResults, favoriteKeys]);
+      ...(browseTab === 'favorites'
+        ? []
+        : filteredMealResults.filter((meal) => !isFavorite(meal))),
+    ].filter(
+      (meal) =>
+        browseTab !== 'recent' ||
+        filteredRecentMeals.some((recent) => recent.id === meal.id)
+    );
+  }, [filteredMealResults, favoriteKeys, browseTab, filteredRecentMeals]);
 
   const landingSections = useMemo<LandingSection[]>(() => {
     // Each section excludes what the sections above it already show, so the
@@ -872,14 +891,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     // afterwards would shrink a section below its cap.
     // Recently Logged: foods + meals merged into one recency timeline.
     const recentEntries = mergeRecent(
-      filteredRecentMeals,
+      photoCapture ? [] : filteredRecentMeals,
       filteredRecentFoods,
       landingLimit,
-      favoriteKeys
+      browseTab === 'recent' ? new Set<string>() : favoriteKeys
     );
     // Top: foods + meals by usage.
     const frequentEntries = mergeFrequent(
-      filteredTopMeals,
+      photoCapture ? [] : filteredTopMeals,
       filteredTopFoods,
       landingLimit,
       new Set([...favoriteKeys, ...recentEntries.map((entry) => entry.key)])
@@ -901,8 +920,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         title: t('foodSearch.sections.top', { defaultValue: 'Top' }),
         data: frequentEntries,
       },
-    ].filter((section) => section.data.length > 0);
+    ].filter(
+      (section, index) =>
+        section.data.length > 0 &&
+        (browseTab === 'all' ||
+          (browseTab === 'favorites' ? index === 0 : index === 1))
+    );
   }, [
+    browseTab,
     favoriteEntries,
     favoriteKeys,
     filteredRecentFoods,
@@ -910,8 +935,13 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     filteredRecentMeals,
     filteredTopMeals,
     landingLimit,
+    photoCapture,
     t,
   ]);
+
+  const hasLocalResults =
+    searchFoodsFavFirst.length > 0 ||
+    (!isMealBuilderMode && searchMealsFavFirst.length > 0);
 
   const resultSections = useMemo<ResultSection[]>(() => {
     const sections: ResultSection[] = [];
@@ -1109,24 +1139,60 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     section,
   }: {
     section: ResultSection;
-  }) => (
-    <FoodSearchSectionHeader
-      section={section}
-      providerOptions={providerOptions}
-      selectedProvider={selectedProvider}
-      selectedProviderName={selectedProviderName}
-      isAllProviders={isAllProviders}
-      anyProviderLoading={anyProviderLoading}
-      isOnlineSearching={isOnlineSearching}
-      expandedProviders={expandedProviders}
-      getProviderColor={getProviderColor}
-      accentColor={accentColor}
-      textMuted={textMuted}
-      textSecondary={textSecondary}
-      onSelectProvider={handleSelectProvider}
-      onToggleProvider={toggleProvider}
-    />
-  );
+  }) => {
+    const isBls =
+      (section.kind === 'online' && selectedProviderType === 'bls4') ||
+      (section.kind === 'online-provider' &&
+        section.provider?.provider_type === 'bls4');
+    return (
+      <View>
+        <FoodSearchSectionHeader
+          section={section}
+          providerOptions={providerOptions}
+          selectedProvider={selectedProvider}
+          selectedProviderName={selectedProviderName}
+          isAllProviders={isAllProviders}
+          anyProviderLoading={anyProviderLoading}
+          isOnlineSearching={isOnlineSearching}
+          expandedProviders={expandedProviders}
+          getProviderColor={getProviderColor}
+          accentColor={accentColor}
+          textMuted={textMuted}
+          textSecondary={textSecondary}
+          onSelectProvider={handleSelectProvider}
+          onToggleProvider={toggleProvider}
+        />
+        {isBls && (
+          <Text className="px-4 pb-1 text-xs text-text-muted">
+            {t('foodSearch.bls4Attribution', {
+              defaultValue: 'BLS 4.0 · Max Rubner-Institut · per 100 g · ',
+            })}
+            <Text
+              className="text-primary"
+              accessibilityRole="link"
+              onPress={() => {
+                void Linking.openURL('https://www.blsdb.de/download');
+              }}
+            >
+              {t('foodSearch.bls4Source', { defaultValue: 'Source' })}
+            </Text>
+            {' · '}
+            <Text
+              className="text-primary"
+              accessibilityRole="link"
+              onPress={() => {
+                void Linking.openURL(
+                  'https://creativecommons.org/licenses/by/4.0/'
+                );
+              }}
+            >
+              {t('foodSearch.bls4License', { defaultValue: 'CC BY 4.0' })}
+            </Text>
+          </Text>
+        )}
+      </View>
+    );
+  };
 
   const renderResultSectionFooter = ({
     section,
@@ -1169,137 +1235,167 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // --- Header ---
 
   const renderHeaderBar = () => (
-    <View className="flex-row items-center px-4 py-2 gap-3">
-      {!usesNativeHeader && (
-        <Button
-          variant="ghost"
-          onPress={() => navigation.goBack()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          className="p-0"
-          accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
-        >
-          <Icon name="close" size={22} color={headerActionColor} />
-        </Button>
-      )}
-
-      <View
-        className="flex-1 flex-row items-center bg-raised rounded-lg px-3 py-2.5"
-        style={{
-          borderWidth: 1,
-          borderColor: isSearchFocused ? accentColor : 'transparent',
-        }}
-      >
-        <View className="w-[20px] h-[20px] items-center justify-center">
-          {!!searchText.trim() &&
-          (isSearching || isMealSearching || isOnlineSearching) ? (
-            <ActivityIndicator size="small" color={textMuted} />
-          ) : (
-            <Icon name="search" size={18} color={textMuted} />
-          )}
-        </View>
-        <View className="flex-1 ml-2">
-          <TextInput
-            className="text-text-primary"
-            style={{ fontSize: 16, padding: 0, includeFontPadding: false }}
-            placeholder={t('foodSearch.search.placeholder', {
-              defaultValue: 'Search foods...',
-            })}
-            placeholderTextColor={textMuted}
-            value={searchText}
-            onChangeText={setSearchText}
-            onFocus={() => setIsSearchFocused(true)}
-            onBlur={() => setIsSearchFocused(false)}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="search"
-            autoFocus
-          />
-        </View>
-        {searchText.length > 0 ? (
-          <Button
-            variant="header"
-            onPress={() => setSearchText('')}
-            hitSlop={8}
-            className="ml-2"
-            accessibilityLabel={t('foodSearch.accessibility.clearSearch', {
-              defaultValue: 'Clear search',
-            })}
-          >
-            <Icon name="close" size={20} color={textMuted} />
-          </Button>
-        ) : (
-          <Button
-            variant="header"
-            onPress={openFoodScan}
-            hitSlop={8}
-            className="ml-2"
-            accessibilityLabel={t('foodSearch.accessibility.scanFood', {
-              defaultValue: 'Scan Food',
-            })}
-          >
-            <Icon name="scan" size={20} color={headerActionColor} />
-          </Button>
-        )}
-      </View>
-
-      {multiSelectAvailable && (
-        <Button
-          variant="ghost"
-          onPress={() => setIsSelectMode((prev) => !prev)}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-          className="p-0"
-          accessibilityLabel={
-            isSelectMode
-              ? t('foodSearch.multiSelect.cancel', { defaultValue: 'Cancel' })
-              : t('foodSearch.multiSelect.select', { defaultValue: 'Select' })
-          }
-        >
-          <Text
-            className="text-sm font-semibold"
-            style={{ color: headerActionColor }}
-          >
-            {isSelectMode
-              ? t('foodSearch.multiSelect.cancel', { defaultValue: 'Cancel' })
-              : t('foodSearch.multiSelect.select', { defaultValue: 'Select' })}
-          </Text>
-        </Button>
-      )}
-
-      {!usesNativeHeader && (
-        <View ref={addButtonRef} collapsable={false}>
+    <>
+      <View className="flex-row items-center px-4 py-2 gap-3">
+        {!usesNativeHeader && (
           <Button
             variant="ghost"
-            onPress={handleOverflowPress}
+            onPress={() => navigation.goBack()}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            className="p-0"
+            accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+          >
+            <Icon name="close" size={22} color={headerActionColor} />
+          </Button>
+        )}
+
+        <Text className="flex-1 text-lg font-bold text-text-primary">
+          {t('foodSearch.title', { defaultValue: 'Add food' })}
+        </Text>
+
+        {multiSelectAvailable && (
+          <Button
+            variant="ghost"
+            onPress={() => setIsSelectMode((prev) => !prev)}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             className="p-0"
             accessibilityLabel={
-              isOwnershipFiltered
-                ? t('foodSearch.accessibility.moreFiltered', {
-                    defaultValue: 'More options, filtered to {{filter}}',
-                    filter: localizedFilterLabels[ownershipFilter],
-                  })
-                : t('foodSearch.accessibility.moreOptions', {
-                    defaultValue: 'More options',
-                  })
+              isSelectMode
+                ? t('foodSearch.multiSelect.cancel', { defaultValue: 'Cancel' })
+                : t('foodSearch.multiSelect.select', { defaultValue: 'Select' })
             }
           >
-            <View>
-              <Icon
-                name="ellipsis-horizontal"
-                size={24}
-                color={headerActionColor}
-              />
-              {isOwnershipFiltered && (
-                <View
-                  className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
-                  style={{ backgroundColor: accentColor }}
-                />
-              )}
-            </View>
+            <Text
+              className="text-sm font-semibold"
+              style={{ color: headerActionColor }}
+            >
+              {isSelectMode
+                ? t('foodSearch.multiSelect.cancel', { defaultValue: 'Cancel' })
+                : t('foodSearch.multiSelect.select', {
+                    defaultValue: 'Select',
+                  })}
+            </Text>
           </Button>
+        )}
+
+        {!usesNativeHeader && (
+          <View ref={addButtonRef} collapsable={false}>
+            <Button
+              variant="ghost"
+              onPress={handleOverflowPress}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              className="p-0"
+              accessibilityLabel={
+                isOwnershipFiltered
+                  ? t('foodSearch.accessibility.moreFiltered', {
+                      defaultValue: 'More options, filtered to {{filter}}',
+                      filter: localizedFilterLabels[ownershipFilter],
+                    })
+                  : t('foodSearch.accessibility.moreOptions', {
+                      defaultValue: 'More options',
+                    })
+              }
+            >
+              <View>
+                <Icon
+                  name="ellipsis-horizontal"
+                  size={24}
+                  color={headerActionColor}
+                />
+                {isOwnershipFiltered && (
+                  <View
+                    className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full"
+                    style={{ backgroundColor: accentColor }}
+                  />
+                )}
+              </View>
+            </Button>
+          </View>
+        )}
+      </View>
+      <View className="px-4 pb-3">
+        <View
+          className="min-h-14 flex-row items-center bg-raised rounded-lg px-3 py-2.5"
+          style={{
+            borderWidth: 1,
+            borderColor: isSearchFocused ? accentColor : 'transparent',
+          }}
+        >
+          <View className="w-[20px] h-[20px] items-center justify-center">
+            {!!searchText.trim() &&
+            (isSearching || isMealSearching || isOnlineSearching) ? (
+              <ActivityIndicator size="small" color={textMuted} />
+            ) : (
+              <Icon name="search" size={18} color={textMuted} />
+            )}
+          </View>
+          <View className="flex-1 ml-2">
+            <TextInput
+              className="text-text-primary"
+              style={{ fontSize: 16, padding: 0, includeFontPadding: false }}
+              placeholder={t('foodSearch.search.placeholder', {
+                defaultValue: 'Search foods...',
+              })}
+              placeholderTextColor={textMuted}
+              value={searchText}
+              onChangeText={setSearchText}
+              onFocus={() => setIsSearchFocused(true)}
+              onBlur={() => setIsSearchFocused(false)}
+              autoCapitalize="none"
+              autoCorrect={false}
+              returnKeyType="search"
+            />
+          </View>
+          {searchText.length > 0 ? (
+            <Button
+              variant="header"
+              onPress={() => setSearchText('')}
+              hitSlop={8}
+              className="ml-2"
+              accessibilityLabel={t('foodSearch.accessibility.clearSearch', {
+                defaultValue: 'Clear search',
+              })}
+            >
+              <Icon name="close" size={20} color={textMuted} />
+            </Button>
+          ) : (
+            <Button
+              variant="header"
+              onPress={openFoodScan}
+              hitSlop={8}
+              className="ml-2"
+              accessibilityLabel={t('foodSearch.accessibility.scanFood', {
+                defaultValue: 'Scan Food',
+              })}
+            >
+              <Icon name="scan" size={20} color={headerActionColor} />
+            </Button>
+          )}
         </View>
-      )}
-    </View>
+      </View>
+      <View className="px-4 pb-3">
+        <SegmentedControl
+          activeKey={browseTab}
+          onSelect={setBrowseTab}
+          segments={[
+            {
+              key: 'all',
+              label: t('foodSearch.filter.all', { defaultValue: 'All' }),
+            },
+            {
+              key: 'recent',
+              label: t('foodSearch.tabs.recent', { defaultValue: 'Recent' }),
+            },
+            {
+              key: 'favorites',
+              label: t('foodSearch.sections.favorites', {
+                defaultValue: 'Favorites',
+              }),
+            },
+          ]}
+        />
+      </View>
+    </>
   );
 
   // --- Body ---
@@ -1443,6 +1539,43 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       style={Platform.OS === 'android' ? { paddingTop: insets.top } : undefined}
     >
       {renderHeaderBar()}
+      {pickerMode === 'log-entry' && !photoCapture && (
+        <View className="flex-row gap-2 px-4 pb-3">
+          {[
+            ...(!date || date === getTodayDate()
+              ? [
+                  {
+                    label: t('foodSearch.quickPhoto', {
+                      defaultValue: 'Meal photo',
+                    }),
+                    icon: 'camera' as const,
+                    onPress: () => navigation.navigate('QuickMealPhoto'),
+                  },
+                ]
+              : []),
+            {
+              label: t('foodSearch.menu.newFood', {
+                defaultValue: 'New Food',
+              }),
+              icon: 'add' as const,
+              onPress: openCreateFood,
+            },
+          ].map((action) => (
+            <Button
+              key={action.label}
+              variant="secondary"
+              onPress={action.onPress}
+              accessibilityLabel={action.label}
+              className="min-h-11 flex-1 flex-row gap-2 px-2"
+            >
+              <Icon name={action.icon} size={18} color={accentColor} />
+              <Text className="text-xs font-semibold text-text-primary">
+                {action.label}
+              </Text>
+            </Button>
+          ))}
+        </View>
+      )}
       {renderBody()}
       {/* Basket bar: visible whenever anything is selected in a
           diary-logging context, in or out of select mode, so a basket built

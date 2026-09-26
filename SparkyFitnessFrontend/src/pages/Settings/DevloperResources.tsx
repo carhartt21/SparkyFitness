@@ -29,8 +29,8 @@ export const DeveloperResources = () => {
           <div className="flex flex-col space-y-2">
             <h4 className="font-medium">API Documentation</h4>
             <p className="text-sm text-muted-foreground">
-              Explore the SparkyFitness API documentation to build integrations
-              or understand the platform better.
+              Explore the X on Track API documentation to build integrations or
+              understand the platform better.
             </p>
             <div className="flex gap-4 mt-2">
               <Button variant="outline" asChild>

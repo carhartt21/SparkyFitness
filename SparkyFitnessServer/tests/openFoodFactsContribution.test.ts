@@ -5,7 +5,7 @@ import {
 } from '../integrations/openfoodfacts/openFoodFactsContribution.js';
 
 const attribution = {
-  appName: 'SparkyFitness',
+  appName: 'X on Track',
   appVersion: '1.6.4',
   appUuid: '00000000-0000-4000-8000-000000000004',
 };
@@ -54,10 +54,10 @@ describe('buildOpenFoodFactsProductForm', () => {
       nutriment_proteins_unit: 'g',
       nutriment_carbohydrates: '24',
       nutriment_carbohydrates_unit: 'g',
-      app_name: 'SparkyFitness',
+      app_name: 'X on Track',
       app_version: '1.6.4',
       app_uuid: attribution.appUuid,
-      comment: 'Contributed from SparkyFitness',
+      comment: 'Contributed from X on Track',
     });
   });
 

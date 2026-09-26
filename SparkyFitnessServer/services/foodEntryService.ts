@@ -742,10 +742,7 @@ async function createFoodEntry(
         entryData.custom_nutrients
       );
     }
-    log(
-      'info',
-      `createFoodEntry in foodService: authenticatedUserId: ${authenticatedUserId}, actingUserId: ${actingUserId}, entryData: ${JSON.stringify(entryData)}`
-    );
+    // Nutrition payloads can contain private notes and photos. Log no contents.
     const newEntry = await foodRepository.createFoodEntry(
       entryWithUser,
       actingUserId

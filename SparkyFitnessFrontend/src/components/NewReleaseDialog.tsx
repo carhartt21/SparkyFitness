@@ -176,7 +176,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
       >
         {hasBreakingChange && (
           <div className="bg-red-500 text-white font-bold p-3 text-center text-xs flex items-center justify-center gap-2 rounded-t-lg -mx-6 -mt-6 mb-4 animate-pulse">
-            <AlertTriangle className="h-4 w-4 animate-bounce" />
+            <AlertTriangle className="h-4 w-4" />
             <span>
               CRITICAL WARNING: THIS RELEASE CONTAINS BREAKING CHANGES!
             </span>
@@ -184,10 +184,13 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
         )}
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl font-bold">
-            New Version Available: {releaseInfo.version}
+            Upstream Release: {releaseInfo.version}
           </AlertDialogTitle>
           <AlertDialogDescription className="flex flex-col gap-2 mt-2">
-            <p>A new version of SparkyFitness is available!</p>
+            <p>
+              SparkyFitness published an upstream release. This is not an X on
+              Track app update.
+            </p>
             <p className="text-xs text-muted-foreground">
               Published:{' '}
               {new Date(releaseInfo.publishedAt).toLocaleDateString()}
@@ -199,7 +202,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
               className="mt-3 p-3 border border-border rounded-md max-h-64 overflow-y-auto bg-muted/30"
             >
               <h3 className="font-semibold mb-2 text-sm text-foreground">
-                Release Notes:
+                Upstream Release Notes:
               </h3>
               <div className="prose prose-sm dark:prose-invert max-w-none text-xs text-foreground leading-relaxed">
                 <ReactMarkdown
@@ -395,7 +398,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
             )}
 
             <p className="mt-4 text-xs">
-              View on GitHub:{' '}
+              View upstream release on GitHub:{' '}
               <a
                 href={releaseInfo.htmlUrl}
                 target="_blank"

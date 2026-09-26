@@ -89,6 +89,15 @@ function isTransporterConfigured(): boolean {
   return Boolean(options?.host && options?.auth?.user);
 }
 
+function getEmailFromAddress(): string {
+  const configured = process.env.SPARKY_FITNESS_EMAIL_FROM;
+  if (configured) return configured;
+  const authenticatedMailbox = process.env.SPARKY_FITNESS_EMAIL_USER;
+  return authenticatedMailbox
+    ? `X on Track <${authenticatedMailbox}>`
+    : 'X on Track <noreply@localhost>';
+}
+
 function getTransporterDebugInfo(): string {
   const options = transporter.options as
     | (SMTPTransport.Options & {
@@ -119,9 +128,9 @@ async function sendPasswordResetEmail(
       ------------------------------------
       PASSWORD RESET EMAIL (NOT SENT - EMAIL SERVICE NOT CONFIGURED)
       To: ${toEmail}
-      Subject: SparkyFitness Password Reset
+      Subject: X on Track Password Reset
       
-      You have requested a password reset for your SparkyFitness account.
+      You have requested a password reset for your X on Track account.
       Please click on the following link to reset your password:
       
       ${resetUrl}
@@ -135,12 +144,11 @@ async function sendPasswordResetEmail(
 
   try {
     await transporter.sendMail({
-      from:
-        process.env.SPARKY_FITNESS_EMAIL_FROM || 'noreply@sparkyfitness.com',
+      from: getEmailFromAddress(),
       to: toEmail,
-      subject: 'SparkyFitness Password Reset',
+      subject: 'X on Track Password Reset',
       html: `
-        <p>You have requested a password reset for your SparkyFitness account.</p>
+        <p>You have requested a password reset for your X on Track account.</p>
         <p>Please click on the following link to reset your password:</p>
         <p><a href="${resetUrl}">${resetUrl}</a></p>
         <p>This link will expire in 1 hour.</p>
@@ -190,7 +198,7 @@ async function sendEmailMfaCode(
       ------------------------------------
       EMAIL MFA CODE (NOT SENT - EMAIL SERVICE NOT CONFIGURED)
       To: ${toEmail}
-      Subject: Your SparkyFitness MFA Code
+      Subject: Your X on Track MFA Code
       
       Your Multi-Factor Authentication code is:
       
@@ -204,10 +212,9 @@ async function sendEmailMfaCode(
 
   try {
     await transporter.sendMail({
-      from:
-        process.env.SPARKY_FITNESS_EMAIL_FROM || 'noreply@sparkyfitness.com',
+      from: getEmailFromAddress(),
       to: toEmail,
-      subject: 'Your SparkyFitness MFA Code',
+      subject: 'Your X on Track MFA Code',
       html: `
         <p>Your Multi-Factor Authentication code is:</p>
         <h3>${code}</h3>
@@ -264,9 +271,9 @@ async function sendMagicLinkEmail(
       ------------------------------------
       MAGIC LINK EMAIL (NOT SENT - EMAIL SERVICE NOT CONFIGURED)
       To: ${toEmail}
-      Subject: Your SparkyFitness Login Link
+      Subject: Your X on Track Login Link
       
-      You have requested a passwordless login to your SparkyFitness account.
+      You have requested a passwordless login to your X on Track account.
       Please click on the following link to log in:
       
       ${magicLinkUrl}
@@ -280,12 +287,11 @@ async function sendMagicLinkEmail(
 
   try {
     await transporter.sendMail({
-      from:
-        process.env.SPARKY_FITNESS_EMAIL_FROM || 'noreply@sparkyfitness.com',
+      from: getEmailFromAddress(),
       to: toEmail,
-      subject: 'Your SparkyFitness Login Link',
+      subject: 'Your X on Track Login Link',
       html: `
-        <p>You have requested a passwordless login to your SparkyFitness account.</p>
+        <p>You have requested a passwordless login to your X on Track account.</p>
         <p>Please click on the following link to log in:</p>
         <p><a href="${magicLinkUrl}">${magicLinkUrl}</a></p>
         <p>This link will expire in 15 minutes and can only be used once.</p>

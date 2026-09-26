@@ -81,7 +81,23 @@ private func fallbackWidgetString(_ key: String) -> String {
     case "widget.a11y.kcal_left": return "%@ kcal left"
     case "widget.a11y.kcal": return "%@ kcal"
     case "widget.search_food": return "Search food"
+    case "widget.meal_photo": return "Take meal photo"
     case "widget.scan_barcode": return "Scan barcode"
+    case "widget.nutrition.name": return "Meal capture"
+    case "widget.nutrition.description": return "Meal capture and photo review status."
+    case "widget.nutrition.unavailable": return "Open X on Track to refresh"
+    case "widget.nutrition.review": return "%d photo(s) to review"
+    case "widget.nutrition.savedLocally": return "Saved on this device"
+    case "widget.nutrition.captured": return "%d food record(s) captured"
+    case "widget.nutrition.photo": return "Meal photo"
+    case "widget.nutrition.search": return "Search food"
+    case "widget.routine.name": return "Routines"
+    case "widget.routine.description": return "Open your workout routines."
+    case "widget.routine.unavailable": return "Open X on Track to refresh"
+    case "widget.routine.empty": return "No routines yet"
+    case "widget.routine.one": return "%d routine available"
+    case "widget.routine.count": return "%d routines available"
+    case "widget.routine.open": return "Open routines"
     default: return key
     }
 }

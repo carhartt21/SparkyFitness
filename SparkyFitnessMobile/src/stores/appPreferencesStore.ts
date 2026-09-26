@@ -46,6 +46,7 @@ export const PREFERENCE_DEFAULTS = {
   notificationsEnabled: true,
   restTimerNotificationsEnabled: true,
   fastingGoalNotificationsEnabled: true,
+  fastingEnabled: true,
   hydrationCardVisible: true,
   caffeineCardVisible: true,
   fastingCardVisible: true,
@@ -60,6 +61,14 @@ export const PREFERENCE_DEFAULTS = {
   waterReminderIntervalHours: 2 as WaterReminderIntervalHours,
   waterReminderWindowStart: '08:00' as string,
   waterReminderWindowEnd: '22:00' as string,
+  mealCaptureReminderEnabled: false,
+  mealCaptureWindowStart: '11:00' as string,
+  mealCaptureWindowEnd: '14:00' as string,
+  mealCapturePromptTime: '12:30' as string,
+  mealPhotoReviewEnabled: false,
+  mealPhotoReviewTime: '20:00' as string,
+  movementBreakReminderEnabled: false,
+  movementBreakReminderTime: '15:00' as string,
   liquidGlassTabBarEnabled: false,
   activeWorkoutMetricColumn: 'rpe' as ActiveWorkoutMetricColumn,
   diarySummaryVisible: false,
@@ -70,6 +79,7 @@ export const PREFERENCE_DEFAULTS = {
   languagePreference: 'system' as LanguagePreference,
   healthTrendOrder: [...HEALTH_TREND_KEYS] as HealthTrendKey[],
   hiddenHealthTrends: [] as HealthTrendKey[],
+  mobileFoodProviderDefault: '' as string,
   foodSearchOwnershipFilter: 'all' as OwnershipFilter,
   foodsLibraryOwnershipFilter: 'all' as OwnershipFilter,
   mealsLibraryOwnershipFilter: 'all' as OwnershipFilter,
@@ -85,6 +95,7 @@ export type AppPreferencesData = {
   notificationsEnabled: boolean;
   restTimerNotificationsEnabled: boolean;
   fastingGoalNotificationsEnabled: boolean;
+  fastingEnabled: boolean;
   hydrationCardVisible: boolean;
   caffeineCardVisible: boolean;
   fastingCardVisible: boolean;
@@ -99,6 +110,14 @@ export type AppPreferencesData = {
   waterReminderIntervalHours: WaterReminderIntervalHours;
   waterReminderWindowStart: string;
   waterReminderWindowEnd: string;
+  mealCaptureReminderEnabled: boolean;
+  mealCaptureWindowStart: string;
+  mealCaptureWindowEnd: string;
+  mealCapturePromptTime: string;
+  mealPhotoReviewEnabled: boolean;
+  mealPhotoReviewTime: string;
+  movementBreakReminderEnabled: boolean;
+  movementBreakReminderTime: string;
   liquidGlassTabBarEnabled: boolean;
   activeWorkoutMetricColumn: ActiveWorkoutMetricColumn;
   diarySummaryVisible: boolean;
@@ -109,6 +128,7 @@ export type AppPreferencesData = {
   languagePreference: LanguagePreference;
   healthTrendOrder: HealthTrendKey[];
   hiddenHealthTrends: HealthTrendKey[];
+  mobileFoodProviderDefault: string;
   foodSearchOwnershipFilter: OwnershipFilter;
   foodsLibraryOwnershipFilter: OwnershipFilter;
   mealsLibraryOwnershipFilter: OwnershipFilter;
@@ -124,6 +144,7 @@ export interface AppPreferencesState extends AppPreferencesData {
   setNotificationsEnabled: (value: boolean) => void;
   setRestTimerNotificationsEnabled: (value: boolean) => void;
   setFastingGoalNotificationsEnabled: (value: boolean) => void;
+  setFastingEnabled: (value: boolean) => void;
   setHydrationCardVisible: (value: boolean) => void;
   setCaffeineCardVisible: (value: boolean) => void;
   setFastingCardVisible: (value: boolean) => void;
@@ -137,6 +158,12 @@ export interface AppPreferencesState extends AppPreferencesData {
   setWaterReminderEnabled: (value: boolean) => void;
   setWaterReminderIntervalHours: (value: WaterReminderIntervalHours) => void;
   setWaterReminderWindow: (start: string, end: string) => void;
+  setMealCaptureReminderEnabled: (value: boolean) => void;
+  setMealCaptureWindow: (start: string, end: string, prompt: string) => void;
+  setMealPhotoReviewEnabled: (value: boolean) => void;
+  setMealPhotoReviewTime: (value: string) => void;
+  setMovementBreakReminderEnabled: (value: boolean) => void;
+  setMovementBreakReminderTime: (value: string) => void;
   setLiquidGlassTabBarEnabled: (value: boolean) => void;
   setActiveWorkoutMetricColumn: (value: ActiveWorkoutMetricColumn) => void;
   setDiarySummaryVisible: (value: boolean) => void;
@@ -149,6 +176,7 @@ export interface AppPreferencesState extends AppPreferencesData {
     order: HealthTrendKey[],
     hiddenKeys: HealthTrendKey[]
   ) => void;
+  setMobileFoodProviderDefault: (value: string) => void;
   setFoodSearchOwnershipFilter: (value: OwnershipFilter) => void;
   setFoodsLibraryOwnershipFilter: (value: OwnershipFilter) => void;
   setMealsLibraryOwnershipFilter: (value: OwnershipFilter) => void;
@@ -208,6 +236,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         set({ restTimerNotificationsEnabled: value }),
       setFastingGoalNotificationsEnabled: (value) =>
         set({ fastingGoalNotificationsEnabled: value }),
+      setFastingEnabled: (value) => set({ fastingEnabled: value }),
       setHydrationCardVisible: (value) => set({ hydrationCardVisible: value }),
       setCaffeineCardVisible: (value) => set({ caffeineCardVisible: value }),
       setFastingCardVisible: (value) => set({ fastingCardVisible: value }),
@@ -228,6 +257,21 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         set({ waterReminderIntervalHours: value }),
       setWaterReminderWindow: (start, end) =>
         set({ waterReminderWindowStart: start, waterReminderWindowEnd: end }),
+      setMealCaptureReminderEnabled: (value) =>
+        set({ mealCaptureReminderEnabled: value }),
+      setMealCaptureWindow: (start, end, prompt) =>
+        set({
+          mealCaptureWindowStart: start,
+          mealCaptureWindowEnd: end,
+          mealCapturePromptTime: prompt,
+        }),
+      setMealPhotoReviewEnabled: (value) =>
+        set({ mealPhotoReviewEnabled: value }),
+      setMealPhotoReviewTime: (value) => set({ mealPhotoReviewTime: value }),
+      setMovementBreakReminderEnabled: (value) =>
+        set({ movementBreakReminderEnabled: value }),
+      setMovementBreakReminderTime: (value) =>
+        set({ movementBreakReminderTime: value }),
       setLiquidGlassTabBarEnabled: (value) =>
         set({ liquidGlassTabBarEnabled: value }),
       setActiveWorkoutMetricColumn: (value) =>
@@ -242,6 +286,8 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
       setLanguagePreference: (value) => set({ languagePreference: value }),
       setHealthTrendLayout: (order, hiddenKeys) =>
         set({ healthTrendOrder: order, hiddenHealthTrends: hiddenKeys }),
+      setMobileFoodProviderDefault: (value) =>
+        set({ mobileFoodProviderDefault: value }),
       setFoodSearchOwnershipFilter: (value) =>
         set({ foodSearchOwnershipFilter: value }),
       setFoodsLibraryOwnershipFilter: (value) =>
@@ -267,6 +313,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         notificationsEnabled: state.notificationsEnabled,
         restTimerNotificationsEnabled: state.restTimerNotificationsEnabled,
         fastingGoalNotificationsEnabled: state.fastingGoalNotificationsEnabled,
+        fastingEnabled: state.fastingEnabled,
         hydrationCardVisible: state.hydrationCardVisible,
         caffeineCardVisible: state.caffeineCardVisible,
         fastingCardVisible: state.fastingCardVisible,
@@ -281,6 +328,14 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         waterReminderIntervalHours: state.waterReminderIntervalHours,
         waterReminderWindowStart: state.waterReminderWindowStart,
         waterReminderWindowEnd: state.waterReminderWindowEnd,
+        mealCaptureReminderEnabled: state.mealCaptureReminderEnabled,
+        mealCaptureWindowStart: state.mealCaptureWindowStart,
+        mealCaptureWindowEnd: state.mealCaptureWindowEnd,
+        mealCapturePromptTime: state.mealCapturePromptTime,
+        mealPhotoReviewEnabled: state.mealPhotoReviewEnabled,
+        mealPhotoReviewTime: state.mealPhotoReviewTime,
+        movementBreakReminderEnabled: state.movementBreakReminderEnabled,
+        movementBreakReminderTime: state.movementBreakReminderTime,
         liquidGlassTabBarEnabled: state.liquidGlassTabBarEnabled,
         // Older persisted blobs without these keys backfill via the default
         // shallow merge — no version bump needed.
@@ -293,6 +348,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         languagePreference: state.languagePreference,
         healthTrendOrder: state.healthTrendOrder,
         hiddenHealthTrends: state.hiddenHealthTrends,
+        mobileFoodProviderDefault: state.mobileFoodProviderDefault,
         foodSearchOwnershipFilter: state.foodSearchOwnershipFilter,
         foodsLibraryOwnershipFilter: state.foodsLibraryOwnershipFilter,
         mealsLibraryOwnershipFilter: state.mealsLibraryOwnershipFilter,

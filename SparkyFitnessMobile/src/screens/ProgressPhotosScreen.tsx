@@ -1,10 +1,10 @@
+import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Platform,
   Text,
   TouchableOpacity,
   View,
@@ -16,6 +16,7 @@ import i18n from '../localization/i18n';
 import Icon from '../components/Icon';
 import SafeImage from '../components/SafeImage';
 import ProgressPhotoViewer from '../components/ProgressPhotoViewer';
+import ProgressPhotoCapture from '../components/ProgressPhotoCapture';
 import PhotoDayWeight from '../components/PhotoDayWeight';
 import PhotoDaySlots from '../components/PhotoDaySlots';
 import ActionSheet, {
@@ -37,7 +38,7 @@ import {
 import { useCheckInPhotoSource } from '../hooks/useCheckInPhotoSource';
 import { usePreferences } from '../hooks/usePreferences';
 import { getApiErrorMessage } from '../services/api/errors';
-import { pickImageFromCamera, pickImagesFromLibrary } from '../utils/pickImage';
+import { pickImagesFromLibrary } from '../utils/pickImage';
 import { formatDateLabel, getTodayDate } from '../utils/dateUtils';
 import {
   formatWeightDisplay,
@@ -113,6 +114,7 @@ interface TimelineRow {
 const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const usesNativeHeader = useNativeIOSHeadersActive();
   const dateLocale = i18n.language.startsWith('pl') ? 'pl-PL' : 'en-US';
   const [accentPrimary, mutedColor] = useCSSVariable([
     '--color-accent-primary',
@@ -137,6 +139,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
   );
   /** Angle whose action sheet is open; also the target of a pick. */
   const [sheetAngle, setSheetAngle] = useState<PhotoType>('front');
+  const [captureAngle, setCaptureAngle] = useState<PhotoType | null>(null);
   const actionSheetRef = useRef<ActionSheetRef>(null);
   const calendarRef = useRef<CalendarSheetRef>(null);
   // The picker is a native modal; without this a double tap opens two.
@@ -217,39 +220,37 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
     [navigation]
   );
 
-  // Uploads land immediately rather than staging behind a Save: this screen is
-  // somewhere you browse, and unsaved state plus a back-guard does not belong
-  // on it. One pick is one request, so the uploads stay serial anyway.
-  const uploadFrom = useCallback(
-    async (source: 'camera' | 'library', type: PhotoType) => {
+  // Camera capture and library selection upload one image at a time. The
+  // camera's optional guide exists only in the preview, never in this URI.
+  const uploadCaptured = useCallback(
+    async (uri: string, type: PhotoType): Promise<boolean> => {
+      try {
+        await uploadAsync({ date: selectedDate, type, uri });
+        return true;
+      } catch (err) {
+        Toast.show({
+          type: 'error',
+          text1: t('progressPhotos.uploadError', {
+            defaultValue: 'Could not save that photo',
+          }),
+          text2: getApiErrorMessage(err) ?? undefined,
+        });
+        return false;
+      }
+    },
+    [selectedDate, t, uploadAsync]
+  );
+
+  const uploadFromLibrary = useCallback(
+    async (type: PhotoType) => {
       if (pickerLock.current) return;
       pickerLock.current = true;
       try {
-        let uri: string | undefined;
-        if (source === 'camera') {
-          const result = await pickImageFromCamera();
-          if (result.status === 'denied') {
-            Toast.show({
-              type: 'error',
-              text1: t('progressPhotos.cameraPermission', {
-                defaultValue: 'Camera permission is required',
-              }),
-              text2: t('progressPhotos.cameraPermissionHint', {
-                defaultValue:
-                  'Enable camera access for SparkyFitness in Settings.',
-              }),
-            });
-            return;
-          }
-          if (result.status === 'cancelled') return;
-          uri = result.image.uri;
-        } else {
-          uri = (await pickImagesFromLibrary(1))[0]?.uri;
-        }
+        const uri = (await pickImagesFromLibrary(1))[0]?.uri;
         if (!uri) return;
         // The server upserts on (user_id, entry_date, photo_type), so an
         // upload over an existing angle replaces it with no delete first.
-        await uploadAsync({ date: selectedDate, type, uri });
+        await uploadCaptured(uri, type);
       } catch (err) {
         Toast.show({
           type: 'error',
@@ -262,7 +263,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
         pickerLock.current = false;
       }
     },
-    [t, uploadAsync, selectedDate]
+    [t, uploadCaptured]
   );
 
   const removePhoto = useCallback(
@@ -295,14 +296,14 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
       {
         key: 'camera',
         label: t('progressPhotos.takePhoto', { defaultValue: 'Take Photo' }),
-        onPress: () => void uploadFrom('camera', sheetAngle),
+        onPress: () => setCaptureAngle(sheetAngle),
       },
       {
         key: 'library',
         label: t('progressPhotos.chooseLibrary', {
           defaultValue: 'Choose from Library',
         }),
-        onPress: () => void uploadFrom('library', sheetAngle),
+        onPress: () => void uploadFromLibrary(sheetAngle),
       },
     ];
     if (byType.has(sheetAngle)) {
@@ -314,7 +315,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
       });
     }
     return items;
-  }, [t, uploadFrom, removePhoto, sheetAngle, byType]);
+  }, [t, uploadFromLibrary, removePhoto, sheetAngle, byType]);
 
   const formatDelta = (deltaKg: number): string => {
     // Convert the difference itself, not each end, so rounding happens once.
@@ -438,7 +439,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <View
       className="flex-1 bg-background"
-      style={Platform.OS === 'android' ? { paddingTop: insets.top } : undefined}
+      style={usesNativeHeader ? undefined : { paddingTop: insets.top }}
     >
       {header}
 
@@ -578,6 +579,15 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
         }
         onClose={() => setZoomed(null)}
       />
+
+      {captureAngle != null ? (
+        <ProgressPhotoCapture
+          visible
+          angle={captureAngle}
+          onClose={() => setCaptureAngle(null)}
+          onCaptured={(uri) => uploadCaptured(uri, captureAngle)}
+        />
+      ) : null}
     </View>
   );
 };

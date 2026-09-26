@@ -155,6 +155,8 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
 
   const cancelledRef = useRef(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const submitLock = useRef(false);
+  const requestSequence = useRef(0);
   const [elapsedSec, setElapsedSec] = useState(0);
 
   useEffect(() => {
@@ -169,6 +171,8 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     return () => {
+      requestSequence.current += 1;
+      submitLock.current = false;
       abortControllerRef.current?.abort();
     };
   }, []);
@@ -286,15 +290,28 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
     return value;
   }, [totalWeight]);
 
-  const handleCancel = () => {
+  const invalidateSubmission = () => {
+    requestSequence.current += 1;
+    submitLock.current = false;
     cancelledRef.current = true;
     abortControllerRef.current?.abort();
     abortControllerRef.current = null;
+  };
+
+  const handleCancel = () => {
+    invalidateSubmission();
     mutation.reset();
   };
 
+  const handleLogManually = () => {
+    invalidateSubmission();
+    navigation
+      .getParent<NativeStackNavigationProp<RootStackParamList>>()
+      ?.replace('FoodSearch', { date, mealTypeId: mealTypeId ?? undefined });
+  };
+
   const submit = async () => {
-    if (mutation.isPending) return;
+    if (mutation.isPending || submitLock.current) return;
 
     let payloadWeight: number | undefined;
     let payloadDescription: string | undefined;
@@ -345,6 +362,8 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
     // Format rejection is owned server-side (it returns UNSUPPORTED_MIME_TYPE,
     // surfaced on the review screen). The client can't reliably pre-screen HEIC
     // because support depends on the vision provider, which the app never fetches.
+    submitLock.current = true;
+    const requestId = ++requestSequence.current;
     const imagePayloads: { base64Image: string; mimeType: string }[] = [];
     try {
       // Sequential rather than Promise.all: converting several images to base64
@@ -358,6 +377,8 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
         });
       }
     } catch (error) {
+      if (requestId !== requestSequence.current) return;
+      submitLock.current = false;
       const message = error instanceof Error ? error.message : String(error);
       addLog(`[Food Photo Improve] Failed to read photo: ${message}`, 'ERROR');
       Toast.show({
@@ -372,6 +393,7 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
       return;
     }
 
+    if (requestId !== requestSequence.current) return;
     cancelledRef.current = false;
     const controller = new AbortController();
     abortControllerRef.current = controller;
@@ -386,6 +408,9 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
       },
       {
         onSuccess: (estimate) => {
+          if (requestId !== requestSequence.current || cancelledRef.current)
+            return;
+          submitLock.current = false;
           abortControllerRef.current = null;
           navigation.navigate('EstimateReview', {
             date,
@@ -399,6 +424,8 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
           });
         },
         onError: (error) => {
+          if (requestId !== requestSequence.current) return;
+          submitLock.current = false;
           abortControllerRef.current = null;
           if (cancelledRef.current) return;
           const copy = mapEstimateError(error.code);
@@ -544,9 +571,9 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
         contentContainerClassName="px-4 pt-4"
         contentContainerStyle={{
           flexGrow: 1,
-          paddingBottom: Math.max(insets.bottom, 16) + 80,
+          paddingBottom: Math.max(insets.bottom, 16) + 140,
         }}
-        bottomOffset={80}
+        bottomOffset={140}
         keyboardShouldPersistTaps="handled"
       >
         <View className="mb-4">
@@ -716,6 +743,7 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
               key="submit-btn"
               entering={FadeIn.duration(FADE_IN_MS)}
               exiting={FadeOut.duration(FADE_OUT_MS)}
+              className="gap-2"
             >
               <Button
                 variant="primary"
@@ -725,6 +753,11 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 {t('foodPhotoImprove.generateEstimate', {
                   defaultValue: 'Generate estimate',
+                })}
+              </Button>
+              <Button variant="ghost" onPress={handleLogManually}>
+                {t('foodScan.photo.logManually', {
+                  defaultValue: 'Log manually',
                 })}
               </Button>
             </Animated.View>

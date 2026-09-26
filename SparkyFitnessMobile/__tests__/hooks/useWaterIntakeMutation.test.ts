@@ -6,6 +6,7 @@ import {
   fetchWaterContainers,
   changeWaterIntake,
 } from '../../src/services/api/measurementsApi';
+import { logPhoneContainerWaterAction } from '../../src/services/phoneContainerWaterAction';
 import type { DailySummaryRawData } from '../../src/hooks/useDailySummary';
 import {
   dailySummaryQueryKey,
@@ -20,6 +21,9 @@ import {
 jest.mock('../../src/services/api/measurementsApi', () => ({
   fetchWaterContainers: jest.fn(),
   changeWaterIntake: jest.fn(),
+}));
+jest.mock('../../src/services/phoneContainerWaterAction', () => ({
+  logPhoneContainerWaterAction: jest.fn(),
 }));
 
 jest.mock('../../src/services/LogService', () => ({
@@ -42,6 +46,10 @@ const mockFetchWaterContainers = fetchWaterContainers as jest.MockedFunction<
 const mockChangeWaterIntake = changeWaterIntake as jest.MockedFunction<
   typeof changeWaterIntake
 >;
+const mockLogPhoneContainerWaterAction =
+  logPhoneContainerWaterAction as jest.MockedFunction<
+    typeof logPhoneContainerWaterAction
+  >;
 
 const primaryContainer = {
   id: 1,
@@ -74,6 +82,7 @@ describe('useWaterIntakeMutation', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLogPhoneContainerWaterAction.mockResolvedValue('synced');
     queryClient = createTestQueryClient();
   });
 
@@ -159,11 +168,11 @@ describe('useWaterIntakeMutation', () => {
     });
 
     await waitFor(() => {
-      expect(mockChangeWaterIntake).toHaveBeenCalledWith({
-        entryDate: testDate,
-        changeDrinks: 1,
-        containerId: 9,
-      });
+      expect(mockLogPhoneContainerWaterAction).toHaveBeenCalledWith(
+        testDate,
+        9,
+        queryClient
+      );
     });
   });
 
@@ -248,7 +257,7 @@ describe('useWaterIntakeMutation', () => {
       mockFetchWaterContainers.mockResolvedValue([primaryContainer]);
     });
 
-    test('increment calls changeWaterIntake with +1', async () => {
+    test('increment queues a real container action', async () => {
       mockChangeWaterIntake.mockResolvedValue({
         id: '1',
         water_ml: 750,
@@ -271,11 +280,12 @@ describe('useWaterIntakeMutation', () => {
       });
 
       await waitFor(() => {
-        expect(mockChangeWaterIntake).toHaveBeenCalledWith({
-          entryDate: testDate,
-          changeDrinks: 1,
-          containerId: 1,
-        });
+        expect(mockLogPhoneContainerWaterAction).toHaveBeenCalledWith(
+          testDate,
+          1,
+          queryClient
+        );
+        expect(mockChangeWaterIntake).not.toHaveBeenCalled();
       });
     });
 
@@ -310,17 +320,12 @@ describe('useWaterIntakeMutation', () => {
       });
     });
 
-    test('optimistic update adjusts waterConsumed in cache', async () => {
+    test('a pending container does not inflate confirmed water', async () => {
       const summary = makeRawData(500);
       queryClient.setQueryData(dailySummaryQueryKey(testDate), summary);
 
-      // Hold the mutation so we can check the optimistic state
-      let resolveMutation: (value: {
-        id: string;
-        water_ml: number;
-        entry_date: string;
-      }) => void;
-      mockChangeWaterIntake.mockImplementation(
+      let resolveMutation: (value: 'synced') => void;
+      mockLogPhoneContainerWaterAction.mockImplementation(
         () =>
           new Promise((resolve) => {
             resolveMutation = resolve;
@@ -342,36 +347,31 @@ describe('useWaterIntakeMutation', () => {
         result.current.increment();
       });
 
-      // Check optimistic update applied
+      // The server may resolve a linked food differently, so only confirmed
+      // water belongs in the total while this operation is pending.
       await waitFor(() => {
         const cached = queryClient.getQueryData<DailySummaryRawData>(
           dailySummaryQueryKey(testDate)
         );
-        expect(cached?.waterIntake.water_ml).toBe(750); // 500 + 250 (container volume)
+        expect(cached?.waterIntake.water_ml).toBe(500);
       });
 
-      // Resolve with server truth
       await act(async () => {
-        resolveMutation!({ id: '1', water_ml: 760, entry_date: testDate });
+        resolveMutation!('synced');
       });
-
-      // Server truth overwrites optimistic value
-      await waitFor(() => {
-        const cached = queryClient.getQueryData<DailySummaryRawData>(
-          dailySummaryQueryKey(testDate)
-        );
-        expect(cached?.waterIntake.water_ml).toBe(760);
-      });
+      expect(mockLogPhoneContainerWaterAction).toHaveBeenCalledTimes(1);
     });
 
-    test('server truth overwrites optimistic value on success', async () => {
+    test('a server-projected total is not overwritten on sync', async () => {
       const summary = makeRawData(1000);
       queryClient.setQueryData(dailySummaryQueryKey(testDate), summary);
 
-      mockChangeWaterIntake.mockResolvedValue({
-        id: '1',
-        water_ml: 1300,
-        entry_date: testDate,
+      mockLogPhoneContainerWaterAction.mockImplementation(async () => {
+        queryClient.setQueryData<DailySummaryRawData>(
+          dailySummaryQueryKey(testDate),
+          makeRawData(1300)
+        );
+        return 'synced';
       });
 
       const { result } = renderHook(
@@ -401,7 +401,9 @@ describe('useWaterIntakeMutation', () => {
       const summary = makeRawData(500);
       queryClient.setQueryData(dailySummaryQueryKey(testDate), summary);
 
-      mockChangeWaterIntake.mockRejectedValue(new Error('Network error'));
+      mockLogPhoneContainerWaterAction.mockRejectedValue(
+        new Error('Storage error')
+      );
 
       const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
@@ -464,11 +466,6 @@ describe('useWaterIntakeMutation', () => {
     });
 
     test("invalidates the day's water log after a preset is logged", async () => {
-      mockChangeWaterIntake.mockResolvedValue({
-        id: '1',
-        water_ml: 750,
-        entry_date: testDate,
-      });
       const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
 
       const { result } = renderHook(
@@ -545,12 +542,8 @@ describe('useWaterIntakeMutation', () => {
       const summary = makeRawData(500);
       queryClient.setQueryData(dailySummaryQueryKey(testDate), summary);
 
-      let resolveMutation: (value: {
-        id: string;
-        water_ml: number;
-        entry_date: string;
-      }) => void;
-      mockChangeWaterIntake.mockImplementation(
+      let resolveMutation: (value: 'synced') => void;
+      mockLogPhoneContainerWaterAction.mockImplementation(
         () =>
           new Promise((resolve) => {
             resolveMutation = resolve;
@@ -576,7 +569,7 @@ describe('useWaterIntakeMutation', () => {
       // 500 + container volume (250) -- a linked drink's real credit is
       // foodWater(entry) x hydration_factor, a number the client can't predict.
       await waitFor(() => {
-        expect(mockChangeWaterIntake).toHaveBeenCalled();
+        expect(mockLogPhoneContainerWaterAction).toHaveBeenCalled();
       });
       const midFlightCached = queryClient.getQueryData<DailySummaryRawData>(
         dailySummaryQueryKey(testDate)
@@ -584,30 +577,20 @@ describe('useWaterIntakeMutation', () => {
       expect(midFlightCached?.waterIntake.water_ml).toBe(500);
 
       await act(async () => {
-        resolveMutation!({ id: '1', water_ml: 640, entry_date: testDate });
+        resolveMutation!('synced');
       });
 
       await waitFor(() => {
         const cached = queryClient.getQueryData<DailySummaryRawData>(
           dailySummaryQueryKey(testDate)
         );
-        expect(cached?.waterIntake.water_ml).toBe(640);
+        expect(cached?.waterIntake.water_ml).toBe(500);
       });
     });
 
-    test('rapid taps: each mutation sends to server', async () => {
+    test('rapid taps each create a separate durable action', async () => {
       const summary = makeRawData(500);
       queryClient.setQueryData(dailySummaryQueryKey(testDate), summary);
-
-      let callCount = 0;
-      mockChangeWaterIntake.mockImplementation(async () => {
-        callCount++;
-        return {
-          id: String(callCount),
-          water_ml: 500 + callCount * 250,
-          entry_date: testDate,
-        };
-      });
 
       const { result } = renderHook(
         () => useWaterIntakeMutation({ date: testDate }),
@@ -628,7 +611,7 @@ describe('useWaterIntakeMutation', () => {
       });
 
       await waitFor(() => {
-        expect(mockChangeWaterIntake).toHaveBeenCalledTimes(3);
+        expect(mockLogPhoneContainerWaterAction).toHaveBeenCalledTimes(3);
       });
     });
   });

@@ -34,6 +34,28 @@ describe('SetTypeMenu', () => {
     // The current type is check-marked.
     expect(getByLabelText('✓ Normal')).toBeTruthy();
     expect(getByLabelText('Warm-up')).toBeTruthy();
+    expect(getByLabelText('Drop set')).toBeTruthy();
+    expect(getByLabelText('Failure')).toBeTruthy();
+  });
+
+  it('recognizes imported set-type spellings without changing the stored value', () => {
+    expect(
+      renderMenu({ currentType: 'Drop Set' }).getByLabelText('✓ Drop set')
+    ).toBeTruthy();
+    expect(
+      renderMenu({ currentType: 'Warm-up Set' }).getByLabelText('✓ Warm-up')
+    ).toBeTruthy();
+    expect(
+      renderMenu({ currentType: 'To Failure' }).getByLabelText('✓ Failure')
+    ).toBeTruthy();
+  });
+
+  it('selects the canonical drop value', () => {
+    const { getByLabelText, onSelect } = renderMenu({
+      currentType: 'Drop Set',
+    });
+    fireEvent.press(getByLabelText('✓ Drop set'));
+    expect(onSelect).toHaveBeenCalledWith('drop');
   });
 
   it('omits the Delete item unless onDelete is passed (form surfaces opt in)', () => {

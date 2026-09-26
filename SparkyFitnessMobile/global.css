@@ -14,8 +14,26 @@
     --radius-xl: 16px;
 
     @variant light {
-      --color-background: hsl(220, 25%, 96%);
-      --color-surface: hsl(220, 20%, 98%);
+      --color-brand-primary: #0b5e46;
+      --color-brand-primary-dark: #083f31;
+      --color-brand-secondary: #0b5e46;
+      --color-brand-accent: #ff5a1f;
+      --color-brand-supporting: #4b8c69;
+      --color-background-primary: #f6f0e3;
+      --color-background-secondary: #f0eadd;
+      --color-surface-primary: #fffdf8;
+      --color-surface-elevated: #fffdf8;
+      --color-text-tertiary: #66776d;
+      --color-separator: #ded8cb;
+      --color-positive: #0b5e46;
+      --color-warning: #9b5d18;
+      --color-destructive: #b42333;
+      --color-informational: #35658c;
+      --color-progress-low: #b7d2bd;
+      --color-progress-medium: #4b8c69;
+      --color-progress-high: #0b5e46;
+      --color-background: var(--color-background-primary);
+      --color-surface: var(--color-background-secondary);
       --color-raised: hsl(0, 0%, 100%);
       --color-chrome: hsl(0, 0%, 100%);
 
@@ -24,31 +42,32 @@
       --color-border-strong: hsl(212, 18%, 83%);
       --color-chrome-border: hsl(220, 20%, 88%);
 
-      --color-text-primary: hsl(222, 47%, 11%);
-      --color-text-secondary: hsl(215, 19%, 40%);
-      --color-text-muted: hsl(215, 20%, 65%);
+      --color-text-primary: #171c22;
+      --color-text-secondary: #40554c;
+      --color-text-muted: #596b60;
       --color-icon-decorative: hsl(215, 19%, 40%);
 
-      --color-text-link: hsl(220, 90%, 65%);
+      --color-text-link: #0b5e46;
 
-      /* --color-accent-primary:    hsl(20, 89%, 48%);    */
-      --color-accent-primary: hsl(220, 91%, 64%);
-      --color-accent-muted: hsl(220, 49%, 55%);
-      --color-accent-text: hsl(220, 88%, 94%);
+      --color-accent-primary: var(--color-brand-secondary);
+      --color-accent-muted: var(--color-brand-supporting);
+      --color-accent-text: #ffffff;
 
-      --color-tab-active: hsl(220, 91%, 64%);
+      --color-tab-active: var(--color-brand-secondary);
       --color-tab-inactive: hsl(220, 16%, 47%);
       --color-form-enabled: hsl(220, 22%, 55%);
       --color-form-disabled: hsl(220, 12%, 82%);
 
-      --color-calories: hsl(230, 91%, 64%);
-      --color-macro-protein: hsl(35, 90%, 64%);
-      --color-macro-carbs: hsl(124, 53%, 66%);
-      --color-macro-fat: hsl(195, 74%, 67%);
-      --color-macro-fiber: hsl(126, 35%, 43%);
+      --color-calories: #087257;
+      --color-energy-track: #d6e5df;
+      --color-macro-protein: #95590f;
+      --color-macro-carbs: #0e7746;
+      --color-macro-fat: #116f8d;
+      --color-macro-fiber: #a3394b;
 
-      --color-hydration: hsl(200, 40%, 60%);
-      --color-exercise: hsl(146, 68%, 66%);
+      --color-hydration: #146f8f;
+      --color-exercise: #09785d;
+      --color-activity-energy: #b54821;
 
       --color-cat-slate: hsl(220, 9%, 46%);
       --color-cat-pink: hsl(340, 75%, 55%);
@@ -80,7 +99,7 @@
 
       /* Deliberately distinct from --color-cat-amber, which also colors
          moderate RPE and a superset rail on the same live-workout screen. */
-      --color-pr: hsl(36, 92%, 44%);
+      --color-pr: #b04414;
 
       --color-wellness-menstrual: hsl(354, 75%, 55%);
       --color-wellness-follicular: hsl(158, 55%, 45%);
@@ -90,40 +109,60 @@
     }
 
     @variant dark {
-      --color-background: hsl(220, 20%, 6%);
-      --color-surface: hsl(220, 18%, 9%);
-      --color-raised: hsl(220, 16%, 13%);
-      --color-chrome: hsl(220, 22%, 7%);
+      --color-brand-primary: #f6f0e3;
+      --color-brand-primary-dark: #0b5e46;
+      --color-brand-secondary: #08d6ad;
+      --color-brand-accent: #ff8052;
+      --color-brand-supporting: #72c7a8;
+      --color-background-primary: #09161d;
+      --color-background-secondary: #0e2028;
+      --color-surface-primary: #13272f;
+      --color-surface-elevated: #1d343e;
+      --color-text-tertiary: #99b2bf;
+      --color-separator: #30474f;
+      --color-positive: #08d6ad;
+      --color-warning: #e7ab63;
+      --color-destructive: #f0808b;
+      --color-informational: #92bddb;
+      --color-progress-low: #315744;
+      --color-progress-medium: #08d6ad;
+      --color-progress-high: #a9d5b8;
+      --color-background: var(--color-background-primary);
+      --color-surface: var(--color-surface-primary);
+      --color-raised: var(--color-surface-elevated);
+      --color-chrome: #09161d;
 
-      --color-border-subtle: hsl(220, 15%, 14%);
-      --color-border: hsl(220, 15%, 18%);
-      --color-border-strong: hsl(220, 15%, 22%);
+      --color-border-subtle: #30474f;
+      --color-border: #405963;
+      --color-border-strong: #66828e;
       --color-chrome-border: hsl(220, 18%, 16%);
 
-      --color-text-primary: hsl(220, 15%, 92%);
-      --color-text-secondary: hsl(220, 10%, 80%);
-      --color-text-muted: hsl(220, 10%, 50%);
-      --color-icon-decorative: hsl(220, 10%, 50%);
+      --color-text-primary: #edf5f7;
+      --color-text-secondary: #b4c8d2;
+      --color-text-muted: #99b2bf;
+      --color-icon-decorative: #99b2bf;
 
-      --color-accent-primary: hsl(220, 85%, 60%);
-      --color-accent-muted: hsl(220, 65%, 66%);
-      --color-accent-text: hsl(221, 100%, 97%);
+      --color-accent-primary: var(--color-brand-secondary);
+      --color-accent-muted: var(--color-brand-supporting);
+      --color-accent-text: #09161d;
 
-      --color-text-link: hsl(220, 80%, 65%);
+      --color-text-link: var(--color-brand-secondary);
 
-      --color-tab-active: hsl(220, 85%, 60%);
-      --color-tab-inactive: hsl(215, 15%, 55%);
+      --color-tab-active: var(--color-brand-secondary);
+      --color-tab-inactive: #99b2bf;
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 26%);
 
-      --color-calories: hsl(233, 62%, 71%);
-      --color-macro-protein: hsl(35, 70%, 64%);
-      --color-macro-carbs: hsl(124, 36%, 66%);
-      --color-macro-fat: hsl(195, 60%, 67%);
-      --color-macro-fiber: hsl(126, 25%, 45%);
+      --color-calories: #08dfb4;
+      --color-energy-track: #154b47;
+      --color-macro-protein: #f4bd4c;
+      --color-macro-carbs: #65d99a;
+      --color-macro-fat: #4ec6e8;
+      --color-macro-fiber: #ff7c83;
 
-      --color-hydration: hsl(200, 50%, 52%);
-      --color-exercise: hsl(158, 49%, 48%);
+      --color-hydration: #39c9f1;
+      --color-exercise: #21ddb0;
+      --color-activity-energy: #ff8052;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);
@@ -134,8 +173,8 @@
       --color-cat-teal: hsl(182, 35%, 52%);
       --color-cat-amber: hsl(40, 60%, 58%);
 
-      --color-progress-track: hsl(218, 41%, 23%);
-      --color-progress-rail: hsl(218, 41%, 16%);
+      --color-progress-track: #2b424c;
+      --color-progress-rail: #20363f;
       --color-progress-overfill: hsl(357, 66%, 65%);
 
       --color-bg-success: hsl(159, 35%, 19%);
@@ -154,7 +193,7 @@
       --color-text-danger-subtle: hsl(357, 88%, 88%);
       --color-icon-danger: hsl(358, 80%, 65%);
 
-      --color-pr: hsl(42, 88%, 64%);
+      --color-pr: var(--color-brand-accent);
 
       --color-wellness-menstrual: hsl(354, 75%, 65%);
       --color-wellness-follicular: hsl(158, 55%, 55%);
@@ -164,40 +203,60 @@
     }
 
     @variant amoled {
+      --color-brand-primary: #f6f0e3;
+      --color-brand-primary-dark: #0b5e46;
+      --color-brand-secondary: #11a67e;
+      --color-brand-accent: #ff8052;
+      --color-brand-supporting: #72c7a8;
+      --color-background-primary: #000000;
+      --color-background-secondary: #101913;
+      --color-surface-primary: #19251c;
+      --color-surface-elevated: #253329;
+      --color-text-tertiary: #91a699;
+      --color-separator: #30473b;
+      --color-positive: #11a67e;
+      --color-warning: #e7ab63;
+      --color-destructive: #f0808b;
+      --color-informational: #92bddb;
+      --color-progress-low: #315744;
+      --color-progress-medium: #11a67e;
+      --color-progress-high: #a9d5b8;
       --color-background: hsl(0, 0%, 0%);
-      --color-surface: hsl(220, 18%, 4%);
-      --color-raised: hsl(220, 16%, 8%);
+      --color-surface: var(--color-surface-primary);
+      --color-raised: var(--color-surface-elevated);
       --color-chrome: hsla(0, 0%, 0%, 0.9);
 
-      --color-border-subtle: hsl(220, 15%, 10%);
-      --color-border: hsl(220, 15%, 13%);
-      --color-border-strong: hsl(220, 15%, 17%);
+      --color-border-subtle: #304335;
+      --color-border: #3c5141;
+      --color-border-strong: #506954;
       --color-chrome-border: hsl(220, 18%, 11%);
 
       --color-text-primary: hsl(220, 15%, 92%);
       --color-text-secondary: hsl(220, 10%, 70%);
-      --color-text-muted: hsl(220, 10%, 50%);
-      --color-icon-decorative: hsl(220, 10%, 50%);
+      --color-text-muted: #a9bbad;
+      --color-icon-decorative: #a9bbad;
 
-      --color-accent-primary: hsl(220, 85%, 60%);
-      --color-accent-muted: hsl(220, 65%, 66%);
-      --color-accent-text: hsl(221, 100%, 97%);
+      --color-accent-primary: var(--color-brand-secondary);
+      --color-accent-muted: var(--color-brand-supporting);
+      --color-accent-text: #000000;
 
-      --color-text-link: hsl(220, 80%, 65%);
+      --color-text-link: var(--color-brand-secondary);
 
-      --color-tab-active: hsl(220, 85%, 60%);
+      --color-tab-active: var(--color-brand-secondary);
       --color-tab-inactive: hsl(215, 15%, 55%);
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 18%);
 
-      --color-calories: hsl(233, 62%, 71%);
-      --color-macro-protein: hsl(35, 70%, 64%);
-      --color-macro-carbs: hsl(124, 36%, 66%);
-      --color-macro-fat: hsl(195, 60%, 67%);
-      --color-macro-fiber: hsl(126, 25%, 45%);
+      --color-calories: #1bd8ad;
+      --color-energy-track: #24524a;
+      --color-macro-protein: #f4bd4c;
+      --color-macro-carbs: #65d99a;
+      --color-macro-fat: #4ec6e8;
+      --color-macro-fiber: #ff7c83;
 
       --color-hydration: hsl(200, 50%, 52%);
-      --color-exercise: hsl(158, 49%, 48%);
+      --color-exercise: #21ddb0;
+      --color-activity-energy: #ff8052;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);
@@ -227,7 +286,7 @@
       --color-text-danger-subtle: hsl(357, 88%, 88%);
       --color-icon-danger: hsl(358, 80%, 65%);
 
-      --color-pr: hsl(42, 88%, 64%);
+      --color-pr: var(--color-brand-accent);
 
       --color-wellness-menstrual: hsl(354, 75%, 65%);
       --color-wellness-follicular: hsl(158, 55%, 55%);

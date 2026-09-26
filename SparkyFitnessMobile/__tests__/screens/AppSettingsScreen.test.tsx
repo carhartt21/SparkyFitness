@@ -11,6 +11,11 @@ import {
 } from '../../src/stores/appPreferencesStore';
 import i18n, { initializeI18n } from '../../src/localization/i18n';
 import { AppLanguageNative } from '../../src/services/appLanguageNative';
+import { cancelFastGoalNotification } from '../../src/hooks/useFasting';
+
+jest.mock('../../src/hooks/useFasting', () => ({
+  cancelFastGoalNotification: jest.fn(async () => undefined),
+}));
 
 jest.mock('../../src/components/BottomSheetPicker', () => {
   const React = require('react');
@@ -94,9 +99,6 @@ function picker() {
   };
 }
 
-// Switch order with the liquid glass row absent: [Haptics, Camera].
-const HAPTICS_SWITCH_INDEX = 0;
-
 describe('AppSettingsScreen', () => {
   beforeEach(async () => {
     jest.clearAllMocks();
@@ -116,9 +118,7 @@ describe('AppSettingsScreen', () => {
 
     expect(getByText('Language')).toBeTruthy();
     expect(
-      getByText(
-        'Use your device language or choose a language for SparkyFitness.'
-      )
+      getByText('Use your device language or choose a language for X on Track.')
     ).toBeTruthy();
   });
 
@@ -211,11 +211,18 @@ describe('AppSettingsScreen', () => {
   });
 
   it('flips the haptics preference from its switch', () => {
-    const { UNSAFE_getAllByType } = renderScreen();
-    const switches = UNSAFE_getAllByType(require('react-native').Switch);
-
-    fireEvent(switches[HAPTICS_SWITCH_INDEX], 'valueChange', false);
+    renderScreen();
+    fireEvent(screen.getByLabelText('Haptic Feedback'), 'valueChange', false);
 
     expect(useAppPreferencesStore.getState().hapticsEnabled).toBe(false);
+  });
+
+  it('disables fasting without deleting the existing card preference', () => {
+    renderScreen();
+    fireEvent(screen.getByLabelText('Fasting'), 'valueChange', false);
+
+    expect(useAppPreferencesStore.getState().fastingEnabled).toBe(false);
+    expect(useAppPreferencesStore.getState().fastingCardVisible).toBe(true);
+    expect(cancelFastGoalNotification).toHaveBeenCalledTimes(1);
   });
 });
