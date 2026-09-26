@@ -1,12 +1,6 @@
-import {
-  Image,
-  Pressable,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { useCSSVariable, useUniwind } from 'uniwind';
+import { useCSSVariable } from 'uniwind';
 import { useAppLocale } from '../localization';
 import { formatDate } from '../utils/dateUtils';
 import Icon from './Icon';
@@ -22,34 +16,10 @@ interface Props {
 export default function DashboardHeader(props: Props) {
   const { t } = useTranslation();
   const locale = useAppLocale();
-  const { theme } = useUniwind();
   const { fontScale } = useWindowDimensions();
   const color = useCSSVariable('--color-text-primary') as string;
   return (
     <View className="pt-3 pb-2">
-      <View className="flex-row items-center gap-3 mb-3">
-        <Image
-          accessible={false}
-          source={
-            theme === 'light'
-              ? require('../../assets/brand/x-on-track-light.png')
-              : require('../../assets/brand/x-on-track-dark.png')
-          }
-          style={{ width: 44, height: 44, borderRadius: 10 }}
-          resizeMode="contain"
-        />
-        <View className="flex-1">
-          <Text
-            accessibilityRole="header"
-            className="text-xl font-bold text-text-primary"
-          >
-            {t('brand.name', { defaultValue: 'X on Track' })}
-          </Text>
-          <Text className="text-xs text-text-secondary">
-            {t('brand.tagline', { defaultValue: 'Keep getting better.' })}
-          </Text>
-        </View>
-      </View>
       <View
         style={{ flexDirection: fontScale > 1.3 ? 'column' : 'row' }}
         className="items-center justify-between gap-1"

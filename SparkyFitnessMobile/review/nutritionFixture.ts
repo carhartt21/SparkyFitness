@@ -1,3 +1,4 @@
+import type { WaterIntakeLogEntry } from '@workspace/shared';
 import type { FoodItem } from '../src/types/foods';
 import type { FoodEntry } from '../src/types/foodEntries';
 import type {
@@ -34,6 +35,9 @@ export function createNutritionFixture(scenario: string) {
       .foodEntries
   );
   let nextId = 1;
+  let waterMl = scenario === 'empty' ? 0 : summaryFixture.waterIntake;
+  const waterLog: WaterIntakeLogEntry[] = [];
+
   const snapshot = () => clone(entries);
   return {
     snapshot,
@@ -46,7 +50,89 @@ export function createNutritionFixture(scenario: string) {
         path === '/api/user-preferences/bootstrap-timezone'
       )
         return { timezone: 'Europe/Berlin' };
+      if (method === 'POST' && path === '/api/measurements/water-intake') {
+        const payload = JSON.parse(body ?? '{}') as {
+          entry_date: string;
+          change_drinks: number;
+          container_id: number;
+        };
+        if (
+          payload.entry_date !== reviewDate ||
+          payload.change_drinks !== 1 ||
+          payload.container_id !== -1
+        )
+          throw new Error('Unconfigured water write');
+        waterMl += 250;
+        waterLog.push({
+          id: `review-water-${waterLog.length + 1}`,
+          user_id: 'review-user',
+          entry_date: reviewDate,
+          water_ml: 250,
+          container_id: null,
+          container_name: null,
+          source: 'manual',
+          created_at: `${reviewDate}T08:00:00Z`,
+          logged_at: `${reviewDate}T08:00:00Z`,
+        });
+        return { water_ml: waterMl };
+      }
       if (method === 'GET') {
+        if (path === `/api/v2/measurements/water-intake/${reviewDate}/log`)
+          return waterLog.map((entry) => ({ ...entry }));
+        if (path === '/api/exercise-stats/review') {
+          const bucket = {
+            sessions: 0,
+            exerciseEntries: 0,
+            distanceMeters: 0,
+            durationMinutes: 0,
+            liftedVolumeKg: 0,
+            reps: 0,
+            inferredEntries: 0,
+          };
+          const period = (startDate: string, endDate: string) => ({
+            startDate,
+            endDate,
+            overall: bucket,
+            running: bucket,
+            cycling: bucket,
+            strength: bucket,
+            other: bucket,
+          });
+          const current = period(
+            url.searchParams.get('startDate')!,
+            url.searchParams.get('endDate')!
+          );
+          const previous = period(
+            url.searchParams.get('previousStartDate')!,
+            url.searchParams.get('previousEndDate')!
+          );
+          const adherence = {
+            elapsedDays: 1,
+            coveredDays: 0,
+            eligibleScheduledSessions: 0,
+            attendedScheduledSessions: 0,
+            adherencePercent: null,
+          };
+          return {
+            current,
+            previous,
+            trend: [],
+            sources: [],
+            adherence: {
+              current: {
+                ...adherence,
+                startDate: current.startDate,
+                endDate: current.endDate,
+              },
+              previous: {
+                ...adherence,
+                startDate: previous.startDate,
+                endDate: previous.endDate,
+              },
+            },
+          };
+        }
+
         if (path === '/api/goals/for-date') return summaryFixture.goals;
         if (path === '/api/workout-presets')
           return { presets: [], totalCount: 0 };
@@ -63,7 +149,7 @@ export function createNutritionFixture(scenario: string) {
           return {
             ...summaryFixture,
             foodEntries,
-            waterIntake: scenario === 'empty' ? 0 : summaryFixture.waterIntake,
+            waterIntake: waterMl,
             calorieBalance: {
               ...summaryFixture.calorieBalance,
               eaten,

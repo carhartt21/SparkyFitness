@@ -9,6 +9,7 @@ import {
   volumeFromMl,
 } from '../utils/unitConversions';
 import Icon from './Icon';
+import DashboardSectionHeader from './DashboardSectionHeader';
 
 interface ContainerOption {
   id: number;
@@ -21,6 +22,7 @@ interface QuickAddPreset extends ContainerOption {
 
 interface HydrationGaugeProps {
   compact?: boolean;
+  onDetails?: () => void;
   consumed: number;
   goal: number;
   fromFoodMl?: number;
@@ -48,6 +50,7 @@ interface HydrationGaugeProps {
 /** Compact hydration summary. Only explicit presses create or remove a drink. */
 const HydrationGauge: React.FC<HydrationGaugeProps> = ({
   compact = false,
+  onDetails,
   consumed,
   goal,
   fromFoodMl,
@@ -97,25 +100,18 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
       : (linkedPressLabel ?? null);
 
   return (
-    <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-3">
-      <View
-        style={{
-          flexDirection: compact ? 'column' : 'row',
-          alignItems: compact ? 'flex-start' : 'center',
-          gap: 8,
-        }}
-        className="justify-between mb-3"
-      >
-        <View className="flex-row items-center gap-2">
-          <Icon name="water" size={20} color={hydrationColor} />
-          <Text className="text-base font-semibold text-text-primary">
-            {t('dashboard.hydration', { defaultValue: 'Hydration' })}
-          </Text>
-        </View>
-        <Text className="text-xl font-bold text-text-primary">
-          {displayConsumed} {unitLabel}
-        </Text>
-      </View>
+    <View className="bg-surface rounded-xl border border-border-subtle p-3 mb-3">
+      <DashboardSectionHeader
+        compact={compact}
+        title={t('dashboard.hydration', { defaultValue: 'Hydration' })}
+        icon="water"
+        color={hydrationColor}
+        onDetails={onDetails}
+        testID="dashboard-hydration-details"
+      />
+      <Text className="text-xl font-bold text-text-primary mb-2">
+        {displayConsumed} {unitLabel}
+      </Text>
 
       {progress != null ? (
         <>
@@ -231,7 +227,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
       ) : null}
 
       {showButtons && !noContainer ? (
-        <View className="flex-row items-center gap-2 mt-4">
+        <View className="flex-row items-center gap-2 mt-2">
           {onDecrement ? (
             <Pressable
               onPress={onDecrement}
@@ -299,7 +295,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
         </View>
       ) : null}
 
-      {containers && containers.length > 0 ? (
+      {containers && containers.length > (compact ? 1 : 0) ? (
         <View className="flex-row flex-wrap gap-2 mt-3">
           {containers.map((container) => {
             const active = container.id === activeContainerId;

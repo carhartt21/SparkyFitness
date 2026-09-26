@@ -79,3 +79,31 @@ describe('isolated nutrition review fixture', () => {
     expect(first.snapshot()[0].calories).toBe(600);
   });
 });
+
+it('reconciles the quick water action with the day total and itemized ledger', () => {
+  const fixture = createNutritionFixture('populated');
+  expect(
+    fixture.respond(
+      url('/api/measurements/water-intake'),
+      'POST',
+      JSON.stringify({
+        entry_date: '2026-09-26',
+        change_drinks: 1,
+        container_id: -1,
+      })
+    )
+  ).toEqual({ water_ml: 1250 });
+  const summary = fixture.respond(
+    url('/api/daily-summary?date=2026-09-26'),
+    'GET'
+  ) as DailySummaryApiResponse;
+  expect(summary.waterIntake).toBe(1250);
+  expect(
+    fixture.respond(
+      url('/api/v2/measurements/water-intake/2026-09-26/log'),
+      'GET'
+    )
+  ).toEqual([
+    expect.objectContaining({ water_ml: 250, entry_date: '2026-09-26' }),
+  ]);
+});

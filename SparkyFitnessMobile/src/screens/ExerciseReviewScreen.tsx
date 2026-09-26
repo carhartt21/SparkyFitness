@@ -1,3 +1,5 @@
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useCallback, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
@@ -322,15 +324,23 @@ function PlanAdherenceCard({
 
 export default function ExerciseReviewScreen({
   navigation,
+  route,
 }: RootStackScreenProps<'ExerciseReview'>) {
   const { t } = useTranslation();
   const [window, setWindow] = useState<ExerciseReviewWindow>('day');
   const [periodsAgo, setPeriodsAgo] = useState(0);
-  const [today, setToday] = useState(getTodayDate);
+  const [today, setToday] = useState(
+    () => route?.params?.date ?? getTodayDate()
+  );
   const [visibleSourceCount, setVisibleSourceCount] =
     useState(INITIAL_SOURCE_COUNT);
   const [openingSourceId, setOpeningSourceId] = useState<string | null>(null);
-  useFocusEffect(useCallback(() => setToday(getTodayDate()), []));
+  useFocusEffect(
+    useCallback(
+      () => setToday(route?.params?.date ?? getTodayDate()),
+      [route?.params?.date]
+    )
+  );
   const { isConnected, isLoading: connectionLoading } = useServerConnection();
   const { preferences } = usePreferences({ enabled: isConnected });
   const accentColor = useCSSVariable('--color-accent-primary') as string;
@@ -357,6 +367,8 @@ export default function ExerciseReviewScreen({
     enabled: isConnected,
     refetchOnMount: 'always',
   });
+  const usesNativeHeader = useNativeIOSHeadersActive();
+  const insets = useSafeAreaInsets();
   const header = useScreenHeader({
     title: t('exerciseReview.title', { defaultValue: 'Exercise review' }),
     left: { kind: 'back' },
@@ -469,7 +481,10 @@ export default function ExerciseReviewScreen({
   };
 
   return (
-    <View className="flex-1 bg-background">
+    <View
+      className="flex-1 bg-background"
+      style={usesNativeHeader ? undefined : { paddingTop: insets.top }}
+    >
       {header}
       <ScrollView
         className="flex-1"

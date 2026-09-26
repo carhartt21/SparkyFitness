@@ -27,6 +27,33 @@ final class DashboardReview: XCTestCase {
       XCTAssertGreaterThanOrEqual(action.frame.height, 44)
       XCTAssertGreaterThanOrEqual(action.frame.width, 44)
     }
+    app.buttons["dashboard-water"].tap()
+    let hydrationDetails = app.buttons["dashboard-hydration-details"]
+    for _ in 0..<4 {
+      if hydrationDetails.exists && hydrationDetails.isHittable { break }
+      dashboard.swipeUp()
+    }
+    XCTAssertTrue(hydrationDetails.isHittable)
+    XCTAssertGreaterThanOrEqual(hydrationDetails.frame.height, 44)
+    let updatedWater = app.staticTexts.matching(NSPredicate(format: "label IN %@", ["1,250 ml", "1.250 ml"])).firstMatch
+    XCTAssertTrue(updatedWater.waitForExistence(timeout: 10))
+    capture("dashboard-details-links", app)
+    hydrationDetails.tap()
+    XCTAssertTrue(app.staticTexts["250 ml"].waitForExistence(timeout: 10))
+    capture("hydration-details", app)
+    app.buttons["hydration-details-close"].tap()
+    let exerciseDetails = app.buttons["dashboard-exercise-details"]
+    XCTAssertTrue(exerciseDetails.isHittable)
+    exerciseDetails.tap()
+    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Back", "Zurück"])).firstMatch
+    XCTAssertTrue(back.waitForExistence(timeout: 10))
+    XCTAssertGreaterThan(back.frame.minY, 40)
+    XCTAssertGreaterThanOrEqual(back.frame.height, 44)
+    capture("exercise-details-safe-header", app)
+    back.tap()
+    dashboard.swipeDown()
+    dashboard.swipeDown()
+    dashboard.swipeDown()
     food.tap()
     XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 15))
     let settled = NSPredicate { _, _ in app.activityIndicators.count == 0 }
@@ -46,11 +73,12 @@ final class DashboardReview: XCTestCase {
     capture("food-portion", app)
     let note = app.textViews.firstMatch
     for _ in 0..<6 {
-      if note.exists && note.isHittable { break }
+      if note.exists && note.isHittable && note.frame.minY > 100 && note.frame.maxY < app.frame.height - 140 { break }
       app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.45)).press(forDuration: 0.05, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.2)))
     }
     XCTAssertTrue(note.isHittable)
     note.tap()
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
     let noteText = String(repeating: "Synthetic review note with berries. ", count: 12) + "END-REVIEW"
     note.typeText(noteText)
     let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add Food", "Food hinzufügen"])).firstMatch

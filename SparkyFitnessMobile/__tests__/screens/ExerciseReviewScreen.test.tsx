@@ -4,6 +4,9 @@ import { useQuery } from '@tanstack/react-query';
 import ExerciseReviewScreen from '../../src/screens/ExerciseReviewScreen';
 import { fetchDailySummary } from '../../src/services/api/dailySummaryApi';
 
+jest.mock('react-native-safe-area-context', () => ({
+  useSafeAreaInsets: () => ({ top: 59, bottom: 34, left: 0, right: 0 }),
+}));
 jest.mock('@tanstack/react-query', () => ({ useQuery: jest.fn() }));
 jest.mock('@react-navigation/native', () => ({
   useFocusEffect: jest.fn(),

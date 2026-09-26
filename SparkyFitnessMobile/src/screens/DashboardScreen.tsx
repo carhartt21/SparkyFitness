@@ -39,6 +39,7 @@ import FastingCard from '../components/FastingCard';
 import FastingGoalReconciler from '../components/FastingGoalReconciler';
 import HealthTrendsPager from '../components/HealthTrendsPager';
 import HydrationGauge from '../components/HydrationGauge';
+import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import { useManualWaterActions } from '../hooks/useManualWaterActions';
 import {
   listNutritionActions,
@@ -350,6 +351,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   const accentColor = useCSSVariable('--color-accent-primary') as string;
 
+  const [hydrationDetailsVisible, setHydrationDetailsVisible] = useState(false);
   const [chartPage, setChartPage] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
@@ -500,7 +502,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     const showNetCarbs = preferences.show_net_carbs === true;
 
     const quickActions = (
-      <View className="flex-row flex-wrap gap-2 mt-4">
+      <View className="flex-row flex-wrap gap-2 mt-3">
         {[
           {
             label: t('dashboard.quickFood', { defaultValue: 'Food' }),
@@ -538,7 +540,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             style={{
               flexBasis: fontScale > 1.3 ? '46%' : '21%',
               flexGrow: 1,
-              minHeight: 72,
+              minHeight: 64,
             }}
             className="items-center justify-center rounded-xl border border-border-subtle bg-raised px-1 py-2"
           >
@@ -750,6 +752,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             >
               {hydrationCardVisible && (
                 <HydrationGauge
+                  onDetails={() => setHydrationDetailsVisible(true)}
                   compact={compactSummaries}
                   consumed={summary.waterConsumed}
                   goal={summary.waterGoal}
@@ -792,6 +795,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             }}
           >
             <ExerciseProgressCard
+              onDetails={() =>
+                navigation.navigate('ExerciseReview', { date: selectedDate })
+              }
               compact={compactSummaries}
               onLog={() =>
                 addSheetRef.current?.present({ initialMenu: 'exercise' })
@@ -803,6 +809,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             />
           </View>
         </View>
+        <HydrationDetailsModal
+          visible={hydrationDetailsVisible}
+          date={selectedDate}
+          unit={waterDisplayUnit}
+          onClose={() => setHydrationDetailsVisible(false)}
+          onConfigure={() => {
+            setHydrationDetailsVisible(false);
+            navigation.navigate('WaterContainers');
+          }}
+        />
         <DashboardDayOverview
           summary={summary}
           onOpenDiary={() => navigation.navigate('Diary', { selectedDate })}

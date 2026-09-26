@@ -1,3 +1,5 @@
+import HydrationGauge from '../../src/components/HydrationGauge';
+import ExerciseProgressCard from '../../src/components/ExerciseProgressCard';
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import DashboardHeader from '../../src/components/DashboardHeader';
@@ -112,4 +114,33 @@ it('does not invent a remaining allowance when no target is configured', () => {
   expect(screen.getByText('—')).toBeTruthy();
   expect(screen.queryByText('remaining')).toBeNull();
   expect(screen.queryByText('over target')).toBeNull();
+});
+
+it('keeps details separate from logging actions on both summary cards', () => {
+  const hydrationDetails = jest.fn();
+  const trainingDetails = jest.fn();
+  const log = jest.fn();
+  const view = render(
+    <>
+      <HydrationGauge
+        consumed={1000}
+        goal={2500}
+        onDetails={hydrationDetails}
+      />
+      <ExerciseProgressCard
+        compact
+        exerciseMinutes={34}
+        exerciseMinutesGoal={0}
+        exerciseCalories={149}
+        exerciseCaloriesGoal={0}
+        onLog={log}
+        onDetails={trainingDetails}
+      />
+    </>
+  );
+  fireEvent.press(view.getByTestId('dashboard-hydration-details'));
+  fireEvent.press(view.getByTestId('dashboard-exercise-details'));
+  expect(hydrationDetails).toHaveBeenCalledTimes(1);
+  expect(trainingDetails).toHaveBeenCalledTimes(1);
+  expect(log).not.toHaveBeenCalled();
 });

@@ -85,7 +85,7 @@ export type RootStackParamList = {
   WaterContainers: undefined;
   WaterContainerEdit: { containerId?: number } | undefined;
   ExercisesLibrary: undefined;
-  ExerciseReview: undefined;
+  ExerciseReview: { date?: string } | undefined;
   WorkoutPresetsLibrary: undefined;
   WorkoutPresetDetail: { preset: WorkoutPreset; updatedPreset?: WorkoutPreset };
   WorkoutPresetForm:

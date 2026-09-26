@@ -92,53 +92,70 @@ const MacroCard: React.FC<MacroCardProps> = ({
     width: overflowWidth.value,
   }));
 
-  if (row)
+  if (row) {
+    const expanded = fontScale > 1.3;
+    const amount = `${formatLocalizedNumber(Math.round(consumed))}${hasGoal ? ` / ${formatLocalizedNumber(Math.round(goal!))}` : ''} ${unit}`;
     return (
       <View
         className="w-full py-1"
+        style={{
+          flexDirection: expanded ? 'column' : 'row',
+          alignItems: expanded ? 'stretch' : 'center',
+          gap: 6,
+          minHeight: 28,
+        }}
         accessible
         accessibilityLabel={`${label}: ${formatLocalizedNumber(consumed)} ${unit}${hasGoal ? ` / ${formatLocalizedNumber(goal!)} ${unit}` : ''}`}
       >
-        <View
-          style={{ flexDirection: fontScale > 1.3 ? 'column' : 'row' }}
-          className="justify-between gap-1 mb-1"
+        <Text
+          className="text-[13px] font-medium text-text-primary"
+          style={expanded ? undefined : { width: '32%' }}
         >
-          <Text className="text-sm font-medium text-text-primary flex-shrink">
-            {label}
-          </Text>
-          <Text className="text-xs text-text-secondary">
-            {formatLocalizedNumber(Math.round(consumed))}
-            {hasGoal
-              ? ` / ${formatLocalizedNumber(Math.round(goal!))}`
-              : ''}{' '}
-            {unit}
-          </Text>
-        </View>
+          {label}
+        </Text>
         {hasGoal && (
-          <View className="flex-row items-center gap-3">
+          <View
+            className="h-2 rounded-full overflow-hidden"
+            style={{
+              backgroundColor: trackColor,
+              flex: expanded ? undefined : 1,
+            }}
+          >
             <View
-              className="flex-1 h-2 rounded-full overflow-hidden"
-              style={{ backgroundColor: trackColor }}
-            >
-              <View
-                style={{
-                  width: `${Math.min(100, Math.max(0, progress * 100))}%`,
-                  height: '100%',
-                  backgroundColor: color,
-                  borderRadius: 4,
-                }}
-              />
-            </View>
-            <Text
-              className="text-xs text-text-secondary text-right"
-              style={{ minWidth: 40 }}
-            >
-              {formatLocalizedNumber(Math.round(progress * 100))}%
-            </Text>
+              style={{
+                width: `${Math.min(100, Math.max(0, progress * 100))}%`,
+                height: '100%',
+                backgroundColor: color,
+                borderRadius: 4,
+              }}
+            />
           </View>
+        )}
+        <Text
+          className="text-xs text-text-secondary"
+          style={
+            expanded
+              ? undefined
+              : {
+                  width: 78,
+                  textAlign: 'right',
+                  marginLeft: hasGoal ? 0 : 'auto',
+                }
+          }
+        >
+          {amount}
+        </Text>
+        {hasGoal && (
+          <Text
+            className="text-xs text-text-secondary"
+            style={expanded ? undefined : { width: 34, textAlign: 'right' }}
+          >
+            {formatLocalizedNumber(Math.round(progress * 100))}%
+          </Text>
         )}
       </View>
     );
+  }
 
   return (
     <View className={`${widthClassName} p-1`}>

@@ -3,21 +3,27 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, useWindowDimensions } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import ProgressRing from './ProgressRing';
+import Icon, { type IconName } from './Icon';
 import { formatLocalizedNumber } from '../localization';
 
 interface SideStatProps {
+  icon: IconName;
+  color: string;
   label: string;
   value: number | string;
 }
 
-const SideStat: React.FC<SideStatProps> = ({ label, value }) => (
-  <View className="justify-center">
-    <Text className="text-lg font-bold text-text-primary">
-      {typeof value === 'number'
-        ? formatLocalizedNumber(Math.round(value))
-        : value}
-    </Text>
-    <Text className="text-text-secondary text-xs">{label}</Text>
+const SideStat: React.FC<SideStatProps> = ({ label, value, icon, color }) => (
+  <View className="flex-row items-center gap-2">
+    <Icon name={icon} size={22} color={color} />
+    <View className="flex-1">
+      <Text className="text-lg font-bold text-text-primary">
+        {typeof value === 'number'
+          ? formatLocalizedNumber(Math.round(value))
+          : value}
+      </Text>
+      <Text className="text-text-secondary text-xs">{label}</Text>
+    </View>
   </View>
 );
 
@@ -43,10 +49,13 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
   const expanded = fontScale > 1.3;
-  const [progressTrackColor, progressFillColor] = useCSSVariable([
-    '--color-energy-track',
-    '--color-calories',
-  ]) as [string, string];
+  const [progressTrackColor, progressFillColor, burnedColor, secondaryColor] =
+    useCSSVariable([
+      '--color-energy-track',
+      '--color-calories',
+      '--color-activity-energy',
+      '--color-text-secondary',
+    ]) as [string, string, string, string];
 
   const hasGoal = calorieGoal > 0;
   const isOverTarget = hasGoal && remainingCalories < 0;
@@ -60,10 +69,12 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
     : 0;
 
   return (
-    <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
-      <Text className="text-lg font-bold text-text-primary mb-3">
-        {t('dashboard.dailyEnergy', { defaultValue: 'Daily energy' })}
-      </Text>
+    <View
+      accessibilityLabel={t('dashboard.dailyEnergy', {
+        defaultValue: 'Daily energy',
+      })}
+      className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3"
+    >
       <View
         style={{ flexDirection: expanded ? 'column' : 'row', gap: 20 }}
         className="items-center"
@@ -98,7 +109,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
           </View>
         </View>
         <View
-          className="gap-3"
+          className="gap-2"
           style={
             expanded
               ? { width: '100%' }
@@ -111,14 +122,20 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
           }
         >
           <SideStat
+            icon="food"
+            color={progressFillColor}
             label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
             value={caloriesConsumed}
           />
           <SideStat
+            icon="target"
+            color={secondaryColor}
             label={t('dashboard.target', { defaultValue: 'Base target' })}
             value={hasGoal ? calorieGoal : '—'}
           />
           <SideStat
+            icon="exercise"
+            color={burnedColor}
             label={
               burnedIncludesBmr
                 ? t('dashboard.totalExpenditure', {

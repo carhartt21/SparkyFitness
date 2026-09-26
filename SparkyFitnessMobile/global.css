@@ -65,8 +65,9 @@
       --color-macro-fat: #116f8d;
       --color-macro-fiber: #a3394b;
 
-      --color-hydration: hsl(200, 40%, 60%);
-      --color-exercise: hsl(146, 68%, 66%);
+      --color-hydration: #146f8f;
+      --color-exercise: #09785d;
+      --color-activity-energy: #b54821;
 
       --color-cat-slate: hsl(220, 9%, 46%);
       --color-cat-pink: hsl(340, 75%, 55%);
@@ -110,57 +111,58 @@
     @variant dark {
       --color-brand-primary: #f6f0e3;
       --color-brand-primary-dark: #0b5e46;
-      --color-brand-secondary: #11a67e;
+      --color-brand-secondary: #08d6ad;
       --color-brand-accent: #ff8052;
       --color-brand-supporting: #72c7a8;
-      --color-background-primary: #171c22;
-      --color-background-secondary: #1d252a;
-      --color-surface-primary: #242d32;
-      --color-surface-elevated: #2b373b;
-      --color-text-tertiary: #91a699;
-      --color-separator: #30473b;
-      --color-positive: #11a67e;
+      --color-background-primary: #09161d;
+      --color-background-secondary: #0e2028;
+      --color-surface-primary: #13272f;
+      --color-surface-elevated: #1d343e;
+      --color-text-tertiary: #99b2bf;
+      --color-separator: #30474f;
+      --color-positive: #08d6ad;
       --color-warning: #e7ab63;
       --color-destructive: #f0808b;
       --color-informational: #92bddb;
       --color-progress-low: #315744;
-      --color-progress-medium: #11a67e;
+      --color-progress-medium: #08d6ad;
       --color-progress-high: #a9d5b8;
       --color-background: var(--color-background-primary);
       --color-surface: var(--color-surface-primary);
       --color-raised: var(--color-surface-elevated);
-      --color-chrome: #171c22;
+      --color-chrome: #09161d;
 
-      --color-border-subtle: #34473b;
-      --color-border: #405345;
-      --color-border-strong: #526a59;
+      --color-border-subtle: #30474f;
+      --color-border: #405963;
+      --color-border-strong: #66828e;
       --color-chrome-border: hsl(220, 18%, 16%);
 
-      --color-text-primary: hsl(220, 15%, 92%);
-      --color-text-secondary: hsl(220, 10%, 80%);
-      --color-text-muted: #a9bbad;
-      --color-icon-decorative: #a9bbad;
+      --color-text-primary: #edf5f7;
+      --color-text-secondary: #b4c8d2;
+      --color-text-muted: #99b2bf;
+      --color-icon-decorative: #99b2bf;
 
       --color-accent-primary: var(--color-brand-secondary);
       --color-accent-muted: var(--color-brand-supporting);
-      --color-accent-text: #171c22;
+      --color-accent-text: #09161d;
 
       --color-text-link: var(--color-brand-secondary);
 
       --color-tab-active: var(--color-brand-secondary);
-      --color-tab-inactive: hsl(215, 15%, 55%);
+      --color-tab-inactive: #99b2bf;
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 26%);
 
-      --color-calories: #1bd8ad;
-      --color-energy-track: #24524a;
+      --color-calories: #08dfb4;
+      --color-energy-track: #154b47;
       --color-macro-protein: #f4bd4c;
       --color-macro-carbs: #65d99a;
       --color-macro-fat: #4ec6e8;
       --color-macro-fiber: #ff7c83;
 
-      --color-hydration: hsl(200, 50%, 52%);
-      --color-exercise: hsl(158, 49%, 48%);
+      --color-hydration: #39c9f1;
+      --color-exercise: #21ddb0;
+      --color-activity-energy: #ff8052;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);
@@ -171,8 +173,8 @@
       --color-cat-teal: hsl(182, 35%, 52%);
       --color-cat-amber: hsl(40, 60%, 58%);
 
-      --color-progress-track: hsl(218, 41%, 23%);
-      --color-progress-rail: hsl(218, 41%, 16%);
+      --color-progress-track: #2b424c;
+      --color-progress-rail: #20363f;
       --color-progress-overfill: hsl(357, 66%, 65%);
 
       --color-bg-success: hsl(159, 35%, 19%);
@@ -253,7 +255,8 @@
       --color-macro-fiber: #ff7c83;
 
       --color-hydration: hsl(200, 50%, 52%);
-      --color-exercise: hsl(158, 49%, 48%);
+      --color-exercise: #21ddb0;
+      --color-activity-energy: #ff8052;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);

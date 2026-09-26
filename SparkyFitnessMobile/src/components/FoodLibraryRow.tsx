@@ -52,7 +52,7 @@ const FoodLibraryRow: React.FC<FoodLibraryRowProps> = ({
     <View
       className={`flex-row items-center ${showDivider ? 'border-b border-border-subtle' : ''}`}
     >
-      <View className="pl-4 py-3">
+      <View className="pl-4 pr-3 py-3">
         <FoodThumbnail
           image={primaryImageOf(food)}
           getImageSource={getImageSource}

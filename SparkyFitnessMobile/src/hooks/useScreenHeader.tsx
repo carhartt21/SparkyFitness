@@ -498,7 +498,13 @@ function HeaderBarButton({
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
       accessibilityRole="button"
       accessibilityLabel={itemAccessibilityLabel(item, t)}
-      style={disabled ? { opacity: 0.4 } : undefined}
+      style={{
+        minWidth: 44,
+        minHeight: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: disabled ? 0.4 : 1,
+      }}
     >
       {content}
     </Pressable>
@@ -859,7 +865,7 @@ export function useScreenHeader(config: ScreenHeaderConfig): React.ReactNode {
 
   const bar = (
     <View
-      className={`px-4 py-3 ${borderless ? '' : 'border-b border-border-subtle'}`}
+      className={`px-4 py-1 ${borderless ? '' : 'border-b border-border-subtle'}`}
       style={{
         position: 'relative',
         flexDirection: 'row',

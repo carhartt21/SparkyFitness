@@ -919,7 +919,11 @@
     "dayOverview": "Day at a glance",
     "noFoodLogged": "No food logged for this day.",
     "loggedOnly": "Based on logged entries. Your day may be incomplete.",
-    "minutesUnit": "min"
+    "minutesUnit": "min",
+    "hydrationLedgerNote": "Recorded drinks for this day. Water from food and older daily totals may not have individual drink entries.",
+    "hydrationLedgerError": "Could not load recorded drinks.",
+    "noRecordedDrinks": "No individual drinks recorded for this day.",
+    "waterSourceManual": "Manually logged"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",
