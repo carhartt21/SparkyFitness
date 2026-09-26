@@ -90,7 +90,28 @@ const cases = process.argv.includes('--single')
       },
     ];
 let scenario = cases[0];
+let events = [];
 const server = createServer((req, res) => {
+  if (req.url === '/event' && req.method === 'POST') {
+    let body = '';
+    req.on('data', (chunk) => {
+      body += chunk;
+    });
+    req.on('end', () => {
+      try {
+        events.push(JSON.parse(body));
+        res.writeHead(204).end();
+      } catch {
+        res.writeHead(400).end();
+      }
+    });
+    return;
+  }
+  if (req.url === '/events' && req.method === 'GET') {
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(events));
+    return;
+  }
   if (req.url !== '/scenario') {
     res.writeHead(404).end();
     return;
@@ -184,6 +205,7 @@ try {
   ]);
   for (const item of cases) {
     scenario = item;
+    events = [];
     const name = `XOT UI Review ${item.device}`;
     const devices = Object.values(
       JSON.parse(sim('list', 'devices', 'available', '-j')).devices
@@ -316,6 +338,10 @@ try {
         results.at(-1).nativeInteractionPassed = false;
         throw error;
       } finally {
+        writeFileSync(
+          path.join(output, `${item.name}.events.json`),
+          JSON.stringify(events, null, 2)
+        );
         run('xcrun', [
           'xcresulttool',
           'export',
@@ -337,7 +363,7 @@ try {
         revision: run('git', ['rev-parse', 'HEAD']),
         results,
         limitation:
-          'Synthetic read-only transport. OCR is a render smoke check, not visual approval or persistence verification.',
+          'Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.',
       },
       null,
       2

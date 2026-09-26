@@ -125,7 +125,8 @@ export function reviewResponse(path: string, scenario: string): unknown {
       };
     return summaryFixture;
   }
-  if (path === '/api/identity/profiles') return { full_name: 'Review Account' };
+  if (path === '/api/identity/profiles')
+    return { id: 'review-user', full_name: 'Review Account' };
   if (path === '/api/water-containers') return [];
   if (path === '/api/v2/nutrition/caffeine/active')
     return { active_mg: 0, events: [], series: [] };
