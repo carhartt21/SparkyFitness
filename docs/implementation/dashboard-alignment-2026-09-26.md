@@ -27,4 +27,9 @@ The reference’s invented numbers, unsupported profile/notification controls, a
 
 Changed application files: DashboardHeader, CalorieRingCard, MacroCard, DashboardSectionHeader, DashboardDayOverview, HydrationGauge, ExerciseProgressCard and DashboardScreen. Review fixture/Swift runner changes keep image requests fresh and add selective Dashboard verification. DESIGN.md and its sidecar record the implemented dimensions.
 
-Release status will be recorded after the internal build is accepted.
+Implementation and evidence commit `81d0544b6` is pushed to `feat/personalbest-rebrand`. EAS accepted **1.7.2 (14)** from a clean detached checkout and scheduled automatic TestFlight submission. This does not confirm Apple processing or installability.
+
+- [Build 14](https://expo.dev/accounts/ilmtech/projects/personalbest/builds/9064d79c-afba-4324-9328-014d66c80fbd)
+- [Scheduled submission](https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/06c28b52-1ef3-4658-9f8f-88dcd586c537)
+
+No web files changed; no web deployment or merge. Unrelated untracked audit artifacts and the original reference archive were excluded from the clean build checkout.
