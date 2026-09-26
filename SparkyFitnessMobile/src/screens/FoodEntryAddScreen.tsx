@@ -1778,6 +1778,9 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       <KeyboardAwareScrollView
         mode="layout"
         ref={noteVisibility.scrollRef}
+        onScroll={noteVisibility.onScroll}
+        onScrollBeginDrag={noteVisibility.onScrollBeginDrag}
+        scrollEventThrottle={16}
         onContentSizeChange={noteVisibility.onContentSizeChange}
         className="flex-1"
         contentContainerClassName={foodImagePath ? '' : 'pt-4'}
@@ -2301,7 +2304,12 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         <KeyboardStickyView
           style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
         >
-          <View className="bg-background">
+          <View
+            ref={noteVisibility.obstructionRef}
+            collapsable={false}
+            onLayout={noteVisibility.onNoteLayout}
+            className="bg-background"
+          >
             <FooterSaveBar
               label={addLabel}
               busy={isActionPending || isPhotoCompletionPending}

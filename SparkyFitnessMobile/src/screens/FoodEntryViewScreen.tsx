@@ -170,6 +170,8 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   const insets = useSafeAreaInsets();
   const {
     scrollRef: noteScrollRef,
+    onScroll: onNoteScroll,
+    onScrollBeginDrag: onNoteScrollBeginDrag,
     noteRef,
     onFocus: onNoteFocus,
     onBlur: onNoteBlur,
@@ -1005,6 +1007,9 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
       <KeyboardAwareScrollView
         mode="layout"
         ref={noteScrollRef}
+        onScroll={onNoteScroll}
+        onScrollBeginDrag={onNoteScrollBeginDrag}
+        scrollEventThrottle={16}
         onContentSizeChange={onNoteContentSizeChange}
         className="flex-1"
         contentContainerClassName="px-4 py-4 gap-4"
