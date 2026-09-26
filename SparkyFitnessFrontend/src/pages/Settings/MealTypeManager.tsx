@@ -17,7 +17,8 @@ import {
   Plus,
   Trash2,
   Edit,
-  Lock,
+  ArrowUp,
+  ArrowDown,
   Eye,
   EyeOff,
   Zap,
@@ -30,6 +31,7 @@ import {
   useDeleteMealTypeMutation,
   useMealTypes,
   useUpdateMealTypeMutation,
+  useReorderMealTypesMutation,
 } from '@/hooks/Diary/useMealTypes';
 import type { DeleteMealTypeOptions } from '@/hooks/Diary/useMealTypes';
 import { MealTypeDefinition } from '@/types/diary';
@@ -47,7 +49,6 @@ const MealTypeManager = () => {
     useState<MealTypeDefinition | null>(null);
 
   const [newName, setNewName] = useState('');
-  const [newSortOrder, setNewSortOrder] = useState(100);
   const [newDefaultTime, setNewDefaultTime] = useState<string>('');
 
   const [pendingDeletion, setPendingDeletion] =
@@ -57,6 +58,7 @@ const MealTypeManager = () => {
   const { data: mealTypes = [] } = useMealTypes();
   const { mutateAsync: createMealType } = useCreateMealTypeMutation();
   const { mutateAsync: updateMealType } = useUpdateMealTypeMutation();
+  const { mutateAsync: reorderMealTypes } = useReorderMealTypesMutation();
   const { mutateAsync: deleteMealType } = useDeleteMealTypeMutation();
 
   const handleAdd = async () => {
@@ -64,11 +66,10 @@ const MealTypeManager = () => {
 
     await createMealType({
       name: newName.trim(),
-      sort_order: Number(newSortOrder),
+      sort_order: Math.max(0, ...mealTypes.map((item) => item.sort_order)) + 10,
       default_time: newDefaultTime || null,
     });
     setNewName('');
-    setNewSortOrder(100);
     setNewDefaultTime('');
     setIsAddDialogOpen(false);
   };
@@ -79,8 +80,9 @@ const MealTypeManager = () => {
     await updateMealType({
       id: editingMealType.id,
       data: {
-        name: newName.trim(),
-        sort_order: Number(newSortOrder),
+        ...(newName.trim() !== getDisplayName(editingMealType)
+          ? { name: newName.trim() }
+          : {}),
         default_time: newDefaultTime || null,
       },
     });
@@ -137,20 +139,31 @@ const MealTypeManager = () => {
 
   const openEditDialog = (item: MealTypeDefinition) => {
     setEditingMealType(item);
-    setNewName(item.name);
-    setNewSortOrder(item.sort_order);
+    setNewName(getDisplayName(item));
     setNewDefaultTime(toHourMinute(item.default_time) || '');
     setIsEditDialogOpen(true);
   };
 
   // Helper to translate system names
-  const getDisplayName = (name: string) => {
-    const lower = name.toLowerCase();
+  const getDisplayName = (item: MealTypeDefinition) => {
+    if (item.display_name && item.display_name !== item.name)
+      return item.display_name;
+    if (item.user_id !== null) return item.name;
+    const lower = item.name.toLowerCase();
     if (lower === 'breakfast') return t('common.breakfast', 'Breakfast');
     if (lower === 'lunch') return t('common.lunch', 'Lunch');
     if (lower === 'dinner') return t('common.dinner', 'Dinner');
     if (lower === 'snacks') return t('common.snacks', 'Snacks');
-    return name;
+    return item.name;
+  };
+
+  const moveMealType = async (id: string, direction: -1 | 1) => {
+    const sorted = [...mealTypes].sort((a, b) => a.sort_order - b.sort_order);
+    const index = sorted.findIndex((item) => item.id === id);
+    const target = index + direction;
+    if (index < 0 || target < 0 || target >= sorted.length) return;
+    [sorted[index], sorted[target]] = [sorted[target]!, sorted[index]!];
+    await reorderMealTypes(sorted.map((item) => item.id));
   };
 
   return (
@@ -194,22 +207,6 @@ const MealTypeManager = () => {
                 </div>
                 <div className="space-y-2">
                   <Label>
-                    {t('mealTypeManager.sortOrderLabel', 'Sort Order')}
-                  </Label>
-                  <Input
-                    type="number"
-                    value={newSortOrder}
-                    onChange={(e) => setNewSortOrder(Number(e.target.value))}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    {t(
-                      'mealTypeManager.sortHelp',
-                      'Lower numbers appear first. (Breakfast=10, Lunch=20, Dinner=40)'
-                    )}
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label>
                     {t(
                       'mealTypeManager.defaultTimeOptional',
                       'Default Time (optional)'
@@ -244,125 +241,143 @@ const MealTypeManager = () => {
 
       {/* List */}
       <div className="space-y-2">
-        {mealTypes.map((item) => {
-          const isSystem = item.user_id === null;
+        {[...mealTypes]
+          .sort((a, b) => a.sort_order - b.sort_order)
+          .map((item, index) => {
+            const isSystem = item.user_id === null;
 
-          return (
-            <div
-              key={item.id}
-              className="flex items-center justify-between p-3 border rounded-md bg-card"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex flex-col">
-                  <span className="font-medium">
-                    {getDisplayName(item.name)}
-                  </span>
+            return (
+              <div
+                key={item.id}
+                className="flex items-center justify-between p-3 border rounded-md bg-card"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{getDisplayName(item)}</span>
+                  </div>
+                  {isSystem && (
+                    <Badge variant="secondary" className="text-xs">
+                      {t('mealTypeManager.default', 'Default')}
+                    </Badge>
+                  )}
                 </div>
-                {isSystem && (
-                  <Badge variant="secondary" className="text-xs">
-                    {t('mealTypeManager.default', 'Default')}
-                  </Badge>
-                )}
-              </div>
 
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-muted-foreground">
-                  {t('mealTypeManager.order', {
-                    defaultValue: 'Order: {{order}}',
-                    order: item.sort_order,
-                  })}
-                </span>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs text-muted-foreground">
-                    {t('mealTypeManager.defaultTime', 'Default Time:')}
-                  </span>
-                  <Input
-                    type="time"
-                    className="w-[100px] h-8 text-xs p-1"
-                    key={`${item.id}-${item.default_time}`}
-                    defaultValue={toHourMinute(item.default_time) || ''}
-                    onBlur={async (e) => {
-                      const val = e.target.value;
-                      if (val !== (toHourMinute(item.default_time) || '')) {
-                        await updateMealType({
-                          id: item.id,
-                          data: { default_time: val || null },
-                        });
-                      }
-                    }}
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleVisibility(item)}
-                    title={
-                      item.is_visible
-                        ? t('mealTypeManager.hideFromDiary', 'Hide from Diary')
-                        : t('mealTypeManager.showInDiary', 'Show in Diary')
-                    }
-                  >
-                    {item.is_visible ? (
-                      <Eye className="w-4 h-4" />
-                    ) : (
-                      <EyeOff className="w-4 h-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleQuickLog(item)}
-                    title={
-                      item.show_in_quick_log
-                        ? t(
-                            'mealTypeManager.hideFromQuickLog',
-                            'Hide from Quick Food Log'
-                          )
-                        : t(
-                            'mealTypeManager.showInQuickLog',
-                            'Show in Quick Food Log'
-                          )
-                    }
-                  >
-                    {item.show_in_quick_log !== false ? (
-                      <Zap className="w-4 h-4 text-yellow-500" />
-                    ) : (
-                      <ZapOff className="w-4 h-4 text-muted-foreground" />
-                    )}
-                  </Button>
-                  {isSystem ? (
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={index === 0}
+                      aria-label={t('mealTypeManager.moveUp', {
+                        defaultValue: 'Move {{name}} up',
+                        name: getDisplayName(item),
+                      })}
+                      onClick={() => void moveMealType(item.id, -1)}
+                    >
+                      <ArrowUp className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      disabled={index === mealTypes.length - 1}
+                      aria-label={t('mealTypeManager.moveDown', {
+                        defaultValue: 'Move {{name}} down',
+                        name: getDisplayName(item),
+                      })}
+                      onClick={() => void moveMealType(item.id, 1)}
+                    >
+                      <ArrowDown className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs text-muted-foreground">
+                      {t('mealTypeManager.defaultTime', 'Default Time:')}
+                    </span>
+                    <Input
+                      type="time"
+                      className="w-[100px] h-8 text-xs p-1"
+                      key={`${item.id}-${item.default_time}`}
+                      defaultValue={toHourMinute(item.default_time) || ''}
+                      onBlur={async (e) => {
+                        const val = e.target.value;
+                        if (val !== (toHourMinute(item.default_time) || '')) {
+                          await updateMealType({
+                            id: item.id,
+                            data: { default_time: val || null },
+                          });
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex gap-2">
                     <Button
                       variant="ghost"
                       size="sm"
-                      disabled
-                      className="opacity-50"
+                      onClick={() => toggleVisibility(item)}
+                      title={
+                        item.is_visible
+                          ? t(
+                              'mealTypeManager.hideFromDiary',
+                              'Hide from Diary'
+                            )
+                          : t('mealTypeManager.showInDiary', 'Show in Diary')
+                      }
                     >
-                      <Lock className="w-4 h-4" />
+                      {item.is_visible ? (
+                        <Eye className="w-4 h-4" />
+                      ) : (
+                        <EyeOff className="w-4 h-4 text-muted-foreground" />
+                      )}
                     </Button>
-                  ) : (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleQuickLog(item)}
+                      title={
+                        item.show_in_quick_log
+                          ? t(
+                              'mealTypeManager.hideFromQuickLog',
+                              'Hide from Quick Food Log'
+                            )
+                          : t(
+                              'mealTypeManager.showInQuickLog',
+                              'Show in Quick Food Log'
+                            )
+                      }
+                    >
+                      {item.show_in_quick_log !== false ? (
+                        <Zap className="w-4 h-4 text-yellow-500" />
+                      ) : (
+                        <ZapOff className="w-4 h-4 text-muted-foreground" />
+                      )}
+                    </Button>
                     <>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openEditDialog(item)}
+                        aria-label={t('mealTypeManager.edit', {
+                          defaultValue: 'Edit {{name}}',
+                          name: getDisplayName(item),
+                        })}
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteRequest(item)}
-                      >
-                        <Trash2 className="w-4 h-4 text-destructive" />
-                      </Button>
+                      {!isSystem && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteRequest(item)}
+                        >
+                          <Trash2 className="w-4 h-4 text-destructive" />
+                        </Button>
+                      )}
                     </>
-                  )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
       </div>
 
       {/* Edit Dialog */}
@@ -379,14 +394,6 @@ const MealTypeManager = () => {
               <Input
                 value={newName}
                 onChange={(e) => setNewName(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>{t('mealTypeManager.sortOrderLabel', 'Sort Order')}</Label>
-              <Input
-                type="number"
-                value={newSortOrder}
-                onChange={(e) => setNewSortOrder(Number(e.target.value))}
               />
             </div>
             <div className="space-y-2">

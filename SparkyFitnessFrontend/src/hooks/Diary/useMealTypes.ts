@@ -6,6 +6,7 @@ import {
   getMealTypeDeletionImpact,
   getMealTypes,
   updateMealType,
+  reorderMealTypes,
 } from '@/api/Diary/mealTypeService';
 import type { DeleteMealTypeOptions } from '@/api/Diary/mealTypeService';
 // Re-exported so components can type these without importing from @/api
@@ -79,6 +80,21 @@ export const useUpdateMealTypeMutation = () => {
         'Meal category updated.'
       ),
       errorMessage: t('common.error', 'An error occurred'),
+    },
+  });
+};
+
+export const useReorderMealTypesMutation = () => {
+  const queryClient = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: reorderMealTypes,
+    onSuccess: (types) => queryClient.setQueryData(mealTypeKeys.lists(), types),
+    meta: {
+      errorMessage: t(
+        'mealTypeManager.reorderError',
+        'Could not reorder meal categories.'
+      ),
     },
   });
 };
