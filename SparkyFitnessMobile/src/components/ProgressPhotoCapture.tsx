@@ -149,7 +149,7 @@ export default function ProgressPhotoCapture({
                 accessibilityLabel={t('progressPhotos.poseGuide', {
                   defaultValue: 'Pose guide',
                 })}
-                className="rounded-full bg-black/60 px-4 py-3"
+                className="rounded-md bg-black/60 px-4 py-3"
               >
                 <Text className="text-white font-semibold">
                   {guideVisible
@@ -185,7 +185,7 @@ export default function ProgressPhotoCapture({
                             defaultValue: 'Full body guide',
                           })
                     }
-                    className={`min-h-11 justify-center rounded-full px-4 ${upperBodyGuide === upperBody ? 'bg-white' : 'bg-black/60'}`}
+                    className={`min-h-11 justify-center rounded-md px-4 ${upperBodyGuide === upperBody ? 'bg-white' : 'bg-black/60'}`}
                   >
                     <Text
                       className={

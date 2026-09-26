@@ -157,7 +157,7 @@ const FilterChip: React.FC<FilterChipProps> = ({
   return (
     <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
       <Animated.View
-        className="flex-row items-center rounded-full px-3 py-1.5 mr-2 mb-2 border"
+        className="flex-row items-center rounded-md px-3 py-1.5 mr-2 mb-2 border"
         style={chipStyle}
       >
         {color && (

@@ -6,7 +6,7 @@ import { useCSSVariable } from 'uniwind';
 
 import Icon from './Icon';
 import LiquidGlassSurface, {
-  createLiquidGlassPillStyle,
+  createLiquidGlassChromeStyle,
 } from './LiquidGlassSurface';
 import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
 import { formatRestCountdown } from '../utils/workoutSession';
@@ -15,17 +15,10 @@ const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 /**
  * Scroll clearance the workout log needs above the floating glass variant so
- * the last card and the End Workout button can scroll out from under the pill
- * (content height ≈ 112 + the pill's bottom gap + breathing room).
+ * the last card and the End Workout button can scroll out from under the bar
+ * (content height ≈ 112 + the bar's bottom gap + breathing room).
  */
 export const REST_BAR_GLASS_CLEARANCE = 128;
-
-/**
- * Taller than the HUD's stadium pill, so a matching 999 radius would curve
- * into the progress track's corners; this keeps the same glass language with
- * corners the content clears.
- */
-const GLASS_BORDER_RADIUS = 28;
 
 interface ActiveWorkoutRestBarProps {
   remainingMs: number;
@@ -62,7 +55,7 @@ interface ActiveWorkoutRestBarProps {
  * (iPhone SE) width.
  *
  * Chrome follows the workout HUD's: with Liquid Glass tabs active the bar is a
- * floating glass pill overlaying the log (the screen reserves
+ * floating glass bar overlaying the log (the screen reserves
  * `REST_BAR_GLASS_CLEARANCE` of scroll padding for it); otherwise it is a
  * bottom-docked strip in normal flow.
  */
@@ -124,7 +117,7 @@ function ActiveWorkoutRestBar({
           accessibilityLabel={t('activeWorkout.rest.completeSet', {
             defaultValue: 'Complete set',
           })}
-          className="flex-row items-center rounded-full px-4 py-2.5"
+          className="flex-row items-center rounded-md px-4 py-2.5"
           style={{ backgroundColor: accentPrimary, gap: 6 }}
         >
           <Icon name="checkmark" size={16} color={accentText} weight="bold" />
@@ -181,7 +174,7 @@ function ActiveWorkoutRestBar({
               accessibilityLabel={t('activeWorkout.rest.shorten', {
                 defaultValue: 'Shorten rest by 15 seconds',
               })}
-              className="rounded-full bg-raised px-3 py-2"
+              className="rounded-md bg-raised px-3 py-2"
             >
               <Text
                 className="text-sm font-semibold text-text-primary"
@@ -212,7 +205,7 @@ function ActiveWorkoutRestBar({
               accessibilityLabel={t('activeWorkout.rest.extend', {
                 defaultValue: 'Extend rest by 15 seconds',
               })}
-              className="rounded-full bg-raised px-3 py-2"
+              className="rounded-md bg-raised px-3 py-2"
             >
               <Text
                 className="text-sm font-semibold text-text-primary"
@@ -287,8 +280,7 @@ function ActiveWorkoutRestBar({
       >
         <LiquidGlassSurface
           testID="rest-bar-glass"
-          style={createLiquidGlassPillStyle(chromeBorder, {
-            borderRadius: GLASS_BORDER_RADIUS,
+          style={createLiquidGlassChromeStyle(chromeBorder, {
             paddingHorizontal: 16,
             paddingTop: 8,
             paddingBottom: 12,

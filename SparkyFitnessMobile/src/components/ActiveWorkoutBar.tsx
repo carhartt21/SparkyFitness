@@ -38,7 +38,7 @@ import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
 import type { RootStackParamList } from '../types/navigation';
 import LiquidGlassSurface, {
   LIQUID_GLASS_VERTICAL_GAP,
-  createLiquidGlassPillStyle,
+  createLiquidGlassChromeStyle,
 } from './LiquidGlassSurface';
 import { withAlpha } from '../utils/colors';
 
@@ -857,7 +857,7 @@ const ActiveWorkoutBar: React.FC<ActiveWorkoutBarProps> = ({
 
   const barBody = (
     <LiquidGlassSurface
-      style={createLiquidGlassPillStyle(chromeBorder, {
+      style={createLiquidGlassChromeStyle(chromeBorder, {
         height: BAR_CONTENT_HEIGHT,
         position: 'relative',
       })}

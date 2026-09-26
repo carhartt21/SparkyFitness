@@ -25,6 +25,22 @@ final class DashboardReview: XCTestCase {
     }
     let dashboard = app.otherElements["dashboard-scroll"].scrollViews.firstMatch
     XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    let date = app.buttons["dashboard-date"]
+    let logo = app.buttons["dashboard-home"]
+    XCTAssertTrue(date.isHittable)
+    XCTAssertEqual(date.frame.midY, logo.frame.midY, accuracy: 2)
+    for id in ["dashboard-home", "dashboard-date", "dashboard-previous-day", "dashboard-next-day", "dashboard-today"] {
+      let control = app.buttons[id]
+      XCTAssertTrue(control.isHittable)
+      XCTAssertGreaterThanOrEqual(control.frame.width, 44)
+      XCTAssertGreaterThanOrEqual(control.frame.height, 44)
+    }
+    let originalDate = date.value as? String
+    XCTAssertNotNil(originalDate)
+    app.buttons["dashboard-previous-day"].tap()
+    XCTAssertNotEqual(date.value as? String, originalDate)
+    app.buttons["dashboard-next-day"].tap()
+    XCTAssertEqual(date.value as? String, originalDate)
     capture("dashboard-top", app)
     dashboard.swipeUp()
     capture("dashboard-middle", app)

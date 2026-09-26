@@ -49,12 +49,12 @@ const SizedActionColumn: React.FC<{ children: React.ReactNode }> = ({
   return (
     <View className="items-center justify-center">
       <View className="flex-row items-center opacity-0" aria-hidden>
-        <View className="rounded-full px-3 py-1">
+        <View className="rounded-md px-3 py-1">
           <Text className="text-sm font-semibold">
             {t('medications.dose.log', { defaultValue: 'Log' })}
           </Text>
         </View>
-        <View className="rounded-full px-3 py-1 ml-1">
+        <View className="rounded-md px-3 py-1 ml-1">
           <Text className="text-sm font-semibold">
             {t('medications.dose.skip', { defaultValue: 'Skip' })}
           </Text>
@@ -133,7 +133,7 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
             hitSlop={{ top: 8, bottom: 8, left: 12, right: 12 }}
             activeOpacity={0.6}
             accessibilityRole="button"
-            className="rounded-full px-3 py-1 bg-raised"
+            className="rounded-md px-3 py-1 bg-raised"
           >
             <Text
               className="text-sm font-semibold"
@@ -174,7 +174,7 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
               defaultValue: 'Log {{title}} as taken',
               title,
             })}
-            className="rounded-full px-3 py-1 bg-raised"
+            className="rounded-md px-3 py-1 bg-raised"
           >
             <Text
               className="text-sm font-semibold"
@@ -192,7 +192,7 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
               defaultValue: 'Skip {{title}}',
               title,
             })}
-            className="rounded-full px-3 py-1 ml-1 bg-raised"
+            className="rounded-md px-3 py-1 ml-1 bg-raised"
           >
             <Text className="text-sm font-semibold text-accent-primary">
               {t('medications.dose.skip', { defaultValue: 'Skip' })}

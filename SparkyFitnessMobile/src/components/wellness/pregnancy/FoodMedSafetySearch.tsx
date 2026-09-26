@@ -110,7 +110,7 @@ const FoodMedSafetySearch: React.FC = () => {
                       t
                     )}
                   </Text>
-                  <View className={`rounded-full px-2.5 py-0.5 ${style.bg}`}>
+                  <View className={`rounded-md px-2.5 py-0.5 ${style.bg}`}>
                     <Text className={`text-xs font-bold ${style.text}`}>
                       {localizeSafetyStatus(t, item.status)}
                     </Text>

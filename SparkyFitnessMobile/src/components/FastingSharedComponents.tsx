@@ -49,9 +49,7 @@ export const FastingProtocolBadge: React.FC<FastingProtocolBadgeProps> = ({
   }
 
   return (
-    <View
-      className={`bg-accent-primary/10 rounded-full px-3 py-1 ${className}`}
-    >
+    <View className={`bg-accent-primary/10 rounded-md px-3 py-1 ${className}`}>
       <Text className="text-xs font-semibold text-accent-primary">
         {badgeText}
       </Text>

@@ -156,7 +156,7 @@ const SwipeableExerciseRow: React.FC<SwipeableExerciseRowProps> = ({
                 </Text>
                 <View className="flex-row items-center gap-2">
                   <View
-                    className="rounded-full px-1.5 py-0.5"
+                    className="rounded-md px-1.5 py-0.5"
                     style={{
                       backgroundColor: canEdit
                         ? `${accentPrimary}20`

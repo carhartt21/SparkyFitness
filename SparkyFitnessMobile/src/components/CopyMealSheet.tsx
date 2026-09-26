@@ -263,7 +263,7 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
                       accessibilityState={{ selected: isSelected }}
                       onPress={() => setTargetMealTypeId(mt.id)}
                       activeOpacity={0.7}
-                      className={`px-4 py-2 rounded-full border ${
+                      className={`px-4 py-2 rounded-md border ${
                         isSelected
                           ? 'bg-accent-primary border-accent-primary'
                           : 'bg-raised border-border-subtle'

@@ -138,7 +138,7 @@ const RestPeriodSheet = forwardRef<RestPeriodSheetRef, RestPeriodSheetProps>(
                   key={preset}
                   onPress={() => commitPreset(preset)}
                   activeOpacity={0.7}
-                  className="rounded-full py-2 px-4 border"
+                  className="rounded-md py-2 px-4 border"
                   style={{
                     backgroundColor: selected ? accentPrimary : 'transparent',
                     borderColor: selected ? accentPrimary : textMuted,

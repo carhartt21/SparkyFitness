@@ -217,7 +217,7 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
           <Pressable
             accessibilityRole="button"
             onPress={onLog}
-            className="min-h-11 mt-3 rounded-xl bg-accent-primary px-2 justify-center items-center"
+            className="min-h-11 mt-3 rounded-md bg-accent-primary px-2 justify-center items-center"
           >
             <Text className="text-sm font-semibold text-accent-text text-center">
               {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
@@ -270,7 +270,7 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
         <Pressable
           accessibilityRole="button"
           onPress={onLog}
-          className="min-h-11 mt-3 rounded-xl bg-accent-primary px-2 justify-center items-center"
+          className="min-h-11 mt-3 rounded-md bg-accent-primary px-2 justify-center items-center"
         >
           <Text className="text-sm font-semibold text-accent-text">
             {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}

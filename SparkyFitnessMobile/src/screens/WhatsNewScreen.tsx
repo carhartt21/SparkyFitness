@@ -350,7 +350,7 @@ const PhotoMockup: React.FC = () => {
       </View>
 
       <View
-        className="bg-surface rounded-full px-3 py-1.5 shadow-md flex-row items-center"
+        className="bg-surface rounded-md px-3 py-1.5 shadow-md flex-row items-center"
         style={{
           position: 'absolute',
           bottom: 22,
@@ -408,7 +408,7 @@ const CycleMockup: React.FC = () => {
             </Text>
           </View>
           <View
-            className="px-2 py-0.5 rounded-full"
+            className="px-2 py-0.5 rounded-md"
             style={{ backgroundColor: `${catPink}25` }}
           >
             <Text
@@ -468,7 +468,7 @@ const WorkoutMockup: React.FC = () => {
             </Text>
           </View>
           <View
-            className="px-2 py-0.5 rounded-full"
+            className="px-2 py-0.5 rounded-md"
             style={{ backgroundColor: `${exercise}25` }}
           >
             <Text
@@ -530,7 +530,7 @@ const MedicationsMockup: React.FC = () => {
             </Text>
           </View>
           <View
-            className="px-2 py-0.5 rounded-full"
+            className="px-2 py-0.5 rounded-md"
             style={{ backgroundColor: `${catTeal}25` }}
           >
             <Text

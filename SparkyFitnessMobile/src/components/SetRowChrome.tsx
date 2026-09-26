@@ -23,7 +23,7 @@ import { useTranslation } from 'react-i18next';
 
 import FormInput from './FormInput';
 import LiquidGlassSurface, {
-  createLiquidGlassPillStyle,
+  createLiquidGlassChromeStyle,
 } from './LiquidGlassSurface';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 
@@ -198,8 +198,8 @@ export interface SetAccessoryAction {
   bold?: boolean;
 }
 
-/** Floating pill button: Liquid Glass on iOS 26+, themed chrome chip elsewhere. */
-function AccessoryPillButton({
+/** Floating rounded-rectangle button: Liquid Glass on iOS 26+, themed chrome chip elsewhere. */
+function AccessoryChromeButton({
   label,
   onPress,
   bold,
@@ -214,10 +214,10 @@ function AccessoryPillButton({
 }) {
   return (
     <LiquidGlassSurface
-      style={createLiquidGlassPillStyle(chromeBorder, {
+      style={createLiquidGlassChromeStyle(chromeBorder, {
         marginHorizontal: 0,
         marginBottom: 0,
-        // The pill default's elevation 8 renders as a heavy shadow blob under
+        // The chrome default's elevation 8 renders as a heavy shadow blob under
         // these small keyboard buttons on Android; 2 is enough lift.
         ...(Platform.OS === 'android' ? { elevation: 2 } : null),
       })}
@@ -243,7 +243,7 @@ function AccessoryPillButton({
 }
 
 /**
- * iOS input-accessory strip: floating pill buttons on a transparent background
+ * iOS input-accessory strip: floating rounded-rectangle buttons on a transparent background
  * so the app content stays visible against the Liquid Glass keyboard — Done on
  * the left (dismisses the keyboard), row-specific actions on the right. Render
  * inside an InputAccessoryView.
@@ -272,7 +272,7 @@ export function SetInputAccessoryBar({
         paddingBottom: 8,
       }}
     >
-      <AccessoryPillButton
+      <AccessoryChromeButton
         label={t('common.done', { defaultValue: 'Done' })}
         onPress={onDone}
         accentPrimary={accentPrimary}
@@ -280,7 +280,7 @@ export function SetInputAccessoryBar({
       />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
         {actions.map((action) => (
-          <AccessoryPillButton
+          <AccessoryChromeButton
             key={action.key}
             label={action.label}
             onPress={action.onPress}

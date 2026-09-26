@@ -121,7 +121,7 @@ const MealSection: React.FC<MealSectionProps> = ({
         {label}
       </Text>
       {(totalCalories > 0 || targetCalories > 0) && (
-        <View className="bg-accent-primary/5 rounded-full px-2.5 py-0.5">
+        <View className="bg-accent-primary/5 rounded-md px-2.5 py-0.5">
           <Text className="text-xs text-accent-primary font-semibold">
             {totalCalories}
             {targetCalories > 0 ? ` / ${targetCalories}` : ''}{' '}

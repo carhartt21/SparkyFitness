@@ -97,7 +97,7 @@ const FertilityCard: React.FC<FertilityCardProps> = ({ date }) => {
           {t('fertility.title', { defaultValue: 'Fertility' })}
         </Text>
         {isFertileToday && (
-          <View className="rounded-full bg-bg-success px-3 py-1">
+          <View className="rounded-md bg-bg-success px-3 py-1">
             <Text className="text-text-success text-sm font-semibold">
               {t('fertility.fertileWindow', {
                 defaultValue: 'Est. fertile window',

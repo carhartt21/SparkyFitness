@@ -239,7 +239,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                 defaultValue: 'Remove water',
               })}
               className={
-                'h-11 w-11 rounded-xl border border-border-strong items-center justify-center ' +
+                'h-11 w-11 rounded-md border border-border-strong items-center justify-center ' +
                 (disableDecrement ? 'opacity-40' : '')
               }
             >
@@ -253,7 +253,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
               accessibilityLabel={t('dashboard.addWater', {
                 defaultValue: 'Add water',
               })}
-              className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-accent-primary px-3"
+              className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-md bg-accent-primary px-3"
             >
               <Icon name="add" size={18} color={accentText} />
               <Text
@@ -274,7 +274,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
               accessibilityLabel={t('dashboard.addWater', {
                 defaultValue: 'Add water',
               })}
-              className="min-h-11 items-center justify-center rounded-xl bg-raised border border-border-subtle opacity-50"
+              className="min-h-11 items-center justify-center rounded-md bg-raised border border-border-subtle opacity-50"
             >
               <Text className="text-sm font-semibold text-text-secondary">
                 {t('dashboard.addWater', { defaultValue: 'Add water' })}
@@ -312,7 +312,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                 })}
                 accessibilityState={{ selected: active }}
                 className={
-                  'min-h-11 justify-center rounded-xl border px-3 ' +
+                  'min-h-11 justify-center rounded-md border px-3 ' +
                   (active
                     ? 'bg-accent-primary/15 border-accent-primary'
                     : 'bg-raised border-border-subtle')
@@ -343,7 +343,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                   defaultValue: 'Log {{drink}}',
                   drink: preset.name,
                 })}
-                className="min-h-11 flex-row items-center gap-2 rounded-xl border border-border-subtle bg-raised px-3"
+                className="min-h-11 flex-row items-center gap-2 rounded-md border border-border-subtle bg-raised px-3"
               >
                 <View>
                   <Text className="text-sm font-medium text-text-primary">

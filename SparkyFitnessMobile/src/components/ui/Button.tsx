@@ -52,22 +52,22 @@ const variantClasses: Record<
   { container: string; text: string; pressed: string }
 > = {
   primary: {
-    container: 'bg-accent-primary rounded-xl',
+    container: 'bg-accent-primary rounded-md',
     text: 'text-accent-text font-semibold',
     pressed: 'opacity-80',
   },
   secondary: {
-    container: 'bg-raised rounded-xl border-0',
+    container: 'bg-raised rounded-md border-0',
     text: 'text-accent-primary font-semibold',
     pressed: 'opacity-80',
   },
   outline: {
-    container: 'bg-transparent rounded-xl border border-accent-primary',
+    container: 'bg-transparent rounded-md border border-accent-primary',
     text: 'text-accent-primary font-semibold',
     pressed: 'opacity-70',
   },
   ghost: {
-    container: 'bg-transparent rounded-xl',
+    container: 'bg-transparent rounded-md',
     text: 'text-accent-primary font-semibold',
     pressed: 'opacity-70',
   },
@@ -86,7 +86,7 @@ const variantClasses: Record<
   // readable on the app background in every theme, unlike `bg-danger`, which
   // is a fill color and goes near-illegible maroon in dark/AMOLED.
   destructive: {
-    container: 'bg-transparent rounded-xl',
+    container: 'bg-transparent rounded-md',
     text: 'text-icon-danger font-medium',
     pressed: 'opacity-70',
   },

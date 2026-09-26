@@ -9,14 +9,14 @@ import { canUseLiquidGlass } from '../utils/liquidGlass';
 export const LIQUID_GLASS_HORIZONTAL_MARGIN = 20;
 export const LIQUID_GLASS_VERTICAL_GAP = 6;
 
-export function createLiquidGlassPillStyle(
+export function createLiquidGlassChromeStyle(
   chromeBorder: string,
   overrides: ViewStyle = {}
 ): ViewStyle {
   return {
     marginHorizontal: LIQUID_GLASS_HORIZONTAL_MARGIN,
     marginBottom: LIQUID_GLASS_VERTICAL_GAP,
-    borderRadius: 999,
+    borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: withAlpha(chromeBorder, 0.45),
     shadowColor: '#000',

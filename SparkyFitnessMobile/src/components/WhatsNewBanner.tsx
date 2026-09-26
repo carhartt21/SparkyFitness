@@ -6,7 +6,7 @@ import { useCSSVariable } from 'uniwind';
 import Icon from './Icon';
 import { navigationRef } from './ActiveWorkoutBar';
 import LiquidGlassSurface, {
-  createLiquidGlassPillStyle,
+  createLiquidGlassChromeStyle,
 } from './LiquidGlassSurface';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import {
@@ -151,7 +151,7 @@ export const WhatsNewBannerContent: React.FC<
 
   return (
     <LiquidGlassSurface
-      style={createLiquidGlassPillStyle(chromeBorder, {
+      style={createLiquidGlassChromeStyle(chromeBorder, {
         paddingBottom: reserveAddButtonClearance ? FAB_CLEARANCE : 0,
       })}
       colorScheme="auto"
