@@ -1,4 +1,5 @@
 import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -74,8 +75,7 @@ jest.mock('../../src/hooks/useCustomMeasurements', () => ({
   useCustomMeasurementsByDate: jest.fn(),
 }));
 
-// This suite renders DiaryScreen without a QueryClientProvider, so the sleep hook's real
-// useQuery would throw. Mocked to an empty day by default.
+// Sleep data is not relevant to these cases; keep it on an empty day.
 jest.mock('../../src/hooks/useSleepDay', () => ({
   useSleepDay: jest.fn(() => ({
     wakeUp: null,
@@ -392,12 +392,18 @@ const configureOnlineData = (
 const insets = { top: 0, bottom: 0, left: 0, right: 0 };
 const frame = { x: 0, y: 0, width: 390, height: 844 };
 
-const renderScreen = () =>
-  render(
-    <SafeAreaProvider initialMetrics={{ frame, insets }}>
-      <DiaryScreen navigation={mockNavigation} route={diaryRoute} />
-    </SafeAreaProvider>
+const renderScreen = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>
+      <SafeAreaProvider initialMetrics={{ frame, insets }}>
+        <DiaryScreen navigation={mockNavigation} route={diaryRoute} />
+      </SafeAreaProvider>
+    </QueryClientProvider>
   );
+};
 
 describe('DiaryScreen custom queries', () => {
   beforeEach(() => {
@@ -717,9 +723,11 @@ describe('DiaryScreen sleep cards', () => {
     // Sleep resolves with nothing: now the day really is empty.
     configureSleep({ wakeUp: null, naps: [], bedTime: null });
     rerender(
-      <SafeAreaProvider initialMetrics={{ frame, insets }}>
-        <DiaryScreen navigation={mockNavigation} route={diaryRoute} />
-      </SafeAreaProvider>
+      <QueryClientProvider client={new QueryClient()}>
+        <SafeAreaProvider initialMetrics={{ frame, insets }}>
+          <DiaryScreen navigation={mockNavigation} route={diaryRoute} />
+        </SafeAreaProvider>
+      </QueryClientProvider>
     );
 
     expect(queryByTestId('empty-day')).toBeTruthy();

@@ -124,6 +124,25 @@ export const deleteFoodEntry = async (id: string): Promise<void> => {
   });
 };
 
+export interface BulkFoodEntryAction {
+  ids: string[];
+  action: 'move' | 'copy' | 'delete';
+  sourceDate: string;
+  targetDate?: string;
+  targetMealTypeId?: string;
+}
+
+export const applyBulkFoodEntryAction = (
+  payload: BulkFoodEntryAction
+): Promise<{ count: number }> =>
+  apiFetch<{ count: number }>({
+    endpoint: '/api/food-entries/bulk-action',
+    serviceName: 'Food Entries API',
+    operation: `${payload.action} selected food entries`,
+    method: 'POST',
+    body: payload,
+  });
+
 export interface CopyFoodEntriesPayload {
   sourceDate: string;
   sourceMealType: string;

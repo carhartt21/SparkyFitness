@@ -24,8 +24,12 @@ interface FoodSummaryProps {
   mealTypes: MealType[];
   goals?: DailyGoals;
   calorieGoal?: number;
-  onAddFood?: () => void;
+  onAddFood?: (mealTypeId?: string) => void;
   onAdjustServing?: (entry: FoodEntry) => void;
+  selectionMode?: boolean;
+  selectedEntryIds?: ReadonlySet<string>;
+  onSelectEntry?: (entry: FoodEntry) => void;
+  onDropFood?: (entry: FoodEntry, mealTypeId: string) => void;
   onPressMealType?: (
     mealTypeId: string | null,
     mealTypeName: string,
@@ -39,6 +43,14 @@ interface MealSectionProps {
   goals?: DailyGoals;
   calorieGoal?: number;
   onAdjustServing?: (entry: FoodEntry) => void;
+  selectionMode?: boolean;
+  selectedEntryIds?: ReadonlySet<string>;
+  onSelectEntry?: (entry: FoodEntry) => void;
+  onDragStart?: () => void;
+  onDragEnd?: (entry: FoodEntry, pageX: number, pageY: number) => void;
+  registerDropTarget?: (mealTypeId: string, view: View | null) => void;
+  draggingFood?: boolean;
+  onAddFood?: (mealTypeId: string) => void;
   onPressMealType?: (
     mealTypeId: string | null,
     mealTypeName: string,
@@ -70,6 +82,14 @@ const MealSection: React.FC<MealSectionProps> = ({
   goals,
   calorieGoal,
   onAdjustServing,
+  selectionMode,
+  selectedEntryIds,
+  onSelectEntry,
+  onDragStart,
+  onDragEnd,
+  registerDropTarget,
+  draggingFood,
+  onAddFood,
   onPressMealType,
 }) => {
   const { t } = useTranslation();
@@ -116,7 +136,13 @@ const MealSection: React.FC<MealSectionProps> = ({
   );
 
   return (
-    <View className="bg-surface rounded-xl p-4 overflow-hidden shadow-sm">
+    <View
+      ref={(view) => {
+        if (group.mealTypeId && onAddFood)
+          registerDropTarget?.(group.mealTypeId, view);
+      }}
+      className={`bg-surface rounded-xl p-4 overflow-hidden shadow-sm ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : ''}`}
+    >
       {onPressMealType ? (
         <Pressable
           onPress={() =>
@@ -149,9 +175,46 @@ const MealSection: React.FC<MealSectionProps> = ({
             }
             nutrition={nutrition}
             onAdjustServing={onAdjustServing}
+            selectionMode={selectionMode}
+            selected={selectedEntryIds?.has(entry.id)}
+            onSelect={
+              !entry.food_entry_meal_id &&
+              !entry.meal_plan_template_id &&
+              !entry.nutrition_capture_id &&
+              (!entry.source || entry.source === 'manual') &&
+              !entry.isPendingNutrition
+                ? onSelectEntry
+                : undefined
+            }
+            onDragStart={onDragStart}
+            onDragEnd={
+              !entry.food_entry_meal_id &&
+              !entry.meal_plan_template_id &&
+              !entry.nutrition_capture_id &&
+              (!entry.source || entry.source === 'manual') &&
+              !entry.isPendingNutrition
+                ? onDragEnd
+                : undefined
+            }
           />
         );
       })}
+      {onAddFood && group.mealTypeId ? (
+        <Pressable
+          onPress={() => onAddFood(group.mealTypeId!)}
+          accessibilityRole="button"
+          accessibilityLabel={t('foodSummary.addFoodToMeal', {
+            defaultValue: 'Add food to {{meal}}',
+            meal: label,
+          })}
+          className="min-h-11 flex-row items-center justify-center gap-2 border-t border-border-subtle mt-2 pt-2"
+        >
+          <Icon name="add" size={18} color={accentPrimary} />
+          <Text className="text-sm font-semibold text-accent-primary">
+            {t('foodSummary.addFood', { defaultValue: 'Add food' })}
+          </Text>
+        </Pressable>
+      ) : null}
     </View>
   );
 };
@@ -164,15 +227,78 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
   calorieGoal,
   onAddFood,
   onAdjustServing,
+  selectionMode,
+  selectedEntryIds,
+  onSelectEntry,
+  onDropFood,
   onPressMealType,
 }) => {
-  if (foodEntries.length === 0) {
-    return <EmptyState onAddFood={onAddFood} />;
-  }
-
-  // groupFoodEntriesByMealType only creates groups that have entries, so the
-  // previous visibleGroups re-filter was redundant.
-  const groups = groupFoodEntriesByMealType(foodEntries, mealTypes);
+  const { t } = useTranslation();
+  const [draggingFood, setDraggingFood] = React.useState(false);
+  const dropTargets = React.useRef(new Map<string, View>());
+  const registerDropTarget = React.useCallback(
+    (mealTypeId: string, view: View | null) => {
+      if (view) dropTargets.current.set(mealTypeId, view);
+      else dropTargets.current.delete(mealTypeId);
+    },
+    []
+  );
+  const handleDragEnd = React.useCallback(
+    async (entry: FoodEntry, pageX: number, pageY: number) => {
+      setDraggingFood(false);
+      if (!onDropFood || !Number.isFinite(pageX) || !Number.isFinite(pageY))
+        return;
+      const bounds = await Promise.all(
+        [...dropTargets.current.entries()].map(
+          ([mealTypeId, view]) =>
+            new Promise<{
+              mealTypeId: string;
+              x: number;
+              y: number;
+              width: number;
+              height: number;
+            } | null>((resolve) => {
+              if (typeof view.measureInWindow !== 'function')
+                return resolve(null);
+              view.measureInWindow((x, y, width, height) =>
+                resolve({ mealTypeId, x, y, width, height })
+              );
+            })
+        )
+      );
+      const target = bounds.find(
+        (item) =>
+          item &&
+          pageX >= item.x &&
+          pageX <= item.x + item.width &&
+          pageY >= item.y &&
+          pageY <= item.y + item.height
+      );
+      if (target) onDropFood(entry, target.mealTypeId);
+    },
+    [onDropFood]
+  );
+  const entryGroups = groupFoodEntriesByMealType(foodEntries, mealTypes);
+  // When logging is available, keep every visible category available even on
+  // an empty day. Historical entries remain visible in their own groups.
+  const groups = onAddFood
+    ? [
+        ...mealTypes.map(
+          (type) =>
+            entryGroups.find((group) => group.mealTypeId === type.id) ?? {
+              mealTypeId: type.id,
+              name: type.name,
+              sortOrder: type.sort_order ?? 999,
+              entries: [],
+              isSystem: type.user_id === null,
+              displayName: type.display_name,
+            }
+        ),
+        ...entryGroups.filter(
+          (group) => !mealTypes.some((type) => type.id === group.mealTypeId)
+        ),
+      ]
+    : entryGroups;
 
   if (groups.length === 0) {
     return <EmptyState onAddFood={onAddFood} />;
@@ -180,6 +306,14 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
 
   return (
     <View className="gap-2 mb-2">
+      {selectionMode && onDropFood && (
+        <Text className="text-sm text-text-secondary px-1">
+          {t('diary.bulk.dragHint', {
+            defaultValue:
+              'Drag a food to another meal, or select foods for more actions.',
+          })}
+        </Text>
+      )}
       {groups.map((group) => (
         <MealSection
           key={
@@ -192,6 +326,18 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
           goals={goals}
           calorieGoal={calorieGoal}
           onAdjustServing={onAdjustServing}
+          selectionMode={selectionMode}
+          selectedEntryIds={selectedEntryIds}
+          onSelectEntry={onSelectEntry}
+          onDragStart={() => setDraggingFood(true)}
+          onDragEnd={handleDragEnd}
+          registerDropTarget={registerDropTarget}
+          draggingFood={draggingFood}
+          onAddFood={
+            mealTypes.some((type) => type.id === group.mealTypeId)
+              ? onAddFood
+              : undefined
+          }
           onPressMealType={onPressMealType}
         />
       ))}

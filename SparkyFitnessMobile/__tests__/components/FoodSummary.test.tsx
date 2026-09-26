@@ -74,6 +74,21 @@ const entry = (
 ): FoodEntry => ({ id, meal_type_id, meal_type }) as FoodEntry;
 
 describe('FoodSummary', () => {
+  it('shows visible empty meal cards and passes the selected meal to Add food', () => {
+    const onAddFood = jest.fn();
+    const view = render(
+      <FoodSummary
+        foodEntries={[]}
+        mealTypes={mealTypes}
+        onAddFood={onAddFood}
+      />
+    );
+
+    expect(view.getByText('Breakfast')).toBeTruthy();
+    fireEvent.press(view.getByLabelText('Add food to Breakfast'));
+    expect(onAddFood).toHaveBeenCalledWith('sys-b');
+  });
+
   it('renders custom meal types as their own sections (not merged into Other)', () => {
     const view = render(
       <FoodSummary

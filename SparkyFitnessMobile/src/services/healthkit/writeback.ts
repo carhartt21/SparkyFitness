@@ -179,6 +179,7 @@ const saveFoodCorrelation = async (
   const metadata: Record<string, string | number> = {
     HKFoodType: descriptor.name,
     SparkyWritebackVersion: version,
+    XOnTrackWritebackVersion: version,
   };
   const mealKey = descriptor.mealType?.toLowerCase();
   const mealLabel =

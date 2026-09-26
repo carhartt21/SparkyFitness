@@ -1,6 +1,12 @@
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, View, Text, TouchableOpacity } from 'react-native';
+import {
+  Alert,
+  View,
+  Text,
+  TouchableOpacity,
+  PanResponder,
+} from 'react-native';
 import Button from './ui/Button';
 import { useNavigation } from '@react-navigation/native';
 import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
@@ -23,6 +29,8 @@ import { useOpenLightbox } from './LightboxProvider';
 import NutritionCaptureThumbnail, {
   type CapturePhotoRef,
 } from './NutritionCaptureThumbnail';
+import Icon from './Icon';
+import { useCSSVariable } from 'uniwind';
 
 export type { CapturePhotoRef } from './NutritionCaptureThumbnail';
 
@@ -31,6 +39,11 @@ interface SwipeableFoodRowProps {
   nutrition: EntryNutrition;
   capturePhoto?: CapturePhotoRef;
   onAdjustServing?: (entry: FoodEntry) => void;
+  selectionMode?: boolean;
+  selected?: boolean;
+  onSelect?: (entry: FoodEntry) => void;
+  onDragStart?: () => void;
+  onDragEnd?: (entry: FoodEntry, pageX: number, pageY: number) => void;
 }
 
 const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
@@ -38,6 +51,11 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   nutrition,
   capturePhoto,
   onAdjustServing,
+  selectionMode = false,
+  selected = false,
+  onSelect,
+  onDragStart,
+  onDragEnd,
 }) => {
   const { t } = useTranslation();
   const { preferences } = usePreferences();
@@ -53,6 +71,20 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   const getImageSource = useFoodImageSourceContext();
   const entryImage = diaryEntryImage(entry);
   const openLightbox = useOpenLightbox();
+  const mutedColor = useCSSVariable('--color-text-muted') as string;
+  const dragResponder = React.useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => true,
+        onMoveShouldSetPanResponder: () => true,
+        onPanResponderGrant: () => onDragStart?.(),
+        onPanResponderRelease: (event) =>
+          onDragEnd?.(entry, event.nativeEvent.pageX, event.nativeEvent.pageY),
+        onPanResponderTerminate: () =>
+          onDragEnd?.(entry, Number.NaN, Number.NaN),
+      }),
+    [entry, onDragEnd, onDragStart]
+  );
 
   const onDeleteSuccess = () => {
     swipeableRef.current?.close();
@@ -125,6 +157,10 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
     : formatTimeLabel(entry.entry_time, preferences?.time_format);
 
   const handlePress = () => {
+    if (selectionMode) {
+      onSelect?.(entry);
+      return;
+    }
     if (isPending) return;
     if (isMealComponent && entry.food_entry_meal_id) {
       navigation.navigate('EditLoggedMeal', {
@@ -136,6 +172,10 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   };
 
   const handleLongPress = () => {
+    if (onSelect) {
+      onSelect(entry);
+      return;
+    }
     if (isPending) return;
     const buttons: {
       text: string;
@@ -164,12 +204,30 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
     <Animated.View style={animatedStyle} onLayout={handleLayout}>
       <ReanimatedSwipeable
         ref={swipeableRef}
-        renderRightActions={isPending ? undefined : renderRightActions}
-        enabled={!isPending}
+        renderRightActions={
+          isPending || selectionMode ? undefined : renderRightActions
+        }
+        enabled={!isPending && !selectionMode}
         overshootRight={false}
         rightThreshold={40}
       >
         <View className="min-h-11 py-1.5 flex-row items-center bg-surface">
+          {selectionMode && onSelect && (
+            <TouchableOpacity
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: selected }}
+              accessibilityLabel={t('foodRow.selectFood', {
+                defaultValue: 'Select {{name}}',
+                name,
+              })}
+              onPress={() => onSelect?.(entry)}
+              className="min-h-11 min-w-11 items-center justify-center"
+            >
+              <Text className="text-accent-primary text-xl">
+                {selected ? '●' : '○'}
+              </Text>
+            </TouchableOpacity>
+          )}
           {/* Diary rows are deliberately dense, so this slot collapses to
               nothing when an entry has no photo — a photo-free day keeps the
               exact layout it had before images existed. */}
@@ -192,6 +250,9 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
             onLongPress={handleLongPress}
             accessibilityRole="button"
             accessibilityLabel={`${name}, ${entry.quantity} ${entry.unit}`}
+            accessibilityState={
+              selectionMode && onSelect ? { selected } : undefined
+            }
           >
             <View className="flex-row flex-wrap items-baseline">
               <Text className="text-md text-text-primary" numberOfLines={2}>
@@ -223,7 +284,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               </Text>
             )}
           </TouchableOpacity>
-          {canQuickAdjust ? (
+          {canQuickAdjust && !selectionMode ? (
             <Button
               variant="ghost"
               onPress={() => onAdjustServing!(entry)}
@@ -238,6 +299,20 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               {Math.round(nutrition.calories)}{' '}
               {t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}
             </Text>
+          )}
+          {selectionMode && onDragEnd && onSelect && (
+            <View
+              {...dragResponder.panHandlers}
+              accessible
+              accessibilityRole="button"
+              accessibilityLabel={t('foodRow.dragFood', {
+                defaultValue: 'Drag {{name}} to another meal',
+                name,
+              })}
+              className="min-h-11 min-w-11 items-center justify-center"
+            >
+              <Icon name="reorder-handle" size={20} color={mutedColor} />
+            </View>
           )}
         </View>
       </ReanimatedSwipeable>

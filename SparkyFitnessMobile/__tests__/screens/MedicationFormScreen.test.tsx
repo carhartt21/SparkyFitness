@@ -170,6 +170,32 @@ describe('MedicationFormScreen — optional text fields', () => {
     );
   });
 
+  it('edits supplement nutrition per dose without inventing values for blank fields', () => {
+    mockUseMedicationDetail.mockReturnValue({
+      data: {
+        ...baseMed,
+        is_supplement: true,
+        nutrients: { protein: 3, vitamin_c: 90 },
+      },
+    } as unknown as ReturnType<typeof useMedicationDetail>);
+    const screen = renderScreen('med-1');
+
+    fireEvent.changeText(screen.getByLabelText('Protein g'), '4.5');
+    fireEvent.changeText(screen.getByLabelText('Vitamin C mg'), '');
+    pressAction(screen, mockNavigation, 'Save');
+
+    expect(updateMutate).toHaveBeenCalledWith(
+      {
+        id: 'med-1',
+        body: expect.objectContaining({
+          is_supplement: true,
+          nutrients: { protein: 4.5 },
+        }),
+      },
+      expect.anything()
+    );
+  });
+
   it('treats whitespace-only input as cleared', () => {
     const screen = renderScreen('med-1');
 

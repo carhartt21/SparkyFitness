@@ -27,6 +27,7 @@ export interface MealTypeFormSheetRef {
 
 export interface MealTypeFormValues {
   name: string;
+  nameChanged?: boolean;
   defaultTime: string;
   showInQuickLog: boolean;
 }
@@ -92,6 +93,7 @@ const MealTypeFormSheet = forwardRef<
     // Human-facing name for display/accessibility: canonical label for system
     // types, literal name for custom types.
     const [displayName, setDisplayName] = useState('');
+    const [originalName, setOriginalName] = useState('');
 
     useImperativeHandle(ref, () => ({
       presentCreate: () => {
@@ -113,8 +115,19 @@ const MealTypeFormSheet = forwardRef<
       },
       presentEdit: (mealType) => {
         setMode('edit');
+        const label =
+          mealType.display_name && mealType.display_name !== mealType.name
+            ? mealType.display_name
+            : mealType.user_id == null
+              ? getLocalizedMealLabel(
+                  t,
+                  mealType.name.toLowerCase() === 'snack'
+                    ? 'snacks'
+                    : mealType.name.toLowerCase()
+                )
+              : mealType.name;
         setValues({
-          name: mealType.name,
+          name: label,
           defaultTime: toHourMinute(mealType.default_time) || '',
           showInQuickLog: mealType.show_in_quick_log,
         });
@@ -122,16 +135,8 @@ const MealTypeFormSheet = forwardRef<
         // Lunch, Dinner, Snacks) even though the backend name is lowercase;
         // custom types keep their literal name. values.name stays the raw
         // backend name so persistence is never altered.
-        setDisplayName(
-          mealType.user_id == null
-            ? getLocalizedMealLabel(
-                t,
-                mealType.name.toLowerCase() === 'snack'
-                  ? 'snacks'
-                  : mealType.name.toLowerCase()
-              )
-            : mealType.name
-        );
+        setDisplayName(label);
+        setOriginalName(label);
         bottomSheetRef.current?.present();
       },
       dismiss: () => bottomSheetRef.current?.dismiss(),
@@ -141,12 +146,13 @@ const MealTypeFormSheet = forwardRef<
 
     const isEditingSystem = mode === 'edit' && isSystem;
     const hasDefaultTime = values.defaultTime !== '';
-    const canSave = !isSaving && (isEditingSystem || values.name.trim() !== '');
+    const canSave = !isSaving && values.name.trim() !== '';
 
     const handleSave = () => {
       if (!canSave) return;
       const payload: MealTypeFormValues = {
         name: values.name.trim(),
+        nameChanged: values.name.trim() !== originalName,
         defaultTime: values.defaultTime,
         showInQuickLog: values.showInQuickLog,
       };
@@ -174,32 +180,24 @@ const MealTypeFormSheet = forwardRef<
               : t('mealTypeForm.editTitle', { defaultValue: 'Edit Meal Type' })}
           </Text>
 
-          {/* Name — editable for custom, display-only for system */}
+          {/* System names are per-account display overrides. */}
           <Text className="text-xs font-semibold uppercase text-text-muted mb-1">
             {t('mealTypeForm.name', { defaultValue: 'Name' })}
           </Text>
-          {isEditingSystem ? (
-            <View className="bg-background border border-border rounded-lg px-3 py-2.5 mb-4">
-              <Text className="text-base text-text-primary">
-                {displayName || values.name}
-              </Text>
-            </View>
-          ) : (
-            <TextInput
-              value={values.name}
-              onChangeText={(name) => setValues((prev) => ({ ...prev, name }))}
-              placeholder={t('mealTypeForm.namePlaceholder', {
-                defaultValue: 'e.g. Lunch 2.0',
-              })}
-              placeholderTextColor={textMuted}
-              className="bg-background border border-border text-text-primary rounded-lg px-3 py-2.5 text-base mb-4"
-              autoFocus={mode === 'create'}
-              returnKeyType="done"
-              accessibilityLabel={t('mealTypeForm.accessibility.name', {
-                defaultValue: 'Meal type name',
-              })}
-            />
-          )}
+          <TextInput
+            value={values.name}
+            onChangeText={(name) => setValues((prev) => ({ ...prev, name }))}
+            placeholder={t('mealTypeForm.namePlaceholder', {
+              defaultValue: 'e.g. Lunch 2.0',
+            })}
+            placeholderTextColor={textMuted}
+            className="bg-background border border-border text-text-primary rounded-lg px-3 py-2.5 text-base mb-4"
+            autoFocus={mode === 'create'}
+            returnKeyType="done"
+            accessibilityLabel={t('mealTypeForm.accessibility.name', {
+              defaultValue: 'Meal type name',
+            })}
+          />
 
           {/* Quick log */}
           <View className="flex-row justify-between items-center py-3 border-t border-border-subtle">

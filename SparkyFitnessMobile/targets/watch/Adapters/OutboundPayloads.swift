@@ -23,6 +23,7 @@ enum OutboundPayloads {
         static let waterDelete = "waterDelete"
         static let contextRequest = "requestContext"
         static let workoutSetOperation = "workoutSetOperation"
+        static let foodLog = "foodLog"
     }
 
     /// A morning check-in awaiting a server write.
@@ -89,6 +90,21 @@ enum OutboundPayloads {
             "expectedCompleted": operation.expectedCompleted,
             "completed": operation.completed,
             "scope": operation.scope ?? "",
+        ]
+    }
+
+    static func foodLog(_ action: PendingFoodLogAction) -> [String: Any] {
+        [
+            "type": Kind.foodLog,
+            "clientId": action.id,
+            "scope": action.scope,
+            "entryDate": action.entryDate,
+            "loggedAt": ISO8601DateFormatter().string(from: action.loggedAt),
+            "foodId": action.foodId,
+            "variantId": action.variantId,
+            "mealTypeId": action.mealTypeId,
+            "quantity": action.quantity,
+            "unit": action.unit,
         ]
     }
 

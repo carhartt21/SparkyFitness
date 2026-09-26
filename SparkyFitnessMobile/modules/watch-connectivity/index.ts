@@ -124,6 +124,36 @@ export interface WatchContainerPayload {
   unit: string;
 }
 
+/** A phone-owned library shortcut. The Watch displays this cached catalogue. */
+export interface WatchFoodShortcutPayload {
+  foodId: string;
+  variantId: string;
+  name: string;
+  brand: string | null;
+  servingSize: number;
+  servingUnit: string;
+  calories: number;
+  group: 'favorite' | 'recent';
+}
+
+export interface WatchMealTypePayload {
+  id: string;
+  name: string;
+}
+
+/** One immutable Watch tap, replayed with its original UUID after reconnection. */
+export interface WatchFoodLogPayload {
+  clientId: string;
+  scope: string;
+  entryDate: string;
+  loggedAt: string;
+  foodId: string;
+  variantId: string;
+  mealTypeId: string;
+  quantity: number;
+  unit: string;
+}
+
 /** Seed values, history and acknowledgements pushed to the watch. */
 export interface WatchContextPayload {
   /**
@@ -203,6 +233,9 @@ export interface WatchContextPayload {
    * no separate "ask for the container list" round trip.
    */
   containers?: WatchContainerPayload[] | null;
+  foodShortcuts?: WatchFoodShortcutPayload[] | null;
+  mealTypes?: WatchMealTypePayload[] | null;
+  defaultMealTypeId?: string | null;
   /** Today's water totals in ml, for the same page's bottle fill. */
   waterConsumedMl?: number | null;
   waterGoalMl?: number | null;
@@ -238,6 +271,7 @@ export type WatchConnectivityEvents = {
   onManualWater: (payload: WatchManualWaterPayload) => void;
   onWaterDelete: (payload: WatchWaterDeletePayload) => void;
   onWorkoutSetOperation: (payload: WatchWorkoutSetOperationPayload) => void;
+  onFoodLog: (payload: WatchFoodLogPayload) => void;
 };
 
 declare class WatchConnectivityModuleType extends NativeModule<WatchConnectivityEvents> {

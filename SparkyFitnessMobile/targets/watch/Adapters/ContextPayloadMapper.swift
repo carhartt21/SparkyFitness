@@ -55,6 +55,12 @@ enum ContextPayloadMapper {
             water: water(from: payload),
             waterContainers: waterContainers(from: payload)
                 ?? (sameScope ? previous.waterContainers : nil),
+            foodShortcuts: foodShortcuts(from: payload)
+                ?? (sameScope ? previous.foodShortcuts : nil),
+            mealTypes: mealTypes(from: payload)
+                ?? (sameScope ? previous.mealTypes : nil),
+            defaultMealTypeId: payload["defaultMealTypeId"] as? String
+                ?? (sameScope ? previous.defaultMealTypeId : nil),
             // Carried forward for the same reason containers are: these are
             // account settings, and a push that happens not to mention them
             // must not blank the bottle's scale.
@@ -167,6 +173,34 @@ enum ContextPayloadMapper {
                 let unit = entry["unit"] as? String
             else { return nil }
             return WaterContainer(id: id, name: name, servingVolumeMl: servingVolumeMl, unit: unit)
+        }
+    }
+
+    static func foodShortcuts(from payload: [String: Any]) -> [WatchFoodShortcut]? {
+        guard let raw = payload["foodShortcuts"] as? [[String: Any]] else { return nil }
+        return raw.compactMap { entry in
+            guard let foodId = entry["foodId"] as? String,
+                  let variantId = entry["variantId"] as? String,
+                  let name = entry["name"] as? String,
+                  let servingSize = entry["servingSize"] as? Double,
+                  let servingUnit = entry["servingUnit"] as? String,
+                  let calories = entry["calories"] as? Double,
+                  let group = entry["group"] as? String,
+                  servingSize > 0, servingSize.isFinite else { return nil }
+            return WatchFoodShortcut(
+                foodId: foodId, variantId: variantId, name: name,
+                brand: entry["brand"] as? String, servingSize: servingSize,
+                servingUnit: servingUnit, calories: calories, group: group
+            )
+        }
+    }
+
+    static func mealTypes(from payload: [String: Any]) -> [WatchMealType]? {
+        guard let raw = payload["mealTypes"] as? [[String: Any]] else { return nil }
+        return raw.compactMap { entry in
+            guard let id = entry["id"] as? String,
+                  let name = entry["name"] as? String else { return nil }
+            return WatchMealType(id: id, name: name)
         }
     }
 

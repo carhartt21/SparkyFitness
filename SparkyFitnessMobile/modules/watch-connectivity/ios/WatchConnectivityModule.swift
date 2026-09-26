@@ -17,6 +17,7 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
     /// A request from the watch to delete one logged drink.
     var onWaterDelete: (([String: Any]) -> Void)?
     var onWorkoutSetOperation: (([String: Any]) -> Void)?
+    var onFoodLog: (([String: Any]) -> Void)?
 
     func activate() {
         guard WCSession.isSupported() else { return }
@@ -39,6 +40,8 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
             onWaterDelete?(payload)
         case "workoutSetOperation":
             onWorkoutSetOperation?(payload)
+        case "foodLog":
+            onFoodLog?(payload)
         default:
             break
         }
@@ -102,7 +105,8 @@ public class WatchConnectivityModule: Module {
             "onWaterIntake",
             "onManualWater",
             "onWaterDelete",
-            "onWorkoutSetOperation"
+            "onWorkoutSetOperation",
+            "onFoodLog"
         )
 
         OnCreate {
@@ -158,6 +162,19 @@ public class WatchConnectivityModule: Module {
                     "setSignature": payload["setSignature"] as? String ?? "",
                     "expectedCompleted": payload["expectedCompleted"] as? Bool ?? false,
                     "completed": payload["completed"] as? Bool ?? false,
+                ])
+            }
+            self.delegateHandler.onFoodLog = { [weak self] payload in
+                self?.sendEvent("onFoodLog", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "loggedAt": payload["loggedAt"] as? String ?? "",
+                    "foodId": payload["foodId"] as? String ?? "",
+                    "variantId": payload["variantId"] as? String ?? "",
+                    "mealTypeId": payload["mealTypeId"] as? String ?? "",
+                    "quantity": payload["quantity"] as? Double ?? 0,
+                    "unit": payload["unit"] as? String ?? "",
                 ])
             }
             self.delegateHandler.activate()

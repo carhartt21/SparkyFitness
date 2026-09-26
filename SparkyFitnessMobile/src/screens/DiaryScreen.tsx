@@ -12,7 +12,15 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Directions,
   Gesture,
@@ -31,6 +39,9 @@ import DiaryCalorieMacroSummary from '../components/DiaryCalorieMacroSummary';
 import EmptyDayIllustration from '../components/EmptyDayIllustration';
 import ExerciseSummary from '../components/ExerciseSummary';
 import FoodSummary from '../components/FoodSummary';
+import DiaryBulkActionSheet from '../components/DiaryBulkActionSheet';
+import { applyBulkFoodEntryAction } from '../services/api/foodEntriesApi';
+import { invalidateFoodCache } from '../hooks/invalidateFoodCache';
 import { nutritionCapturePhotoRefs } from '../utils/nutritionCapturePhotoRefs';
 import PendingNutritionActions from '../components/PendingNutritionActions';
 import NutritionQuickActions from '../components/NutritionQuickActions';
@@ -61,6 +72,7 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { usePreferences } from '../hooks/usePreferences';
 import { useSleepDay } from '../hooks/useSleepDay';
 import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
+import { useAppLocale } from '../localization/i18n';
 import { useNutritionDiaryActions } from '../hooks/useNutritionDiaryActions';
 import { useNutritionCapturesByDate } from '../hooks/useNutritionCapturesByDate';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
@@ -91,10 +103,9 @@ type DiaryScreenProps = CompositeScreenProps<
 const EMPTY_FOOD_ENTRIES: FoodEntry[] = [];
 
 const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const dateLocale = useAppLocale();
   const insets = useSafeAreaInsets();
   const { isConnected, isLoading: isConnectionLoading } = useServerConnection();
   const { data: familyUsers = [] } = useFamilyUsers({ enabled: isConnected });
@@ -362,6 +373,121 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   );
 
   const [refreshing, setRefreshing] = useState(false);
+  const [editingFoods, setEditingFoods] = useState(false);
+  const [selectedFoodIds, setSelectedFoodIds] = useState<ReadonlySet<string>>(
+    () => new Set()
+  );
+  const [bulkAction, setBulkAction] = useState<'move' | 'copy' | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  useEffect(() => {
+    setEditingFoods(false);
+    setSelectedFoodIds(new Set());
+    setBulkAction(null);
+  }, [selectedDate]);
+  const toggleFoodSelection = useCallback((entry: FoodEntry) => {
+    setEditingFoods(true);
+    setSelectedFoodIds((previous) => {
+      const next = new Set(previous);
+      if (next.has(entry.id)) next.delete(entry.id);
+      else next.add(entry.id);
+      return next;
+    });
+  }, []);
+  const finishFoodEditing = useCallback(() => {
+    setEditingFoods(false);
+    setSelectedFoodIds(new Set());
+    setBulkAction(null);
+  }, []);
+  const runBulkAction = useCallback(
+    async (
+      action: 'move' | 'copy' | 'delete',
+      targetDate?: string,
+      targetMealTypeId?: string
+    ) => {
+      if (selectedFoodIds.size === 0 || bulkBusy) return;
+      setBulkBusy(true);
+      try {
+        await applyBulkFoodEntryAction({
+          ids: [...selectedFoodIds],
+          action,
+          sourceDate: selectedDate,
+          targetDate,
+          targetMealTypeId,
+        });
+        invalidateFoodCache(queryClient, selectedDate);
+        if (targetDate && targetDate !== selectedDate) {
+          invalidateFoodCache(queryClient, targetDate);
+        }
+        finishFoodEditing();
+      } catch (error) {
+        Alert.alert(
+          t('diary.bulk.failed', {
+            defaultValue: 'Could not update selected foods',
+          }),
+          error instanceof Error
+            ? error.message
+            : t('common.tryAgain', { defaultValue: 'Please try again.' })
+        );
+      } finally {
+        setBulkBusy(false);
+      }
+    },
+    [bulkBusy, finishFoodEditing, queryClient, selectedDate, selectedFoodIds, t]
+  );
+  const moveDroppedFood = useCallback(
+    async (entry: FoodEntry, targetMealTypeId: string) => {
+      if (bulkBusy) return;
+      const ids = selectedFoodIds.has(entry.id)
+        ? [...selectedFoodIds]
+        : [entry.id];
+      if (ids.length === 1 && entry.meal_type_id === targetMealTypeId) return;
+      setBulkBusy(true);
+      try {
+        await applyBulkFoodEntryAction({
+          ids,
+          action: 'move',
+          sourceDate: selectedDate,
+          targetDate: selectedDate,
+          targetMealTypeId,
+        });
+        invalidateFoodCache(queryClient, selectedDate);
+        setSelectedFoodIds(new Set());
+      } catch (error) {
+        Alert.alert(
+          t('diary.bulk.failed', {
+            defaultValue: 'Could not update selected foods',
+          }),
+          error instanceof Error
+            ? error.message
+            : t('common.tryAgain', { defaultValue: 'Please try again.' })
+        );
+      } finally {
+        setBulkBusy(false);
+      }
+    },
+    [bulkBusy, queryClient, selectedDate, selectedFoodIds, t]
+  );
+  const confirmBulkDelete = useCallback(() => {
+    if (selectedFoodIds.size === 0) return;
+    Alert.alert(
+      t('diary.bulk.deleteTitle', { defaultValue: 'Delete selected foods?' }),
+      t('diary.bulk.deleteMessage', {
+        defaultValue: 'This removes {{count}} logged foods from this day.',
+        count: selectedFoodIds.size,
+      }),
+      [
+        {
+          text: t('common.cancel', { defaultValue: 'Cancel' }),
+          style: 'cancel',
+        },
+        {
+          text: t('common.delete', { defaultValue: 'Delete' }),
+          style: 'destructive',
+          onPress: () => void runBulkAction('delete'),
+        },
+      ]
+    );
+  }, [runBulkAction, selectedFoodIds.size, t]);
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
   const onRefresh = useCallback(async () => {
     if (!isConnected) return;
@@ -623,6 +749,63 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           completedFoodEntries={summary.foodEntries}
           isConnected={isConnected}
         />
+        {summary.foodEntries.length > 0 && (
+          <View className="px-4 mb-3 gap-2">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('diary.bulk.foods', { defaultValue: 'Foods' })}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                onPress={
+                  editingFoods ? finishFoodEditing : () => setEditingFoods(true)
+                }
+                className="min-h-11 min-w-11 items-center justify-center px-3"
+              >
+                <Text className="font-semibold text-accent-primary">
+                  {editingFoods
+                    ? t('common.done', { defaultValue: 'Done' })
+                    : t('diary.bulk.edit', { defaultValue: 'Edit' })}
+                </Text>
+              </Pressable>
+            </View>
+            {editingFoods && (
+              <View className="flex-row flex-wrap gap-2">
+                <Text className="w-full text-sm text-text-secondary">
+                  {t('diary.bulk.selectedCount', {
+                    defaultValue: '{{count}} selected foods',
+                    count: selectedFoodIds.size,
+                  })}
+                </Text>
+                {(['move', 'copy'] as const).map((action) => (
+                  <Pressable
+                    key={action}
+                    accessibilityRole="button"
+                    disabled={selectedFoodIds.size === 0 || bulkBusy}
+                    onPress={() => setBulkAction(action)}
+                    className="min-h-11 justify-center rounded-xl border border-border bg-surface px-4"
+                  >
+                    <Text className="text-text-primary font-medium">
+                      {action === 'move'
+                        ? t('diary.bulk.move', { defaultValue: 'Move' })
+                        : t('diary.bulk.copy', { defaultValue: 'Copy' })}
+                    </Text>
+                  </Pressable>
+                ))}
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={selectedFoodIds.size === 0 || bulkBusy}
+                  onPress={confirmBulkDelete}
+                  className="min-h-11 justify-center rounded-xl border border-border bg-surface px-4"
+                >
+                  <Text className="text-text-danger font-medium">
+                    {t('common.delete', { defaultValue: 'Delete' })}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+          </View>
+        )}
         {(summary.foodEntries.length > 0 ||
           pendingPhotoDiaryEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
@@ -638,6 +821,23 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         {isDayEmpty ? (
           <>
             <EmptyDayIllustration />
+            <FoodSummary
+              foodEntries={EMPTY_FOOD_ENTRIES}
+              mealTypes={mealTypes}
+              goals={summary.goals}
+              calorieGoal={summary.calorieGoal}
+              onAddFood={(mealTypeId) =>
+                navigation.navigate('FoodSearch', {
+                  date: selectedDate,
+                  mealTypeId,
+                })
+              }
+              onPressMealType={openMealTypeDetail}
+              selectionMode={editingFoods}
+              selectedEntryIds={selectedFoodIds}
+              onSelectEntry={toggleFoodSelection}
+              onDropFood={moveDroppedFood}
+            />
           </>
         ) : (
           <>
@@ -655,13 +855,20 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               mealTypes={mealTypes}
               goals={summary.goals}
               calorieGoal={summary.calorieGoal}
-              onAddFood={() =>
-                navigation.navigate('FoodSearch', { date: selectedDate })
+              onAddFood={(mealTypeId) =>
+                navigation.navigate('FoodSearch', {
+                  date: selectedDate,
+                  mealTypeId,
+                })
               }
               onAdjustServing={(entry) =>
                 servingSheetRef.current?.present(entry)
               }
               onPressMealType={openMealTypeDetail}
+              selectionMode={editingFoods}
+              selectedEntryIds={selectedFoodIds}
+              onSelectEntry={toggleFoodSelection}
+              onDropFood={moveDroppedFood}
             />
             <ExerciseSummary
               exerciseEntries={summary.exerciseEntries}
@@ -741,6 +948,20 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             navigation.navigate('FoodEntryView', { entry })
           }
         />
+        {bulkAction && (
+          <DiaryBulkActionSheet
+            key={`${bulkAction}:${selectedDate}`}
+            action={bulkAction}
+            sourceDate={selectedDate}
+            mealTypes={mealTypes}
+            selectedCount={selectedFoodIds.size}
+            busy={bulkBusy}
+            onClose={() => setBulkAction(null)}
+            onApply={(action, targetDate, targetMealTypeId) =>
+              void runBulkAction(action, targetDate, targetMealTypeId)
+            }
+          />
+        )}
       </>
     );
   }
@@ -786,6 +1007,20 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         ref={servingSheetRef}
         onViewEntry={(entry) => navigation.navigate('FoodEntryView', { entry })}
       />
+      {bulkAction && (
+        <DiaryBulkActionSheet
+          key={`${bulkAction}:${selectedDate}`}
+          action={bulkAction}
+          sourceDate={selectedDate}
+          mealTypes={mealTypes}
+          selectedCount={selectedFoodIds.size}
+          busy={bulkBusy}
+          onClose={() => setBulkAction(null)}
+          onApply={(action, targetDate, targetMealTypeId) =>
+            void runBulkAction(action, targetDate, targetMealTypeId)
+          }
+        />
+      )}
     </>
   );
 

@@ -205,6 +205,39 @@ struct PendingQuickWaterAction: Codable, Equatable, Identifiable {
     var state: SyncState
 }
 
+struct WatchFoodShortcut: Codable, Equatable, Identifiable {
+    let foodId: String
+    let variantId: String
+    let name: String
+    let brand: String?
+    let servingSize: Double
+    let servingUnit: String
+    let calories: Double
+    let group: String
+
+    var id: String { "\(foodId):\(variantId)" }
+}
+
+struct WatchMealType: Codable, Equatable, Identifiable {
+    let id: String
+    let name: String
+}
+
+/// Persisted before delivery; a retry uses the original operation ID and day.
+struct PendingFoodLogAction: Codable, Equatable, Identifiable {
+    let id: String
+    let scope: String
+    let entryDate: String
+    let loggedAt: Date
+    let foodId: String
+    let variantId: String
+    let mealTypeId: String
+    let quantity: Double
+    let unit: String
+    let name: String
+    var state: SyncState
+}
+
 /// A request to delete one logged drink, sent to the phone (which owns the
 /// API call). Same fire-and-reconcile shape as `WaterTap`: the watch removes
 /// the row optimistically and the next context push is the authority.
@@ -318,6 +351,10 @@ struct WatchContext: Codable, Equatable {
     /// = synced and the server genuinely has none configured, non-empty =
     /// usable. The page says something different for each.
     var waterContainers: [WaterContainer]?
+    /// Phone-owned catalogue, scoped to the account that pushed it.
+    var foodShortcuts: [WatchFoodShortcut]?
+    var mealTypes: [WatchMealType]?
+    var defaultMealTypeId: String?
     /// Today's water target, and the unit to draw amounts in. Account
     /// configuration, not day data — see `WaterSnapshot` for why they moved
     /// out of it — so both are carried forward when a push omits them.
@@ -348,6 +385,9 @@ struct WatchContext: Codable, Equatable {
         nutrition: nil,
         water: nil,
         waterContainers: nil,
+        foodShortcuts: nil,
+        mealTypes: nil,
+        defaultMealTypeId: nil,
         waterGoalMl: nil,
         waterDisplayUnit: nil,
         workout: nil,

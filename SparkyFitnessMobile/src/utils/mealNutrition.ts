@@ -14,6 +14,7 @@ export interface MealGroup {
   sortOrder: number;
   entries: FoodEntry[];
   isSystem: boolean;
+  displayName?: string;
 }
 
 export interface EntryNutrition {
@@ -34,10 +35,12 @@ export interface EntryNutrition {
  * "other" therefore always renders its literal name.
  */
 export function getMealTypeDisplayLabel(
-  mealType: Pick<MealType, 'name' | 'user_id'>,
+  mealType: Pick<MealType, 'name' | 'user_id' | 'display_name'>,
   t: TFunction
 ): string {
   if (mealType.user_id != null) return mealType.name;
+  if (mealType.display_name && mealType.display_name !== mealType.name)
+    return mealType.display_name;
   const lower = mealType.name.toLowerCase();
   const key = lower === 'snack' ? 'snacks' : lower;
   return getLocalizedMealLabel(t, key);
@@ -159,6 +162,7 @@ export function groupFoodEntriesByMealType(
         sortOrder: mt.sort_order ?? 999,
         entries: group.entries,
         isSystem: mt.user_id === null,
+        displayName: mt.display_name,
       });
     }
   }
@@ -187,6 +191,8 @@ export function groupFoodEntriesByMealType(
  */
 export function getMealGroupLabel(group: MealGroup, t: TFunction): string {
   if (group.isSystem) {
+    if (group.displayName && group.displayName !== group.name)
+      return group.displayName;
     const lower = group.name.toLowerCase();
     const key = lower === 'snack' ? 'snacks' : lower;
     return getLocalizedMealLabel(t, key);

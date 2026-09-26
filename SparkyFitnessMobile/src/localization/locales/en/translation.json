@@ -1219,7 +1219,26 @@
     "retry": "Retry",
     "title": "Diary",
     "addFood": "Add Food",
-    "emptyDay": "No entries recorded for this day"
+    "emptyDay": "No entries recorded for this day",
+    "bulk": {
+      "foods": "Foods",
+      "edit": "Edit",
+      "dragHint": "Drag a food to another meal, or select foods for more actions.",
+      "selectedCount_one": "{{count}} selected food",
+      "selectedCount_other": "{{count}} selected foods",
+      "move": "Move",
+      "copy": "Copy",
+      "moveTitle": "Move selected foods",
+      "copyTitle": "Copy selected foods",
+      "deleteTitle": "Delete selected foods?",
+      "deleteMessage_one": "This removes {{count}} logged food from this day.",
+      "deleteMessage_other": "This removes {{count}} logged foods from this day.",
+      "targetDate": "Destination date (YYYY-MM-DD)",
+      "targetMeal": "Destination meal",
+      "invalidDate": "Enter a valid date.",
+      "apply": "Apply",
+      "failed": "Could not update selected foods"
+    }
   },
   "medications": {
     "title": "Medications",
@@ -1259,6 +1278,25 @@
       "nameRequired": "Please enter a medication name.",
       "invalidNumber": "Invalid number",
       "invalidNumberMessage": "Please enter valid numeric values for strength and dose.",
+      "invalidNutrient": "Enter a non-negative number for each nutrient.",
+      "isSupplement": "This is a supplement",
+      "supplementHint": "Nutrients are counted when a dose is logged.",
+      "nutrientsPerDose": "Nutrition per dose",
+      "nutrientsOptional": "Leave unknown values blank.",
+      "nutrient": {
+        "calories": "Energy",
+        "protein": "Protein",
+        "carbs": "Carbohydrates",
+        "fat": "Fat",
+        "sodium": "Sodium",
+        "potassium": "Potassium",
+        "vitamin_c": "Vitamin C",
+        "calcium": "Calcium",
+        "iron": "Iron",
+        "caffeine_mg": "Caffeine",
+        "water_ml": "Water",
+        "alcohol_g": "Alcohol"
+      },
       "updateFailed": "Failed to update medication: {{error}}",
       "createFailed": "Failed to create medication: {{error}}"
     },
@@ -2125,6 +2163,8 @@
   },
   "foodSummary": {
     "tapToAddFood": "Tap to add food",
+    "addFood": "Add food",
+    "addFoodToMeal": "Add food to {{meal}}",
     "caloriesShort": "kcal",
     "caloriesUnit": "Cal",
     "nutritionBreakdown": "{{label}} nutrition breakdown"
@@ -2193,7 +2233,9 @@
     "adjustServing": "Adjust serving",
     "caloriesShort": "kcal",
     "caloriesUnit": "Cal",
-    "deleteFood": "Delete food"
+    "deleteFood": "Delete food",
+    "selectFood": "Select {{name}}",
+    "dragFood": "Drag {{name}} to another meal"
   },
   "exerciseRow": {
     "deleteExercise": "Delete exercise"
@@ -5489,6 +5531,10 @@
     "capture": "Capture photo",
     "captureError": "Could not save that photo. Try again.",
     "poseGuide": "Pose guide",
+    "upperBodyGuide": "Upper body guide",
+    "fullBodyGuide": "Full body guide",
+    "upperBody": "Upper body",
+    "fullBody": "Full body",
     "showGuide": "Show guide",
     "hideGuide": "Hide guide",
     "guideNotSaved": "The guide is never saved with your photo.",

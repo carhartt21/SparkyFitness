@@ -27,6 +27,7 @@ final class CheckInStore: ObservableObject {
     /// day-filtered pending totals to redraw even without a phone snapshot.
     @Published private(set) var localDay: String = CheckInDate.today()
     @Published private(set) var pendingQuickWaterActions: [PendingQuickWaterAction] = []
+    @Published private(set) var pendingFoodActions: [PendingFoodLogAction] = []
     @Published private(set) var pendingWorkoutOperations: [WorkoutSetOperation] = []
 
     private let defaults = UserDefaults.standard
@@ -35,6 +36,7 @@ final class CheckInStore: ObservableObject {
     private let lastCapturedKey = "sparky.watch.lastCaptured"
     private let pendingWaterKey = "sparky.watch.pendingWaterTaps"
     private let pendingQuickWaterKey = "personalbest.watch.pendingQuickWaterActions"
+    private let pendingFoodKey = "x-on-track.watch.pendingFoodActions"
     private let pendingWorkoutKey = "personalbest.watch.pendingWorkoutOperations"
 
     private init() {
@@ -217,6 +219,41 @@ final class CheckInStore: ObservableObject {
         }
     }
 
+    // MARK: - Food shortcuts
+
+    func captureFoodLog(_ food: WatchFoodShortcut, mealTypeId: String) -> PendingFoodLogAction? {
+        guard let scope = context.actionScope, !scope.isEmpty,
+              context.foodShortcuts?.contains(where: { $0.id == food.id }) == true,
+              context.mealTypes?.contains(where: { $0.id == mealTypeId }) == true else { return nil }
+        let action = PendingFoodLogAction(
+            id: UUID().uuidString, scope: scope, entryDate: CheckInDate.today(),
+            loggedAt: Date(), foodId: food.foodId, variantId: food.variantId,
+            mealTypeId: mealTypeId, quantity: food.servingSize,
+            unit: food.servingUnit, name: food.name, state: .queued
+        )
+        pendingFoodActions.append(action)
+        // Keep bounded local history while retaining every unresolved write.
+        let saved = pendingFoodActions.filter { $0.state == .saved }.suffix(20)
+        pendingFoodActions = pendingFoodActions.filter { $0.state != .saved } + saved
+        persist()
+        return action
+    }
+
+    func markFoodLog(_ clientId: String, _ state: SyncState) {
+        guard let index = pendingFoodActions.firstIndex(where: { $0.id == clientId }) else { return }
+        if pendingFoodActions[index].state == .saved && state == .failed { return }
+        pendingFoodActions[index].state = state
+        persist()
+    }
+
+    var queuedFoodActions: [PendingFoodLogAction] {
+        pendingFoodActions.filter { $0.state == .queued && $0.scope == context.actionScope }
+    }
+
+    var failedFoodActions: [PendingFoodLogAction] {
+        pendingFoodActions.filter { $0.state == .failed && $0.scope == context.actionScope }
+    }
+
     // MARK: - Workout set actions
 
     func operation(for setKey: String, sessionId: String) -> WorkoutSetOperation? {
@@ -312,6 +349,8 @@ final class CheckInStore: ObservableObject {
         for clientId in incoming.failedClientIds { markWaterTap(clientId, .failed) }
         for clientId in incoming.ackedClientIds { markQuickWater(clientId, .saved) }
         for clientId in incoming.failedClientIds { markQuickWater(clientId, .failed) }
+        for clientId in incoming.ackedClientIds { markFoodLog(clientId, .saved) }
+        for clientId in incoming.failedClientIds { markFoodLog(clientId, .failed) }
         for clientId in incoming.ackedClientIds { markWorkoutOperation(clientId, .saved) }
         for clientId in incoming.failedClientIds { markWorkoutOperation(clientId, .failed) }
 
@@ -506,6 +545,9 @@ final class CheckInStore: ObservableObject {
         if let data = try? encoder.encode(pendingQuickWaterActions) {
             defaults.set(data, forKey: pendingQuickWaterKey)
         }
+        if let data = try? encoder.encode(pendingFoodActions) {
+            defaults.set(data, forKey: pendingFoodKey)
+        }
         if let data = try? encoder.encode(pendingWorkoutOperations) {
             defaults.set(data, forKey: pendingWorkoutKey)
         }
@@ -534,6 +576,10 @@ final class CheckInStore: ObservableObject {
         if let data = defaults.data(forKey: pendingQuickWaterKey),
            let decoded = try? decoder.decode([PendingQuickWaterAction].self, from: data) {
             pendingQuickWaterActions = decoded
+        }
+        if let data = defaults.data(forKey: pendingFoodKey),
+           let decoded = try? decoder.decode([PendingFoodLogAction].self, from: data) {
+            pendingFoodActions = decoded
         }
         if let data = defaults.data(forKey: pendingWorkoutKey),
            let decoded = try? decoder.decode([WorkoutSetOperation].self, from: data) {

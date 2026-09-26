@@ -35,6 +35,7 @@ import {
   fetchMealTypes,
   createMealType,
   updateMealType,
+  updateMealTypeOrder,
   deleteMealType,
 } from '../services/api/mealTypesApi';
 import { addLog } from '../services/LogService';
@@ -56,20 +57,8 @@ import {
   useReorderRowGeometry,
   useReorderRowPreviewStyle,
 } from '../components/WorkoutReorderList';
-import type { IconName } from '../components/Icon';
 import type { MealType } from '../types/mealTypes';
 import type { RootStackScreenProps } from '../types/navigation';
-import {
-  assignCustomTypesToGaps,
-  buildUnifiedList,
-  deriveGapsFromUnified,
-  DEFAULT_CREATE_GAP,
-  MAX_CUSTOM_PER_GAP,
-  GAP_USER_LABEL,
-  GAP_SLOT_RANGE,
-  slotsForGap,
-  type MealGapKey,
-} from '../utils/mealTypeSlots';
 
 type MealTypeSettingsScreenProps = RootStackScreenProps<'MealTypeSettings'>;
 
@@ -77,13 +66,6 @@ type MealTypeSettingsScreenProps = RootStackScreenProps<'MealTypeSettings'>;
 // between them), so the drag geometry uses the real rendered stride: exactly the shared
 // row height. WorkoutReorderList's own 8px item gap does not apply here.
 const ROW_HEIGHT = REORDER_ROW_HEIGHT;
-
-/** Canonical FILLED system icon for a system meal-type name (MEAL_CONFIG). */
-function getSystemMealTypeIcon(name: string): IconName {
-  const lower = name.toLowerCase();
-  const key = lower === 'snack' ? 'snacks' : lower;
-  return (MEAL_CONFIG[key]?.icon as IconName | undefined) ?? 'meal-snack';
-}
 
 /**
  * Module-scope CUSTOM meal-type row (stable component identity; gesture-driven).
@@ -157,7 +139,7 @@ const CustomMealTypeRow: React.FC<{
   return (
     <Animated.View
       key={mt.id}
-      testID={`meal-type-custom-${mt.id}`}
+      testID={`meal-type-${mt.user_id === null ? 'system' : 'custom'}-${mt.id}`}
       className="flex-row items-center bg-surface border-b border-border/40"
       style={[previewStyle, { height: ROW_HEIGHT }]}
     >
@@ -168,7 +150,7 @@ const CustomMealTypeRow: React.FC<{
           accessibilityRole="adjustable"
           accessibilityLabel={t('mealTypeSettings.reorder', {
             defaultValue: 'Reorder {{name}}',
-            name: mt.name,
+            name: getMealTypeDisplayLabel(mt, t),
           })}
           accessibilityActions={[
             {
@@ -188,112 +170,22 @@ const CustomMealTypeRow: React.FC<{
         </View>
       </GestureDetector>
       <TouchableOpacity
-        className="flex-1 py-3 flex-shrink"
-        onPress={() => onEdit(mt)}
-        activeOpacity={0.6}
-        accessibilityLabel={t('mealTypeSettings.edit', {
-          defaultValue: 'Edit {{name}}',
-          name: mt.name,
-        })}
-        testID={`edit-custom-${mt.id}`}
-      >
-        <Text
-          className="text-base text-text-primary font-medium"
-          numberOfLines={1}
-        >
-          {mt.name}
-        </Text>
-      </TouchableOpacity>
-      <MealTypeTimeCell
-        mealType={mt}
-        onPress={() => onTime(mt)}
-        textSecondary={textSecondary}
-        t={t}
-      />
-      <View className="pr-4 pl-1">
-        <Switch
-          value={mt.is_visible}
-          onValueChange={(val) => onToggleVisibility(mt, val)}
-          accessibilityLabel={t('mealTypeSettings.visible', {
-            defaultValue: 'Visible {{name}}',
-            name: mt.name,
-          })}
-        />
-      </View>
-    </Animated.View>
-  );
-};
-
-/**
- * Module-scope SYSTEM meal-type row: an ANIMATED shell (so it can visually
- * shift as a passive sibling during a drag preview) but with NO drag gesture,
- * NO drag handle and NO accessibility reorder actions — system anchors are
- * fixed in data/reorder semantics and can never become active. The shared
- * preview hook only ever yields 0 for it as the active row, and the shift
- * range excludes the active index, so it can never be dragged.
- */
-const SystemMealTypeRow: React.FC<{
-  mt: MealType;
-  index: number;
-  onEdit: (mt: MealType) => void;
-  onTime: (mt: MealType) => void;
-  onToggleVisibility: (mt: MealType, value: boolean) => void;
-  accentColor: string;
-  textSecondary: string;
-  activeDragIndex: SharedValue<number>;
-  panY: SharedValue<number>;
-  committingTranslate: SharedValue<number>;
-  targetIndex: SharedValue<number>;
-  strides: number[];
-  t: ReturnType<typeof useTranslation>['t'];
-}> = ({
-  mt,
-  index,
-  t,
-  onEdit,
-  onTime,
-  onToggleVisibility,
-  accentColor,
-  textSecondary,
-  activeDragIndex,
-  panY,
-  committingTranslate,
-  targetIndex,
-  strides,
-}) => {
-  const previewStyle = useReorderRowPreviewStyle(
-    index,
-    activeDragIndex,
-    panY,
-    committingTranslate,
-    targetIndex,
-    strides
-  );
-
-  return (
-    <Animated.View
-      key={mt.id}
-      className="flex-row items-center bg-surface border-b border-border/40"
-      style={[previewStyle, { height: ROW_HEIGHT }]}
-      testID={`meal-type-system-${mt.id}`}
-    >
-      <View className="px-4 py-3">
-        <Icon
-          name={getSystemMealTypeIcon(mt.name)}
-          size={22}
-          color={accentColor}
-        />
-      </View>
-      <TouchableOpacity
-        className="flex-1 py-3 flex-shrink"
+        className="flex-1 py-3 flex-shrink flex-row items-center gap-2"
         onPress={() => onEdit(mt)}
         activeOpacity={0.6}
         accessibilityLabel={t('mealTypeSettings.edit', {
           defaultValue: 'Edit {{name}}',
           name: getMealTypeDisplayLabel(mt, t),
         })}
-        testID={`edit-system-${mt.id}`}
+        testID={`edit-custom-${mt.id}`}
       >
+        {mt.user_id === null ? (
+          <Icon
+            name={MEAL_CONFIG[mt.name.toLowerCase()]?.icon ?? 'meal-snack'}
+            size={20}
+            color={textSecondary}
+          />
+        ) : null}
         <Text
           className="text-base text-text-primary font-medium"
           numberOfLines={1}
@@ -615,67 +507,29 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
     [updateMutation, queryClient]
   );
 
-  const { systemTypes, customTypes } = useMemo(() => {
-    const types = mealTypes ?? [];
-    return {
-      systemTypes: types.filter((mt) => mt.user_id === null),
-      customTypes: types.filter((mt) => mt.user_id !== null),
-    };
-  }, [mealTypes]);
-
-  // Always-current custom types for the persistence worker, so a long-running
-  // worker never persists writes built from a STALE closure (CodeRabbit:
-  // "no stale closure over old customTypes").
-  const customTypesRef = useRef(customTypes);
-  customTypesRef.current = customTypes;
-
-  /**
-   * Optimistic gap assignment while a reorder is pending (gapKey → ordered ids).
-   * null = follow the server sort_order. Cleared when the persisted state is
-   * reconciled (success writes cache + clears; failure clears + refetches).
-   */
-  const [gapOverride, setGapOverride] = useState<Record<
-    MealGapKey,
-    string[]
-  > | null>(null);
-
-  const serverGaps = useMemo(
-    () => assignCustomTypesToGaps(customTypes),
-    [customTypes]
+  const serverOrder = useMemo(
+    () => [...(mealTypes ?? [])].sort((a, b) => a.sort_order - b.sort_order),
+    [mealTypes]
   );
-
-  const currentGaps = useMemo<Record<MealGapKey, MealType[]>>(() => {
-    if (!gapOverride) return serverGaps;
-    const byId = new Map(customTypes.map((mt) => [mt.id, mt]));
-    const out = {} as Record<MealGapKey, MealType[]>;
-    for (const key of Object.keys(serverGaps) as MealGapKey[]) {
-      out[key] = (gapOverride[key] ?? [])
-        .map((id) => byId.get(id))
-        .filter((mt): mt is MealType => mt != null);
-    }
-    return out;
-  }, [serverGaps, gapOverride, customTypes]);
-
-  /** Unified visual rows (anchors fixed, customs per current gaps). */
+  const [orderOverride, setOrderOverride] = useState<string[] | null>(null);
+  const orderedTypes = useMemo(() => {
+    if (!orderOverride) return serverOrder;
+    const byId = new Map(serverOrder.map((mt) => [mt.id, mt]));
+    const ordered = orderOverride
+      .map((id) => byId.get(id))
+      .filter((mt): mt is MealType => mt != null);
+    const included = new Set(ordered.map((mt) => mt.id));
+    return [...ordered, ...serverOrder.filter((mt) => !included.has(mt.id))];
+  }, [serverOrder, orderOverride]);
   const unifiedRows = useMemo(
-    () => buildUnifiedList(systemTypes, currentGaps),
-    [systemTypes, currentGaps]
+    () => orderedTypes.map((mt) => ({ isSystem: mt.user_id === null, mt })),
+    [orderedTypes]
   );
 
-  // Drag geometry over the unified rows. Anchors and customs share the same row height,
-  // so every row has the same stride.
   const { strides, offsets } = useReorderRowGeometry(unifiedRows.length);
   const activeDragIndex = useSharedValue(-1);
   const panY = useSharedValue(0);
-  // Commit handoff: holds the active row's final translate until the new
-  // unified order has rendered (see CustomMealTypeRow onEnd).
   const committingTranslate = useSharedValue(0);
-
-  // LIVE UI-thread drop target (WorkoutReorderList pattern): recomputed on
-  // every pan frame from the shared values, never via JS state, so each row's
-  // preview-shift animation can follow the finger in real time. The same value
-  // is read by the gesture's onEnd so the committed destination always matches
-  // the gap the preview opened.
   const targetIndex = useDerivedValue(() =>
     activeDragIndex.value < 0
       ? -1
@@ -687,65 +541,23 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
         )
   );
 
-  /** Generation of the currently displayed optimistic order (incremented on
-   * every accepted move). A persisted snapshot carries the generation it was
-   * created from; stale completions must never clear a NEWER override. */
   const orderGenerationRef = useRef(0);
-  const latestOrderRef = useRef<{
-    generation: number;
-    order: Record<MealGapKey, string[]>;
-  } | null>(null);
+  const latestOrderRef = useRef<{ generation: number; order: string[] } | null>(
+    null
+  );
   const workerRunningRef = useRef(false);
-  // Post-render commit handoff: set by moveCustomType, consumed by an effect
-  // AFTER the new unifiedRows have rendered.
   const pendingDragResetRef = useRef(false);
 
-  /** Persists one concrete gap assignment (direct API calls, no generic
-   * mutation callbacks). Success writes the cache + one invalidate; failure
-   * logs once, shows one reorder error and reconciles. Never retried
-   * automatically — a newer user order supersedes it after reconciliation.
-   *
-   * A stale completion must never erase newer visual state: `gapOverride` is
-   * cleared only when the persisted generation is still the CURRENT displayed
-   * generation AND no newer desired order exists. On failure the same rule
-   * applies — if a newer optimistic order exists it is preserved and then
-   * persisted deterministically by the worker. */
   const doPersist = useCallback(
-    async (
-      gapsToPersist: Record<MealGapKey, MealType[]>,
-      generation: number
-    ) => {
-      // ABSOLUTE snapshot persistence: every custom type in every gap is
-      // written with its canonical slot, independent of the (possibly stale)
-      // cached sort_order. This guarantees the newest visual order is fully
-      // representable after reconciliation and never depends on stale data.
-      const writes: { id: string; sort_order: number }[] = [];
-      for (const key of Object.keys(gapsToPersist) as MealGapKey[]) {
-        const list = gapsToPersist[key];
-        const slots = slotsForGap(key, list.length);
-        list.forEach((mt, i) => {
-          writes.push({ id: mt.id, sort_order: slots[i] });
-        });
-      }
-      if (writes.length === 0) return;
+    async (order: string[], generation: number) => {
       try {
-        for (const write of writes) {
-          await updateMealType(write.id, { sort_order: write.sort_order });
-        }
-        queryClient.setQueryData<MealType[]>(mealTypesQueryKey, (old) => {
-          const byId = new Map(writes.map((w) => [w.id, w.sort_order]));
-          return (old ?? []).map((mt) =>
-            byId.has(mt.id) ? { ...mt, sort_order: byId.get(mt.id)! } : mt
-          );
-        });
-        // Clear ONLY if this generation is still displayed and no newer
-        // desired order exists.
+        const updated = await updateMealTypeOrder(order);
+        queryClient.setQueryData<MealType[]>(mealTypesQueryKey, updated);
         if (
           generation === orderGenerationRef.current &&
           latestOrderRef.current === null
-        ) {
-          setGapOverride(null);
-        }
+        )
+          setOrderOverride(null);
         invalidate();
       } catch (err) {
         addLog(
@@ -758,136 +570,48 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
             defaultValue: 'Failed to reorder meal types',
           }),
         });
-        // Never clear a NEWER optimistic override. If no newer order exists
-        // this generation is still displayed, so reconcile it back to the
-        // server state.
         if (
           generation === orderGenerationRef.current &&
           latestOrderRef.current === null
-        ) {
-          setGapOverride(null);
-        }
+        )
+          setOrderOverride(null);
         invalidate();
       }
     },
     [invalidate, queryClient, t]
   );
 
-  /**
-   * ONE active persistence worker. `latestOrderRef` holds the newest accepted
-   * visual order (with its generation); `workerRunningRef` guarantees only a
-   * single worker is alive at a time. Moves while a worker is running simply
-   * update the desired order — the running worker drains it in a loop, so the
-   * newest order is persisted exactly once (no duplicate persistence of the
-   * same logical order, no second worker, no stale closure over old
-   * customTypes). An older sequence can never finish after a newer one.
-   */
   const persistWorker = useCallback(async () => {
     workerRunningRef.current = true;
     try {
       while (latestOrderRef.current) {
         const { generation, order } = latestOrderRef.current;
-        latestOrderRef.current = null; // consume the snapshot
-        const byId = new Map(customTypesRef.current.map((mt) => [mt.id, mt]));
-        const gaps: Record<MealGapKey, MealType[]> = {
-          b_l: [],
-          l_d: [],
-          d_s: [],
-        };
-        for (const k of Object.keys(order) as MealGapKey[]) {
-          gaps[k] = (order[k] ?? [])
-            .map((id) => byId.get(id))
-            .filter((mt): mt is MealType => mt != null);
-        }
-        await doPersist(gaps, generation);
+        latestOrderRef.current = null;
+        await doPersist(order, generation);
       }
     } finally {
       workerRunningRef.current = false;
-      // A move that arrived exactly while we were finishing may have set the
-      // ref after the while-condition; drain it if so.
-      if (latestOrderRef.current) {
-        void persistWorker();
-      }
+      if (latestOrderRef.current) void persistWorker();
     }
   }, [doPersist]);
 
-  const enqueuePersist = useCallback(() => {
-    if (workerRunningRef.current) return; // worker already drains latest order
-    void persistWorker();
-  }, [persistWorker]);
-
-  const moveCustomType = useCallback(
+  const moveMealType = useCallback(
     (fromIndex: number, toIndex: number) => {
       if (fromIndex === toIndex) return;
       if (fromIndex < 0 || fromIndex >= unifiedRows.length) return;
       if (toIndex < 0 || toIndex >= unifiedRows.length) return;
-      const source = unifiedRows[fromIndex];
-      if (source.isSystem) return; // anchors never move
-      // Custom rows may only sit BETWEEN the anchors: never before the first
-      // anchor (Breakfast, index 0) nor after the last anchor (Snacks). The
-      // destination index refers to the list AFTER the source is removed, so
-      // inserting before the last anchor means toIndex === lastSystemIndex - 1.
-      const lastSystemIndex = unifiedRows.reduce(
-        (acc, row, idx) => (row.isSystem ? idx : acc),
-        -1
-      );
-      const clampedTo = Math.min(
-        Math.max(toIndex, 1),
-        Math.max(lastSystemIndex - 1, 1)
-      );
-      const currentUnified = unifiedRows.map((r) => ({ ...r }));
-      const [moved] = currentUnified.splice(fromIndex, 1);
-      currentUnified.splice(clampedTo, 0, moved);
-      if (
-        !currentUnified[0]?.isSystem ||
-        !currentUnified[currentUnified.length - 1]?.isSystem
-      ) {
-        // Defensive anchor-bound guard: also release a frozen preview.
-        resetReorderDragPreview(activeDragIndex, panY, committingTranslate);
-        return; // defensive: anchors must bound the list
-      }
-      const nextGaps = deriveGapsFromUnified(currentUnified);
-      // Capacity check: every gap may hold at most 9 custom types.
-      for (const key of Object.keys(nextGaps) as MealGapKey[]) {
-        if (nextGaps[key].length > MAX_CUSTOM_PER_GAP) {
-          const movingInto = GAP_USER_LABEL[key];
-          Toast.show({
-            type: 'error',
-            text1: t('mealTypeSettings.capacity', {
-              defaultValue: 'No more meal types can be placed {{gap}}.',
-              gap: movingInto,
-            }),
-          });
-          // Rejected drop: the gesture already froze the preview in onEnd;
-          // release it immediately so the dropped row and sibling shifts
-          // spring back to their pre-drag positions (CodeRabbit P1 — the
-          // post-render reset is only armed for ACCEPTED moves).
-          resetReorderDragPreview(activeDragIndex, panY, committingTranslate);
-          return;
-        }
-      }
-      const override: Record<MealGapKey, string[]> = {
-        b_l: nextGaps.b_l.map((mt) => mt.id),
-        l_d: nextGaps.l_d.map((mt) => mt.id),
-        d_s: nextGaps.d_s.map((mt) => mt.id),
-      };
+      const next = unifiedRows.map((row) => row.mt.id);
+      const [moved] = next.splice(fromIndex, 1);
+      next.splice(toIndex, 0, moved);
       const generation = ++orderGenerationRef.current;
-      latestOrderRef.current = { generation, order: override };
-      setGapOverride(override);
-      // Commit handoff: do NOT reset the drag shared values here — the new
-      // unifiedRows have not rendered yet (setGapOverride only schedules a
-      // render). A post-render effect consumes pendingDragResetRef after the
-      // new order is on screen, making the reset a visual no-op.
+      latestOrderRef.current = { generation, order: next };
+      setOrderOverride(next);
       pendingDragResetRef.current = true;
-      enqueuePersist();
+      if (!workerRunningRef.current) void persistWorker();
     },
-    [unifiedRows, enqueuePersist, activeDragIndex, panY, committingTranslate, t]
+    [unifiedRows, persistWorker]
   );
 
-  // Post-render commit handoff: after the new unifiedRows render (gapOverride
-  // applied), release the floating transform — the row's array position has
-  // changed, so resetting translate is a visual no-op. This prevents a
-  // one-frame snap-back between drop and React re-render.
   useEffect(() => {
     if (!pendingDragResetRef.current) return;
     pendingDragResetRef.current = false;
@@ -933,20 +657,8 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
       showInQuickLog: boolean;
     }) => {
       setIsCreating(true);
-      const current = gapOverride ?? serverGaps;
-      const targetGap = DEFAULT_CREATE_GAP;
-      if (current[targetGap].length >= MAX_CUSTOM_PER_GAP) {
-        setIsCreating(false);
-        Toast.show({
-          type: 'error',
-          text1: t('mealTypeSettings.capacity', {
-            defaultValue: 'No more meal types can be placed {{gap}}.',
-            gap: GAP_USER_LABEL[targetGap],
-          }),
-        });
-        return;
-      }
-      const nextSort = GAP_SLOT_RANGE[targetGap][0] + current[targetGap].length;
+      const nextSort =
+        Math.max(0, ...serverOrder.map((type) => type.sort_order)) + 10;
       try {
         const created = await createMealType({
           name: values.name,
@@ -1009,13 +721,14 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
         setIsCreating(false);
       }
     },
-    [gapOverride, serverGaps, invalidate, t]
+    [serverOrder, invalidate, t]
   );
 
   /** Edit: name/default_time/quick log/visibility only — sort_order untouched. */
   const handleEditSave = useCallback(
     (values: {
       name: string;
+      nameChanged?: boolean;
       defaultTime: string;
       showInQuickLog: boolean;
     }) => {
@@ -1023,7 +736,9 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
       mutateMealType(
         editingType.id,
         {
-          name: editingType.user_id !== null ? values.name : editingType.name,
+          ...(editingType.user_id !== null || values.nameChanged
+            ? { name: values.name }
+            : {}),
           default_time: values.defaultTime || null,
           // is_visible intentionally omitted: Visibility is owned by the
           // main-list Switch, so a plain edit never overwrites server state.
@@ -1138,45 +853,26 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
         >
           {unifiedRows.length > 0 ? (
             <View className="bg-surface rounded-xl mx-4 overflow-hidden shadow-sm">
-              {unifiedRows.map((row, index) =>
-                row.isSystem ? (
-                  <SystemMealTypeRow
-                    key={row.mt.id}
-                    mt={row.mt}
-                    index={index}
-                    onEdit={openEdit}
-                    onTime={openTimePicker}
-                    onToggleVisibility={toggleVisibility}
-                    accentColor={accentColor}
-                    textSecondary={textSecondary}
-                    activeDragIndex={activeDragIndex}
-                    panY={panY}
-                    committingTranslate={committingTranslate}
-                    targetIndex={targetIndex}
-                    strides={strides}
-                    t={t}
-                  />
-                ) : (
-                  <CustomMealTypeRow
-                    key={row.mt.id}
-                    mt={row.mt}
-                    index={index}
-                    totalRows={unifiedRows.length}
-                    onEdit={openEdit}
-                    onTime={openTimePicker}
-                    onMove={moveCustomType}
-                    onToggleVisibility={toggleVisibility}
-                    textMuted={textMuted}
-                    textSecondary={textSecondary}
-                    activeDragIndex={activeDragIndex}
-                    panY={panY}
-                    committingTranslate={committingTranslate}
-                    targetIndex={targetIndex}
-                    strides={strides}
-                    t={t}
-                  />
-                )
-              )}
+              {unifiedRows.map((row, index) => (
+                <CustomMealTypeRow
+                  key={row.mt.id}
+                  mt={row.mt}
+                  index={index}
+                  totalRows={unifiedRows.length}
+                  onEdit={openEdit}
+                  onTime={openTimePicker}
+                  onMove={moveMealType}
+                  onToggleVisibility={toggleVisibility}
+                  textMuted={textMuted}
+                  textSecondary={textSecondary}
+                  activeDragIndex={activeDragIndex}
+                  panY={panY}
+                  committingTranslate={committingTranslate}
+                  targetIndex={targetIndex}
+                  strides={strides}
+                  t={t}
+                />
+              ))}
             </View>
           ) : (
             <View className="items-center justify-center py-16 px-8">

@@ -39,8 +39,16 @@ export const setOwnBundleId = (id: string | null): void => {
 };
 
 const isOwnRecord = (rec: Record<string, unknown>): boolean => {
-  if (!ownBundleId) return false;
-  return (rec.sourceBundleId as string | undefined) === ownBundleId;
+  const metadata = rec.metadata as Record<string, unknown> | undefined;
+  // Source revisions can be absent on HealthKit's Food correlation or loose
+  // nutrient results. Our writeback marker is stamped on both, including older
+  // releases that used the SparkyWritebackVersion key.
+  if (
+    metadata?.XOnTrackWritebackVersion !== undefined ||
+    metadata?.SparkyWritebackVersion !== undefined
+  )
+    return true;
+  return Boolean(ownBundleId && rec.sourceBundleId === ownBundleId);
 };
 
 // ============================================================================

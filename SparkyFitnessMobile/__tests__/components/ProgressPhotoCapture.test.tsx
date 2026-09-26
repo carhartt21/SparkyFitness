@@ -62,6 +62,15 @@ describe('ProgressPhotoCapture', () => {
     expect(
       screen.UNSAFE_getByProps({ testID: 'progress-photo-pose-guide' })
     ).toBeTruthy();
+    expect(
+      screen.getByRole('button', { name: 'Upper body guide' }).props
+        .accessibilityState
+    ).toMatchObject({ selected: true });
+    fireEvent.press(screen.getByRole('button', { name: 'Full body guide' }));
+    expect(
+      screen.getByRole('button', { name: 'Full body guide' }).props
+        .accessibilityState
+    ).toMatchObject({ selected: true });
     fireEvent.press(screen.getByRole('switch', { name: 'Pose guide' }));
     expect(
       screen.UNSAFE_queryByProps({ testID: 'progress-photo-pose-guide' })

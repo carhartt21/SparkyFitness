@@ -18,6 +18,7 @@ import { useCopyFoodEntries } from '../hooks/useCopyFoodEntries';
 import { usePreferences } from '../hooks/usePreferences';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
+import { useAppLocale } from '../localization/i18n';
 import { formatDateLabel } from '../utils/dateUtils';
 import {
   calculateEntryNutrition,
@@ -35,10 +36,8 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { date, mealType, mealTypeId, mealLabel } = route.params;
   const insets = useSafeAreaInsets();
   const usesNativeHeader = useNativeIOSHeadersActive();

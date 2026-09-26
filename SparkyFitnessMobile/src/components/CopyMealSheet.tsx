@@ -16,8 +16,11 @@ import Button from './ui/Button';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import Icon from './Icon';
 import { useMealTypes } from '../hooks/useMealTypes';
-import { getLocalizedMealLabel } from '../constants/meals';
-import { getHistoricalMealTypeLabel } from '../utils/mealNutrition';
+import {
+  getHistoricalMealTypeLabel,
+  getMealTypeDisplayLabel,
+} from '../utils/mealNutrition';
+import { useAppLocale } from '../localization/i18n';
 import { formatDateLabel } from '../utils/dateUtils';
 import { useCalendarPresentation } from '../utils/calendarLocalization';
 import { dayToPickerDate, localDateToDay } from '@workspace/shared';
@@ -39,10 +42,8 @@ interface CopyMealSheetProps {
 
 const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
   ({ isPending = false, onCopy }, ref) => {
-    const { t, i18n: translationI18n } = useTranslation();
-    const dateLocale = translationI18n.language.startsWith('pl')
-      ? 'pl-PL'
-      : 'en-US';
+    const { t } = useTranslation();
+    const dateLocale = useAppLocale();
     const { presentation } = useCalendarPresentation();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
 
@@ -114,14 +115,11 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
     );
 
     const displayMealType = useCallback(
-      (mealType: { name: string; user_id: string | null }) => {
-        if (mealType.user_id != null) return mealType.name;
-        const key =
-          mealType.name.toLowerCase() === 'snack'
-            ? 'snacks'
-            : mealType.name.toLowerCase();
-        return getLocalizedMealLabel(t, key);
-      },
+      (mealType: {
+        name: string;
+        user_id: string | null;
+        display_name?: string;
+      }) => getMealTypeDisplayLabel(mealType, t),
       [t]
     );
 
