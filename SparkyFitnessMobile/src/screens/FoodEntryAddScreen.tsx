@@ -1399,7 +1399,9 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       key: 'carbs',
       value: scaled(carbsForGoal),
       unit: 'g',
-      label: localizeNutrientKey(t, showNetCarbs ? 'netCarbs' : 'carbs'),
+      label: showNetCarbs
+        ? t('foodEntryAdd.labels.netCarbsShort', { defaultValue: 'Net carbs' })
+        : t('foodEntryAdd.labels.carbsShort', { defaultValue: 'Carbs' }),
       goalPercent: carbsGoalPct,
     },
     {

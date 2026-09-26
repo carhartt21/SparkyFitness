@@ -27,7 +27,7 @@ const run = (command, args, options = {}) =>
 const sim = (...args) => run('xcrun', ['simctl', ...args]);
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const runtime = arg('--runtime', 'com.apple.CoreSimulator.SimRuntime.iOS-26-2');
-const cases = process.argv.includes('--single')
+const allCases = process.argv.includes('--single')
   ? [
       {
         name: 'baseline-de',
@@ -88,7 +88,19 @@ const cases = process.argv.includes('--single')
         scenario: 'error',
         device: 'iPhone-13',
       },
+      {
+        name: '390-en-saved',
+        language: 'en',
+        theme: 'Dark',
+        scenario: 'saved',
+        device: 'iPhone-13',
+      },
     ];
+const selectedCase = arg('--case', '');
+const cases = selectedCase
+  ? allCases.filter((item) => new RegExp(selectedCase).test(item.name))
+  : allCases;
+if (!cases.length) throw new Error('No review case matched --case');
 let scenario = cases[0];
 let events = [];
 const server = createServer((req, res) => {
@@ -105,6 +117,19 @@ const server = createServer((req, res) => {
         res.writeHead(400).end();
       }
     });
+    return;
+  }
+  // Native image fetching bypasses the JS transport. This synthetic color
+  // probe verifies parent-food image loading without invented food photography.
+  if (req.url === '/fixture-thumbnail.png') {
+    events.push({ method: 'GET', path: '/fixture-thumbnail.png' });
+    res.setHeader('Content-Type', 'image/png');
+    res.end(
+      Buffer.from(
+        'iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAIAAAAlC+aJAAAAZUlEQVR4nO3PIREAIRAAQCqhcXiakIJIBECQBPEV3pMBcW5ntsCmf9VQZZ9QSUBAQEBAQEBAQEBAQEBAQEBAQEBAQEDgOfC1HirPEUpAQEBAQEBAQEBAQEBAQEBAQEBAQEBA4NkF8e1RlpKUD1EAAAAASUVORK5CYII=',
+        'base64'
+      )
+    );
     return;
   }
   if (req.url === '/events' && req.method === 'GET') {
@@ -280,12 +305,14 @@ try {
       const text = texts.map((t) => t.text).join('\n');
       passed =
         item.scenario === 'error'
-          ? /Failed to load summary/.test(text)
-          : (item.scenario === 'populated'
-              ? /1[.,]400/.test(text)
-              : item.scenario === 'empty'
-                ? /2[.,]000/.test(text)
-                : /300/.test(text)) && /kcal/.test(text);
+          ? /Server unavailable/.test(text)
+          : item.scenario === 'saved'
+            ? /Saved summary/.test(text) && /1[.,]400/.test(text)
+            : (item.scenario === 'populated'
+                ? /1[.,]400/.test(text)
+                : item.scenario === 'empty'
+                  ? /2[.,]000/.test(text)
+                  : /300/.test(text)) && /kcal/.test(text);
       passed = passed && !/developer menu|Dev tools|Continue/.test(text);
       if (item.language === 'de')
         passed =
@@ -310,7 +337,9 @@ try {
       throw new Error(`No expected product content for ${item.name}`);
     if (
       process.argv.includes('--interactions') &&
-      ['baseline-de', '390-de-dark', '430-en-dark'].includes(item.name)
+      ['baseline-de', '390-de-dark', '430-en-dark', '390-en-saved'].includes(
+        item.name
+      )
     ) {
       const resultBundle = path.join(output, `${item.name}.xcresult`);
       try {

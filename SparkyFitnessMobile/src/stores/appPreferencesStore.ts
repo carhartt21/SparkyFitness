@@ -79,6 +79,7 @@ export const PREFERENCE_DEFAULTS = {
   languagePreference: 'system' as LanguagePreference,
   healthTrendOrder: [...HEALTH_TREND_KEYS] as HealthTrendKey[],
   hiddenHealthTrends: [] as HealthTrendKey[],
+  mobileFoodProviderDefault: '' as string,
   foodSearchOwnershipFilter: 'all' as OwnershipFilter,
   foodsLibraryOwnershipFilter: 'all' as OwnershipFilter,
   mealsLibraryOwnershipFilter: 'all' as OwnershipFilter,
@@ -127,6 +128,7 @@ export type AppPreferencesData = {
   languagePreference: LanguagePreference;
   healthTrendOrder: HealthTrendKey[];
   hiddenHealthTrends: HealthTrendKey[];
+  mobileFoodProviderDefault: string;
   foodSearchOwnershipFilter: OwnershipFilter;
   foodsLibraryOwnershipFilter: OwnershipFilter;
   mealsLibraryOwnershipFilter: OwnershipFilter;
@@ -174,6 +176,7 @@ export interface AppPreferencesState extends AppPreferencesData {
     order: HealthTrendKey[],
     hiddenKeys: HealthTrendKey[]
   ) => void;
+  setMobileFoodProviderDefault: (value: string) => void;
   setFoodSearchOwnershipFilter: (value: OwnershipFilter) => void;
   setFoodsLibraryOwnershipFilter: (value: OwnershipFilter) => void;
   setMealsLibraryOwnershipFilter: (value: OwnershipFilter) => void;
@@ -283,6 +286,8 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
       setLanguagePreference: (value) => set({ languagePreference: value }),
       setHealthTrendLayout: (order, hiddenKeys) =>
         set({ healthTrendOrder: order, hiddenHealthTrends: hiddenKeys }),
+      setMobileFoodProviderDefault: (value) =>
+        set({ mobileFoodProviderDefault: value }),
       setFoodSearchOwnershipFilter: (value) =>
         set({ foodSearchOwnershipFilter: value }),
       setFoodsLibraryOwnershipFilter: (value) =>
@@ -343,6 +348,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         languagePreference: state.languagePreference,
         healthTrendOrder: state.healthTrendOrder,
         hiddenHealthTrends: state.hiddenHealthTrends,
+        mobileFoodProviderDefault: state.mobileFoodProviderDefault,
         foodSearchOwnershipFilter: state.foodSearchOwnershipFilter,
         foodsLibraryOwnershipFilter: state.foodsLibraryOwnershipFilter,
         mealsLibraryOwnershipFilter: state.mealsLibraryOwnershipFilter,

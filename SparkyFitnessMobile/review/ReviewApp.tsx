@@ -8,7 +8,10 @@ import { saveServerConfig } from '../src/services/storage';
 import { useAppPreferencesStore } from '../src/stores/appPreferencesStore';
 import { useDiaryDateStore } from '../src/stores/diaryDateStore';
 import { setThemePreference } from '../src/services/themeService';
-import { reviewDate } from './fixtures';
+import { saveDashboardSnapshot } from '../src/services/dashboardSnapshot';
+import { rememberActiveNutritionUser } from '../src/services/nutritionIdentity';
+import { buildDailySummary } from '../src/services/dailySummaryService';
+import { reviewDate, summaryFixture } from './fixtures';
 import { createNutritionFixture } from './nutritionFixture';
 
 const transport = global.fetch;
@@ -40,7 +43,7 @@ export default function ReviewApp() {
         const method = options?.method ?? 'GET';
         try {
           if (
-            config.scenario === 'error' &&
+            ['error', 'saved'].includes(config.scenario) &&
             url.pathname === '/api/daily-summary'
           )
             return new Response('{}', { status: 503 });
@@ -69,6 +72,12 @@ export default function ReviewApp() {
           });
         }
       };
+      // Every scenario starts with isolated synthetic cache data. Error captures
+      // must not accidentally reuse the preceding over-target scenario.
+      const cacheKeys = (await AsyncStorage.getAllKeys()).filter((key) =>
+        key.startsWith('@SparkyFitness/dashboard-cache/')
+      );
+      await AsyncStorage.multiRemove(cacheKeys);
       await markCurrentVersionSeen();
       await useAppPreferencesStore.persist.rehydrate();
       useAppPreferencesStore.setState({
@@ -92,6 +101,28 @@ export default function ReviewApp() {
         apiKey: 'synthetic-not-a-credential',
         authType: 'apiKey',
       });
+      if (config.scenario === 'saved') {
+        await rememberActiveNutritionUser('review-user');
+        await saveDashboardSnapshot(
+          { serverConfigId: 'ui-review', userId: 'review-user' },
+          {
+            version: 1,
+            date: reviewDate,
+            savedAt: Date.now() - 3600000,
+            preferences: {
+              energy_unit: 'kcal',
+              water_display_unit: 'ml',
+              time_format: 'HH:mm',
+            },
+            summary: buildDailySummary(reviewDate, {
+              ...summaryFixture,
+              exerciseEntries: summaryFixture.exerciseSessions,
+              waterIntake: { water_ml: summaryFixture.waterIntake },
+              stepCalories: 0,
+            }),
+          }
+        );
+      }
       await setThemePreference(config.theme);
       useDiaryDateStore.getState().setSelectedDate(reviewDate);
       setReady(true);

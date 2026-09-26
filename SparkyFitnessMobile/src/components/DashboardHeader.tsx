@@ -1,4 +1,10 @@
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import {
+  Image,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import { useAppLocale } from '../localization';
@@ -7,6 +13,7 @@ import Icon from './Icon';
 
 interface Props {
   selectedDate: string;
+  onHome?: () => void;
   onPreviousDay: () => void;
   onNextDay: () => void;
   onToday: () => void;
@@ -20,6 +27,24 @@ export default function DashboardHeader(props: Props) {
   const color = useCSSVariable('--color-text-primary') as string;
   return (
     <View className="pt-3 pb-2">
+      <Pressable
+        onPress={props.onHome ?? props.onToday}
+        accessibilityRole="button"
+        accessibilityLabel={t('dashboard.home', {
+          defaultValue: 'X on Track — Dashboard',
+        })}
+        className="min-h-11 flex-row items-center gap-3 self-start mb-2"
+      >
+        <Image
+          source={require('../../assets/brand/x-on-track-dark.png')}
+          style={{ width: 40, height: 40 }}
+          resizeMode="contain"
+          accessible={false}
+        />
+        <Text className="text-xl font-bold text-text-primary">
+          {t('app.name', { defaultValue: 'X on Track' })}
+        </Text>
+      </Pressable>
       <View
         style={{ flexDirection: fontScale > 1.3 ? 'column' : 'row' }}
         className="items-center justify-between gap-1"

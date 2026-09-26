@@ -923,7 +923,16 @@
     "hydrationLedgerNote": "Recorded drinks for this day. Water from food and older daily totals may not have individual drink entries.",
     "hydrationLedgerError": "Could not load recorded drinks.",
     "noRecordedDrinks": "No individual drinks recorded for this day.",
-    "waterSourceManual": "Manually logged"
+    "waterSourceManual": "Manually logged",
+    "home": "X on Track — Dashboard",
+    "offlineTitle": "Server unavailable",
+    "offlineEmpty": "No summary for this day is saved on this device yet. Reconnect to load it.",
+    "cachedSummary": "Saved summary · {{time}}. More recent changes may not be included.",
+    "localHealth": "Apple Health on this device",
+    "localHealthNote": "Shown separately; not added to the saved daily target.",
+    "localHealthUnknown": "No shared data is available for this day.",
+    "localActiveEnergy": "Active energy: {{value}} kcal",
+    "steps": "Steps"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",
@@ -3516,7 +3525,9 @@
       "mealMakes_other": "meal makes {{formattedCount}} servings",
       "aboutThisFood": "About this food",
       "entryNotes": "Note for this entry",
-      "entryNotesPlaceholder": "Anything specific about this time you ate it"
+      "entryNotesPlaceholder": "Anything specific about this time you ate it",
+      "carbsShort": "Carbs",
+      "netCarbsShort": "Net carbs"
     },
     "pickers": {
       "selectServing": "Select Serving",
@@ -3714,6 +3725,10 @@
       "meal": "Meal",
       "itemCount_one": "{{count}} item",
       "itemCount_other": "{{count}} items"
+    },
+    "title": "Add food",
+    "tabs": {
+      "recent": "Recent"
     }
   },
   "editBarcode": {

@@ -211,7 +211,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
         overshootRight={false}
         rightThreshold={40}
       >
-        <View className="min-h-11 py-1.5 flex-row items-center bg-surface">
+        <View className="min-h-11 py-2.5 flex-row items-center bg-surface">
           {selectionMode && onSelect && (
             <TouchableOpacity
               accessibilityRole="checkbox"
@@ -228,21 +228,21 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               </Text>
             </TouchableOpacity>
           )}
-          {/* Diary rows are deliberately dense, so this slot collapses to
-              nothing when an entry has no photo — a photo-free day keeps the
-              exact layout it had before images existed. */}
           {capturePhoto ? (
             <NutritionCaptureThumbnail photo={capturePhoto} />
-          ) : entryImage ? (
+          ) : (
             <FoodThumbnail
               image={entryImage}
               getImageSource={getImageSource}
-              size={56}
-              showFallback={false}
-              style={{ marginRight: 8 }}
-              onPress={() => openLightbox(diaryEntryImages(entry), 0, name)}
+              size={48}
+              style={{ marginRight: 12 }}
+              onPress={
+                entryImage
+                  ? () => openLightbox(diaryEntryImages(entry), 0, name)
+                  : undefined
+              }
             />
-          ) : null}
+          )}
           <TouchableOpacity
             className="flex-1 min-h-11 justify-center mr-2"
             activeOpacity={0.7}
@@ -254,19 +254,15 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               selectionMode && onSelect ? { selected } : undefined
             }
           >
-            <View className="flex-row flex-wrap items-baseline">
+            <View className="gap-0.5">
               <Text className="text-md text-text-primary" numberOfLines={2}>
                 {name}
               </Text>
               <Text className="text-sm text-text-secondary" numberOfLines={1}>
-                {' · '}
                 {entry.quantity} {entry.unit}
               </Text>
               {timeLabel && (
-                <Text
-                  className="text-xs text-text-link ml-1.5"
-                  numberOfLines={1}
-                >
+                <Text className="text-xs text-text-secondary" numberOfLines={1}>
                   {timeLabel}
                 </Text>
               )}

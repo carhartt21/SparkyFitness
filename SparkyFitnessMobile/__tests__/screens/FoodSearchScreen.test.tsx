@@ -288,6 +288,46 @@ describe('FoodSearchScreen', () => {
     return screen;
   }
 
+  it('filters a typed query to favorites or recent foods and disables online fan-out', () => {
+    const favorite = buildFood({ id: 'fav', name: 'Favorite chicken' });
+    const recent = buildFood({ id: 'recent', name: 'Recent chicken' });
+    mockUseFoodSearch.mockReturnValue({
+      searchResults: [favorite, recent],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+    } as ReturnType<typeof useFoodSearch>);
+    mockUseFavorites.mockReturnValue({
+      favoriteFoods: [favorite],
+      favoriteMeals: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFavorites>);
+    mockUseFoods.mockReturnValue({
+      recentFoods: [recent],
+      topFoods: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFoods>);
+    const screen = renderSearching();
+    fireEvent.press(screen.getByText('Favorites'));
+    expect(screen.getByText('Favorite chicken')).toBeTruthy();
+    expect(screen.queryByText('Recent chicken')).toBeNull();
+    expect(mockUseAllProvidersSearch).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ enabled: false })
+    );
+    fireEvent.press(screen.getByText('Recent'));
+    expect(screen.getByText('Recent chicken')).toBeTruthy();
+    expect(screen.queryByText('Favorite chicken')).toBeNull();
+    fireEvent.press(screen.getByText('All'));
+    expect(screen.getByText('Favorite chicken')).toBeTruthy();
+    expect(screen.getByText('Recent chicken')).toBeTruthy();
+  });
+
   it('keeps the quick photo action on today and avoids silently logging a historical day as today', () => {
     const todayScreen = render(
       <SafeAreaProvider initialMetrics={{ insets, frame }}>
@@ -1003,7 +1043,7 @@ describe('FoodSearchScreen', () => {
       ).toBeTruthy();
     });
 
-    it('opens on the stored single provider when the preference is off', () => {
+    it('starts broadly across providers even with a legacy single-provider default', () => {
       mockUsePreferences.mockReturnValue({
         preferences: {
           food_search_all_providers_default: false,
@@ -1011,17 +1051,12 @@ describe('FoodSearchScreen', () => {
         },
       } as any);
       mockUseExternalProviders.mockReturnValue(twoProviders);
-      mockUseExternalFoodSearch.mockReturnValue(
-        activeExternalSearch({ searchResults: [externalItem] })
-      );
+      mockUseAllProvidersSearch.mockReturnValue(activeAllProvidersSearch());
 
       const screen = renderSearching();
 
       expect(
-        screen.queryByLabelText('Provider All Providers, tap to change')
-      ).toBeNull();
-      expect(
-        screen.getByLabelText('Provider OpenFoodFacts, tap to change')
+        screen.getByLabelText('Provider All Providers, tap to change')
       ).toBeTruthy();
     });
 

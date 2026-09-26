@@ -1092,7 +1092,16 @@
     "hydrationLedgerNote": "Erfasste Getränke an diesem Tag. Wasser aus Lebensmitteln und ältere Tagessummen haben möglicherweise keine einzelnen Trinkeinträge.",
     "hydrationLedgerError": "Die erfassten Getränke konnten nicht geladen werden.",
     "noRecordedDrinks": "Für diesen Tag sind keine einzelnen Getränke erfasst.",
-    "waterSourceManual": "Manuell erfasst"
+    "waterSourceManual": "Manuell erfasst",
+    "home": "X on Track — Dashboard",
+    "offlineTitle": "Server nicht erreichbar",
+    "offlineEmpty": "Für diesen Tag ist auf diesem Gerät noch keine Zusammenfassung gespeichert. Verbinde dich erneut, um sie zu laden.",
+    "cachedSummary": "Gespeicherter Stand · {{time}}. Änderungen seitdem sind möglicherweise noch nicht enthalten.",
+    "localHealth": "Apple Health auf diesem Gerät",
+    "localHealthNote": "Separat angezeigt; wird nicht zum gespeicherten Tagesziel addiert.",
+    "localHealthUnknown": "Keine freigegebenen Daten für diesen Tag verfügbar.",
+    "localActiveEnergy": "Aktivitätsenergie: {{value}} kcal",
+    "steps": "Schritte"
   },
   "syncScreen": {
     "healthConnectSettings": "Gesundheit Connect Einstellungen",
@@ -2027,19 +2036,20 @@
   "foodSummary": {
     "tapToAddFood": "Tippe, um hinzufügen Ernährung",
     "caloriesShort": "kcal",
-    "caloriesUnit": "Kal.",
-    "nutritionBreakdown": "{{label}} Ernährung Aufschlüsselung"
+    "caloriesUnit": "kcal",
+    "nutritionBreakdown": "{{label}} Ernährung Aufschlüsselung",
+    "addFood": "Lebensmittel hinzufügen"
   },
   "exerciseSummary": {
-    "tapToAdd": "Tippe, um hinzufügen exercise",
-    "addExercise": "exercise hinzufügen",
-    "title": "Übung"
+    "tapToAdd": "Training hinzufügen",
+    "addExercise": "Training hinzufügen",
+    "title": "Training"
   },
   "foodRow": {
-    "unknownFood": "Unbekannt Ernährung",
+    "unknownFood": "Unbekanntes Lebensmittel",
     "adjustServing": "Portion anpassen",
     "caloriesShort": "kcal",
-    "caloriesUnit": "Kal.",
+    "caloriesUnit": "kcal",
     "deleteFood": "Lebensmittel löschen",
     "selectFood": "{{name}} auswählen",
     "dragFood": "{{name}} in eine andere Mahlzeit ziehen"
@@ -2515,8 +2525,8 @@
     "saturatedFatCompact": "Sat. Fett"
   },
   "foodNutrition": {
-    "hideExtra": "extra nutrients ▴ ausblenden",
-    "showMore": "more nutrients ▾ anzeigen"
+    "hideExtra": "Weitere Nährstoffe ausblenden ▴",
+    "showMore": "Weitere Nährstoffe anzeigen ▾"
   },
   "diarySummary": {
     "remaining": "verbleibend",
@@ -3202,45 +3212,60 @@
   },
   "foodEntryAdd": {
     "errors": {
-      "equivalentsNotSaved": "Some equivalent units could not be gespeichert",
-      "invalidAmount": "Invalid Menge",
-      "amountGreaterThanZero": "Menge must be größer than zero.",
-      "failedToAddFood": "Fehler beim add food.",
+      "equivalentsNotSaved": "Einige entsprechende Einheiten konnten nicht gespeichert werden",
+      "invalidAmount": "Ungültige Menge",
+      "amountGreaterThanZero": "Die Menge muss größer als null sein.",
+      "failedToAddFood": "Lebensmittel konnte nicht hinzugefügt werden",
       "tryAgain": "Bitte versuche es erneut.",
-      "mealsNotSupported": "Mahlzeiten not supported here",
-      "selectFoodInstead": "a food instead of another meal. auswählen",
-      "savedFoodUnitFailed": "Gespeichert Ernährung, but not the neu unit",
-      "savedFoodUnitFailedDetails": "Du can still hinzufügen the Ernährung, then try saving that unit again.",
-      "chooseDifferentServing": "a different serving. auswählen"
+      "mealsNotSupported": "Mahlzeiten werden hier nicht unterstützt",
+      "selectFoodInstead": "Wähle ein Lebensmittel statt einer weiteren Mahlzeit.",
+      "savedFoodUnitFailed": "Lebensmittel gespeichert, neue Einheit nicht gespeichert",
+      "savedFoodUnitFailedDetails": "Du kannst das Lebensmittel trotzdem hinzufügen und die Einheit später erneut speichern.",
+      "chooseDifferentServing": "Wähle eine andere Portion."
     },
     "actions": {
-      "adjustNutrition": "Anpassen Ernährung",
-      "saveFood": "Speichern Ernährung",
-      "useYesterday": "Use Gestern",
-      "useToday": "Use Heute",
+      "adjustNutrition": "Nährwerte anpassen",
+      "saveFood": "Lebensmittel speichern",
+      "choosePortion": "{{portion}} auswählen",
+      "choosePortionHint": "Wählt die Portion aus. Mit „Hinzufügen“ wird sie eingetragen.",
+      "changeUnit": "Einheit ändern: {{unit}}",
+      "editLogDestination": "Datum und Mahlzeit ändern",
+      "decreaseAmount": "Menge verringern",
+      "increaseAmount": "Menge erhöhen",
+      "useYesterday": "Gestern verwenden",
+      "useToday": "Heute verwenden",
       "now": "Jetzt",
       "clear": "Leeren",
-      "addFood": "Food hinzufügen",
-      "addMeal": "Meal hinzufügen",
-      "removeFavorite": "from favorites entfernen",
-      "addFavorite": "to favorites hinzufügen"
+      "addFood": "Hinzufügen",
+      "addMeal": "Mahlzeit hinzufügen",
+      "removeFavorite": "Aus Favoriten entfernen",
+      "addFavorite": "Zu Favoriten hinzufügen"
     },
     "labels": {
+      "foodPhoto": "Foto von {{name}}",
+      "amount": "Menge",
+      "nutritionForAmount": "Nährwerte für die gewählte Menge",
+      "logTo": "Eintragen für",
+      "ofGoal": "{{percent}} % des Ziels",
+      "quickPortions": "Portion auswählen",
+      "quickPortionNutrition": "{{calories}} kcal · {{fat}} g Fett · {{carbs}} g KH · {{protein}} g Protein",
       "perServing": "pro Portion",
-      "time": "Zeit",
+      "time": "Uhrzeit",
       "none": "Keine",
       "meal": "Mahlzeit",
       "serving_one": "Portion",
-      "serving_other": "Portions",
-      "mealMakes_one": "Mahlzeit makes {{formattedCount}} Portion",
-      "mealMakes_other": "Mahlzeit makes {{formattedCount}} Portions",
-      "aboutThisFood": "Über this Ernährung",
-      "entryNotes": "Neinte für this entry",
-      "entryNotesPlaceholder": "Anything specific about this Zeit du ate it"
+      "serving_other": "Portionen",
+      "mealMakes_one": "ergibt {{formattedCount}} Portion",
+      "mealMakes_other": "ergibt {{formattedCount}} Portionen",
+      "aboutThisFood": "Über dieses Lebensmittel",
+      "entryNotes": "Notiz zu diesem Eintrag",
+      "entryNotesPlaceholder": "Was möchtest du zu diesem Eintrag festhalten?",
+      "carbsShort": "KH",
+      "netCarbsShort": "Netto-KH"
     },
     "pickers": {
-      "selectServing": "Serving auswählen",
-      "selectMeal": "Meal auswählen"
+      "selectServing": "Portion auswählen",
+      "selectMeal": "Mahlzeit auswählen"
     }
   },
   "exerciseSearch": {
@@ -3300,78 +3325,78 @@
     "bls4License": "CC BY 4.0",
     "menu": {
       "newFood": "Neu anlegen",
-      "newMeal": "Neu Mahlzeit",
+      "newMeal": "Neue Mahlzeit",
       "show": "Anzeigen",
-      "allProviders": "Alle Providers"
+      "allProviders": "Alle Anbieter"
     },
     "accessibility": {
-      "moreFiltered": "More Optionen, filtered to {{filter}}",
-      "moreOptions": "More Optionen",
-      "clearSearch": "Leeren search",
-      "scanFood": "Scannen Ernährung",
-      "searchingFoods": "Suchening gespeichert foods",
-      "searchingFoodsMeals": "Suchening gespeichert foods und meals",
-      "providerError": "{{provider}}, Konnte nicht laden, Tippen in retry",
-      "providerNoResults": "{{provider}}, Keine results",
+      "moreFiltered": "Weitere Optionen, gefiltert nach {{filter}}",
+      "moreOptions": "Weitere Optionen",
+      "clearSearch": "Suche leeren",
+      "scanFood": "Barcode scannen",
+      "searchingFoods": "Gespeicherte Lebensmittel werden gesucht",
+      "searchingFoodsMeals": "Gespeicherte Lebensmittel und Mahlzeiten werden gesucht",
+      "providerError": "{{provider}}, Laden fehlgeschlagen. Zum Wiederholen tippen.",
+      "providerNoResults": "{{provider}}, keine Ergebnisse",
       "favorite": "Favorit",
-      "viewPhoto": "photo anzeigen",
-      "verifiedFood": "Verified Ernährung",
-      "providerExpand_one": "{{provider}}, {{count}} result, Tippen in {{action}}",
-      "providerExpand_other": "{{provider}}, {{count}} results, Tippen in {{action}}",
-      "providerChange": "Provider {{provider}}, tap to ändern"
+      "viewPhoto": "Foto anzeigen",
+      "verifiedFood": "Geprüftes Lebensmittel",
+      "providerExpand_one": "{{provider}}, {{count}} Ergebnis, zum {{action}} tippen",
+      "providerExpand_other": "{{provider}}, {{count}} Ergebnisse, zum {{action}} tippen",
+      "providerChange": "Anbieter {{provider}}, zum Ändern tippen"
     },
     "errors": {
-      "detailsUnavailable": "Details unavailable",
-      "loadNutritionDetails": "load full nutrition details. konnte nicht ausgeführt werden."
+      "detailsUnavailable": "Details nicht verfügbar",
+      "loadNutritionDetails": "Die vollständigen Nährwertangaben konnten nicht geladen werden."
     },
     "sections": {
       "favorites": "Favoriten",
-      "recentlyLogged": "Recently Eingetragen",
-      "top": "Top",
-      "yourFoods": "Dein Foods",
-      "yourMeals": "Dein Meals",
-      "topMatches": "Top Matches",
-      "onlineResults": "Online Results",
-      "byProvider": "Von Provider"
+      "recentlyLogged": "Zuletzt eingetragen",
+      "top": "Häufig verwendet",
+      "yourFoods": "Deine Lebensmittel",
+      "yourMeals": "Deine Mahlzeiten",
+      "topMatches": "Beste Treffer",
+      "onlineResults": "Online-Ergebnisse",
+      "byProvider": "Nach Anbieter"
     },
     "search": {
       "placeholder": "Lebensmittel suchen…"
     },
     "states": {
-      "connectToSearch": "Connect to a Server to search foods",
-      "failedToLoad": "Fehler beim load foods.",
-      "noFilteredFoods": "Nein foods in {{filter}}",
+      "connectToSearch": "Verbinde dich mit dem Server, um Lebensmittel zu suchen.",
+      "failedToLoad": "Lebensmittel konnten nicht geladen werden.",
+      "noFilteredFoods": "Keine Lebensmittel in „{{filter}}“",
       "searchToLog": "Suche ein Lebensmittel oder eine Mahlzeit zum Eintragen.",
-      "noSavedFoods": "Nein gespeichert foods found",
-      "noSavedFoodsMeals": "Nein gespeichert foods or meals found",
+      "noSavedFoods": "Keine gespeicherten Lebensmittel gefunden",
+      "noSavedFoodsMeals": "Keine gespeicherten Lebensmittel oder Mahlzeiten gefunden",
       "noFilteredSaved": "{{message}} in {{filter}}",
-      "couldNotLoad": "load konnte nicht ausgeführt werden.",
-      "noResults": "Nein results",
-      "noOnlineResultsFrom": "Nein online results von {{provider}}"
+      "couldNotLoad": "Laden fehlgeschlagen",
+      "noResults": "Keine Ergebnisse",
+      "noOnlineResultsFrom": "Keine Online-Ergebnisse von {{provider}}"
     },
     "filter": {
       "all": "Alle",
       "mine": "Meine",
       "family": "Familie",
       "public": "Öffentlich",
-      "showAll": "All anzeigen"
+      "showAll": "Alle anzeigen"
     },
     "actions": {
-      "loadMoreFailed": "Fehler beim load more. Tap to retry.",
+      "loadMoreFailed": "Weitere Ergebnisse konnten nicht geladen werden. Zum Wiederholen tippen.",
       "loadMore": "Mehr laden",
-      "showAllProviderResults_one": "all {{count}} {{provider}} result anzeigen",
-      "showAllProviderResults_other": "all {{count}} {{provider}} results anzeigen",
-      "showAllLocalResults_one": "all {{count}} {{itemType}} anzeigen",
-      "showAllLocalResults_other": "all {{count}} {{itemType}} anzeigen"
+      "showAllProviderResults_one": "{{count}} Ergebnis von {{provider}} anzeigen",
+      "showAllProviderResults_other": "Alle {{count}} Ergebnisse von {{provider}} anzeigen",
+      "showAllLocalResults_one": "{{count}} {{itemType}} anzeigen",
+      "showAllLocalResults_other": "Alle {{count}} {{itemType}} anzeigen"
     },
     "pickers": {
-      "onlineProvider": "Online Anbieter"
+      "onlineProvider": "Online-Anbieter"
     },
     "labels": {
       "caloriesShort": "kcal",
-      "caloriesUnit": "cal",
-      "foods": "foods",
-      "meals": "meals",
+      "caloriesUnit": "kcal",
+      "foods": "Lebensmittel",
+      "meals": "Mahlzeiten",
       "meal": "Mahlzeit",
       "itemCount_one": "{{count}} Element",
       "itemCount_other": "{{count}} Elemente"
@@ -3387,6 +3412,17 @@
       "selected_other": "{{count}} ausgewählt",
       "limitReached": "Du kannst bis zu {{limit}} Lebensmittel auswählen",
       "foodCheckbox": "{{name}} auswählen"
+    },
+    "title": "Lebensmittel hinzufügen",
+    "tabs": {
+      "recent": "Zuletzt"
+    },
+    "comparison": {
+      "per100g": "je 100 g",
+      "per100ml": "je 100 ml",
+      "perServing": "je Portion",
+      "energy": "{{value}} kcal {{basis}}",
+      "macros": "P {{protein}} g   KH {{carbs}} g   F {{fat}} g"
     }
   },
   "editBarcode": {
@@ -3626,31 +3662,31 @@
     "deleteSheetTitle": "food löschen"
   },
   "foodEntryView": {
-    "saveChanges": "Speichern Ernährung entry Änderungen",
-    "editEntry": "Bearbeiten Ernährung entry",
-    "selectServing": "Serving auswählen",
-    "tapToEditNutrition": "Tippe, um bearbeiten nutrition",
+    "saveChanges": "Änderungen speichern",
+    "editEntry": "Eintrag bearbeiten",
+    "selectServing": "Portion auswählen",
+    "tapToEditNutrition": "Nährwerte bearbeiten",
     "meal": "Mahlzeit",
-    "selectMeal": "Meal auswählen",
-    "time": "Zeit",
-    "unknownFood": "Unbekannt Ernährung",
-    "deleteEntry": "Entry löschen",
-    "servingOptionsHint": "Öffnens serving Optionen",
-    "mealSelectorHint": "Öffnens meal selection",
-    "dateSelectorHint": "Öffnens Datum selection",
-    "timeSelectorHint": "Öffnens Zeit selection",
-    "clearTime": "Leeren Zeit",
-    "nutritionEditHint": "Öffnens nutrition editing",
-    "servingOptionsLabel": "Serving Optionen: {{serving}}",
-    "timeSelectorLabel": "time: {{time}} auswählen",
-    "clearTimeLabel": "Leeren entry Zeit",
+    "selectMeal": "Mahlzeit auswählen",
+    "time": "Uhrzeit",
+    "unknownFood": "Unbekanntes Lebensmittel",
+    "deleteEntry": "Eintrag löschen",
+    "servingOptionsHint": "Öffnet die Portionsauswahl",
+    "mealSelectorHint": "Öffnet die Mahlzeitenauswahl",
+    "dateSelectorHint": "Öffnet die Datumsauswahl",
+    "timeSelectorHint": "Öffnet die Uhrzeitauswahl",
+    "clearTime": "Uhrzeit löschen",
+    "nutritionEditHint": "Öffnet die Nährwertbearbeitung",
+    "servingOptionsLabel": "Portionsauswahl: {{serving}}",
+    "timeSelectorLabel": "Uhrzeit auswählen: {{time}}",
+    "clearTimeLabel": "Uhrzeit des Eintrags löschen",
     "errors": {
-      "permission": "Du don't have permission to bearbeiten this entry.",
-      "saveFailed": "Fehler beim save changes.",
-      "deleteFailed": "Fehler beim delete."
+      "permission": "Du darfst diesen Eintrag nicht bearbeiten.",
+      "saveFailed": "Änderungen konnten nicht gespeichert werden.",
+      "deleteFailed": "Eintrag konnte nicht gelöscht werden."
     },
-    "deleteConfirm": "Are du sure du want to löschen this Ernährung entry?",
-    "entryNotes": "Neinte für this entry"
+    "deleteConfirm": "Möchtest du diesen Lebensmitteleintrag löschen?",
+    "entryNotes": "Notiz zu diesem Eintrag"
   },
   "presetSearch": {
     "title": "Start Training",
@@ -4205,10 +4241,10 @@
     "noServerMessage": "Konfigurieren dein Server Verbindung in Einstellungen to start a workout."
   },
   "foodUnit": {
-    "updateFailed": "update that unit konnte nicht ausgeführt werden.",
-    "savedCustomUnits": "Gespeichert Benutzerdefiniert Units",
-    "aiEstimate": "AI estimate",
-    "aiEstimateWithConfidence": "AI estimate ({{confidence}} confidence)",
+    "updateFailed": "Einheit konnte nicht aktualisiert werden.",
+    "savedCustomUnits": "Gespeicherte eigene Einheiten",
+    "aiEstimate": "KI-Schätzung",
+    "aiEstimateWithConfidence": "KI-Schätzung ({{confidence}} Sicherheit)",
     "groups": {
       "weight": "Gewicht",
       "volume": "Volumen",
@@ -4227,69 +4263,69 @@
       "liter": "l",
       "liters": "l",
       "cup": "Tasse",
-      "cups": "cups",
+      "cups": "Tassen",
       "tbsp": "EL",
       "tsp": "TL",
       "piece": "Stück",
-      "slice": "slice",
+      "slice": "Scheibe",
       "serving": "Portion",
-      "portion": "portion",
-      "can": "can",
+      "portion": "Portion",
+      "can": "Dose",
       "bottle": "Flasche",
-      "packet": "packet",
-      "bag": "bag",
-      "bowl": "bowl",
-      "plate": "plate",
-      "handful": "handful",
-      "scoop": "scoop",
-      "bar": "bar",
-      "stick": "stick",
-      "whole": "whole"
+      "packet": "Päckchen",
+      "bag": "Beutel",
+      "bowl": "Schale",
+      "plate": "Teller",
+      "handful": "Handvoll",
+      "scoop": "Messlöffel",
+      "bar": "Riegel",
+      "stick": "Stange",
+      "whole": "Ganzes"
     },
     "confidence": {
-      "high": "High",
-      "medium": "Medium",
-      "low": "Low"
+      "high": "Hohe",
+      "medium": "Mittlere",
+      "low": "Geringe"
     },
     "unitPlurals": {
       "cup_one": "Tasse",
-      "cup_other": "cups",
+      "cup_other": "Tassen",
       "cups_one": "Tasse",
-      "cups_other": "cups",
+      "cups_other": "Tassen",
       "tbsp_one": "EL",
       "tbsp_other": "EL",
       "tsp_one": "TL",
       "tsp_other": "TL",
       "piece_one": "Stück",
-      "piece_other": "Stücks",
-      "slice_one": "slice",
-      "slice_other": "slices",
+      "piece_other": "Stück",
+      "slice_one": "Scheibe",
+      "slice_other": "Scheiben",
       "serving_one": "Portion",
-      "serving_other": "Portions",
-      "portion_one": "portion",
-      "portion_other": "portions",
-      "can_one": "can",
-      "can_other": "cans",
+      "serving_other": "Portionen",
+      "portion_one": "Portion",
+      "portion_other": "Portionen",
+      "can_one": "Dose",
+      "can_other": "Dosen",
       "bottle_one": "Flasche",
-      "bottle_other": "bottles",
-      "packet_one": "packet",
-      "packet_other": "packets",
-      "bag_one": "bag",
-      "bag_other": "bags",
-      "bowl_one": "bowl",
-      "bowl_other": "bowls",
-      "plate_one": "plate",
-      "plate_other": "plates",
-      "handful_one": "handful",
-      "handful_other": "handfuls",
-      "scoop_one": "scoop",
-      "scoop_other": "scoops",
-      "bar_one": "bar",
-      "bar_other": "bars",
-      "stick_one": "stick",
-      "stick_other": "sticks",
-      "whole_one": "whole",
-      "whole_other": "whole"
+      "bottle_other": "Flaschen",
+      "packet_one": "Päckchen",
+      "packet_other": "Päckchen",
+      "bag_one": "Beutel",
+      "bag_other": "Beutel",
+      "bowl_one": "Schale",
+      "bowl_other": "Schalen",
+      "plate_one": "Teller",
+      "plate_other": "Teller",
+      "handful_one": "Handvoll",
+      "handful_other": "Handvoll",
+      "scoop_one": "Messlöffel",
+      "scoop_other": "Messlöffel",
+      "bar_one": "Riegel",
+      "bar_other": "Riegel",
+      "stick_one": "Stange",
+      "stick_other": "Stangen",
+      "whole_one": "Ganzes",
+      "whole_other": "Ganze"
     }
   },
   "charts": {

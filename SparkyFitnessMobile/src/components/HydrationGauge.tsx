@@ -109,47 +109,49 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
         onDetails={onDetails}
         testID="dashboard-hydration-details"
       />
-      <Text className="text-xl font-bold text-text-primary mb-2">
-        {displayConsumed} {unitLabel}
-      </Text>
+      <View style={compact ? { minHeight: 88 } : undefined}>
+        <Text className="text-xl font-bold text-text-primary mb-2">
+          {displayConsumed} {unitLabel}
+        </Text>
 
-      {progress != null ? (
-        <>
-          <View
-            className="h-2 rounded-full bg-progress-track overflow-hidden"
-            accessibilityRole="progressbar"
-            accessibilityLabel={t('dashboard.hydration', {
-              defaultValue: 'Hydration',
-            })}
-            accessibilityValue={{
-              min: 0,
-              max: goal,
-              now: Math.min(Math.max(consumed, 0), goal),
-            }}
-          >
+        {progress != null ? (
+          <>
             <View
-              className="h-full rounded-full"
-              style={{
-                width: `${progress * 100}%` as `${number}%`,
-                backgroundColor: hydrationColor,
+              className="h-2 rounded-full bg-progress-track overflow-hidden"
+              accessibilityRole="progressbar"
+              accessibilityLabel={t('dashboard.hydration', {
+                defaultValue: 'Hydration',
+              })}
+              accessibilityValue={{
+                min: 0,
+                max: goal,
+                now: Math.min(Math.max(consumed, 0), goal),
               }}
-            />
-          </View>
-          <Text className="text-sm text-text-secondary mt-2">
-            {t('dashboard.ofVolume', {
-              defaultValue: 'of {{value}} {{unit}}',
-              value: displayGoal,
-              unit: unitLabel,
+            >
+              <View
+                className="h-full rounded-full"
+                style={{
+                  width: `${progress * 100}%` as `${number}%`,
+                  backgroundColor: hydrationColor,
+                }}
+              />
+            </View>
+            <Text className="text-sm text-text-secondary mt-2">
+              {t('dashboard.ofVolume', {
+                defaultValue: 'of {{value}} {{unit}}',
+                value: displayGoal,
+                unit: unitLabel,
+              })}
+            </Text>
+          </>
+        ) : (
+          <Text className="text-sm text-text-secondary">
+            {t('dashboard.noHydrationGoal', {
+              defaultValue: 'No daily target set',
             })}
           </Text>
-        </>
-      ) : (
-        <Text className="text-sm text-text-secondary">
-          {t('dashboard.noHydrationGoal', {
-            defaultValue: 'No daily target set',
-          })}
-        </Text>
-      )}
+        )}
+      </View>
 
       {!!fromFoodMl && fromFoodMl > 0 ? (
         <Text className="text-xs text-text-secondary mt-1">
@@ -227,7 +229,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
       ) : null}
 
       {showButtons && !noContainer ? (
-        <View className="flex-row items-center gap-2 mt-2">
+        <View className="flex-row items-center gap-2 mt-3">
           {onDecrement ? (
             <Pressable
               onPress={onDecrement}

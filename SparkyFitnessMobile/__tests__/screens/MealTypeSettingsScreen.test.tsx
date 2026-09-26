@@ -5,10 +5,7 @@ import { Alert, View } from 'react-native';
 import { useSharedValue } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import MealTypeSettingsScreen from '../../src/screens/MealTypeSettingsScreen';
-import {
-  resetReorderDragPreview,
-  useReorderRowPreviewStyle,
-} from '../../src/components/WorkoutReorderList';
+import { useReorderRowPreviewStyle } from '../../src/components/WorkoutReorderList';
 import {
   TIME_WHEEL_CONTAINER_HEIGHT,
   TIME_WHEEL_WRAPPER_HEIGHT,

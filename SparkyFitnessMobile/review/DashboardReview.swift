@@ -5,6 +5,18 @@ final class DashboardReview: XCTestCase {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
+    let saved = app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Saved summary")).firstMatch
+    if saved.waitForExistence(timeout: 3) {
+      app.buttons["Previous day"].tap()
+      XCTAssertTrue(app.staticTexts["Server unavailable"].waitForExistence(timeout: 15))
+      XCTAssertTrue(app.buttons["Choose dashboard date"].isHittable)
+      XCTAssertTrue(app.buttons["X on Track — Dashboard"].isHittable)
+      capture("offline-uncached-day-controls", app)
+      app.buttons["Next day"].tap()
+      XCTAssertTrue(saved.waitForExistence(timeout: 15))
+      capture("offline-return-to-cached-day", app)
+      return
+    }
     let dashboard = app.otherElements["dashboard-scroll"].scrollViews.firstMatch
     XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
     capture("dashboard-top", app)
@@ -66,7 +78,7 @@ final class DashboardReview: XCTestCase {
     let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", foodName)).firstMatch
     XCTAssertTrue(result.waitForExistence(timeout: 20))
     result.tap()
-    let amount = app.textFields["Amount"]
+    let amount = app.textFields.matching(NSPredicate(format: "label IN %@", ["Amount", "Menge"])).firstMatch
     XCTAssertTrue(amount.waitForExistence(timeout: 15))
     replace(amount, with: "200")
     app.staticTexts["Synthetic kitchen"].firstMatch.tap()
@@ -81,7 +93,7 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
     let noteText = String(repeating: "Synthetic review note with berries. ", count: 12) + "END-REVIEW"
     note.typeText(noteText)
-    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add Food", "Food hinzufügen"])).firstMatch
+    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add Food", "Hinzufügen"])).firstMatch
     let visibleNote = NSPredicate { _, _ in
       note.isHittable && note.frame.minY > 100 && note.frame.maxY <= add.frame.minY - 12
     }
@@ -99,18 +111,26 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(diary.waitForExistence(timeout: 15))
     diary.tap()
     XCTAssertTrue(app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", foodName)).firstMatch.waitForExistence(timeout: 20))
+    // Wait for the actual native Image request, not just a fallback thumbnail.
+    let imageDeadline = Date().addingTimeInterval(10)
+    while Date() < imageDeadline {
+      if try events().contains(where: { ($0["path"] as? String) == "/fixture-thumbnail.png" }) { break }
+      Thread.sleep(forTimeInterval: 0.2)
+    }
+    XCTAssertTrue(try events().contains(where: { ($0["path"] as? String) == "/fixture-thumbnail.png" }))
+    Thread.sleep(forTimeInterval: 0.5)
     capture("diary-after-save", app)
     app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", foodName)).firstMatch.tap()
-    let edit = app.buttons.matching(NSPredicate(format: "label IN %@", ["Edit", "Bearbeiten", "Edit food entry", "Bearbeiten Ernährung entry"])).firstMatch
+    let edit = app.buttons.matching(NSPredicate(format: "label IN %@", ["Edit", "Bearbeiten", "Edit food entry", "Eintrag bearbeiten"])).firstMatch
     XCTAssertTrue(edit.waitForExistence(timeout: 10))
     edit.tap()
     let editAmount = app.textFields.firstMatch
     XCTAssertTrue(editAmount.waitForExistence(timeout: 10))
     replace(editAmount, with: "100")
-    app.buttons.matching(NSPredicate(format: "label IN %@", ["Done", "Fertig", "Erledigt", "Save food entry changes", "Speichern Ernährung entry Änderungen"])).firstMatch.tap()
+    app.buttons.matching(NSPredicate(format: "label IN %@", ["Done", "Fertig", "Erledigt", "Save food entry changes", "Änderungen speichern"])).firstMatch.tap()
     try waitForMutation("PUT", quantity: 100, note: noteText)
     capture("food-edited", app)
-    let delete = app.buttons.matching(NSPredicate(format: "label IN %@", ["Delete Entry", "Entry löschen"])).firstMatch
+    let delete = app.buttons.matching(NSPredicate(format: "label IN %@", ["Delete Entry", "Eintrag löschen"])).firstMatch
     for _ in 0..<10 {
       if delete.exists && delete.isHittable { break }
       app.swipeUp()
@@ -131,6 +151,16 @@ final class DashboardReview: XCTestCase {
     field.tap()
     let current = field.value as? String ?? ""
     field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: current.count) + text)
+  }
+  private func events() throws -> [[String: Any]] {
+    let completed = XCTestExpectation(description: "Read native image audit")
+    var result: [[String: Any]] = []
+    URLSession.shared.dataTask(with: URL(string: "http://127.0.0.1:43991/events")!) { data, _, _ in
+      defer { completed.fulfill() }
+      if let data, let parsed = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]] { result = parsed }
+    }.resume()
+    wait(for: [completed], timeout: 5)
+    return result
   }
   private func waitForMutation(_ method: String, quantity: Double?, note: String?) throws {
     let expectation = XCTestExpectation(description: "Fixture acknowledges " + method)

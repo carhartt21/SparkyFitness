@@ -4,6 +4,7 @@ import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import FoodSettingsScreen from '../../src/screens/FoodSettingsScreen';
 import * as preferencesApi from '../../src/services/api/preferencesApi';
+import { useAppPreferencesStore } from '../../src/stores/appPreferencesStore';
 import { preferencesQueryKey } from '../../src/hooks/queryKeys';
 
 // Mutable so a test can put the screen in a multi-provider state, the only state
@@ -80,6 +81,7 @@ const foodProviderPicker = () =>
 describe('FoodSettingsScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    useAppPreferencesStore.setState({ mobileFoodProviderDefault: '' });
     mockProviders = [];
     mockPickerProps.length = 0;
   });
@@ -192,16 +194,22 @@ describe('FoodSettingsScreen', () => {
       expect(foodProviderPicker()?.value).toBe('prov-off');
     });
 
-    it('stays on the placeholder when no default was ever stored', () => {
-      // Distinct from the case above: nothing was chosen, so the picker should
-      // read "First available" rather than asserting a provider on the user's
-      // behalf.
+    it('starts with all providers even when a legacy server default was narrow', () => {
       mockProviders = twoProviders;
       renderScreen({
         food_search_all_providers_default: false,
-        default_food_data_provider_id: null,
+        default_food_data_provider_id: 'prov-usda',
       });
-      expect(foodProviderPicker()?.value).toBe('');
+      expect(foodProviderPicker()?.value).toBe('__all__');
+    });
+
+    it('honors an explicit mobile default on later visits', () => {
+      mockProviders = twoProviders;
+      useAppPreferencesStore.setState({
+        mobileFoodProviderDefault: 'prov-off',
+      });
+      renderScreen({});
+      expect(foodProviderPicker()?.value).toBe('prov-off');
     });
 
     it('persists the flag without writing the sentinel into the uuid column', async () => {

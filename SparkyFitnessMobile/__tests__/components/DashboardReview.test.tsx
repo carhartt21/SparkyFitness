@@ -26,6 +26,7 @@ afterEach(async () => {
 it('localizes the actual dashboard date and keeps all date destinations operable', async () => {
   await initializeI18n('de');
   const handlers = {
+    onHome: jest.fn(),
     onPreviousDay: jest.fn(),
     onNextDay: jest.fn(),
     onToday: jest.fn(),

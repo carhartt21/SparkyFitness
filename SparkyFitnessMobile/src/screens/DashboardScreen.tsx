@@ -1,3 +1,6 @@
+import OfflineHealthSummary from '../components/OfflineHealthSummary';
+import { useServerConfigs } from '../hooks/useServerConfigs';
+import { useDashboardSnapshot } from '../hooks/useDashboardSnapshot';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -186,18 +189,34 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   ]);
 
   const { isConnected, isLoading: isConnectionLoading } = useServerConnection();
-  const { summary, isLoading, isError, refetch } = useDailySummary({
+  const {
+    summary: liveSummary,
+    isLoading,
+    isError,
+    refetch,
+  } = useDailySummary({
     date: selectedDate,
     enabled: isConnected,
   });
   const {
-    preferences,
+    preferences: livePreferences,
     isLoading: isPreferencesLoading,
     isError: isPreferencesError,
     refetch: refetchPreferences,
   } = usePreferences({
     enabled: isConnected,
   });
+  const { activeConfig, isLoading: isConfigLoading } = useServerConfigs();
+  const saved = useDashboardSnapshot(
+    selectedDate,
+    activeConfig?.id,
+    liveSummary,
+    livePreferences,
+    isConnected && !isError && !isPreferencesError
+  );
+  const showingSaved = !isConnected || isError || isPreferencesError;
+  const summary = showingSaved ? saved?.summary : liveSummary;
+  const preferences = showingSaved ? saved?.preferences : livePreferences;
   const {
     isLoading: isMeasurementsLoading,
     isError: isMeasurementsError,
@@ -421,7 +440,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   // Render content based on state
   const renderContent = () => {
     // No server configured
-    if (!isConnectionLoading && !isConnected) {
+    if (!isConfigLoading && !activeConfig) {
       return (
         <View className="flex-1">
           {!usesNativeTabs && (
@@ -456,10 +475,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
     // Loading state
     if (
-      isLoading ||
-      isConnectionLoading ||
-      isPreferencesLoading ||
-      isMeasurementsLoading
+      isConfigLoading ||
+      (isConnected &&
+        !summary &&
+        (isLoading ||
+          isConnectionLoading ||
+          isPreferencesLoading ||
+          isMeasurementsLoading))
     ) {
       return (
         <StatusView
@@ -472,24 +494,40 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     }
 
     // Error state
-    if (isError || isPreferencesError || isMeasurementsError) {
+    if (
+      (!summary || !preferences) &&
+      (!isConnected || isError || isPreferencesError || isMeasurementsError)
+    ) {
       return (
-        <StatusView
-          icon="alert-circle"
-          iconTone="danger"
-          iconSize={64}
-          title={t('dashboard.loadFailed', {
-            defaultValue: 'Failed to load summary',
-          })}
-          subtitle={t('dashboard.checkConnection', {
-            defaultValue: 'Please check your connection and try again.',
-          })}
-          action={{
-            label: t('common.retry', { defaultValue: 'Retry' }),
-            onPress: () => refetch(),
-            variant: 'primary',
-          }}
-        />
+        <View className="flex-1 px-4 pb-4">
+          {!usesNativeTabs && (
+            <DashboardHeader
+              selectedDate={selectedDate}
+              onPreviousDay={goToPreviousDay}
+              onNextDay={goToNextDay}
+              onToday={goToToday}
+              onDatePress={openCalendar}
+            />
+          )}
+          <StatusView
+            icon="alert-circle"
+            iconTone="danger"
+            iconSize={64}
+            title={t('dashboard.offlineTitle', {
+              defaultValue: 'Server unavailable',
+            })}
+            subtitle={t('dashboard.offlineEmpty', {
+              defaultValue:
+                'No summary for this day is saved on this device yet. Reconnect to load it.',
+            })}
+            action={{
+              label: t('common.retry', { defaultValue: 'Retry' }),
+              onPress: () => onRefresh(),
+              variant: 'primary',
+            }}
+          />
+          <OfflineHealthSummary date={selectedDate} />
+        </View>
       );
     }
 
@@ -591,6 +629,25 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             onDatePress={openCalendar}
           />
         )}
+        {showingSaved && (
+          <View
+            accessibilityRole="text"
+            className="bg-surface rounded-xl p-3 mb-3"
+          >
+            <Text className="text-sm text-text-secondary">
+              {t('dashboard.cachedSummary', {
+                defaultValue:
+                  'Saved summary · {{time}}. More recent changes may not be included.',
+                time: saved
+                  ? new Date(saved.savedAt).toLocaleString(dateLocale)
+                  : t('dashboard.offlineTitle', {
+                      defaultValue: 'Server unavailable',
+                    }),
+              })}
+            </Text>
+          </View>
+        )}
+        {showingSaved && <OfflineHealthSummary date={selectedDate} />}
         <CalorieRingCard
           caloriesConsumed={eaten}
           caloriesBurned={burned}
