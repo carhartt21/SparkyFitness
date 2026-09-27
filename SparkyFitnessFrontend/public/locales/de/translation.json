@@ -452,6 +452,15 @@
           "api_key_missing": "API Schlüssel fehlt oder ist fehlerhaft. Bitte füge einen gültigen Schlüssel hinzu und versuche es erneut.",
           "custom_url_missing": "Für diesen Diensttyp ist ein benutzerdefiniertes URL erforderlich.",
           "upstream_error": "Der KI-Dienst hat einen Fehler zurückgegeben. Überprüfen Sie den Schlüssel API, den Modellnamen und URL.",
+          "unauthorized": "Der Anbieter hat den API-Schlüssel abgelehnt (HTTP 401). Prüfen Sie, ob er aktiv ist und zum gewählten Anbieter gehört.",
+          "forbidden": "Der Anbieter hat den Zugriff verweigert (HTTP 403). Prüfen Sie die Projektberechtigungen und den Modellzugriff.",
+          "notFound": "Das Modell oder der API-Endpunkt wurde nicht gefunden (HTTP 404). Prüfen Sie Modellname und Diensttyp.",
+          "modelUnavailable": "Das gewählte Modell ist für diesen API-Schlüssel oder dieses Projekt nicht verfügbar. Wählen Sie ein verfügbares Modell oder erlauben Sie den Modellzugriff.",
+          "quota": "Das API-Konto hat kein verfügbares Guthaben oder hat ein Ausgaben- bzw. Nutzungslimit erreicht (HTTP 429). Prüfen Sie Abrechnung und Limits.",
+          "rateLimit": "Der Anbieter begrenzt die Anfragen (HTTP 429). Warten Sie und versuchen Sie es erneut.",
+          "badRequest": "Der Anbieter hat die Anfrage abgelehnt (HTTP 400). Prüfen Sie das Modell und seine unterstützten Optionen.",
+          "serverError": "Der Anbieter hat einen Serverfehler zurückgegeben. Versuchen Sie es später erneut.",
+          "unreachable": "Der Server konnte den KI-Anbieter nicht erreichen. Prüfen Sie Internetzugang und DNS des Servers.",
           "timeout": "Der KI-Dienst hat nicht rechtzeitig geantwortet. Überprüfen Sie die URL und ob der Server erreichbar ist.",
           "unsupported_provider": "Dieser Diensttyp wird nicht unterstützt.",
           "unknown": "Der Verbindungstest ist fehlgeschlagen. Bitte überprüfen Sie die Konfiguration und versuchen Sie es erneut."
@@ -1544,6 +1553,7 @@
     "description": "Suche nach Lebensmitteln, die du deiner Datenbank hinzufügen möchtest."
   },
   "enhancedFoodSearch": {
+    "broaderAlternative": "Ähnliche Alternative – Zubereitung und Portion prüfen",
     "database": "Datenbank",
     "meals": "Mahlzeiten",
     "online": "Online",

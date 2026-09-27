@@ -106,11 +106,7 @@ async function searchFoods(
       return { searchResults: foods };
     }
   } catch (error) {
-    log(
-      'error',
-      `Error searching foods for user ${authenticatedUserId} with name "${name}" in foodService:`,
-      error
-    );
+    log('error', 'Saved-food search failed:', error);
     throw error;
   }
 }

@@ -1896,7 +1896,14 @@ const NO_PRESET_SERVICE_TYPES = new Set([
 ]);
 
 export type TestConnectionResult =
-  { ok: true } | { ok: false; category: DispatchErrorCategory; detail: string };
+  | { ok: true }
+  | {
+      ok: false;
+      category: DispatchErrorCategory;
+      detail: string;
+      status?: number;
+      code?: string;
+    };
 
 function statusError(message: string, statusCode: number): Error {
   const err = new Error(message) as Error & { statusCode?: number };
@@ -2006,7 +2013,13 @@ async function testAiServiceConnection(
       'warn',
       `Test connection: ${serviceType} failed for user ${userId} (${result.category}): ${result.detail}`
     );
-    return { ok: false, category: result.category, detail: result.detail };
+    return {
+      ok: false,
+      category: result.category,
+      detail: result.detail,
+      ...(result.status !== undefined && { status: result.status }),
+      ...(result.code !== undefined && { code: result.code }),
+    };
   }
   return { ok: true };
 }

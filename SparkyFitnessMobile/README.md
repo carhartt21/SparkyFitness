@@ -37,6 +37,9 @@ npx expo run:ios --configuration Release --device
 APP_VARIANT=production eas build -p ios --profile production --auto-submit
 ```
 
+For a local build or an upload with a specific App Store Connect API key, see
+[the TestFlight release runbook](docs/testflight-release.md).
+
 ### Configure Xcode
 
 ```bash

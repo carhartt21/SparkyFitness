@@ -51,6 +51,17 @@ const createFood = (overrides: Partial<Food> = {}): Food => ({
 });
 
 describe('FoodResultCard', () => {
+  it('shows a preparation warning only for a broader match', () => {
+    render(
+      <FoodResultCard
+        item={createFood({ name: 'Tomatensauce' })}
+        nutrientConfig={nutrientConfig}
+        relevanceNote="Broader alternative — check preparation and portion"
+      />
+    );
+    expect(screen.getByText(/Broader alternative/)).toBeInTheDocument();
+  });
+
   it('renders the AI badge when the default variant is AI-estimated', () => {
     render(
       <FoodResultCard

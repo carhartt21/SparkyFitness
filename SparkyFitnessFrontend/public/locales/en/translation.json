@@ -1408,6 +1408,7 @@
     "description": "Search for foods to add to your database."
   },
   "enhancedFoodSearch": {
+    "broaderAlternative": "Broader alternative — check preparation and portion",
     "database": "Database",
     "meals": "Meals",
     "online": "Online",
@@ -2020,6 +2021,15 @@
           "api_key_missing": "API key is missing or invalid. Add a valid key and try again.",
           "custom_url_missing": "A custom URL is required for this service type.",
           "upstream_error": "The AI service returned an error. Check the API key, model name, and URL.",
+          "unauthorized": "The provider rejected the API key (HTTP 401). Check that the key is active and belongs to the selected provider.",
+          "forbidden": "The provider denied access (HTTP 403). Check the key's project permissions and model access.",
+          "notFound": "The model or API endpoint was not found (HTTP 404). Check the model name and service type.",
+          "modelUnavailable": "The selected model is unavailable to this API key or project. Choose a model this key can use, or grant it model access.",
+          "quota": "The API account has no available credits or has reached a spend or usage limit (HTTP 429). Check billing and limits before retrying.",
+          "rateLimit": "The provider is rate limiting requests (HTTP 429). Wait and try again.",
+          "badRequest": "The provider rejected the request (HTTP 400). Check the selected model and its supported options.",
+          "serverError": "The provider returned a server error. Try again later.",
+          "unreachable": "The server could not reach the AI provider. Check the server's internet access and DNS.",
           "timeout": "The AI service did not respond in time. Check the URL and that the server is reachable.",
           "unsupported_provider": "This service type is not supported.",
           "unknown": "The connection test failed. Please check the configuration and try again."
@@ -2153,6 +2163,37 @@
       "title": "Daily Calorie Goal Adjustment"
     },
     "dataImport": {
+      "fddb": {
+        "title": "FDDB account export",
+        "description": "Preview a complete FDDB export, then restore diary history and selected saved items.",
+        "previewTitle": "1. Preview privately",
+        "previewDescription": "Choose a complete FDDB account CSV. Parsing happens in this browser. Profile, transactions, and images are not uploaded.",
+        "chooseFile": "Choose FDDB export CSV",
+        "tooLarge": "Choose an export smaller than 10 MB.",
+        "noDates": "No diary dates found",
+        "previewCounts": "{{diary}} food entries · {{foods}} custom foods · {{recipes}} saved lists · {{favorites}} favorites · {{measurements}} weights · {{activities}} activities",
+        "excluded": "Excluded: {{profiles}} profile rows, {{transactions}} transaction rows, {{images}} image references.",
+        "warnings": "{{count}} rows need attention",
+        "diaryTitle": "2. Restore diary history",
+        "diaryDescription": "Each logged item becomes a separate historical entry with its original date, time, energy, and macros. Existing entries stay unchanged. Re-running this export skips its imported rows, but entries from other sources are not merged automatically.",
+        "progress": "{{done}} / {{total}} processed · {{imported}} imported · {{existing}} already present",
+        "batchError": "Import stopped. The completed batches are safe; retry to continue. {{error}}",
+        "continue": "Continue diary import",
+        "importDiary": "Import diary entries",
+        "extrasTitle": "3. Review optional sections",
+        "extrasDescription": "Select only the sections you want. Recipes become drafts with unlinked ingredient text; activities may overlap another activity sync source.",
+        "customFoods": "Custom foods",
+        "recipes": "Saved recipes",
+        "favorites": "Favorites",
+        "measurements": "Weight measurements",
+        "activities": "Activity records",
+        "recipeWarning": "These drafts have no calculated nutrition until you link their ingredients.",
+        "activityWarning": "Check your existing exercise and Health imports first to avoid overlapping activity totals.",
+        "extraResult": "{{imported}} imported · {{existing}} already present · {{unmatched}} unmatched · {{errors}} errors",
+        "reviewIssues": "Review unmatched items and errors",
+        "unmatchedItem": "No unique owned food matches: {{name}}",
+        "importSelected": "Import {{count}} selected items"
+      },
       "checkin": {
         "description": "Import body measurements, sleep, vitals, activity, hydration, and mood.",
         "title": "Check-in & Health Data (CSV)"
@@ -2760,6 +2801,7 @@
     "startCascadingPlan": "Start 6-Month Cascading Plan"
   },
   "common": {
+    "working": "Working…",
     "retry": "Try again",
     "add": "Add",
     "saving": "Saving...",

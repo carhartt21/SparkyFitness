@@ -1550,6 +1550,44 @@ describe('dispatchAiRequest — 429 rate-limit retry', () => {
     vi.useRealTimers();
   });
 
+  it('returns a quota error immediately without retrying', async () => {
+    const responseBody = JSON.stringify({
+      error: {
+        type: 'insufficient_quota',
+        code: 'credit_balance_exhausted',
+      },
+    });
+    const request = mockFetch(responseBody, { ok: false, status: 429 });
+
+    const result = await dispatchAiRequest(baseRequest());
+
+    expect(result).toMatchObject({
+      ok: false,
+      category: 'upstream_error',
+      status: 429,
+      code: 'credit_balance_exhausted',
+    });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it('preserves the provider model access error code', async () => {
+    mockFetch(
+      JSON.stringify({
+        error: { type: 'invalid_request_error', code: 'model_not_found' },
+      }),
+      { ok: false, status: 403 }
+    );
+
+    const result = await dispatchAiRequest(baseRequest());
+
+    expect(result).toMatchObject({
+      ok: false,
+      category: 'upstream_error',
+      status: 403,
+      code: 'model_not_found',
+    });
+  });
+
   it('retries after a 429 and succeeds on the second attempt', async () => {
     let calls = 0;
     global.fetch = vi.fn().mockImplementation(() => {

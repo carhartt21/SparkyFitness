@@ -9,7 +9,10 @@ export function useMealSearch(
 ) {
   const { enabled = true } = options ?? {};
   const debouncedSearch = useDebounce(searchText.trim(), 300);
-  const isSearchActive = debouncedSearch.length >= 2;
+  const isSearchActive =
+    searchText.trim().length >= 2 &&
+    debouncedSearch.length >= 2 &&
+    searchText.trim() === debouncedSearch;
 
   const query = useQuery({
     queryKey: mealSearchQueryKey(debouncedSearch),
@@ -20,7 +23,8 @@ export function useMealSearch(
   });
 
   return {
-    searchResults: query.data ?? [],
+    searchResults:
+      isSearchActive && !query.isPlaceholderData ? (query.data ?? []) : [],
     isSearching: query.isFetching,
     isSearchActive,
     isSearchError: query.isError,

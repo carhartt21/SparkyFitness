@@ -87,16 +87,78 @@ describe('BLS 4.0 catalogue lookup', () => {
     });
     expect(result.foods[0]?.name).toBe(oats.name_de);
     expect(query.mock.calls[0][1]).toEqual([
-      '%Hafer%',
-      'Hafer%',
+      'hafer:*',
+      'hafer:*',
+      'hafer',
       1,
       'ENERCC',
       'PROT625',
       'CHO',
       'FAT',
       0,
+      'hafer',
     ]);
+    expect(query.mock.calls[0][0]).toContain("to_tsvector('german'");
+    expect(query.mock.calls[0][0]).toContain('LIMIT $4 OFFSET $9');
+    expect(query.mock.calls[0][0]).toContain("= $10 || ' roh'");
     expect(release).toHaveBeenCalledOnce();
+  });
+
+  it('uses identity and preparation tokens independently of word order or punctuation', async () => {
+    query.mockResolvedValue({ rows: [{ ...oats, total_count: 1 }] });
+    await searchBlsFoods('user-1', 'gekochter Reis', 1, 20, 'de');
+    expect(query.mock.calls[0][1]).toEqual([
+      'reis:*',
+      'gekocht:* & reis:*',
+      'gekocht reis',
+      20,
+      'ENERCC',
+      'PROT625',
+      'CHO',
+      'FAT',
+      0,
+      'reis',
+    ]);
+  });
+
+  it('distinguishes an uninitialized catalogue from an empty match', async () => {
+    query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({
+      rows: [{ catalogue_count: 0, matching_count: 0, eligible_count: 0 }],
+    });
+    await expect(searchBlsFoods('user-1', 'tomat')).rejects.toMatchObject({
+      status: 503,
+      message: 'BLS catalogue not initialized',
+    });
+    expect(release).toHaveBeenCalledOnce();
+    query.mockReset();
+    query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({
+      rows: [{ catalogue_count: 7140, matching_count: 0, eligible_count: 0 }],
+    });
+    const result = await searchBlsFoods('user-1', 'not-a-food');
+    expect(result.foods).toEqual([]);
+    expect(result.pagination.totalCount).toBe(0);
+  });
+
+  it('does not call missing core nutrients a valid empty catalogue match', async () => {
+    query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({
+      rows: [{ catalogue_count: 7140, matching_count: 2, eligible_count: 0 }],
+    });
+    await expect(searchBlsFoods('user-1', 'tomate')).rejects.toMatchObject({
+      status: 422,
+    });
+  });
+
+  it('keeps the correct total for an empty page after the last match', async () => {
+    query.mockResolvedValueOnce({ rows: [] }).mockResolvedValueOnce({
+      rows: [{ catalogue_count: 7140, matching_count: 2, eligible_count: 2 }],
+    });
+    const result = await searchBlsFoods('user-1', 'apfel', 3, 1, 'de');
+    expect(result.pagination).toEqual({
+      page: 3,
+      pageSize: 1,
+      totalCount: 2,
+      hasMore: false,
+    });
   });
 
   it('looks up a stable BLS code for the detail/import flow', async () => {

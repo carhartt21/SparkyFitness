@@ -71,6 +71,8 @@ export const testAiServiceConnectionResponseSchema = z.object({
   ok: z.boolean(),
   category: z.string().optional(),
   detail: z.string().optional(),
+  status: z.number().int().optional(),
+  code: z.string().optional(),
 });
 export type AiServiceSettingsResponse = z.infer<
   typeof aiServiceSettingsResponseSchema

@@ -70,7 +70,8 @@ export const externalFoodSearchQueryKey = (
   providerType: string,
   searchTerm: string,
   providerId?: string,
-  autoScale?: boolean
+  autoScale?: boolean,
+  locale?: string
 ) =>
   [
     'externalFoodSearch',
@@ -78,6 +79,8 @@ export const externalFoodSearchQueryKey = (
     searchTerm,
     providerId,
     autoScale,
+    locale,
+    'relevance-v2',
   ] as const;
 
 // First-page-only key for the "All Providers" fan-out. Kept distinct from
@@ -87,7 +90,9 @@ export const allProvidersFoodSearchQueryKey = (
   providerType: string,
   searchTerm: string,
   providerId?: string,
-  autoScale?: boolean
+  autoScale?: boolean,
+  pageSize?: number,
+  locale?: string
 ) =>
   [
     'allProvidersFoodSearch',
@@ -95,6 +100,9 @@ export const allProvidersFoodSearchQueryKey = (
     searchTerm,
     providerId,
     autoScale,
+    pageSize,
+    locale,
+    'relevance-v2',
   ] as const;
 
 export const mealTypesQueryKey = ['mealTypes'] as const;

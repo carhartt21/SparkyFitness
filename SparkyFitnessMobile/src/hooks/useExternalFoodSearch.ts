@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
 import { searchExternalFoods } from '../services/api/externalFoodSearchApi';
 import { getApiErrorMessage } from '../services/api/errors';
@@ -11,13 +12,16 @@ export function useExternalFoodSearch(
   providerType: string,
   options?: { enabled?: boolean; providerId?: string; autoScale?: boolean }
 ) {
+  const { i18n } = useTranslation();
   const { enabled = true, providerId, autoScale } = options ?? {};
   const debouncedSearch = useDebounce(searchText.trim(), 600);
   // Both the raw and debounced terms must clear the threshold: debounced so
   // typing pauses gate the fetch, raw so shortening the query below the
   // threshold hides online results immediately instead of 600ms later.
   const isSearchActive =
-    searchText.trim().length >= 3 && debouncedSearch.length >= 3;
+    searchText.trim().length >= 2 &&
+    debouncedSearch.length >= 2 &&
+    searchText.trim() === debouncedSearch;
   const isProviderSupported = !!providerType;
 
   const query = useInfiniteQuery({
@@ -25,7 +29,8 @@ export function useExternalFoodSearch(
       providerType,
       debouncedSearch,
       providerId,
-      autoScale
+      autoScale,
+      i18n.resolvedLanguage ?? i18n.language
     ),
     queryFn: async ({ signal, pageParam }) => {
       if (
@@ -63,8 +68,10 @@ export function useExternalFoodSearch(
   // stale online results under a fresh short query.
   const searchResults = useMemo(
     () =>
-      isSearchActive ? (query.data?.pages.flatMap((p) => p.items) ?? []) : [],
-    [isSearchActive, query.data?.pages]
+      isSearchActive && !query.isPlaceholderData
+        ? (query.data?.pages.flatMap((p) => p.items) ?? [])
+        : [],
+    [isSearchActive, query.isPlaceholderData, query.data?.pages]
   );
   // When keepPreviousData is active, isPlaceholderData is true and data belongs
   // to the previous query key. Only treat the error as a load-more error when

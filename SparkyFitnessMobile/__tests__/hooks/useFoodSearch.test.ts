@@ -85,6 +85,28 @@ describe('useFoodSearch', () => {
     });
   });
 
+  test('hides previous saved foods during a new query', async () => {
+    mockSearchFoods.mockImplementation(async (term) => ({
+      foods: [{ id: term, name: term }],
+      totalCount: 1,
+    }));
+    const { result, rerender } = renderHook(
+      ({ term }: { term: string }) => useFoodSearch(term),
+      {
+        wrapper: createQueryWrapper(queryClient),
+        initialProps: { term: 'tomate' },
+      }
+    );
+    await waitFor(() =>
+      expect(result.current.searchResults[0]?.name).toBe('tomate')
+    );
+    rerender({ term: 'reis' });
+    expect(result.current.searchResults).toEqual([]);
+    await waitFor(() =>
+      expect(result.current.searchResults[0]?.name).toBe('reis')
+    );
+  });
+
   test('isSearchActive is false when under 2 characters', () => {
     const { result } = renderHook(() => useFoodSearch('a'), {
       wrapper: createQueryWrapper(queryClient),

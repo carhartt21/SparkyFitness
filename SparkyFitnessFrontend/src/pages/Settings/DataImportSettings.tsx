@@ -13,12 +13,14 @@ import {
   Dumbbell,
   Upload,
   Activity,
+  Archive,
   type LucideIcon,
 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from '@/hooks/use-toast';
 import FoodImportFromCSV from '@/pages/Foods/FoodImportFromCSV';
 import FoodDiaryImportCSV from '@/pages/Diary/FoodDiaryImportCSV';
+import FddbImport from './FddbImport';
 import HealthDataImportCSV from '@/pages/CheckIn/HealthDataImportCSV';
 import ExerciseImportCSV, {
   type ExerciseCSVData,
@@ -148,6 +150,16 @@ export const DataImportSettings = () => {
       </p>
 
       <div className="mt-4 flex flex-col gap-3">
+        <ImportLauncher
+          icon={Archive}
+          title={t('settings.dataImport.fddb.title', 'FDDB account export')}
+          description={t(
+            'settings.dataImport.fddb.description',
+            'Preview a complete FDDB export, then restore diary history and selected saved items.'
+          )}
+        >
+          {() => <FddbImport />}
+        </ImportLauncher>
         <ImportLauncher
           icon={Utensils}
           title={t('settings.dataImport.food.title', 'Food Database (CSV)')}

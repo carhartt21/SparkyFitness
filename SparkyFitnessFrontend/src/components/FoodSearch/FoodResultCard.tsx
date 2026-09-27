@@ -57,6 +57,7 @@ interface FoodResultCardProps {
   // parent already holds the favorites Set, so one card mounting N rows is one
   // lookup, not N copies of useFavoritesQuery.
   isFavorite?: boolean;
+  relevanceNote?: string;
 }
 
 const FoodResultCard = ({
@@ -70,6 +71,7 @@ const FoodResultCard = ({
   onCardClick,
   onEditClick,
   isFavorite = false,
+  relevanceNote,
 }: FoodResultCardProps) => {
   const { t } = useTranslation();
   const { activeUserId } = useActiveUser();
@@ -154,6 +156,11 @@ const FoodResultCard = ({
           <div className="flex-1 min-w-0">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mb-2">
               <h3 className="font-medium">{item.name}</h3>
+              {relevanceNote && (
+                <span className="text-xs text-amber-700 dark:text-amber-300">
+                  {relevanceNote}
+                </span>
+              )}
               {isFood && foodItem.brand && (
                 <Badge variant="secondary" className="text-xs">
                   {foodItem.brand}

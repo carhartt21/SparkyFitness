@@ -3393,6 +3393,7 @@
       "onlineProvider": "Online-Anbieter"
     },
     "labels": {
+      "broaderAlternative": "Ähnliche Alternative – Zubereitung und Portion prüfen",
       "caloriesShort": "kcal",
       "caloriesUnit": "kcal",
       "foods": "Lebensmittel",

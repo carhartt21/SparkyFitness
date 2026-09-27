@@ -61,6 +61,12 @@ interface Omission {
 
 const DELIBERATE_OMISSIONS: Omission[] = [
   {
+    file: /^services\/fddbImportService\.ts$/,
+    columns: TRACKED_COLUMNS,
+    reason:
+      'The FDDB source DTO uses camelCase, so iron appears in both input and output while caffeine_mg and alcohol_g appear only as output names. FDDB water_g is not a measured water volume for solid foods and is not mapped to water_ml; synthetic parser tests cover the supplied nutrients.',
+  },
+  {
     file: /^models\/(goalRepository|goalPresetRepository)\.ts$/,
     columns: ['water_ml'],
     reason:
