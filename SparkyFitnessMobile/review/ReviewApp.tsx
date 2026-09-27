@@ -28,6 +28,7 @@ export default function ReviewApp() {
         language: 'en' | 'de';
         theme: 'Dark' | 'Light' | 'Amoled';
         scenario: string;
+        nativeTabs?: boolean;
       };
       const fixture = createNutritionFixture(config.scenario);
       global.fetch = async (input, options) => {
@@ -82,7 +83,7 @@ export default function ReviewApp() {
       await useAppPreferencesStore.persist.rehydrate();
       useAppPreferencesStore.setState({
         languagePreference: config.language,
-        liquidGlassTabBarEnabled: false,
+        liquidGlassTabBarEnabled: config.nativeTabs === true,
         hiddenHealthTrends: ['steps', 'weight', 'sleep', 'hydration'],
         notificationsEnabled: false,
         fastingEnabled: false,

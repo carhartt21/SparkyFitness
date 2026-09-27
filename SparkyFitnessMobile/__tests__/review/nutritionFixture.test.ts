@@ -16,6 +16,19 @@ const payload = {
 };
 
 describe('isolated nutrition review fixture', () => {
+  it('serves disabled engagement settings without sending real notifications', () => {
+    const fixture = createNutritionFixture('populated');
+    expect(
+      fixture.respond(url('/api/v2/engagement/settings'), 'GET')
+    ).toMatchObject({
+      remote_enabled: false,
+      hydration_enabled: false,
+      movement_break_enabled: false,
+    });
+    expect(() =>
+      fixture.respond(url('/api/v2/engagement/settings'), 'PATCH', '{}')
+    ).toThrow('Unconfigured');
+  });
   it('leaves body-measurement hints absent without recording zero measurements', () => {
     const fixture = createNutritionFixture('populated');
     expect(

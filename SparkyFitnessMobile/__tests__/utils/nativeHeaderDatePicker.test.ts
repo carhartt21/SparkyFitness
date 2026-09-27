@@ -35,6 +35,7 @@ describe('nativeHeaderDatePicker', () => {
     ]);
     expect(items.every((item) => item.tintColor === '#0A84FF')).toBe(true);
     expect(items[1]?.label).toContain('Jan 15');
+    expect(items[1]?.accessibilityLabel).toContain('Jan 15');
 
     items[0]?.onPress();
     items[1]?.onPress();

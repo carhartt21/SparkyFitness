@@ -64,6 +64,8 @@ export function createNativeHeaderDatePickerItems({
   t,
   locale,
 }: NativeHeaderDatePickerOptions): NativeStackHeaderItem[] {
+  const selectedDateLabel =
+    dateLabel ?? `${formatDateLabel(selectedDate, t, locale)} ▾`;
   return [
     {
       type: 'button',
@@ -79,11 +81,11 @@ export function createNativeHeaderDatePickerItems({
     },
     {
       type: 'button',
-      label: dateLabel ?? `${formatDateLabel(selectedDate, t, locale)} ▾`,
+      label: selectedDateLabel,
       onPress: onDatePress,
       tintColor,
       labelStyle: { fontSize: 15, fontWeight: '600', color: tintColor },
-      accessibilityLabel,
+      accessibilityLabel: `${accessibilityLabel}: ${selectedDateLabel}`,
       identifier: 'date-picker',
       sharesBackground: true,
     },

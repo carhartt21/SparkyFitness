@@ -470,7 +470,10 @@ function AppContent() {
           <Stack.Screen
             name="ExerciseReview"
             component={SafeExerciseReview}
-            options={createStackScreenOptions(t('exerciseReview.title', { defaultValue: 'Exercise review' }), { headerBackTitle: t('navigation.library', { defaultValue: 'Library' }) })}
+            options={createStackScreenOptions(
+              t('dashboard.exercise', { defaultValue: 'Exercise' }),
+              { headerBackButtonDisplayMode: 'minimal' }
+            )}
           />
           <Stack.Screen
             name="WorkoutPresetsLibrary"

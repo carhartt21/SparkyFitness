@@ -86,22 +86,33 @@ final class DashboardReview: XCTestCase {
     }
     let dashboard = app.otherElements["dashboard-scroll"].scrollViews.firstMatch
     XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
-    let date = app.buttons["dashboard-date"]
-    let logo = app.buttons["dashboard-home"]
+    let fallbackDate = app.buttons["dashboard-date"]
+    let nativeButtons = app.navigationBars.firstMatch.buttons
+    let usesNativeHeader = !fallbackDate.exists && nativeButtons.count >= 3
+    let date = usesNativeHeader ? nativeButtons.element(boundBy: 1) : fallbackDate
+    let previous = usesNativeHeader ? nativeButtons.element(boundBy: 0) : app.buttons["dashboard-previous-day"]
+    let next = usesNativeHeader ? nativeButtons.element(boundBy: 2) : app.buttons["dashboard-next-day"]
     XCTAssertTrue(date.isHittable)
-    XCTAssertEqual(date.frame.midY, logo.frame.midY, accuracy: 2)
-    for id in ["dashboard-home", "dashboard-date", "dashboard-previous-day", "dashboard-next-day", "dashboard-today"] {
-      let control = app.buttons[id]
-      XCTAssertTrue(control.isHittable)
-      XCTAssertGreaterThanOrEqual(control.frame.width, 44)
-      XCTAssertGreaterThanOrEqual(control.frame.height, 44)
+    if !usesNativeHeader {
+      let logo = app.buttons["dashboard-home"]
+      XCTAssertEqual(date.frame.midY, logo.frame.midY, accuracy: 2)
     }
-    let originalDate = date.value as? String
+    let controls = usesNativeHeader
+      ? [previous, date, next]
+      : ["dashboard-home", "dashboard-date", "dashboard-previous-day", "dashboard-next-day", "dashboard-today"].map { app.buttons[$0] }
+    for control in controls {
+      XCTAssertTrue(control.isHittable)
+      // UIKit owns the native button's extended hit region; its AX frame is
+      // the 36-point visible symbol. React-owned controls require 44 points.
+      XCTAssertGreaterThanOrEqual(control.frame.width, usesNativeHeader ? 36 : 44)
+      XCTAssertGreaterThanOrEqual(control.frame.height, usesNativeHeader ? 36 : 44)
+    }
+    let originalDate = usesNativeHeader ? date.label : date.value as? String
     XCTAssertNotNil(originalDate)
-    app.buttons["dashboard-previous-day"].tap()
-    XCTAssertNotEqual(date.value as? String, originalDate)
-    app.buttons["dashboard-next-day"].tap()
-    XCTAssertEqual(date.value as? String, originalDate)
+    previous.tap()
+    XCTAssertNotEqual(usesNativeHeader ? date.label : date.value as? String, originalDate)
+    next.tap()
+    XCTAssertEqual(usesNativeHeader ? date.label : date.value as? String, originalDate)
     capture("dashboard-top", app)
     dashboard.swipeUp()
     capture("dashboard-middle", app)
@@ -145,7 +156,7 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(exerciseDetails.isHittable)
     capture("stacked-exercise", app)
     exerciseDetails.tap()
-    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Back", "Zurück"])).firstMatch
+    let back = app.buttons["BackButton"]
     XCTAssertTrue(back.waitForExistence(timeout: 10))
     XCTAssertGreaterThan(back.frame.minY, 40)
     XCTAssertGreaterThanOrEqual(back.frame.height, 44)

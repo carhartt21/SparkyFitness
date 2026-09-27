@@ -49,6 +49,18 @@ export function createNutritionFixture(scenario: string) {
       if (url.origin !== 'https://ui-review.invalid')
         throw new Error('Review blocked network origin');
       const path = url.pathname.replace(/\/$/, '');
+      if (method === 'GET' && path === '/api/v2/engagement/settings')
+        return {
+          revision: 0,
+          remote_enabled: false,
+          quiet_start: '22:00',
+          quiet_end: '08:00',
+          hydration_enabled: false,
+          meal_capture_enabled: false,
+          meal_review_enabled: false,
+          movement_break_enabled: false,
+          mobility_enabled: false,
+        };
       if (
         method === 'POST' &&
         path === '/api/user-preferences/bootstrap-timezone'

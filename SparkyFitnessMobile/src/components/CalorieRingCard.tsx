@@ -19,12 +19,17 @@ const SideStat: React.FC<SideStatProps> = ({ label, value, icon, color }) => (
       <Icon name={icon} size={22} color={color} />
     </View>
     <View className="flex-1">
-      <Text className="text-lg font-semibold text-text-primary">
+      <Text
+        className="text-lg font-semibold text-text-primary"
+        maxFontSizeMultiplier={1.6}
+      >
         {typeof value === 'number'
           ? formatLocalizedNumber(Math.round(value))
           : value}
       </Text>
-      <Text className="text-text-secondary text-xs">{label}</Text>
+      <Text className="text-text-secondary text-xs" maxFontSizeMultiplier={1.8}>
+        {label}
+      </Text>
     </View>
   </View>
 );
@@ -101,17 +106,26 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
             className="items-center justify-center"
             style={expanded ? undefined : { position: 'absolute', width: 116 }}
           >
-            <Text className="text-[28px] font-bold text-text-primary">
+            <Text
+              className="text-[28px] font-bold text-text-primary"
+              maxFontSizeMultiplier={1.6}
+            >
               {formatLocalizedNumber(ringValue)}
             </Text>
-            <Text className="text-text-secondary text-xs text-center">
+            <Text
+              className="text-text-secondary text-xs text-center"
+              maxFontSizeMultiplier={1.8}
+            >
               {hasGoal
                 ? isOverTarget
                   ? t('dashboard.overTarget', { defaultValue: 'over target' })
                   : t('dashboard.remaining', { defaultValue: 'remaining' })
                 : t('dashboard.consumed', { defaultValue: 'Consumed' })}
             </Text>
-            <Text className="text-text-secondary text-xs">
+            <Text
+              className="text-text-secondary text-xs"
+              maxFontSizeMultiplier={1.8}
+            >
               {t('dashboard.kcal', { defaultValue: 'kcal' })}
             </Text>
           </View>

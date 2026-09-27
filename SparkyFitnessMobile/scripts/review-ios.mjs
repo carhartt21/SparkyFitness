@@ -111,9 +111,13 @@ const allCases = process.argv.includes('--single')
       },
     ];
 const selectedCase = arg('--case', '');
-const cases = selectedCase
+const filteredCases = selectedCase
   ? allCases.filter((item) => new RegExp(selectedCase).test(item.name))
   : allCases;
+const cases = filteredCases.map((item) => ({
+  ...item,
+  nativeTabs: process.argv.includes('--native-tabs'),
+}));
 if (!cases.length) throw new Error('No review case matched --case');
 let scenario = cases[0];
 let events = [];

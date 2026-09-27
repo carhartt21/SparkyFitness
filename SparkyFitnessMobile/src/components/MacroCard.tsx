@@ -113,6 +113,7 @@ const MacroCard: React.FC<MacroCardProps> = ({
       >
         <Text
           className="text-[13px] font-medium text-text-primary"
+          maxFontSizeMultiplier={1.8}
           style={expanded ? undefined : { width: '26%' }}
         >
           {compactLabel ?? label}
@@ -137,6 +138,7 @@ const MacroCard: React.FC<MacroCardProps> = ({
         )}
         <Text
           className="text-xs text-text-secondary"
+          maxFontSizeMultiplier={1.8}
           style={
             expanded
               ? undefined
@@ -152,6 +154,7 @@ const MacroCard: React.FC<MacroCardProps> = ({
         {hasGoal && (
           <Text
             className="text-xs text-text-secondary"
+            maxFontSizeMultiplier={1.8}
             style={[
               expanded ? undefined : { width: 30, textAlign: 'right' },
               dark ? { color } : undefined,

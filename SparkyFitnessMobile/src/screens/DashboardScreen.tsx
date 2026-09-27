@@ -84,7 +84,7 @@ import {
   selectVisibleHealthTrends,
 } from '../utils/healthTrendPreferences';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
-import { formatDateLabel } from '../utils/dateUtils';
+import { formatDate } from '../utils/dateUtils';
 import {
   setNativeHeaderDatePickerOptions,
   type NativeHeaderDatePickerNavigation,
@@ -170,7 +170,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           defaultValue: ': previous day',
         }),
         nextDayLabel: t('common.nextDay', { defaultValue: ': next day' }),
-        dateLabel: `${formatDateLabel(selectedDate, t, dateLocale)} ▾`,
+        dateLabel: `${formatDate(selectedDate, dateLocale)} ▾`,
         t,
         locale: dateLocale,
       }
@@ -590,7 +590,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                   : accentColor
               }
             />
-            <Text className="mt-2 text-center text-xs font-medium text-text-primary">
+            <Text
+              className="mt-2 text-center text-xs font-medium text-text-primary"
+              maxFontSizeMultiplier={1.8}
+            >
               {action.label}
             </Text>
           </Pressable>
@@ -692,11 +695,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     accessibilityRole="button"
                     className="flex-row justify-between items-center min-h-11 mb-1 gap-3"
                   >
-                    <Text className="text-base font-semibold text-text-primary flex-shrink">
+                    <Text
+                      className="text-base font-semibold text-text-primary flex-shrink"
+                      maxFontSizeMultiplier={1.8}
+                    >
                       {t('dashboard.nutrients', { defaultValue: 'Nutrients' })}
                     </Text>
                     <View className="flex-row items-center">
-                      <Text className="text-xs font-semibold text-accent-primary mr-1">
+                      <Text
+                        className="text-xs font-semibold text-accent-primary mr-1"
+                        maxFontSizeMultiplier={1.8}
+                      >
                         {t('common.details', { defaultValue: 'Details' })}
                       </Text>
                       <Icon

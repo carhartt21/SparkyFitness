@@ -1,11 +1,14 @@
 import React from 'react';
-import { View } from 'react-native';
+import { Image, View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@bottom-tabs/react-navigation';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useCSSVariable } from 'uniwind';
-import { createIOSNativeHeaderOptions } from '../utils/nativeHeaderItems';
+import {
+  createIOSNativeHeaderOptions,
+  createIOSSmallNativeHeaderOptions,
+} from '../utils/nativeHeaderItems';
 import DashboardScreen from '../screens/DashboardScreen';
 import DiaryScreen from '../screens/DiaryScreen';
 import LibraryScreen from '../screens/LibraryScreen';
@@ -132,7 +135,7 @@ function DashboardStackScreen() {
   const { defaultColor } = useHeaderActionColors();
   const textPrimary = useCSSVariable('--color-text-primary') as string;
   const screenOptions = React.useMemo(
-    () => createIOSNativeHeaderOptions(defaultColor, textPrimary),
+    () => createIOSSmallNativeHeaderOptions(defaultColor, textPrimary),
     [defaultColor, textPrimary]
   );
 
@@ -144,6 +147,15 @@ function DashboardStackScreen() {
           component={SafeDashboard as React.ComponentType}
           options={{
             title: t('navigation.dashboard', { defaultValue: 'Dashboard' }),
+            headerTitleAlign: 'left',
+            headerTitle: () => (
+              <Image
+                source={require('../../assets/brand/x-on-track-dark.png')}
+                style={{ width: 34, height: 34, borderRadius: 7 }}
+                resizeMode="contain"
+                accessible={false}
+              />
+            ),
             headerBackTitle: t('navigation.dashboard', {
               defaultValue: 'Dashboard',
             }),
