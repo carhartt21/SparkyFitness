@@ -96,6 +96,7 @@ npx expo prebuild --clean
 - `src/services/healthkit/` - iOS HealthKit reads, statistics aggregation, transformation, background delivery, preferences, and writeback.
 - `src/services/shared/` - platform-agnostic health helpers: the `collectHealthData` / `runForegroundSync` engine both orchestrators share, the per-run workout-telemetry budget and its reuse cache, Health Connect error classification, sample downsampling, day aggregation/transformation, preference factories, and permission migration/sets.
 - `src/services/` - platform health orchestration, writeback re-exports, background sync, auto-sync coordination, diagnostics, calculations, logging, storage, theme, haptics, sounds, notifications, food photo intro, meal selection, boolean preferences, card visibility, and workout drafts.
+- `src/services/remoteEngagement.ts`, `remoteEngagementActions.ts`, and `activeTimerLiveActivity.ios.ts` - account-scoped push settings/device lifecycle, retry-safe reminder responses, and fasting/mobility Live Activities. `NutritionEngagementCoordinator` arbitrates local versus remote reminders; `NotificationSettingsScreen` exposes the opt-in.
 - `src/stores/` - Zustand stores, including the persisted active workout/rest timer store.
 - `src/utils/` - date helpers, unit conversion, food details, meal nutrition, nutrient display, workout/session helpers, fasting formatting, numeric input, concurrency, sync utilities, duplicate-press guarding, photo estimate error mapping, and rate limiting.
 - `src/constants/` - meal, exercise, fasting, and nutrient metadata.

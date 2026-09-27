@@ -124,6 +124,14 @@
     "historyDeleteConfirm": "Delete this saved session? This cannot be undone.",
     "historyOlder": "Show older sessions"
   },
+  "activeTimer": {
+    "timeToTarget": "Time to target",
+    "currentFast": "Current fast",
+    "elapsed": "Elapsed time",
+    "paused": "Paused",
+    "continue": "Continue",
+    "currentStep": "Current step"
+  },
   "common": {
     "save": "Save",
     "saving": "Saving…",
@@ -1183,6 +1191,11 @@
   },
   "notificationSettings": {
     "title": "Notifications",
+    "delivery": "Delivery",
+    "remoteReminders": "Remind me when the app is closed",
+    "remoteRemindersSubtitle": "Sync optional reminders across devices. Requires push permission; local reminders pause to prevent duplicates.",
+    "remoteUpdateFailed": "Could not update reminders. Try again.",
+    "remoteUnavailable": "Remote reminders are unavailable. Check notification permission and push setup.",
     "allow": "Allow Notifications",
     "allowSubtitle": "Master switch for all alerts from X on Track.",
     "alerts": "Alerts",

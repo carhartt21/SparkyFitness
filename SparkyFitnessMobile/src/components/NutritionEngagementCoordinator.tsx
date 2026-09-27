@@ -36,6 +36,13 @@ import {
   subscribeNutritionIdentity,
 } from '../services/nutritionIdentity';
 import HydrationReminderReconciler from './HydrationReminderReconciler';
+import {
+  readCachedRemoteEngagement,
+  refreshRemoteEngagement,
+  registerRemoteEngagementDevice,
+  subscribeRemoteEngagement,
+} from '../services/remoteEngagement';
+import { flushRemoteEngagementActions } from '../services/remoteEngagementActions';
 
 const WIDGET_KEY = 'nutritionEngagementSnapshot';
 const WIDGET_SCOPE_KEY = 'nutritionEngagementScope';
@@ -86,6 +93,70 @@ export default function NutritionEngagementCoordinator() {
   const userId = identity?.userId ?? null;
   const identityKey = JSON.stringify([serverConfigId, userId]);
   const identityReady = identity !== null && identityKey === activeScope;
+  const [remoteOwnership, setRemoteOwnership] = useState<{
+    scope: string;
+    enabled: boolean;
+  } | null>(null);
+  const localRemindersAllowed =
+    identityReady &&
+    remoteOwnership?.scope === identityKey &&
+    remoteOwnership.enabled === false;
+
+  useEffect(() => {
+    let alive = true;
+    const scopedIdentity =
+      identityReady && serverConfigId && userId
+        ? { serverConfigId, userId }
+        : null;
+    setRemoteOwnership(null);
+    if (!scopedIdentity) return;
+    const refresh = async () => {
+      try {
+        const cached = await readCachedRemoteEngagement(scopedIdentity);
+        if (alive && cached) {
+          setRemoteOwnership({
+            scope: identityKey,
+            enabled: cached.remote_enabled,
+          });
+        }
+        const current = await refreshRemoteEngagement(scopedIdentity);
+        void flushRemoteEngagementActions(scopedIdentity).catch(
+          () => undefined
+        );
+        if (alive) {
+          setRemoteOwnership({
+            scope: identityKey,
+            enabled: current.remote_enabled,
+          });
+          if (current.remote_enabled) {
+            void registerRemoteEngagementDevice(scopedIdentity, false).catch(
+              () => undefined
+            );
+          }
+        }
+      } catch {
+        // An unknown owner never schedules both local and remote reminders.
+      }
+    };
+    void refresh();
+    const appState = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+    const unsubscribe = subscribeRemoteEngagement(() => {
+      void readCachedRemoteEngagement(scopedIdentity).then((cached) => {
+        if (alive && cached)
+          setRemoteOwnership({
+            scope: identityKey,
+            enabled: cached.remote_enabled,
+          });
+      });
+    });
+    return () => {
+      alive = false;
+      appState.remove();
+      unsubscribe();
+    };
+  }, [identityKey, identityReady, serverConfigId, userId]);
 
   useEffect(() => {
     let generation = 0;
@@ -272,7 +343,10 @@ export default function NutritionEngagementCoordinator() {
 
   const plan = useMemo(() => {
     const nutritionCandidates =
-      identityReady && !storageError && notificationsEnabled
+      identityReady &&
+      !storageError &&
+      notificationsEnabled &&
+      localRemindersAllowed
         ? nutritionReminderCandidates({
             state,
             windows: [{ id: 'selected', start, end, prompt, enabled }],
@@ -287,7 +361,10 @@ export default function NutritionEngagementCoordinator() {
         ? wellbeingSession
         : null;
     const movementCandidate =
-      identityReady && sessionReadable && notificationsEnabled
+      identityReady &&
+      sessionReadable &&
+      notificationsEnabled &&
+      localRemindersAllowed
         ? movementBreakReminderCandidate({
             day,
             time: movementTime,
@@ -304,6 +381,7 @@ export default function NutritionEngagementCoordinator() {
     const mobilityCandidates =
       identityReady &&
       notificationsEnabled &&
+      localRemindersAllowed &&
       mobilityData?.scope === identityKey
         ? mobilityReminderCandidates({
             day,
@@ -333,6 +411,7 @@ export default function NutritionEngagementCoordinator() {
     storageError,
     enabled,
     notificationsEnabled,
+    localRemindersAllowed,
     start,
     end,
     prompt,
@@ -357,7 +436,8 @@ export default function NutritionEngagementCoordinator() {
         identityReady &&
         !storageError &&
         (enabled || reviewEnabled) &&
-        notificationsEnabled,
+        notificationsEnabled &&
+        localRemindersAllowed,
       candidates: plan,
     }).catch(() => undefined);
     void reconcileMovementEngagementReminders({
@@ -366,6 +446,7 @@ export default function NutritionEngagementCoordinator() {
         identityReady &&
         movementEnabled &&
         notificationsEnabled &&
+        localRemindersAllowed &&
         sessionReadable,
       candidates: plan,
     }).catch(() => undefined);
@@ -374,6 +455,7 @@ export default function NutritionEngagementCoordinator() {
       enabled:
         identityReady &&
         notificationsEnabled &&
+        localRemindersAllowed &&
         mobilityData?.scope === identityKey,
       candidates: plan,
     }).catch(() => undefined);
@@ -383,6 +465,7 @@ export default function NutritionEngagementCoordinator() {
     storageError,
     enabled,
     notificationsEnabled,
+    localRemindersAllowed,
     reviewEnabled,
     movementEnabled,
     mobilityData,
@@ -454,6 +537,7 @@ export default function NutritionEngagementCoordinator() {
       nowMs={clockMs}
       medicationReservedTimes={medicationReservedTimes}
       spentByDay={spentByDay}
+      localRemindersAllowed={localRemindersAllowed}
     />
   );
 }

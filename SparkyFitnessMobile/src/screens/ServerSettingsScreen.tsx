@@ -37,6 +37,7 @@ import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { useServerConfigs, useServerConnection } from '../hooks';
 import { isPermittedHttpUrl } from '../utils/serverUrl';
+import { retireCurrentRemoteEngagementDevice } from '../services/remoteEngagement';
 import {
   serverConfigsQueryKey,
   serverConnectionQueryKey,
@@ -101,6 +102,8 @@ const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
       }
     }
     try {
+      if (configId !== activeConfig?.id)
+        await retireCurrentRemoteEngagementDevice().catch(() => undefined);
       await setActiveServerConfig(configId);
       await notifyIdentityChanged();
       await refetchServerConfigs();
@@ -133,6 +136,8 @@ const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
   const handleDeleteConfig = async (configId: string): Promise<void> => {
     try {
       const wasActive = configId === activeConfig?.id;
+      if (wasActive)
+        await retireCurrentRemoteEngagementDevice().catch(() => undefined);
       await deleteServerConfig(configId);
       const remaining = await getAllServerConfigs();
       if (wasActive && remaining.length > 0) {

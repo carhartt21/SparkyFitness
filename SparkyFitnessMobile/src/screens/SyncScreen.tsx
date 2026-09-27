@@ -484,6 +484,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
           t('syncScreen.permissionDenied.write', {
             defaultValue:
               'Please grant {{metric}} write permission in {{settings}}.',
+            // i18n-audit-ignore-next-line dynamic-i18n-key -- keys come from the reviewed writeback metric definitions.
             metric: t(metric.labelKey, { defaultValue: metric.defaultLabel }),
             settings: healthSettingsName,
           })
@@ -510,6 +511,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         t('syncScreen.permissionError.metricWrite', {
           defaultValue:
             'Failed to request {{metric}} write permission: {{error}}',
+          // i18n-audit-ignore-next-line dynamic-i18n-key -- keys come from the reviewed writeback metric definitions.
           metric: t(metric.labelKey, { defaultValue: metric.defaultLabel }),
           error: errorMessage,
         })

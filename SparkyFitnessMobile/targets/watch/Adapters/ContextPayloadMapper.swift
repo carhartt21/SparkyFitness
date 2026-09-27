@@ -69,6 +69,7 @@ enum ContextPayloadMapper {
             waterDisplayUnit: payload["waterDisplayUnit"] as? String
                 ?? (sameScope ? previous.waterDisplayUnit : nil),
             workout: workout(from: payload),
+            timers: timers(from: payload) ?? (sameScope ? previous.timers : nil),
             // Milliseconds since the epoch on the phone's clock. Carried
             // forward is wrong here — a payload with no timestamp is exactly
             // the one we can't reason about, so it stays nil.
@@ -253,6 +254,25 @@ enum ContextPayloadMapper {
             },
             exercises: exercises
         )
+    }
+
+    static func timers(from payload: [String: Any]) -> [WatchTimerSnapshot]? {
+        guard let raw = payload["timers"] as? [[String: Any]] else { return nil }
+        return raw.compactMap { entry in
+            guard let kind = entry["kind"] as? String,
+                  kind == "fasting" || kind == "mobility",
+                  let title = entry["title"] as? String,
+                  let subtitle = entry["subtitle"] as? String,
+                  let mode = entry["mode"] as? String,
+                  ["countdown", "elapsed", "paused"].contains(mode),
+                  let started = entry["startedAt"] as? Double,
+                  started.isFinite else { return nil }
+            let endsAt = (entry["endsAt"] as? Double).flatMap { $0.isFinite
+                ? Date(timeIntervalSince1970: $0 / 1000) : nil }
+            return WatchTimerSnapshot(kind: kind, title: title, subtitle: subtitle,
+                                      mode: mode, startedAt: Date(timeIntervalSince1970: started / 1000),
+                                      endsAt: endsAt)
+        }
     }
 
     // MARK: - Complications

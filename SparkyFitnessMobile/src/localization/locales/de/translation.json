@@ -1,4 +1,12 @@
 {
+  "activeTimer": {
+    "timeToTarget": "Zeit bis zum Ziel",
+    "currentFast": "Aktuelles Fasten",
+    "elapsed": "Vergangene Zeit",
+    "paused": "Pausiert",
+    "continue": "Fortfahren",
+    "currentStep": "Aktueller Schritt"
+  },
   "engagement": {
     "dailyOptionalBudget": "Optionale Erinnerungen heute",
     "dailyOptionalBudgetSummary": "{{used}} von 3 Tagesplätzen belegt. Mahlzeit-, Bewegungs- und Wassererinnerungen teilen sie; Medikamenten- und Pausenhinweise sind getrennt.",
@@ -1344,6 +1352,11 @@
   },
   "notificationSettings": {
     "title": "Benachrichtigungen",
+    "delivery": "Zustellung",
+    "remoteReminders": "Auch bei geschlossener App erinnern",
+    "remoteRemindersSubtitle": "Optionale Erinnerungen geräteübergreifend synchronisieren. Erfordert Push-Berechtigung; lokale Erinnerungen pausieren, damit keine doppelten Hinweise erscheinen.",
+    "remoteUpdateFailed": "Erinnerungen konnten nicht aktualisiert werden. Versuche es erneut.",
+    "remoteUnavailable": "Erinnerungen bei geschlossener App sind nicht verfügbar. Prüfe die Benachrichtigungsberechtigung und die Push-Einrichtung.",
     "allow": "Benachrichtigungen erlauben",
     "allowSubtitle": "Alle Benachrichtigungen von X on Track ein- oder ausschalten.",
     "alerts": "Benachrichtigungen",

@@ -141,6 +141,16 @@ export interface WatchMealTypePayload {
   name: string;
 }
 
+/** Read-only status of a phone timer. No timer action is fabricated on Watch. */
+export interface WatchTimerPayload {
+  kind: 'fasting' | 'mobility';
+  title: string;
+  subtitle: string;
+  mode: 'countdown' | 'elapsed' | 'paused';
+  startedAt: number;
+  endsAt: number | null;
+}
+
 /** One immutable Watch tap, replayed with its original UUID after reconnection. */
 export interface WatchFoodLogPayload {
   clientId: string;
@@ -261,6 +271,8 @@ export interface WatchContextPayload {
   waterLog?: WatchWaterLogPayload[] | null;
   /** Null when the phone has no active workout for the current server. */
   workout?: WatchWorkoutPayload | null;
+  /** Omitted if status is unavailable; [] explicitly clears prior timers. */
+  timers?: WatchTimerPayload[] | null;
 }
 
 export type WatchConnectivityEvents = {

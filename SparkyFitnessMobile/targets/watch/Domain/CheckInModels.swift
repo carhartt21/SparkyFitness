@@ -74,6 +74,23 @@ struct NutritionSnapshot: Codable, Equatable {
     var isToday: Bool { day == CheckInDate.today() }
 }
 
+/// Read-only status relayed by the phone. A stale timer is hidden, not treated
+/// as an active workout or a source of exercise calories.
+struct WatchTimerSnapshot: Codable, Equatable, Identifiable {
+    let kind: String
+    let title: String
+    let subtitle: String
+    let mode: String
+    let startedAt: Date
+    let endsAt: Date?
+
+    var id: String { kind }
+    var isCurrent: Bool {
+        if mode == "countdown", let endsAt { return endsAt > Date() }
+        return Date().timeIntervalSince(startedAt) < 24 * 60 * 60
+    }
+}
+
 /// ml → "500ml" / "16.9oz" / "0.31L", matching the phone app's own
 /// conventions (`WATER_UNIT_LABELS`, `formatUnitVolume`): no space before the
 /// unit, and decimals that make sense for the unit's usual precision.
@@ -363,6 +380,8 @@ struct WatchContext: Codable, Equatable {
     /// Active workout from the phone; nil means no workout is available.
     /// Optional so context saved by an earlier Watch build still decodes.
     var workout: WatchWorkoutSnapshot?
+    /// Optional keeps contexts persisted by earlier builds decodable.
+    var timers: [WatchTimerSnapshot]?
     /// When the phone built this payload (its `pushedAt`), as opposed to
     /// `updatedAt` above, which is when this watch received it. Needed to tell
     /// a genuinely fresh push from `adoptReceivedContext()` replaying a cached
@@ -391,6 +410,7 @@ struct WatchContext: Codable, Equatable {
         waterGoalMl: nil,
         waterDisplayUnit: nil,
         workout: nil,
+        timers: nil,
         generatedAt: nil
     )
 

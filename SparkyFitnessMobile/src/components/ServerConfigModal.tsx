@@ -54,6 +54,7 @@ import {
 import { addLog } from '../services/LogService';
 import { normalizeUrl, getInsecureUrlError } from '../utils/serverUrl';
 import { pasteFromClipboard } from '../utils/keyboardFocus';
+import { retireCurrentRemoteEngagementDevice } from '../services/remoteEngagement';
 import {
   CONNECTION_CHECK_TIMEOUT_MS,
   fetchWithTimeout,
@@ -276,6 +277,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
   const getConfigId = () => editingConfig?.id ?? Date.now().toString();
 
   const saveConfig = async (url: string, overrides: Partial<ServerConfig>) => {
+    await retireCurrentRemoteEngagementDevice().catch(() => undefined);
     await saveServerConfig({
       id: getConfigId(),
       url,
@@ -748,6 +750,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               sessionToken: editingConfig!.sessionToken,
             };
 
+      await retireCurrentRemoteEngagementDevice().catch(() => undefined);
       await saveServerConfig({
         id: editingConfig!.id,
         url,

@@ -43,6 +43,12 @@ import {
   subscribeNutritionIdentity,
 } from '../services/nutritionIdentity';
 import type { RootStackScreenProps } from '../types/navigation';
+import type { EngagementSettings } from '@workspace/shared';
+import {
+  enableRemoteEngagement,
+  patchRemoteEngagement,
+  refreshRemoteEngagement,
+} from '../services/remoteEngagement';
 
 type IntervalKey = `${WaterReminderIntervalHours}`;
 
@@ -147,6 +153,114 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   const [dailyOptionalBudgetUsed, setDailyOptionalBudgetUsed] = useState<
     number | null
   >(null);
+  const [remoteSettings, setRemoteSettings] =
+    useState<EngagementSettings | null>(null);
+  const [remoteBusy, setRemoteBusy] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    const refresh = async () => {
+      try {
+        const identity = await getActiveNutritionIdentity();
+        if (!identity) return;
+        const settings = await refreshRemoteEngagement(identity);
+        if (active) {
+          setRemoteSettings(settings);
+          if (settings.remote_enabled) {
+            setWaterReminderEnabled(settings.hydration_enabled);
+            setMealCaptureReminderEnabled(settings.meal_capture_enabled);
+            setReviewEnabled(settings.meal_review_enabled);
+            setMovementReminderEnabled(settings.movement_break_enabled);
+          }
+        }
+      } catch {
+        if (active) setRemoteSettings(null);
+      }
+    };
+    void refresh();
+    const unsubscribe = navigation.addListener?.('focus', () => void refresh());
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, [
+    navigation,
+    setWaterReminderEnabled,
+    setMealCaptureReminderEnabled,
+    setReviewEnabled,
+    setMovementReminderEnabled,
+  ]);
+
+  const updateRemoteKind = useCallback(
+    async (
+      key:
+        | 'hydration_enabled'
+        | 'meal_capture_enabled'
+        | 'meal_review_enabled'
+        | 'movement_break_enabled',
+      value: boolean,
+      applyLocal: (next: boolean) => void
+    ) => {
+      if (!remoteSettings?.remote_enabled) {
+        applyLocal(value);
+        return;
+      }
+      try {
+        const identity = await getActiveNutritionIdentity();
+        if (!identity) throw new Error('Sign in to update remote reminders.');
+        const updated = await patchRemoteEngagement(identity, { [key]: value });
+        setRemoteSettings(updated);
+        applyLocal(value);
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: t('notificationSettings.remoteUpdateFailed', {
+            defaultValue: 'Could not update reminders. Try again.',
+          }),
+        });
+      }
+    },
+    [remoteSettings?.remote_enabled, t]
+  );
+
+  const handleRemoteToggle = useCallback(
+    async (value: boolean) => {
+      if (remoteBusy) return;
+      setRemoteBusy(true);
+      try {
+        const identity = await getActiveNutritionIdentity();
+        if (!identity) throw new Error('Sign in to enable remote reminders.');
+        const updated = value
+          ? await enableRemoteEngagement(identity, {
+              hydration_enabled: waterReminderEnabled,
+              meal_capture_enabled: mealCaptureReminderEnabled,
+              meal_review_enabled: reviewEnabled,
+              movement_break_enabled: movementReminderEnabled,
+              mobility_enabled: false,
+            })
+          : await patchRemoteEngagement(identity, { remote_enabled: false });
+        setRemoteSettings(updated);
+      } catch {
+        Toast.show({
+          type: 'error',
+          text1: t('notificationSettings.remoteUnavailable', {
+            defaultValue:
+              'Remote reminders are unavailable. Check notification permission and push setup.',
+          }),
+        });
+      } finally {
+        setRemoteBusy(false);
+      }
+    },
+    [
+      remoteBusy,
+      waterReminderEnabled,
+      mealCaptureReminderEnabled,
+      reviewEnabled,
+      movementReminderEnabled,
+      t,
+    ]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -189,15 +303,36 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
     };
   }, [navigation]);
 
-  const handleNotificationsToggle = useCallback(async (value: boolean) => {
-    if (!value) {
-      await setNotificationsEnabled(false);
-      return;
-    }
-    await setNotificationsEnabled(true);
-    await requestNotificationPermission();
-    bannerRef.current?.refresh();
-  }, []);
+  const handleNotificationsToggle = useCallback(
+    async (value: boolean) => {
+      if (!value) {
+        if (remoteSettings?.remote_enabled) {
+          try {
+            const identity = await getActiveNutritionIdentity();
+            if (!identity) throw new Error('Account unavailable.');
+            const updated = await patchRemoteEngagement(identity, {
+              remote_enabled: false,
+            });
+            setRemoteSettings(updated);
+          } catch {
+            Toast.show({
+              type: 'error',
+              text1: t('notificationSettings.remoteUpdateFailed', {
+                defaultValue: 'Could not update reminders. Try again.',
+              }),
+            });
+            return;
+          }
+        }
+        await setNotificationsEnabled(false);
+        return;
+      }
+      await setNotificationsEnabled(true);
+      await requestNotificationPermission();
+      bannerRef.current?.refresh();
+    },
+    [remoteSettings?.remote_enabled, t]
+  );
 
   const handleMedicationRemindersToggle = useCallback(
     async (value: boolean) => {
@@ -223,55 +358,83 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   const handleWaterRemindersToggle = useCallback(
     async (value: boolean) => {
       if (!value) {
-        setWaterReminderEnabled(false);
+        await updateRemoteKind(
+          'hydration_enabled',
+          false,
+          setWaterReminderEnabled
+        );
         return;
       }
       const status = await requestNotificationPermission();
       bannerRef.current?.refresh();
       // Same rule as medication reminders: never show "on" while the OS would
       // silently drop every reminder.
-      if (status === 'granted') setWaterReminderEnabled(true);
+      if (status === 'granted')
+        await updateRemoteKind(
+          'hydration_enabled',
+          true,
+          setWaterReminderEnabled
+        );
     },
-    [setWaterReminderEnabled]
+    [setWaterReminderEnabled, updateRemoteKind]
   );
 
   const handleMealReminderToggle = useCallback(
     async (value: boolean) => {
       if (!value) {
-        setMealCaptureReminderEnabled(false);
+        await updateRemoteKind(
+          'meal_capture_enabled',
+          false,
+          setMealCaptureReminderEnabled
+        );
         return;
       }
       const status = await requestNotificationPermission();
       bannerRef.current?.refresh();
-      if (status === 'granted') setMealCaptureReminderEnabled(true);
+      if (status === 'granted')
+        await updateRemoteKind(
+          'meal_capture_enabled',
+          true,
+          setMealCaptureReminderEnabled
+        );
     },
-    [setMealCaptureReminderEnabled]
+    [setMealCaptureReminderEnabled, updateRemoteKind]
   );
 
   const handleReviewReminderToggle = useCallback(
     async (value: boolean) => {
       if (!value) {
-        setReviewEnabled(false);
+        await updateRemoteKind('meal_review_enabled', false, setReviewEnabled);
         return;
       }
       const status = await requestNotificationPermission();
       bannerRef.current?.refresh();
-      if (status === 'granted') setReviewEnabled(true);
+      if (status === 'granted')
+        await updateRemoteKind('meal_review_enabled', true, setReviewEnabled);
     },
-    [setReviewEnabled]
+    [setReviewEnabled, updateRemoteKind]
   );
 
   const handleMovementReminderToggle = useCallback(
     async (value: boolean) => {
       if (!value) {
-        setMovementReminderEnabled(false);
+        await updateRemoteKind(
+          'movement_break_enabled',
+          false,
+          setMovementReminderEnabled
+        );
         return;
       }
       const status = await requestNotificationPermission();
       bannerRef.current?.refresh();
-      if (status === 'granted') setMovementReminderEnabled(true);
+      if (status === 'granted')
+        await updateRemoteKind(
+          'movement_break_enabled',
+          true,
+          setMovementReminderEnabled
+        );
     },
-    [setMovementReminderEnabled]
+    [setMovementReminderEnabled, updateRemoteKind]
   );
 
   const changeMealWindow = useCallback(
@@ -387,6 +550,38 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         />
 
         <NotificationPermissionBanner ref={bannerRef} />
+
+        {notificationsEnabled && remoteSettings && (
+          <SettingsRowGroup
+            title={t('notificationSettings.delivery', {
+              defaultValue: 'Delivery',
+            })}
+          >
+            <SettingsRow
+              title={t('notificationSettings.remoteReminders', {
+                defaultValue: 'Remind me when the app is closed',
+              })}
+              subtitle={t('notificationSettings.remoteRemindersSubtitle', {
+                defaultValue:
+                  'Sync optional reminders across devices. Requires push permission; local reminders pause to prevent duplicates.',
+              })}
+              subtitleNumberOfLines={0}
+              rightAccessory={
+                <Switch
+                  accessibilityLabel={t(
+                    'notificationSettings.remoteReminders',
+                    {
+                      defaultValue: 'Remind me when the app is closed',
+                    }
+                  )}
+                  value={remoteSettings.remote_enabled}
+                  onValueChange={(value) => void handleRemoteToggle(value)}
+                  disabled={remoteBusy}
+                />
+              }
+            />
+          </SettingsRowGroup>
+        )}
 
         {notificationsEnabled && (
           <SettingsRowGroup>

@@ -43,6 +43,7 @@ import {
 } from '../services/storage';
 import { addLog } from '../services/LogService';
 import { isPermittedHttpUrl } from '../utils/serverUrl';
+import { retireCurrentRemoteEngagementDevice } from '../services/remoteEngagement';
 
 interface ReauthModalProps {
   visible: boolean;
@@ -169,6 +170,7 @@ const ReauthModal: React.FC<ReauthModalProps> = ({
 
   const saveSessionConfig = async (sessionToken: string) => {
     if (!config) return;
+    await retireCurrentRemoteEngagementDevice().catch(() => undefined);
     await saveServerConfig({
       id: config.id,
       url: config.url,

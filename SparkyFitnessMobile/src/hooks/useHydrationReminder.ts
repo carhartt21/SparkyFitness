@@ -206,6 +206,7 @@ export function cancelWaterRemindersForDifferentIdentity(
 }
 
 export interface HydrationReminderReconcilerInput {
+  localRemindersAllowed?: boolean;
   identity?: NutritionActionIdentity | null;
   today: string;
   lastLoggedAt: Date | null;
@@ -222,6 +223,7 @@ export interface HydrationReminderReconcilerInput {
  * for the same log does not re-run the effect.
  */
 export function useHydrationReminderReconciler({
+  localRemindersAllowed = true,
   identity,
   today,
   lastLoggedAt,
@@ -231,9 +233,10 @@ export function useHydrationReminderReconciler({
   refetch,
   plannedTimes,
 }: HydrationReminderReconcilerInput): void {
-  const remindersActive = useAppPreferencesStore(
+  const preferencesAllowReminders = useAppPreferencesStore(
     (s) => s.notificationsEnabled && s.waterReminderEnabled
   );
+  const remindersActive = preferencesAllowReminders && localRemindersAllowed;
   const intervalHours = useAppPreferencesStore(
     (s) => s.waterReminderIntervalHours
   );

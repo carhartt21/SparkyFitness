@@ -41,7 +41,14 @@ const HydrationReminderReconciler: React.FC<{
   nowMs: number;
   medicationReservedTimes: number[] | null;
   spentByDay: Record<string, number> | null;
-}> = ({ sharedPlan, nowMs, medicationReservedTimes, spentByDay }) => {
+  localRemindersAllowed: boolean;
+}> = ({
+  sharedPlan,
+  nowMs,
+  medicationReservedTimes,
+  spentByDay,
+  localRemindersAllowed,
+}) => {
   const remindersActive = useAppPreferencesStore(
     (s) => s.notificationsEnabled && s.waterReminderEnabled
   );
@@ -176,6 +183,7 @@ const HydrationReminderReconciler: React.FC<{
   }, [queriesEnabled, refetchSummary, refetchLog]);
 
   useHydrationReminderReconciler({
+    localRemindersAllowed,
     identity,
     today,
     lastLoggedAt,

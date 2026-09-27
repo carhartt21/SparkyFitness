@@ -79,6 +79,7 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
   };
 
   const renderMetricItem = (metric: WritebackMetric) => {
+    // i18n-audit-ignore-next-line dynamic-i18n-key -- keys come from the reviewed writeback metric definitions.
     const metricLabel = t(metric.labelKey, {
       defaultValue: metric.defaultLabel,
     });

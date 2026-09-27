@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 import WatchConnectivity, {
   type WatchCheckInPayload,
@@ -10,6 +11,7 @@ import WatchConnectivity, {
   type WatchWaterDeletePayload,
   type WatchWaterLogPayload,
   type WatchWorkoutSetOperationPayload,
+  type WatchTimerPayload,
   type WatchFoodLogPayload,
 } from '../../modules/watch-connectivity';
 import { fetchFoods } from '../services/api/foodsApi';
@@ -58,6 +60,12 @@ import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { buildWatchWorkoutSnapshot } from '../utils/watchWorkoutSnapshot';
 import { buildWatchFoodShortcuts } from '../utils/watchFoodShortcuts';
 import { saveActiveWorkoutSession } from './useActiveWorkoutAutosave';
+import { useCurrentFast } from './useFasting';
+import {
+  getMobilityState,
+  mobilitySecondsRemaining,
+  subscribeMobilityState,
+} from '../services/mobilityRoutineStore';
 
 /** Clamps a goal-progress fraction to 0...1 — passing a goal always reads as 1. */
 function goalProgress(consumed: number, goal: number): number {
@@ -114,6 +122,7 @@ function emptyWatchContext(): WatchContextPayload {
     waterGoalMl: null,
     waterDisplayUnit: null,
     workout: null,
+    timers: [],
     ...NO_FIGURES_FOR_TODAY,
   };
 }
@@ -146,7 +155,13 @@ function localHourMinute(timestamp: string): string | null {
  * iOS-only; a no-op everywhere else.
  */
 export function useWatchCheckInBridge(enabled: boolean): void {
+  const { t } = useTranslation();
   const activeWorkoutState = useActiveWorkoutStore();
+  const {
+    data: activeFast,
+    isPending: fastPending,
+    isError: fastError,
+  } = useCurrentFast({ enabled });
   const workoutSnapshot = useMemo(
     () => buildWatchWorkoutSnapshot(activeWorkoutState),
     [activeWorkoutState]
@@ -464,6 +479,64 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         fetchMeasurementsRange(startDate, today),
         getActiveServerConfig(),
       ]);
+      let timers: WatchTimerPayload[] | null = null;
+      if (!fastPending && !fastError) {
+        timers = [];
+        if (
+          activeFast?.user_id === actionIdentity.userId &&
+          activeFast.status === 'ACTIVE'
+        ) {
+          const startedAt = Date.parse(activeFast.start_time);
+          const target = activeFast.target_end_time
+            ? Date.parse(activeFast.target_end_time)
+            : NaN;
+          if (Number.isFinite(startedAt))
+            timers.push({
+              kind: 'fasting',
+              title: t('fastingDetail.title', { defaultValue: 'Fasting' }),
+              subtitle: t('activeTimer.currentFast', {
+                defaultValue: 'Current fast',
+              }),
+              mode:
+                Number.isFinite(target) && target > Date.now()
+                  ? 'countdown'
+                  : 'elapsed',
+              startedAt,
+              endsAt:
+                Number.isFinite(target) && target > Date.now() ? target : null,
+            });
+        }
+        try {
+          const state = await getMobilityState(actionIdentity);
+          const session = state.activeSession;
+          if (
+            session &&
+            (session.state === 'running' || session.state === 'paused')
+          ) {
+            const step = session.routine.steps[session.stepIndex];
+            const remaining = mobilitySecondsRemaining(session);
+            if (step)
+              timers.push({
+                kind: 'mobility',
+                title: session.routine.name,
+                subtitle: step.name,
+                mode:
+                  session.state === 'paused'
+                    ? 'paused'
+                    : remaining !== null && remaining > 0
+                      ? 'countdown'
+                      : 'paused',
+                startedAt: Date.parse(session.startedAt),
+                endsAt:
+                  remaining !== null && remaining > 0
+                    ? Date.now() + remaining * 1000
+                    : null,
+              });
+          }
+        } catch {
+          timers = null;
+        }
+      }
 
       // The API returns DESC by updated_at, so the first row seen for a date is
       // the most recent one for that date.
@@ -560,6 +633,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
           activeConfig.id === currentWorkoutState.sourceServerConfigId
             ? currentWorkoutSnapshot
             : null,
+        timers,
         ...figures,
       };
 
@@ -598,8 +672,20 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     mealTypes,
     activeWorkoutState,
     workoutSnapshot,
+    activeFast,
+    fastPending,
+    fastError,
+    t,
     enqueueContext,
   ]);
+
+  useEffect(
+    () =>
+      subscribeMobilityState(() => {
+        if (enabled) void pushContextRef.current();
+      }),
+    [enabled]
+  );
 
   useEffect(() => {
     if (!WatchConnectivity || !WatchConnectivity.isSupported()) return;

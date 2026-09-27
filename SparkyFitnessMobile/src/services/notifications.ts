@@ -47,6 +47,9 @@ export const NUTRITION_REVIEW_CATEGORY = 'engagement-nutrition-review';
 export const NUTRITION_REVIEW_ACTION = 'engagement-review-photos';
 export const HYDRATION_QUICK_LOG_CATEGORY = 'hydration-quick-log';
 export const HYDRATION_QUICK_LOG_ACTION = 'hydration-log-250ml';
+export const REMOTE_ENGAGEMENT_CATEGORY = 'engagement-remote';
+export const REMOTE_ENGAGEMENT_SNOOZE = 'engagement-snooze-15';
+export const REMOTE_ENGAGEMENT_SKIP = 'engagement-skip';
 
 export type AppNotificationPermission = 'granted' | 'denied' | 'undetermined';
 
@@ -101,6 +104,21 @@ export async function registerLocalizedNotificationPresentation(): Promise<void>
         'notifications.actions.completeSet',
         'Complete Set'
       ),
+      options: { opensAppToForeground: false },
+    },
+  ]);
+  await Notifications.setNotificationCategoryAsync(REMOTE_ENGAGEMENT_CATEGORY, [
+    {
+      identifier: REMOTE_ENGAGEMENT_SNOOZE,
+      buttonTitle: notificationCopy(
+        'notifications.actions.snooze15',
+        'Snooze 15 min'
+      ),
+      options: { opensAppToForeground: false },
+    },
+    {
+      identifier: REMOTE_ENGAGEMENT_SKIP,
+      buttonTitle: notificationCopy('notifications.actions.skip', 'Skip'),
       options: { opensAppToForeground: false },
     },
   ]);

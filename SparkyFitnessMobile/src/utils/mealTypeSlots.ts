@@ -40,13 +40,6 @@ export const GAP_AFTER_ANCHOR: Record<SystemAnchorKey, MealGapKey> = {
   snacks: 'd_s', // never used (no gap after the last anchor)
 };
 
-/** Human label used in the "gap is full" toast (no database numbers). */
-export const GAP_USER_LABEL: Record<MealGapKey, string> = {
-  b_l: 'between Breakfast and Lunch',
-  l_d: 'between Lunch and Dinner',
-  d_s: 'between Dinner and Snacks',
-};
-
 export const MAX_CUSTOM_PER_GAP = 9;
 
 /** Integer slot range per gap: [first, last]. */

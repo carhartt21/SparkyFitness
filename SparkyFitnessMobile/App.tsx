@@ -129,6 +129,7 @@ import { ActiveWorkoutTransitionScreenLayout } from './src/components/ActiveWork
 import ActiveWorkoutKeepAwake from './src/components/ActiveWorkoutKeepAwake';
 import MedicationReminderReconciler from './src/components/MedicationReminderReconciler';
 import NutritionEngagementCoordinator from './src/components/NutritionEngagementCoordinator';
+import ActiveTimerLiveActivityCoordinator from './src/components/ActiveTimerLiveActivityCoordinator';
 import RoutineWidgetCoordinator from './src/components/RoutineWidgetCoordinator';
 import WatchManualWaterCoordinator from './src/components/WatchManualWaterCoordinator';
 import { useNativeIOSTabsActive, useNativeIOSHeadersActive } from './src/services/nativeTabBarPreference';
@@ -347,6 +348,7 @@ function AppContent() {
       <WatchCheckInGate />
       <NutritionActionSyncGate />
       <NutritionEngagementCoordinator />
+      <ActiveTimerLiveActivityCoordinator />
       <RoutineWidgetCoordinator />
       <SafeAreaProvider>
         {/* Inside SafeAreaProvider on purpose: the viewer positions its close

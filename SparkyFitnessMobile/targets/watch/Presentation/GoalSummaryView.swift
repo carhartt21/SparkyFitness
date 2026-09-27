@@ -24,6 +24,27 @@ struct GoalSummaryView: View {
         ScrollView {
             VStack(spacing: 10) {
                 headlineRow
+                if let timers = store.context.timers?.filter({ $0.isCurrent }), !timers.isEmpty {
+                    ForEach(timers) { timer in
+                        HStack(spacing: 5) {
+                            Image(systemName: timer.kind == "fasting" ? "timer" : "figure.flexibility")
+                                .foregroundStyle(GoalPalette.calories)
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(timer.title).font(.system(size: 11, weight: .semibold))
+                                Text(timer.subtitle).font(.system(size: 9)).foregroundStyle(.secondary)
+                            }
+                            Spacer(minLength: 2)
+                            if timer.mode == "countdown", let end = timer.endsAt {
+                                Text(end, style: .timer).font(.system(size: 11, design: .rounded)).monospacedDigit()
+                            } else if timer.mode == "elapsed" {
+                                Text(timer.startedAt, style: .timer).font(.system(size: 11, design: .rounded)).monospacedDigit()
+                            } else {
+                                Text("Paused").font(.system(size: 9)).foregroundStyle(.secondary)
+                            }
+                        }
+                        .accessibilityElement(children: .combine)
+                    }
+                }
                 macroRows
                 if nutrition == nil {
                     Text("Open X on Track on your phone to sync today's numbers.")
