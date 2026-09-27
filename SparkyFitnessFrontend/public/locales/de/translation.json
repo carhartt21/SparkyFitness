@@ -1544,6 +1544,7 @@
     "description": "Suche nach Lebensmitteln, die du deiner Datenbank hinzufügen möchtest."
   },
   "enhancedFoodSearch": {
+    "broaderAlternative": "Ähnliche Alternative – Zubereitung und Portion prüfen",
     "database": "Datenbank",
     "meals": "Mahlzeiten",
     "online": "Online",

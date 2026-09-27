@@ -761,10 +761,15 @@ async function getFoodsWithPagination(
     const selectQueryParams = [...queryParams];
     let selectParamIndex = paramIndex;
     if (searchTerm) {
+      const exactNameParamIndex = selectParamIndex;
+      selectQueryParams.push(searchTerm);
+      selectParamIndex++;
       const exactMatchParamIndex = selectParamIndex;
       selectQueryParams.push(`%${searchTerm}%`);
       selectParamIndex++;
-      orderByClause = `${buildSqlExactMatchOrder("CONCAT(f.brand, ' ', f.name)", exactMatchParamIndex)}, ${orderByClause}`;
+      orderByClause = `CASE WHEN lower(f.name) = lower($${exactNameParamIndex}) THEN 0 ELSE 1 END,
+        ${buildSqlExactMatchOrder("CONCAT(f.brand, ' ', f.name)", exactMatchParamIndex)},
+        length(f.name), ${orderByClause}`;
     }
     query += ` ORDER BY ${orderByClause}`;
     query += ` LIMIT $${selectParamIndex} OFFSET $${selectParamIndex + 1}`;

@@ -1,5 +1,6 @@
 import { getClient } from '../../db/poolManager.js';
 import type { FoodVariant } from '../../schemas/foodSchemas.js';
+import { foodSearchTokens } from '@workspace/shared';
 
 export interface BlsFood {
   code: string;
@@ -9,6 +10,8 @@ export interface BlsFood {
 }
 
 const REQUIRED = ['ENERCC', 'PROT625', 'CHO', 'FAT'] as const;
+const normalizedGermanName =
+  "replace(replace(replace(replace(replace(lower(name_de), 'ä', 'ae'), 'ö', 'oe'), 'ü', 'ue'), 'ß', 'ss'), 'aepfel', 'apfel')";
 
 export function mapBlsFood(food: BlsFood, language = 'en') {
   const values = food.nutrients;
@@ -58,15 +61,48 @@ export async function searchBlsFoods(
   pageSize = 20,
   language = 'en'
 ) {
+  const tokens = [...new Set(foodSearchTokens(query))]
+    .map((token) => token.replace(/[^a-z0-9]/g, ''))
+    .filter(Boolean);
+  if (tokens.length === 0) {
+    return {
+      foods: [],
+      pagination: { page, pageSize, totalCount: 0, hasMore: false },
+    };
+  }
   const client = await getClient(userId);
-  const term = query.trim();
   const offset = (page - 1) * pageSize;
-  const like = `%${term.replace(/[\\%_]/g, '\\$&')}%`;
-  const prefix = `${term.replace(/[\\%_]/g, '\\$&')}%`;
+  const formWords = new Set([
+    'roh',
+    'frisch',
+    'gekocht',
+    'gegart',
+    'gedunstet',
+    'trocken',
+    'ungekocht',
+    'getrocknet',
+    'sauce',
+    'sosse',
+    'frito',
+    'saft',
+    'pulver',
+  ]);
+  const identity = tokens.filter((token) => !formWords.has(token));
+  const identityTokens = identity.length > 0 ? identity : tokens;
+  const ingredientName = identityTokens.length === 1 ? identityTokens[0] : null;
+  // Terms are reduced to ASCII letters/digits above; the SQL still receives
+  // the tsquery as a parameter, never as interpolated user input.
+  const identityQuery = identityTokens.map((token) => `${token}:*`).join(' | ');
+  const allQuery = tokens.map((token) => `${token}:*`).join(' & ');
+  const exact = tokens.join(' ');
   const nameColumn = language.toLowerCase().startsWith('de')
     ? 'name_de'
     : 'name_en';
-  const eligible = REQUIRED.map((_, index) => `nutrients ? $${index + 4}`).join(
+  const rankName =
+    nameColumn === 'name_de' ? normalizedGermanName : 'lower(name_en)';
+  const rawWord = nameColumn === 'name_de' ? 'roh' : 'raw';
+  const searchable = `to_tsvector('german', ${normalizedGermanName}) || to_tsvector('english', lower(name_en))`;
+  const eligible = REQUIRED.map((_, index) => `nutrients ? $${index + 5}`).join(
     ' AND '
   );
   try {
@@ -74,14 +110,58 @@ export async function searchBlsFoods(
       `SELECT code, name_de, name_en, nutrients,
               count(*) OVER ()::integer AS total_count
        FROM public.bls4_foods
-       WHERE (code ILIKE $1 OR name_de ILIKE $1 OR name_en ILIKE $1)
+       WHERE (${searchable}) @@ to_tsquery('german', $1)
          AND ${eligible}
-       ORDER BY CASE WHEN code ILIKE $2 THEN 0 WHEN ${nameColumn} ILIKE $2 THEN 1 ELSE 2 END,
-                ${nameColumn}, code
-       LIMIT $3 OFFSET $8`,
-      [like, prefix, pageSize, ...REQUIRED, offset]
+       ORDER BY
+         CASE WHEN ${rankName} = $3 THEN 0 ELSE 1 END,
+         CASE WHEN $10::text IS NOT NULL AND (
+           ${rankName} = $10 OR
+           ${rankName} LIKE $10 || ' %' OR
+           ${rankName} LIKE $10 || ',%'
+         ) THEN 0 ELSE 1 END,
+         CASE WHEN (${searchable}) @@ to_tsquery('german', $2) THEN 0 ELSE 1 END,
+         CASE WHEN $10::text IS NOT NULL AND ${rankName} = $10 || ' ${rawWord}' THEN 0 ELSE 1 END,
+         ts_rank_cd((${searchable}), to_tsquery('german', $1)) DESC,
+         length(${nameColumn}), ${nameColumn}, code
+       LIMIT $4 OFFSET $9`,
+      [
+        identityQuery,
+        allQuery,
+        exact,
+        pageSize,
+        ...REQUIRED,
+        offset,
+        ingredientName,
+      ]
     );
-    const totalCount = rows[0]?.total_count ?? 0;
+    let emptyPageTotal = 0;
+    if (rows.length === 0) {
+      const diagnostics = await client.query(
+        `SELECT count(*)::integer AS catalogue_count,
+                count(*) FILTER (WHERE (${searchable}) @@ to_tsquery('german', $1))::integer AS matching_count,
+                count(*) FILTER (WHERE (${searchable}) @@ to_tsquery('german', $1) AND ${eligible})::integer AS eligible_count
+         FROM public.bls4_foods`,
+        [identityQuery, null, null, null, ...REQUIRED]
+      );
+      const state = diagnostics.rows[0] as {
+        catalogue_count: number;
+        matching_count: number;
+        eligible_count: number;
+      };
+      emptyPageTotal = state.eligible_count;
+      if (state.catalogue_count === 0) {
+        throw Object.assign(new Error('BLS catalogue not initialized'), {
+          status: 503,
+        });
+      }
+      if (state.matching_count > 0 && state.eligible_count === 0) {
+        throw Object.assign(
+          new Error('Matching BLS foods have incomplete core nutrients'),
+          { status: 422 }
+        );
+      }
+    }
+    const totalCount = rows[0]?.total_count ?? emptyPageTotal;
     return {
       foods: rows
         .map((row: BlsFood) => mapBlsFood(row, language))

@@ -1,5 +1,9 @@
 import { vi, afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { getFoodById, searchFoods } from '../models/food.js';
+import {
+  getFoodById,
+  getFoodsWithPagination,
+  searchFoods,
+} from '../models/food.js';
 import { getRecentFoods, getTopFoods } from '../models/foodMisc.js';
 import { getClient } from '../db/poolManager.js';
 
@@ -36,6 +40,16 @@ describe('preferred default variant queries', () => {
     expect(queryStr).not.toContain(
       'LEFT JOIN food_variants fv ON f.id = fv.food_id AND fv.is_default = TRUE'
     );
+  });
+
+  it('ranks exact saved-food names before pagination', async () => {
+    await getFoodsWithPagination('tomate', 'all', userId, 20, 0, 'name:asc');
+    const [sql, params] = mockClient.query.mock.calls[0];
+    expect(sql).toContain('CASE WHEN lower(f.name) = lower(');
+    expect(sql.indexOf('CASE WHEN lower(f.name)')).toBeLessThan(
+      sql.lastIndexOf('LIMIT $')
+    );
+    expect(params).toContain('tomate');
   });
 
   it('getFoodById also uses the preferred default lateral join', async () => {

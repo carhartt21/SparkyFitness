@@ -42,6 +42,48 @@ describe('openFoodFactsService', () => {
   });
 
   describe('searchOpenFoodFacts', () => {
+    it('ranks a raw tomato ahead of upstream celeriac and tomato sauce', async () => {
+      const hit = (code: string, product_name: string) => ({
+        code,
+        product_name,
+        nutriments: { 'energy-kcal_100g': 20 },
+      });
+      fetchMock
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              hits: [
+                hit('celeriac', 'Sellerieknolle, roh'),
+                hit('sauce', 'Tomatensauce'),
+                hit('tomato', 'Tomate, roh'),
+              ],
+              page: 1,
+              page_size: 100,
+              count: 3,
+            }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: () => Promise.resolve({ products: [] }),
+        });
+
+      const result = await searchOpenFoodFacts(
+        'tomate roh',
+        1,
+        'de',
+        undefined,
+        undefined,
+        100
+      );
+
+      expect(result.products.map((product) => product.code)).toEqual([
+        'tomato',
+        'sauce',
+      ]);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
     it('uses Search-a-licious relevance search with the requested language and pagination', async () => {
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       fetch.mockResolvedValue({
@@ -77,7 +119,7 @@ describe('openFoodFactsService', () => {
       const request = fetch.mock.calls[0][1];
       expect(JSON.parse(request.body)).toEqual(
         expect.objectContaining({
-          q: 'whole milk ((nutriments.energy-kcal_100g:* OR nutriments.energy-kj_100g:* OR nutriments.energy_100g:* OR nutriments.proteins_100g:* OR nutriments.carbohydrates_100g:* OR nutriments.fat_100g:*) OR (serving_quantity:[0.000001 TO *] AND (nutriments.energy-kcal_serving:* OR nutriments.energy-kj_serving:* OR nutriments.energy_serving:* OR nutriments.proteins_serving:* OR nutriments.carbohydrates_serving:* OR nutriments.fat_serving:*)))',
+          q: 'whole milk',
           page: 2,
           page_size: 12,
           boost_phrase: true,
@@ -90,6 +132,24 @@ describe('openFoodFactsService', () => {
         totalCount: 25,
         hasMore: true,
       });
+    });
+
+    it('uses identity-first plain text for reverse-order preparation searches', async () => {
+      fetchMock.mockResolvedValue({
+        ok: true,
+        json: () =>
+          Promise.resolve({ hits: [], page: 1, page_size: 100, count: 0 }),
+      });
+      await searchOpenFoodFacts(
+        'gekochter Reis',
+        1,
+        'de',
+        undefined,
+        undefined,
+        100
+      );
+      const body = JSON.parse(String(fetchMock.mock.calls[0][1]?.body));
+      expect(body.q).toBe('reis gekocht');
     });
 
     it('excludes products without mapped calories or core macros after hydration', async () => {
@@ -501,10 +561,7 @@ describe('openFoodFactsService', () => {
 
       const result = await searchOpenFoodFacts('ham');
 
-      expect(result.products.map((product) => product.code)).toEqual([
-        'ham',
-        'shampoo',
-      ]);
+      expect(result.products.map((product) => product.code)).toEqual(['ham']);
     });
 
     it('hydrates search hits with current serving-scaled nutrition data', async () => {
@@ -860,7 +917,7 @@ describe('openFoodFactsService', () => {
       expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
-    it('preserves duplicate ranked hits while reusing their hydrated product', async () => {
+    it('deduplicates the same barcode while reusing its hydrated product', async () => {
       fetchMock
         .mockResolvedValueOnce({
           ok: true,
@@ -869,12 +926,12 @@ describe('openFoodFactsService', () => {
               hits: [
                 {
                   code: '123',
-                  product_name: 'First Indexed Record',
+                  product_name: 'First Indexed Product',
                   nutriments: EXPLICIT_ZERO_CORE_NUTRITION,
                 },
                 {
                   code: '123',
-                  product_name: 'Second Indexed Record',
+                  product_name: 'Second Indexed Product',
                   nutriments: EXPLICIT_ZERO_CORE_NUTRITION,
                 },
               ],
@@ -899,9 +956,8 @@ describe('openFoodFactsService', () => {
 
       const result = await searchOpenFoodFacts('product');
 
-      expect(result.products).toHaveLength(2);
+      expect(result.products).toHaveLength(1);
       expect(result.products.map((product) => product.product_name)).toEqual([
-        'Current Product',
         'Current Product',
       ]);
     });

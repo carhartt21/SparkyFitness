@@ -8,6 +8,8 @@ import { log } from '../../config/logging.js';
 import {
   normalizeNutrientUnit,
   alcoholGramsForServing,
+  foodSearchRetrievalQuery,
+  rankFoodSearchCandidates,
 } from '@workspace/shared';
 import package$0 from '../../package.json' with { type: 'json' };
 import {
@@ -54,10 +56,7 @@ async function fetchWithTimeout(
     });
   } catch (error) {
     if (isTimeoutError(error)) {
-      log(
-        'warn',
-        `OpenFoodFacts request timed out after ${timeoutMs}ms: ${url}`
-      );
+      log('warn', `OpenFoodFacts request timed out after ${timeoutMs}ms`);
       throw Object.assign(new Error('OpenFoodFacts request timed out'), {
         status: 504,
       });
@@ -98,13 +97,7 @@ const OFF_CORE_NUTRIENT_SERVING_KEYS = [
   'carbohydrates_serving',
   'fat_serving',
 ] as const;
-const OFF_CORE_NUTRIENT_100G_SEARCH_CLAUSE = `(${OFF_CORE_NUTRIENT_100G_KEYS.map(
-  (key) => `nutriments.${key}:*`
-).join(' OR ')})`;
-const OFF_CORE_NUTRIENT_SERVING_SEARCH_CLAUSE = `(${OFF_CORE_NUTRIENT_SERVING_KEYS.map(
-  (key) => `nutriments.${key}:*`
-).join(' OR ')})`;
-const OFF_CORE_NUTRITION_SEARCH_CLAUSE = `(${OFF_CORE_NUTRIENT_100G_SEARCH_CLAUSE} OR (serving_quantity:[0.000001 TO *] AND ${OFF_CORE_NUTRIENT_SERVING_SEARCH_CLAUSE}))`;
+
 const LEGACY_SEARCH_BATCH_SIZE = 100;
 const LEGACY_SEARCH_MAX_BATCHES = 10;
 
@@ -201,58 +194,28 @@ function isProductOpenerSearchResponse(
   );
 }
 
-/** Normalizes names and brands for accent-insensitive token matching. */
-function normalizeSearchText(value: string): string {
-  return value
-    .normalize('NFKD')
-    .replace(/\p{Diacritic}/gu, '')
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, ' ')
-    .trim();
-}
-
 /** Stably promotes hits that cover the complete query phrase and tokens. */
 function rankSearchHits(
   hits: SearchALiciousHit[],
   query: string,
   language: string
 ): SearchALiciousHit[] {
-  const normalizedQuery = normalizeSearchText(query);
-  const phraseTokens = normalizedQuery.split(' ').filter(Boolean);
-  const queryTokens = [...new Set(phraseTokens)];
-  if (!normalizedQuery || queryTokens.length === 0) return hits;
-
-  return hits
-    .map((hit, index) => {
-      const brand = Array.isArray(hit.brands)
-        ? hit.brands.join(' ')
-        : hit.brands || '';
-      const localizedName = hit[`product_name_${language}`];
-      const searchableText = normalizeSearchText(
-        [
-          brand,
-          typeof localizedName === 'string' ? localizedName : '',
-          hit.product_name || '',
-          hit.product_name_en || '',
-        ].join(' ')
-      );
-      const searchableTokens = searchableText.split(' ').filter(Boolean);
-      const candidateTokens = new Set(searchableTokens);
-      const tokenCoverage =
-        queryTokens.filter((token) => candidateTokens.has(token)).length /
-        queryTokens.length;
-      const phraseBoost = searchableTokens.some((_, start) =>
-        phraseTokens.every(
-          (token, offset) => searchableTokens[start + offset] === token
-        )
-      )
-        ? 2
-        : 0;
-
-      return { hit, index, score: phraseBoost + tokenCoverage };
-    })
-    .sort((left, right) => right.score - left.score || left.index - right.index)
-    .map(({ hit }) => hit);
+  return rankFoodSearchCandidates(
+    hits.map((hit, index) => ({
+      name: String(
+        hit[`product_name_${language}`] ||
+          hit.product_name ||
+          hit.product_name_en ||
+          ''
+      ),
+      brand: Array.isArray(hit.brands) ? hit.brands.join(' ') : hit.brands,
+      barcode: typeof hit.code === 'string' ? hit.code : undefined,
+      source: 'openfoodfacts',
+      id: typeof hit.code === 'string' ? hit.code : String(index),
+      hit,
+    })),
+    query
+  ).map(({ item }) => item.hit);
 }
 
 /**
@@ -316,7 +279,7 @@ async function fetchOpenFoodFacts(
     const operation = (): Promise<Response> => {
       const remainingTimeoutMs = requestDeadline - Date.now();
       if (remainingTimeoutMs <= 0) {
-        log('warn', `OpenFoodFacts request deadline exhausted: ${url}`);
+        log('warn', 'OpenFoodFacts request deadline exhausted');
         return Promise.reject(
           Object.assign(new Error('OpenFoodFacts request timed out'), {
             status: 504,
@@ -356,7 +319,7 @@ async function fetchOpenFoodFacts(
     }
     const remainingTimeoutMs = requestDeadline - Date.now();
     if (remainingTimeoutMs <= 0) {
-      log('warn', `OpenFoodFacts retry deadline exhausted: ${url}`);
+      log('warn', 'OpenFoodFacts retry deadline exhausted');
       throw Object.assign(new Error('OpenFoodFacts request timed out'), {
         status: 504,
       });
@@ -625,7 +588,10 @@ async function searchOpenFoodFacts(
         // Search-a-licious treats adjacent free-text and field clauses as
         // required terms. Grouping the free text itself (or inserting AND
         // after a multi-word phrase) currently yields an empty result set.
-        q: `${query} ${OFF_CORE_NUTRITION_SEARCH_CLAUSE}`,
+        // Search-a-licious understands operators. Send only normalized plain
+        // words so user text cannot become query syntax; filter nutrition after
+        // retrieval, before returning mapped foods.
+        q: foodSearchRetrievalQuery(query),
         page,
         page_size: pageSize,
         boost_phrase: true,
@@ -655,11 +621,7 @@ async function searchOpenFoodFacts(
       pagination: getSearchALiciousPagination(data, page, pageSize),
     };
   } catch (error) {
-    log(
-      'error',
-      `Error searching OpenFoodFacts with query "${query}" in foodService:`,
-      error
-    );
+    log('error', 'OpenFoodFacts search failed:', error);
     throw error;
   }
 }
@@ -697,10 +659,7 @@ async function searchOpenFoodFactsByBarcodeFields(
     });
     if (!response.ok) {
       if (response.status === 404) {
-        log(
-          'debug',
-          `OpenFoodFacts product not found for barcode "${barcode}"`
-        );
+        log('debug', 'OpenFoodFacts product not found for barcode lookup');
         return { status: 0, status_verbose: 'product not found' };
       }
       const errorText = await response.text();
@@ -741,11 +700,7 @@ async function searchOpenFoodFactsByBarcodeFields(
 
     return data;
   } catch (error) {
-    log(
-      'error',
-      `Error searching OpenFoodFacts with barcode "${barcode}" and fields "${fields.join(',')}" in foodService:`,
-      error
-    );
+    log('error', 'OpenFoodFacts barcode lookup failed:', error);
     throw error;
   }
 }

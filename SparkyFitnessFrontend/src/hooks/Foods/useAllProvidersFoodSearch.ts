@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import { searchFoodsV2 } from '@/api/Foods/foodService';
 import { searchNutritionixFoods } from '@/api/Foods/nutrionix';
@@ -72,7 +73,7 @@ export interface ProviderFoodSearchResult {
 
 // Online search starts at 3 characters (matches the single-provider path) to
 // limit provider calls, debounced by 600ms.
-const MIN_QUERY_LENGTH = 3;
+const MIN_QUERY_LENGTH = 2;
 const DEBOUNCE_MS = 600;
 const STALE_TIME = 1000 * 60 * 5; // 5 minutes
 
@@ -93,7 +94,8 @@ const allProvidersFoodSearchKey = (
   query: string,
   providerId?: string,
   autoScale?: boolean,
-  itemDisplayLimit?: number
+  itemDisplayLimit?: number,
+  locale?: string
 ) =>
   [
     'v2',
@@ -104,6 +106,8 @@ const allProvidersFoodSearchKey = (
     providerId,
     autoScale,
     itemDisplayLimit,
+    locale,
+    'relevance-v2',
   ] as const;
 
 // Providers whose single-provider search caps results at the food display
@@ -134,7 +138,10 @@ async function fetchProviderResults(
 
   const pageSize = PAGE_SIZE_PROVIDERS.includes(provider.provider_type)
     ? options.itemDisplayLimit
-    : undefined;
+    : provider.provider_type === 'bls4' ||
+        provider.provider_type === 'openfoodfacts'
+      ? 100
+      : undefined;
   const data = await searchFoodsV2(
     provider.provider_type,
     query,
@@ -180,6 +187,7 @@ export function useAllProvidersFoodSearch(
   // step with the aggregated results rather than a faster local debounce.
   debouncedSearch: string;
 } {
+  const { i18n } = useTranslation();
   const { enabled = true, autoScale, itemDisplayLimit } = options ?? {};
   const debouncedSearch = useDebounce(searchTerm.trim(), DEBOUNCE_MS);
   // Require both the live and the debounced term to clear the threshold. The
@@ -188,7 +196,8 @@ export function useAllProvidersFoodSearch(
   // results on screen for the debounce window.
   const isSearchActive =
     searchTerm.trim().length >= MIN_QUERY_LENGTH &&
-    debouncedSearch.length >= MIN_QUERY_LENGTH;
+    debouncedSearch.length >= MIN_QUERY_LENGTH &&
+    searchTerm.trim() === debouncedSearch;
 
   // Project the raw query results into ProviderFoodSearchResult inside
   // useQueries' `combine`, rather than a downstream useMemo over the raw queries
@@ -227,7 +236,8 @@ export function useAllProvidersFoodSearch(
         debouncedSearch,
         provider.id,
         autoScale,
-        itemDisplayLimit
+        itemDisplayLimit,
+        i18n.resolvedLanguage ?? i18n.language
       ),
       queryFn: () =>
         fetchProviderResults(provider, debouncedSearch, {

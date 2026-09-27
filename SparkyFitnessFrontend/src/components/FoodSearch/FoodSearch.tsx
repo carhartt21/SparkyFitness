@@ -74,7 +74,12 @@ import {
   useAllProvidersFoodSearch,
   type ExternalResultWrapper,
 } from '@/hooks/Foods/useAllProvidersFoodSearch.ts';
-import { interleaveTopMatches } from '@/utils/topMatches.ts';
+import { rankTopMatches } from '@/utils/topMatches.ts';
+import type { TopMatch } from '@/utils/topMatches.ts';
+import {
+  rankFoodSearchCandidates,
+  type FoodSearchCandidate,
+} from '@workspace/shared';
 import { makeProviderColorResolver } from '@/utils/providerColor.ts';
 import { DataProvider } from '@/types/settings.ts';
 import {
@@ -533,10 +538,9 @@ const EnhancedFoodSearch = ({
     setExpandedProviders(new Set());
   }, [allProvidersDebouncedSearch]);
 
-  // Top Matches: interleave each provider's top results (round-robin by rank).
   const topMatches = useMemo(
-    () => interleaveTopMatches(providerResults),
-    [providerResults]
+    () => rankTopMatches(providerResults, searchTerm),
+    [providerResults, searchTerm]
   );
 
   // --- Local meals: searched alongside foods, guarded against stale resolves ---
@@ -790,7 +794,7 @@ const EnhancedFoodSearch = ({
     setExternalPage(1);
     setExternalHasMore(false);
     setIsLoadingMore(false);
-    if (term.length < 3) {
+    if (term.length < 2) {
       setExternalResults([]);
       setHasOnlineSearchBeenPerformed(false);
       setIsOnlineLoading(false);
@@ -863,7 +867,7 @@ const EnhancedFoodSearch = ({
   // the trigger, so this only runs when there is genuinely more to load.
   const handleLoadMore = useCallback(async () => {
     const term = searchTerm.trim();
-    if (term.length < 3 || isLoadingMore) return;
+    if (term.length < 2 || isLoadingMore) return;
     const provider = foodDataProviders.find(
       (p) => p.id === selectedFoodDataProvider
     );
@@ -1159,6 +1163,57 @@ const EnhancedFoodSearch = ({
     showLocalFoods && !isSearchEmpty && localPending && noLocalResults;
   const showOnlineResults =
     ownershipFilter === 'all' || ownershipFilter === 'public';
+  const combinedResults =
+    showOnlineResults && isAllProviders && isAllProvidersSearchActive;
+  type RankedVisibleRow =
+    | { kind: 'food'; food: Food }
+    | { kind: 'meal'; meal: Meal }
+    | { kind: 'online'; match: TopMatch };
+  const rankedVisibleRows = useMemo(() => {
+    const candidates: Array<FoodSearchCandidate & { row: RankedVisibleRow }> = [
+      ...(showLocalFoods ? searchFoodsFavFirst : []).map((food) => ({
+        name: food.name,
+        brand: food.brand,
+        barcode: food.barcode,
+        source: 'saved-food',
+        id: food.id ?? food.name,
+        favorite: favoriteKeys.has(landingKey('food', food.id ?? food.name)),
+        row: { kind: 'food' as const, food },
+      })),
+      ...(showMeals ? filteredSearchMealsFavFirst : []).map((meal) => ({
+        name: meal.name,
+        source: 'saved-meal',
+        id: meal.id ?? meal.name,
+        favorite: favoriteKeys.has(landingKey('meal', meal.id ?? meal.name)),
+        row: { kind: 'meal' as const, meal },
+      })),
+      ...topMatches.map((match) => ({
+        name: match.result.food.name,
+        brand: match.result.food.brand,
+        barcode: match.result.food.barcode,
+        source: match.result.provider_type,
+        id:
+          match.result.food.provider_external_id ??
+          match.result.food.id ??
+          match.result.food.name,
+        row: { kind: 'online' as const, match },
+      })),
+    ];
+    return rankFoodSearchCandidates(candidates, searchTerm)
+      .slice(0, 20)
+      .map(({ item, broaderAlternative }) => ({
+        ...item.row,
+        broaderAlternative,
+      }));
+  }, [
+    showLocalFoods,
+    showMeals,
+    searchFoodsFavFirst,
+    filteredSearchMealsFavFirst,
+    topMatches,
+    searchTerm,
+    favoriteKeys,
+  ]);
 
   const renderExternalCard = (
     result: ExternalResultWrapper,
@@ -1170,6 +1225,7 @@ const EnhancedFoodSearch = ({
       // detailed nutrients with the right credentials in All Providers mode
       // (where the shared searchProviderId isn't set).
       providerId?: string;
+      relevanceNote?: string;
     }
   ) => (
     <FoodResultCard
@@ -1178,6 +1234,7 @@ const EnhancedFoodSearch = ({
       isOnline={true}
       providerLabel={opts?.providerLabel ?? result.provider_type.toUpperCase()}
       providerBadgeColor={opts?.badgeColor}
+      relevanceNote={opts?.relevanceNote}
       nutrientConfig={nutrientConfig}
       onEditClick={() => {
         if (result.provider_type === 'nutritionix') {
@@ -1403,66 +1460,70 @@ const EnhancedFoodSearch = ({
         {!isSearchEmpty && (
           <>
             {/* Local foods */}
-            {showLocalFoods && searchFoodsFavFirst.length > 0 && (
-              <>
-                <SectionHeader>
-                  {t('enhancedFoodSearch.yourFoods', 'Your Foods')}
-                </SectionHeader>
-                {searchFoodsFavFirst.map((food: Food) => (
-                  <FoodResultCard
-                    key={food.id}
-                    item={food}
-                    isFavorite={favoriteKeys.has(landingKey('food', food.id))}
-                    nutrientConfig={nutrientConfig}
-                    onCardClick={() => onFoodSelect(food, 'food')}
-                  />
-                ))}
-                {hasMoreLocalFoods && (
-                  <div className="flex justify-center py-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      disabled={isLoadingMoreLocalFoods}
-                      onClick={() => fetchMoreLocalFoods()}
-                    >
-                      {isLoadingMoreLocalFoods ? (
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                      ) : (
-                        t('enhancedFoodSearch.loadMore', 'Load more')
-                      )}
-                    </Button>
-                  </div>
-                )}
-              </>
-            )}
+            {!combinedResults &&
+              showLocalFoods &&
+              searchFoodsFavFirst.length > 0 && (
+                <>
+                  <SectionHeader>
+                    {t('enhancedFoodSearch.yourFoods', 'Your Foods')}
+                  </SectionHeader>
+                  {searchFoodsFavFirst.map((food: Food) => (
+                    <FoodResultCard
+                      key={food.id}
+                      item={food}
+                      isFavorite={favoriteKeys.has(landingKey('food', food.id))}
+                      nutrientConfig={nutrientConfig}
+                      onCardClick={() => onFoodSelect(food, 'food')}
+                    />
+                  ))}
+                  {hasMoreLocalFoods && (
+                    <div className="flex justify-center py-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isLoadingMoreLocalFoods}
+                        onClick={() => fetchMoreLocalFoods()}
+                      >
+                        {isLoadingMoreLocalFoods ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          t('enhancedFoodSearch.loadMore', 'Load more')
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
 
             {/* Local meals */}
-            {showMeals && filteredSearchMealsFavFirst.length > 0 && (
-              <>
-                <SectionHeader>
-                  {t('enhancedFoodSearch.yourMeals', 'Your Meals')}
-                </SectionHeader>
-                {filteredSearchMealsFavFirst.map((meal) => (
-                  <FoodResultCard
-                    key={`meal-${meal.id}`}
-                    item={meal}
-                    isMeal={true}
-                    isFavorite={favoriteKeys.has(landingKey('meal', meal.id))}
-                    nutrientConfig={nutrientConfig}
-                    onCardClick={() => onFoodSelect(meal, 'meal')}
-                  />
-                ))}
-              </>
-            )}
+            {!combinedResults &&
+              showMeals &&
+              filteredSearchMealsFavFirst.length > 0 && (
+                <>
+                  <SectionHeader>
+                    {t('enhancedFoodSearch.yourMeals', 'Your Meals')}
+                  </SectionHeader>
+                  {filteredSearchMealsFavFirst.map((meal) => (
+                    <FoodResultCard
+                      key={`meal-${meal.id}`}
+                      item={meal}
+                      isMeal={true}
+                      isFavorite={favoriteKeys.has(landingKey('meal', meal.id))}
+                      nutrientConfig={nutrientConfig}
+                      onCardClick={() => onFoodSelect(meal, 'meal')}
+                    />
+                  ))}
+                </>
+              )}
 
             {/* Local loading / empty */}
-            {showLocalSpinner && (
+            {!combinedResults && showLocalSpinner && (
               <div className="text-center py-8 text-gray-500">
                 <Loader2 className="w-8 h-8 animate-spin mx-auto mb-2" />
                 {t('enhancedFoodSearch.searchingFoods', 'Searching foods...')}
               </div>
             )}
-            {showLocalEmpty && (
+            {!combinedResults && showLocalEmpty && (
               <div className="text-center py-6 text-gray-500">
                 {showMeals
                   ? t(
@@ -1528,14 +1589,59 @@ const EnhancedFoodSearch = ({
                       )}
                     </span>
                   </SectionHeader>
-                  {topMatches.length > 0
-                    ? topMatches.map((match) =>
-                        renderExternalCard(match.result, {
-                          keyPrefix: `top-${match.providerId}`,
-                          providerLabel: match.providerName,
-                          badgeColor: getProviderColor(match.providerId),
-                          providerId: match.providerId,
-                        })
+                  {rankedVisibleRows.length > 0
+                    ? rankedVisibleRows.map((row) =>
+                        row.kind === 'online' ? (
+                          renderExternalCard(row.match.result, {
+                            keyPrefix: `top-${row.match.providerId}`,
+                            providerLabel: row.match.providerName,
+                            badgeColor: getProviderColor(row.match.providerId),
+                            providerId: row.match.providerId,
+                            relevanceNote: row.broaderAlternative
+                              ? t(
+                                  'enhancedFoodSearch.broaderAlternative',
+                                  'Broader alternative — check preparation and portion'
+                                )
+                              : undefined,
+                          })
+                        ) : row.kind === 'food' ? (
+                          <FoodResultCard
+                            key={`ranked-food-${row.food.id}`}
+                            item={row.food}
+                            relevanceNote={
+                              row.broaderAlternative
+                                ? t(
+                                    'enhancedFoodSearch.broaderAlternative',
+                                    'Broader alternative — check preparation and portion'
+                                  )
+                                : undefined
+                            }
+                            isFavorite={favoriteKeys.has(
+                              landingKey('food', row.food.id ?? row.food.name)
+                            )}
+                            nutrientConfig={nutrientConfig}
+                            onCardClick={() => onFoodSelect(row.food, 'food')}
+                          />
+                        ) : (
+                          <FoodResultCard
+                            key={`ranked-meal-${row.meal.id}`}
+                            item={row.meal}
+                            relevanceNote={
+                              row.broaderAlternative
+                                ? t(
+                                    'enhancedFoodSearch.broaderAlternative',
+                                    'Broader alternative — check preparation and portion'
+                                  )
+                                : undefined
+                            }
+                            isMeal={true}
+                            isFavorite={favoriteKeys.has(
+                              landingKey('meal', row.meal.id ?? row.meal.name)
+                            )}
+                            nutrientConfig={nutrientConfig}
+                            onCardClick={() => onFoodSelect(row.meal, 'meal')}
+                          />
+                        )
                       )
                     : !anyProviderLoading && (
                         <div className="text-center py-4 text-gray-500 text-sm">
