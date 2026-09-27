@@ -50,7 +50,9 @@ describe('food model search query builder', () => {
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $1");
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $2");
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $3");
-      expect(sql).toContain('CASE WHEN lower(f.name) = lower($4) THEN 0 ELSE 1 END');
+      expect(sql).toContain(
+        'CASE WHEN lower(f.name) = lower($4) THEN 0 ELSE 1 END'
+      );
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $5::text");
       expect(sql).toContain('LIMIT $6 OFFSET $7');
     });
