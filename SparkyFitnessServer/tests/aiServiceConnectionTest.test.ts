@@ -189,7 +189,7 @@ describe('chatService.testAiServiceConnection', () => {
     vi.clearAllMocks();
   });
 
-  it('returns { ok: true } and passes timeoutMs: 15000 on a successful completion', async () => {
+  it('allows a hosted provider 45 seconds for a test completion', async () => {
     mockDispatch.mockResolvedValue(okDispatch);
 
     const result = await chatService.testAiServiceConnection(
@@ -203,6 +203,25 @@ describe('chatService.testAiServiceConnection', () => {
     expect(mockDispatch.mock.calls[0][0]).toMatchObject({
       provider: { service_type: 'openai', api_key: 'sk-test' },
       temperature: 0,
+      timeoutMs: 45000,
+    });
+  });
+
+  it('keeps the shorter timeout for a custom URL', async () => {
+    mockDispatch.mockResolvedValue(okDispatch);
+
+    const result = await chatService.testAiServiceConnection(
+      {
+        service_type: 'openai_compatible',
+        custom_url: 'https://example.com/v1',
+        model_name: 'local-model',
+      },
+      USER_ID,
+      false
+    );
+
+    expect(result).toEqual({ ok: true });
+    expect(mockDispatch.mock.calls[0][0]).toMatchObject({
       timeoutMs: 15000,
     });
   });

@@ -1218,6 +1218,24 @@ describe('dispatchAiRequest — MIME normalization', () => {
 });
 
 describe('dispatchAiRequest — model defaulting', () => {
+  it('uses the current Gemini default for text and vision when no model is set', async () => {
+    const provider = makeProvider({
+      service_type: 'google',
+      model_name: undefined,
+    });
+    const textFetch = mockFetch(googleBody(JSON.stringify(SAMPLE)));
+    await dispatchAiRequest(baseRequest({ provider }));
+    expect(captured(textFetch).url).toContain(
+      '/gemini-3.5-flash-lite:generateContent'
+    );
+
+    const visionFetch = mockFetch(googleBody(JSON.stringify(SAMPLE)));
+    await dispatchAiRequest(baseRequest({ provider, images: [IMG] }));
+    expect(captured(visionFetch).url).toContain(
+      '/gemini-3.5-flash-lite:generateContent'
+    );
+  });
+
   it('uses the user-configured model_name when present', async () => {
     const m = mockFetch(openAiBody(JSON.stringify(SAMPLE)));
     await dispatchAiRequest(

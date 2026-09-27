@@ -23,6 +23,12 @@ describe('getModelOptions', () => {
     expect(options.length).toBeGreaterThan(1);
   });
 
+  it('recommends a current Gemini model for new API projects', () => {
+    const options = getModelOptions('google');
+    expect(options[0]).toBe('gemini-3.5-flash-lite');
+    expect(options).not.toContain('gemini-2.5-flash');
+  });
+
   it('returns an empty list for an unknown service type', () => {
     expect(getModelOptions('totally-unknown')).toEqual([]);
   });

@@ -2041,11 +2041,11 @@
           "notFound": "The model or API endpoint was not found (HTTP 404). Check the model name and service type.",
           "modelUnavailable": "The selected model is unavailable to this API key or project. Choose a model this key can use, or grant it model access.",
           "quota": "The API account has no available credits or has reached a spend or usage limit (HTTP 429). Check billing and limits before retrying.",
-          "rateLimit": "The provider is rate limiting requests (HTTP 429). Wait and try again.",
+          "rateLimit": "The provider returned HTTP 429. Check its quota and rate limits, then retry.",
           "badRequest": "The provider rejected the request (HTTP 400). Check the selected model and its supported options.",
           "serverError": "The provider returned a server error. Try again later.",
           "unreachable": "The server could not reach the AI provider. Check the server's internet access and DNS.",
-          "timeout": "The AI service did not respond in time. Check the URL and that the server is reachable.",
+          "timeout": "The AI service took too long to respond. Try again or choose a faster model; for a custom URL, check that its server is reachable.",
           "unsupported_provider": "This service type is not supported.",
           "unknown": "The connection test failed. Please check the configuration and try again."
         }
