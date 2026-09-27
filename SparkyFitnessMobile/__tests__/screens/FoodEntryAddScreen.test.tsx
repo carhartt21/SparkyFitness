@@ -1286,7 +1286,7 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.getByText('1 portion (150 g) (180 cal)')).toBeTruthy();
     expect(screen.getByText('100 g (120 cal)')).toBeTruthy();
     expect(screen.getByLabelText(/^Change unit:/)).toBeTruthy();
-    expect(screen.getByText('Choose a portion')).toBeTruthy();
+    expect(screen.getByText('Available portions')).toBeTruthy();
     expect(screen.getByText('Log to')).toBeTruthy();
     fireEvent.press(
       screen.getByLabelText('Choose 1 portion (150 g) (180 cal)')
@@ -1299,6 +1299,59 @@ describe('FoodEntryAddScreen', () => {
           variant_id: 'variant-portion',
           quantity: 1,
           unit: 'portion',
+        }),
+      })
+    );
+  });
+
+  it('offers gram entry alongside a named serving and logs the chosen gram amount', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: [
+        {
+          id: 'variant-piece',
+          food_id: 'food-1',
+          serving_size: 1,
+          serving_unit: 'piece',
+          calories: 100,
+          protein: 15,
+          carbs: 6,
+          fat: 0,
+        },
+        {
+          id: 'variant-grams',
+          food_id: 'food-1',
+          serving_size: 15,
+          serving_unit: 'g',
+          serving_description: '15 g',
+          calories: 100,
+          protein: 15,
+          carbs: 6,
+          fat: 0,
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    } as any);
+
+    const screen = renderScreen({
+      item: {
+        ...baseLocalItem,
+        servingUnit: 'piece',
+        variantId: 'variant-piece',
+      },
+      date: '2026-04-23',
+    });
+    fireEvent.press(screen.getByLabelText('Enter amount in grams'));
+    expect(screen.getByTestId('quantity-input').props.value).toBe('15');
+    expect(screen.getByLabelText('Change unit: g')).toBeTruthy();
+    fireEvent.changeText(screen.getByTestId('quantity-input'), '30');
+    fireEvent.press(screen.getByText('Add Food'));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          variant_id: 'variant-grams',
+          quantity: 30,
+          unit: 'g',
         }),
       })
     );

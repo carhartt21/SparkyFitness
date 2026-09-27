@@ -110,6 +110,7 @@ import {
   buildLocalVariantOptions,
   convertEquivalentVariantQuantity,
   foodInfoToUnitVariant,
+  localVariantToUnitVariant,
   formatQuantityUnitLabel,
   formatServingSizeDisplay,
   formatVariantLabel,
@@ -372,23 +373,57 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const { createVariant, isPending: isCreateVariantPending } =
     useCreateFoodVariant();
 
-  const localVariantOptions = useMemo(
-    () => buildLocalVariantOptions(variants),
-    [variants]
-  );
+  const localVariantOptions = useMemo(() => {
+    const grouped = buildLocalVariantOptions(variants);
+    const grams = (variants ?? [])
+      .filter(
+        (variant) =>
+          variant.serving_unit.trim().toLowerCase() === 'g' &&
+          !grouped.some((option) => option.id === variant.id)
+      )
+      .map((variant) => {
+        const values = unitVariantToDisplayValues(
+          localVariantToUnitVariant(variant)
+        );
+        return {
+          ...values,
+          id: variant.id,
+          label: formatVariantLabel(values),
+          quantityUnitLabel: formatQuantityUnitLabel(values),
+          perServingLabel: formatVariantServingLabel(values),
+        };
+      });
+    return [...grams, ...grouped];
+  }, [variants]);
   const localUnitVariants = useMemo(
     () => buildLocalUnitVariants(variants),
     [variants]
   );
   const resolvedLocalPickerVariantId = useMemo(
     () =>
-      isLocalFood && !selectedVariantOverride
+      isLocalFood &&
+      !selectedVariantOverride &&
+      !localVariantOptions.some(
+        (option) =>
+          option.id === selectedVariantId && option.servingUnit === 'g'
+      )
         ? resolveLocalPickerVariantId(variants, selectedVariantId)
         : undefined,
-    [isLocalFood, selectedVariantId, selectedVariantOverride, variants]
+    [
+      isLocalFood,
+      localVariantOptions,
+      selectedVariantId,
+      selectedVariantOverride,
+      variants,
+    ]
   );
   const externalVariantOptions = useMemo(
-    () => buildExternalVariantOptions(activeItem.externalVariants),
+    () =>
+      buildExternalVariantOptions(activeItem.externalVariants).sort(
+        (a, b) =>
+          Number(b.servingUnit.toLowerCase() === 'g') -
+          Number(a.servingUnit.toLowerCase() === 'g')
+      ),
     [activeItem.externalVariants]
   );
   const externalUnitVariants = useMemo(
@@ -615,8 +650,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   }, [adjustedValues, activeVariant]);
 
   const quantityUnitLabel =
-    variantPickerOptions.find((option) => option.id === selectedVariantId)
-      ?.quantityUnitLabel ?? formatQuantityUnitLabel(displayValues);
+    displayValues.servingUnit.toLowerCase() === 'g'
+      ? formatQuantityUnitLabel({
+          servingUnit: 'g',
+          servingDescription: undefined,
+        })
+      : (variantPickerOptions.find((option) => option.id === selectedVariantId)
+          ?.quantityUnitLabel ?? formatQuantityUnitLabel(displayValues));
+  const gramVariantId = variantPickerOptions.find(
+    (option) => option.id && option.servingUnit.toLowerCase() === 'g'
+  )?.id;
   const perServingLabel =
     variantPickerOptions.find((option) => option.id === selectedVariantId)
       ?.perServingLabel ?? formatVariantServingLabel(displayValues);
@@ -1876,6 +1919,22 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             <Text className="mb-2 text-sm font-semibold text-text-primary">
               {t('foodEntryAdd.labels.amount', { defaultValue: 'Amount' })}
             </Text>
+            {gramVariantId && selectedVariantId !== gramVariantId ? (
+              <TouchableOpacity
+                onPress={() => handleVariantChange(gramVariantId)}
+                accessibilityRole="button"
+                accessibilityLabel={t('foodEntryAdd.actions.useGrams', {
+                  defaultValue: 'Enter amount in grams',
+                })}
+                className="mb-3 min-h-11 justify-center self-start rounded-xl border border-border-subtle bg-surface px-4"
+              >
+                <Text className="font-medium text-text-link">
+                  {t('foodEntryAdd.actions.useGrams', {
+                    defaultValue: 'Enter amount in grams',
+                  })}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
             <View className="flex-row items-center gap-3">
               <StepperInput
                 value={quantityText}
@@ -1997,7 +2056,89 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   </Text>
                 )}
             </View>
+            {!gramVariantId && displayValues.servingUnit === 'serving' ? (
+              <Text className="mt-2 text-sm text-text-secondary">
+                {t('foodEntryAdd.labels.unknownGramSize', {
+                  defaultValue:
+                    'A gram weight was not provided for this serving.',
+                })}
+              </Text>
+            ) : null}
           </View>
+
+          {variantPickerOptions.length > 1 ? (
+            <View className="border-t border-border-subtle pt-4">
+              <Text className="mb-2 text-lg font-semibold text-text-primary">
+                {t('foodEntryAdd.labels.quickPortions', {
+                  defaultValue: 'Available portions',
+                })}
+              </Text>
+              {variantPickerOptions.map((variant, index) => {
+                const selected =
+                  variant.id ===
+                  (selectedVariantId ?? variantPickerOptions[0]?.id);
+                return (
+                  <TouchableOpacity
+                    key={variant.id ?? `${variant.label}-${index}`}
+                    onPress={() => handleVariantChange(variant.id ?? '')}
+                    disabled={isActionPending || !variant.id}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityState={{
+                      selected,
+                      disabled: isActionPending || !variant.id,
+                    }}
+                    accessibilityLabel={t(
+                      'foodEntryAdd.actions.choosePortion',
+                      {
+                        defaultValue: 'Choose {{portion}}',
+                        portion: variant.label,
+                      }
+                    )}
+                    accessibilityHint={t(
+                      'foodEntryAdd.actions.choosePortionHint',
+                      {
+                        defaultValue:
+                          'Selects the portion. Use Add Food to log it.',
+                      }
+                    )}
+                    className="min-h-16 flex-row items-center gap-3 border-t border-border-subtle py-4"
+                  >
+                    <View className="flex-1">
+                      <Text className="text-lg font-semibold text-text-primary">
+                        {variant.perServingLabel}
+                      </Text>
+                      <Text className="text-sm text-text-secondary">
+                        {t('foodEntryAdd.labels.quickPortionNutrition', {
+                          defaultValue:
+                            '{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein',
+                          calories: formatLocalizedNumber(variant.calories, {
+                            maximumFractionDigits: 0,
+                          }),
+                          fat: formatLocalizedNumber(variant.fat, {
+                            maximumFractionDigits: 1,
+                          }),
+                          carbs: formatLocalizedNumber(variant.carbs, {
+                            maximumFractionDigits: 1,
+                          }),
+                          protein: formatLocalizedNumber(variant.protein, {
+                            maximumFractionDigits: 1,
+                          }),
+                        })}
+                      </Text>
+                    </View>
+                    <Icon
+                      name={
+                        selected ? 'checkmark-circle-filled' : 'chevron-forward'
+                      }
+                      size={24}
+                      color={accentColor}
+                    />
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+          ) : null}
 
           <Button
             variant="primary"
@@ -2171,77 +2312,6 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </View>
           ) : null}
         </View>
-
-        {variantPickerOptions.length > 1 ? (
-          <View className="mx-4 mt-6 rounded-2xl bg-surface px-5 py-5">
-            <Text className="mb-2 text-xl font-semibold text-text-primary">
-              {t('foodEntryAdd.labels.quickPortions', {
-                defaultValue: 'Choose a portion',
-              })}
-            </Text>
-            {variantPickerOptions.map((variant, index) => {
-              const selected =
-                variant.id ===
-                (selectedVariantId ?? variantPickerOptions[0]?.id);
-              return (
-                <TouchableOpacity
-                  key={variant.id ?? `${variant.label}-${index}`}
-                  onPress={() => handleVariantChange(variant.id ?? '')}
-                  disabled={isActionPending || !variant.id}
-                  activeOpacity={0.7}
-                  accessibilityRole="button"
-                  accessibilityState={{
-                    selected,
-                    disabled: isActionPending || !variant.id,
-                  }}
-                  accessibilityLabel={t('foodEntryAdd.actions.choosePortion', {
-                    defaultValue: 'Choose {{portion}}',
-                    portion: variant.label,
-                  })}
-                  accessibilityHint={t(
-                    'foodEntryAdd.actions.choosePortionHint',
-                    {
-                      defaultValue:
-                        'Selects the portion. Use Add Food to log it.',
-                    }
-                  )}
-                  className="min-h-16 flex-row items-center gap-3 border-t border-border-subtle py-4"
-                >
-                  <View className="flex-1">
-                    <Text className="text-lg font-semibold text-text-primary">
-                      {variant.perServingLabel}
-                    </Text>
-                    <Text className="text-sm text-text-secondary">
-                      {t('foodEntryAdd.labels.quickPortionNutrition', {
-                        defaultValue:
-                          '{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein',
-                        calories: formatLocalizedNumber(variant.calories, {
-                          maximumFractionDigits: 0,
-                        }),
-                        fat: formatLocalizedNumber(variant.fat, {
-                          maximumFractionDigits: 1,
-                        }),
-                        carbs: formatLocalizedNumber(variant.carbs, {
-                          maximumFractionDigits: 1,
-                        }),
-                        protein: formatLocalizedNumber(variant.protein, {
-                          maximumFractionDigits: 1,
-                        }),
-                      })}
-                    </Text>
-                  </View>
-                  <Icon
-                    name={
-                      selected ? 'checkmark-circle-filled' : 'chevron-forward'
-                    }
-                    size={24}
-                    color={accentColor}
-                  />
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-        ) : null}
 
         {/* Keep the entry note close to the logging controls so it is easier to
             reach and keep visible while the keyboard is open. */}
