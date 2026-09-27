@@ -13,6 +13,7 @@ import { endPool } from './db/poolManager.js';
 import { log } from './config/logging.js';
 import { authenticate } from './middleware/authMiddleware.js';
 import { authenticateMcp } from './middleware/mcpAuthentication.js';
+import { parseMcpBody } from './middleware/mcpBodyParser.js';
 import { rejectMcpReadOnlyCredential } from './middleware/rejectMcpReadOnlyCredential.js';
 import { requestLogger } from './middleware/requestLogger.js';
 import { applySignOutCookieCleanup } from './middleware/signOutCookieCleanup.js';
@@ -239,20 +240,20 @@ app.use((req, res, next) => {
 });
 // External MCP endpoint — a self-contained chain mounted top-level (not /api)
 // to skip the /api/auth interceptor and cache-control middleware. It sits
-// before the global parser so its route-local parser wins (the global
-// parser would set req._body first and no-op the local one). cookieParser is
-// local because the global one also runs after the global parser, and
-// authenticate reads req.cookies. requestLogger is local because the global
-// one also runs after this mount, so /mcp requests would never reach it.
+// before the global parser so its route-local parser wins (the global parser
+// would set req._body first and no-op the local one). Authenticate before
+// parsing so anonymous requests cannot spend the large image-tool body budget.
+// cookieParser is local because authenticate reads req.cookies, and the global
+// one runs after this mount. requestLogger is local for the same ordering reason.
 app.use(
   '/mcp',
   requestLogger({ logCompletion: true }),
-  express.json({ limit: isDemoMode() ? '1mb' : '50mb' }),
   cookieParser(),
   authenticateMcp,
   // /mcp mounts ahead of the global route table, so it needs the demo guard
   // explicitly — the app-level one below never sees these requests.
   demoRestrictionGuard,
+  parseMcpBody,
   mcpRoutes
 );
 // The dedicated MCP credential cannot authenticate to REST, Better Auth,
