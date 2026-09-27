@@ -56,7 +56,7 @@ function Dot({ color, delay }: { color: string; delay: number }) {
 
 /**
  * Animated three-dot "thinking" indicator shown in an assistant bubble while
- * Sparky is responding but hasn't streamed any visible content yet.
+ * Trackbot is responding but hasn't streamed any visible content yet.
  */
 export default function TypingIndicator() {
   const { t } = useTranslation();
@@ -67,7 +67,7 @@ export default function TypingIndicator() {
       className="flex-row items-center gap-1"
       style={{ height: 20 }}
       accessibilityLabel={t('chat.typing', {
-        defaultValue: 'Assistant is typing',
+        defaultValue: 'Trackbot is typing',
       })}
     >
       {Array.from({ length: DOT_COUNT }).map((_, i) => (

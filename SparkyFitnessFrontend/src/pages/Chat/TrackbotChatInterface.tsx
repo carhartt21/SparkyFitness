@@ -8,7 +8,7 @@ import {
 import {
   useChatPreferencesQuery,
   useChatHistoryQuery,
-} from '@/hooks/AI/useSparkyChat';
+} from '@/hooks/AI/useTrackbotChat';
 import {
   AssistantChatTransport,
   useChatRuntime,
@@ -22,7 +22,7 @@ import { MessagePart, ImagePart } from '@/types/Chatbot_types';
 import { type UIMessage } from 'ai';
 import { resizeImageBase64 } from '@/utils/imageResize';
 
-interface SparkyChatInnerProps {
+interface TrackbotChatInnerProps {
   activeAIServiceSetting: {
     id: string;
     chat_tool_profile?: 'full' | 'core' | null;
@@ -35,10 +35,10 @@ interface SparkyChatInnerProps {
   }>;
 }
 
-const SparkyChatInner = ({
+const TrackbotChatInner = ({
   activeAIServiceSetting,
   history,
-}: SparkyChatInnerProps) => {
+}: TrackbotChatInnerProps) => {
   const invalidateDiary = useDiaryInvalidation();
   const invalidateChat = useChatInvalidation();
   const userDate = formatDateToYYYYMMDD(new Date());
@@ -171,7 +171,7 @@ const SparkyChatInner = ({
   );
 };
 
-const SparkyChatInterface = () => {
+const TrackbotChatInterface = () => {
   const { user } = useAuth();
   const { data: activeAIServiceSetting, isLoading: isActiveServiceLoading } =
     useActiveAIService(!!user);
@@ -191,11 +191,11 @@ const SparkyChatInterface = () => {
   }
 
   return (
-    <SparkyChatInner
+    <TrackbotChatInner
       activeAIServiceSetting={activeAIServiceSetting || null}
       history={history || []}
     />
   );
 };
 
-export default SparkyChatInterface;
+export default TrackbotChatInterface;

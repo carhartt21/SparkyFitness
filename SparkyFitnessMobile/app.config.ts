@@ -63,7 +63,7 @@ const androidPermissions = [
   'android.permission.health.READ_WHEELCHAIR_PUSHES',
   'android.permission.health.READ_HEALTH_DATA_IN_BACKGROUND',
   'android.permission.health.READ_HEALTH_DATA_HISTORY',
-  // Writeback (Sparky → Health Connect): nutrition + water. Production feature,
+  // Writeback (X on Track → Health Connect): nutrition + water. Production feature,
   // so these live in the base list (not the dev-only writes below).
   'android.permission.health.WRITE_NUTRITION',
   'android.permission.health.WRITE_HYDRATION',

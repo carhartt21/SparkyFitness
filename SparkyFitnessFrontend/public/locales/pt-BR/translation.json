@@ -163,8 +163,8 @@
     }
   },
   "aboutDialog": {
-    "title": "Sobre SparkyFitness",
-    "description1": "SparkyFitness: Feito para famílias. Com tecnologia de IA. Acompanhe sua alimentação, exercícios físicos, ingestão de água e saúde — tudo em um só lugar.",
+    "title": "Sobre X on Track",
+    "description1": "X on Track: Feito para famílias. Com tecnologia de IA. Acompanhe sua alimentação, exercícios físicos, ingestão de água e saúde — tudo em um só lugar.",
     "applicationVersion": "Versão da aplicação: ",
     "joinDiscord": "Junte-se à nossa comunidade no Discord: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -2215,7 +2215,7 @@
     "timeoutWarning": "Para grandes intervalos de data, o navegador pode sair, mas o servidor continuará sincronizando em segundo plano.",
     "syncNow": "Iniciar Sincronização",
     "startDate": "Data de início",
-    "polarWarning": "Nota: A Polar só permite sincronizar dados gravados depois de conectar sua conta ao SparkyFitness.",
+    "polarWarning": "Nota: A Polar só permite sincronizar dados gravados depois de conectar sua conta ao X on Track.",
     "last90Days": "Últimos 90 Dias",
     "last7Days": "Últimos 7 dias",
     "endDate": "Data final",

@@ -477,7 +477,7 @@
     "loadingSummary": "Samenvatting laden...",
     "loadFailed": "Laden van samenvatting mislukt",
     "checkConnection": "Controleer uw verbinding en probeer het opnieuw.",
-    "askSparky": "Vraag het Sparky…",
+    "askSparky": "Vraag Trackbot…",
     "nutrients": "Voedingsstoffen",
     "food": "Voeding",
     "tapToAddFood": "Tik om voeding toe te voegen",
@@ -728,7 +728,7 @@
     "logWorkout": "Training Registreren",
     "pastSets": "Eerdere sets & herhalingen",
     "wellness": "Welzijn",
-    "askSparky": "Vraag het Sparky",
+    "askSparky": "Vraag Trackbot",
     "syncHealth": "Gezondheidsgegevens Synchroniseren",
     "logPregnancyEntry": "Zwangerschapsregistratie",
     "logCycle": "Cyclus Registreren",
@@ -750,7 +750,7 @@
     "newPreset": "Nieuwe Voorinstelling",
     "scanFood": "Voeding Scannen",
     "photoFood": "Voeding op Foto",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "Maaltijd Bewerken",
     "createMeal": "Maaltijd Aanmaken",
     "foodEntry": "Voedingsregistratie",
@@ -1123,8 +1123,8 @@
     "noCustomNutrients": "Geen aangepaste voedingsstoffen",
     "customNutrientsDescription": "Aangepaste voedingsstoffen worden aangemaakt in de X on Track webapp. Zodra u er een paar toevoegt, verschijnen ze hier zodat u kunt kiezen welke op uw Dashboard worden getoond.",
     "title": "Dashboardinstellingen",
-    "askSparky": "Vraag het Sparky",
-    "askSparkySubtitle": "Toon de Vraag het Sparky-chatknop op het Dashboard",
+    "askSparky": "Vraag Trackbot",
+    "askSparkySubtitle": "Toon de Trackbot-chatknop op het Dashboard",
     "hydration": "Hydratatie",
     "hydrationSubtitle": "Toon de hydratatiekaart op het Dashboard",
     "fasting": "Vasten",
@@ -2611,9 +2611,9 @@
         "cta": "Instellingen openen"
       },
       "chat": {
-        "eyebrow": "VRAAG HET SPARKY",
+        "eyebrow": "VRAAG HET TRACKBOT",
         "headline": "Chat met uw AI-coach",
-        "body": "Vraag Sparky om maaltijden te registreren, te plannen wat u gaat eten, en vragen over uw dag te beantwoorden via chat.",
+        "body": "Vraag Trackbot om maaltijden te registreren, te plannen wat u gaat eten, en vragen over uw dag te beantwoorden via chat.",
         "cta": "Begin met chatten"
       },
       "widget": {
@@ -3453,14 +3453,14 @@
     "removeFailed": "Kon foto niet verwijderen"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "Chatfout",
     "errorRetry": "Er is iets misgegaan. Tik op opnieuw proberen.",
     "retry": "Opnieuw proberen",
-    "placeholder": "Bericht aan Sparky…",
-    "emptyPrompt": "Vraag Sparky iets over uw voeding, training of doelen.",
+    "placeholder": "Bericht aan Trackbot…",
+    "emptyPrompt": "Vraag Trackbot iets over uw voeding, training of doelen.",
     "clearTitle": "Chat wissen",
-    "clearMessage": "Hiermee wordt uw Sparky-chatgeschiedenis permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "clearMessage": "Hiermee wordt uw Trackbot-chatgeschiedenis permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "clearFailed": "Kon chat niet wissen",
     "clearAccessibility": "Chat wissen",
     "noServer": "Geen actieve serverconfiguratie. Stel er eerst een in bij Instellingen.",
@@ -3480,7 +3480,7 @@
       "goals": "Doelen",
       "lookedUp": "{{name}} opgezocht"
     },
-    "typing": "Sparky is aan het typen"
+    "typing": "Trackbot is aan het typen"
   },
   "foodImagePicker": {
     "photos": "Foto's",

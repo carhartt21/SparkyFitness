@@ -9,8 +9,8 @@
     "admin": "Admin"
   },
   "aboutDialog": {
-    "title": "Riguardo SparkyFitness",
-    "description1": "SparkyFitness: Creato per le famiglie. Basato su IA. Traccia cibo, fitness, acqua e salute — insieme.",
+    "title": "Riguardo X on Track",
+    "description1": "X on Track: Creato per le famiglie. Basato su IA. Traccia cibo, fitness, acqua e salute — insieme.",
     "applicationVersion": "Versione applicazione: ",
     "joinDiscord": "Entra a far parte della nostra community su Discord: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -525,7 +525,7 @@
       "addDialogTitle": "Aggiungi Accesso famiglia",
       "familyMemberEmail": "Email del membro della famiglia",
       "emailPlaceholder": "Inserisci l'email del membro della famiglia",
-      "accountHint": "Riceverà l'accesso non appena avrà creato un account SparkyFitness (se non ne ha già uno)",
+      "accountHint": "Riceverà l'accesso non appena avrà creato un account X on Track (se non ne ha già uno)",
       "accessPermissions": "Permessi di accesso",
       "canManageDiary": "Può gestire il diario",
       "canManageDiaryHelp": "Consente al delegato di registrare pasti, allenamenti, acqua e obiettivi a tuo nome. I registri del benessere (sonno, umore, digiuno) sono bloccati. Fornisce l'accesso al profilo in sola lettura."
@@ -623,7 +623,7 @@
         "configuredServices": "Servizi Configurati",
         "availableServices": "Servizi AI disponibili",
         "noServices": "Nessuno servizio AI configurato.",
-        "noServicesDescription": "Aggiungi il tuo primo servizio di intelligenza artificiale per iniziare a utilizzare Sparky.",
+        "noServicesDescription": "Aggiungi il tuo primo servizio di intelligenza artificiale per iniziare a utilizzare Trackbot.",
         "noServicesDescriptionDisabled": "Contatta il tuo amministratore per configurare un servizio AI.",
         "serviceName": "Nome Servizio",
         "serviceNamePlaceholder": "Il mio Servizio OpenAI",

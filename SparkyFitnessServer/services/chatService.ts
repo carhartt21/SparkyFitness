@@ -281,7 +281,7 @@ async function clearOldChatHistory(authenticatedUserId: string) {
   }
 }
 
-async function getSparkyChatHistory(
+async function getTrackbotChatHistory(
   authenticatedUserId: string,
   targetUserId: string
 ) {
@@ -298,7 +298,7 @@ async function getSparkyChatHistory(
   }
 }
 
-async function getSparkyChatHistoryEntry(
+async function getTrackbotChatHistoryEntry(
   authenticatedUserId: string,
   id: string
 ) {
@@ -324,7 +324,7 @@ async function getSparkyChatHistoryEntry(
     throw error;
   }
 }
-async function updateSparkyChatHistoryEntry(
+async function updateTrackbotChatHistoryEntry(
   authenticatedUserId: string,
   id: string,
   updateData: SparkyChatHistoryMutator
@@ -363,7 +363,7 @@ async function updateSparkyChatHistoryEntry(
   }
 }
 
-async function deleteSparkyChatHistoryEntry(
+async function deleteTrackbotChatHistoryEntry(
   authenticatedUserId: string,
   id: string
 ) {
@@ -398,7 +398,7 @@ async function deleteSparkyChatHistoryEntry(
   }
 }
 
-async function clearAllSparkyChatHistory(authenticatedUserId: string) {
+async function clearAllTrackbotChatHistory(authenticatedUserId: string) {
   try {
     await chatRepository.clearAllChatHistory(authenticatedUserId);
     return { message: 'All chat history cleared successfully.' };
@@ -412,7 +412,7 @@ async function clearAllSparkyChatHistory(authenticatedUserId: string) {
   }
 }
 
-async function saveSparkyChatHistory(
+async function saveTrackbotChatHistory(
   authenticatedUserId: string,
   historyData: Partial<SparkyChatHistory> & {
     messageType?: 'user' | 'assistant';
@@ -808,7 +808,7 @@ const RETENTION_24H_MODEL_PREFIXES = [
 
 // Only the canonical 'openai' service type receives prompt-cache options.
 // OpenAI-compatible services still need the SDK-only systemMessageMode override:
-// reasoning-model IDs otherwise convert Sparky's system prompt to `developer`,
+// reasoning-model IDs otherwise convert Trackbot's system prompt to `developer`,
 // which older compatible gateways may not recognize as system instructions.
 // (Anthropic caches on the tools — see ai/tools/index.ts; Gemini auto-caches.)
 export function buildChatProviderOptions(
@@ -1802,7 +1802,7 @@ async function processChatMessage(
     throw error;
   }
 }
-const FOOD_OPTIONS_PROMPT = `You are Sparky, an AI nutrition and wellness coach. Your task is to generate minimum 3 realistic food options in JSON format when requested. Respond ONLY with a JSON array of FoodOption objects, including detailed nutritional information for EVERY field (calories, protein, carbs, fat, saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat, cholesterol, sodium, potassium, dietary_fiber, sugars, vitamin_a, vitamin_c, calcium, iron). **CRITICAL: You MUST estimate and populate every single micro-nutritional field. Do NOT default to 0 or leave blank any nutritional field if a realistic scientific estimation can be made based on the food type. Use your biochemical and culinary knowledge to calculate typical distributions.** Do NOT include any other text.
+const FOOD_OPTIONS_PROMPT = `You are Trackbot, the X on Track AI nutrition and wellness coach. Your task is to generate minimum 3 realistic food options in JSON format when requested. Respond ONLY with a JSON array of FoodOption objects, including detailed nutritional information for EVERY field (calories, protein, carbs, fat, saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat, cholesterol, sodium, potassium, dietary_fiber, sugars, vitamin_a, vitamin_c, calcium, iron). **CRITICAL: You MUST estimate and populate every single micro-nutritional field. Do NOT default to 0 or leave blank any nutritional field if a realistic scientific estimation can be made based on the food type. Use your biochemical and culinary knowledge to calculate typical distributions.** Do NOT include any other text.
 **CRITICAL: When a unit is specified in the request (e.g., 'GENERATE_FOOD_OPTIONS:apple in piece'), ensure the \`serving_unit\` in the generated \`FoodOption\` objects matches the requested unit exactly, if it's a common and logical unit for that food. If not, provide a common and realistic serving unit.**`;
 
 const FOOD_OPTIONS_TEMPERATURE = 0.7;
@@ -2360,12 +2360,12 @@ export { getAiServiceSettings };
 export { getActiveAiServiceSetting };
 export { deleteAiServiceSetting };
 export { clearOldChatHistory };
-export { getSparkyChatHistory };
-export { getSparkyChatHistoryEntry };
-export { updateSparkyChatHistoryEntry };
-export { deleteSparkyChatHistoryEntry };
-export { clearAllSparkyChatHistory };
-export { saveSparkyChatHistory };
+export { getTrackbotChatHistory };
+export { getTrackbotChatHistoryEntry };
+export { updateTrackbotChatHistoryEntry };
+export { deleteTrackbotChatHistoryEntry };
+export { clearAllTrackbotChatHistory };
+export { saveTrackbotChatHistory };
 export { processChatMessage };
 export { processFoodOptionsRequest };
 export { testAiServiceConnection };
@@ -2376,12 +2376,12 @@ export default {
   getActiveAiServiceSetting,
   deleteAiServiceSetting,
   clearOldChatHistory,
-  getSparkyChatHistory,
-  getSparkyChatHistoryEntry,
-  updateSparkyChatHistoryEntry,
-  deleteSparkyChatHistoryEntry,
-  clearAllSparkyChatHistory,
-  saveSparkyChatHistory,
+  getTrackbotChatHistory,
+  getTrackbotChatHistoryEntry,
+  updateTrackbotChatHistoryEntry,
+  deleteTrackbotChatHistoryEntry,
+  clearAllTrackbotChatHistory,
+  saveTrackbotChatHistory,
   processChatMessage,
   processFoodOptionsRequest,
   testAiServiceConnection,

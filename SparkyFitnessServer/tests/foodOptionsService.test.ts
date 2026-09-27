@@ -198,7 +198,7 @@ describe('processFoodOptionsRequest', () => {
       const body = JSON.parse(init.body);
       expect(body.messages).toHaveLength(1);
       expect(body.messages[0].role).toBe('user');
-      expect(body.messages[0].content).toContain('You are Sparky');
+      expect(body.messages[0].content).toContain('You are Trackbot');
       expect(body.messages[0].content).toContain(
         'GENERATE_FOOD_OPTIONS:apple in piece'
       );

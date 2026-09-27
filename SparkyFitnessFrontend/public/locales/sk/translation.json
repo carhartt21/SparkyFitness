@@ -749,8 +749,8 @@
     "selectEnergyUnitPlaceholder": "Vyberte jednotku energie"
   },
   "aboutDialog": {
-    "title": "O aplikácii SparkyFitness",
-    "description1": "SparkyFitness: Vytvorené pre rodiny. Poháňané AI. Sledujte jedlo, kondíciu, vodu a zdravie – spoločne.",
+    "title": "O aplikácii X on Track",
+    "description1": "X on Track: Vytvorené pre rodiny. Poháňané AI. Sledujte jedlo, kondíciu, vodu a zdravie – spoločne.",
     "applicationVersion": "Verzia aplikácie: ",
     "joinDiscord": "Pripojte sa k našej komunite na Discorde: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -891,7 +891,7 @@
       "healthConnectProjectionSource": "Celkové kalórie z Health Connect",
       "fallbackProjectionSource": "Záloha BMR + aktívne kalórie",
       "legacyProjectionSource": "Predikcia zariadenia",
-      "sparkyfitnessBurned": "Spálené podľa SparkyFitness",
+      "sparkyfitnessBurned": "Spálené podľa X on Track",
       "summaryUnavailableDesc": "Nepodarilo sa načítať váš denný súhrn energie. Skúste obnoviť stránku.",
       "summaryUnavailableTitle": "Denný súhrn nie je k dispozícii",
       "updateProfile": "Aktualizovať profil",
@@ -1587,7 +1587,7 @@
       "addDialogTitle": "Pridať rodinný prístup",
       "familyMemberEmail": "E-mail člena rodiny",
       "emailPlaceholder": "Zadajte e-mail člena rodiny",
-      "accountHint": "Prístup získajú hneď, ako si vytvoria účet SparkyFitness (ak ho ešte nemajú)",
+      "accountHint": "Prístup získajú hneď, ako si vytvoria účet X on Track (ak ho ešte nemajú)",
       "accessPermissions": "Prístupové oprávnenia",
       "canManageDiary": "Môže spravovať denník",
       "canManageDiaryHelp": "Umožňuje delegátovi zaznamenávať jedlá, tréningy, vodu a ciele vo vašom mene. Záznamy o zdraví (spánok, nálada, hladovka) sú zablokované. Poskytuje prístup k profilu len na čítanie.",
@@ -1676,7 +1676,7 @@
         "scopeIncludes": "Vymaže synchronizované záznamy denníka (jedlo, cvičenia/tréningy, spánok, voda, merania vlastnej kontroly) a telemetriu nositeľného zariadenia daného poskytovateľa (srdcová frekvencia, HRV, dýchanie, SpO2, životné funkcie a denné metriky zdravia).",
         "scopeExcludesLibrary": "NEODSTRÁNI vašu databázu jedál alebo cvičení (opakovane použiteľné definície jedál/cvičení) – iba zaznamenané položky.",
         "scopeExcludesCheckin": "NEODSTRÁNI štandardné merania kontroly (hmotnosť, kroky, telesný tuk, výška) – tie zlúčia všetkých poskytovateľov do jednej dennej hodnoty a tu ich nemožno odstrániť podľa zdroja.",
-        "scopeExcludesManual": "NEODSTRÁNI nič, čo ste vytvorili sami – záznamy, ktoré ste napísali, zaznamenali cez asistenta Sparky, alebo tréningy z uloženej predvoľby alebo plánu sú vždy zachované.",
+        "scopeExcludesManual": "NEODSTRÁNI nič, čo ste vytvorili sami – záznamy, ktoré ste napísali, zaznamenali cez asistenta Trackbot, alebo tréningy z uloženej predvoľby alebo plánu sú vždy zachované.",
         "loading": "Načítavajú sa zdroje...",
         "loadError": "Nepodarilo sa načítať zdroje synchronizovaných údajov.",
         "empty": "Nenašli sa žiadne synchronizované údaje. Tu nie je čo vymazať.",
@@ -1712,7 +1712,7 @@
         "clientSecretLabel": "Tajný kľúč klienta YAZIO",
         "clientSecretPlaceholder": "Zadajte tajný kľúč klienta YAZIO",
         "allFieldsRequired": "Všetky polia (e-mail/používateľské meno, heslo, ID klienta a tajný kľúč klienta) sú povinné.",
-        "languageSupportHelp": "Vyhľadávanie potravín v YAZIO sa automaticky prispôsobí vašej aktívnej jazykovej predvoľbe v SparkyFitness (podporuje angličtinu, nemčinu, francúzštinu, ruštinu, španielčinu, taliančinu, holandčinu, poľštinu, portugalčinu, dánčinu, fínčinu, švédčinu, češtinu, maďarčinu, gréčtinu, nórčinu, turečtinu, čínštinu, japončinu a kórejčinu). Ostatné jazyky používajú predvolené štandardné medzinárodné parametre databázy."
+        "languageSupportHelp": "Vyhľadávanie potravín v YAZIO sa automaticky prispôsobí vašej aktívnej jazykovej predvoľbe v X on Track (podporuje angličtinu, nemčinu, francúzštinu, ruštinu, španielčinu, taliančinu, holandčinu, poľštinu, portugalčinu, dánčinu, fínčinu, švédčinu, češtinu, maďarčinu, gréčtinu, nórčinu, turečtinu, čínštinu, japončinu a kórejčinu). Ostatné jazyky používajú predvolené štandardné medzinárodné parametre databázy."
       },
       "oauthDashboards": {
         "fallback": "vývojársky panel poskytovateľa",
@@ -1825,7 +1825,7 @@
         "availableServices": "Dostupné služby AI",
         "activeProvider": "Aktívny poskytovateľ AI",
         "noServices": "Zatiaľ nie sú nakonfigurované žiadne služby AI.",
-        "noServicesDescription": "Pridajte svoju prvú službu AI a začnite so Sparky.",
+        "noServicesDescription": "Pridajte svoju prvú službu AI a začnite so Trackbot.",
         "noServicesDescriptionDisabled": "Obráťte sa na správcu a požiadajte ho o konfiguráciu služby AI.",
         "serviceName": "Názov služby",
         "serviceNamePlaceholder": "Moja služba OpenAI",
@@ -2138,7 +2138,7 @@
       "perWeek": "/ týždeň",
       "rate": "Tempo:",
       "bodyWeightRate": "{{percent}} % telesnej hmotnosti / týždeň",
-      "estimatedTargetNote": "Poznámka: Tento cieľ je v súčasnosti založený na odhadovanej úrovni aktivity. Po {{required}}+ dňoch údajov o hmotnosti a kalóriách vypočíta SparkyFitness osobnejšie adaptívne TDEE.",
+      "estimatedTargetNote": "Poznámka: Tento cieľ je v súčasnosti založený na odhadovanej úrovni aktivity. Po {{required}}+ dňoch údajov o hmotnosti a kalóriách vypočíta X on Track osobnejšie adaptívne TDEE.",
       "minimumMetabolismWarningTitle": "Bezpečnostné upozornenie: Kalorický cieľ je pod minimálnym metabolizmom",
       "minimumMetabolismWarningText": "Váš kalorický cieľ je pod vaším odhadovaným minimálnym metabolizmom (RMR). To nemusí byť dlhodobo udržateľné. Zvážte výber menej agresívneho režimu cieľov alebo povolenie štandardného či vlastného bezpečnostného minima.",
       "absoluteFloorWarningTitle": "Kritické zdravotné upozornenie: Kalorický cieľ je pod absolútnym minimom",
@@ -2152,7 +2152,7 @@
       "unsafeGainText": "Priberanie viac ako 0,5 % telesnej hmotnosti za týždeň znamená, že väčšina pridaného hmotnosti bude tuk namiesto svalov. Pomalší prebytok buduje podobné množstvo svalov s oveľa menším priberaním tuku.",
       "unsafeLossTitle": "Nebezpečné tempo chudnutia",
       "unsafeLossText": "Chudnutie viac ako 1,5 % telesnej hmotnosti za týždeň sa považuje za nadmerné. Toto tempo dramaticky zvyšuje riziko vážnej straty svalov, letargie, hormonálnej nerovnováhy a nutričných nedostatkov. Vyberte si menej agresívny režim cieľov.",
-      "calibrationDescription": "Motor adaptívneho TDEE Sparky vyžaduje aspoň {{required}} dní konzistentného sledovania na presný výpočet vášho metabolizmu (momentálne sa používajú záložné odhady). Na urýchlenie kalibrácie:",
+      "calibrationDescription": "Motor adaptívneho TDEE X on Track vyžaduje aspoň {{required}} dní konzistentného sledovania na presný výpočet vášho metabolizmu (momentálne sa používajú záložné odhady). Na urýchlenie kalibrácie:",
       "calibrationWeightTip": "Zaznamenávajte hmotnosť aspoň 3–4 krát týždenne.",
       "calibrationFoodTip": "Zaznamenávajte príjem jedla denne (>200 kcal/deň)."
     },

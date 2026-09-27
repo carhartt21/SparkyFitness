@@ -1895,7 +1895,7 @@ const CalculationSettings = () => {
                   <p className="text-sm text-blue-700/90 dark:text-blue-400/80 leading-relaxed">
                     {t('settings.goalMode.calibrationDescription', {
                       defaultValue:
-                        "Sparky's Adaptive TDEE engine requires at least {{required}} days of consistent tracking to calculate your metabolism accurately (currently using fallback estimates). To speed up calibration:",
+                        "X on Track's Adaptive TDEE engine requires at least {{required}} days of consistent tracking to calculate your metabolism accurately (currently using fallback estimates). To speed up calibration:",
                       required: ADAPTIVE_TDEE_GOAL_MIN_DAYS,
                     })}
                   </p>

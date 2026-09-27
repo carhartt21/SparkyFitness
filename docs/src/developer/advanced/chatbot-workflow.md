@@ -1,6 +1,6 @@
-# Sparky Chatbot Workflow (Refined)
+# Trackbot Chat Workflow (Historical)
 
-This document outlines the refined workflow for how the Sparky chatbot processes user messages, identifies intent, extracts data, interacts with the database, and provides responses, incorporating improvements for robustness, multi-item handling, context, and error management.
+This historical sketch describes an earlier chatbot workflow. The current Trackbot implementation uses the server chat service and in-process tools described in the package guide; the Supabase-specific steps below are retained only as design history.
 
 ## Overall Process
 

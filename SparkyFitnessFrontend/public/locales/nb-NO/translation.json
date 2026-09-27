@@ -312,8 +312,8 @@
     "selectBodyFatAlgorithm": "Velg algoritme for kroppsfett"
   },
   "aboutDialog": {
-    "title": "Om SparkyFitness",
-    "description1": "SparkyFitness: Bygget for familier. Drevet av KI. Spor mat, trening, vann og helse — sammen.",
+    "title": "Om X on Track",
+    "description1": "X on Track: Bygget for familier. Drevet av KI. Spor mat, trening, vann og helse — sammen.",
     "applicationVersion": "Applikasjonsversjon: ",
     "joinDiscord": "Bli med i fellesskapet vårt på Discord: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -814,7 +814,7 @@
         "cancel": "Avbryt",
         "edit": "Rediger",
         "delete": "Slett",
-        "noServicesDescription": "Legg til din første KI-tjeneste for å komme i gang med Sparky.",
+        "noServicesDescription": "Legg til din første KI-tjeneste for å komme i gang med Trackbot.",
         "apiKey": "API-nøkkel",
         "selectModel": "Velg en modell",
         "active": "Aktiv",

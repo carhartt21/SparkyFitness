@@ -956,7 +956,7 @@
     "pastSets": "过去的组数与次数",
     "wellness": "健康",
     "progressPhotos": "进度照片",
-    "askSparky": "询问 Sparky",
+    "askSparky": "询问 Trackbot",
     "syncHealth": "同步健康数据",
     "logPregnancyEntry": "记录孕期条目",
     "logCycle": "记录周期"
@@ -977,7 +977,7 @@
     "newPreset": "新预设",
     "scanFood": "扫描食物",
     "photoFood": "拍照识别食物",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "编辑餐食",
     "createMeal": "创建餐食",
     "foodEntry": "食物记录",
@@ -1185,7 +1185,7 @@
     "loadingSummary": "正在加载摘要...",
     "loadFailed": "加载摘要失败",
     "checkConnection": "请检查你的连接，然后重试。",
-    "askSparky": "询问 Sparky…",
+    "askSparky": "询问 Trackbot…",
     "nutrients": "营养素",
     "food": "食物",
     "tapToAddFood": "点按以添加食物",
@@ -1400,8 +1400,8 @@
     "noCustomNutrients": "没有自定义营养素",
     "customNutrientsDescription": "自定义营养素在 X on Track Web 应用中创建。添加后它们会显示在这里，你可以选择在仪表板上显示哪些。",
     "title": "仪表板设置",
-    "askSparky": "询问 Sparky",
-    "askSparkySubtitle": "在仪表板上显示「询问 Sparky」聊天启动器",
+    "askSparky": "询问 Trackbot",
+    "askSparkySubtitle": "在仪表板上显示「询问 Trackbot」聊天启动器",
     "hydration": "饮水",
     "hydrationSubtitle": "在仪表板上显示饮水卡片",
     "fasting": "禁食",
@@ -2618,9 +2618,9 @@
         "cta": "打开设置"
       },
       "chat": {
-        "eyebrow": "询问 Sparky",
+        "eyebrow": "询问 Trackbot",
         "headline": "与你的 AI 教练聊天",
-        "body": "让 Sparky 记录餐食、规划吃什么，并通过聊天回答关于你一天的问题。",
+        "body": "让 Trackbot 记录餐食、规划吃什么，并通过聊天回答关于你一天的问题。",
         "cta": "开始聊天"
       },
       "widget": {
@@ -3551,14 +3551,14 @@
     "removeFailed": "无法移除照片"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "聊天错误",
     "errorRetry": "出问题了。点按重试以再次尝试。",
     "retry": "重试",
-    "placeholder": "给 Sparky 发消息…",
-    "emptyPrompt": "询问 Sparky 关于你的营养、训练或目标的任何问题。",
+    "placeholder": "给 Trackbot 发消息…",
+    "emptyPrompt": "询问 Trackbot 关于你的营养、训练或目标的任何问题。",
     "clearTitle": "清除聊天",
-    "clearMessage": "这将永久删除你的 Sparky 聊天记录。此操作无法撤销。",
+    "clearMessage": "这将永久删除你的 Trackbot 聊天记录。此操作无法撤销。",
     "clearFailed": "无法清除聊天",
     "clearAccessibility": "清除聊天",
     "noServer": "没有活跃的服务器配置。请先在设置中配置。",
@@ -3578,7 +3578,7 @@
       "goals": "目标",
       "lookedUp": "已查询 {{name}}"
     },
-    "typing": "Sparky 正在输入"
+    "typing": "Trackbot 正在输入"
   },
   "foodImagePicker": {
     "photos": "照片",

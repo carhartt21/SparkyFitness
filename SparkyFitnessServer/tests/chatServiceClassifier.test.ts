@@ -145,6 +145,15 @@ describe('hasImageParts', () => {
 
 describe('getSystemPrompt diary-editing guidance', () => {
   it.each(['core', 'full'] as const)(
+    'identifies the assistant as Trackbot in the %s profile',
+    (profile) => {
+      const prompt = getSystemPrompt('UTC', 'None', profile, ['food']);
+      expect(prompt).toContain('You are Trackbot');
+      expect(prompt).not.toContain('You are Sparky');
+    }
+  );
+
+  it.each(['core', 'full'] as const)(
     'teaches name-based update_entry/delete_entry in the %s food prompt',
     (profile) => {
       const prompt = getSystemPrompt('UTC', 'None', profile, ['food']);

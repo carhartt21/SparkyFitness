@@ -15,7 +15,9 @@ const xOnTrackBrand = {
       .replaceAll('HealthIntel', 'X on Track')
       .replaceAll('SparkyFitnessMobile', 'X on Track')
       .replaceAll('SparkyFitness', 'X on Track')
-      .replaceAll('Sparky Fitness', 'X on Track');
+      .replaceAll('Sparky Fitness', 'X on Track')
+      .replaceAll('SPARKY', 'TRACKBOT')
+      .replaceAll('Sparky', 'Trackbot');
   },
 };
 

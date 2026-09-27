@@ -705,7 +705,7 @@ const auth = betterAuth({
         after: async (user) => {
           log(
             'info',
-            `[AUTH] Hook: User created, initializing Sparky data for ${user.id}`
+            `[AUTH] Hook: User created, initializing X on Track data for ${user.id}`
           );
           try {
             // We use the user.name or email if name is missing for the profile

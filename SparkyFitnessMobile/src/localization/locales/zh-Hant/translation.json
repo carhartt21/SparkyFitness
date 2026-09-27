@@ -956,7 +956,7 @@
     "pastSets": "過去的組數與次數",
     "wellness": "健康",
     "progressPhotos": "進度照片",
-    "askSparky": "詢問 Sparky",
+    "askSparky": "詢問 Trackbot",
     "syncHealth": "同步健康資料",
     "logPregnancyEntry": "記錄孕期條目",
     "logCycle": "記錄週期"
@@ -977,7 +977,7 @@
     "newPreset": "新預設",
     "scanFood": "掃描食物",
     "photoFood": "拍照識別食物",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "編輯餐點",
     "createMeal": "建立餐點",
     "foodEntry": "食物記錄",
@@ -1185,7 +1185,7 @@
     "loadingSummary": "正在載入摘要...",
     "loadFailed": "載入摘要失敗",
     "checkConnection": "請檢查你的連線，然後重試。",
-    "askSparky": "詢問 Sparky…",
+    "askSparky": "詢問 Trackbot…",
     "nutrients": "營養素",
     "food": "食物",
     "tapToAddFood": "點選以新增食物",
@@ -1400,8 +1400,8 @@
     "noCustomNutrients": "沒有自定義營養素",
     "customNutrientsDescription": "自定義營養素在 X on Track Web 應用中建立。新增後它們會顯示在這裡，你可以選擇在儀表板上顯示哪些。",
     "title": "儀表板設定",
-    "askSparky": "詢問 Sparky",
-    "askSparkySubtitle": "在儀表板上顯示「詢問 Sparky」聊天啟動器",
+    "askSparky": "詢問 Trackbot",
+    "askSparkySubtitle": "在儀表板上顯示「詢問 Trackbot」聊天啟動器",
     "hydration": "飲水",
     "hydrationSubtitle": "在儀表板上顯示飲水卡片",
     "fasting": "禁食",
@@ -2618,9 +2618,9 @@
         "cta": "開啟設定"
       },
       "chat": {
-        "eyebrow": "詢問 Sparky",
+        "eyebrow": "詢問 Trackbot",
         "headline": "與你的 AI 教練聊天",
-        "body": "讓 Sparky 記錄餐點、規劃吃什麼，並透過聊天回答關於你一天的問題。",
+        "body": "讓 Trackbot 記錄餐點、規劃吃什麼，並透過聊天回答關於你一天的問題。",
         "cta": "開始聊天"
       },
       "widget": {
@@ -3551,14 +3551,14 @@
     "removeFailed": "無法移除照片"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "聊天錯誤",
     "errorRetry": "出問題了。點選重試以再次嘗試。",
     "retry": "重試",
-    "placeholder": "給 Sparky 發訊息…",
-    "emptyPrompt": "詢問 Sparky 關於你的營養、訓練或目標的任何問題。",
+    "placeholder": "給 Trackbot 發訊息…",
+    "emptyPrompt": "詢問 Trackbot 關於你的營養、訓練或目標的任何問題。",
     "clearTitle": "清除聊天",
-    "clearMessage": "這將永久刪除你的 Sparky 聊天記錄。此操作無法撤銷。",
+    "clearMessage": "這將永久刪除你的 Trackbot 聊天記錄。此操作無法撤銷。",
     "clearFailed": "無法清除聊天",
     "clearAccessibility": "清除聊天",
     "noServer": "沒有活躍的伺服器配置。請先在設定中配置。",
@@ -3578,7 +3578,7 @@
       "goals": "目標",
       "lookedUp": "已查詢 {{name}}"
     },
-    "typing": "Sparky 正在輸入"
+    "typing": "Trackbot 正在輸入"
   },
   "foodImagePicker": {
     "photos": "照片",

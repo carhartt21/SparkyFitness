@@ -482,7 +482,7 @@ router.delete(
  * @swagger
  * /chat/sparky-chat-history:
  *   get:
- *     summary: Retrieve Sparky chat history for the authenticated user
+ *     summary: Retrieve Trackbot chat history for the authenticated user
  *     tags: [AI & Insights]
  *     security:
  *       - cookieAuth: []
@@ -496,7 +496,7 @@ router.delete(
  */
 router.get('/sparky-chat-history', authenticate, async (req, res, next) => {
   try {
-    const history = await chatService.getSparkyChatHistory(
+    const history = await chatService.getTrackbotChatHistory(
       req.userId,
 
       req.userId
@@ -515,7 +515,7 @@ router.get('/sparky-chat-history', authenticate, async (req, res, next) => {
  * @swagger
  * /chat/sparky-chat-history/entry/{id}:
  *   get:
- *     summary: Retrieve a single Sparky chat history entry
+ *     summary: Retrieve a single Trackbot chat history entry
  *     tags: [AI & Insights]
  *     security:
  *       - cookieAuth: []
@@ -549,7 +549,10 @@ router.get(
         .json({ error: 'Chat History Entry ID is required.' });
     }
     try {
-      const entry = await chatService.getSparkyChatHistoryEntry(req.userId, id);
+      const entry = await chatService.getTrackbotChatHistoryEntry(
+        req.userId,
+        id
+      );
       res.status(200).json(entry);
     } catch (error) {
       // @ts-expect-error TS(2571): Object is of type 'unknown'.
@@ -570,7 +573,7 @@ router.get(
  * @swagger
  * /chat/sparky-chat-history/{id}:
  *   put:
- *     summary: Update a Sparky chat history entry
+ *     summary: Update a Trackbot chat history entry
  *     tags: [AI & Insights]
  *     security:
  *       - cookieAuth: []
@@ -608,7 +611,7 @@ router.put('/sparky-chat-history/:id', authenticate, async (req, res, next) => {
       .json({ error: 'Chat History Entry ID is required.' });
   }
   try {
-    const updatedEntry = await chatService.updateSparkyChatHistoryEntry(
+    const updatedEntry = await chatService.updateTrackbotChatHistoryEntry(
       req.userId,
       id,
       updateData
@@ -634,7 +637,7 @@ router.put('/sparky-chat-history/:id', authenticate, async (req, res, next) => {
  * @swagger
  * /chat/sparky-chat-history/{id}:
  *   delete:
- *     summary: Delete a Sparky chat history entry
+ *     summary: Delete a Trackbot chat history entry
  *     tags: [AI & Insights]
  *     security:
  *       - cookieAuth: []
@@ -668,7 +671,7 @@ router.delete(
         .json({ error: 'Chat History Entry ID is required.' });
     }
     try {
-      const result = await chatService.deleteSparkyChatHistoryEntry(
+      const result = await chatService.deleteTrackbotChatHistoryEntry(
         req.userId,
         id
       );
@@ -694,7 +697,7 @@ router.delete(
  * @swagger
  * /chat/clear-all-history:
  *   post:
- *     summary: Clear all Sparky chat history for the authenticated user
+ *     summary: Clear all Trackbot chat history for the authenticated user
  *     tags: [AI & Insights]
  *     security:
  *       - cookieAuth: []
@@ -708,7 +711,7 @@ router.delete(
  */
 router.post('/clear-all-history', authenticate, async (req, res, next) => {
   try {
-    const result = await chatService.clearAllSparkyChatHistory(req.userId);
+    const result = await chatService.clearAllTrackbotChatHistory(req.userId);
     res.status(200).json(result);
   } catch (error) {
     // @ts-expect-error TS(2571): Object is of type 'unknown'.
@@ -723,7 +726,7 @@ router.post('/clear-all-history', authenticate, async (req, res, next) => {
  * @swagger
  * /chat/save-history:
  *   post:
- *     summary: Save a Sparky chat history entry
+ *     summary: Save a Trackbot chat history entry
  *     tags: [AI & Insights]
  *     security:
  *       - cookieAuth: []
@@ -758,7 +761,7 @@ router.post('/save-history', authenticate, async (req, res, next) => {
       .json({ error: 'Content and message type are required.' });
   }
   try {
-    const result = await chatService.saveSparkyChatHistory(req.userId, {
+    const result = await chatService.saveTrackbotChatHistory(req.userId, {
       user_id: req.userId,
       content,
       messageType,

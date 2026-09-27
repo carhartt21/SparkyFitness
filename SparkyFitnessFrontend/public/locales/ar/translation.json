@@ -12,7 +12,7 @@
     "pregnancy": "الحمل"
   },
   "aboutDialog": {
-    "description1": "SparkyFitness: مبني للعائلات، مدعوم بالذكاء الإصطناعي، تابع الأكلات، والرياضة، والماء، والصحة — مع بعض.",
+    "description1": "X on Track: مبني للعائلات، مدعوم بالذكاء الإصطناعي، تابع الأكلات، والرياضة، والماء، والصحة — مع بعض.",
     "applicationVersion": "نسخة التطبيق: ",
     "joinDiscord": "إنضم إلى مجتمعنا على ديسكورد: ",
     "moreInfoVisit": "للمزيد من المعلومات، زر ",
@@ -28,7 +28,7 @@
     "openFoodFactsApi": "واجهة برمجة تطبيقات بيانات الأطعمة المفتوحة",
     "gotIt": "فهمت",
     "close": "أغلق",
-    "title": "عن SparkyFitness"
+    "title": "عن X on Track"
   },
   "exercise": {
     "title": "التمارين",
@@ -132,7 +132,7 @@
       "fallbackReason": "نستخدم تقديرًا مؤقتًا: {{reason}}",
       "dailyBurn": "استهلاك الطاقة اليومي",
       "projectedBurn": "الاستهلاك المتوقع لنهاية اليوم",
-      "sparkyfitnessBurned": "المسجل في سباركي فتنس",
+      "sparkyfitnessBurned": "الطاقة المستهلكة في X on Track",
       "adjustment": "التعديل"
     },
     "editExerciseEntryDialog": {
@@ -1322,7 +1322,7 @@
   "syncRangeDialog": {
     "title": "مزامنة بيانات {{provider}}",
     "description": "اختر الفترة اللي تبي تزامنها من {{provider}}.",
-    "polarWarning": "ملاحظة: يسمح Polar بمزامنة البيانات المسجلة بعد ربط حسابك مع SparkyFitness فقط.",
+    "polarWarning": "ملاحظة: يسمح Polar بمزامنة البيانات المسجلة بعد ربط حسابك مع X on Track فقط.",
     "timeoutWarning": "قد تنتهي مهلة المتصفح عند اختيار فترة طويلة، لكن الخادم سيواصل المزامنة في الخلفية.",
     "last7Days": "آخر 7 أيام",
     "last30Days": "آخر 30 يومًا",

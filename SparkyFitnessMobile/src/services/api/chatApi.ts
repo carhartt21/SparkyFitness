@@ -2,7 +2,7 @@ import type { useChatRuntime } from '@assistant-ui/react-ai-sdk';
 import { apiFetch } from './apiClient';
 
 /**
- * Server-side Sparky chat persistence. The streaming endpoint auto-saves each
+ * Server-side Trackbot chat persistence. The streaming endpoint auto-saves each
  * completed exchange on `onFinish`, so the client only needs to read the
  * history back (to seed the runtime on open) and clear it.
  */

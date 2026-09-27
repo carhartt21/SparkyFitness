@@ -32,8 +32,9 @@ const xOnTrackBrand = {
       .replaceAll('SparkyFitness', 'X on Track')
       .replaceAll('Sparky Fitness', 'X on Track')
       .replaceAll('HealthIntel', 'X on Track')
-      .replaceAll('ASK SPARKY', 'AI ASSISTANT')
-      .replaceAll('Sparky', 'X on Track');
+      .replaceAll('ASK SPARKY', 'ASK TRACKBOT')
+      .replaceAll('SPARKY', 'TRACKBOT')
+      .replaceAll('Sparky', 'Trackbot');
   },
 };
 const I18N_INIT_OPTIONS = {

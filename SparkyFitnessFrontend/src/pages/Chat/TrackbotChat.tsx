@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import SparkyChatInterface from './SparkyChatInterface';
+import TrackbotChatInterface from './TrackbotChatInterface';
 import { useChatbotVisibility } from '@/contexts/ChatbotVisibilityContext';
 import {
   useAIServices,
@@ -18,10 +18,10 @@ import {
   useUpdateUserAIPreferences,
 } from '@/hooks/AI/useAIServiceSettings';
 import { useState } from 'react';
-import { useClearChatHistoryMutation } from '@/hooks/AI/useSparkyChat';
+import { useClearChatHistoryMutation } from '@/hooks/AI/useTrackbotChat';
 import { useAuth } from '@/hooks/useAuth';
 
-const SparkyChat = () => {
+const TrackbotChat = () => {
   const { isChatOpen, closeChat } = useChatbotVisibility();
   const { user } = useAuth();
   const { data: services } = useAIServices();
@@ -101,7 +101,7 @@ const SparkyChat = () => {
                   onClick={() => isMinimized && setIsMinimized(false)}
                 >
                   <MessageCircle className="h-5 w-5" />
-                  Sparky AI Coach
+                  Trackbot
                 </DialogPrimitive.Title>
                 <DialogPrimitive.Description className="sr-only">
                   Your personal AI nutrition and fitness coach.
@@ -176,7 +176,7 @@ const SparkyChat = () => {
             <div
               className={cn('flex-1 overflow-hidden', isMinimized && 'hidden')}
             >
-              <SparkyChatInterface key={resetKey} />
+              <TrackbotChatInterface key={resetKey} />
             </div>
           </div>
         </DialogPrimitive.Content>
@@ -185,4 +185,4 @@ const SparkyChat = () => {
   );
 };
 
-export default SparkyChat;
+export default TrackbotChat;

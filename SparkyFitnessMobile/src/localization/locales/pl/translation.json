@@ -389,7 +389,7 @@
     "logWorkout": "Zapisz trening",
     "pastSets": "Wcześniejsze serie i powtórzenia",
     "wellness": "Zdrowie",
-    "askSparky": "Zapytaj Sparky’ego",
+    "askSparky": "Zapytaj Trackbota",
     "syncHealth": "Synchronizuj dane zdrowotne",
     "logPregnancyEntry": "Zapisz wpis dotyczący ciąży",
     "logCycle": "Zapisz cykl"
@@ -410,7 +410,7 @@
     "newPreset": "Nowy szablon treningu",
     "scanFood": "Skanuj produkt",
     "photoFood": "Dodaj produkt ze zdjęcia",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "Edytuj posiłek",
     "createMeal": "Utwórz posiłek",
     "foodEntry": "Wpis produktu",
@@ -671,7 +671,7 @@
     "loadingSummary": "Ładowanie podsumowania...",
     "loadFailed": "Nie udało się załadować podsumowania",
     "checkConnection": "Sprawdź połączenie i spróbuj ponownie.",
-    "askSparky": "Zapytaj Sparky…",
+    "askSparky": "Zapytaj Trackbota…",
     "nutrients": "Składniki odżywcze",
     "food": "Produkty",
     "tapToAddFood": "Dotknij, aby dodać produkt",
@@ -861,8 +861,8 @@
     "noCustomNutrients": "Brak własnych składników odżywczych",
     "customNutrientsDescription": "Własne składniki odżywcze są tworzone w aplikacji X on Track w przeglądarce. Po ich dodaniu pojawią się tutaj i będzie można wybrać, które mają być widoczne na pulpicie.",
     "title": "Ustawienia pulpitu",
-    "askSparky": "Zapytaj Sparky",
-    "askSparkySubtitle": "Pokaż przycisk czatu Zapytaj Sparky na pulpicie",
+    "askSparky": "Zapytaj Trackbota",
+    "askSparkySubtitle": "Pokaż przycisk czatu z Trackbotem na pulpicie",
     "hydration": "Nawodnienie",
     "hydrationSubtitle": "Pokaż kartę nawodnienia na pulpicie",
     "fasting": "Post",
@@ -2599,9 +2599,9 @@
         "cta": "Otwórz ustawienia"
       },
       "chat": {
-        "eyebrow": "ZAPYTAJ SPARKY",
+        "eyebrow": "ZAPYTAJ TRACKBOT",
         "headline": "Porozmawiaj z trenerem AI",
-        "body": "Poproś Sparky o zapisanie posiłków, zaplanowanie jedzenia i odpowiedzi na pytania dotyczące Twojego dnia.",
+        "body": "Poproś Trackbota o zapisanie posiłków, zaplanowanie jedzenia i odpowiedzi na pytania dotyczące Twojego dnia.",
         "cta": "Rozpocznij rozmowę"
       },
       "widget": {
@@ -3449,14 +3449,14 @@
     "removeFailed": "Nie udało się usunąć zdjęcia"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "Błąd czatu",
     "errorRetry": "Coś poszło nie tak. Dotknij „Spróbuj ponownie”, aby ponowić próbę.",
     "retry": "Spróbuj ponownie",
-    "placeholder": "Napisz do Sparky…",
-    "emptyPrompt": "Zapytaj Sparky o odżywianie, ćwiczenia lub swoje cele.",
+    "placeholder": "Napisz do Trackbota…",
+    "emptyPrompt": "Zapytaj Trackbota o odżywianie, ćwiczenia lub swoje cele.",
     "clearTitle": "Wyczyścić czat",
-    "clearMessage": "Ta operacja trwale usunie historię czatu Sparky. Nie można jej cofnąć.",
+    "clearMessage": "Ta operacja trwale usunie historię czatu Trackbot. Nie można jej cofnąć.",
     "clearFailed": "Nie udało się wyczyścić czatu",
     "clearAccessibility": "Wyczyść czat",
     "noServer": "Brak aktywnej konfiguracji serwera. Najpierw skonfiguruj ją w Ustawieniach.",
@@ -3476,7 +3476,7 @@
       "goals": "Cele",
       "lookedUp": "Wyszukano: {{name}}"
     },
-    "typing": "Sparky pisze"
+    "typing": "Trackbot pisze"
   },
   "foodImagePicker": {
     "photos": "Zdjęcia",

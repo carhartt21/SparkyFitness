@@ -14,8 +14,8 @@
     "wellness": "Samopoczucie"
   },
   "aboutDialog": {
-    "title": "O SparkyFitness",
-    "description1": "SparkyFitness: Stworzone dla rodzin. Napędzane przez AI. Śledź jedzenie, treningi, wodę i zdrowie — wspólnie.",
+    "title": "O X on Track",
+    "description1": "X on Track: Stworzone dla rodzin. Napędzane przez AI. Śledź jedzenie, treningi, wodę i zdrowie — wspólnie.",
     "applicationVersion": "Wersja aplikacji: ",
     "joinDiscord": "Dołącz do naszej społeczności na Discordzie: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -144,7 +144,7 @@
       "profileIncompleteDesc": "Brakuje masy ciała, wzrostu i wieku. Cele kaloryczne mogą być niedokładne.",
       "profileIncompleteTitle": "Niekompletny profil",
       "projectedBurn": "Prognoza (cały dzień)",
-      "sparkyfitnessBurned": "Spalone kalorie według SparkyFitness",
+      "sparkyfitnessBurned": "Spalone kalorie według X on Track",
       "summaryUnavailableDesc": "Nie udało się wczytać dziennego podsumowania energii. Spróbuj odświeżyć stronę.",
       "summaryUnavailableTitle": "Dzienne podsumowanie niedostępne",
       "updateProfile": "Zaktualizuj profil",
@@ -1292,7 +1292,7 @@
         "clientSecretLabel": "Sekret klienta YAZIO",
         "clientSecretPlaceholder": "Wprowadź sekret klienta YAZIO",
         "allFieldsRequired": "Wszystkie pola (e-mail/nazwa użytkownika, hasło, identyfikator klienta i sekret klienta) są wymagane.",
-        "languageSupportHelp": "Wyszukiwanie żywności w YAZIO automatycznie dostosowuje się do aktywnego języka w SparkyFitness (obsługiwane są: angielski, niemiecki, francuski, rosyjski, hiszpański, włoski, niderlandzki, polski, portugalski, duński, fiński, szwedzki, czeski, węgierski, grecki, norweski, turecki, chiński, japoński i koreański). W przypadku innych języków używane są standardowe międzynarodowe parametry bazy danych."
+        "languageSupportHelp": "Wyszukiwanie żywności w YAZIO automatycznie dostosowuje się do aktywnego języka w X on Track (obsługiwane są: angielski, niemiecki, francuski, rosyjski, hiszpański, włoski, niderlandzki, polski, portugalski, duński, fiński, szwedzki, czeski, węgierski, grecki, norweski, turecki, chiński, japoński i koreański). W przypadku innych języków używane są standardowe międzynarodowe parametry bazy danych."
       }
     },
     "aiService": {
@@ -1587,7 +1587,7 @@
         "scopeIncludes": "Usuwa zsynchronizowane wpisy dziennika: żywność, ćwiczenia i sesje treningowe, sen, wodę oraz własne pomiary z ankiety.",
         "scopeExcludesLibrary": "NIE usuwa bazy produktów ani ćwiczeń, czyli definicji przeznaczonych do wielokrotnego użycia — usuwa wyłącznie zarejestrowane wpisy.",
         "scopeExcludesCheckin": "NIE usuwa standardowych pomiarów z ankiety (masy ciała, kroków, zawartości tkanki tłuszczowej i wzrostu), ponieważ łączą one dane wszystkich dostawców w jedną wartość dzienną i nie można ich tutaj usunąć według źródła.",
-        "scopeExcludesManual": "NIE usuwa danych utworzonych samodzielnie — wpisy ręczne, zarejestrowane przez asystenta Sparky oraz treningi z zapisanych zestawów lub planów zawsze zostają zachowane.",
+        "scopeExcludesManual": "NIE usuwa danych utworzonych samodzielnie — wpisy ręczne, zarejestrowane przez asystenta Trackbot oraz treningi z zapisanych zestawów lub planów zawsze zostają zachowane.",
         "loading": "Wczytywanie źródeł…",
         "loadError": "Nie udało się wczytać źródeł zsynchronizowanych danych.",
         "empty": "Nie znaleziono zsynchronizowanych danych. Nie ma tu nic do usunięcia.",
@@ -1687,7 +1687,7 @@
       "percentageGoalDescription": "Odzyskuj tylko określony procent kalorii spalonych podczas ćwiczeń. Na przykład 50% tworzy margines bezpieczeństwa, aby uniknąć przejadania się z powodu zawyżonego szacowania spalonych kalorii.",
       "percentageLabel": "Procent odzyskiwanych kalorii:",
       "tdeeGoal": "Prognoza z urządzenia",
-      "tdeeGoalDescription": "Podobnie jak MyFitnessPal z Apple Watchem. SparkyFitness prognozuje spalanie z całego dnia, ekstrapolując bieżące dane z urządzenia do północy. Korekta = prognoza − TDEE.",
+      "tdeeGoalDescription": "Podobnie jak MyFitnessPal z Apple Watchem. X on Track prognozuje spalanie z całego dnia, ekstrapolując bieżące dane z urządzenia do północy. Korekta = prognoza − TDEE.",
       "title": "Korekta dziennego celu kalorycznego"
     },
     "dataImport": {
@@ -4507,7 +4507,7 @@
     "last365Days": "Ostatnie 365 dni",
     "last7Days": "Ostatnie 7 dni",
     "last90Days": "Ostatnie 90 dni",
-    "polarWarning": "Uwaga: Polar umożliwia synchronizowanie wyłącznie danych zarejestrowanych po połączeniu konta z SparkyFitness.",
+    "polarWarning": "Uwaga: Polar umożliwia synchronizowanie wyłącznie danych zarejestrowanych po połączeniu konta z X on Track.",
     "syncNow": "Rozpocznij synchronizację",
     "title": "Synchronizuj dane {{provider}}",
     "last180Days": "Ostatnie 180 dni",

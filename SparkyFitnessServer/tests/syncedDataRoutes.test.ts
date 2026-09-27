@@ -96,7 +96,7 @@ describe('Synced Data Routes', () => {
     it.each([
       ['manual', 'lowercase manual'],
       ['Manual', 'capitalized Manual (exercise_entries default)'],
-      ['sparky', 'logged via the Sparky AI assistant'],
+      ['sparky', 'logged via Trackbot (stable source identifier)'],
       ['Workout Preset', 'workout logged from a preset'],
       ['Workout Plan', 'diary entries from a scheduled plan'],
       ['workout preset', 'preset, lowercased'],

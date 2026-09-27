@@ -161,7 +161,7 @@
     "loadingSummary": "Cargando resumen...",
     "loadFailed": "No se pudo cargar el resumen",
     "checkConnection": "Comprueba tu conexión e inténtalo de nuevo.",
-    "askSparky": "Pregunta a Sparky…",
+    "askSparky": "Pregunta a Trackbot…",
     "nutrients": "Nutrientes",
     "food": "Comida",
     "tapToAddFood": "Toca para añadir comida",
@@ -195,7 +195,7 @@
     "logWorkout": "Registrar entrenamiento",
     "pastSets": "Series y reps pasadas",
     "wellness": "Bienestar",
-    "askSparky": "Pregunta a Sparky",
+    "askSparky": "Pregunta a Trackbot",
     "syncHealth": "Sincronizar datos de salud",
     "logPregnancyEntry": "Registrar entrada de embarazo",
     "logCycle": "Registrar ciclo",
@@ -343,8 +343,8 @@
     "noCustomNutrients": "Sin nutrientes personalizados",
     "customNutrientsDescription": "Los nutrientes personalizados se crean en la app web de X on Track. Una vez que añadas algunos, aparecerán aquí para que elijas cuáles mostrar en tu Panel.",
     "title": "Ajustes del panel",
-    "askSparky": "Pregunta a Sparky",
-    "askSparkySubtitle": "Muestra el lanzador de chat Pregunta a Sparky en el Panel",
+    "askSparky": "Pregunta a Trackbot",
+    "askSparkySubtitle": "Muestra el lanzador de chat Pregunta a Trackbot en el Panel",
     "hydration": "Hidratación",
     "hydrationSubtitle": "Muestra la tarjeta de hidratación en el Panel",
     "fasting": "Ayuno",
@@ -542,7 +542,7 @@
     "newPreset": "Nueva plantilla",
     "scanFood": "Escanear comida",
     "photoFood": "Foto de comida",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "Editar comida",
     "createMeal": "Crear comida",
     "foodEntry": "Entrada de comida",
@@ -4656,9 +4656,9 @@
         "cta": "Abrir ajustes"
       },
       "chat": {
-        "eyebrow": "PREGUNTA A SPARKY",
+        "eyebrow": "PREGUNTA A TRACKBOT",
         "headline": "Chatea con tu entrenador de IA",
-        "body": "Pide a Sparky que registre comidas, planifique qué comer y responda preguntas sobre tu día a través del chat.",
+        "body": "Pide a Trackbot que registre comidas, planifique qué comer y responda preguntas sobre tu día a través del chat.",
         "cta": "Empezar a chatear"
       },
       "widget": {
@@ -4678,14 +4678,14 @@
   "workoutPresetCount_many": "",
   "workoutPresetCount_other": "{{formattedCount}} ejercicios",
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "Error de chat",
     "errorRetry": "Algo salió mal. Toca reintentar para volver a intentarlo.",
     "retry": "Reintentar",
-    "placeholder": "Mensaje para Sparky…",
-    "emptyPrompt": "Pregúntale a Sparky lo que quieras sobre tu nutrición, ejercicio u objetivos.",
+    "placeholder": "Mensaje para Trackbot…",
+    "emptyPrompt": "Pregúntale a Trackbot lo que quieras sobre tu nutrición, ejercicio u objetivos.",
     "clearTitle": "Borrar chat",
-    "clearMessage": "Esto elimina permanentemente tu historial de chat con Sparky. No se puede deshacer.",
+    "clearMessage": "Esto elimina permanentemente tu historial de chat con Trackbot. No se puede deshacer.",
     "clearFailed": "No se pudo borrar el chat",
     "clearAccessibility": "Borrar chat",
     "noServer": "No hay configuración de servidor activa. Configura una primero en Ajustes.",
@@ -4705,7 +4705,7 @@
       "goals": "Objetivos",
       "lookedUp": "Se consultó {{name}}"
     },
-    "typing": "Sparky está escribiendo"
+    "typing": "Trackbot está escribiendo"
   },
   "foodEntryMeal": {
     "failed": "No se pudo añadir la comida"

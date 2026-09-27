@@ -1272,7 +1272,7 @@
         "headline": "Forbedret arbeidsflyt for trening"
       },
       "chat": {
-        "eyebrow": "SPØR SPARKY",
+        "eyebrow": "SPØR TRACKBOT",
         "cta": "Start samtale"
       },
       "widget": {
@@ -1842,12 +1842,12 @@
       "goals": "Mål"
     },
     "error": "Samtalefeil",
-    "placeholder": "Skriv til Sparky…",
+    "placeholder": "Skriv til Trackbot…",
     "clearTitle": "Tøm samtalen",
     "clearFailed": "Kunne ikke tømme samtalen",
     "clearAccessibility": "Tøm samtalen",
     "copied": "Kopiert",
-    "typing": "Sparky skriver"
+    "typing": "Trackbot skriver"
   },
   "foodImagePicker": {
     "photos": "Bilder",

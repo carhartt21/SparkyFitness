@@ -4,7 +4,7 @@ import {
   loadUserPreferences,
   loadChatHistory,
   clearChatHistory,
-} from '@/api/Chatbot/sparkyChatService';
+} from '@/api/Chatbot/trackbotChatService';
 import { chatbotKeys } from '@/api/keys/ai';
 
 export const useChatPreferencesQuery = () => {

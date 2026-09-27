@@ -187,7 +187,7 @@ export const DataManagementSettings = () => {
             <li>
               {t(
                 'settings.dataManagement.deleteSynced.scopeExcludesManual',
-                'Does NOT delete anything you created yourself — entries you typed in, logged via the Sparky assistant, or workouts from a saved preset or plan are always kept.'
+                'Does NOT delete anything you created yourself — entries you typed in, logged via Trackbot, or workouts from a saved preset or plan are always kept.'
               )}
             </li>
           </ul>

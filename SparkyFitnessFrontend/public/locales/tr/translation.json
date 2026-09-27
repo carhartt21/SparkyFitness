@@ -279,8 +279,8 @@
     "showNetCarbsHint": "Etkinleştirildiğinde, karbonhidrat özetleri toplam karbonhidrat eksi diyet lifini gösterir."
   },
   "aboutDialog": {
-    "title": "SparkyFitness Hakkında",
-    "description1": "SparkyFitness: Aileler için Tasarlandı. Yapay Zeka tarafından desteklenmektedir. Yiyecek, fitness, su ve sağlığı birlikte takip edin.",
+    "title": "X on Track Hakkında",
+    "description1": "X on Track: Aileler için Tasarlandı. Yapay Zeka tarafından desteklenmektedir. Yiyecek, fitness, su ve sağlığı birlikte takip edin.",
     "applicationVersion": "Uygulama Sürümü: ",
     "joinDiscord": "Discord'daki topluluğumuza katılın: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -917,7 +917,7 @@
         "availableServices": "Mevcut Yapay Zeka Hizmetleri",
         "activeProvider": "Aktif yapay zeka sağlayıcısı",
         "noServices": "Henüz yapılandırılmış AI hizmeti yok.",
-        "noServicesDescription": "Sparky'yi kullanmaya başlamak için ilk yapay zeka hizmetinizi ekleyin.",
+        "noServicesDescription": "Trackbot'yi kullanmaya başlamak için ilk yapay zeka hizmetinizi ekleyin.",
         "noServicesDescriptionDisabled": "Bir AI hizmetini yapılandırmak için lütfen yöneticinizle iletişime geçin.",
         "serviceName": "Hizmet Adı",
         "serviceNamePlaceholder": "OpenAI Hizmetim",

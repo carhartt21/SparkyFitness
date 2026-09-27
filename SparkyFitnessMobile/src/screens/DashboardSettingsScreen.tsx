@@ -244,15 +244,15 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
         <SettingsRowGroup>
           <SettingsRow
             title={t('dashboardSettings.askSparky', {
-              defaultValue: 'AI assistant',
+              defaultValue: 'Trackbot',
             })}
             subtitle={t('dashboardSettings.askSparkySubtitle', {
-              defaultValue: 'Show the AI assistant launcher on the Dashboard',
+              defaultValue: 'Show Trackbot on the Dashboard',
             })}
             rightAccessory={
               <Switch
                 accessibilityLabel={t('dashboardSettings.askSparky', {
-                  defaultValue: 'AI assistant',
+                  defaultValue: 'Trackbot',
                 })}
                 value={askSparkyVisible}
                 onValueChange={setAskSparkyVisible}

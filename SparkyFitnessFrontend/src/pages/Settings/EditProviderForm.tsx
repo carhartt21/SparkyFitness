@@ -179,8 +179,9 @@ export const EditProviderForm = ({
           </p>
           <p className="text-sm text-muted-foreground col-span-2">
             Open Food Facts is a community-driven database that supports
-            localization. Sparky automatically queries products in your active
-            language setting in X on Track. For more information, visit the{' '}
+            localization. X on Track automatically queries products in your
+            active language setting in X on Track. For more information, visit
+            the{' '}
             <a
               href="https://world.openfoodfacts.org/"
               target="_blank"

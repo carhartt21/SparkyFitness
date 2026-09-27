@@ -650,8 +650,8 @@
     "useExternalBmrHint": "預設係關——您未開之前一律用您揀嘅公式，開咗之後，檢查記錄入面記低嘅 BMR，或者由智能磅／健康服務同步嘅 BMR，會喺嗰日取代公式（前提係對您嚟講生理上合理），有啲裝置報嘅 BMR 係每日累計總量，唔係速率，所以就係點解呢個要自己開."
   },
   "aboutDialog": {
-    "title": "關於 SparkyFitness",
-    "description1": "SparkyFitness：為一班用家而設計，配合 AI 技術，一齊記錄飲食、運動、飲水同身體狀況.",
+    "title": "關於 X on Track",
+    "description1": "X on Track：為一班用家而設計，配合 AI 技術，一齊記錄飲食、運動、飲水同身體狀況.",
     "applicationVersion": "軟件版本： ",
     "joinDiscord": "入我哋 Discord 社群一齊交流： ",
     "discordLink": "discord，gg/vcnMT5cPEA",
@@ -786,7 +786,7 @@
       "healthConnectProjectionSource": "Health Connect 總熱量",
       "fallbackProjectionSource": "BMR基礎代謝率 + 活動消耗回退",
       "legacyProjectionSource": "裝置預測",
-      "sparkyfitnessBurned": "SparkyFitness 消耗",
+      "sparkyfitnessBurned": "X on Track 消耗",
       "summaryUnavailableDesc": "載入唔到您嘅每日能量摘要，請試吓重新整理頁面.",
       "summaryUnavailableTitle": "每日摘要唔可用",
       "updateProfile": "更新個人資料",
@@ -1501,7 +1501,7 @@
       "addDialogTitle": "加家庭存取",
       "familyMemberEmail": "家庭成員信箱",
       "emailPlaceholder": "輸入家庭成員嘅信箱",
-      "accountHint": "佢哋建立 SparkyFitness 帳號之後就可以取得存取權限（如果未有帳號）",
+      "accountHint": "佢哋建立 X on Track 帳號之後就可以取得存取權限（如果未有帳號）",
       "accessPermissions": "存取權限",
       "canManageDiary": "可管理日記",
       "canManageDiaryHelp": "容許受託人代您記錄餐膳、訓練、飲水同目標，健康記錄（瞓覺、心情、斷食）會被阻止，授予個人資料唯讀權限.",
@@ -1602,7 +1602,7 @@
         "description": "移除所有由特定來源（例如 Apple Health、Garmin）同步或匯入嘅記錄，呢度只影響同步資料 — 您手動加嘅記錄絕對唔會掂，呢個操作無法復原.",
         "scopeExcludesLibrary": "唔會刪除您嘅食材或運動資料庫（可重用嘅食材/運動定義）— 只刪已記錄嘅資料.",
         "scopeExcludesCheckin": "唔會刪除標準打卡測量值（體重、步數、體脂、身高）— 呢啲資料會將所有提供方合併做每日一個值，冇辦法喺度按來源刪除.",
-        "scopeExcludesManual": "唔會刪除任何您自己建立嘅內容 — 您手動輸入、透過 Sparky 助手記錄或由已儲存預設/計劃做嘅訓練永遠保留."
+        "scopeExcludesManual": "唔會刪除任何您自己建立嘅內容 — 您手動輸入、透過 Trackbot 助手記錄或由已儲存預設/計劃做嘅訓練永遠保留."
       }
     },
     "foodExerciseDataProviders": {
@@ -1612,10 +1612,10 @@
       "openFoodFacts": {
         "baseUrlLabel": "基礎 URL（選用）",
         "baseUrlHelp": "留空用公共 Open Food Facts 伺服器，或者指向您自己嘅自架實例，需要身份驗證嘅貢獻功能要求用 HTTPS.",
-        "credentialContributionHelp": "用戶名同密碼對搜尋嚟講係可選，但由 SparkyFitness 貢獻食材時兩樣都要，憑證靜態儲存時會加密，儲存帳號唔會啟用上載；每個用戶各自控制自己嘅同意.",
+        "credentialContributionHelp": "用戶名同密碼對搜尋嚟講係可選，但由 X on Track 貢獻食材時兩樣都要，憑證靜態儲存時會加密，儲存帳號唔會啟用上載；每個用戶各自控制自己嘅同意.",
         "credentialKeepExistingHelp": "兩個欄位都留空以保留已儲存嘅憑證.",
         "contributionsTitle": "Open Food Facts 貢獻",
-        "contributionsDescription": "改進共享嘅 Open Food Facts 資料庫，為每個 SparkyFitness 伺服器帶嚟更好嘅產品資料.",
+        "contributionsDescription": "改進共享嘅 Open Food Facts 資料庫，為每個 X on Track 伺服器帶嚟更好嘅產品資料.",
         "consentTitle": "上載需要您嘅同意",
         "personalConsentWarning": "由您嘅自訂食材表格或食材選單一次貢獻一個產品，揀您自己嘅包裝相，核對確實預覽，然後確認發布，儲存食材或呢啲設定唔會上載任何嘢.",
         "sharedDataWarning": "只有您按實體包裝輸入嘅資料先符合資格，Open Food Facts 按 ODbL 同資料庫內容許可協議發布結構化資料，並按 CC BY-SA 發布您自己嘅相，每次貢獻都要分別確認資料同相嘅權利.",
@@ -1650,7 +1650,7 @@
         "clientSecretLabel": "YAZIO 用戶端密鑰",
         "clientSecretPlaceholder": "輸入 YAZIO 用戶端密鑰",
         "allFieldsRequired": "所有欄位（信箱/用戶名、密碼、用戶端 ID 同用戶端密鑰）都係必填.",
-        "languageSupportHelp": "YAZIO 食材搜尋會自動配合您喺 SparkyFitness 嘅語言偏好（支援英文、德文、法文、俄文、西班牙文、意大利文、荷蘭文、波蘭文、葡萄牙文、丹麥文、芬蘭文、瑞典文、捷克文、匈牙利文、希臘文、挪威文、土耳其文、中文、日文同韓文），其他語言預設用標準國際資料庫參數."
+        "languageSupportHelp": "YAZIO 食材搜尋會自動配合您喺 X on Track 嘅語言偏好（支援英文、德文、法文、俄文、西班牙文、意大利文、荷蘭文、波蘭文、葡萄牙文、丹麥文、芬蘭文、瑞典文、捷克文、匈牙利文、希臘文、挪威文、土耳其文、中文、日文同韓文），其他語言預設用標準國際資料庫參數."
       },
       "oauthDashboards": {
         "fallback": "提供方嘅開發者控制台",
@@ -1763,7 +1763,7 @@
         "availableServices": "可選用嘅人工智能服務",
         "activeProvider": "當前生效嘅人工智能供應商",
         "noServices": "暫時未有配置任何人工智能服務.",
-        "noServicesDescription": "新增第一組人工智能服務，就可以開始使用 Sparky 整套功能.",
+        "noServicesDescription": "新增第一組人工智能服務，就可以開始使用 Trackbot 整套功能.",
         "noServicesDescriptionDisabled": "麻煩聯絡管理員幫您配置對應嘅人工智能服務先可以使用.",
         "serviceName": "服務名稱",
         "serviceNamePlaceholder": "舉例：個人專用 OpenAI 服務",
@@ -2080,7 +2080,7 @@
       "perWeek": "/ 星期",
       "rate": "速度：",
       "bodyWeightRate": "每星期體重嘅 {{percent}}%",
-      "estimatedTargetNote": "注意：呢個目標而家係基於估算嘅活動水平，喺攞到 {{required}}+ 日嘅體重同熱量數據之後，SparkyFitness 會計更個人化嘅自適應 TDEE.",
+      "estimatedTargetNote": "注意：呢個目標而家係基於估算嘅活動水平，喺攞到 {{required}}+ 日嘅體重同熱量數據之後，X on Track 會計更個人化嘅自適應 TDEE.",
       "minimumMetabolismWarningTitle": "安全提醒：熱量目標低過最低代謝水平",
       "minimumMetabolismWarningText": "您嘅熱量目標低過估算嘅最低代謝水平（RMR），咁可能唔可以長期維持，請考慮揀冇咁激進嘅目標模式，或者啟用標準或自訂安全下限.",
       "absoluteFloorWarningTitle": "嚴重健康提醒：熱量目標低過絕對下限",
@@ -2094,7 +2094,7 @@
       "unsafeGainText": "每星期增重超過體重嘅 0.5% 代表增加嘅體重大部分係脂肪而唔係肌肉，慢啲嘅盈餘可以增建相似嘅肌肉量，而脂肪增加少好多.",
       "unsafeLossTitle": "唔安全嘅減重速度",
       "unsafeLossText": "每星期減重超過體重嘅 1.5% 當係過度，呢種速度會大幅增加嚴重肌肉流失、嗜睡、激素失衡同營養缺乏嘅風險，請揀冇咁激進嘅目標模式.",
-      "calibrationDescription": "Sparky 嘅自適應 每日總能量消耗TDEE 引擎需要至少 {{required}} 日嘅持續追蹤先可以準確計您嘅代謝（而家用緊回退估算），為咗加快校準：",
+      "calibrationDescription": "X on Track 嘅自適應 每日總能量消耗TDEE 引擎需要至少 {{required}} 日嘅持續追蹤先可以準確計您嘅代謝（而家用緊回退估算），為咗加快校準：",
       "calibrationWeightTip": "每星期至少記錄體重 3-4 次.",
       "calibrationFoodTip": "每日記錄食材攝取（>200 千卡/日）.",
       "livePreviewSavedNote": "BMR基礎代謝率 同體脂會隨您改設定而更新，消耗量係由伺服器按您儲存嘅設定計，所以消耗量同最終目標要等您儲存之後先會變."
@@ -5079,7 +5079,7 @@
     "demoLicenseTitle": "許可與條款",
     "demoLockedDesc": "為咗穩定性，共享示範帳號上嘅憑證修改、MFA/密鑰設定同外部裝置 OAuth 整合已被停用.",
     "demoLockedTitle": "受保護嘅設定",
-    "demoLoginSuccess": "歡迎嚟到 SparkyFitness 示範！",
+    "demoLoginSuccess": "歡迎嚟到 X on Track 示範！",
     "demoPrivacyDesc": "呢個係共享嘅公共示範實例.請唔好輸入真實嘅醫療記錄、密碼或者機密個人資料.",
     "demoPrivacyTitle": "公共沙箱提示",
     "demoResetDesc": "所有食材日記記錄、訓練同測量值每 24 小時自動重設，保持範例數據新鮮.",
@@ -5089,7 +5089,7 @@
     "demoTermsDesc": "呢個沙箱嚴格用於軟件評估.安全探測、自動化抓取/機械人、DDoS、漏洞利用同惡意活動被嚴格禁止.",
     "demoTermsTitle": "可接受使用同反濫用政策",
     "demoWelcomeSubtitle": "入去之前請睇並確認示範條款.",
-    "demoWelcomeTitle": "歡迎嚟到 SparkyFitness 示範",
+    "demoWelcomeTitle": "歡迎嚟到 X on Track 示範",
     "emailExists": "用呢個信箱嘅用戶已經存在.",
     "enteringDemo": "進入緊示範…",
     "exploreDemo": "🚀 探索實時示範（一鍵登入）",
@@ -5434,7 +5434,7 @@
     "last365Days": "最近 365 日",
     "last7Days": "最近 7 日",
     "last90Days": "最近 90 日",
-    "polarWarning": "注意：Polar 淨係容許同步您將帳號連接到 SparkyFitness 之後記錄嘅數據.",
+    "polarWarning": "注意：Polar 淨係容許同步您將帳號連接到 X on Track 之後記錄嘅數據.",
     "startDate": "開始日期",
     "syncNow": "開始同步",
     "timeoutWarning": "對於較大嘅日期範圍，瀏覽器可能會超時，但伺服器會喺背景繼續同步.",

@@ -283,7 +283,7 @@ describe('chatService', () => {
       const mockHistory = [{ id: historyId, message: 'hi' }];
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       chatRepository.getChatHistoryByUserId.mockResolvedValue(mockHistory);
-      const result = await chatService.getSparkyChatHistory(
+      const result = await chatService.getTrackbotChatHistory(
         mockUserId,
         mockTargetUserId
       );
@@ -295,7 +295,7 @@ describe('chatService', () => {
       const mockEntry = { id: historyId, message: 'hi' };
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       chatRepository.getChatHistoryEntryById.mockResolvedValue(mockEntry);
-      const result = await chatService.getSparkyChatHistoryEntry(
+      const result = await chatService.getTrackbotChatHistoryEntry(
         mockUserId,
         historyId
       );
@@ -308,7 +308,7 @@ describe('chatService', () => {
       const updatedEntry = { id: historyId, ...updateData };
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       chatRepository.updateChatHistoryEntry.mockResolvedValue(updatedEntry);
-      const result = await chatService.updateSparkyChatHistoryEntry(
+      const result = await chatService.updateTrackbotChatHistoryEntry(
         mockUserId,
         historyId,
         updateData
@@ -320,7 +320,7 @@ describe('chatService', () => {
       chatRepository.getChatHistoryEntryOwnerId.mockResolvedValue(mockUserId);
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       chatRepository.deleteChatHistoryEntry.mockResolvedValue(true);
-      const result = await chatService.deleteSparkyChatHistoryEntry(
+      const result = await chatService.deleteTrackbotChatHistoryEntry(
         mockUserId,
         historyId
       );
@@ -332,7 +332,7 @@ describe('chatService', () => {
       const historyData = { message: 'new message' };
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       chatRepository.saveChatHistory.mockResolvedValue();
-      const result = await chatService.saveSparkyChatHistory(
+      const result = await chatService.saveTrackbotChatHistory(
         mockUserId,
         historyData
       );

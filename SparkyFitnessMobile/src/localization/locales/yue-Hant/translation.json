@@ -956,7 +956,7 @@
     "pastSets": "過去嘅組數同次數",
     "wellness": "健康",
     "progressPhotos": "進度相",
-    "askSparky": "問 Sparky",
+    "askSparky": "問 Trackbot",
     "syncHealth": "同步健康資料",
     "logPregnancyEntry": "記錄懷孕紀錄",
     "logCycle": "記錄週期"
@@ -977,7 +977,7 @@
     "newPreset": "新預設",
     "scanFood": "掃描食材",
     "photoFood": "影相記食材",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "編輯餐膳",
     "createMeal": "建立餐膳",
     "foodEntry": "食材紀錄",
@@ -1185,7 +1185,7 @@
     "loadingSummary": "載入摘要中…",
     "loadFailed": "載入摘要失敗",
     "checkConnection": "請檢查您嘅網絡連線，然後再試一次.",
-    "askSparky": "問 Sparky…",
+    "askSparky": "問 Trackbot…",
     "nutrients": "營養素",
     "food": "食材",
     "tapToAddFood": "撳一下加食材",
@@ -1400,8 +1400,8 @@
     "noCustomNutrients": "冇自訂營養素",
     "customNutrientsDescription": "自訂營養素喺 X on Track 網頁版建立，加咗之後會喺呢度顯示，您可以揀邊啲顯示喺儀表板.",
     "title": "儀表板設定",
-    "askSparky": "問 Sparky",
-    "askSparkySubtitle": "喺儀表板顯示 「問 Sparky」 聊天啟動器",
+    "askSparky": "問 Trackbot",
+    "askSparkySubtitle": "喺儀表板顯示 「問 Trackbot」 聊天啟動器",
     "hydration": "水分",
     "hydrationSubtitle": "喺儀表板顯示水分卡片",
     "fasting": "斷食",
@@ -2618,9 +2618,9 @@
         "cta": "開啟設定"
       },
       "chat": {
-        "eyebrow": "問 SPARKY",
+        "eyebrow": "問 TRACKBOT",
         "headline": "同您嘅 AI 教練傾偈",
-        "body": "叫 Sparky 記錄餐膳、計劃食咩，透過聊天答您關於一日嘅問題.",
+        "body": "叫 Trackbot 記錄餐膳、計劃食咩，透過聊天答您關於一日嘅問題.",
         "cta": "開始傾偈"
       },
       "widget": {
@@ -3551,14 +3551,14 @@
     "removeFailed": "移除相片唔到"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "聊天錯誤",
     "errorRetry": "有啲嘢出咗問題，撳重試再試一次.",
     "retry": "重試",
-    "placeholder": "傳訊息俾 Sparky…",
+    "placeholder": "傳訊息俾 Trackbot…",
     "emptyPrompt": "任何關於您營養、運動或者目標嘅嘢.",
     "clearTitle": "清除聊天",
-    "clearMessage": "呢個會永久刪除您嘅 Sparky 聊天紀錄，冇得復原.",
+    "clearMessage": "呢個會永久刪除您嘅 Trackbot 聊天紀錄，冇得復原.",
     "clearFailed": "清除聊天唔到",
     "clearAccessibility": "清除聊天",
     "noServer": "冇使用中伺服器配置，先去設定度設定一個.",
@@ -3578,7 +3578,7 @@
       "goals": "目標",
       "lookedUp": "已查詢 {{name}}"
     },
-    "typing": "Sparky 輸入緊"
+    "typing": "Trackbot 輸入緊"
   },
   "foodImagePicker": {
     "photos": "相片",

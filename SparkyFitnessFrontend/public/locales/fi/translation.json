@@ -9,8 +9,8 @@
     "admin": "Ylläpito"
   },
   "aboutDialog": {
-    "title": "Tietoja SparkyFitnessistä",
-    "description1": "SparkyFitness: Tehty perheille. Tehostettu tekoälyllä. Seuraa ruokia, liikuntaa, vettä ja terveyttä — yhdessä.",
+    "title": "Tietoja X on Trackistä",
+    "description1": "X on Track: Tehty perheille. Tehostettu tekoälyllä. Seuraa ruokia, liikuntaa, vettä ja terveyttä — yhdessä.",
     "applicationVersion": "Sovelluksen versio: ",
     "joinDiscord": "Liity yhteisöömme Discordissa: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -526,7 +526,7 @@
         "enableEmailPasswordLogin": "Käytä käyttäjätunnuksella ja salasanalla kirjautumista",
         "enableOidcLoginGlobal": "Käytä OIDC-kirjautumista (Koko järjestelmä)",
         "emergencyFailSafe": "Varmuuskirjautumistapa:",
-        "emergencyFailSafeDescription": "Jos tilisi lukkiutuu, voit pakottaa käyttäjätunnus/salasana kirjautumisen aktiiviseksi ensin asettamalla seuraavan ympäristömuuttujan palvelimellesi ja sitten uudelleenkäynnistämällä SparkyFitnessin:",
+        "emergencyFailSafeDescription": "Jos tilisi lukkiutuu, voit pakottaa käyttäjätunnus/salasana kirjautumisen aktiiviseksi ensin asettamalla seuraavan ympäristömuuttujan palvelimellesi ja sitten uudelleenkäynnistämällä X on Trackin:",
         "envVarCopied": "Ympäristömuuttuja kopioitiin leikepöydälle."
       },
       "oidcProviderManagement": {

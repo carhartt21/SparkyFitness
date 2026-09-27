@@ -806,7 +806,7 @@
     "pastSets": "Vergangene Sätze und Wiederholungen",
     "wellness": "Wohlbefinden",
     "progressPhotos": "Fortschrittsfotos",
-    "askSparky": "Assistenten fragen",
+    "askSparky": "Trackbot fragen",
     "syncHealth": "Synchronisierung Gesundheit Data",
     "logPregnancyEntry": "Eintragen Schwangerschaft Entry",
     "logCycle": "Eintragen Zyklus"
@@ -827,7 +827,7 @@
     "newPreset": "Neu Preset",
     "scanFood": "Scannen Ernährung",
     "photoFood": "Foto Ernährung",
-    "sparky": "Assistent",
+    "sparky": "Trackbot",
     "editMeal": "Bearbeiten Mahlzeit",
     "createMeal": "Create Mahlzeit",
     "foodEntry": "Ernährung Entry",
@@ -1039,7 +1039,7 @@
     "loadingSummary": "Übersicht wird geladen …",
     "loadFailed": "Übersicht konnte nicht geladen werden",
     "checkConnection": "Prüfe deine Verbindung und versuche es erneut.",
-    "askSparky": "Assistenten fragen …",
+    "askSparky": "Trackbot fragen …",
     "nutrients": "Nährstoffe",
     "food": "Ernährung",
     "tapToAddFood": "Lebensmittel erfassen",
@@ -1301,8 +1301,8 @@
     "noCustomNutrients": "Nein benutzerdefiniert nutrients",
     "customNutrientsDescription": "Benutzerdefiniert nutrients are created in the X on Track web App. Once du hinzufügen some, they will appear here so du can auswählen which show an dein Dashboard.",
     "title": "Dashboard Einstellungen",
-    "askSparky": "KI-Assistent",
-    "askSparkySubtitle": "Den KI-Assistenten im Dashboard anzeigen",
+    "askSparky": "Trackbot",
+    "askSparkySubtitle": "Trackbot im Dashboard anzeigen",
     "hydration": "Flüssigkeitszufuhr",
     "hydrationSubtitle": "the hydration card on the Dashboard anzeigen",
     "fasting": "Schnelling",
@@ -2815,9 +2815,9 @@
         "cta": "Öffnen Einstellungen"
       },
       "chat": {
-        "eyebrow": "KI-ASSISTENT",
-        "headline": "Chat mit dein AI coach",
-        "body": "Frage den Assistenten nach Ernährung, Mahlzeiten und deinem Tag.",
+        "eyebrow": "TRACKBOT",
+        "headline": "Chat mit Trackbot",
+        "body": "Frag Trackbot nach Ernährung, Mahlzeiten und deinem Tag.",
         "cta": "Starten chatting"
       },
       "widget": {
@@ -3810,14 +3810,14 @@
     "removeFailed": "remove photo konnte nicht ausgeführt werden."
   },
   "chat": {
-    "title": "Assistent",
+    "title": "Trackbot",
     "error": "Chat Fehler",
     "errorRetry": "Something went wrong. Tippe retry to try again.",
     "retry": "Erneut versuchen",
-    "placeholder": "Nachricht an den Assistenten…",
-    "emptyPrompt": "Frage nach deiner Ernährung, deinem Training oder deinen Zielen.",
+    "placeholder": "Nachricht an Trackbot…",
+    "emptyPrompt": "Frag Trackbot nach deiner Ernährung, deinem Training oder deinen Zielen.",
     "clearTitle": "Leeren chat",
-    "clearMessage": "Der Chatverlauf wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
+    "clearMessage": "Der Chatverlauf mit Trackbot wird dauerhaft gelöscht. Das kann nicht rückgängig gemacht werden.",
     "clearFailed": "clear chat konnte nicht ausgeführt werden.",
     "clearAccessibility": "Leeren chat",
     "noServer": "Keine active server config. Set one up in Settings first.",
@@ -3837,7 +3837,7 @@
       "goals": "Ziele",
       "lookedUp": "Looked up {{name}}"
     },
-    "typing": "Assistent schreibt"
+    "typing": "Trackbot schreibt"
   },
   "foodImagePicker": {
     "photos": "Fotos",

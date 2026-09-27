@@ -8,7 +8,7 @@
     "checkin": "Login"
   },
   "aboutDialog": {
-    "title": "Tentang SparkyFitness",
+    "title": "Tentang X on Track",
     "applicationVersion": "Versi Aplikasi: ",
     "joinDiscord": "Bergabung ke komunitas Discord kami: ",
     "discordLink": "discord.gg/vcnMT5cPEA",
@@ -22,7 +22,7 @@
     "openFoodFactsApi": "API Open Food Facts",
     "gotIt": "Baiklah",
     "close": "Tutup",
-    "description1": "SparkyFitness: Dibangun untuk Keluarga. Dengan AI. Lacak makanan, kebugaran, air, dan kesehatan - bersama.",
+    "description1": "X on Track: Dibangun untuk Keluarga. Dengan AI. Lacak makanan, kebugaran, air, dan kesehatan - bersama.",
     "externalApis": "API eksternal:"
   },
   "exercise": {

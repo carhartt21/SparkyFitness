@@ -872,7 +872,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           summary={summary}
           onOpenDiary={() => navigation.navigate('Diary', { selectedDate })}
         />
-        {/* Tap-to-open launcher for the Sparky chat. Styled like an input to
+        {/* Tap-to-open launcher for Trackbot chat. Styled like an input to
             invite, but it pushes the full chat screen rather than capturing text
             here — the Dashboard's scroll + date-fling gestures make a live input
             on this screen more trouble than it's worth. The composer autofocuses
@@ -885,7 +885,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           >
             <Icon name="sparkles" size={18} color={accentColor} />
             <Text className="text-text-muted text-base ml-3">
-              {t('dashboard.askSparky', { defaultValue: 'Ask the assistant…' })}
+              {t('dashboard.askSparky', { defaultValue: 'Ask Trackbot…' })}
             </Text>
           </Pressable>
         )}

@@ -390,7 +390,7 @@
     "pastSets": "Serie e ripetizioni passate",
     "wellness": "Salute",
     "progressPhotos": "Foto dei progressi",
-    "askSparky": "Chiedi a Sparky",
+    "askSparky": "Chiedi a Trackbot",
     "syncHealth": "Sincronizza dati salute",
     "logPregnancyEntry": "Registra voce gravidanza",
     "logCycle": "Registra ciclo"
@@ -411,7 +411,7 @@
     "newPreset": "Nuovo preset",
     "scanFood": "Scansiona cibo",
     "photoFood": "Foto cibo",
-    "sparky": "Sparky",
+    "sparky": "Trackbot",
     "editMeal": "Modifica pasto",
     "createMeal": "Crea pasto",
     "foodEntry": "Voce cibo",
@@ -681,7 +681,7 @@
     "loadingSummary": "Caricamento riepilogo...",
     "loadFailed": "Caricamento riepilogo non riuscito",
     "checkConnection": "Controlla la tua connessione e riprova.",
-    "askSparky": "Chiedi a Sparky…",
+    "askSparky": "Chiedi a Trackbot…",
     "nutrients": "Nutrienti",
     "food": "Cibo",
     "tapToAddFood": "Tocca per aggiungere cibo",
@@ -900,8 +900,8 @@
     "noCustomNutrients": "Nessun nutriente personalizzato",
     "customNutrientsDescription": "I nutrienti personalizzati vengono creati nell'app web X on Track. Una volta aggiunti, appariranno qui in modo da poter scegliere quali mostrare sulla tua Dashboard.",
     "title": "Impostazioni Dashboard",
-    "askSparky": "Chiedi a Sparky",
-    "askSparkySubtitle": "Mostra il launcher della chat Chiedi a Sparky sulla Dashboard",
+    "askSparky": "Chiedi a Trackbot",
+    "askSparkySubtitle": "Mostra il launcher della chat Chiedi a Trackbot sulla Dashboard",
     "hydration": "Idratazione",
     "hydrationSubtitle": "Mostra la scheda dell'idratazione sulla Dashboard",
     "fasting": "Digiuno",
@@ -2690,9 +2690,9 @@
         "cta": "Apri le impostazioni"
       },
       "chat": {
-        "eyebrow": "CHIEDI A SPARKY",
+        "eyebrow": "CHIEDI A TRACKBOT",
         "headline": "Chatta con il tuo coach AI",
-        "body": "Chiedi a Sparky di registrare i pasti, pianificare cosa mangiare e rispondere alle domande sulla tua giornata tramite chat.",
+        "body": "Chiedi a Trackbot di registrare i pasti, pianificare cosa mangiare e rispondere alle domande sulla tua giornata tramite chat.",
         "cta": "Inizia a chattare"
       },
       "widget": {
@@ -3663,14 +3663,14 @@
     "removeFailed": "Impossibile rimuovere la foto"
   },
   "chat": {
-    "title": "Sparky",
+    "title": "Trackbot",
     "error": "Errore della chat",
     "errorRetry": "Qualcosa è andato storto. Tocca riprova per tentare di nuovo.",
     "retry": "Riprova",
-    "placeholder": "Messaggio a Sparky…",
-    "emptyPrompt": "Chiedi a Sparky qualsiasi cosa sulla tua alimentazione, esercizio o obiettivi.",
+    "placeholder": "Messaggio a Trackbot…",
+    "emptyPrompt": "Chiedi a Trackbot qualsiasi cosa sulla tua alimentazione, esercizio o obiettivi.",
     "clearTitle": "Cancella chat",
-    "clearMessage": "Questo elimina permanentemente la cronologia della chat di Sparky. Questa operazione non può essere annullata.",
+    "clearMessage": "Questo elimina permanentemente la cronologia della chat di Trackbot. Questa operazione non può essere annullata.",
     "clearFailed": "Impossibile cancellare la chat",
     "clearAccessibility": "Cancella chat",
     "noServer": "Nessuna configurazione del server attiva. Configurane una prima nelle Impostazioni.",
@@ -3690,7 +3690,7 @@
       "goals": "Obiettivi",
       "lookedUp": "Cercato {{name}}"
     },
-    "typing": "Sparky sta scrivendo"
+    "typing": "Trackbot sta scrivendo"
   },
   "foodImagePicker": {
     "photos": "Foto",

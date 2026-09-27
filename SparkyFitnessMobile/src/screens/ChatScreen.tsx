@@ -99,7 +99,7 @@ function ChatKeyboardAvoidingView(
 }
 
 /**
- * Sparky chat: the assistant-ui + AI SDK runtime wired to the server's
+ * Trackbot chat: the assistant-ui + AI SDK runtime wired to the server's
  * streaming endpoint (`/api/chat/stream`).
  *
  * The transport uses `expo/fetch` so response bodies stream incrementally in
@@ -110,7 +110,7 @@ function ChatKeyboardAvoidingView(
  */
 
 /** Builds the assistant-ui runtime bound to our streaming endpoint. */
-function useSparkyChatRuntime({
+function useTrackbotChatRuntime({
   baseUrl,
   serviceConfigId,
   initialMessages,
@@ -413,7 +413,7 @@ function Composer({ autoFocusReady }: { autoFocusReady: boolean }) {
       <LocalComposerInput
         autoFocusReady={autoFocusReady}
         placeholder={t('chat.placeholder', {
-          defaultValue: 'Message the assistant…',
+          defaultValue: 'Message Trackbot…',
         })}
         placeholderTextColor={muted}
         multiline
@@ -507,7 +507,7 @@ function ChatThread({
   autoFocusReady: boolean;
 }) {
   const { t } = useTranslation();
-  const runtime = useSparkyChatRuntime({
+  const runtime = useTrackbotChatRuntime({
     baseUrl,
     serviceConfigId,
     initialMessages,
@@ -591,7 +591,8 @@ function ChatThread({
             <View className="flex-1 items-center justify-center p-8">
               <Text className="text-text-muted text-center text-base mb-6">
                 {t('chat.emptyPrompt', {
-                  defaultValue: 'Ask about your nutrition, exercise, or goals.',
+                  defaultValue:
+                    'Ask Trackbot about your nutrition, exercise, or goals.',
                 })}
               </Text>
               {/* ThreadPrimitive.Suggestion IS the Pressable, so its child must be a
@@ -721,7 +722,7 @@ export default function ChatScreen({
       t('chat.clearTitle', { defaultValue: 'Clear chat' }),
       t('chat.clearMessage', {
         defaultValue:
-          'This permanently deletes your assistant chat history. This cannot be undone.',
+          'This permanently deletes your Trackbot chat history. This cannot be undone.',
       }),
       [
         {
@@ -760,7 +761,7 @@ export default function ChatScreen({
   // Clear chat is disabled while a stream runs so the server's in-flight
   // onFinish save can't resurrect the exchange after the DELETE.
   const header = useScreenHeader({
-    title: t('chat.title', { defaultValue: 'Assistant' }),
+    title: t('chat.title', { defaultValue: 'Trackbot' }),
     left: { kind: 'back' },
     right: baseUrl
       ? {

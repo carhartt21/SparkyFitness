@@ -378,7 +378,7 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
                   )
                 : null}
               {renderSecondaryRow(
-                t('addSheet.askSparky', { defaultValue: 'Ask the assistant' }),
+                t('addSheet.askSparky', { defaultValue: 'Ask Trackbot' }),
                 'sparkles',
                 onAskSparky
               )}

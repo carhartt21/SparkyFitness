@@ -11,7 +11,7 @@ import { ConfigPlugin, withEntitlementsPlist } from 'expo/config-plugins';
  *   Personal development teams, including "<name>", do not support the Push
  *   Notifications capability.
  *
- * SparkyFitness only uses *local* notifications (rest-timer chime, medication
+ * X on Track only uses *local* notifications (rest-timer chime, medication
  * reminders, etc.), which do not require this entitlement — remote/APNs push is
  * not used — so dropping it does not change app behavior.
  *

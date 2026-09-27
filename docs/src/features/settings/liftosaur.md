@@ -17,7 +17,7 @@ The Liftosaur integration allows you to automatically import workouts, exercise 
 
 1. Open the Liftosaur app or web interface.
 2. Tap the **Me** tab at the bottom right and select **API Keys**.
-3. Under **Create New Key**, enter a key name (such as `Sparky`) and tap **Create**.
+3. Under **Create New Key**, enter a key name (such as `X on Track`) and tap **Create**.
 4. Tap **Copy** next to your newly created key (keys begin with `lftsk_...`).
 
 ![Liftosaur Settings Menu](/liftosaur_me_settings.jpg)

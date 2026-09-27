@@ -62,7 +62,7 @@ async function copyTree(srcDir: string, destDir: string): Promise<void> {
  *
  * No AppCompat dependency, AppLocalesMetadataHolderService, or autoStoreLocales
  * are used: Android 12 and below keep the language preference local to
- * SparkyFitness (stored preference + expo-localization + i18next).
+ * X on Track (stored preference + expo-localization + i18next).
  */
 const withAppLanguage: ConfigPlugin = (config) => {
   config = withDangerousMod(config, [

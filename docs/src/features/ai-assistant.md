@@ -1,4 +1,4 @@
-## Sparky Buddy (AI Assistant)
+## Trackbot (AI Assistant)
 
 ### Core AI Features
 

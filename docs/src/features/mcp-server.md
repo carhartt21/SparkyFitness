@@ -102,7 +102,7 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 ```json
 {
   "mcpServers": {
-    "sparky-fitness": {
+    "x-on-track": {
       "url": "https://<your-host>/mcp",
       "headers": {
         "Authorization": "Bearer <API_KEY>"
@@ -117,7 +117,7 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 ```json
 {
   "mcpServers": {
-    "sparky-fitness": {
+    "x-on-track": {
       "command": "npx",
       "args": [
         "-y",

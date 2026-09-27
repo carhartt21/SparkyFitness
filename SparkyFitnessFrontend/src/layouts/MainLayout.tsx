@@ -27,7 +27,7 @@ import {
 import type { LucideIcon } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
-import SparkyChat from '../pages/Chat/SparkyChat';
+import TrackbotChat from '../pages/Chat/TrackbotChat';
 import AddComp from '@/layouts/AddComp';
 import ThemeToggle from '@/components/ThemeToggle';
 import GlobalSyncButton from '@/components/GlobalSyncButton';
@@ -662,7 +662,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           {isCurrentPathAllowed ? <Outlet /> : null}
         </main>
 
-        <SparkyChat />
+        <TrackbotChat />
       </div>
 
       <AddComp

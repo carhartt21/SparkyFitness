@@ -18,6 +18,7 @@ jest.mock('../../src/services/LogService', () => ({
 import {
   normalizeLanguage,
   getDeviceLanguage,
+  RESOURCE_MAP,
   SUPPORTED_LANGUAGES,
 } from '../../src/localization/i18n';
 import registry from '../../src/localization/localeRegistry.json';
@@ -113,6 +114,28 @@ describe('getDeviceLanguage', () => {
 describe('SUPPORTED_LANGUAGES', () => {
   it('lists every shipped locale in registry order', () => {
     expect(SUPPORTED_LANGUAGES).toEqual(Object.keys(registry.locales));
+  });
+});
+
+function localizedStrings(value: unknown): string[] {
+  if (typeof value === 'string') return [value];
+  if (value === null || typeof value !== 'object') return [];
+  return Object.values(value).flatMap(localizedStrings);
+}
+
+describe('X on Track and Trackbot identity', () => {
+  it('keeps the old brand out of shipped translation values', () => {
+    for (const { translation } of Object.values(RESOURCE_MAP)) {
+      expect(localizedStrings(translation).join('\n')).not.toMatch(/sparky/i);
+    }
+  });
+
+  it('names the assistant Trackbot in the English, German and Spanish chat', () => {
+    for (const language of ['en', 'de', 'es'] as const) {
+      const translation = RESOURCE_MAP[language].translation;
+      expect(translation.chat.title).toBe('Trackbot');
+      expect(translation.screens.sparky).toBe('Trackbot');
+    }
   });
 });
 

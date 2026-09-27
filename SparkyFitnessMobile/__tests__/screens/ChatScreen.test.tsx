@@ -260,7 +260,7 @@ describe('ChatScreen thread', () => {
   it('renders the empty state with the configured starter suggestions', async () => {
     const { findByText, getByText } = renderScreen();
     expect(
-      await findByText('Ask about your nutrition, exercise, or goals.')
+      await findByText('Ask Trackbot about your nutrition, exercise, or goals.')
     ).toBeTruthy();
     expect(getByText('Log two eggs and a banana for breakfast')).toBeTruthy();
     expect(getByText('Suggest a high-protein snack')).toBeTruthy();
@@ -311,15 +311,15 @@ describe('ChatScreen thread', () => {
 
   it('keeps typed composer text local while forwarding it to assistant-ui', async () => {
     const { findByPlaceholderText, getByPlaceholderText } = renderScreen();
-    await findByPlaceholderText('Message the assistant…');
+    await findByPlaceholderText('Message Trackbot…');
 
     fireEvent.changeText(
-      getByPlaceholderText('Message the assistant…'),
+      getByPlaceholderText('Message Trackbot…'),
       'hello'
     );
 
     expect((global as any).__mockComposerSetText).toHaveBeenCalledWith('hello');
-    expect(getByPlaceholderText('Message the assistant…').props.value).toBe(
+    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe(
       'hello'
     );
   });
@@ -336,7 +336,7 @@ describe('ChatScreen thread', () => {
     );
     const { findByPlaceholderText, getByPlaceholderText, rerender } =
       render(makeTree());
-    const input = await findByPlaceholderText('Message the assistant…');
+    const input = await findByPlaceholderText('Message Trackbot…');
 
     // Type "a" -> "ab" -> "abc", then backspace to "ab". Echoes are deferred, so
     // the queue accumulates ["a", "ab", "abc", "ab"] with a duplicate "ab".
@@ -350,7 +350,7 @@ describe('ChatScreen thread', () => {
         (c: string[]) => c[0]
       )
     ).toEqual(['a', 'ab', 'abc', 'ab']);
-    expect(getByPlaceholderText('Message the assistant…').props.value).toBe(
+    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe(
       'ab'
     );
 
@@ -360,12 +360,12 @@ describe('ChatScreen thread', () => {
     for (const echo of ['a', 'ab', 'abc', 'ab']) {
       (global as any).__mockComposerText = echo;
       rerender(makeTree());
-      observed.push(getByPlaceholderText('Message the assistant…').props.value);
+      observed.push(getByPlaceholderText('Message Trackbot…').props.value);
     }
 
     expect(observed).toEqual(['ab', 'ab', 'ab', 'ab']);
     expect(observed).not.toContain('abc');
-    expect(getByPlaceholderText('Message the assistant…').props.value).toBe(
+    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe(
       'ab'
     );
   });
@@ -403,7 +403,7 @@ describe('ChatScreen thread', () => {
 
   it('defers composer focus to the push transitionEnd instead of autoFocus', async () => {
     const { findByPlaceholderText } = renderScreen();
-    const input = await findByPlaceholderText('Message the assistant…');
+    const input = await findByPlaceholderText('Message Trackbot…');
 
     // Focusing mid-transition presents the keyboard over the still-sliding
     // screen, which flashes a dark-grey keyboard until the screen settles. So
@@ -578,7 +578,7 @@ describe('ChatScreen history seeding', () => {
 
     expect(queryByTestId('composer-send')).toBeNull();
     expect(
-      queryByText('Ask about your nutrition, exercise, or goals.')
+      queryByText('Ask Trackbot about your nutrition, exercise, or goals.')
     ).toBeNull();
   });
 });
