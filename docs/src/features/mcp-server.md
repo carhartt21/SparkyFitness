@@ -83,7 +83,7 @@ Because the AI has access to all these tools, it can do things a standard app ca
 
 ## 🚀 Getting Started
 
-The MCP server is served **in-process** by the main X on Track server at `POST /mcp`. There is no separate MCP service to run.
+The MCP server is served **in-process** by the main X on Track server. The existing API-key endpoint is `POST /mcp`. When the administrator enables OAuth, `POST /mcp/chatgpt` offers a separate, account-authorized connection for ChatGPT and other compatible MCP clients. It exposes reviewed read tools and selected food, exercise, water, and notification write tools only when the account grants `mcp:write`. Direct writes requested through those tools do not require a second in-app confirmation. Connected assistants can be reviewed and disconnected in web Settings; disconnection blocks the signed token immediately.
 
 ### 1. Generate an API Key
 
@@ -93,6 +93,7 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 
 - **Production**: `https://<your-host>/mcp` (the production nginx config proxies `/mcp` to the server).
 - **Local dev**: `http://localhost:8080/mcp` — the frontend Vite dev proxy forwards `/mcp` to the server. Hitting the server port directly at `http://localhost:3010/mcp` also works.
+- **OAuth assistant connection, when enabled**: `https://<your-host>/mcp/chatgpt`. Connect from an OAuth-capable MCP client and approve the requested read/write scopes on the web login page. No API key needs to be pasted into the client.
 
 ### 3. Configure Your Client
 

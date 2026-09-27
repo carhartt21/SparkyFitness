@@ -22,6 +22,8 @@ All tables in the SparkyFitness database are classified into one of three securi
 
 ### Tier 1: Strictly Private (Owner-Only Read & Write)
 
+The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `engagement_deliveries`, `engagement_action_receipts`, and `engagement_change_events` tables are Tier 1 and have owner-only RLS policies; push tokens are encrypted before storage. MCP OAuth tables (`oauthClient`, `oauthResource`, `oauthClientResource`, `oauthAccessToken`, `oauthRefreshToken`, `oauthConsent`, `oauthClientAssertion`, `jwks`) are stricter system-auth tables: RLS denies the application role entirely, and Better Auth uses the database owner pool. The connected-assistants API checks the signed-in account and returns only client names, scopes, dates, and opaque connection IDs. Delegates cannot list or revoke these connections.
+
 These tables contain highly sensitive credentials, API keys, SSO tokens, 2FA recovery data, or private log histories. **Only the owner (`authenticated_user_id()`) can view or modify these records.** Family delegates and context-switched API keys have absolutely zero access.
 
 | Table Name                              | Description                                                                                                                                                                                                        | Write (insert/update/delete)                              | Read (select)                               |

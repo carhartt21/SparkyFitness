@@ -126,12 +126,20 @@ import freeExerciseDBService from './integrations/freeexercisedb/FreeExerciseDBS
 import { downloadImage } from './utils/imageDownloader.js';
 import authRoutes from './routes/authRoutes.js';
 import mcpRoutes from './routes/mcpRoutes.js';
+import engagementRoutesV2 from './routes/v2/engagementRoutes.js';
+import mcpConnectionsRoutesV2 from './routes/v2/mcpConnectionsRoutes.js';
+import chatgptMcpRoutes from './routes/chatgptMcpRoutes.js';
+import {
+  deliverEngagementOccurrences,
+  planEngagementOccurrences,
+  reconcileEngagementPushReceipts,
+} from './services/engagementDeliveryService.js';
 import identityRoutes from './routes/identityRoutes.js';
 import oidcSettingsRoutes from './routes/oidcSettingsRoutes.js';
 import adminAuthRoutes from './routes/adminAuthRoutes.js';
 import workoutPresetRoutes from './routes/workoutPresetRoutes.js';
 import workoutPlanTemplateRoutes from './routes/workoutPlanTemplateRoutes.js';
-import { cleanupSessions } from './auth.js';
+import { cleanupSessions, mcpOAuthResource } from './auth.js';
 import { deleteExpiredTickets } from './services/passkeyTicketService.js';
 import withingsServiceCentral from './services/withingsService.js';
 import { upsertEnvOidcProvider } from './utils/oidcEnvConfig.js';
@@ -210,15 +218,9 @@ app.use(
     );
   })
 );
-// OAuth/OIDC discovery probes must 404, not 401.
-//
-// This server authenticates with API keys and session cookies; it is not an
-// OAuth authorization server. When an MCP client's first request is rejected it
-// follows the spec and probes for OAuth metadata. Falling through to
-// `authenticate` answered those probes with 401, which reads as "OAuth exists,
-// keep negotiating", so the client retried discovery in a loop (and then failed
-// Dynamic Client Registration with a 404 anyway). A 404 says "no OAuth here",
-// and the client falls back to the bearer token it was configured with.
+// OAuth discovery belongs to Better Auth only when the ChatGPT resource is
+// configured. Legacy API-key MCP keeps a 404 here so clients do not attempt
+// an OAuth flow that this installation has not enabled.
 //
 // Registered before the /mcp mount and the global `authenticate` so it beats
 // both. Deliberately an explicit list rather than all of `/.well-known/*`, so
@@ -234,7 +236,16 @@ app.use((req, res, next) => {
   const path = req.path.startsWith('/mcp/')
     ? req.path.slice('/mcp'.length)
     : req.path;
-  if (!OAUTH_DISCOVERY_PATHS.has(path)) return next();
+  const isOAuthDiscovery =
+    OAUTH_DISCOVERY_PATHS.has(path) ||
+    (mcpOAuthResource &&
+      path === '/.well-known/oauth-authorization-server/api/auth') ||
+    (mcpOAuthResource &&
+      path === '/.well-known/oauth-protected-resource/mcp/chatgpt');
+  if (!isOAuthDiscovery) return next();
+  if (mcpOAuthResource && betterAuthHandlerInstance) {
+    return betterAuthHandlerInstance(req, res);
+  }
   res.status(404).json({ error: 'not_found' });
 });
 // External MCP endpoint — a self-contained chain mounted top-level (not /api)
@@ -244,6 +255,13 @@ app.use((req, res, next) => {
 // local because the global one also runs after the global parser, and
 // authenticate reads req.cookies. requestLogger is local because the global
 // one also runs after this mount, so /mcp requests would never reach it.
+app.use(
+  '/mcp/chatgpt',
+  requestLogger({ logCompletion: true }),
+  express.json({ limit: '1mb' }),
+  demoRestrictionGuard,
+  chatgptMcpRoutes
+);
 app.use(
   '/mcp',
   requestLogger({ logCompletion: true }),
@@ -744,6 +762,8 @@ app.use('/api/admin', adminRoutes);
 app.use('/api/admin/auth', (req, res, next) => adminAuthRoutes(req, res, next));
 app.use('/api/water-containers', waterContainerRoutes);
 app.use('/api/v2/measurements', waterIntakeRoutesV2);
+app.use('/api/v2/engagement', engagementRoutesV2);
+app.use('/api/v2/mcp/connections', mcpConnectionsRoutesV2);
 app.use('/api/v2/medications', medicationRoutesV2);
 app.use('/api/v2/symptoms', symptomRoutesV2);
 app.use('/api/v2/cycle', cycleRoutesV2);
@@ -790,6 +810,23 @@ const scheduleSessionCleanup = async () => {
       }
     } catch (error) {
       console.error('[CRON] Passkey ticket cleanup failed:', error);
+    }
+  });
+};
+const scheduleEngagementDelivery = () => {
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      await planEngagementOccurrences();
+      await deliverEngagementOccurrences();
+    } catch (error) {
+      log('error', '[Engagement] Delivery cycle failed', error);
+    }
+  });
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      await reconcileEngagementPushReceipts();
+    } catch (error) {
+      log('warn', '[Engagement] Receipt reconciliation failed', error);
     }
   });
 };
@@ -1075,6 +1112,7 @@ const scheduleLiftosaurSyncs = async () => {
   scheduleBackupsOnStartup();
   await scheduleOpenFoodFactsAutoSyncOnStartup();
   scheduleSessionCleanup();
+  scheduleEngagementDelivery();
   scheduleWithingsSyncs();
   scheduleGarminSyncs();
   scheduleFitbitSyncs();

@@ -78,6 +78,10 @@ Quick reference of all tables by domain and purpose. For detailed security tier,
 | `verification` | Email verification tokens                   |
 | `account`      | Auth credentials and email accounts         |
 
+The MCP OAuth tables (`oauthClient`, `oauthResource`, `oauthClientResource`, `oauthAccessToken`, `oauthRefreshToken`, `oauthConsent`, `oauthClientAssertion`, and `jwks`) are managed by Better Auth under the database owner. They are not queried through the application role; only sanitized connected-assistant summaries are exposed to the owning account.
+
+The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `engagement_deliveries`, `engagement_action_receipts`, and `engagement_change_events` tables hold owner-only notification preferences, encrypted push tokens, delivery state, idempotent actions, and cross-client changes.
+
 ### Food & Nutrition (Tier 2/3: Owner-Write, Delegate-Read/Write)
 
 | Table                            | Purpose                                                                               |

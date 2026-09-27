@@ -332,7 +332,7 @@ Being straight about the gaps:
 - **Recipes are not a first-class entity.** Recipe support comes via the meals system and Mealie/Tandoor import, not a dedicated recipe manager.
 - **No social layer.** No feed, no challenges, no leaderboards. Sharing is delegated caregiver access, not a community.
 - **No grocery or shopping lists**, and no macro/carb cycling scheduling.
-- **No server-side reminders.** Medication and check-in reminders are local notifications from the mobile app; there is no background notification service, so cycle and ovulation reminders remain on the roadmap.
+- **Limited server-side reminders.** Opted-in hydration, meal, movement, mobility, and photo-review prompts can be sent to a registered phone through Expo Push while the app is closed. Medication reminders remain local; cycle and ovulation reminders remain on the roadmap. Delivery requires a reachable server and a working push token.
 - **No offline logging on mobile.** The apps expect to reach your server. wger and the local-first Android trackers beat us here.
 - **Postpartum and menopause cycle modes are not built yet** ([Cycle Hub modes](/features/cycle-hub/modes-comparison)).
 - **The food database is only as good as your provider.** There is no SparkyFitness-curated, verified database behind it.

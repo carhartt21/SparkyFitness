@@ -1,6 +1,6 @@
 # AGENTS.md
 
-*Last updated: 2026-09-23*
+*Last updated: 2026-09-27*
 
 This is the repo-root monorepo guide for SparkyFitness. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -35,6 +35,7 @@ For `docs/` and `SparkyFitnessGarmin/`, there is no package-level `AGENTS.md`. `
 - `SparkyFitnessServer/` - Express 5 + PostgreSQL backend API.
 - `SparkyFitnessMobile/` - Expo SDK 57 / React Native 0.86 app.
 - `shared/` - source-first TypeScript workspace package for `@workspace/shared` schemas, constants, and timezone/day helpers.
+- Account notification delivery spans `SparkyFitnessServer/services/engagement*`, `/api/v2/engagement`, mobile `remoteEngagement*`, and web Settings. ChatGPT OAuth MCP uses `/mcp/chatgpt`, Better Auth, and the connected-assistants settings; the legacy `/mcp` API-key route remains separate.
 - `docs/` - VitePress documentation site.
 - `SparkyFitnessGarmin/` - standalone Python integration service outside the current `pnpm` workspace.
 - `docker/`, `helm/`, `.github/` - infra and deployment assets.
@@ -149,4 +150,3 @@ npx expo prebuild --clean
 pnpm dev
 pnpm run build
 ```
-

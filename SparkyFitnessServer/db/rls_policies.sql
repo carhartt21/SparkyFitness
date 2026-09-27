@@ -58,6 +58,20 @@ BEGIN
     'sparky_chat_history',
     'admin_activity_logs',
     'api_key',
+    'engagement_settings',
+    'engagement_devices',
+    'engagement_occurrences',
+    'engagement_deliveries',
+    'engagement_action_receipts',
+    'engagement_change_events',
+    'jwks',
+    'oauthClient',
+    'oauthResource',
+    'oauthClientResource',
+    'oauthRefreshToken',
+    'oauthAccessToken',
+    'oauthConsent',
+    'oauthClientAssertion',
     'user_goals',
     'user_ignored_updates',
     'user_meal_visibilities',
@@ -566,6 +580,12 @@ USING (
 -- Owner-only access tables
 -- Tier 1: Strictly Private (no delegation allowed)
 SELECT create_owner_policy('api_key', 'reference_id');
+SELECT create_owner_policy('engagement_settings');
+SELECT create_owner_policy('engagement_devices');
+SELECT create_owner_policy('engagement_occurrences');
+SELECT create_owner_policy('engagement_deliveries');
+SELECT create_owner_policy('engagement_action_receipts');
+SELECT create_owner_policy('engagement_change_events');
 SELECT create_owner_policy('user_oidc_links');
 SELECT create_owner_policy('sparky_chat_history');
 

@@ -14,12 +14,21 @@ import {
 import { createDefaultNutrientPreferencesForUser } from './services/nutrientDisplayPreferenceService.js';
 import { isPrivateNetworkAddress } from './utils/corsHelper.js';
 import { apiKey } from '@better-auth/api-key';
+import { mcp } from '@better-auth/mcp';
+import { cimd } from '@better-auth/cimd';
+import { fetchClientMetadataResource } from '@better-auth/cimd/node';
 import {
   MCP_READ_ONLY_KEY_CONFIG_ID,
   MCP_READ_ONLY_KEY_PREFIX,
 } from './utils/mcpReadOnlyKey.js';
 import { v4 } from 'uuid';
-import { emailOTP, magicLink, admin, twoFactor } from 'better-auth/plugins';
+import {
+  emailOTP,
+  magicLink,
+  admin,
+  twoFactor,
+  jwt,
+} from 'better-auth/plugins';
 import { sso } from '@better-auth/sso';
 import { expo } from '@better-auth/expo';
 import { expoSsoCookieRelay } from './utils/expoSsoCookieRelay.js';
@@ -282,6 +291,28 @@ const apiKeyPlugin = apiKey(
     },
   }
 );
+
+/** OAuth is enabled only on a public HTTPS resource with its schema installed. */
+export const mcpOAuthResource = (() => {
+  const configured = process.env.SPARKY_FITNESS_MCP_OAUTH_RESOURCE;
+  if (!configured) return null;
+  try {
+    const url = new URL(configured);
+    const local = ['localhost', '127.0.0.1', '[::1]'].includes(url.hostname);
+    if (
+      (url.protocol !== 'https:' && !(local && url.protocol === 'http:')) ||
+      url.search ||
+      url.hash ||
+      url.username ||
+      url.password ||
+      url.pathname !== '/mcp/chatgpt'
+    )
+      return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+})();
 let passkeyRpID: string | undefined;
 try {
   const frontendUrl = process.env.SPARKY_FITNESS_FRONTEND_URL;
@@ -814,6 +845,29 @@ const auth = betterAuth({
     },
   },
   plugins: [
+    ...(mcpOAuthResource
+      ? [
+          jwt(),
+          mcp({
+            loginPage: '/login',
+            consentPage: '/assistant/consent',
+            resource: mcpOAuthResource,
+            scopes: [
+              'openid',
+              'profile',
+              'offline_access',
+              'mcp:read',
+              'mcp:write',
+            ],
+            allowDynamicClientRegistration: true,
+            allowUnauthenticatedClientRegistration: true,
+          }),
+          cimd({
+            fetchClientMetadataResource,
+            metadataProfile: 'mcp-2026-07-28',
+          }),
+        ]
+      : []),
     // Expo mobile app support: maps the app's expo-origin header to origin and
     // serves /expo-authorization-proxy so the system browser carries the OAuth
     // state cookie. The relay plugin forwards the session cookie to the app on

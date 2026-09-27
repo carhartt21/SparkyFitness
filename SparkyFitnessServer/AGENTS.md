@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-25_
+_Last updated: 2026-09-27_
 
 SparkyFitness Server is the backend API package for the SparkyFitness monorepo. Use this file as the primary guide for work inside `SparkyFitnessServer/`.
 
@@ -63,6 +63,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 - `auth.ts` - Better Auth configuration, plugins, session behavior, SSO provider syncing
 - `routes/` - primary HTTP route surface
 - `routes/v2/` - newer typed route surface; pair these changes with `schemas/`
+- `routes/v2/engagementRoutes.ts`, `services/engagementService.ts`, `services/engagementPolicy.ts`, and `services/engagementDeliveryService.ts` - owner-only notification settings/actions, scheduling, encrypted push delivery, and Expo receipts. `routes/chatgptMcpRoutes.ts` is the OAuth-scoped read/write assistant endpoint; `routes/v2/mcpConnectionsRoutes.ts` lists and revokes its grants, with `services/mcpConnectionService.ts` enforcing immediate consent revocation for signed tokens.
 - `routes/v2/openFoodFactsContributionRoutes.ts` - owner-only single-food preview and explicit photo-backed publication; background contributions are disabled for this release
 - `routes/v2/reportRoutes.ts` - weekly alcohol rollup and the zero-padded hydration/caffeine/alcohol range used by the Trends charts (`reports` permission)
 - `routes/v2/nutritionKineticsRoutes.ts` - active-caffeine estimate and bedtime cutoff (`diary` permission)
