@@ -46,6 +46,9 @@ import { error as logError } from '@/utils/logging';
 import { getUserLoggingLevel } from '@/utils/userPreferences.ts';
 import { lazyWithChunkRecovery } from '@/utils/chunkRecovery';
 const Auth = lazyWithChunkRecovery(() => import('@/pages/Auth/Auth'));
+const McpConsent = lazyWithChunkRecovery(
+  () => import('@/pages/Auth/McpConsent')
+);
 const ForgotPassword = lazyWithChunkRecovery(
   () => import('@/pages/Auth/ForgotPassword')
 );
@@ -306,6 +309,11 @@ const router = createBrowserRouter([
     ErrorBoundary: RootErrorBoundary,
     children: [
       { path: '/login', Component: Auth, ErrorBoundary: RootErrorBoundary },
+      {
+        path: '/assistant/consent',
+        Component: McpConsent,
+        ErrorBoundary: RootErrorBoundary,
+      },
       {
         path: '/forgot-password',
         Component: ForgotPassword,

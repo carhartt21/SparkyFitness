@@ -22,6 +22,14 @@ export default defineConfig(({ mode }) => {
       port: 8080,
       allowedHosts: true, // Allow all hosts in development to prevent HMR connection failures
       proxy: {
+        '/.well-known/oauth-': {
+          target: target,
+          changeOrigin: true,
+        },
+        '/.well-known/openid-configuration': {
+          target: target,
+          changeOrigin: true,
+        },
         '/health-data': {
           target: target,
           changeOrigin: true,

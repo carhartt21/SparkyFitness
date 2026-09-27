@@ -44,6 +44,8 @@ import { PreferenceSettings } from './PreferenceSettings';
 import { ProfileInformation } from './ProfileInformation';
 import { DataManagementSettings } from './DataManagementSettings';
 import { DataImportSettings } from './DataImportSettings';
+import NotificationDeliverySettings from './NotificationDeliverySettings';
+import McpConnectionsSettings from './McpConnectionsSettings';
 
 export interface PasswordFormState {
   current_password: string;
@@ -53,6 +55,7 @@ export interface PasswordFormState {
 const SECTION_TO_TAB_MAP: Record<string, string> = {
   'profile-information': 'profile-account',
   'user-preferences': 'profile-account',
+  'notification-delivery': 'profile-account',
   'account-security': 'profile-account',
   'family-access': 'family-sharing',
   'data-management': 'data-connections',
@@ -261,6 +264,22 @@ const Settings = () => {
               >
                 <PreferenceSettings />
               </AccordionItem>
+              {!isActingOnBehalf && (
+                <AccordionItem
+                  value="notification-delivery"
+                  className="border rounded-lg mb-4"
+                >
+                  <NotificationDeliverySettings />
+                </AccordionItem>
+              )}
+              {!isActingOnBehalf && (
+                <AccordionItem
+                  value="mcp-connections"
+                  className="border rounded-lg mb-4"
+                >
+                  <McpConnectionsSettings />
+                </AccordionItem>
+              )}
               <AccountSecurity />
             </Accordion>
           </TabsContent>

@@ -14,6 +14,21 @@
     "wellness": "Wellness"
   },
   "settings": {
+    "notificationDelivery": {
+      "title": "Benachrichtigungen zustellen",
+      "description": "Lege Ruhezeiten und Erinnerungen fest, die dein Smartphone auch bei geschlossener App erreichen.",
+      "deviceNote": "Aktiviere Erinnerungen bei geschlossener App zuerst auf dem iPhone. Die App entfernt dabei lokal geplante Hinweise, bevor der Server die Zustellung übernimmt. Danach kannst du die Erinnerungen hier auch bei geschlossener App verwalten.",
+      "loadFailed": "Benachrichtigungseinstellungen konnten nicht geladen werden.",
+      "remote": "An mein Smartphone zustellen",
+      "hydration": "Trinkerinnerung",
+      "mealCapture": "Mahlzeitenerinnerung",
+      "mealReview": "Mahlzeitenfoto prüfen",
+      "movement": "Bewegungspause",
+      "mobility": "Geführte Mobilität",
+      "quietHours": "Ruhezeiten",
+      "from": "Von",
+      "until": "Bis"
+    },
     "profileInformation": {
       "title": "Profilinformationen",
       "description": "Persönliche Informationen und Profilbild verwalten",

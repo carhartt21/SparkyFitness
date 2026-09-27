@@ -51,6 +51,7 @@ Features are organized by domain, and the same domain folder name appears in `sr
 - `src/main.tsx` - app bootstrap; creates the shared `QueryClient` with global `QueryCache`/`MutationCache` handlers that render toasts from query/mutation `meta` (`errorTitle`, `errorMessage`, `successMessage`).
 - `src/App.tsx` - route registry via `createBrowserRouter`, plus `PrivateRoute` and `PermissionRoute` wrappers (permission-gated areas include `reports` and `admin`).
 - `src/pages/<Domain>/` - route screens by domain.
+- `src/pages/Auth/McpConsent.tsx` and `src/pages/Settings/{NotificationDeliverySettings,McpConnectionsSettings}.tsx` - assistant OAuth consent and account notification/connection controls; their HTTP helpers live under `src/api/Auth/` and `src/api/Engagement/`.
 - `src/api/api.ts` - `apiCall(endpoint, options)` helper: base URL `/api`, query `params`, JSON/FormData bodies, `responseType`, error toasts, `suppress404Toast`. Use it for all backend requests.
 - `src/api/<Domain>/` - per-domain API clients built on `apiCall`.
 - `src/hooks/<Domain>/` and `src/hooks/use*.ts(x)` - TanStack Query hooks and shared UI hooks (`use-toast`, `useDebounce`, `useAuth`, ...).

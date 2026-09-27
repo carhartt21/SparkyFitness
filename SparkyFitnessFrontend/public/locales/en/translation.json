@@ -1476,6 +1476,21 @@
     "syncFailed_other": "Failed to synchronize {{count}} providers."
   },
   "settings": {
+    "notificationDelivery": {
+      "title": "Notification delivery",
+      "description": "Set quiet hours and the reminders that can reach your phone when the app is closed.",
+      "deviceNote": "Turn on remote reminders in the iPhone app first. It removes locally scheduled alerts before switching delivery to the server. You can then manage reminders here even while the app is closed.",
+      "loadFailed": "Notification settings could not be loaded.",
+      "remote": "Deliver to my phone",
+      "hydration": "Hydration check-in",
+      "mealCapture": "Meal check-in",
+      "mealReview": "Meal photo review",
+      "movement": "Movement break",
+      "mobility": "Guided mobility",
+      "quietHours": "Quiet hours",
+      "from": "From",
+      "until": "Until"
+    },
     "overview": {
       "description": "Manage your account, tracking preferences, and connected services.",
       "activeProfile": "Active profile",

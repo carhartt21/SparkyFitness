@@ -7,6 +7,40 @@ import type {
 } from '@/types/auth';
 import { apiCall } from '../api';
 
+export function fetchMcpPublicClient(
+  clientId: string,
+  signal: AbortSignal
+): Promise<Response> {
+  return fetch(
+    `/api/auth/oauth2/public-client?client_id=${encodeURIComponent(clientId)}`,
+    {
+      credentials: 'include',
+      signal,
+    }
+  );
+}
+
+export function submitMcpConsent(
+  query: string,
+  accept: boolean
+): Promise<Response> {
+  return fetch('/api/auth/oauth2/consent', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ accept, oauth_query: query }),
+  });
+}
+
+export function continueMcpAuthorization(query: string): Promise<Response> {
+  return fetch('/api/auth/oauth2/continue', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ oauth_query: query, postLogin: true }),
+  });
+}
+
 interface AuthError extends Error {
   code?: string;
   status?: number;
@@ -147,9 +181,16 @@ export const initiateOidcLogin = async ({
   providerId,
   requestSignUp = false,
 }: OidcLoginParams) => {
+  // Preserve Better Auth's signed authorization query across the external IdP
+  // round trip so /login can finish an MCP connection after SSO succeeds.
+  const url = new URL(window.location.href);
+  const callbackURL =
+    url.pathname === '/login' && url.searchParams.has('sig')
+      ? `${url.origin}${url.pathname}${url.search}`
+      : url.origin;
   await authClient.signIn.sso({
     providerId: providerId,
-    callbackURL: window.location.origin,
+    callbackURL,
     errorCallbackURL: window.location.origin,
     requestSignUp: requestSignUp,
   });
