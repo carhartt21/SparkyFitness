@@ -283,7 +283,14 @@ router.delete('/:id', async (req, res, next) => {
   if (!id.success) return res.status(400).json({ error: 'Invalid ID.' });
   try {
     const removed = await deleteNutritionCapture(owner(req), id.data);
-    if (!removed) return res.status(404).json({ error: 'Not found.' });
+    if (!removed) {
+      const existing = await getNutritionCapture(owner(req), id.data);
+      return res.status(existing ? 409 : 404).json({
+        error: existing
+          ? 'Completed capture cannot be removed here.'
+          : 'Not found.',
+      });
+    }
     await removeEntityImageDir('nutrition_captures', id.data);
     res.status(204).end();
   } catch (error) {

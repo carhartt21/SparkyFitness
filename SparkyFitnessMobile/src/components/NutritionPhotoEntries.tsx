@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  Alert,
   AppState,
   Modal,
   Pressable,
@@ -9,6 +10,8 @@ import {
 } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useNavigation } from '@react-navigation/native';
+import { useQueryClient } from '@tanstack/react-query';
+import { ApiError } from '../services/api/errors';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import {
   getActiveServerConfig,
@@ -29,6 +32,11 @@ import SafeImage from './SafeImage';
 import { formatDateToTimeLabel } from '../utils/entryTimeDisplay';
 import type { RootStackParamList } from '../types/navigation';
 import { resolveNutritionPhotoUri } from '../services/nutritionPhotoFiles';
+import {
+  NutritionPhotoRemovalError,
+  removeIncompleteMealPhoto,
+} from '../services/nutritionPhotoRemoval';
+import { nutritionCapturesQueryKey } from '../hooks/useNutritionCapturesByDate';
 
 interface Props {
   local: PendingPhotoAction[];
@@ -59,6 +67,7 @@ export default function NutritionPhotoEntries({
   isConnected,
 }: Props) {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const navigation =
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [config, setConfig] = useState<ServerConfig | null>(null);
@@ -70,6 +79,8 @@ export default function NutritionPhotoEntries({
   const [fat, setFat] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [removedIds, setRemovedIds] = useState<Set<string>>(() => new Set());
   useEffect(() => {
     let active = true;
     const load = () => {
@@ -162,10 +173,74 @@ export default function NutritionPhotoEntries({
     // capture out of this queue before and after server reconciliation.
     return merged
       .filter(
-        (row) => !entryByCapture.has(row.id) && !completionByCapture.has(row.id)
+        (row) =>
+          !entryByCapture.has(row.id) &&
+          !completionByCapture.has(row.id) &&
+          !removedIds.has(row.id)
       )
       .sort((a, b) => a.consumedAt.localeCompare(b.consumedAt));
-  }, [local, remote, completions, completedFoodEntries]);
+  }, [local, remote, completions, completedFoodEntries, removedIds]);
+
+  const confirmRemove = (row: PhotoRow) => {
+    Alert.alert(
+      t('nutritionPhotos.removeTitle', { defaultValue: 'Remove meal photo?' }),
+      t('nutritionPhotos.removeMessage', {
+        defaultValue: 'This removes the unfinished meal photo.',
+      }),
+      [
+        {
+          text: t('common.cancel', { defaultValue: 'Cancel' }),
+          style: 'cancel',
+        },
+        {
+          text: t('nutritionPhotos.remove', { defaultValue: 'Remove photo' }),
+          style: 'destructive',
+          onPress: () => {
+            setRemovingId(row.id);
+            void removeIncompleteMealPhoto({
+              captureId: row.id,
+              hasRemoteCapture: remote.some((capture) => capture.id === row.id),
+              isConnected,
+            })
+              .then(async () => {
+                setRemovedIds((current) => new Set(current).add(row.id));
+                await queryClient.invalidateQueries({
+                  queryKey: nutritionCapturesQueryKey(row.entryDate),
+                });
+              })
+              .catch((cause: unknown) => {
+                const message =
+                  cause instanceof NutritionPhotoRemovalError &&
+                  cause.reason === 'signIn'
+                    ? t('nutritionPhotos.removeSignIn', {
+                        defaultValue: 'Sign in to remove this meal photo.',
+                      })
+                    : cause instanceof NutritionPhotoRemovalError
+                      ? t('nutritionPhotos.removeReconnect', {
+                          defaultValue: 'Reconnect to remove this meal photo.',
+                        })
+                      : cause instanceof ApiError && cause.statusCode === 409
+                        ? t('nutritionPhotos.removeCompleted', {
+                            defaultValue:
+                              'This meal was completed. Refresh the diary before removing it.',
+                          })
+                        : t('nutritionPhotos.removeFailedHint', {
+                            defaultValue:
+                              'Try again when the server is available.',
+                          });
+                Alert.alert(
+                  t('nutritionPhotos.removeFailed', {
+                    defaultValue: 'Could not remove meal photo',
+                  }),
+                  message
+                );
+              })
+              .finally(() => setRemovingId(null));
+          },
+        },
+      ]
+    );
+  };
 
   const saveCompletion = async () => {
     if (!selected || saving) return;
@@ -263,9 +338,9 @@ export default function NutritionPhotoEntries({
           ? (remoteSource ?? localSource)
           : (localSource ?? remoteSource);
         return (
-          <View key={row.id} className="flex-row gap-3 items-center">
+          <View key={row.id} className="border-t border-border-subtle pt-3">
             <Pressable
-              className="flex-row gap-3 items-center flex-1"
+              className="min-h-16 flex-row gap-3 items-center"
               accessibilityRole="button"
               accessibilityLabel={
                 row.state === 'incomplete'
@@ -314,23 +389,40 @@ export default function NutritionPhotoEntries({
               </View>
             </Pressable>
             {row.state === 'incomplete' && (
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => {
-                  setSelected(row);
-                  setName('');
-                  setCalories('');
-                  setProtein('');
-                  setCarbs('');
-                  setFat('');
-                  setError(null);
-                }}
-                className="p-2"
-              >
-                <Text className="text-text-link">
-                  {t('nutritionPhotos.manual', { defaultValue: 'Manual' })}
-                </Text>
-              </Pressable>
+              <View className="flex-row justify-end gap-3">
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('nutritionPhotos.remove', {
+                    defaultValue: 'Remove photo',
+                  })}
+                  disabled={removingId !== null}
+                  onPress={() => confirmRemove(row)}
+                  className="min-h-11 items-center justify-center px-2"
+                >
+                  <Text className="text-sm text-text-danger">
+                    {t('nutritionPhotos.remove', {
+                      defaultValue: 'Remove photo',
+                    })}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => {
+                    setSelected(row);
+                    setName('');
+                    setCalories('');
+                    setProtein('');
+                    setCarbs('');
+                    setFat('');
+                    setError(null);
+                  }}
+                  className="min-h-11 items-center justify-center px-2"
+                >
+                  <Text className="text-text-link">
+                    {t('nutritionPhotos.manual', { defaultValue: 'Manual' })}
+                  </Text>
+                </Pressable>
+              </View>
             )}
           </View>
         );

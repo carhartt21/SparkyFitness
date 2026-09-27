@@ -149,7 +149,12 @@ export async function deleteNutritionCapture(userId: string, id: string) {
   try {
     const result = await client.query(
       `DELETE FROM nutrition_captures
-       WHERE user_id = $1 AND id = $2 RETURNING id`,
+       WHERE user_id = $1 AND id = $2 AND completion_state = 'incomplete'
+         AND NOT EXISTS (
+           SELECT 1 FROM food_entries
+           WHERE user_id = $1 AND nutrition_capture_id = $2
+         )
+       RETURNING id`,
       [userId, id]
     );
     return result.rows.length > 0;

@@ -11,6 +11,7 @@ import {
   enqueuePlannedSupplementAction,
   discardRejectedPlannedSupplementAction,
   enqueuePhotoCompletion,
+  enqueuePhotoCapture,
   listNutritionActions,
   listPendingNutritionActions,
   markNutritionActionAttentionRequired,
@@ -18,6 +19,7 @@ import {
   markNutritionActionSynced,
   markNutritionActionSyncing,
   retryNutritionAction,
+  removePhotoCaptureAction,
   subscribeNutritionActions,
 } from '../../src/services/nutritionActionOutbox';
 
@@ -347,5 +349,32 @@ describe('nutrition action outbox', () => {
         key.includes(first.clientOperationId)
       )
     ).toBe(true);
+  });
+
+  it('removes only the matching photo creation action', async () => {
+    const captureId = '281fe77f-2d74-43aa-8f35-c47aa106d6e7';
+    const photo = await enqueuePhotoCapture({
+      ...identity,
+      payload: {
+        id: captureId,
+        capturedAt: '2026-09-23T10:15:00.000Z',
+        consumedAt: '2026-09-23T10:15:00.000Z',
+        entryDate: '2026-09-23',
+        images: [
+          {
+            id: '281fe77f-2d74-43aa-8f35-c47aa106d6e8',
+            uri: 'file:///documents/synthetic-photo.jpg',
+          },
+        ],
+      },
+    });
+    const food = await enqueueFoodEntry(input);
+    expect(await removePhotoCaptureAction(identity, captureId)).toBe(true);
+    expect(await listNutritionActions(identity)).toEqual([food]);
+    await expect(removePhotoCaptureAction(identity, operation)).rejects.toThrow(
+      'another action'
+    );
+    expect(await listNutritionActions(identity)).toEqual([food]);
+    expect(photo.payload.id).toBe(captureId);
   });
 });

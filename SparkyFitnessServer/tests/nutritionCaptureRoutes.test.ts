@@ -90,6 +90,31 @@ describe('nutrition captures', () => {
     expect(retry.body.id).toBe(captureId);
   });
 
+  it('removes an incomplete photo without touching other entries', async () => {
+    vi.mocked(repository.deleteNutritionCapture).mockResolvedValue(true);
+    const response = await request(app).delete(
+      `/api/nutrition-captures/${captureId}`
+    );
+    expect(response.status).toBe(204);
+    expect(repository.deleteNutritionCapture).toHaveBeenCalledWith(
+      'user-a',
+      captureId
+    );
+  });
+
+  it('rejects deletion when the capture was completed after the UI loaded', async () => {
+    vi.mocked(repository.deleteNutritionCapture).mockResolvedValue(false);
+    vi.mocked(repository.getNutritionCapture).mockResolvedValue({
+      ...saved,
+      completion_state: 'complete',
+    });
+    const response = await request(app).delete(
+      `/api/nutrition-captures/${captureId}`
+    );
+    expect(response.status).toBe(409);
+    expect(response.body.error).toMatch(/Completed capture/);
+  });
+
   it('does not expose another owner’s capture or image', async () => {
     vi.mocked(repository.getNutritionCapture).mockResolvedValue(null);
     vi.mocked(repository.getNutritionCaptureImage).mockResolvedValue(null);

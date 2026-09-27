@@ -22,6 +22,8 @@ interface PhotoDaySlotsProps {
   onView: (photo: CheckInPhoto) => void;
   /** Overflow button tapped: offer replace or remove. */
   onManage: (type: PhotoType) => void;
+  /** Explicit removal keeps the destructive action discoverable. */
+  onRemove: (type: PhotoType) => void;
 }
 
 /**
@@ -38,6 +40,7 @@ const PhotoDaySlots: React.FC<PhotoDaySlotsProps> = ({
   onPick,
   onView,
   onManage,
+  onRemove,
 }) => {
   const { t } = useTranslation();
   const { getPhotoSource } = useCheckInPhotoSource();
@@ -133,6 +136,21 @@ const PhotoDaySlots: React.FC<PhotoDaySlotsProps> = ({
                 </TouchableOpacity>
               )}
             </View>
+            {photo && !isUploading ? (
+              <TouchableOpacity
+                onPress={() => onRemove(type)}
+                accessibilityRole="button"
+                accessibilityLabel={t('progressPhotos.removeAngleA11y', {
+                  defaultValue: 'Remove the {{angle}} photo',
+                  angle: label.toLowerCase(),
+                })}
+                className="min-h-11 items-center justify-center"
+              >
+                <Text className="text-xs font-medium text-text-danger">
+                  {t('progressPhotos.remove', { defaultValue: 'Remove Photo' })}
+                </Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
         );
       })}

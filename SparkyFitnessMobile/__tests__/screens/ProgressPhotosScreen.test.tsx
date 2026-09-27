@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import ProgressPhotosScreen from '../../src/screens/ProgressPhotosScreen';
 import {
   useCheckInPhotoGallery,
@@ -457,6 +458,23 @@ describe('ProgressPhotosScreen', () => {
       // opens replace/remove. Neither is hidden behind a long press.
       expect(getByLabelText('View the front photo full screen')).toBeTruthy();
       expect(getByLabelText('Replace or remove the front photo')).toBeTruthy();
+      expect(getByLabelText('Remove the front photo')).toBeTruthy();
+    });
+
+    it('confirms explicit removal before deleting the selected photo', async () => {
+      setDayPhotos(['front']);
+      const alert = jest
+        .spyOn(Alert, 'alert')
+        .mockImplementation(() => undefined);
+      const { getByLabelText } = renderScreen();
+      fireEvent.press(getByLabelText('Remove the front photo'));
+      expect(deleteAsync).not.toHaveBeenCalled();
+      const actions = alert.mock.calls[0]?.[2];
+      await act(async () => {
+        actions?.find((action) => action.style === 'destructive')?.onPress?.();
+      });
+      expect(deleteAsync).toHaveBeenCalledWith('today-front');
+      alert.mockRestore();
     });
 
     it('does not follow the history angle control', () => {

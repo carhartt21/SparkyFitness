@@ -1,8 +1,20 @@
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Alert } from 'react-native';
 import NutritionPhotoEntries from '../../src/components/NutritionPhotoEntries';
 import type { PendingPhotoAction } from '../../src/services/nutritionActionOutbox';
 import type { NutritionCapture } from '../../src/services/api/nutritionCaptureApi';
 import { completeMealPhotoLocally } from '../../src/services/nutritionPhotoCompletion';
+import { removeIncompleteMealPhoto } from '../../src/services/nutritionPhotoRemoval';
+
+jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
+  useQueryClient: () => ({
+    invalidateQueries: jest.fn().mockResolvedValue(undefined),
+  }),
+}));
+jest.mock('../../src/services/nutritionPhotoRemoval', () => ({
+  removeIncompleteMealPhoto: jest.fn().mockResolvedValue(undefined),
+}));
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -64,6 +76,8 @@ const photo: PendingPhotoAction = {
 };
 
 describe('NutritionPhotoEntries', () => {
+  beforeEach(() => jest.clearAllMocks());
+
   test('offline photo is one incomplete entry with unknown nutrition', () => {
     const screen = render(
       <NutritionPhotoEntries
@@ -209,5 +223,39 @@ describe('NutritionPhotoEntries', () => {
       />
     );
     expect(screen.queryByText('Meal photos')).toBeNull();
+  });
+
+  test('confirms removal of an incomplete offline photo and hides its row', async () => {
+    const alert = jest
+      .spyOn(Alert, 'alert')
+      .mockImplementation(() => undefined);
+    const screen = render(
+      <NutritionPhotoEntries
+        local={[photo]}
+        remote={[]}
+        completions={[]}
+        completedFoodEntries={[]}
+        isConnected={false}
+      />
+    );
+    fireEvent.press(screen.getByLabelText('Remove photo'));
+    expect(alert).toHaveBeenCalledWith(
+      'Remove meal photo?',
+      expect.any(String),
+      expect.any(Array)
+    );
+    const actions = alert.mock.calls[0]?.[2];
+    await act(async () => {
+      actions?.find((action) => action.style === 'destructive')?.onPress?.();
+    });
+    await waitFor(() =>
+      expect(removeIncompleteMealPhoto).toHaveBeenCalledWith({
+        captureId: id,
+        hasRemoteCapture: false,
+        isConnected: false,
+      })
+    );
+    await waitFor(() => expect(screen.queryByText('Meal photos')).toBeNull());
+    alert.mockRestore();
   });
 });

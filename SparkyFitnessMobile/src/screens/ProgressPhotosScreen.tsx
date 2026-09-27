@@ -486,6 +486,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
             })
           }
           onManage={openSheetFor}
+          onRemove={(type) => void removePhoto(type)}
         />
       </View>
 

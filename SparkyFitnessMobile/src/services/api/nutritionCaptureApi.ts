@@ -63,6 +63,15 @@ export async function fetchNutritionCapturesByDate(
   });
 }
 
+export async function deleteNutritionCapture(captureId: string): Promise<void> {
+  await apiFetch<void>({
+    endpoint: `/api/nutrition-captures/${encodeURIComponent(captureId)}`,
+    serviceName: 'Nutrition Capture API',
+    operation: 'delete capture',
+    method: 'DELETE',
+  });
+}
+
 export async function completeNutritionCapture(
   operationId: string,
   payload: PhotoCompletionPayload

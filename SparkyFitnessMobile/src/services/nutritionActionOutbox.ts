@@ -533,6 +533,27 @@ export function enqueuePhotoCapture(
   });
 }
 
+/** Remove only a photo creation action; other diary actions are never affected. */
+export function removePhotoCaptureAction(
+  identity: NutritionActionIdentity,
+  captureId: string
+): Promise<boolean> {
+  return serialized(async () => {
+    const key = keyFor(identity, captureId);
+    const action = await read(key);
+    if (!action) return false;
+    if (action.type !== 'createPhotoEntry' || action.payload.id !== captureId) {
+      throw new Error('The capture ID belongs to another action.');
+    }
+    if (action.syncState === 'syncing') {
+      throw new Error('Wait for the photo upload to finish, then try again.');
+    }
+    await AsyncStorage.removeItem(key);
+    changed();
+    return true;
+  });
+}
+
 /** A capture may have one queued completion, reused across retries and relaunch. */
 export function enqueuePhotoCompletion(
   input: NutritionActionIdentity & {

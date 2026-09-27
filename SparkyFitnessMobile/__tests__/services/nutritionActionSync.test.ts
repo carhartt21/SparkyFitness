@@ -1,5 +1,6 @@
 import {
   reconcileNutritionActions,
+  withNutritionActionsPaused,
   type NutritionSyncDependencies,
 } from '../../src/services/nutritionActionSync';
 import type {
@@ -108,6 +109,24 @@ function harness(actions: PendingNutritionAction[]) {
 }
 
 describe('nutrition action reconciliation', () => {
+  test('waits until explicit photo maintenance finishes before uploading', async () => {
+    const { deps } = harness([
+      foodAction('cbb275a8-8d2a-4514-a6e2-0fb864452293'),
+    ]);
+    let finishMaintenance: () => void = () => undefined;
+    const held = new Promise<void>((resolve) => {
+      finishMaintenance = resolve;
+    });
+    const maintenance = withNutritionActionsPaused(async () => held);
+    const reconciliation = reconcileNutritionActions(undefined, deps);
+    await Promise.resolve();
+    expect(deps.listPending).not.toHaveBeenCalled();
+    finishMaintenance();
+    await maintenance;
+    await reconciliation;
+    expect(deps.createEntry).toHaveBeenCalledTimes(1);
+  });
+
   test('replays a planned supplement with the same operation ID after a lost response', async () => {
     const id = 'cbb275a8-8d2a-4514-a6e2-0fb864452293';
     const action: PendingNutritionAction = {

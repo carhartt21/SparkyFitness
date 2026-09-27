@@ -115,6 +115,27 @@ function sameIdentity(
 }
 
 let inFlight: Promise<NutritionSyncResult> | null = null;
+let maintenanceGate: Promise<void> | null = null;
+
+/** Keep an explicit photo removal from racing a background outbox upload. */
+export async function withNutritionActionsPaused<T>(
+  work: () => Promise<T>
+): Promise<T> {
+  const previous = maintenanceGate;
+  let release: () => void = () => undefined;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  maintenanceGate = gate;
+  try {
+    await previous;
+    await inFlight?.catch(() => undefined);
+    return await work();
+  } finally {
+    release();
+    if (maintenanceGate === gate) maintenanceGate = null;
+  }
+}
 
 /** One bounded pass. Retried requests always reuse their original operation ID. */
 export function reconcileNutritionActions(
@@ -122,6 +143,11 @@ export function reconcileNutritionActions(
   dependencies: NutritionSyncDependencies = productionDependencies,
   now = () => Date.now()
 ): Promise<NutritionSyncResult> {
+  if (maintenanceGate) {
+    return maintenanceGate.then(() =>
+      reconcileNutritionActions(queryClient, dependencies, now)
+    );
+  }
   if (inFlight) return inFlight;
   const work = reconcilePass(queryClient, dependencies, now);
   inFlight = work;

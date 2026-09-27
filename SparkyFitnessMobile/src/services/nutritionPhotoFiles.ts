@@ -27,3 +27,8 @@ export function resolveNutritionPhotoUri(
     return storedUri;
   }
 }
+
+export function removeLocalNutritionPhotoFiles(captureId: string): void {
+  const directory = new Directory(Paths.document, ROOT, captureId);
+  if (directory.exists) directory.delete();
+}
