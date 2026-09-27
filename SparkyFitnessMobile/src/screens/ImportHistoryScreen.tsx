@@ -32,6 +32,7 @@ import type { BackfillOutcome } from '../services/backfillService';
 import type { RootStackScreenProps } from '../types/navigation';
 import Icon, { type IconName } from '../components/Icon';
 import { useCSSVariable } from 'uniwind';
+import { useAppLocale } from '../localization';
 
 type ImportHistoryScreenProps = RootStackScreenProps<'ImportHistory'>;
 
@@ -216,7 +217,7 @@ const ProgressSummary: React.FC<ProgressSummaryProps> = ({
       : 0;
   return (
     <View>
-      <View className="flex-row items-baseline gap-2 mt-2">
+      <View className="flex-row flex-wrap items-baseline gap-2 mt-2">
         <Text className="text-5xl font-extrabold text-text-primary">
           {importedDays.toLocaleString(locale)}
         </Text>
@@ -282,7 +283,7 @@ const ProgressSummary: React.FC<ProgressSummaryProps> = ({
 };
 
 const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const usesNativeHeader = useNativeIOSHeadersActive();
@@ -332,7 +333,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
 
   const startDisabled = !isHealthStoreInitialized || syncClaimed;
   const idleNotice = idleNoticeCopy(t, lastOutcome);
-  const locale = i18n.language.startsWith('pl') ? 'pl-PL' : 'en-US';
+  const locale = useAppLocale();
 
   // Live progress while a run is importing; the checkpoint carries the same
   // numbers across a remount so a paused run still shows where it stopped.
