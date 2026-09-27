@@ -284,6 +284,7 @@ describe('chatService.testAiServiceConnection', () => {
     expect(result).toEqual({
       ok: false,
       category: 'upstream_error',
+      status: 401,
       detail: 'AI service returned status 401',
     });
   });
