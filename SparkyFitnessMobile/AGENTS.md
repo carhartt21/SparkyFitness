@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-24_
+_Last updated: 2026-09-27_
 
 SparkyFitness Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and the Sparky AI chat.
 
@@ -42,6 +42,7 @@ pnpm run android
 pnpm run lint
 pnpm run typecheck
 pnpm run validate
+pnpm run testflight:export -- --help
 pnpm exec jest --watchman=false --runInBand
 pnpm exec jest --watchman=false --runInBand <test-path>
 pnpm run test:coverage -- --watchman=false --runInBand
@@ -52,6 +53,7 @@ npx expo prebuild --clean
 - Use Watchman-disabled Jest commands in agent/sandbox runs; bare Jest often fails on macOS.
 - `collectCoverage` is enabled in Jest config, so expect coverage output from normal test runs.
 - Run `npx expo prebuild --clean` after native dependency changes, permissions, app group or widget target changes, Expo plugin changes, native config edits, or patching native modules.
+- For local TestFlight archive export and API-key upload, use `docs/testflight-release.md` and `scripts/export-testflight-archive.mjs`; keep signing credentials outside git history.
 - After editing the root `patches/react-native-health-connect@4.1.3.patch`, run `pnpm install` from the repo root, then prebuild from mobile.
 
 ## App Shell And Navigation

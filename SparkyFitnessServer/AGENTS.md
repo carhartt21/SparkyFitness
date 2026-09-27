@@ -64,6 +64,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 - `routes/` - primary HTTP route surface
 - `routes/v2/` - newer typed route surface; pair these changes with `schemas/`
 - `routes/v2/engagementRoutes.ts`, `services/engagementService.ts`, `services/engagementPolicy.ts`, and `services/engagementDeliveryService.ts` - owner-only notification settings/actions, scheduling, encrypted push delivery, and Expo receipts. `routes/chatgptMcpRoutes.ts` is the OAuth-scoped read/write assistant endpoint; `routes/v2/mcpConnectionsRoutes.ts` lists and revokes its grants, with `services/mcpConnectionService.ts` enforcing immediate consent revocation for signed tokens.
+- `routes/fddbImportRoutes.ts`, `services/fddbImportService.ts`, and `models/fddbImportRepository.ts` - owner-only, batched import of FDDB diary snapshots and separately selected reusable items; the browser discards profile and transaction fields before calling this route
 - `routes/v2/openFoodFactsContributionRoutes.ts` - owner-only single-food preview and explicit photo-backed publication; background contributions are disabled for this release
 - `routes/v2/reportRoutes.ts` - weekly alcohol rollup and the zero-padded hydration/caffeine/alcohol range used by the Trends charts (`reports` permission)
 - `routes/v2/nutritionKineticsRoutes.ts` - active-caffeine estimate and bedtime cutoff (`diary` permission)

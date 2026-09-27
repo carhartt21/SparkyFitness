@@ -1,6 +1,7 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useExternalFoodSearch } from '../../src/hooks/useExternalFoodSearch';
 import { externalFoodSearchQueryKey } from '../../src/hooks/queryKeys';
+import i18n from '../../src/localization/i18n';
 import { searchExternalFoods } from '../../src/services/api/externalFoodSearchApi';
 import {
   createTestQueryClient,
@@ -43,16 +44,16 @@ describe('useExternalFoodSearch', () => {
     queryClient.clear();
   });
 
-  test('does not fetch when search text is less than 3 characters', () => {
-    renderHook(() => useExternalFoodSearch('ab', 'openfoodfacts'), {
+  test('does not fetch when search text is less than 2 characters', () => {
+    renderHook(() => useExternalFoodSearch('a', 'openfoodfacts'), {
       wrapper: createQueryWrapper(queryClient),
     });
 
     expect(mockSearchExternalFoods).not.toHaveBeenCalled();
   });
 
-  test('drops previous-term results immediately when the query falls below 3 characters', async () => {
-    // Regression: after searching "chicken", typing a fresh 2-char query kept
+  test('drops previous-term results immediately when the query falls below 2 characters', async () => {
+    // Regression: after searching "chicken", typing a fresh short query kept
     // chicken's online rows on screen — the debounced term lagged 600ms and
     // keepPreviousData served the old key's rows even once disabled.
     mockSearchExternalFoods.mockResolvedValue(
@@ -83,10 +84,82 @@ describe('useExternalFoodSearch', () => {
 
     await waitFor(() => expect(result.current.searchResults).toHaveLength(1));
 
-    rerender({ term: 'eg' });
+    rerender({ term: 'e' });
 
     expect(result.current.searchResults).toHaveLength(0);
     expect(result.current.isSearchActive).toBe(false);
+  });
+
+  test('does not show a previous valid query while the next query is pending', async () => {
+    mockSearchExternalFoods.mockImplementation(async (_provider, term) =>
+      makePaginatedResult([
+        {
+          id: term,
+          name: term,
+          source: 'openfoodfacts',
+          brand: null,
+          calories: 100,
+          protein: 1,
+          carbs: 1,
+          fat: 1,
+          serving_size: 100,
+          serving_unit: 'g',
+        },
+      ])
+    );
+    const { result, rerender } = renderHook(
+      ({ term }: { term: string }) =>
+        useExternalFoodSearch(term, 'openfoodfacts'),
+      {
+        wrapper: createQueryWrapper(queryClient),
+        initialProps: { term: 'tomate' },
+      }
+    );
+    await waitFor(() =>
+      expect(result.current.searchResults[0]?.name).toBe('tomate')
+    );
+    rerender({ term: 'reis' });
+    expect(result.current.searchResults).toEqual([]);
+    await waitFor(() =>
+      expect(result.current.searchResults[0]?.name).toBe('reis')
+    );
+  });
+
+  test('can show query-scoped cached results without a provider request', () => {
+    queryClient.setQueryData(
+      externalFoodSearchQueryKey(
+        'bls4',
+        'apfel',
+        undefined,
+        undefined,
+        i18n.resolvedLanguage ?? i18n.language
+      ),
+      {
+        pages: [
+          makePaginatedResult([
+            {
+              id: 'bls-apple',
+              name: 'Apfel',
+              source: 'bls4',
+              brand: null,
+              calories: 52,
+              protein: 0.3,
+              carbs: 12,
+              fat: 0.2,
+              serving_size: 100,
+              serving_unit: 'g',
+            },
+          ]),
+        ],
+        pageParams: [1],
+      }
+    );
+    const { result } = renderHook(
+      () => useExternalFoodSearch('apfel', 'bls4', { enabled: false }),
+      { wrapper: createQueryWrapper(queryClient) }
+    );
+    expect(result.current.searchResults[0]?.name).toBe('Apfel');
+    expect(mockSearchExternalFoods).not.toHaveBeenCalled();
   });
 
   test('does not fetch when enabled is false', () => {
@@ -147,9 +220,9 @@ describe('useExternalFoodSearch', () => {
     expect(mockSearchExternalFoods).not.toHaveBeenCalled();
   });
 
-  test('isSearchActive is false when under 3 characters', () => {
+  test('isSearchActive is false when under 2 characters', () => {
     const { result } = renderHook(
-      () => useExternalFoodSearch('ab', 'openfoodfacts'),
+      () => useExternalFoodSearch('a', 'openfoodfacts'),
       { wrapper: createQueryWrapper(queryClient) }
     );
 
@@ -526,13 +599,24 @@ describe('useExternalFoodSearch', () => {
         'openfoodfacts',
         'banana',
         undefined,
+        undefined,
+        undefined,
+        'relevance-v2',
       ]);
     });
 
     test('includes providerId when supplied', () => {
       expect(
         externalFoodSearchQueryKey('usda', 'chicken', 'provider-1')
-      ).toEqual(['externalFoodSearch', 'usda', 'chicken', 'provider-1']);
+      ).toEqual([
+        'externalFoodSearch',
+        'usda',
+        'chicken',
+        'provider-1',
+        undefined,
+        undefined,
+        'relevance-v2',
+      ]);
     });
   });
 });

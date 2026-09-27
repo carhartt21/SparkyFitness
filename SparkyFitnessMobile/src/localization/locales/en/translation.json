@@ -3731,6 +3731,7 @@
       "onlineProvider": "Online provider"
     },
     "labels": {
+      "broaderAlternative": "Broader alternative — check preparation and portion",
       "caloriesShort": "kcal",
       "caloriesUnit": "cal",
       "foods": "foods",

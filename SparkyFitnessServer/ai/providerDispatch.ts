@@ -95,6 +95,7 @@ export type DispatchResult =
       ok: false;
       category: DispatchErrorCategory;
       status?: number;
+      code?: string;
       detail: string;
     };
 
@@ -839,6 +840,55 @@ type DispatchFailure = Extract<DispatchResult, { ok: false }>;
 type HttpOutcome =
   { data: unknown } | { error: DispatchFailure; rawBody?: string };
 
+const QUOTA_ERROR_CODES = new Set([
+  'credit_balance_exhausted',
+  'organization_spend_limit_exceeded',
+  'project_spend_limit_exceeded',
+  'organization_usage_limit_exceeded',
+  'insufficient_quota',
+]);
+const ACTIONABLE_ERROR_CODES = new Set([
+  ...QUOTA_ERROR_CODES,
+  'model_not_found',
+]);
+
+function upstreamErrorCode(body: string): string | undefined {
+  try {
+    const parsed: unknown = JSON.parse(body);
+    if (!parsed || typeof parsed !== 'object' || !('error' in parsed)) {
+      return undefined;
+    }
+    const error = parsed.error;
+    if (!error || typeof error !== 'object') return undefined;
+    const code = 'code' in error ? error.code : undefined;
+    if (typeof code === 'string' && ACTIONABLE_ERROR_CODES.has(code))
+      return code;
+    const type = 'type' in error ? error.type : undefined;
+    return typeof type === 'string' && ACTIONABLE_ERROR_CODES.has(type)
+      ? type
+      : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function httpError(status: number, body: string): HttpOutcome {
+  const rejected = describeRejectedParam(status, body);
+  const detail = rejected
+    ? `The AI service rejected the '${rejected}' parameter for this model. ${truncateBody(body)}`
+    : `AI service returned status ${status}${body ? `: ${truncateBody(body)}` : ''}`;
+  return {
+    error: {
+      ok: false,
+      category: 'upstream_error',
+      status,
+      code: upstreamErrorCode(body),
+      detail,
+    },
+    rawBody: body,
+  };
+}
+
 function timeoutError(): DispatchFailure {
   return {
     ok: false,
@@ -855,23 +905,7 @@ async function readResponse(response: Response): Promise<HttpOutcome> {
     } catch {
       // best-effort; body stays empty
     }
-    // A 400 naming a request parameter is otherwise surfaced as raw JSON the
-    // user has to decode; say it in a sentence instead.
-    const rejected = describeRejectedParam(response.status, body);
-    const detail = rejected
-      ? `The AI service rejected the '${rejected}' parameter for this model. ${truncateBody(body)}`
-      : `AI service returned status ${response.status}${
-          body ? `: ${truncateBody(body)}` : ''
-        }`;
-    return {
-      error: {
-        ok: false,
-        category: 'upstream_error',
-        status: response.status,
-        detail,
-      },
-      rawBody: body,
-    };
+    return httpError(response.status, body);
   }
   try {
     return { data: await response.json() };
@@ -880,6 +914,7 @@ async function readResponse(response: Response): Promise<HttpOutcome> {
       error: {
         ok: false,
         category: 'upstream_error',
+        status: response.status,
         detail: 'AI service returned a non-JSON response.',
       },
     };
@@ -922,6 +957,7 @@ async function performFetch(
         error: {
           ok: false,
           category: 'upstream_error',
+          code: 'network_unreachable',
           detail: `Failed to reach the AI service: ${(error as Error)?.message ?? 'unknown error'}`,
         },
       };
@@ -933,6 +969,9 @@ async function performFetch(
         body = await response.text();
       } catch {
         // best-effort
+      }
+      if (upstreamErrorCode(body)) {
+        return httpError(response.status, body);
       }
       await sleep(
         parseRetryAfterMs(body) ?? INITIAL_BACKOFF_MS * Math.pow(2, attempt)
@@ -993,6 +1032,7 @@ async function performOllama(
         error: {
           ok: false,
           category: 'upstream_error',
+          code: 'network_unreachable',
           detail: `Failed to reach the AI service: ${(error as Error)?.message ?? 'unknown error'}`,
         },
       };

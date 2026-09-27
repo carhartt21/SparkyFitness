@@ -1,4 +1,5 @@
 import { useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useQueries, type UseQueryResult } from '@tanstack/react-query';
 import { searchExternalFoods } from '../services/api/externalFoodSearchApi';
 import { allProvidersFoodSearchQueryKey } from './queryKeys';
@@ -33,13 +34,16 @@ export function useAllProvidersSearch(
   providers: ExternalProvider[],
   options?: { enabled?: boolean; autoScale?: boolean }
 ) {
+  const { i18n } = useTranslation();
   const { enabled = true, autoScale } = options ?? {};
   const debouncedSearch = useDebounce(searchText.trim(), 600);
   // Both the raw and debounced terms must clear the threshold: debounced so
   // typing pauses gate the fetch, raw so shortening the query below the
   // threshold deactivates the online sections immediately, not 600ms later.
   const isSearchActive =
-    searchText.trim().length >= 3 && debouncedSearch.length >= 3;
+    searchText.trim().length >= 2 &&
+    debouncedSearch.length >= 2 &&
+    searchText.trim() === debouncedSearch;
 
   // Project the raw query results into ProviderSearchResult here, inside
   // useQueries' `combine`, rather than in a downstream useMemo over the raw
@@ -82,7 +86,11 @@ export function useAllProvidersSearch(
         p.provider_type,
         debouncedSearch,
         p.id,
-        autoScale
+        autoScale,
+        p.provider_type === 'bls4' || p.provider_type === 'openfoodfacts'
+          ? 100
+          : undefined,
+        i18n.resolvedLanguage ?? i18n.language
       ),
       queryFn: async ({ signal }: { signal: AbortSignal }) => {
         if (p.provider_type === 'openfoodfacts') {
@@ -93,7 +101,10 @@ export function useAllProvidersSearch(
           debouncedSearch,
           1,
           p.id,
-          autoScale
+          autoScale,
+          p.provider_type === 'bls4' || p.provider_type === 'openfoodfacts'
+            ? 100
+            : undefined
         );
       },
       enabled: isSearchActive && enabled,

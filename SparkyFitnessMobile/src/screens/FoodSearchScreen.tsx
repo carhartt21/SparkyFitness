@@ -64,7 +64,11 @@ import { externalFoodItemToFoodInfo } from '../types/foodInfo';
 import type { FoodInfoItem } from '../types/foodInfo';
 import type { RootStackScreenProps } from '../types/navigation';
 import { useProviderColor } from '../utils/providerColor';
-import { interleaveTopMatches } from '../utils/topMatches';
+import { rankTopMatches } from '../utils/topMatches';
+import {
+  rankFoodSearchCandidates,
+  type FoodSearchCandidate,
+} from '@workspace/shared';
 import { mergeRecent, mergeFrequent, landingKey } from '../utils/landingLists';
 import type { LandingEntry } from '../utils/landingLists';
 import { useFoodSearchSelection } from '../hooks/useFoodSearchSelection';
@@ -421,11 +425,9 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     autoScale: preferences?.auto_scale_open_food_facts_imports,
   });
 
-  // Top Matches: interleave each provider's top results (round-robin by rank),
-  // capped, each tagged with its source. See interleaveTopMatches for the rule.
   const topMatches = useMemo(
-    () => interleaveTopMatches(providerResults),
-    [providerResults]
+    () => rankTopMatches(providerResults, searchText),
+    [providerResults, searchText]
   );
 
   // --- Navigation / actions ---
@@ -943,8 +945,57 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     searchFoodsFavFirst.length > 0 ||
     (!isMealBuilderMode && searchMealsFavFirst.length > 0);
 
+  const rankedRows = useMemo(() => {
+    const candidates: (FoodSearchCandidate & { row: ResultRow })[] = [
+      ...searchFoodsFavFirst.map((food) => ({
+        name: food.name,
+        brand: food.brand,
+        barcode: food.barcode,
+        source: 'saved-food',
+        id: food.id,
+        favorite: favoriteKeys.has(landingKey('food', food.id)),
+        row: { type: 'food' as const, food },
+      })),
+      ...(!isMealBuilderMode ? searchMealsFavFirst : []).map((meal) => ({
+        name: meal.name,
+        source: 'saved-meal',
+        id: meal.id,
+        favorite: favoriteKeys.has(landingKey('meal', meal.id)),
+        row: { type: 'meal' as const, meal },
+      })),
+      ...topMatches.map((match) => ({
+        name: match.online.name,
+        brand: match.online.brand,
+        barcode: match.online.barcode,
+        source: match.online.source,
+        id: match.online.provider_external_id ?? match.online.id,
+        row: {
+          type: 'online-top' as const,
+          online: match.online,
+          providerName: match.providerName,
+          providerId: match.providerId,
+        },
+      })),
+    ];
+    return rankFoodSearchCandidates(candidates, searchText)
+      .slice(0, 20)
+      .map(({ item, broaderAlternative }) => ({
+        ...item.row,
+        broaderAlternative,
+      }));
+  }, [
+    searchFoodsFavFirst,
+    searchMealsFavFirst,
+    topMatches,
+    searchText,
+    favoriteKeys,
+    isMealBuilderMode,
+  ]);
+
   const resultSections = useMemo<ResultSection[]>(() => {
     const sections: ResultSection[] = [];
+    const combined =
+      isAllProviders && isAllProvidersSearchActive && onlineAllowedByOwnership;
 
     // Cap the local sections only when an online section will also render, so a
     // pure local search is never truncated.
@@ -952,7 +1003,16 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       (isAllProviders ? isAllProvidersSearchActive : showOnlineSection) &&
       onlineAllowedByOwnership;
 
-    if (hasLocalResults) {
+    if (combined) {
+      sections.push({
+        key: 'ranked-results',
+        kind: 'online-top',
+        title: t('foodSearch.sections.topMatches', {
+          defaultValue: 'Top Matches',
+        }),
+        data: rankedRows,
+      });
+    } else if (hasLocalResults) {
       if (searchFoodsFavFirst.length > 0) {
         const capFoods = willShowOnline && !showAllFoods;
         const shown = capFoods
@@ -1012,19 +1072,6 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       // hook's debounced active flag (not raw text length) so the sections do
       // not flash "No results" during the debounce window before queries fire.
       if (isAllProvidersSearchActive) {
-        sections.push({
-          key: 'online-top',
-          kind: 'online-top',
-          title: t('foodSearch.sections.topMatches', {
-            defaultValue: 'Top Matches',
-          }),
-          data: topMatches.map((m) => ({
-            type: 'online-top',
-            online: m.online,
-            providerName: m.providerName,
-            providerId: m.providerId,
-          })),
-        });
         sections.push({
           key: 'by-source-label',
           kind: 'label',
@@ -1091,7 +1138,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     visibleOnlineResults,
     isAllProviders,
     isAllProvidersSearchActive,
-    topMatches,
+    rankedRows,
     providerResults,
     expandedProviders,
     showAllFoods,
@@ -1103,36 +1150,45 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // --- Results list renderers ---
 
   const renderResultRow = ({ item }: { item: ResultRow }) => (
-    <FoodSearchResultRow
-      row={item}
-      // Local search results join the multi-select basket (#1980 request 2);
-      // meals stay single-tap and online provider results are out of scope
-      // until the import workflow can feed the basket.
-      selection={
-        isSelectMode && item.type === 'food'
-          ? {
-              isSelected: isFoodSelected(item.food),
-              onToggle: () => handleToggleFoodSelection(item.food),
-              accentColor,
-              inactiveColor: textMuted,
-            }
-          : undefined
-      }
-      profileId={profile?.id}
-      favoriteKeys={favoriteKeys}
-      favoriteGold={favoriteGold}
-      accentColor={accentColor}
-      textMuted={textMuted}
-      loadingFoodId={loadingFoodId}
-      ownershipFilter={ownershipFilter}
-      onResetOwnershipFilter={() => setOwnershipFilter('all')}
-      isMealBuilderMode={isMealBuilderMode}
-      getProviderColor={getProviderColor}
-      onSelectFood={showFoodInfo}
-      onSelectOnlineFood={handleExternalFoodTap}
-      onSelectProvider={handleSelectProvider}
-      onShowAllLocal={handleShowAllLocal}
-    />
+    <View>
+      <FoodSearchResultRow
+        row={item}
+        // Local search results join the multi-select basket (#1980 request 2);
+        // meals stay single-tap and online provider results are out of scope
+        // until the import workflow can feed the basket.
+        selection={
+          isSelectMode && item.type === 'food'
+            ? {
+                isSelected: isFoodSelected(item.food),
+                onToggle: () => handleToggleFoodSelection(item.food),
+                accentColor,
+                inactiveColor: textMuted,
+              }
+            : undefined
+        }
+        profileId={profile?.id}
+        favoriteKeys={favoriteKeys}
+        favoriteGold={favoriteGold}
+        accentColor={accentColor}
+        textMuted={textMuted}
+        loadingFoodId={loadingFoodId}
+        ownershipFilter={ownershipFilter}
+        onResetOwnershipFilter={() => setOwnershipFilter('all')}
+        isMealBuilderMode={isMealBuilderMode}
+        getProviderColor={getProviderColor}
+        onSelectFood={showFoodInfo}
+        onSelectOnlineFood={handleExternalFoodTap}
+        onSelectProvider={handleSelectProvider}
+        onShowAllLocal={handleShowAllLocal}
+      />
+      {item.broaderAlternative ? (
+        <Text className="px-4 pb-2 text-xs text-text-secondary">
+          {t('foodSearch.labels.broaderAlternative', {
+            defaultValue: 'Broader alternative — check preparation and portion',
+          })}
+        </Text>
+      ) : null}
+    </View>
   );
 
   const renderResultSectionHeader = ({

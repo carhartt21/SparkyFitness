@@ -12,6 +12,7 @@ export * from "./schemas/api/NutrientGoalPreferences.api.zod.ts";
 export * from "./schemas/api/DailySummary.api.zod.ts";
 export * from "./schemas/api/ExerciseEntries.api.zod.ts";
 export * from "./schemas/api/Engagement.api.zod.ts";
+export * from "./schemas/api/FddbImport.api.zod.ts";
 export * from "./schemas/api/ExerciseSetType.api.zod.ts";
 export * from "./schemas/api/ExerciseStats.api.zod.ts";
 export * from "./schemas/api/Exercises.api.zod.ts";

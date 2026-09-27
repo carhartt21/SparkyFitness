@@ -43,6 +43,12 @@ interface Omission {
 
 const DELIBERATE_OMISSIONS: Omission[] = [
   {
+    file: /^utils\/fddbExport\.ts$/,
+    columns: TRACKED_COLUMNS,
+    reason:
+      'The FDDB export parser returns camelCase DTO fields, not database column names. It maps source caffeine and alcohol to their own fields; water_g is deliberately not recast as water_ml for solid foods. Synthetic parser tests cover the mappings.',
+  },
+  {
     file: /^api\/Foods\/nutrionix\.ts$/,
     columns: TRACKED_COLUMNS,
     reason:

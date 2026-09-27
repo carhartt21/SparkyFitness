@@ -53,6 +53,8 @@ GitHub needs your key and passwords to sign the app.
 ## Part 2: iOS (EAS Build)
 
 We use Expo's cloud service (EAS) to build for iOS because it handles Apple Certificates automatically.
+For local builds, certificate mismatch recovery, and uploads with a specific API key,
+follow [the TestFlight release runbook](docs/testflight-release.md).
 
 ### Step 1: Install EAS CLI
 
