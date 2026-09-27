@@ -1,5 +1,4 @@
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getDefaultModel(serviceType: any) {
+function getDefaultModel(serviceType: string) {
   switch (serviceType) {
     case 'openai':
     case 'openai_compatible':
@@ -7,7 +6,7 @@ function getDefaultModel(serviceType: any) {
     case 'anthropic':
       return 'claude-sonnet-4-6';
     case 'google':
-      return 'gemini-2.5-flash';
+      return 'gemini-3.5-flash-lite';
     case 'mistral':
       return 'mistral-small-latest';
     case 'groq':
@@ -24,8 +23,7 @@ function getDefaultModel(serviceType: any) {
       return 'gpt-4o-mini';
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function getDefaultVisionModel(serviceType: any) {
+function getDefaultVisionModel(serviceType: string) {
   switch (serviceType) {
     case 'openai':
     case 'openai_compatible':
@@ -33,7 +31,7 @@ function getDefaultVisionModel(serviceType: any) {
     case 'anthropic':
       return 'claude-haiku-4-5';
     case 'google':
-      return 'gemini-2.5-flash';
+      return 'gemini-3.5-flash-lite';
     case 'mistral':
       return 'mistral-small-latest';
     case 'groq':
