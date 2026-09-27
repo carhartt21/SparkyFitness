@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 import { todayInZone } from '@workspace/shared';
 import { log } from '../config/logging.js';
 import mcpRoutes from '../routes/mcpRoutes.js';
+import { parseMcpBody } from '../middleware/mcpBodyParser.js';
 import { requestLogger } from '../middleware/requestLogger.js';
 import { buildChatbotTools } from '../ai/tools/index.js';
 import { buildDevTools } from '../ai/tools/devTools.js';
@@ -137,9 +138,9 @@ const app = express();
 app.use(
   '/mcp',
   requestLogger({ logCompletion: true }),
-  express.json({ limit: '50mb' }),
   cookieParser(),
   fakeAuthenticate,
+  parseMcpBody,
   mcpRoutes
 );
 
@@ -706,6 +707,30 @@ describe('POST /mcp', () => {
         id: 4,
         method: 'tools/list',
         params: { padding: overLimitPadding },
+      });
+
+    expect(res.status).toBe(413);
+  });
+
+  it('rejects anonymous malformed JSON before parsing the body', async () => {
+    const res = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .send('{invalid json');
+
+    expect(res.status).toBe(401);
+  });
+
+  it('limits read-only keys to a 1mb request body', async () => {
+    const res = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 12,
+        method: 'tools/list',
+        params: { padding: 'x'.repeat(1024 * 1024) },
       });
 
     expect(res.status).toBe(413);

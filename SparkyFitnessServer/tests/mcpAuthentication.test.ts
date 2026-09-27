@@ -51,6 +51,23 @@ describe('MCP-only authentication', () => {
     expect(authenticate).not.toHaveBeenCalled();
   });
 
+  it('accepts a case-insensitive Bearer scheme with surrounding whitespace', async () => {
+    verifyApiKey.mockResolvedValue({
+      valid: true,
+      key: { referenceId: 'owner-1', configId: MCP_READ_ONLY_KEY_CONFIG_ID },
+    });
+    const key = `${MCP_READ_ONLY_KEY_PREFIX}${'a'.repeat(64)}`;
+    const response = await request(app)
+      .get('/test')
+      .set('Authorization', `  bearer   ${key}  `);
+
+    expect(response.status).toBe(200);
+    expect(verifyApiKey).toHaveBeenCalledWith({
+      body: { key, configId: MCP_READ_ONLY_KEY_CONFIG_ID },
+    });
+    expect(authenticate).not.toHaveBeenCalled();
+  });
+
   it('fails closed when the prefixed key is invalid, even with another session', async () => {
     verifyApiKey.mockResolvedValue({ valid: false, key: null });
     const response = await request(app)
@@ -58,6 +75,35 @@ describe('MCP-only authentication', () => {
       .set('Authorization', `Bearer ${MCP_READ_ONLY_KEY_PREFIX}invalid`)
       .set('Cookie', 'better-auth.session_token=other-user');
     expect(response.status).toBe(401);
+    expect(authenticate).not.toHaveBeenCalled();
+  });
+
+  it('returns a retryable 429 when the MCP key exceeds its rate limit', async () => {
+    verifyApiKey.mockResolvedValue({
+      valid: false,
+      error: { code: 'RATE_LIMITED', details: { tryAgainIn: 2500 } },
+      key: null,
+    });
+    const response = await request(app)
+      .get('/test')
+      .set('x-api-key', `${MCP_READ_ONLY_KEY_PREFIX}limited`);
+
+    expect(response.status).toBe(429);
+    expect(response.headers['retry-after']).toBe('3');
+    expect(authenticate).not.toHaveBeenCalled();
+  });
+
+  it('returns 403 for a disabled MCP key', async () => {
+    verifyApiKey.mockResolvedValue({
+      valid: false,
+      error: { code: 'KEY_DISABLED' },
+      key: null,
+    });
+    const response = await request(app)
+      .get('/test')
+      .set('x-api-key', `${MCP_READ_ONLY_KEY_PREFIX}disabled`);
+
+    expect(response.status).toBe(403);
     expect(authenticate).not.toHaveBeenCalled();
   });
 
