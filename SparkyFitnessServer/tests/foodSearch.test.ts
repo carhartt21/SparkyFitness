@@ -40,19 +40,19 @@ describe('food model search query builder', () => {
       expect(params[0]).toBe('%whey%');
       expect(params[1]).toBe('%protein%');
       expect(params[2]).toBe('%gold%');
-      // Exact match brand + name
-      expect(params[3]).toBe('%whey protein gold%');
+      // Exact food name, then containing brand + name
+      expect(params[3]).toBe('whey protein gold');
+      expect(params[4]).toBe('%whey protein gold%');
       // Limit, offset
-      expect(params[4]).toBe(10);
-      expect(params[5]).toBe(0);
+      expect(params[5]).toBe(10);
+      expect(params[6]).toBe(0);
 
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $1");
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $2");
       expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $3");
-      expect(sql).toContain(
-        "ORDER BY (CASE WHEN CONCAT(f.brand, ' ', f.name) ILIKE $4::text THEN 0 ELSE 1 END), f.name ASC, f.id ASC"
-      );
-      expect(sql).toContain('LIMIT $5 OFFSET $6');
+      expect(sql).toContain('CASE WHEN lower(f.name) = lower($4) THEN 0 ELSE 1 END');
+      expect(sql).toContain("CONCAT(f.brand, ' ', f.name) ILIKE $5::text");
+      expect(sql).toContain('LIMIT $6 OFFSET $7');
     });
   });
 

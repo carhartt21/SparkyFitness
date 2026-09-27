@@ -11,6 +11,7 @@ import {
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (key: string, fallback?: string) => fallback ?? key,
+    i18n: { language: 'en' },
   }),
 }));
 jest.mock('@/contexts/ActiveUserContext', () => ({
@@ -91,6 +92,14 @@ jest.mock('@/pages/Settings/ApiSettings', () => ({
 }));
 jest.mock('@/pages/Settings/DevloperResources', () => ({
   DeveloperResources: () => null,
+}));
+jest.mock('@/pages/Settings/NotificationDeliverySettings', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+jest.mock('@/pages/Settings/McpConnectionsSettings', () => ({
+  __esModule: true,
+  default: () => null,
 }));
 jest.mock('@/components/TooltipWarning', () => ({
   __esModule: true,

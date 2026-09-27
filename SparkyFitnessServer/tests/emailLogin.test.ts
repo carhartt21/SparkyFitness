@@ -98,7 +98,8 @@ describe('email login environment precedence', () => {
     );
     const guardAt = source.indexOf('app.use(emailLoginGuard)');
     const forwardingAt = source.indexOf(
-      'return betterAuthHandlerInstance(req, res)'
+      'return betterAuthHandlerInstance(req, res)',
+      guardAt
     );
     expect(guardAt).toBeGreaterThan(-1);
     expect(forwardingAt).toBeGreaterThan(-1);
