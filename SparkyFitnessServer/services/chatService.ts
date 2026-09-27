@@ -1882,10 +1882,11 @@ async function processFoodOptionsRequest(
 
 // Minimal completion used only to confirm a provider config actually works.
 const TEST_CONNECTION_PROMPT = 'Reply with the single word: OK.';
-// A short timeout so an unreachable custom URL fails in ~15s rather than hanging
-// for the 90s/120s dispatch defaults. Retry behavior is safe: only HTTP 429 is
-// retried; timeouts and 401/403 return immediately.
-const TEST_CONNECTION_TIMEOUT_MS = 15_000;
+// Hosted models can take longer than 15s to produce even a short completion.
+// Keep the shorter limit for user-supplied URLs so an unreachable local server
+// still fails promptly. Timeouts and authentication failures are not retried.
+const TEST_CONNECTION_CLOUD_TIMEOUT_MS = 45_000;
+const TEST_CONNECTION_CUSTOM_URL_TIMEOUT_MS = 15_000;
 // Types without preset models point at user-hosted servers with no reliable
 // default, so a blank effective model would let dispatch substitute a
 // meaningless getDefaultModel default the UI never intends.
@@ -1998,7 +1999,9 @@ async function testAiServiceConnection(
     ),
     prompt: TEST_CONNECTION_PROMPT,
     temperature: 0,
-    timeoutMs: TEST_CONNECTION_TIMEOUT_MS,
+    timeoutMs: requiresUserSuppliedAiUrl(serviceType)
+      ? TEST_CONNECTION_CUSTOM_URL_TIMEOUT_MS
+      : TEST_CONNECTION_CLOUD_TIMEOUT_MS,
   });
 
   if (!result.ok) {

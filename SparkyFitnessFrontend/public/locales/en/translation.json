@@ -2021,7 +2021,7 @@
           "api_key_missing": "API key is missing or invalid. Add a valid key and try again.",
           "custom_url_missing": "A custom URL is required for this service type.",
           "upstream_error": "The AI service returned an error. Check the API key, model name, and URL.",
-          "timeout": "The AI service did not respond in time. Check the URL and that the server is reachable.",
+          "timeout": "The AI service took too long to respond. Try again or choose a faster model; for a custom URL, check that its server is reachable.",
           "unsupported_provider": "This service type is not supported.",
           "unknown": "The connection test failed. Please check the configuration and try again."
         }
