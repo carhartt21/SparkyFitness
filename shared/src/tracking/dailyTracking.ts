@@ -101,7 +101,7 @@ export function hasCheckinResponse(draft: CheckinDraft): boolean {
 
 /** Weekday (0 = Sunday) of a YYYY-MM-DD calendar day, timezone-free. */
 export function weekdayOfDay(day: string): number {
-  const [year, month, date] = day.split("-").map(Number);
+  const [year = 1970, month = 1, date = 1] = day.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1, date)).getUTCDay();
 }
 

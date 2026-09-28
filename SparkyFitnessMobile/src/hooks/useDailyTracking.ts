@@ -76,7 +76,8 @@ export function useDailyCheckin(date: string, options?: QueryOptions) {
   const enabled = options?.enabled ?? true;
   const query = useQuery({
     queryKey: dailyCheckinQueryKey(date),
-    queryFn: () => getDailyCheckin(date),
+    // A day without a check-in comes back as an empty body; keep it null.
+    queryFn: async () => (await getDailyCheckin(date)) ?? null,
     enabled,
   });
   useRefetchOnFocus(query.refetch, enabled);

@@ -448,14 +448,14 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
           return (
             <View
               key={question.key}
-              className="flex-row flex-wrap items-center gap-x-3 gap-y-2 py-3"
+              className="gap-2 py-3"
               style={
                 index > 0
                   ? { borderTopWidth: 1, borderTopColor: border }
                   : undefined
               }
             >
-              <View className="min-w-[45%] flex-1 flex-row items-center gap-3">
+              <View className="flex-row items-center gap-3">
                 <Icon
                   name={QUESTION_ICONS[question.key]}
                   size={24}
@@ -470,7 +470,7 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
                   </Text>
                 </View>
               </View>
-              <View className="flex-row gap-1.5" accessibilityRole="radiogroup">
+              <View className="flex-row gap-2" accessibilityRole="radiogroup">
                 {[1, 2, 3, 4, 5].map((rating) => {
                   const color = colorForShare(
                     scale,
@@ -491,7 +491,7 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
                       onPress={() =>
                         update({ [question.key]: selected ? null : rating })
                       }
-                      className="h-11 w-11 items-center justify-center rounded-lg border"
+                      className="min-h-11 flex-1 items-center justify-center rounded-lg border py-1"
                       style={{
                         borderColor: withAlpha(color, selected ? 0.95 : 0.5),
                         backgroundColor: withAlpha(

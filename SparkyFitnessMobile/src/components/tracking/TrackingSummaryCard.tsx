@@ -1,4 +1,4 @@
-import { Text, View } from 'react-native';
+import { Text, View, useWindowDimensions } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import { progressionStage } from '@workspace/shared';
 import ProgressTrackX from '../brand/ProgressTrackX';
@@ -46,6 +46,9 @@ export default function TrackingSummaryCard({
   testID,
 }: TrackingSummaryCardProps) {
   const scale = useNeonScale();
+  // Large Dynamic Type stacks the stats under the count instead of
+  // squeezing three columns.
+  const stacked = useWindowDimensions().fontScale > 1.3;
   const [border, secondary] = useCSSVariable([
     '--color-border-subtle',
     '--color-text-secondary',
@@ -65,27 +68,34 @@ export default function TrackingSummaryCard({
     <GlowCard
       testID={testID}
       glowColor={stage === 'ready' ? undefined : stageColor}
-      className="mb-3 flex-row items-center p-4"
+      className={`mb-3 p-4 ${stacked ? 'gap-3' : 'flex-row items-center'}`}
     >
-      <View className="flex-row items-center gap-3" style={{ flex: 1.3 }}>
+      <View
+        className="flex-row items-center gap-3"
+        style={stacked ? undefined : { flex: 1.7 }}
+      >
         <ProgressTrackX
           progress={percent}
           label={progressLabel}
           unknownLabel={emptyCaption}
-          size={84}
+          size={68}
           showValue={false}
         />
         <View className="flex-1">
           {applicable > 0 ? (
             <>
               <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
                 className="text-[26px] font-bold text-text-primary"
                 testID={`${testID}-count`}
                 maxFontSizeMultiplier={1.3}
               >
                 {completed}/{applicable}
               </Text>
-              <Text className="text-sm text-text-secondary">{caption}</Text>
+              <Text className="text-sm text-text-secondary" numberOfLines={2}>
+                {caption}
+              </Text>
             </>
           ) : (
             <Text className="text-sm text-text-secondary">{emptyCaption}</Text>
@@ -100,37 +110,48 @@ export default function TrackingSummaryCard({
           ) : null}
         </View>
       </View>
-      {stats.map((stat) => (
+      {stats.length > 0 ? (
         <View
-          key={stat.label}
-          testID={stat.testID}
-          className="flex-1 items-center gap-1 px-1"
-          style={{ borderLeftWidth: 1, borderLeftColor: border }}
+          className="flex-row"
+          style={stacked ? undefined : { flex: stats.length }}
         >
-          <IconBadge icon={stat.icon} color={stat.color} size={36} />
-          <Text
-            className="text-center text-base font-bold text-text-primary"
-            numberOfLines={1}
-            adjustsFontSizeToFit
-          >
-            {stat.value}
-          </Text>
-          <Text
-            className="text-center text-xs text-text-secondary"
-            numberOfLines={2}
-          >
-            {stat.label}
-          </Text>
-          {stat.detail ? (
-            <Text
-              className="text-center text-xs text-text-secondary"
-              numberOfLines={1}
+          {stats.map((stat, index) => (
+            <View
+              key={stat.label}
+              testID={stat.testID}
+              className="flex-1 items-center gap-1 px-1"
+              style={
+                stacked && index === 0
+                  ? undefined
+                  : { borderLeftWidth: 1, borderLeftColor: border }
+              }
             >
-              {stat.detail}
-            </Text>
-          ) : null}
+              <IconBadge icon={stat.icon} color={stat.color} size={36} />
+              <Text
+                className="text-center text-base font-bold text-text-primary"
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {stat.value}
+              </Text>
+              <Text
+                className="text-center text-xs text-text-secondary"
+                numberOfLines={2}
+              >
+                {stat.label}
+              </Text>
+              {stat.detail ? (
+                <Text
+                  className="text-center text-xs text-text-secondary"
+                  numberOfLines={1}
+                >
+                  {stat.detail}
+                </Text>
+              ) : null}
+            </View>
+          ))}
         </View>
-      ))}
+      ) : null}
     </GlowCard>
   );
 }

@@ -420,12 +420,15 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
                     />
                   </>
                 ) : null}
-                <TrendStat
-                  icon="flame"
-                  color={scale.orange}
-                  value={formatLocalizedNumber(trend.currentStreak)}
-                  label={t('habits.streak', { defaultValue: 'in a row' })}
-                />
+                {/* A streak is secondary and never shown as a zero. */}
+                {trend.currentStreak > 0 ? (
+                  <TrendStat
+                    icon="flame"
+                    color={scale.orange}
+                    value={formatLocalizedNumber(trend.currentStreak)}
+                    label={t('habits.streak', { defaultValue: 'in a row' })}
+                  />
+                ) : null}
               </View>
               <Text className="mb-2 text-xs text-text-secondary">
                 {countTrend

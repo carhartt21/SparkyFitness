@@ -117,6 +117,45 @@ final class DashboardReview: XCTestCase {
     sleep(1)
     capture("tour-food-details-lower", app)
   }
+  /// Opens each daily tracking screen from More and captures top and lower
+  /// halves for comparison with the check-in, habits and supplements references.
+  func testTrackingTour() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    sleep(2)
+    capture("tracking-dashboard", app)
+    let screens: [(tile: String, id: String)] = [
+      ("more-daily-checkin", "daily-checkin"),
+      ("more-habits", "habits"),
+      ("more-supplements", "supplements"),
+      ("more-daily-progress", "daily-progress"),
+    ]
+    for screen in screens {
+      let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More"])).firstMatch
+      XCTAssertTrue(more.waitForExistence(timeout: 10))
+      more.tap()
+      let tile = app.descendants(matching: .any)[screen.tile]
+      if !tile.waitForExistence(timeout: 5) || !tile.isHittable { app.swipeUp() }
+      XCTAssertTrue(tile.waitForExistence(timeout: 10))
+      tile.tap()
+      XCTAssertTrue(app.buttons["\(screen.id)-back"].waitForExistence(timeout: 15))
+      sleep(3)
+      capture("tracking-\(screen.id)-top", app)
+      app.swipeUp()
+      sleep(1)
+      capture("tracking-\(screen.id)-lower", app)
+      app.swipeUp()
+      sleep(1)
+      capture("tracking-\(screen.id)-bottom", app)
+      app.swipeDown()
+      app.swipeDown()
+      app.swipeDown()
+      app.buttons["\(screen.id)-back"].tap()
+      sleep(1)
+    }
+  }
   private func reviewDashboard(logFood: Bool) throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

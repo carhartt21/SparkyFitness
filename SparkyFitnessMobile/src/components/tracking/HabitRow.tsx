@@ -117,7 +117,8 @@ export default function HabitRow({
   return (
     <View
       testID={`habit-row-${habit.id}`}
-      className="flex-row items-center gap-3 py-3"
+      // Controls wrap under the name on narrow rows instead of squeezing it.
+      className="flex-row flex-wrap items-center gap-x-3 gap-y-2 py-3"
       style={
         showDivider ? { borderTopWidth: 1, borderTopColor: border } : undefined
       }
@@ -135,7 +136,9 @@ export default function HabitRow({
         {complete ? <Icon name="checkmark" size={16} color="#08130d" /> : null}
       </View>
       <Icon name={habitIcon(habit.icon)} size={24} color={tint} />
-      <View className="flex-1">
+      <View
+        className={`flex-1 ${habit.habit_type === 'count' ? 'min-w-[45%]' : ''}`}
+      >
         <Text
           className="text-base font-semibold text-text-primary"
           numberOfLines={2}
@@ -198,7 +201,7 @@ export default function HabitRow({
           </Text>
         </Pressable>
       ) : (
-        <View className="flex-row items-center gap-1.5">
+        <View className="ml-auto flex-row items-center gap-1.5">
           {habit.step ? (
             <Pressable
               testID={`habit-decrement-${habit.id}`}

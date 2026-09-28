@@ -327,11 +327,11 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                 className="mb-3 p-3"
                 testID={`supplements-group-${daypart}`}
               >
-                <View className="mb-2 flex-row items-center gap-3 px-1">
+                <View className="mb-2 flex-row flex-wrap items-center gap-3 px-1">
                   <Icon name={DAYPART_ICON[daypart]} size={24} color={color} />
                   <Text
                     accessibilityRole="header"
-                    className="flex-1 text-lg font-semibold text-text-primary"
+                    className="min-w-[40%] flex-1 text-lg font-semibold text-text-primary"
                   >
                     {daypartLabel(t, daypart)}
                   </Text>
@@ -374,7 +374,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                     <View
                       key={`${dose.medication.id}-${dose.schedule.id}`}
                       testID={`supplement-row-${dose.schedule.id}`}
-                      className="mb-2 flex-row items-center gap-3 rounded-xl border px-3 py-2"
+                      className="mb-2 flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-3 py-2"
                       style={{
                         borderColor: overdue
                           ? withAlpha(scale.yellow, 0.8)
@@ -413,7 +413,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                           ) : null}
                         </View>
                       </Pressable>
-                      <View className="flex-1">
+                      <View className="min-w-[55%] flex-1">
                         <Text
                           className="text-base font-semibold text-text-primary"
                           numberOfLines={2}

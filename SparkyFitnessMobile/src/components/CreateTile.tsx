@@ -14,6 +14,7 @@ interface CreateTileProps {
   className?: string;
   /** Hex accent for the tile's icon and glow; defaults to the app accent. */
   color?: string;
+  testID?: string;
 }
 
 const CreateTile: React.FC<CreateTileProps> = ({
@@ -24,6 +25,7 @@ const CreateTile: React.FC<CreateTileProps> = ({
   disabled = false,
   className = '',
   color,
+  testID,
 }) => {
   const accentPrimary = useCSSVariable('--color-accent-primary') as string;
   const glowing = useGlowTheme();
@@ -31,6 +33,8 @@ const CreateTile: React.FC<CreateTileProps> = ({
 
   return (
     <TouchableOpacity
+      testID={testID}
+      accessibilityRole="button"
       onPress={onPress}
       disabled={disabled}
       activeOpacity={0.7}

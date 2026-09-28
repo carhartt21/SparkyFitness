@@ -21,6 +21,11 @@ export const dailyProgressKeys = {
     [...dailyProgressKeys.all, 'adaptiveTdee', date] as const,
   summary: (date: string) =>
     [...dailyProgressKeys.all, 'summary', date] as const,
+  /** Explicit-task Daily Progress (check-in, habits, supplements, meals). */
+  tracking: (date: string) =>
+    [...dailyProgressKeys.all, 'tracking', date] as const,
+  mealStatus: (date: string) =>
+    [...dailyProgressKeys.all, 'mealStatus', date] as const,
 };
 
 export const foodEntryKeys = {

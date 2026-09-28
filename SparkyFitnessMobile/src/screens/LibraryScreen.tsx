@@ -292,6 +292,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           testID="more-daily-tracking"
         >
           <CreateTile
+            testID="more-daily-checkin"
             icon="daily-checkin"
             color={neon.red}
             title={t('checkin.title', { defaultValue: 'Daily Check-In' })}
@@ -305,6 +306,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             className="w-[48%] mb-3"
           />
           <CreateTile
+            testID="more-habits"
             icon="habit"
             color={neon.green}
             title={t('habits.title', { defaultValue: 'Habits' })}
@@ -318,6 +320,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             className="w-[48%] mb-3"
           />
           <CreateTile
+            testID="more-supplements"
             icon="medication"
             color={neon.yellow}
             title={t('supplements.title', { defaultValue: 'Supplements' })}
@@ -331,6 +334,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             className="w-[48%] mb-3"
           />
           <CreateTile
+            testID="more-daily-progress"
             icon="chart-bar"
             color={neon.mint}
             title={t('progress.title', { defaultValue: 'Daily Progress' })}
@@ -344,6 +348,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             className="w-[48%] mb-3"
           />
           <CreateTile
+            testID="more-health-context"
             icon="bandage"
             color={neon.cyan}
             title={t('context.title', { defaultValue: 'Health context' })}
