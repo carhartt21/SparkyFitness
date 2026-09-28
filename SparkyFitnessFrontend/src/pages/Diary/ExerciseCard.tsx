@@ -56,12 +56,14 @@ interface PresetExerciseToLog extends Exercise {
 
 interface ExerciseCardProps {
   selectedDate: string;
+  compact?: boolean;
   initialExercisesToLog?: PresetExercise[];
   onExercisesLogged: () => void;
 }
 
 const ExerciseCard = ({
   selectedDate,
+  compact = false,
   initialExercisesToLog,
   onExercisesLogged,
 }: ExerciseCardProps) => {
@@ -77,6 +79,7 @@ const ExerciseCard = ({
     selectedDate
   );
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [showAllDetails, setShowAllDetails] = useState(false);
   const [addDialogInitialTab, setAddDialogInitialTab] = useState<
     'my-exercises' | 'workout-preset'
   >('my-exercises');
@@ -452,7 +455,64 @@ const ExerciseCard = ({
         </div>
       </CardHeader>
       <CardContent>
-        {exerciseEntries?.length === 0 ? (
+        {compact && !showAllDetails ? (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-md bg-muted/50 p-3">
+                <p className="text-xl font-semibold tabular-nums">
+                  {formatMinutesToHHMM(stats.totalDuration)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t('exerciseCard.duration', 'Duration')}
+                </p>
+              </div>
+              <div className="rounded-md bg-muted/50 p-3">
+                <p className="text-xl font-semibold tabular-nums">
+                  {Math.round(
+                    convertEnergy(stats.totalCalories, 'kcal', energyUnit)
+                  )}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {t('common.caloriesUnit', getEnergyUnitString(energyUnit))}
+                </p>
+              </div>
+            </div>
+            {exerciseEntries?.length ? (
+              <>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t('exerciseCard.recentActivity', 'Recent activity')}
+                </p>
+                <ul className="space-y-2 text-sm">
+                  {exerciseEntries.slice(0, 2).map((entry) => (
+                    <li
+                      key={entry.id}
+                      className="truncate rounded-md bg-muted/30 px-3 py-2"
+                    >
+                      {entry.name ??
+                        entry.exercise_snapshot?.name ??
+                        t('exerciseCard.title', 'Exercise')}
+                    </li>
+                  ))}
+                </ul>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="min-h-10 w-full"
+                  onClick={() => setShowAllDetails(true)}
+                >
+                  {t('exerciseCard.viewEntries', 'View exercise entries')}
+                </Button>
+              </>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {t(
+                  'exerciseCard.noEntries',
+                  'No exercise entries for this day.'
+                )}
+              </p>
+            )}
+          </div>
+        ) : exerciseEntries?.length === 0 ? (
           <p className="dark:text-slate-300">
             {t('exerciseCard.noEntries', 'No exercise entries for this day.')}
           </p>
@@ -538,6 +598,16 @@ const ExerciseCard = ({
                 </div>
               </div>
             </div>
+            {compact && (
+              <Button
+                type="button"
+                variant="ghost"
+                className="min-h-10 w-full"
+                onClick={() => setShowAllDetails(false)}
+              >
+                {t('exerciseCard.hideEntries', 'Show summary')}
+              </Button>
+            )}
           </div>
         )}
 

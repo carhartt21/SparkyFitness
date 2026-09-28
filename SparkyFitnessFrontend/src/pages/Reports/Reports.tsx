@@ -202,7 +202,7 @@ const Reports = () => {
     switch (activeTab) {
       case 'charts':
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <ChartErrorBoundary>
               <NutritionPeriodSummary
                 nutritionData={nutritionData}
@@ -413,7 +413,7 @@ const Reports = () => {
   };
 
   return (
-    <div className="space-y-10">
+    <div className="space-y-6">
       {startDate && endDate ? (
         <ReportsControls
           startDate={startDate}

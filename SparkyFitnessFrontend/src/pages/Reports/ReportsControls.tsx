@@ -74,43 +74,59 @@ const ReportsControls = ({
   ];
 
   return (
-    <div className="w-full flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
-      {/* Navigation Pills */}
-      <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 flex-1">
-        {reportTypes.map((type) => {
-          const Icon = type.icon;
-          const isActive = activeTab === type.id;
-          return (
-            <Button
-              key={type.id}
-              variant={isActive ? 'secondary' : 'ghost'}
-              size="sm"
-              onClick={() => onTabChange(type.id)}
-              className={`rounded-full px-4 h-9 gap-2 transition-all ${
-                isActive
-                  ? 'bg-slate-200/60 dark:bg-muted shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
-              }`}
-            >
-              <Icon className="w-4 h-4" />
-              <span className="text-xs font-semibold">{type.label}</span>
-            </Button>
-          );
-        })}
+    <div className="w-full space-y-5">
+      <div className="flex flex-col gap-4 border-b border-border pb-5 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground lg:text-3xl">
+            {activeTab === 'charts'
+              ? t('reports.nutritionPageTitle', 'Nutrition reports')
+              : t('nav.reports', 'Reports')}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t(
+              'reports.pageDescription',
+              'Explore patterns in your logged data.'
+            )}
+          </p>
+        </div>
+        <div className="shrink-0">
+          <DateRangePickerWithPresets
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={onStartDateChange}
+            onEndDateChange={onEndDateChange}
+          />
+        </div>
       </div>
-
-      {/* Vertical Divider (Desktop Only) */}
-      <div className="hidden lg:block w-px h-6 bg-border" />
-
-      {/* Secondary Filter: Date Picker */}
-      <div className="shrink-0">
-        <DateRangePickerWithPresets
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={onStartDateChange}
-          onEndDateChange={onEndDateChange}
-        />
-      </div>
+      <nav
+        aria-label={t('reports.categories', 'Report categories')}
+        className="overflow-x-auto pb-1"
+      >
+        <div className="flex w-max min-w-full items-center gap-1">
+          {reportTypes.map((type) => {
+            const Icon = type.icon;
+            const isActive = activeTab === type.id;
+            return (
+              <Button
+                key={type.id}
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onTabChange(type.id)}
+                aria-pressed={isActive}
+                className={`min-h-10 shrink-0 gap-2 rounded-full px-4 transition-colors ${
+                  isActive
+                    ? 'bg-primary/10 text-primary ring-1 ring-primary/40 hover:bg-primary/15'
+                    : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                }`}
+              >
+                <Icon className="h-4 w-4" aria-hidden="true" />
+                <span className="text-xs font-semibold">{type.label}</span>
+              </Button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 };

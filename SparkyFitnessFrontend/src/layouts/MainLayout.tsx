@@ -467,16 +467,86 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     : 'today';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background lg:pl-60">
+      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground lg:flex">
+        <div className="flex items-center gap-3 px-5 py-6">
+          <img
+            src="/images/brand/x-on-track-light.png"
+            alt=""
+            width={44}
+            height={44}
+            className="h-11 w-11 dark:hidden"
+          />
+          <img
+            src="/images/brand/x-on-track-dark.png"
+            alt=""
+            width={44}
+            height={44}
+            className="hidden h-11 w-11 dark:block"
+          />
+          <span className="text-lg font-semibold tracking-tight">
+            X on Track
+          </span>
+        </div>
+        <nav
+          aria-label={t('nav.primary', 'Primary navigation')}
+          className="flex-1 space-y-1 overflow-y-auto px-3 pb-4"
+        >
+          {availableTabs.map(({ value, label, icon: Icon }) => (
+            <Button
+              key={value}
+              type="button"
+              variant="ghost"
+              className={cn(
+                'min-h-11 w-full justify-start gap-3 px-4 text-sm font-medium hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
+                isActiveTab(value)
+                  ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                  : 'text-sidebar-foreground/75'
+              )}
+              onClick={() => navigate(value)}
+              aria-current={isActiveTab(value) ? 'page' : undefined}
+            >
+              <Icon className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span className="truncate">{label}</span>
+            </Button>
+          ))}
+        </nav>
+        <div className="space-y-2 border-t border-sidebar-border px-4 py-4">
+          <p className="truncate px-2 text-sm font-medium">{activeUserName}</p>
+          <Button
+            type="button"
+            variant="ghost"
+            className="min-h-11 w-full justify-start gap-3 px-2 text-sidebar-foreground/75 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4" aria-hidden="true" />
+            {t('auth.signOut', 'Sign Out')}
+          </Button>
+          <button
+            type="button"
+            className="px-2 text-xs text-sidebar-foreground/70 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            onClick={onShowAboutDialog}
+          >
+            X on Track v{appVersion?.version ?? ''}
+          </button>
+          <button
+            type="button"
+            className="block px-2 text-xs text-sidebar-foreground/70 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+            onClick={onShowNewReleaseDialog}
+          >
+            {t('release.upstreamReleases', 'Upstream releases')}
+          </button>
+        </div>
+      </aside>
       <a
         href="#main-content"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-background focus:px-4 focus:py-3 focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring"
       >
         {t('nav.skipToContent', 'Skip to content')}
       </a>
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
+      <div className="container mx-auto px-2 py-4 sm:px-4 sm:py-8 lg:max-w-none lg:px-8">
         <div className="mb-6 flex flex-wrap items-center justify-between gap-y-3">
-          <div className="flex shrink-0 items-center gap-1">
+          <div className="flex shrink-0 items-center gap-1 lg:hidden">
             <img
               src="/images/brand/x-on-track-light.png"
               alt="X on Track logo"
@@ -525,7 +595,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               variant="outline"
               size="icon"
               onClick={handleSignOut}
-              className="sm:w-auto sm:px-3 flex items-center gap-2"
+              className="flex items-center gap-2 sm:w-auto sm:px-3 lg:hidden"
               aria-label={t('auth.signOut', 'Sign Out')}
             >
               <LogOut className="h-4 w-4" />
@@ -538,7 +608,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         <nav
           aria-label={t('nav.primary', 'Primary navigation')}
           className={cn(
-            'relative hidden sm:grid w-full gap-1 mb-6 bg-slate-200/60 dark:bg-muted/50 p-1 rounded-lg border transition-colors overflow-hidden',
+            'relative mb-6 hidden w-full gap-1 overflow-hidden rounded-lg border bg-slate-200/60 p-1 transition-colors sm:grid dark:bg-muted/50 lg:hidden',
             desktopGridClass,
             selectedDateRelation === 'today' && 'border-transparent',
             selectedDateRelation === 'past' && 'border-date-past/40',
@@ -680,7 +750,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         title={t('foodDiary.selectMealType', 'Select Meal Type')}
       />
 
-      <footer className="text-center text-muted-foreground text-sm py-4">
+      <footer className="py-4 text-center text-sm text-muted-foreground lg:hidden">
         {isMobile ? (
           <div className="flex flex-col items-center gap-2 mb-14">
             <div className="flex items-center gap-2">

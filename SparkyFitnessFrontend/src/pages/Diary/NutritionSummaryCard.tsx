@@ -47,6 +47,7 @@ export interface DayTotals {
 
 interface NutritionSummaryCardProps {
   selectedDate: string;
+  compact?: boolean;
   dayTotals?: DayTotals;
   goals: ExpandedGoals;
   energyUnit: 'kcal' | 'kJ';
@@ -60,6 +61,7 @@ interface NutritionSummaryCardProps {
 
 const NutritionSummaryCard = ({
   selectedDate,
+  compact = false,
   dayTotals = { calories: 0, protein: 0, carbs: 0, fat: 0, dietary_fiber: 0 },
   goals,
   energyUnit,
@@ -73,6 +75,7 @@ const NutritionSummaryCard = ({
   const { t } = useTranslation();
 
   const [isCopyDialogOpen, setIsCopyDialogOpen] = useState(false);
+  const [showAllDetails, setShowAllDetails] = useState(false);
 
   const { mutate: copyAllFromYesterday } =
     useCopyAllFoodEntriesFromYesterdayMutation();
@@ -104,11 +107,18 @@ const NutritionSummaryCard = ({
       ? summaryPreferences.visible_nutrients
       : Object.keys(DEFAULT_GOALS);
   }, [summaryPreferences]);
+  const overviewNutrients = compact
+    ? visibleNutrients.filter((nutrient) => nutrient !== 'calories').slice(0, 4)
+    : visibleNutrients;
+  const displayedNutrients =
+    compact && !showAllDetails && overviewNutrients.length > 0
+      ? overviewNutrients
+      : visibleNutrients;
 
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <CardTitle className="text-lg dark:text-slate-300">
             {t('diary.nutritionSummary', 'Nutrition Summary')}
           </CardTitle>
@@ -131,12 +141,12 @@ const NutritionSummaryCard = ({
       </CardHeader>
       <CardContent className="pb-4">
         <div
-          className="grid gap-x-4 gap-y-6"
+          className="grid gap-x-4 gap-y-4"
           style={{
-            gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile ? '80px' : '120px'}, 1fr))`,
+            gridTemplateColumns: `repeat(auto-fit, minmax(${isMobile || (compact && !showAllDetails) ? '100px' : '120px'}, 1fr))`,
           }}
         >
-          {visibleNutrients.map((nutrient) => {
+          {displayedNutrients.map((nutrient) => {
             const metadata = getNutrientMetadata(
               nutrient,
               customNutrients,
@@ -270,10 +280,24 @@ const NutritionSummaryCard = ({
             );
           })}
         </div>
-        <MiniNutritionTrends
-          selectedDate={selectedDate}
-          customNutrients={customNutrients}
-        />
+        {compact && (
+          <Button
+            type="button"
+            variant="ghost"
+            className="mt-4 min-h-10 w-full"
+            onClick={() => setShowAllDetails((current) => !current)}
+          >
+            {showAllDetails
+              ? t('diary.showNutritionSummary', 'Show summary')
+              : t('diary.showAllNutrients', 'View all nutrients')}
+          </Button>
+        )}
+        {(!compact || showAllDetails) && (
+          <MiniNutritionTrends
+            selectedDate={selectedDate}
+            customNutrients={customNutrients}
+          />
+        )}
       </CardContent>
 
       <CopyFoodEntryDialog

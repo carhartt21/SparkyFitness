@@ -30,6 +30,17 @@ describe('buildWidgetKeys', () => {
 });
 
 describe('generateDefaultLayouts', () => {
+  it('leads with four daily domains on desktop before meal detail', () => {
+    const layouts = generateDefaultLayouts([mealWidgetKey('breakfast')]);
+    expect(
+      layouts.lg.filter((item) => item.y === 0).map((item) => item.i)
+    ).toEqual(['energy', 'nutrition', 'water', 'exercise']);
+    expect(layouts.lg.find((item) => item.i === 'meal:breakfast')?.y).toBe(10);
+    expect(
+      layouts.md.filter((item) => item.y === 10).map((item) => item.i)
+    ).toEqual(['water', 'exercise']);
+  });
+
   it('includes every widget key on every breakpoint', () => {
     const keys = buildWidgetKeys(['a', 'b']);
     const layouts = generateDefaultLayouts([
