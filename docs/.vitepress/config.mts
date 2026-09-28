@@ -213,6 +213,10 @@ export default defineConfig({
               text: "Exercise Search",
               link: "/features/exercises/exercise-search",
             },
+            {
+              text: "Interval & WOD Workouts",
+              link: "/features/exercises/interval-wod-workouts",
+            },
           ],
         },
         {

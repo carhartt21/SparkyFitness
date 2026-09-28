@@ -6,9 +6,9 @@ import identifiers from '../app.identifiers.js';
 
 const bundleId = `${identifiers.DEV_BUNDLE_IDENTIFIER}.watchkitapp`;
 
-console.log('› Building SparkyFitness Watch scheme...');
+console.log('› Building SparkyFitnessWatch scheme...');
 execSync(
-  "xcodebuild -workspace ios/SparkyFitness.xcworkspace -scheme 'SparkyFitness Watch' -destination 'generic/platform=watchOS Simulator' build -quiet",
+  "xcodebuild -workspace ios/SparkyFitness.xcworkspace -scheme 'SparkyFitnessWatch' -destination 'generic/platform=watchOS Simulator' build -quiet",
   { stdio: 'inherit' }
 );
 
@@ -24,7 +24,7 @@ if (existsSync(derivedDataPath)) {
     const candidate = join(
       derivedDataPath,
       folder,
-      'Build/Products/Debug-watchsimulator/SparkyFitness Watch.app'
+      'Build/Products/Debug-watchsimulator/SparkyFitnessWatch.app'
     );
     if (existsSync(candidate)) {
       builtAppPath = candidate;
@@ -35,7 +35,7 @@ if (existsSync(derivedDataPath)) {
 
 if (!builtAppPath) {
   console.error(
-    '❌ Could not find built SparkyFitness Watch.app in DerivedData'
+    '❌ Could not find built SparkyFitnessWatch.app in DerivedData'
   );
   process.exit(1);
 }

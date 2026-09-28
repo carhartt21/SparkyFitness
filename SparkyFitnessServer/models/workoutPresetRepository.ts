@@ -13,8 +13,9 @@ async function createWorkoutPreset(presetData: any) {
   try {
     await client.query('BEGIN');
     const presetResult = await client.query(
-      `INSERT INTO workout_presets (user_id, name, description, is_public, source, source_id)
-       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, name, description, is_public, source, source_id`,
+      `INSERT INTO workout_presets (user_id, name, description, is_public, source, source_id, workout_format, time_cap_seconds)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING id, user_id, name, description, is_public, source, source_id, workout_format, time_cap_seconds`,
       [
         presetData.user_id,
         presetData.name,
@@ -22,6 +23,8 @@ async function createWorkoutPreset(presetData: any) {
         presetData.is_public,
         presetData.source ?? null,
         presetData.source_id ?? null,
+        presetData.workout_format || 'standard',
+        presetData.time_cap_seconds ?? null,
       ]
     );
     const newPreset = { ...presetResult.rows[0], isNew: true };
@@ -120,7 +123,7 @@ async function getWorkoutPresetByName(userId: any, name: any) {
     // attach to it). Public presets are still readable by ID.
     const result = await client.query(
       `SELECT
-        wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.created_at, wp.updated_at,
+        wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.source, wp.source_id, wp.workout_format, wp.time_cap_seconds, wp.created_at, wp.updated_at,
         COALESCE(
           (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
            FROM (
@@ -187,7 +190,7 @@ async function getWorkoutPresets(userId: any, page = 1, limit = 10) {
     const total = parseInt(totalResult.rows[0].count, 10);
     const result = await client.query(
       `SELECT
-         wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.created_at, wp.updated_at,
+         wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.source, wp.source_id, wp.workout_format, wp.time_cap_seconds, wp.created_at, wp.updated_at,
          COALESCE(
            (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
             FROM (
@@ -246,7 +249,7 @@ async function getWorkoutPresetById(presetId: any, userId: any) {
   try {
     const result = await client.query(
       `SELECT
-         wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.created_at, wp.updated_at,
+         wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.source, wp.source_id, wp.workout_format, wp.time_cap_seconds, wp.created_at, wp.updated_at,
          COALESCE(
            (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
             FROM (
@@ -309,10 +312,20 @@ async function updateWorkoutPreset(
         name = COALESCE($1, name),
         description = COALESCE($2, description),
         is_public = COALESCE($3, is_public),
+        workout_format = COALESCE($4, workout_format),
+        time_cap_seconds = CASE WHEN $5::boolean THEN $6::integer ELSE time_cap_seconds END,
         updated_at = now()
-       WHERE id = $4
+       WHERE id = $7
        RETURNING id`,
-      [updateData.name, updateData.description, updateData.is_public, presetId]
+      [
+        updateData.name,
+        updateData.description,
+        updateData.is_public,
+        updateData.workout_format,
+        updateData.time_cap_seconds !== undefined,
+        updateData.time_cap_seconds ?? null,
+        presetId,
+      ]
     );
     if (result.rows.length > 0 && updateData.exercises !== undefined) {
       // Delete old exercises and sets (cascade will handle sets)
@@ -556,7 +569,7 @@ async function searchWorkoutPresets(
 
     let query = `
       SELECT
-        wp.id, wp.user_id, wp.name, wp.description, wp.is_public,
+        wp.id, wp.user_id, wp.name, wp.description, wp.is_public, wp.source, wp.source_id, wp.workout_format, wp.time_cap_seconds,
         COALESCE(
           (SELECT json_agg(ex_data ORDER BY ex_data.sort_order ASC, ex_data.id ASC)
            FROM (

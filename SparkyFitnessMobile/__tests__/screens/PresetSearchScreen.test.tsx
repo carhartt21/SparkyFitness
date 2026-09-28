@@ -54,6 +54,10 @@ jest.mock('../../src/services/nativeTabBarPreference', () => ({
   useNativeIOSHeadersActive: jest.fn(() => false),
 }));
 
+jest.mock('../../src/hooks/useActiveWorkoutPlan', () => ({
+  useActiveWorkoutPlan: jest.fn(() => ({ plan: null, isLoading: false })),
+}));
+
 const mockUseWorkoutPresets = useWorkoutPresets as jest.MockedFunction<
   typeof useWorkoutPresets
 >;
@@ -245,6 +249,8 @@ describe('PresetSearchScreen', () => {
       name: 'Push Day',
       exercises: buildPresetStartExercisesPayload(preset),
       sourcePresetId: 7,
+      workoutFormat: 'standard',
+      timeCapSeconds: null,
     });
     expect(navigation.navigate).not.toHaveBeenCalled();
   });

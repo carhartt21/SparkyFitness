@@ -257,8 +257,11 @@ async function getExerciseStats(
   presetId: number | null = null
 ) {
   const [bestRow, lastRow, recentRows] = await Promise.all([
-    // Best/last stay exercise-global by design: a heavier lift is a PR
-    // regardless of which preset it was performed under.
+    // Best/last stay exercise-global across presets by design: a heavier lift
+    // is a PR regardless of which preset it was performed under. Best alone
+    // skips sets done inside interval/WOD sessions — it is also the live PR
+    // baseline, so a metcon set must not raise the bar for strength work.
+    // Last stays unfiltered: it records what was done most recently.
     exerciseEntryDb.getBestSetForExercise(
       userId,
       exerciseId,
@@ -1884,7 +1887,8 @@ async function createGroupedExerciseEntriesWithClient(
         : {}),
       sort_order: exercise.sort_order ?? 0,
       superset_group: exercise.superset_group ?? null,
-      workout_plan_assignment_id: workoutPlanAssignmentId,
+      workout_plan_assignment_id:
+        exercise.workout_plan_assignment_id || workoutPlanAssignmentId || null,
       distance: exercise.distance,
       avg_heart_rate: exercise.avg_heart_rate,
       entry_time: exercise.entry_time ?? null,
@@ -2003,6 +2007,25 @@ async function createGroupedWorkoutSession(
         preserveLegacyPresetDurationFallback,
       }
     );
+    if (
+      sessionData.activity_details &&
+      sessionData.activity_details.length > 0
+    ) {
+      for (const detail of sessionData.activity_details) {
+        await activityDetailsRepository._createActivityDetailWithClient(
+          client,
+          {
+            exercise_entry_id: null,
+            exercise_preset_entry_id: presetEntry.id,
+            provider_name: detail.provider_name || 'SparkyFitness',
+            detail_type: detail.detail_type || 'wod_score',
+            detail_data: detail.detail_data,
+            created_by_user_id: actingUserId || userId,
+            updated_by_user_id: actingUserId || userId,
+          }
+        );
+      }
+    }
     const groupedSession = await getGroupedExerciseSessionByIdWithClient(
       client,
       userId,
@@ -2017,6 +2040,42 @@ async function createGroupedWorkoutSession(
   } finally {
     client.release();
   }
+}
+/**
+ * Picks the calorie figure an edited exercise entry should keep.
+ *
+ * Precedence: a value the client sent is a deliberate override and wins. A
+ * saved figure that already differs from `active_calories` is an earlier
+ * override — later edits omit `calories_burned` unless the user changes it
+ * again, and preferring the measurement would wipe it. Otherwise a device
+ * measurement beats the duration-and-sets estimate. Only an entry with no
+ * measurement re-derives.
+ *
+ * The measurement lives in `active_calories`, a telemetry column the entry
+ * update preserves. The watch writes the same number to both columns, so
+ * they diverge only after an explicit override. Postgres returns `numeric`
+ * as a string, hence the parse.
+ */
+function resolveEditedCaloriesBurned(
+  clientCalories: unknown,
+  existingEntry:
+    { active_calories?: unknown; calories_burned?: unknown } | null | undefined,
+  recomputed: number | undefined
+): number | undefined {
+  if (typeof clientCalories === 'number') return clientCalories;
+  const measured = parseMeasuredCalories(existingEntry?.active_calories);
+  const saved = parseMeasuredCalories(existingEntry?.calories_burned);
+  if (measured !== undefined && saved !== undefined && saved !== measured) {
+    return saved;
+  }
+  return measured !== undefined ? measured : recomputed;
+}
+
+/** Finite nonnegative device measurement. `null`/`''` must not become 0. */
+function parseMeasuredCalories(raw: unknown): number | undefined {
+  if (raw === null || raw === undefined || raw === '') return undefined;
+  const n = Number(raw);
+  return Number.isFinite(n) && n >= 0 ? n : undefined;
 }
 async function updateGroupedWorkoutSession(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -2034,7 +2093,10 @@ async function updateGroupedWorkoutSession(
     const existingSession = await getGroupedExerciseSessionByIdWithClient(
       client,
       userId,
-      presetEntryId
+      presetEntryId,
+      // Child rows are about to be rewritten from this snapshot. Lock them
+      // so a watch flush cannot commit newer HR or calories in between.
+      updateData.exercises !== undefined
     );
     if (!existingSession) {
       throw createServiceError(404, 'Exercise preset entry not found.');
@@ -2151,10 +2213,8 @@ async function updateGroupedWorkoutSession(
             continue;
           }
 
-          // Reuse prepareExerciseEntryForCreate so calories_burned is
-          // recomputed from the new duration/sets the same way the legacy
-          // delete-and-recreate path does — otherwise the helper would
-          // preserve the stale value.
+          // Reuse the create calculation for entries without a measured or
+          // manually overridden calorie value.
           const preparedEntry = await prepareExerciseEntryForCreate(userId, {
             exercise_id: ex.exercise_id,
             entry_date: targetEntryDate,
@@ -2186,9 +2246,16 @@ async function updateGroupedWorkoutSession(
                 preparedEntry.distance ??
                 existingById.get(ex.id)?.distance ??
                 null,
-              avg_heart_rate: preparedEntry.avg_heart_rate,
+              avg_heart_rate:
+                ex.avg_heart_rate === undefined
+                  ? (existingById.get(ex.id)?.avg_heart_rate ?? null)
+                  : preparedEntry.avg_heart_rate,
               duration_minutes: preparedEntry.duration_minutes,
-              calories_burned: preparedEntry.calories_burned,
+              calories_burned: resolveEditedCaloriesBurned(
+                ex.calories_burned,
+                existingById.get(ex.id),
+                preparedEntry.calories_burned
+              ),
               entry_date: targetEntryDate,
               entry_time: ex.entry_time ?? null,
             },
@@ -2214,6 +2281,44 @@ async function updateGroupedWorkoutSession(
         updateData.entry_date,
         actingUserId
       );
+    }
+    if (updateData.activity_details !== undefined) {
+      const providersToReplace = new Set<string>();
+      if (updateData.activity_details.length > 0) {
+        for (const detail of updateData.activity_details) {
+          const providerName = detail.provider_name || 'SparkyFitness';
+          const detailType = detail.detail_type || 'wod_score';
+          providersToReplace.add(`${providerName}::${detailType}`);
+        }
+      } else {
+        providersToReplace.add('SparkyFitness::wod_score');
+      }
+      for (const item of providersToReplace) {
+        const [providerName, detailType] = item.split('::');
+        await activityDetailsRepository._deleteActivityDetailsByEntryIdAndProviderWithClient(
+          client,
+          userId,
+          presetEntryId,
+          providerName,
+          detailType
+        );
+      }
+      if (updateData.activity_details.length > 0) {
+        for (const detail of updateData.activity_details) {
+          await activityDetailsRepository._createActivityDetailWithClient(
+            client,
+            {
+              exercise_entry_id: null,
+              exercise_preset_entry_id: presetEntryId,
+              provider_name: detail.provider_name || 'SparkyFitness',
+              detail_type: detail.detail_type || 'wod_score',
+              detail_data: detail.detail_data,
+              created_by_user_id: actingUserId || userId,
+              updated_by_user_id: actingUserId || userId,
+            }
+          );
+        }
+      }
     }
     const groupedSession = await getGroupedExerciseSessionByIdWithClient(
       client,
