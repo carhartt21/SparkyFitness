@@ -1,10 +1,11 @@
 # AGENTS.md
 
-*Last updated: 2026-09-27*
+_Last updated: 2026-09-28_
 
 This is the repo-root monorepo guide for SparkyFitness. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
 **For AI Tools & Developers:** Start with `agent-docs/README.md` (in this repo) for quick navigation to:
+
 - `file-and-domain-reference.md` — Find any code by feature in seconds
 - `testing-patterns.md` — Concrete test examples for each layer
 - `architecture-permissions.md` — Permission types and RLS patterns
@@ -82,11 +83,10 @@ Cheap ways to learn things:
 - Auth or API contract changes usually need a quick check in both web and mobile because they share the same backend.
 - Frontend local dev proxies `/api`, `/health-data`, and `/uploads` to the server on `3010`. The `/health-data` proxy is rewritten to `/api/health-data`, while server APIs remain rooted at `/api`.
 - Server runtime secrets are usually sourced from repo-root `.env`, commonly created from `docker/.env.example`. The server can also load secret files via `SparkyFitnessServer/utils/secretLoader.ts`.
-- Extract shared logic on the **second** duplication ("rule of two"), not the third - duplicated logic drifts as different sessions edit each copy. Extract *behavior*, not coincidental shape. See `agent-docs/anti-patterns.md`.
+- Extract shared logic on the **second** duplication ("rule of two"), not the third - duplicated logic drifts as different sessions edit each copy. Extract _behavior_, not coincidental shape. See `agent-docs/anti-patterns.md`.
 - **Strict TypeScript Typing:** Never use `any` or `// eslint-disable-next-line @typescript-eslint/no-explicit-any` when creating new functions or editing existing code. Always define explicit TypeScript interfaces, types, or import schemas from `@workspace/shared`. Do NOT copy legacy `any` parameter signatures when refactoring or extending legacy service/repository files.
 - **Library Deletes vs Diary Snapshots:** `exercise_entries` and `food_entries` are self-contained snapshots, not pointers (`exercise_id` and `food_id` are `ON DELETE SET NULL`). Deleting an exercise or food from the library (`mode: 'delete'`) preserves past and current diary history, cascades from presets and plan templates, cleans up future scheduled workout plan entries (`entry_date >= today`), and cleans up empty parent preset entries. Only explicit `delete_with_history` (force delete) purges diary logs for that user. If an item is referenced by other users (`otherUserReferences > 0`), the backend falls back to hiding (`is_quick_exercise` / `is_quick_food`).
 - **Comprehensive Cache Invalidation:** When mutating library items (foods, exercises, presets, meals, plans), always invalidate the entire family of dependent query keys across library search, counts, templates, and daily diary summaries (`dailySummary` / `dailyProgress` / `exerciseEntries`) in both web and mobile.
-
 
 ## Commit & PR Conventions
 
@@ -111,6 +111,12 @@ These docs answer: "How do I safely add a feature across the stack?" without sca
 
 - If your change adds a new domain, route family, database table, package, or cross-cutting convention, update the affected `AGENTS.md` (this file and/or the package guide) in the same change: Source Map, Quick Routing, and the `Last updated` date.
 - Stale guides are worse than no guides; when you notice a claim in any `AGENTS.md` that contradicts the code, fix the guide as part of your change.
+
+## Automated Visual Review
+
+- **Web:** `scripts/visual-sample.sh start` boots an isolated stack (PostgreSQL on 55432, server on 3010 in demo mode, Vite on 8080) with generated secrets under the git-ignored `.visual-sample/`. Then run `pnpm run visual:review` from `SparkyFitnessFrontend/` (optionally `-- --references <dir containing web/06-dashboard.png and web/07-nutrition-reports.png>`). It drives the installed Google Chrome through `playwright-core`, signs in with the public demo flow, suppresses the upstream-release and announcement overlays, and captures Dashboard and Reports in dark and light at 1586×992, 1280×800 and 390×844, plus side-by-side comparison sheets. Output goes to `.visual-sample/captures/<timestamp>/` with `results.json` (horizontal-overflow flags, console errors). Stop the stack with `scripts/visual-sample.sh stop`. Ports 3010, 8080 and 55432 must be free.
+- **Mobile:** `node scripts/review-ios.mjs --app <DevelopmentSimulator.app> --output <dir> [--interactions [--tour]]` from `SparkyFitnessMobile/` (see `SparkyFitnessMobile/review/README.md`).
+- Captures are render evidence, not visual approval; compare them with the references and record intentional differences in the dated implementation note.
 
 ## Common Commands
 
