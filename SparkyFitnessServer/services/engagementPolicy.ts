@@ -19,6 +19,8 @@ interface ReminderContext {
   waterCount: number;
   exerciseCount: number;
   pendingPhotoCount: number;
+  /** A user-declared context period paused optional reminders today. */
+  remindersPaused?: boolean;
 }
 
 const SCHEDULE: ReadonlyArray<{ kind: ReminderKind; at: string }> = [
@@ -62,6 +64,8 @@ export function dueEngagementCandidates(input: {
 }): ReminderCandidate[] {
   const { now, timezone, settings, context } = input;
   if (!settings.remote_enabled) return [];
+  // Every remote kind is discretionary; scheduled intakes are never remote.
+  if (context.remindersPaused) return [];
   const localDay = instantToDay(now, timezone);
   const clock = instantHourMinute(now, timezone);
   const localTime = `${String(clock.hour).padStart(2, '0')}:${String(clock.minute).padStart(2, '0')}`;

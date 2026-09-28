@@ -4,12 +4,21 @@ import type { FoodEntry } from '../types/foodEntries';
 import { toLocalDateString } from '../utils/dateUtils';
 import type { MobilityRoutine, MobilitySession } from './mobilityRoutineStore';
 
-export type EngagementDomain = 'nutrition' | 'hydration' | 'movement';
+export type EngagementDomain =
+  'nutrition' | 'hydration' | 'movement' | 'tracking';
 
 export interface ReminderCandidate {
   id: string;
   domain: EngagementDomain;
-  kind: 'capture' | 'review' | 'drink' | 'move' | 'mobility';
+  kind:
+    | 'capture'
+    | 'review'
+    | 'drink'
+    | 'move'
+    | 'mobility'
+    | 'checkin'
+    | 'habit'
+    | 'measurement';
   preferredAt: number;
   earliestAt: number;
   expiresAt: number;
@@ -157,6 +166,11 @@ export function nutritionReminderCandidates(input: {
   windows: MealWindow[];
   reviewTime: string | null;
   now: number;
+  /**
+   * Default times (HH:MM) of meals the user explicitly marked complete or
+   * "no meal" today. A window containing one is resolved.
+   */
+  resolvedMealTimes?: string[];
 }): ReminderCandidate[] {
   const { state, now } = input;
   const captured = state.capturedAt
@@ -169,9 +183,15 @@ export function nutritionReminderCandidates(input: {
     const end = localTime(state.day, window.end);
     const preferredAt = localTime(state.day, window.prompt);
     if (!(start < end && start <= preferredAt && preferredAt < end)) continue;
+    const resolvedByStatus = (input.resolvedMealTimes ?? []).some((time) => {
+      if (!/^([01]\d|2[0-3]):[0-5]\d/.test(time)) return false;
+      const at = localTime(state.day, time.slice(0, 5));
+      return at >= start && at < end;
+    });
     if (
       end <= now ||
       preferredAt <= now ||
+      resolvedByStatus ||
       captured.some((at) => at >= start && at < end)
     )
       continue;
@@ -259,6 +279,65 @@ export function mobilityReminderCandidates(input: {
       },
     ];
   });
+}
+
+export interface TrackingReminderInput {
+  day: string;
+  now: number;
+  /** Null while the day's check-in state is unknown; unknown never prompts. */
+  checkin: { enabled: boolean; time: string; resolved: boolean } | null;
+  habits: { id: string; time: string; resolved: boolean }[];
+  measurements: { key: string; time: string; resolved: boolean }[];
+}
+
+const CLOCK = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * Check-in, habit and measurement invitations for today. Each resolves as
+ * soon as an explicit record exists (completed or skipped check-in, any saved
+ * habit value, a saved measurement); opening a reminder records nothing.
+ */
+export function trackingReminderCandidates(
+  input: TrackingReminderInput
+): ReminderCandidate[] {
+  const candidates: ReminderCandidate[] = [];
+  const add = (
+    id: string,
+    kind: 'checkin' | 'habit' | 'measurement',
+    time: string
+  ) => {
+    const clock = time.slice(0, 5);
+    if (!CLOCK.test(clock)) return;
+    const at = localTime(input.day, clock);
+    if (at <= input.now) return;
+    candidates.push({
+      id,
+      domain: 'tracking',
+      kind,
+      preferredAt: at,
+      earliestAt: at,
+      expiresAt: Math.min(at + 2 * 60 * 60_000, localTime(input.day, '23:59')),
+      flexibilityMinutes: 30,
+    });
+  };
+  if (input.checkin?.enabled && !input.checkin.resolved) {
+    add(`tracking:checkin:${input.day}`, 'checkin', input.checkin.time);
+  }
+  for (const habit of input.habits) {
+    if (!habit.resolved) {
+      add(`tracking:habit:${input.day}:${habit.id}`, 'habit', habit.time);
+    }
+  }
+  for (const measurement of input.measurements) {
+    if (!measurement.resolved) {
+      add(
+        `tracking:measurement:${input.day}:${measurement.key}`,
+        'measurement',
+        measurement.time
+      );
+    }
+  }
+  return candidates;
 }
 
 /** Discretionary cap and collision policy. Scheduled intakes never enter here. */

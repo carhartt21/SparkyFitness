@@ -151,7 +151,10 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
   const createMedication = useCreateMedication();
   const updateMedication = useUpdateMedication();
 
-  const [edits, setEdits] = useState<Partial<FormState>>({});
+  // "Add supplement" from the Supplements screen starts pre-flagged.
+  const [edits, setEdits] = useState<Partial<FormState>>(() =>
+    !isEditing && route.params?.supplement ? { isSupplement: true } : {}
+  );
 
   const form: FormState = useMemo(
     () => ({ ...baseFromMed(existingMed), ...edits }),

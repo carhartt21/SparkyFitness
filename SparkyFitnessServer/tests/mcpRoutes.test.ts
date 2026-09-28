@@ -156,6 +156,116 @@ beforeEach(() => {
 });
 
 describe('POST /mcp', () => {
+  it('offers daily tracking reads but never their writes to read-only keys', async () => {
+    const listed = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({ jsonrpc: '2.0', id: 1, method: 'tools/list' });
+    const names: string[] = listed.body.result.tools.map(
+      (t: { name: string }) => t.name
+    );
+    for (const name of [
+      'sparky_get_daily_checkin',
+      'sparky_get_daily_progress',
+      'sparky_get_habit_history',
+      'sparky_list_supplements',
+      'sparky_get_meal_tracking_status',
+    ]) {
+      expect(names).toContain(name);
+    }
+    for (const name of [
+      'sparky_manage_habits',
+      'sparky_manage_checkin',
+      'sparky_manage_medications',
+      'sparky_daily_checkin_wizard',
+    ]) {
+      expect(names).not.toContain(name);
+    }
+
+    // Each forbidden action is called directly, not merely hidden.
+    const forbidden: Array<[string, Record<string, unknown>]> = [
+      [
+        'sparky_manage_habits',
+        {
+          action: 'log_habit',
+          habit_id: '00000000-0000-4000-8000-000000000001',
+          entry_date: '2026-09-28',
+          completed: true,
+        },
+      ],
+      ['sparky_manage_habits', { action: 'list_habits' }],
+      [
+        'sparky_manage_checkin',
+        { action: 'log_measurement', weight: 80, entry_date: '2026-09-28' },
+      ],
+      ['sparky_manage_medications', { action: 'log_dose', medication_id: 'x' }],
+      ['sparky_daily_checkin_wizard', {}],
+    ];
+    poolMocks.query.mockResolvedValue({ rows: [], rowCount: 0 });
+    for (const [name, args] of forbidden) {
+      const res = await request(app)
+        .post('/mcp')
+        .set(MCP_HEADERS)
+        .set('Authorization', 'Bearer readonly')
+        .send({
+          jsonrpc: '2.0',
+          id: 2,
+          method: 'tools/call',
+          params: { name, arguments: args },
+        });
+      expect(res.body.result.isError, name).toBe(true);
+      expect(res.body.result.content[0].text).toContain(
+        `Tool ${name} not found`
+      );
+    }
+    const writeStatements = () =>
+      poolMocks.query.mock.calls
+        .map(([sql]) => String(sql))
+        .filter((sql) => /\b(INSERT|UPDATE|DELETE)\b/i.test(sql));
+    expect(writeStatements()).toEqual([]);
+
+    // Read ranges stay bounded for delegated keys.
+    const tooLong = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 3,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_get_habit_history',
+          arguments: { start_date: '2026-01-01', end_date: '2026-09-28' },
+        },
+      });
+    expect(tooLong.body.result.isError).toBe(true);
+    expect(tooLong.body.result.content[0].text).toContain('READ_ONLY_SCOPE');
+
+    const read = await request(app)
+      .post('/mcp')
+      .set(MCP_HEADERS)
+      .set('Authorization', 'Bearer readonly')
+      .send({
+        jsonrpc: '2.0',
+        id: 4,
+        method: 'tools/call',
+        params: {
+          name: 'sparky_get_daily_checkin',
+          arguments: { date: '2026-09-28' },
+        },
+      });
+    expect(read.body.result.isError).toBeUndefined();
+    expect(read.body.result.content[0].text).toContain('"checkin":null');
+    const statements = poolMocks.query.mock.calls
+      .map(([sql]) => String(sql))
+      .filter((sql) => !sql.includes('set_app_context'));
+    expect(statements.length).toBeGreaterThan(0);
+    for (const sql of statements) {
+      expect(sql).not.toMatch(/\b(INSERT|UPDATE|DELETE|UPSERT)\b/i);
+    }
+  });
+
   it('restricts MCP-only credentials to an audited read tool surface', async () => {
     vi.stubEnv('DEV_TOOLS_ENABLED', 'true');
     const listed = await request(app)
@@ -366,7 +476,7 @@ describe('POST /mcp', () => {
 
     expect(res.status).toBe(200);
     const tools = res.body.result.tools;
-    expect(tools).toHaveLength(51);
+    expect(tools).toHaveLength(63);
     expect(tools.map((t: { name: string }) => t.name).sort()).toEqual(
       EXPECTED_TOOL_NAMES
     );
@@ -745,7 +855,7 @@ describe('POST /mcp', () => {
 
     expect(res.status).toBe(200);
     const names = res.body.result.tools.map((t: { name: string }) => t.name);
-    expect(res.body.result.tools).toHaveLength(51);
+    expect(res.body.result.tools).toHaveLength(63);
     for (const devTool of DEV_TOOL_NAMES) {
       expect(names).not.toContain(devTool);
     }
@@ -763,7 +873,7 @@ describe('POST /mcp', () => {
 
     expect(res.status).toBe(200);
     const names = res.body.result.tools.map((t: { name: string }) => t.name);
-    expect(res.body.result.tools).toHaveLength(56);
+    expect(res.body.result.tools).toHaveLength(68);
     for (const devTool of DEV_TOOL_NAMES) {
       expect(names).toContain(devTool);
     }
@@ -781,7 +891,7 @@ describe('POST /mcp', () => {
 
     expect(res.status).toBe(200);
     const names = res.body.result.tools.map((t: { name: string }) => t.name);
-    expect(res.body.result.tools).toHaveLength(51);
+    expect(res.body.result.tools).toHaveLength(63);
     for (const devTool of DEV_TOOL_NAMES) {
       expect(names).not.toContain(devTool);
     }

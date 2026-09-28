@@ -50,6 +50,11 @@ BEGIN
     'meals',
     'meal_types',
     'mood_entries',
+    'daily_checkins',
+    'health_context_periods',
+    'measurement_reminders',
+    'meal_day_statuses',
+    'daily_tracking_preferences',
     'onboarding_data',
     'onboarding_status',
     'openfoodfacts_product_read_rate_limit',
@@ -632,6 +637,15 @@ WITH CHECK (authenticated_user_id() = user_id);
 SELECT create_diary_policy('goal_presets');
 SELECT create_diary_policy('meal_plans');
 SELECT create_checkin_policy('mood_entries');
+-- Daily check-in is check-in data, like mood entries.
+SELECT create_checkin_policy('daily_checkins');
+-- Explicit meal resolution belongs to the food diary.
+SELECT create_diary_policy('meal_day_statuses');
+-- Tier 1 — owner-only. Illness and injury context is sensitive, and reminder
+-- and Daily Progress configuration are personal notification settings.
+SELECT create_owner_policy('health_context_periods');
+SELECT create_owner_policy('measurement_reminders');
+SELECT create_owner_policy('daily_tracking_preferences');
 
 -- Admin Activity Logs: Only the admin who performed the action or other admins can view
 CREATE POLICY admin_only_select ON public.admin_activity_logs FOR SELECT TO PUBLIC

@@ -3,6 +3,7 @@ import type {
   MedicationEntry,
   SharedScheduleRule,
 } from '@workspace/shared';
+import type { PendingPlannedSupplementAction } from '../services/nutritionActionOutbox';
 
 /** A scheduled dose slot on a given day, as produced by getDueDosesForDate. */
 export interface DueDose {
@@ -57,4 +58,19 @@ export function isDoseLogged(
       entryMatchesDose(e, medicationId, scheduleId) &&
       (e.status === 'taken' || e.status === 'skipped')
   );
+}
+
+/**
+ * Status of a queued planned-supplement response that should still be shown
+ * over the server's entries: pending or synced-but-not-yet-visible actions
+ * count; ones needing attention, or removed on the server, do not.
+ */
+export function activeLocalSupplementStatus(
+  local: PendingPlannedSupplementAction | undefined
+): 'taken' | 'skipped' | null {
+  if (!local || local.syncState === 'attentionRequired') return null;
+  const removedOnServer =
+    local.syncState === 'synced' &&
+    local.serverIdentity === local.clientOperationId;
+  return removedOnServer ? null : local.payload.status;
 }

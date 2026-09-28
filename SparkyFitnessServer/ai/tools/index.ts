@@ -11,6 +11,10 @@ import { buildAllergenTools } from './allergenTools.js';
 import { buildAskTools } from './askTools.js';
 import { buildCheckinTools } from './checkinTools.js';
 import { buildCustomNutrientTools } from './customNutrientTools.js';
+import {
+  buildDailyTrackingTools,
+  buildSupplementReadTools,
+} from './dailyTrackingTools.js';
 import { buildWaterContainerTools } from './waterContainerTools.js';
 import { buildCaffeineKineticsTools } from './caffeineKineticsTools.js';
 import { buildCoachTools } from './coachTools.js';
@@ -113,6 +117,7 @@ const CATEGORY_BUILDERS: Record<
   profile: [
     (u) => buildProfileTools(u),
     (u, tz) => buildHabitTools(u, tz),
+    (u, tz) => buildDailyTrackingTools(u, tz),
     (u, tz) => buildIntegrationsTools(u, tz),
     (u, tz) => buildSyncedDataTools(u, tz),
   ],
@@ -120,7 +125,10 @@ const CATEGORY_BUILDERS: Record<
     (u, tz) => buildReportTools(u, tz),
     (u, tz) => buildDashboardTools(u, tz),
   ],
-  medications: [(u, tz) => buildMedicationTools(u, tz)],
+  medications: [
+    (u, tz) => buildMedicationTools(u, tz),
+    (u, tz) => buildSupplementReadTools(u, tz),
+  ],
 };
 
 // Composition order: the core categories first (a strict prefix of the full

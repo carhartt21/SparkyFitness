@@ -5,7 +5,9 @@ import { useCSSVariable } from 'uniwind';
 import type { FoodEntry } from '../types/foodEntries';
 import type { DailyGoals } from '../types/goals';
 import type { MealType } from '../types/mealTypes';
+import type { MealDayStatusValue, MealTrackingState } from '@workspace/shared';
 import Icon from './Icon';
+import MealStatusControl from './tracking/MealStatusControl';
 import { glowSurfaceStyle, useGlowTheme } from './ui/glow';
 import { MEAL_CONFIG } from '../constants/meals';
 import SwipeableFoodRow from './SwipeableFoodRow';
@@ -36,6 +38,12 @@ interface FoodSummaryProps {
     mealTypeName: string,
     entries: FoodEntry[]
   ) => void;
+  /** Explicit meal resolution by meal type id; omit to hide the control. */
+  mealStates?: ReadonlyMap<string, MealTrackingState>;
+  onSetMealStatus?: (
+    mealTypeId: string,
+    status: MealDayStatusValue | null
+  ) => void;
 }
 
 interface MealSectionProps {
@@ -57,6 +65,8 @@ interface MealSectionProps {
     mealTypeName: string,
     entries: FoodEntry[]
   ) => void;
+  mealState?: MealTrackingState;
+  onSetMealStatus?: (status: MealDayStatusValue | null) => void;
 }
 
 const EmptyState: React.FC<{ onAddFood?: () => void }> = ({ onAddFood }) => {
@@ -92,6 +102,8 @@ const MealSection: React.FC<MealSectionProps> = ({
   draggingFood,
   onAddFood,
   onPressMealType,
+  mealState,
+  onSetMealStatus,
 }) => {
   const { t } = useTranslation();
   const glowing = useGlowTheme();
@@ -225,21 +237,32 @@ const MealSection: React.FC<MealSectionProps> = ({
           />
         );
       })}
-      {onAddFood && group.mealTypeId ? (
-        <Pressable
-          onPress={() => onAddFood(group.mealTypeId!)}
-          accessibilityRole="button"
-          accessibilityLabel={t('foodSummary.addFoodToMeal', {
-            defaultValue: 'Add food to {{meal}}',
-            meal: label,
-          })}
-          className="min-h-11 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised mt-3 active:opacity-70"
-        >
-          <Icon name="add" size={18} color={accentPrimary} />
-          <Text className="text-sm font-semibold text-text-primary">
-            {t('foodSummary.addFood', { defaultValue: 'Add food' })}
-          </Text>
-        </Pressable>
+      {(onAddFood && group.mealTypeId) || (mealState && onSetMealStatus) ? (
+        <View className="mt-3 flex-row gap-2">
+          {onAddFood && group.mealTypeId ? (
+            <Pressable
+              onPress={() => onAddFood(group.mealTypeId!)}
+              accessibilityRole="button"
+              accessibilityLabel={t('foodSummary.addFoodToMeal', {
+                defaultValue: 'Add food to {{meal}}',
+                meal: label,
+              })}
+              className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised active:opacity-70"
+            >
+              <Icon name="add" size={18} color={accentPrimary} />
+              <Text className="text-sm font-semibold text-text-primary">
+                {t('foodSummary.addFood', { defaultValue: 'Add food' })}
+              </Text>
+            </Pressable>
+          ) : null}
+          {mealState && onSetMealStatus ? (
+            <MealStatusControl
+              mealLabel={label}
+              state={mealState}
+              onChange={onSetMealStatus}
+            />
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
@@ -248,6 +271,8 @@ const MealSection: React.FC<MealSectionProps> = ({
 const FoodSummary: React.FC<FoodSummaryProps> = ({
   foodEntries,
   capturePhotos,
+  mealStates,
+  onSetMealStatus,
   mealTypes,
   goals,
   calorieGoal,
@@ -365,6 +390,14 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
               : undefined
           }
           onPressMealType={onPressMealType}
+          mealState={
+            group.mealTypeId ? mealStates?.get(group.mealTypeId) : undefined
+          }
+          onSetMealStatus={
+            group.mealTypeId && onSetMealStatus
+              ? (status) => onSetMealStatus(group.mealTypeId!, status)
+              : undefined
+          }
         />
       ))}
     </View>

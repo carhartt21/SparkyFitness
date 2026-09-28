@@ -107,6 +107,15 @@ import {
   SafeMedicationDetail,
   SafeMedicationForm,
   SafeMedicationScheduleForm,
+  SafeDailyCheckIn,
+  SafeHabits,
+  SafeHabitsManage,
+  SafeHabitForm,
+  SafeSupplements,
+  SafeHealthContext,
+  SafeHealthContextForm,
+  SafeDailyProgress,
+  SafeTrackingSettings,
 } from './src/navigation/safeScreens';
 import ReauthModal from './src/components/ReauthModal';
 import ServerConfigModal from './src/components/ServerConfigModal';
@@ -318,6 +327,12 @@ function AppContent() {
         },
         FoodScan: 'scan',
         QuickMealPhoto: 'meal-photo',
+        // Tracking reminders open these screens; opening records nothing.
+        DailyCheckIn: 'checkin',
+        Habits: 'habits',
+        MeasurementsAdd: 'measurements',
+        Supplements: 'supplements',
+        DailyProgress: 'progress',
         MovementBreak: 'movement-break',
         GuidedMobility: 'guided-mobility',
         WorkoutPresetsLibrary: 'routines',
@@ -875,6 +890,51 @@ function AppContent() {
               headerBackButtonDisplayMode: 'minimal',
               ...(Platform.OS === 'android' ? androidModalAnimation : {}),
             })}
+          />
+          <Stack.Screen
+            name="DailyCheckIn"
+            component={SafeDailyCheckIn}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="Habits"
+            component={SafeHabits}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="HabitsManage"
+            component={SafeHabitsManage}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="HabitForm"
+            component={SafeHabitForm}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="Supplements"
+            component={SafeSupplements}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="HealthContext"
+            component={SafeHealthContext}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="HealthContextForm"
+            component={SafeHealthContextForm}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="DailyProgress"
+            component={SafeDailyProgress}
+            options={{ headerShown: false, gestureEnabled: true }}
+          />
+          <Stack.Screen
+            name="TrackingSettings"
+            component={SafeTrackingSettings}
+            options={{ headerShown: false, gestureEnabled: true }}
           />
           <Stack.Screen
             name="MedicationsList"

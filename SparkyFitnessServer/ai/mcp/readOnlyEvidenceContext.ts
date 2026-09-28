@@ -9,6 +9,14 @@ const PERIOD_TOOLS = new Set([
   'sparky_get_food_diary',
   'sparky_get_nutrition_summary',
   'sparky_get_food_usage',
+  'sparky_get_daily_checkin',
+  'sparky_list_daily_checkins',
+  'sparky_get_habit_history',
+  'sparky_get_measurement_reminder_status',
+  'sparky_get_meal_tracking_status',
+  'sparky_get_daily_progress',
+  'sparky_get_daily_status_context',
+  'sparky_list_supplement_entries',
 ]);
 
 type Period = { start_date: string; end_date: string } | null;

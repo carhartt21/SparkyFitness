@@ -335,8 +335,17 @@ export type RootStackParamList = {
   About: undefined;
   WhatsNew: undefined;
   MedicationsList: undefined;
+  DailyCheckIn: { date?: string } | undefined;
+  Habits: { date?: string } | undefined;
+  HabitsManage: undefined;
+  HabitForm: { habitId?: string } | undefined;
+  Supplements: { date?: string } | undefined;
+  HealthContext: undefined;
+  HealthContextForm: { periodId?: string } | undefined;
+  DailyProgress: { date?: string } | undefined;
+  TrackingSettings: undefined;
   MedicationDetail: { medicationId: string };
-  MedicationForm: { medicationId?: string };
+  MedicationForm: { medicationId?: string; supplement?: boolean };
   MedicationScheduleForm: { medicationId: string; scheduleId?: string };
 };
 

@@ -3,6 +3,7 @@ import {
   medicationsRootQueryKey,
   medicationEntriesQueryKey,
   dailySummaryRootQueryKey,
+  dailyProgressRootQueryKey,
 } from './queryKeys';
 
 /**
@@ -24,4 +25,6 @@ export function invalidateMedicationEntryCaches(
   void queryClient.invalidateQueries({ queryKey: medicationEntriesQueryKey() });
   void queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: dailySummaryRootQueryKey });
+  // A taken or skipped supplement dose resolves a Daily Progress item.
+  void queryClient.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
 }

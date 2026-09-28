@@ -1,3 +1,8 @@
+import {
+  DAILY_CHECKIN_QUESTIONS_V1,
+  type CheckinQuestionDefinition,
+  type DailyCheckin,
+} from '@workspace/shared';
 import type { NutritionTrendPoint } from '../services/api/reportsApi';
 
 export interface NutritionInsights {
@@ -85,5 +90,58 @@ export function summarizeWeight(
   return {
     latest: last.weight,
     change: data.length > 1 ? last.weight - first.weight : null,
+  };
+}
+
+export interface CheckinAnswerSummary {
+  key: CheckinQuestionDefinition['key'];
+  /** Mean of recorded answers only; null without an answer. */
+  average: number | null;
+  /** How many completed check-ins answered this question. */
+  answered: number;
+}
+
+export interface CheckinInsights {
+  totalDays: number;
+  completedDays: number;
+  skippedDays: number;
+  overallAverage: number | null;
+  overallAnswered: number;
+  answers: CheckinAnswerSummary[];
+}
+
+/**
+ * Completed check-ins over a window with explicit denominators. Days without
+ * a check-in, skipped days and drafts never become zeros in an average.
+ */
+export function summarizeCheckins(
+  checkins: readonly DailyCheckin[],
+  totalDays: number
+): CheckinInsights {
+  const completed = checkins.filter((checkin) => checkin.state === 'completed');
+  const mean = (values: number[]) =>
+    values.length === 0
+      ? null
+      : values.reduce((sum, value) => sum + value, 0) / values.length;
+  const overall = completed
+    .map((checkin) => checkin.overall_day)
+    .filter((value): value is number => value !== null);
+  return {
+    totalDays,
+    completedDays: completed.length,
+    skippedDays: checkins.filter((checkin) => checkin.state === 'skipped')
+      .length,
+    overallAverage: mean(overall),
+    overallAnswered: overall.length,
+    answers: DAILY_CHECKIN_QUESTIONS_V1.map((question) => {
+      const values = completed
+        .map((checkin) => checkin[question.key])
+        .filter((value): value is number => value !== null);
+      return {
+        key: question.key,
+        average: mean(values),
+        answered: values.length,
+      };
+    }),
   };
 }

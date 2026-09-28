@@ -21,7 +21,10 @@ import type { RootStackParamList, TabParamList } from '../types/navigation';
 import { formatLocalizedTimeOfDay } from '../utils/medicationScheduleLocalization';
 
 import { medicationTypeLabel } from '../utils/medicationLocalization';
-import { doseSlotStatus } from '../utils/medications';
+import {
+  activeLocalSupplementStatus,
+  doseSlotStatus,
+} from '../utils/medications';
 import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
 
 type MedicationsCardNavigation = CompositeNavigationProp<
@@ -133,6 +136,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
         const local = med.is_supplement
           ? localSupplementActions.get(due.schedule.id)
           : undefined;
+        const localStatus = activeLocalSupplementStatus(local);
         const removedOnServer =
           local?.syncState === 'synced' &&
           local.serverIdentity === local.clientOperationId;
@@ -146,13 +150,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
           <DoseRow
             key={`${med.id}-${due.schedule.id}`}
             kind="scheduled"
-            status={
-              local &&
-              local.syncState !== 'attentionRequired' &&
-              !removedOnServer
-                ? local.payload.status
-                : doseSlotStatus(entryForDue(due))
-            }
+            status={localStatus ?? doseSlotStatus(entryForDue(due))}
             queuedStatus={removedOnServer ? undefined : local?.syncState}
             onToggle={() => toggleTaken(due)}
             onTake={() => logDose(due, 'taken')}

@@ -286,3 +286,40 @@ export const medicationEntriesQueryKey = (opts?: {
   toDate?: string;
   medicationId?: string;
 }) => ['medications', 'entries', opts ?? {}] as const;
+
+// --- Daily tracking (check-in, habits, context, reminders, meal status) ---
+export const dailyCheckinQueryKey = (date: string) =>
+  ['dailyTracking', 'checkin', date] as const;
+export const dailyCheckinsRangeRootQueryKey = [
+  'dailyTracking',
+  'checkins',
+] as const;
+export const dailyCheckinsRangeQueryKey = (
+  startDate: string,
+  endDate: string
+) => ['dailyTracking', 'checkins', startDate, endDate] as const;
+export const habitsQueryKey = (includeInactive: boolean) =>
+  ['dailyTracking', 'habits', includeInactive] as const;
+export const habitsRootQueryKey = ['dailyTracking', 'habits'] as const;
+export const habitLogsQueryKey = (
+  startDate: string,
+  endDate: string,
+  habitId?: string
+) =>
+  ['dailyTracking', 'habitLogs', startDate, endDate, habitId ?? null] as const;
+export const habitLogsRootQueryKey = ['dailyTracking', 'habitLogs'] as const;
+export const healthContextQueryKey = ['dailyTracking', 'context'] as const;
+export const measurementRemindersQueryKey = [
+  'dailyTracking',
+  'measurementReminders',
+] as const;
+export const mealTrackingStatusQueryKey = (date: string) =>
+  ['dailyTracking', 'mealStatus', date] as const;
+export const dailyTrackingPreferencesQueryKey = [
+  'dailyTracking',
+  'preferences',
+] as const;
+/** Daily Progress projects every tracking domain; any record change moves it. */
+export const dailyProgressRootQueryKey = ['dailyProgress'] as const;
+export const dailyProgressQueryKey = (date: string) =>
+  ['dailyProgress', date] as const;

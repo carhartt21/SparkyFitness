@@ -23,6 +23,7 @@ import {
 import { initMedicationNotificationActions } from '../services/medicationNotificationHandler';
 import { initNutritionEngagementResponses } from '../services/nutritionEngagementReminders';
 import { initMovementEngagementResponses } from '../services/movementEngagementReminders';
+import { initTrackingEngagementResponses } from '../services/trackingEngagementReminders';
 import { initMobilityEngagementResponses } from '../services/mobilityEngagementReminders';
 import { initHydrationQuickLogResponses } from '../services/hydrationQuickLogResponses';
 import { initRemoteEngagementResponses } from '../services/remoteEngagementActions';
@@ -89,6 +90,7 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
     initNutritionEngagementResponses();
     initMovementEngagementResponses();
     initMobilityEngagementResponses();
+    initTrackingEngagementResponses();
     initHydrationQuickLogResponses();
     initRemoteEngagementResponses();
 

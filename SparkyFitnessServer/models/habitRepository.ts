@@ -11,6 +11,7 @@ async function listHabits(userId: string) {
       `SELECT id, name, display_name, measurement_type, frequency, data_type
        FROM custom_categories
        WHERE user_id = $1 AND data_type = 'boolean'
+         AND (habit_type IS NULL OR habit_active)
        ORDER BY name ASC`,
       [userId]
     );
@@ -28,6 +29,16 @@ async function upsertHabitLog(
 ) {
   const client = await getClient(userId);
   try {
+    // Only completion (boolean) habits take true/false; count habits created
+    // on the Habits screen hold numbers and are logged there.
+    const habit = await client.query(
+      `SELECT 1 FROM custom_categories
+       WHERE id = $1 AND user_id = $2 AND data_type = 'boolean'`,
+      [habitId, userId]
+    );
+    if (habit.rows.length === 0) {
+      throw new Error('Habit not found or not a completion habit.');
+    }
     // Check if an entry exists first to avoid ON CONFLICT errors if the
     // unique constraint is missing
     const existing = await client.query(

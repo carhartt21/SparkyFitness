@@ -1,5 +1,8 @@
 import type { QueryClient } from '@tanstack/react-query';
-import { exerciseHistoryResetQueryKey } from './queryKeys';
+import {
+  dailyProgressRootQueryKey,
+  exerciseHistoryResetQueryKey,
+} from './queryKeys';
 
 const dailySummaryQueryFamily = ['dailySummary'] as const;
 const measurementsQueryFamily = ['measurements'] as const;
@@ -12,6 +15,8 @@ export function refreshHealthSyncCache(queryClient: QueryClient) {
   void queryClient.invalidateQueries({
     queryKey: measurementsRangeQueryFamily,
   });
+  // A saved weight or custom measurement can resolve a weigh-in progress item.
+  void queryClient.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
   void queryClient.invalidateQueries({
     queryKey: exerciseHistoryQueryFamily,
     refetchType: 'none',
