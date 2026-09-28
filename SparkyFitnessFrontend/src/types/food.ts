@@ -62,6 +62,8 @@ export interface Food {
    * imported yet. Once imported the downloaded copy lives in `images`.
    */
   image_url?: string | null;
+  /** Transient Open Food Facts food-group tags for fallback artwork. */
+  food_group_tags?: string[];
   /**
    * Full-size counterpart of `image_url`, when a provider serves more than one
    * size. The UI shows the smaller `image_url` and falls back to this if that

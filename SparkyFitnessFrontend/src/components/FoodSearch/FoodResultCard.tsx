@@ -107,7 +107,7 @@ const FoodResultCard = ({
     resolvedImageSrc !== null && resolvedImageSrc !== failedRealImage;
   const displayImageSrc = hasRealThumbnail
     ? resolvedImageSrc
-    : foodFallbackImageSrc(item.name, isMeal);
+    : foodFallbackImageSrc(item.name, isMeal, foodItem.food_group_tags);
   const mealItem = item as Meal;
   // Hex opacity suffixes are only valid on a full #rrggbb value; other colour
   // formats (CSS vars, named colours, #rgb) are used as-is without a tint.

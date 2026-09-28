@@ -38,6 +38,20 @@ describe('FoodThumbnail', () => {
     );
   });
 
+  it('uses an OFF food group when the name alone is misleading', () => {
+    const { UNSAFE_getByType } = render(
+      <FoodThumbnail
+        image={null}
+        name="Chocolate Pasta"
+        foodGroupTags={['en:cereals-and-potatoes', 'en:white-pasta']}
+        getImageSource={getImageSource}
+      />
+    );
+    expect(UNSAFE_getByType(Image).props.source).toEqual(
+      require('../../assets/food-fallbacks/pasta.png')
+    );
+  });
+
   it('renders nothing at all when fallbacks are suppressed', () => {
     // The diary row opts out: reserving a placeholder for every entry would
     // make a photo-free day taller than it was before images existed.

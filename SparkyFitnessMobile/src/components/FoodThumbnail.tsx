@@ -11,6 +11,7 @@ interface FoodThumbnailProps {
   image: string | null;
   /** Display name used only to choose non-persistent fallback artwork. */
   name?: string | null;
+  foodGroupTags?: readonly string[] | null;
   /** From `useFoodImageSource()`; hoisted so one cache serves a whole list. */
   getImageSource: GetFoodImageSource;
   size?: number;
@@ -39,6 +40,7 @@ interface FoodThumbnailProps {
 const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
   image,
   name,
+  foodGroupTags,
   getImageSource,
   size = 44,
   variant = 'food',
@@ -97,7 +99,11 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
             style={box}
           >
             <Image
-              source={foodFallbackImage(name, variant === 'meal')}
+              source={foodFallbackImage(
+                name,
+                variant === 'meal',
+                foodGroupTags
+              )}
               style={box}
               contentFit="contain"
               accessibilityLabel={undefined}

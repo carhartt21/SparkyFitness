@@ -82,6 +82,9 @@ describe('openFoodFactsService', () => {
         'sauce',
       ]);
       expect(fetchMock).toHaveBeenCalledTimes(2);
+      expect(String(fetchMock.mock.calls[1]?.[0])).toContain(
+        'food_groups_tags'
+      );
     });
 
     it('uses Search-a-licious relevance search with the requested language and pagination', async () => {
@@ -1628,6 +1631,18 @@ describe('openFoodFactsService', () => {
         fat_100g: 3,
       },
     };
+
+    it('passes through OFF food groups for illustration selection without changing nutrition', () => {
+      const result = mapOpenFoodFactsProduct({
+        ...baseProduct,
+        food_groups_tags: ['en:cereals-and-potatoes', 'en:bread', 'fr:pain'],
+      });
+      expect(result.food_group_tags).toEqual([
+        'en:cereals-and-potatoes',
+        'en:bread',
+      ]);
+      expect(result.default_variant.calories).toBe(125);
+    });
 
     it('extracts and normalizes allergens_tags and traces_tags', () => {
       const product = {

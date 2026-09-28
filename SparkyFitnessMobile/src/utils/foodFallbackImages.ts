@@ -15,12 +15,29 @@ const images: Record<FoodFallbackGroup, number> = {
   sweets: require('../../assets/food-fallbacks/sweets.png'),
   condiments: require('../../assets/food-fallbacks/condiments.png'),
   meals: require('../../assets/food-fallbacks/meals.png'),
+  potatoes: require('../../assets/food-fallbacks/potatoes.png'),
+  cereals: require('../../assets/food-fallbacks/cereals.png'),
+  oils: require('../../assets/food-fallbacks/oils.png'),
+  salty_snacks: require('../../assets/food-fallbacks/salty_snacks.png'),
+  soups: require('../../assets/food-fallbacks/soups.png'),
+  cheese: require('../../assets/food-fallbacks/cheese.png'),
+  ice_cream: require('../../assets/food-fallbacks/ice_cream.png'),
+  pastries: require('../../assets/food-fallbacks/pastries.png'),
+  sandwiches: require('../../assets/food-fallbacks/sandwiches.png'),
+  hot_drinks: require('../../assets/food-fallbacks/hot_drinks.png'),
+  plant_drinks: require('../../assets/food-fallbacks/plant_drinks.png'),
+  pasta: require('../../assets/food-fallbacks/pasta.png'),
+  processed_meat: require('../../assets/food-fallbacks/processed_meat.png'),
+  baby_food: require('../../assets/food-fallbacks/baby_food.png'),
+  alcohol: require('../../assets/food-fallbacks/alcohol.png'),
+  honey: require('../../assets/food-fallbacks/honey.png'),
   generic: require('../../assets/food-fallbacks/generic.png'),
 };
 
 export function foodFallbackImage(
   name: string | null | undefined,
-  isMeal = false
+  isMeal = false,
+  foodGroupTags?: readonly string[] | null
 ): number {
-  return images[foodFallbackGroup(name, isMeal)];
+  return images[foodFallbackGroup(name, isMeal, foodGroupTags)];
 }
