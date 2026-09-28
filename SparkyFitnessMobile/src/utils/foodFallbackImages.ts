@@ -1,4 +1,9 @@
-import { foodFallbackGroup, type FoodFallbackGroup } from '@workspace/shared';
+import {
+  foodFallbackGroup,
+  openFoodFactsArtworkSlug,
+  type FoodFallbackGroup,
+} from '@workspace/shared';
+import { OFF_FOOD_GROUP_IMAGES } from './offFoodGroupImages';
 
 const images: Record<FoodFallbackGroup, number> = {
   vegetables: require('../../assets/food-fallbacks/vegetables.png'),
@@ -39,5 +44,9 @@ export function foodFallbackImage(
   isMeal = false,
   foodGroupTags?: readonly string[] | null
 ): number {
+  if (!isMeal) {
+    const slug = openFoodFactsArtworkSlug(foodGroupTags);
+    if (slug && OFF_FOOD_GROUP_IMAGES[slug]) return OFF_FOOD_GROUP_IMAGES[slug];
+  }
   return images[foodFallbackGroup(name, isMeal, foodGroupTags)];
 }

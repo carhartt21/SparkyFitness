@@ -142,6 +142,25 @@ export function openFoodFactsFallbackGroup(
   return match;
 }
 
+/** Selects a distinct artwork for each substantive OFF food group. The three
+ * unknown placeholders intentionally defer to the name/neutral fallback. */
+export function openFoodFactsArtworkSlug(
+  foodGroupTags: readonly string[] | null | undefined,
+): string | null {
+  let match: string | null = null;
+  for (const tag of foodGroupTags ?? []) {
+    if (!tag.startsWith("en:")) continue;
+    const slug = tag.slice(3);
+    if (
+      Object.prototype.hasOwnProperty.call(OFF_GROUPS, slug) &&
+      !slug.startsWith("unknown-food-group-")
+    ) {
+      match = slug;
+    }
+  }
+  return match;
+}
+
 function words(name: string): string[] {
   return name
     .toLocaleLowerCase("de")

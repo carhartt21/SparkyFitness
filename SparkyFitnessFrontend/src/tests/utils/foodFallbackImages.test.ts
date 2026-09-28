@@ -1,9 +1,12 @@
 import {
   foodFallbackGroup,
+  openFoodFactsArtworkSlug,
   openFoodFactsFallbackGroup,
 } from '@workspace/shared';
 import { foodFallbackImageSrc } from '@/utils/foodFallbackImages';
 import { OPEN_FOOD_FACTS_GROUP_TAGS } from '../fixtures/openFoodFactsGroupTags';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
 
 describe('food fallback artwork', () => {
   it.each([
@@ -41,6 +44,20 @@ describe('food fallback artwork', () => {
     expect(OPEN_FOOD_FACTS_GROUP_TAGS).toHaveLength(91);
     for (const tag of OPEN_FOOD_FACTS_GROUP_TAGS) {
       expect(openFoodFactsFallbackGroup([tag])).not.toBeNull();
+      expect(openFoodFactsArtworkSlug([tag])).toBe(
+        tag.startsWith('en:unknown-food-group-') ? null : tag.slice(3)
+      );
+      if (!tag.startsWith('en:unknown-food-group-')) {
+        expect(
+          existsSync(
+            join(
+              process.cwd(),
+              'public/images/off-food-groups',
+              `${tag.slice(3)}.webp`
+            )
+          )
+        ).toBe(true);
+      }
     }
   });
 
@@ -59,11 +76,19 @@ describe('food fallback artwork', () => {
       foodFallbackGroup(name, false, ['en:unknown-food-group-1', tag])
     ).toBe(group);
     expect(foodFallbackImageSrc(name, false, [tag])).toBe(
-      `/images/food-fallbacks/${group}.webp`
+      `/images/off-food-groups/${tag.slice(3)}.webp`
     );
   });
 
   it('uses the most specific OFF group over broad ancestors and ambiguous names', () => {
+    expect(
+      openFoodFactsArtworkSlug([
+        'en:cereals-and-potatoes',
+        'en:cereals',
+        'en:white-pasta',
+        'en:unknown-food-group-3',
+      ])
+    ).toBe('white-pasta');
     expect(
       foodFallbackGroup('Chocolate Pasta', false, [
         'en:cereals-and-potatoes',
@@ -75,5 +100,8 @@ describe('food fallback artwork', () => {
       'grains'
     );
     expect(foodFallbackGroup('Rice', false, ['fr:riz'])).toBe('grains');
+    expect(
+      foodFallbackImageSrc('Rice', false, ['en:unknown-food-group-1'])
+    ).toBe('/images/food-fallbacks/grains.webp');
   });
 });

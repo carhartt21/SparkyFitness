@@ -2,6 +2,7 @@ import React from 'react';
 import { Image } from 'expo-image';
 import { fireEvent, render } from '@testing-library/react-native';
 import FoodThumbnail from '../../src/components/FoodThumbnail';
+import { OFF_FOOD_GROUP_IMAGES } from '../../src/utils/offFoodGroupImages';
 
 const getImageSource = (path: string) => ({
   uri: `https://server/api${path}`,
@@ -9,6 +10,9 @@ const getImageSource = (path: string) => ({
 });
 
 describe('FoodThumbnail', () => {
+  it('bundles a distinct asset slot for every substantive OFF food group', () => {
+    expect(Object.keys(OFF_FOOD_GROUP_IMAGES)).toHaveLength(88);
+  });
   it('renders the resolved image for a stored path', () => {
     const { UNSAFE_getByType } = render(
       <FoodThumbnail
@@ -48,7 +52,7 @@ describe('FoodThumbnail', () => {
       />
     );
     expect(UNSAFE_getByType(Image).props.source).toEqual(
-      require('../../assets/food-fallbacks/pasta.png')
+      require('../../assets/off-food-groups/white-pasta.png')
     );
   });
 
