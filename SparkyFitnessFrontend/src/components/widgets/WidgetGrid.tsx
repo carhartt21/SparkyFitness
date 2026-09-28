@@ -31,6 +31,7 @@ import {
   reconcileLayouts,
   stabilizeGridWidth,
   type DashboardLayouts,
+  type Breakpoint,
   type MeasureGuard,
 } from '@/utils/dashboardLayout';
 
@@ -49,6 +50,8 @@ interface WidgetGridProps {
   generateDefaultLayouts: (widgetKeys: string[]) => DashboardLayouts;
   /** Optional container to render the toolbar controls inside via portal */
   toolbarContainer?: HTMLElement | null;
+  /** Container thresholds may differ for pages with a persistent sidebar. */
+  breakpoints?: Record<Breakpoint, number>;
 }
 
 /**
@@ -87,6 +90,7 @@ const WidgetGridInner = ({
   widgets,
   generateDefaultLayouts,
   toolbarContainer,
+  breakpoints = GRID_BREAKPOINTS,
 }: WidgetGridProps) => {
   const { t } = useTranslation();
   const { isActingOnBehalf } = useActiveUser();
@@ -99,8 +103,8 @@ const WidgetGridInner = ({
   // the breakpoint near a threshold and oscillate forever (#2056), so damp it.
   const [width, setWidth] = useState(rawWidth);
   useEffect(() => {
-    setWidth((prev) => stabilizeGridWidth(prev, rawWidth));
-  }, [rawWidth]);
+    setWidth((prev) => stabilizeGridWidth(prev, rawWidth, breakpoints));
+  }, [rawWidth, breakpoints]);
 
   // Layout editing is a personal action; when viewing someone else's profile
   // the layout is shown read-only (the server also rejects writes).
@@ -308,7 +312,7 @@ const WidgetGridInner = ({
             <Responsive
               className="layout"
               layouts={displayLayouts as unknown as ResponsiveLayouts}
-              breakpoints={GRID_BREAKPOINTS}
+              breakpoints={breakpoints}
               cols={GRID_COLS}
               width={width}
               rowHeight={GRID_ROW_HEIGHT}
@@ -380,6 +384,7 @@ export default function WidgetGrid({
   widgets,
   generateDefaultLayouts,
   toolbarContainer,
+  breakpoints,
 }: WidgetGridProps) {
   const { reset } = useDashboardLayout(pageKey);
   const { t } = useTranslation();
@@ -425,6 +430,7 @@ export default function WidgetGrid({
         widgets={widgets}
         generateDefaultLayouts={generateDefaultLayouts}
         toolbarContainer={toolbarContainer}
+        breakpoints={breakpoints}
       />
     </GridErrorBoundary>
   );

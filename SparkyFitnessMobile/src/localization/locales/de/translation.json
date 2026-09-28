@@ -1,4 +1,8 @@
 {
+  "brand": {
+    "name": "X on Track",
+    "tagline": "Was auch immer dein X ist: Bleib auf Kurs."
+  },
   "activeTimer": {
     "timeToTarget": "Zeit bis zum Ziel",
     "currentFast": "Aktuelles Fasten",
@@ -698,6 +702,8 @@
     },
     "header": {
       "addExercise": "exercise hinzufügen",
+      "setProgress": "Abgeschlossene Sätze",
+      "noPlannedSets": "Keine geplanten Sätze",
       "back": "Rückseite",
       "clearAllSets": "Leeren alle eingetragen sets",
       "discardWorkout": "Verwerfen Training",
@@ -4101,15 +4107,15 @@
     "title": "Verlauf: {{nutrient}}",
     "loggedDaysNote": "Der Verlauf berücksichtigt nur Tage mit Einträgen. Tage ohne Einträge bleiben unbekannt.",
     "states": {
-    "loadFailed": "Verlaufsdaten konnten nicht geladen werden."
+      "loadFailed": "Verlaufsdaten konnten nicht geladen werden."
     },
     "labels": {
-    "summary": "Zusammenfassung",
-    "dailyAverage": "Tagesdurchschnitt",
-    "highestDay": "Tag mit dem höchsten Wert",
-    "targetGoal": "Tagesziel",
-    "averageVsTarget": "Durchschnitt im Vergleich zum Ziel",
-    "percentOfGoal": "{{percent}} % des Ziels"
+      "summary": "Zusammenfassung",
+      "dailyAverage": "Tagesdurchschnitt",
+      "highestDay": "Tag mit dem höchsten Wert",
+      "targetGoal": "Tagesziel",
+      "averageVsTarget": "Durchschnitt im Vergleich zum Ziel",
+      "percentOfGoal": "{{percent}} % des Ziels"
     }
   },
   "workoutPresetDetail": {

@@ -1,7 +1,7 @@
 {
   "brand": {
     "name": "X on Track",
-    "tagline": "Keep getting better."
+    "tagline": "Whatever your X, keep it on track."
   },
   "engagement": {
     "dailyOptionalBudget": "Optional reminders today",
@@ -467,6 +467,8 @@
     },
     "header": {
       "addExercise": "Add exercise",
+      "setProgress": "Completed sets",
+      "noPlannedSets": "No planned sets",
       "back": "Back",
       "clearAllSets": "Clear all logged sets",
       "discardWorkout": "Discard workout",
@@ -853,7 +855,7 @@
     "noStandardMethods": "No standard sign-in methods are currently enabled on this server. Please use an API Key or contact an administrator."
   },
   "onboarding": {
-    "subtitle": "Keep getting better.",
+    "subtitle": "Whatever your X, keep it on track.",
     "learnMoreTitle": "Learn more about X on Track",
     "learnMoreBody": "X on Track helps you track your food, workouts, and health data in one place.",
     "learnMorePrivacy": "It runs on your own server so your data stays private.",
@@ -3535,8 +3537,8 @@
       "nutritionForAmount": "Nutrition for selected amount",
       "logTo": "Log to",
       "ofGoal": "{{percent}}% of goal",
-    "quickPortions": "Available portions",
-    "unknownGramSize": "A gram weight was not provided for this serving.",
+      "quickPortions": "Available portions",
+      "unknownGramSize": "A gram weight was not provided for this serving.",
       "quickPortionNutrition": "{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein",
       "perServing": "per serving",
       "time": "Time",

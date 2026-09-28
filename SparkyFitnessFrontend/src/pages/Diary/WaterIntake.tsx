@@ -45,7 +45,7 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
     useWaterContainer();
   const { water_display_unit } = usePreferences();
   const userId = activeUserId || user?.id;
-  const { data: waterGoalMl = 1920 } = useWaterGoalQuery(selectedDate, userId);
+  const { data: waterGoalMl } = useWaterGoalQuery(selectedDate, userId);
   const { data: waterMl = 0 } = useWaterIntakeQuery(selectedDate, userId);
   // Only manually logged water can be removed here; provider-synced water is
   // owned by its provider and would just reappear on the next sync.
@@ -226,7 +226,10 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
     return null;
   }
 
-  const fillPercentage = Math.min((waterMl / waterGoalMl) * 100, 100);
+  const hasWaterGoal = typeof waterGoalMl === 'number' && waterGoalMl > 0;
+  const fillPercentage = hasWaterGoal
+    ? Math.min((waterMl / waterGoalMl) * 100, 100)
+    : 0;
   // A container's unit qualifies its own volume. A linked container has none
   // -- volume is 0 and the credit comes from the food -- so whatever unit was
   // left in the form when it was created is vestigial, and letting it drive the
@@ -253,10 +256,14 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
             {(() => {
               const activeUnit = currentContainer?.unit || water_display_unit;
               const val = convertMlToSelectedUnit(waterMl, activeUnit);
-              const goalVal = convertMlToSelectedUnit(waterGoalMl, activeUnit);
+              const goalVal = hasWaterGoal
+                ? convertMlToSelectedUnit(waterGoalMl, activeUnit)
+                : null;
               const decimals =
                 activeUnit === 'oz' ? 1 : activeUnit === 'liter' ? 2 : 0;
-              return `${parseFloat(val.toFixed(decimals))} / ${parseFloat(goalVal.toFixed(decimals))}`;
+              return goalVal == null
+                ? `${parseFloat(val.toFixed(decimals))}`
+                : `${parseFloat(val.toFixed(decimals))} / ${parseFloat(goalVal.toFixed(decimals))}`;
             })()}
           </div>
           <div className="text-gray-500 text-xs">
@@ -316,7 +323,9 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
 
             {/* Progress Percentage */}
             <div className="text-xs text-gray-600 mt-1.5 font-medium">
-              {Math.round(fillPercentage)}%
+              {hasWaterGoal
+                ? `${Math.round(fillPercentage)}%`
+                : t('foodDiary.waterIntake.noGoal', 'No hydration goal set')}
             </div>
           </div>
         </div>
@@ -328,7 +337,8 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
             onClick={() => adjustWater(-1)}
             disabled={manualWaterMl <= 0 || loading}
             size="icon"
-            className="h-8 w-8 rounded-full"
+            className="h-11 w-11 rounded-lg"
+            aria-label={t('foodDiary.waterIntake.removeWater', 'Remove water')}
             title={
               manualWaterMl <= 0 && waterMl > 0
                 ? t(
@@ -351,7 +361,8 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
             onClick={() => adjustWater(1)}
             disabled={loading}
             size="icon"
-            className="h-8 w-8 rounded-full bg-blue-600 hover:bg-blue-700 text-white"
+            className="h-11 w-11 rounded-lg bg-blue-600 hover:bg-blue-700 text-white"
+            aria-label={t('foodDiary.waterIntake.addWater', 'Add water')}
           >
             <Plus className="h-4 w-4" />
           </Button>
@@ -364,7 +375,11 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
             size="icon"
             onClick={() => cycleContainer('prev')}
             disabled={standardContainers.length <= 1}
-            className="h-6 w-6 text-gray-400 hover:text-gray-600"
+            className="h-11 w-11 text-gray-400 hover:text-gray-600"
+            aria-label={t(
+              'foodDiary.waterIntake.previousContainer',
+              'Previous container'
+            )}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -395,7 +410,11 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
             size="icon"
             onClick={() => cycleContainer('next')}
             disabled={standardContainers.length <= 1}
-            className="h-6 w-6 text-gray-400 hover:text-gray-600"
+            className="h-11 w-11 text-gray-400 hover:text-gray-600"
+            aria-label={t(
+              'foodDiary.waterIntake.nextContainer',
+              'Next container'
+            )}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -413,7 +432,7 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
                   key={preset.id}
                   onClick={() => saveWaterIntake(1, preset.id)}
                   disabled={loading}
-                  className="flex items-center justify-between p-1.5 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-blue-50/50 dark:hover:bg-slate-700/50 text-left transition-colors cursor-pointer group"
+                  className="flex min-h-11 items-center justify-between p-2 rounded-lg border border-gray-200 dark:border-slate-800 bg-white dark:bg-slate-800/60 hover:bg-blue-50/50 dark:hover:bg-slate-700/50 text-left transition-colors cursor-pointer group"
                 >
                   <div className="min-w-0 pr-1">
                     <div className="text-xs font-medium text-gray-800 dark:text-gray-200 truncate">

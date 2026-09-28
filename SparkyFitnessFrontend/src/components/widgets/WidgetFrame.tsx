@@ -51,7 +51,10 @@ const WidgetFrame = ({
   }, [onMeasure, widgetKey]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-lg border border-border/60 bg-card">
+    <div
+      id={`diary-widget-${widgetKey}`}
+      className="relative h-full w-full scroll-mt-6 overflow-hidden rounded-xl border border-border/60 bg-card"
+    >
       {/* Natural-height inner content. Child Card chrome is flattened so only
           the frame's border shows. Content is top-aligned; when the tile is
           taller (row-equalized), the extra space sits inside this one border. */}

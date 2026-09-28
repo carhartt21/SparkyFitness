@@ -3,6 +3,7 @@ import '@testing-library/jest-dom';
 import WaterIntake from '@/pages/Diary/WaterIntake';
 import { useWaterContainer } from '@/contexts/WaterContainerContext';
 import {
+  useWaterGoalQuery,
   useWaterIntakeQuery,
   useManualWaterIntakeQuery,
   useFoodWaterIntakeQuery,
@@ -151,6 +152,7 @@ describe('WaterIntake Component', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useWaterGoalQuery as jest.Mock).mockReturnValue({ data: 2000 });
     (useWaterIntakeQuery as jest.Mock).mockReturnValue({ data: 500 });
     (useManualWaterIntakeQuery as jest.Mock).mockReturnValue({ data: 500 });
     (useFoodWaterIntakeQuery as jest.Mock).mockReturnValue({ data: 0 });
@@ -172,6 +174,17 @@ describe('WaterIntake Component', () => {
     expect(screen.getByText(/WORK BOTTLE/i)).toBeInTheDocument();
     expect(screen.getByText('500 ml')).toBeInTheDocument();
     expect(screen.getByTestId('star-icon')).toBeInTheDocument();
+  });
+
+  it('does not invent a hydration target when the goal is unavailable', () => {
+    (useWaterGoalQuery as jest.Mock).mockReturnValue({ data: undefined });
+    renderWithClient(<WaterIntake selectedDate="2023-10-27" />);
+
+    expect(
+      screen.getByText('foodDiary.waterIntake.noGoal')
+    ).toBeInTheDocument();
+    expect(screen.queryByText(/1920/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/25%/)).not.toBeInTheDocument();
   });
 
   it('cycles only across standard containers and excludes quick-add presets from carousel', () => {

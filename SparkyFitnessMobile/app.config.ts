@@ -211,7 +211,7 @@ export default ({ config }: ConfigContext): Partial<ExpoConfig> => {
       permissions: androidPermissions,
       adaptiveIcon: {
         foregroundImage: './assets/icons/adaptiveicon.png',
-        backgroundColor: '#FFFBF3',
+        backgroundColor: '#07131B',
       },
     },
     plugins: [

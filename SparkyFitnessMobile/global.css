@@ -68,6 +68,9 @@
       --color-hydration: #146f8f;
       --color-exercise: #09785d;
       --color-activity-energy: #b54821;
+      --color-action-food: #c94c33;
+      --color-action-training: #946100;
+      --color-action-scan: #0a7650;
 
       --color-cat-slate: hsl(220, 9%, 46%);
       --color-cat-pink: hsl(340, 75%, 55%);
@@ -163,6 +166,9 @@
       --color-hydration: #39c9f1;
       --color-exercise: #21ddb0;
       --color-activity-energy: #ff8052;
+      --color-action-food: #ff795a;
+      --color-action-training: #f6d743;
+      --color-action-scan: #31dfa0;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);
@@ -257,6 +263,9 @@
       --color-hydration: hsl(200, 50%, 52%);
       --color-exercise: #21ddb0;
       --color-activity-energy: #ff8052;
+      --color-action-food: #ff795a;
+      --color-action-training: #f6d743;
+      --color-action-scan: #31dfa0;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);

@@ -19,6 +19,9 @@ interface DiaryWidgetGridProps {
 }
 
 const PAGE_KEY = 'diary';
+// The desktop navigation occupies 248px, so the Diary's grid needs its
+// three-column layout at a narrower content width than full-width reports.
+const DIARY_BREAKPOINTS = { lg: 1100, md: 900, sm: 700, xs: 0 } as const;
 
 const diaryDefaultLayouts = (widgetKeys: string[]): DashboardLayouts =>
   generateDefaultLayouts(widgetKeys.filter(isMealWidgetKey));
@@ -32,6 +35,7 @@ const DiaryWidgetGrid = ({
     widgets={widgets}
     generateDefaultLayouts={diaryDefaultLayouts}
     toolbarContainer={toolbarContainer}
+    breakpoints={DIARY_BREAKPOINTS}
   />
 );
 

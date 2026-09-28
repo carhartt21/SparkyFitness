@@ -66,12 +66,15 @@ export const GRID_WIDTH_JITTER_PX = 24;
  * The breakpoint react-grid-layout selects for a container width: the largest
  * breakpoint whose threshold the width reaches.
  */
-export function breakpointForWidth(width: number): Breakpoint {
-  const ordered = (Object.keys(GRID_BREAKPOINTS) as Breakpoint[]).sort(
-    (a, b) => GRID_BREAKPOINTS[b] - GRID_BREAKPOINTS[a]
+export function breakpointForWidth(
+  width: number,
+  breakpoints: Record<Breakpoint, number> = GRID_BREAKPOINTS
+): Breakpoint {
+  const ordered = (Object.keys(breakpoints) as Breakpoint[]).sort(
+    (a, b) => breakpoints[b] - breakpoints[a]
   );
   for (const bp of ordered) {
-    if (width >= GRID_BREAKPOINTS[bp]) return bp;
+    if (width >= breakpoints[bp]) return bp;
   }
   return ordered[ordered.length - 1] as Breakpoint;
 }
@@ -89,12 +92,19 @@ export function breakpointForWidth(width: number): Breakpoint {
  * A change large enough to be a real resize, or one that stays inside the
  * current breakpoint, is always accepted so normal resizing still tracks.
  */
-export function stabilizeGridWidth(prev: number, next: number): number {
+export function stabilizeGridWidth(
+  prev: number,
+  next: number,
+  breakpoints: Record<Breakpoint, number> = GRID_BREAKPOINTS
+): number {
   if (!Number.isFinite(next) || next <= 0) return prev;
   if (!Number.isFinite(prev) || prev <= 0) return next;
   const delta = Math.abs(next - prev);
   if (delta >= GRID_WIDTH_JITTER_PX) return next;
-  return breakpointForWidth(next) === breakpointForWidth(prev) ? next : prev;
+  return breakpointForWidth(next, breakpoints) ===
+    breakpointForWidth(prev, breakpoints)
+    ? next
+    : prev;
 }
 
 /** Rolling window used to tell a measurement feedback loop from real changes. */

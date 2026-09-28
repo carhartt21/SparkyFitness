@@ -64,24 +64,29 @@ const AboutDialog: React.FC<AboutDialogProps> = ({
             <div className="space-y-4">
               <div className="flex items-center gap-3 text-left">
                 <img
-                  src="/images/brand/x-on-track-light.png"
+                  src="/images/brand/progression-x-light.png"
                   alt="X on Track logo"
                   className="h-12 w-12 object-contain dark:hidden"
                 />
                 <img
-                  src="/images/brand/x-on-track-dark.png"
+                  src="/images/brand/progression-x.png"
                   alt="X on Track logo"
                   className="hidden h-12 w-12 object-contain dark:block"
                 />
                 <div>
                   <strong className="block text-foreground">X on Track</strong>
-                  <span>Keep getting better.</span>
+                  <span>
+                    {t(
+                      'layout.brandLine',
+                      'Whatever your X, keep it on track.'
+                    )}
+                  </span>
                 </div>
               </div>
               <p>
                 {t(
-                  'aboutDialog.personalBestDescription',
-                  'X on Track helps you log what matters, understand your patterns, and improve relative to your own baseline. Keep getting better.'
+                  'aboutDialog.xOnTrackDescriptionV2',
+                  'X on Track helps you track what matters, understand your patterns, and make progress at your own pace.'
                 )}
               </p>
               <p>

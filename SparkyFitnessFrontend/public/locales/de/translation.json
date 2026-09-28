@@ -969,6 +969,7 @@
     }
   },
   "aboutDialog": {
+    "xOnTrackDescriptionV2": "X on Track hilft dir, das Wichtige zu erfassen, Muster zu verstehen und in deinem eigenen Tempo Fortschritte zu machen.",
     "title": "Über X on Track",
     "description1": "X on Track: Für Familien entwickelt. Mit KI-Unterstützung. Erfasse gemeinsam Ernährung, Fitness, Wasseraufnahme und Gesundheit.",
     "applicationVersion": "Anwendungsversion: ",
@@ -4986,6 +4987,7 @@
     "recHours": "Erh.: {{val}}"
   },
   "layout": {
+    "brandLine": "Was auch immer dein X ist: Bleib auf Kurs.",
     "welcome": "Willkommen {{activeUserName}}"
   },
   "food": {

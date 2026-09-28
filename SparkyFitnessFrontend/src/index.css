@@ -90,6 +90,11 @@
 
 @layer base {
   :root {
+    --identity-progress-red: #ff3153;
+    --identity-progress-orange: #ff9b2c;
+    --identity-progress-yellow: #f7ee36;
+    --identity-progress-lime: #d6f83d;
+    --identity-progress-green: #15e99b;
     --metric-calories: 165 84% 27%;
     --metric-protein: 36 80% 34%;
     --metric-carbs: 151 71% 29%;
@@ -153,13 +158,13 @@
     --brand-secondary: 164 81% 36%;
     --brand-supporting: 158 44% 62%;
     --brand-accent: 16 100% 66%;
-    --background: 213 19% 11%;
+    --background: 207 58% 6%;
     --foreground: 41 51% 93%;
 
-    --card: 200 16% 16%;
+    --card: 198 37% 12%;
     --card-foreground: var(--foreground);
 
-    --popover: 200 16% 16%;
+    --popover: 198 37% 12%;
     --popover-foreground: var(--foreground);
 
     --primary: var(--brand-secondary);
@@ -177,8 +182,8 @@
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 153 22% 22%;
-    --input: 153 22% 22%;
+    --border: 188 26% 25%;
+    --input: 188 26% 25%;
     --ring: var(--brand-secondary);
 
     --date-today: 158 64% 52%;

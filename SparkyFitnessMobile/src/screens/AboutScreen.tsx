@@ -34,8 +34,8 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
   const iconColor = useCSSVariable('--color-icon-decorative') as string;
   const logoSource =
     theme === 'dark' || theme === 'amoled'
-      ? require('../../assets/brand/x-on-track-dark.png')
-      : require('../../assets/brand/x-on-track-light.png');
+      ? require('../../assets/brand/progression-x.png')
+      : require('../../assets/brand/progression-x-light.png');
 
   const openUrl = (url: string) => {
     Linking.openURL(url).catch(() => {
@@ -73,7 +73,9 @@ const AboutScreen: React.FC<AboutScreenProps> = () => {
             {t('brand.name', { defaultValue: 'X on Track' })}
           </Text>
           <Text className="text-text-secondary text-sm mb-2">
-            {t('brand.tagline', { defaultValue: 'Keep getting better.' })}
+            {t('brand.tagline', {
+              defaultValue: 'Whatever your X, keep it on track.',
+            })}
           </Text>
           <Text className="text-text-secondary text-sm">
             {t('about.version', {

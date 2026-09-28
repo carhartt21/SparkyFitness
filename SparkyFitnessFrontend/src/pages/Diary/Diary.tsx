@@ -20,7 +20,7 @@ import {
   UtensilsCrossed,
   Dumbbell,
   HeartPulse,
-  Plus,
+  ArrowRight,
 } from 'lucide-react';
 import { DailyHealthMetricsCard } from '@/components/Health/DailyHealthMetricsCard';
 import { useDailyHealthMetrics } from '@/hooks/useGenericHealth';
@@ -511,8 +511,8 @@ const Diary = () => {
     );
   }
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b">
+    <div className="xot-dashboard space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-3 border-b border-border/60">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
             {t('diary.pageTitle', 'Your day')}
@@ -525,28 +525,6 @@ const Diary = () => {
           </p>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto">
-          <Button
-            type="button"
-            className="min-h-11 gap-2"
-            disabled={visibleMealTypes.length === 0}
-            title={
-              visibleMealTypes.length === 0
-                ? t(
-                    'diary.noMealTypeForQuickAdd',
-                    'Create a meal type to log food'
-                  )
-                : undefined
-            }
-            onClick={() => {
-              const firstMealType = visibleMealTypes[0];
-              if (firstMealType) {
-                setOpenFoodSearchForMealType(firstMealType.name);
-              }
-            }}
-          >
-            <Plus aria-hidden="true" className="h-4 w-4" />
-            {t('diary.addFood', 'Add food')}
-          </Button>
           <div
             ref={setToolbarContainer}
             className="flex min-w-0 flex-wrap items-center gap-2"
@@ -560,6 +538,118 @@ const Diary = () => {
             className="grid-cols-none flex mb-0 items-center gap-2"
           />
         </div>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.7fr)_minmax(240px,1fr)]">
+        <section
+          aria-label={t('diary.quickActions', 'Quick actions')}
+          className="rounded-xl border border-border/60 bg-card p-4"
+        >
+          <h2 className="mb-3 text-base font-semibold text-foreground">
+            {t('diary.quickActions', 'Quick actions')}
+          </h2>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <Button
+              className="min-h-12 justify-start gap-2 rounded-lg"
+              disabled={visibleMealTypes.length === 0}
+              title={
+                visibleMealTypes.length === 0
+                  ? t(
+                      'diary.noMealTypeForQuickAdd',
+                      'Create a meal type to log food'
+                    )
+                  : undefined
+              }
+              onClick={() => {
+                const firstMealType = visibleMealTypes[0];
+                if (firstMealType)
+                  setOpenFoodSearchForMealType(firstMealType.name);
+              }}
+            >
+              <UtensilsCrossed aria-hidden="true" className="h-4 w-4" />
+              {t('diary.addFood', 'Add food')}
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-12 justify-start gap-2 rounded-lg"
+              onClick={() => {
+                const water = document.getElementById('diary-widget-water');
+                if (water)
+                  water.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                else
+                  toast({
+                    title: t(
+                      'diary.showWaterCard',
+                      'Show the hydration card in dashboard customization to log water.'
+                    ),
+                  });
+              }}
+            >
+              <Droplet aria-hidden="true" className="h-4 w-4 text-sky-500" />
+              {t('diary.waterIntake', 'Water intake')}
+            </Button>
+            <Button
+              variant="outline"
+              className="min-h-12 justify-start gap-2 rounded-lg"
+              onClick={() => {
+                const exercise = document.getElementById(
+                  'diary-widget-exercise'
+                );
+                if (exercise)
+                  exercise.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center',
+                  });
+                else navigate('/exercises');
+              }}
+            >
+              <Dumbbell aria-hidden="true" className="h-4 w-4 text-amber-500" />
+              {t('diary.exercise', 'Exercise')}
+            </Button>
+          </div>
+        </section>
+        {effectiveGoals && (
+          <section
+            aria-label={t('diary.configuredGoals', 'Configured goals')}
+            className="rounded-xl border border-border/60 bg-card p-4"
+          >
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h2 className="text-base font-semibold text-foreground">
+                {t('diary.configuredGoals', 'Configured goals')}
+              </h2>
+              <Button
+                variant="ghost"
+                className="min-h-11 gap-1 px-2 text-primary"
+                onClick={() => navigate('/goals')}
+              >
+                {t('common.details', 'Details')}{' '}
+                <ArrowRight aria-hidden="true" className="h-4 w-4" />
+              </Button>
+            </div>
+            <dl className="grid grid-cols-2 gap-3 text-sm">
+              {effectiveGoals.calories > 0 && (
+                <div>
+                  <dt className="text-muted-foreground">
+                    {t('diary.dailyEnergyGoal', 'Daily energy goal')}
+                  </dt>
+                  <dd className="mt-1 font-semibold tabular-nums text-foreground">
+                    {Math.round(effectiveGoals.calories).toLocaleString()} kcal
+                  </dd>
+                </div>
+              )}
+              {effectiveGoals.protein > 0 && (
+                <div>
+                  <dt className="text-muted-foreground">
+                    {t('nutrients.protein', 'Protein')}
+                  </dt>
+                  <dd className="mt-1 font-semibold tabular-nums text-foreground">
+                    {Math.round(effectiveGoals.protein).toLocaleString()} g
+                  </dd>
+                </div>
+              )}
+            </dl>
+          </section>
+        )}
       </div>
 
       {effectiveGoals && (

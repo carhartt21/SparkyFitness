@@ -25,6 +25,7 @@ import type {
   WorkoutPlaybackStats,
 } from '@/utils/workoutPlayback';
 import { formatSecondsClock } from '@/utils/timeFormatters';
+import ProgressTrackX from '@/components/brand/ProgressTrackX';
 
 const DEFAULT_REST_DISPLAY = '0:00';
 
@@ -111,14 +112,31 @@ const WorkoutPlaybackSummary = ({
       </div>
 
       <Card className="border-0 bg-transparent shadow-none">
-        <CardHeader className="space-y-1 px-0 pb-2 pt-0">
-          <h1 className="text-sm font-semibold leading-tight">{draft.name}</h1>
-          <CardDescription className="text-[11px] leading-tight">
-            {t(
-              'exercise.workoutPlaybackPage.description',
-              'Track your sets live, follow rest countdowns, and save when you finish.'
+        <CardHeader className="flex flex-row items-center justify-between gap-4 px-0 pb-3 pt-0">
+          <div className="min-w-0 space-y-1">
+            <h1 className="truncate text-lg font-semibold leading-tight">
+              {draft.name}
+            </h1>
+            <CardDescription className="text-xs leading-tight">
+              {t(
+                'exercise.workoutPlaybackPage.description',
+                'Track your sets live, follow rest countdowns, and save when you finish.'
+              )}
+            </CardDescription>
+          </div>
+          <ProgressTrackX
+            progress={
+              stats?.totalSets
+                ? (stats.completedSets / stats.totalSets) * 100
+                : null
+            }
+            label={t('exercise.workoutPlaybackPage.progress', 'Sets')}
+            unknownLabel={t(
+              'exercise.workoutPlaybackPage.noPlannedSets',
+              'No planned sets'
             )}
-          </CardDescription>
+            size={52}
+          />
         </CardHeader>
         <CardContent className="space-y-1 px-0 pt-0">
           <div className="grid w-full grid-cols-2 gap-px overflow-hidden rounded-sm border border-border/60 bg-border text-center sm:grid-cols-4">

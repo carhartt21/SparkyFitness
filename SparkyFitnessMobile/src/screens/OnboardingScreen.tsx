@@ -86,8 +86,8 @@ export default function OnboardingScreen({ navigation }: Props) {
   const { theme } = useUniwind();
   const logoSource =
     theme === 'dark' || theme === 'amoled'
-      ? require('../../assets/brand/x-on-track-dark.png')
-      : require('../../assets/brand/x-on-track-light.png');
+      ? require('../../assets/brand/progression-x.png')
+      : require('../../assets/brand/progression-x-light.png');
   const [textMuted, textSecondary, accentPrimary, borderSubtle] =
     useCSSVariable([
       '--color-text-muted',
@@ -626,7 +626,9 @@ export default function OnboardingScreen({ navigation }: Props) {
           {t('brand.name', { defaultValue: 'X on Track' })}
         </Text>
         <Text className="text-base text-text-secondary mt-1">
-          {t('brand.tagline', { defaultValue: 'Keep getting better.' })}
+          {t('brand.tagline', {
+            defaultValue: 'Whatever your X, keep it on track.',
+          })}
         </Text>
       </View>
 

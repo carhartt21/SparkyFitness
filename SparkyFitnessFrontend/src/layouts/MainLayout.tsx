@@ -49,6 +49,7 @@ import { useCurrentVersionQuery } from '@/hooks/useGeneralQueries';
 import { useCycleSettings } from '@/hooks/useCycle';
 import { cn } from '@/lib/utils';
 import { getGridClassNormal } from '@/utils/layout';
+import BrandMark from '@/components/brand/BrandMark';
 
 interface AddCompItem {
   value: string;
@@ -474,253 +475,293 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       >
         {t('nav.skipToContent', 'Skip to content')}
       </a>
-      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-y-3">
-          <div className="flex shrink-0 items-center gap-1">
-            <img
-              src="/images/brand/x-on-track-light.png"
-              alt="X on Track logo"
-              width={54}
-              height={54}
-              className="h-11 w-11 sm:h-[54px] sm:w-[54px] dark:hidden"
-            />
-            <img
-              src="/images/brand/x-on-track-dark.png"
-              alt="X on Track logo"
-              width={54}
-              height={54}
-              className="hidden h-11 w-11 sm:h-[54px] sm:w-[54px] dark:block"
-            />
-            <span className="text-xl sm:text-2xl font-bold text-foreground dark:text-slate-300">
-              X on Track
-            </span>
+      <div className="mx-auto grid min-h-screen w-full max-w-[1680px] xl:grid-cols-[248px_minmax(0,1fr)]">
+        <aside className="sticky top-0 hidden h-screen flex-col overflow-y-auto border-r border-border/60 bg-card/50 px-4 py-6 xl:flex">
+          <div className="flex items-center gap-3 px-2">
+            <BrandMark size={48} className="shrink-0" />
+            <div className="min-w-0">
+              <div className="text-lg font-semibold tracking-tight text-foreground">
+                X on Track
+              </div>
+              <p className="text-xs leading-snug text-muted-foreground">
+                {t('layout.brandLine', 'Whatever your X, keep it on track.')}
+              </p>
+            </div>
           </div>
-          <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
-            <ProfileSwitcher />
-            <span className="text-sm text-muted-foreground hidden sm:inline">
-              {t('layout.welcome', 'Welcome {{activeUserName}}', {
-                activeUserName,
-              })}
-            </span>
-            {onStartOnboarding && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={onStartOnboarding}
-                className="flex items-center gap-2"
-                title={t('onboarding.completeSetup', 'Complete your setup')}
-              >
-                <span className="hidden sm:inline">
-                  {t('onboarding.completeSetup', 'Complete Setup')}
-                </span>
-                <span className="sm:hidden">
-                  {t('onboarding.setupShort', 'Setup')}
-                </span>
-              </Button>
-            )}
-            <GlobalNotificationIcon />
-            <GlobalSyncButton />
-            <ThemeToggle />
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={handleSignOut}
-              className="sm:w-auto sm:px-3 flex items-center gap-2"
-              aria-label={t('auth.signOut', 'Sign Out')}
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline dark:text-slate-300">
-                {t('auth.signOut', 'Sign Out')}
-              </span>
-            </Button>
-          </div>
-        </div>
-        <nav
-          aria-label={t('nav.primary', 'Primary navigation')}
-          className={cn(
-            'relative hidden sm:grid w-full gap-1 mb-6 bg-slate-200/60 dark:bg-muted/50 p-1 rounded-lg border transition-colors overflow-hidden',
-            desktopGridClass,
-            selectedDateRelation === 'today' && 'border-transparent',
-            selectedDateRelation === 'past' && 'border-date-past/40',
-            selectedDateRelation === 'future' && 'border-date-future/40'
-          )}
-        >
-          {selectedDateRelation !== 'today' && (
-            <div
-              className={cn(
-                'absolute inset-0 pointer-events-none z-10',
-                selectedDateRelation === 'past' && 'bg-date-past/10',
-                selectedDateRelation === 'future' && 'bg-date-future/10'
-              )}
-            />
-          )}
-          {primaryTabs.map(({ value, label, icon: Icon }) => (
-            <Button
-              key={value}
-              variant="ghost"
-              className={`relative flex items-center gap-2 hover:bg-background/50 transition-all ${
-                isActiveTab(value)
-                  ? 'bg-background shadow-sm text-foreground'
-                  : 'text-muted-foreground'
-              }`}
-              onClick={() => navigate(value)}
-              aria-current={isActiveTab(value) ? 'page' : undefined}
-            >
-              <Icon className="h-4 w-4" />
-              <span>{label}</span>
-            </Button>
-          ))}
-          {moreTabs.length > 0 && (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  className={cn(
-                    'relative flex items-center gap-2 hover:bg-background/50',
-                    moreIsActive
-                      ? 'bg-background shadow-sm text-foreground'
-                      : 'text-muted-foreground'
-                  )}
-                  aria-label={t('nav.more', 'More sections')}
-                >
-                  <span>{t('nav.more', 'More')}</span>
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-48">
-                {moreTabs.map(({ value, label, icon: Icon }) => (
-                  <DropdownMenuItem
-                    key={value}
-                    onSelect={() => navigate(value)}
-                    className="min-h-11 gap-3"
-                    aria-current={isActiveTab(value) ? 'page' : undefined}
-                  >
-                    <Icon className="h-4 w-4" />
-                    <span>{label}</span>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
-        </nav>
-
-        {/* Mobile Navigation */}
-        <nav
-          aria-label={t('nav.mobile', 'Mobile navigation')}
-          className={cn(
-            'apple-safe-area sm:hidden fixed bottom-0 left-0 right-0 z-50 w-full bg-background border-t transition-colors overflow-hidden',
-            selectedDateRelation === 'past' && 'border-date-past/80',
-            selectedDateRelation === 'future' && 'border-date-future/50'
-          )}
-        >
-          {selectedDateRelation !== 'today' && (
-            <div
-              className={cn(
-                'absolute inset-0 pointer-events-none z-10',
-                selectedDateRelation === 'past' && 'bg-date-past/10',
-                selectedDateRelation === 'future' && 'bg-date-future/10'
-              )}
-            />
-          )}
-          <div
-            className={`relative min-h-16 grid ${mobileGridClass} items-stretch`}
+          <nav
+            aria-label={t('nav.primary', 'Primary navigation')}
+            className="mt-8 flex flex-col gap-1"
           >
-            {availableMobileTabs.map(({ value, label, icon: Icon }) => (
+            {availableTabs.map(({ value, label, icon: Icon }) => (
               <Button
                 key={value}
                 variant="ghost"
                 className={cn(
-                  'h-full min-h-16 rounded-none flex flex-col items-center justify-center gap-0.5 px-1 py-1 text-[11px]',
-                  (value === 'Add' ? isAddCompOpen : isActiveTab(value))
-                    ? 'text-primary font-semibold'
-                    : 'text-muted-foreground'
+                  'min-h-11 w-full justify-start gap-3 rounded-lg px-3 text-sm',
+                  isActiveTab(value)
+                    ? 'border border-primary/30 bg-primary/10 font-semibold text-foreground'
+                    : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
                 )}
-                aria-label={label}
-                aria-current={
-                  value !== 'Add' && isActiveTab(value) ? 'page' : undefined
-                }
-                aria-expanded={value === 'Add' ? isAddCompOpen : undefined}
-                onClick={() => {
-                  if (value === 'Add') {
-                    setIsAddCompOpen((prev) => !prev);
-                  } else {
-                    setIsAddCompOpen(false);
-                    navigate(value);
-                  }
-                }}
+                onClick={() => navigate(value)}
+                aria-current={isActiveTab(value) ? 'page' : undefined}
               >
-                <Icon className="h-5 w-5" aria-hidden="true" />
-                <span className="max-w-full truncate">{label}</span>
+                <Icon
+                  className="h-[18px] w-[18px] shrink-0"
+                  aria-hidden="true"
+                />
+                <span className="truncate">{label}</span>
               </Button>
             ))}
-          </div>
-        </nav>
-
-        <main id="main-content" tabIndex={-1} className="pb-20 sm:pb-0">
-          {/* Don't mount a disallowed page while the redirect effect runs, or it
-              fires requests the active profile isn't permitted to make. */}
-          {isCurrentPathAllowed ? <Outlet /> : null}
-        </main>
-
-        <TrackbotChat />
-      </div>
-
-      <AddComp
-        isVisible={isAddCompOpen}
-        onClose={() => setIsAddCompOpen(false)}
-        items={addCompItems}
-        onNavigate={handleNavigateFromAddComp}
-      />
-
-      <AddComp
-        isVisible={isMealTypeSelectOpen}
-        onClose={() => setIsMealTypeSelectOpen(false)}
-        items={mealTypeItems}
-        onNavigate={handleMealTypeSelect}
-        title={t('foodDiary.selectMealType', 'Select Meal Type')}
-      />
-
-      <footer className="text-center text-muted-foreground text-sm py-4">
-        {isMobile ? (
-          <div className="flex flex-col items-center gap-2 mb-14">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                className="cursor-pointer underline bg-transparent border-0 p-0 text-inherit font-normal text-sm"
-                onClick={onShowAboutDialog}
+          </nav>
+        </aside>
+        <div className="min-w-0 px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-y-3">
+            <div className="flex shrink-0 items-center gap-1 xl:hidden">
+              <img
+                src="/images/brand/progression-x-light.png"
+                alt="X on Track logo"
+                width={54}
+                height={54}
+                className="h-11 w-11 sm:h-[54px] sm:w-[54px] dark:hidden"
+              />
+              <img
+                src="/images/brand/progression-x.png"
+                alt="X on Track logo"
+                width={54}
+                height={54}
+                className="hidden h-11 w-11 sm:h-[54px] sm:w-[54px] dark:block"
+              />
+              <span className="text-xl sm:text-2xl font-bold text-foreground dark:text-slate-300">
+                X on Track
+              </span>
+            </div>
+            <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
+              <ProfileSwitcher />
+              <span className="text-sm text-muted-foreground hidden sm:inline">
+                {t('layout.welcome', 'Welcome {{activeUserName}}', {
+                  activeUserName,
+                })}
+              </span>
+              {onStartOnboarding && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={onStartOnboarding}
+                  className="flex items-center gap-2"
+                  title={t('onboarding.completeSetup', 'Complete your setup')}
+                >
+                  <span className="hidden sm:inline">
+                    {t('onboarding.completeSetup', 'Complete Setup')}
+                  </span>
+                  <span className="sm:hidden">
+                    {t('onboarding.setupShort', 'Setup')}
+                  </span>
+                </Button>
+              )}
+              <GlobalNotificationIcon />
+              <GlobalSyncButton />
+              <ThemeToggle />
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={handleSignOut}
+                className="sm:w-auto sm:px-3 flex items-center gap-2"
+                aria-label={t('auth.signOut', 'Sign Out')}
               >
-                X on Track v{appVersion?.version ?? ''}
-              </button>
-              <span>•</span>
-              <button
-                type="button"
-                className="cursor-pointer underline hover:text-foreground bg-transparent border-0 p-0 text-inherit font-normal text-sm"
-                onClick={onShowNewReleaseDialog}
-              >
-                {t('release.upstreamReleases', 'Upstream releases')}
-              </button>
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline dark:text-slate-300">
+                  {t('auth.signOut', 'Sign Out')}
+                </span>
+              </Button>
             </div>
           </div>
-        ) : (
-          <div className="flex justify-center items-center gap-4">
-            <button
-              type="button"
-              className="cursor-pointer underline bg-transparent border-0 p-0 text-inherit font-normal text-sm"
-              onClick={onShowAboutDialog}
+          <nav
+            aria-label={t('nav.primary', 'Primary navigation')}
+            className={cn(
+              'relative hidden sm:grid xl:hidden w-full gap-1 mb-6 bg-slate-200/60 dark:bg-muted/50 p-1 rounded-lg border transition-colors overflow-hidden',
+              desktopGridClass,
+              selectedDateRelation === 'today' && 'border-transparent',
+              selectedDateRelation === 'past' && 'border-date-past/40',
+              selectedDateRelation === 'future' && 'border-date-future/40'
+            )}
+          >
+            {selectedDateRelation !== 'today' && (
+              <div
+                className={cn(
+                  'absolute inset-0 pointer-events-none z-10',
+                  selectedDateRelation === 'past' && 'bg-date-past/10',
+                  selectedDateRelation === 'future' && 'bg-date-future/10'
+                )}
+              />
+            )}
+            {primaryTabs.map(({ value, label, icon: Icon }) => (
+              <Button
+                key={value}
+                variant="ghost"
+                className={`relative flex items-center gap-2 hover:bg-background/50 transition-all ${
+                  isActiveTab(value)
+                    ? 'bg-background shadow-sm text-foreground'
+                    : 'text-muted-foreground'
+                }`}
+                onClick={() => navigate(value)}
+                aria-current={isActiveTab(value) ? 'page' : undefined}
+              >
+                <Icon className="h-4 w-4" />
+                <span>{label}</span>
+              </Button>
+            ))}
+            {moreTabs.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      'relative flex items-center gap-2 hover:bg-background/50',
+                      moreIsActive
+                        ? 'bg-background shadow-sm text-foreground'
+                        : 'text-muted-foreground'
+                    )}
+                    aria-label={t('nav.more', 'More sections')}
+                  >
+                    <span>{t('nav.more', 'More')}</span>
+                    <ChevronDown className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-48">
+                  {moreTabs.map(({ value, label, icon: Icon }) => (
+                    <DropdownMenuItem
+                      key={value}
+                      onSelect={() => navigate(value)}
+                      className="min-h-11 gap-3"
+                      aria-current={isActiveTab(value) ? 'page' : undefined}
+                    >
+                      <Icon className="h-4 w-4" />
+                      <span>{label}</span>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </nav>
+
+          {/* Mobile Navigation */}
+          <nav
+            aria-label={t('nav.mobile', 'Mobile navigation')}
+            className={cn(
+              'apple-safe-area sm:hidden fixed bottom-0 left-0 right-0 z-50 w-full bg-background border-t transition-colors overflow-hidden',
+              selectedDateRelation === 'past' && 'border-date-past/80',
+              selectedDateRelation === 'future' && 'border-date-future/50'
+            )}
+          >
+            {selectedDateRelation !== 'today' && (
+              <div
+                className={cn(
+                  'absolute inset-0 pointer-events-none z-10',
+                  selectedDateRelation === 'past' && 'bg-date-past/10',
+                  selectedDateRelation === 'future' && 'bg-date-future/10'
+                )}
+              />
+            )}
+            <div
+              className={`relative min-h-16 grid ${mobileGridClass} items-stretch`}
             >
-              X on Track v{appVersion?.version ?? ''}
-            </button>
-            <span>•</span>
-            <button
-              type="button"
-              className="cursor-pointer underline hover:text-foreground bg-transparent border-0 p-0 text-inherit font-normal text-sm"
-              onClick={onShowNewReleaseDialog}
-            >
-              {t('release.upstreamReleases', 'Upstream releases')}
-            </button>
-          </div>
-        )}
-      </footer>
+              {availableMobileTabs.map(({ value, label, icon: Icon }) => (
+                <Button
+                  key={value}
+                  variant="ghost"
+                  className={cn(
+                    'h-full min-h-16 rounded-none flex flex-col items-center justify-center gap-0.5 px-1 py-1 text-[11px]',
+                    (value === 'Add' ? isAddCompOpen : isActiveTab(value))
+                      ? 'text-primary font-semibold'
+                      : 'text-muted-foreground'
+                  )}
+                  aria-label={label}
+                  aria-current={
+                    value !== 'Add' && isActiveTab(value) ? 'page' : undefined
+                  }
+                  aria-expanded={value === 'Add' ? isAddCompOpen : undefined}
+                  onClick={() => {
+                    if (value === 'Add') {
+                      setIsAddCompOpen((prev) => !prev);
+                    } else {
+                      setIsAddCompOpen(false);
+                      navigate(value);
+                    }
+                  }}
+                >
+                  <Icon className="h-5 w-5" aria-hidden="true" />
+                  <span className="max-w-full truncate">{label}</span>
+                </Button>
+              ))}
+            </div>
+          </nav>
+
+          <main id="main-content" tabIndex={-1} className="pb-20 sm:pb-0">
+            {/* Don't mount a disallowed page while the redirect effect runs, or it
+              fires requests the active profile isn't permitted to make. */}
+            {isCurrentPathAllowed ? <Outlet /> : null}
+          </main>
+
+          <TrackbotChat />
+
+          <AddComp
+            isVisible={isAddCompOpen}
+            onClose={() => setIsAddCompOpen(false)}
+            items={addCompItems}
+            onNavigate={handleNavigateFromAddComp}
+          />
+
+          <AddComp
+            isVisible={isMealTypeSelectOpen}
+            onClose={() => setIsMealTypeSelectOpen(false)}
+            items={mealTypeItems}
+            onNavigate={handleMealTypeSelect}
+            title={t('foodDiary.selectMealType', 'Select Meal Type')}
+          />
+
+          <footer className="text-center text-muted-foreground text-sm py-4">
+            {isMobile ? (
+              <div className="flex flex-col items-center gap-2 mb-14">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    className="cursor-pointer underline bg-transparent border-0 p-0 text-inherit font-normal text-sm"
+                    onClick={onShowAboutDialog}
+                  >
+                    X on Track v{appVersion?.version ?? ''}
+                  </button>
+                  <span>•</span>
+                  <button
+                    type="button"
+                    className="cursor-pointer underline hover:text-foreground bg-transparent border-0 p-0 text-inherit font-normal text-sm"
+                    onClick={onShowNewReleaseDialog}
+                  >
+                    {t('release.upstreamReleases', 'Upstream releases')}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex justify-center items-center gap-4">
+                <button
+                  type="button"
+                  className="cursor-pointer underline bg-transparent border-0 p-0 text-inherit font-normal text-sm"
+                  onClick={onShowAboutDialog}
+                >
+                  X on Track v{appVersion?.version ?? ''}
+                </button>
+                <span>•</span>
+                <button
+                  type="button"
+                  className="cursor-pointer underline hover:text-foreground bg-transparent border-0 p-0 text-inherit font-normal text-sm"
+                  onClick={onShowNewReleaseDialog}
+                >
+                  {t('release.upstreamReleases', 'Upstream releases')}
+                </button>
+              </div>
+            )}
+          </footer>
+        </div>
+      </div>
     </div>
   );
 };

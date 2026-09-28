@@ -42,12 +42,12 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#FFFBF3",
+          "backgroundColor": "#F4F3ED",
           "imageWidth": 200,
-          "image": "./assets/brand/x-on-track-light.png",
+          "image": "./assets/brand/progression-x-light.png",
           "dark": {
-            "backgroundColor": "#24282D",
-            "image": "./assets/brand/x-on-track-dark.png"
+            "backgroundColor": "#07131B",
+            "image": "./assets/brand/progression-x.png"
           }
         }
       ],

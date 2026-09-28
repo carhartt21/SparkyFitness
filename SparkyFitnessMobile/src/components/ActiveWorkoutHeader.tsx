@@ -15,6 +15,7 @@ import ActionSheet, {
   type ActionSheetItem,
   type ActionSheetRef,
 } from './ActionSheet';
+import ProgressTrackX from './brand/ProgressTrackX';
 
 /** Per-exercise completion used by the segmented progress bar. */
 export interface ExerciseProgress {
@@ -148,6 +149,13 @@ function ActiveWorkoutHeader({
   const doneCount = progress.filter(
     (p) => p.totalSets > 0 && p.completedSets >= p.totalSets
   ).length;
+  const plannedSets = progress.reduce((sum, item) => sum + item.totalSets, 0);
+  const completedSets = progress.reduce(
+    (sum, item) => sum + item.completedSets,
+    0
+  );
+  const workoutProgress =
+    plannedSets > 0 ? (completedSets / plannedSets) * 100 : null;
 
   const menuItems: ActionSheetItem[] = [];
   if (onAddExercise) {
@@ -235,22 +243,34 @@ function ActiveWorkoutHeader({
           })}
         />
 
-        <View className="flex-1 items-center">
-          <Text
-            numberOfLines={1}
-            className="text-base font-semibold text-text-primary"
-          >
-            {name}
-          </Text>
-          <Text
-            className="text-xs text-text-secondary"
-            style={{ fontVariant: ['tabular-nums'] }}
-          >
-            {t('activeWorkout.header.elapsedTime', {
-              defaultValue: '{{time}} elapsed',
-              time: formatElapsed(startedAt, now),
+        <View className="flex-1 flex-row items-center justify-center gap-2">
+          <ProgressTrackX
+            progress={workoutProgress}
+            label={t('activeWorkout.header.setProgress', {
+              defaultValue: 'Completed sets',
             })}
-          </Text>
+            unknownLabel={t('activeWorkout.header.noPlannedSets', {
+              defaultValue: 'No planned sets',
+            })}
+            size={40}
+          />
+          <View className="flex-shrink items-center">
+            <Text
+              numberOfLines={1}
+              className="text-base font-semibold text-text-primary"
+            >
+              {name}
+            </Text>
+            <Text
+              className="text-xs text-text-secondary"
+              style={{ fontVariant: ['tabular-nums'] }}
+            >
+              {t('activeWorkout.header.elapsedTime', {
+                defaultValue: '{{time}} elapsed',
+                time: formatElapsed(startedAt, now),
+              })}
+            </Text>
+          </View>
         </View>
 
         {/* Glass chrome is monochrome (see resolveHeaderActionColors), so the

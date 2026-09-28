@@ -1,15 +1,10 @@
-import {
-  Image,
-  Pressable,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import { useAppLocale } from '../localization';
 import { formatDate } from '../utils/dateUtils';
 import Icon from './Icon';
+import BrandMark from './brand/BrandMark';
 
 interface Props {
   selectedDate: string;
@@ -50,12 +45,7 @@ export default function DashboardHeader(props: Props) {
           })}
           className="w-11 min-h-11 items-center justify-center active:opacity-70"
         >
-          <Image
-            source={require('../../assets/brand/x-on-track-dark.png')}
-            style={{ width: 40, height: 40, borderRadius: 8 }}
-            resizeMode="contain"
-            accessible={false}
-          />
+          <BrandMark size={40} />
         </Pressable>
         <View className="flex-1 flex-row items-center rounded-md border border-border-subtle bg-surface overflow-hidden">
           <Pressable

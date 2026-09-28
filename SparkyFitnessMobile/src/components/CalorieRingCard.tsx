@@ -88,6 +88,15 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
       })}
       className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3"
     >
+      <View className="mb-3 flex-row items-center gap-2">
+        <Icon name="flame" size={19} color={burnedColor} />
+        <Text
+          className="text-base font-semibold text-text-primary"
+          maxFontSizeMultiplier={1.8}
+        >
+          {t('dashboard.dailyEnergy', { defaultValue: 'Daily energy' })}
+        </Text>
+      </View>
       <View
         style={{ flexDirection: expanded ? 'column' : 'row', gap: 16 }}
         className="items-center"

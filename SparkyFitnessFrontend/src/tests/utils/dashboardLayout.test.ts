@@ -160,6 +160,12 @@ describe('applyAutoHeights', () => {
 });
 
 describe('breakpointForWidth', () => {
+  it('accepts page-specific thresholds for a content area beside navigation', () => {
+    const diaryBreakpoints = { lg: 1100, md: 900, sm: 700, xs: 0 };
+    expect(breakpointForWidth(984, diaryBreakpoints)).toBe('md');
+    expect(breakpointForWidth(1144, diaryBreakpoints)).toBe('lg');
+    expect(stabilizeGridWidth(1095, 1108, diaryBreakpoints)).toBe(1095);
+  });
   it('selects the largest breakpoint the width reaches', () => {
     expect(breakpointForWidth(1400)).toBe('lg');
     expect(breakpointForWidth(1200)).toBe('lg');

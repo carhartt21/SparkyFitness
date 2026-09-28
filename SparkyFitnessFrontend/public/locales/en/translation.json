@@ -33,6 +33,7 @@
     "partialTitle": "Photo published; product data unconfirmed"
   },
   "layout": {
+    "brandLine": "Whatever your X, keep it on track.",
     "welcome": "Welcome {{activeUserName}}",
     "docs": "Docs",
     "translate": "Translate"
@@ -801,6 +802,7 @@
     "useExternalBmrHint": "Off by default — your chosen formula is always used until you turn this on. When enabled, a BMR recorded on a check-in or synced from a smart scale or health provider replaces the formula for that day, provided it is physiologically plausible for you. Some devices report BMR as a running daily total rather than a rate, which is why this is opt-in."
   },
   "aboutDialog": {
+    "xOnTrackDescriptionV2": "X on Track helps you track what matters, understand your patterns, and make progress at your own pace.",
     "title": "About X on Track",
     "description1": "X on Track helps you log what matters, understand your patterns, and improve relative to your own baseline. Keep getting better.",
     "personalBestDescription": "X on Track helps you log what matters, understand your patterns, and improve relative to your own baseline. Keep getting better.",

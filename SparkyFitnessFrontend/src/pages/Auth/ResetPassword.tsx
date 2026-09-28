@@ -113,12 +113,12 @@ const ResetPassword = () => {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center mb-4">
             <img
-              src="/images/brand/x-on-track-light.png"
+              src="/images/brand/progression-x-light.png"
               alt="X on Track logo"
               className="h-10 w-10 mr-2 dark:hidden"
             />
             <img
-              src="/images/brand/x-on-track-dark.png"
+              src="/images/brand/progression-x.png"
               alt="X on Track logo"
               className="hidden h-10 w-10 mr-2 dark:block"
             />

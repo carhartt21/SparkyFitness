@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, View } from 'react-native';
+import { View } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeBottomTabNavigator } from '@bottom-tabs/react-navigation';
@@ -31,6 +31,7 @@ import { AnnouncementModal } from './AnnouncementModal';
 import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
 import { useHeaderActionColors } from '../hooks/useHeaderActionColors';
 import { useTranslation } from 'react-i18next';
+import BrandMark from './brand/BrandMark';
 
 export const NON_ADD_TABS = [
   'Dashboard',
@@ -148,14 +149,7 @@ function DashboardStackScreen() {
           options={{
             title: t('navigation.dashboard', { defaultValue: 'Dashboard' }),
             headerTitleAlign: 'left',
-            headerTitle: () => (
-              <Image
-                source={require('../../assets/brand/x-on-track-dark.png')}
-                style={{ width: 34, height: 34, borderRadius: 7 }}
-                resizeMode="contain"
-                accessible={false}
-              />
-            ),
+            headerTitle: () => <BrandMark size={34} />,
             headerBackTitle: t('navigation.dashboard', {
               defaultValue: 'Dashboard',
             }),

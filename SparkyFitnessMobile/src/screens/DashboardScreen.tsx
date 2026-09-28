@@ -368,6 +368,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   ]) as [string, string, string, string, string];
 
   const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const [
+    foodActionColor,
+    trainingActionColor,
+    waterActionColor,
+    scanActionColor,
+  ] = useCSSVariable([
+    '--color-action-food',
+    '--color-action-training',
+    '--color-hydration',
+    '--color-action-scan',
+  ]) as [string, string, string, string];
 
   const [hydrationDetailsVisible, setHydrationDetailsVisible] = useState(false);
   const [chartPage, setChartPage] = useState(0);
@@ -544,18 +555,21 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           {
             label: t('dashboard.quickFood', { defaultValue: 'Food' }),
             icon: 'food' as const,
+            color: foodActionColor,
             onPress: () =>
               navigation.navigate('FoodSearch', { date: selectedDate }),
           },
           {
             label: t('dashboard.quickExercise', { defaultValue: 'Exercise' }),
             icon: 'exercise-running' as const,
+            color: trainingActionColor,
             onPress: () =>
               addSheetRef.current?.present({ initialMenu: 'exercise' }),
           },
           {
             label: t('dashboard.quickWater', { defaultValue: 'Water' }),
             icon: 'water' as const,
+            color: waterActionColor,
             onPress: () =>
               isContainersLoaded
                 ? incrementWater()
@@ -564,6 +578,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           {
             label: t('dashboard.quickScan', { defaultValue: 'Scan' }),
             icon: 'scan' as const,
+            color: scanActionColor,
             onPress: () =>
               navigation.navigate('FoodScan', { date: selectedDate }),
           },
@@ -578,18 +593,11 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
               flexBasis: fontScale > 1.3 ? '46%' : '21%',
               flexGrow: 1,
               minHeight: 60,
+              borderColor: `${action.color}66`,
             }}
             className="items-center justify-center rounded-xl border border-border-subtle bg-raised px-1 py-2"
           >
-            <Icon
-              name={action.icon}
-              size={23}
-              color={
-                action.icon === 'water' || action.icon === 'exercise-running'
-                  ? fatColor
-                  : accentColor
-              }
-            />
+            <Icon name={action.icon} size={23} color={action.color} />
             <Text
               className="mt-2 text-center text-xs font-medium text-text-primary"
               maxFontSizeMultiplier={1.8}
