@@ -208,7 +208,9 @@ const NutritionChartsGrid = ({
   // The period summary above already leads with calories. Start the secondary
   // chart on a macro when available, while keeping calories selectable.
   const [selectedChartKey, setSelectedChartKey] = useState('protein');
-  const [showAllCharts, setShowAllCharts] = useState(false);
+  // The reference shows every tracked nutrient as a small chart; one-chart
+  // focus remains available.
+  const [showAllCharts, setShowAllCharts] = useState(true);
   const focusedChart =
     visibleCharts.find((chart) => chart.key === selectedChartKey) ??
     visibleCharts.find((chart) => chart.key !== 'calories') ??
@@ -270,7 +272,7 @@ const NutritionChartsGrid = ({
       <div
         className={
           showAllCharts
-            ? 'grid min-w-0 grid-cols-1 gap-4 lg:grid-cols-2'
+            ? 'grid min-w-0 grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-5'
             : 'grid min-w-0 grid-cols-1 gap-4'
         }
       >
@@ -308,11 +310,23 @@ const NutritionChartsGrid = ({
               {(isMaximized, zoomLevel) => (
                 <Card className={isMaximized ? 'h-full flex flex-col' : ''}>
                   <CardHeader className="pb-2">
-                    <div className="flex items-center justify-between">
+                    <div
+                      className={
+                        showAllCharts && !isMaximized
+                          ? 'flex flex-col gap-0.5'
+                          : 'flex items-center justify-between'
+                      }
+                    >
                       <CardTitle className="text-sm">
                         {chart.label} ({chart.unit})
                       </CardTitle>
-                      <div className="text-right text-xs text-muted-foreground font-normal">
+                      <div
+                        className={`text-xs text-muted-foreground font-normal ${
+                          showAllCharts && !isMaximized
+                            ? 'text-left'
+                            : 'text-right'
+                        }`}
+                      >
                         <div>
                           {t('reports.average', 'Avg')}: {formattedAverage}{' '}
                           {chart.unit}

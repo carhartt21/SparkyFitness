@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-07-08_
+_Last updated: 2026-09-28_
 
 SparkyFitness Frontend is the React web app for the SparkyFitness monorepo. Use this file as the primary guide for work inside `SparkyFitnessFrontend/`.
 
@@ -31,6 +31,7 @@ pnpm run validate
 pnpm test
 pnpm run test:ci
 pnpm run build
+pnpm run visual:review   # needs ../scripts/visual-sample.sh start; see root AGENTS.md
 ```
 
 - `pnpm run validate` runs typecheck, lint (`--max-warnings 0`), Prettier check, and Knip (`pnpm run knip` for unused files and exports) together.
@@ -51,6 +52,8 @@ Features are organized by domain, and the same domain folder name appears in `sr
 - `src/main.tsx` - app bootstrap; creates the shared `QueryClient` with global `QueryCache`/`MutationCache` handlers that render toasts from query/mutation `meta` (`errorTitle`, `errorMessage`, `successMessage`).
 - `src/App.tsx` - route registry via `createBrowserRouter`, plus `PrivateRoute` and `PermissionRoute` wrappers (permission-gated areas include `reports` and `admin`).
 - `src/pages/<Domain>/` - route screens by domain.
+- Routes: `/` is the Dashboard summary (`src/pages/Dashboard/`); the full Diary lives at `/diary`. Legacy `/?date=` links and `openFoodSearchForMeal` navigation state are forwarded to `/diary` by `DashboardRoute`. Diary accepts navigation state `openFoodSearchForMeal` (+ `startWithScanner`) and `focusWidget` (`exercise` | `water`).
+- Shared look: `src/components/ui/glow-card.tsx` (`GlowCard`, neon tones) and the `glow-surface` utility / `--neon-*` tokens in `src/index.css`; `ui/card.tsx` carries the same radius/border. Water logging logic is shared through `src/hooks/Diary/useWaterControls.ts`.
 - `src/pages/Auth/McpConsent.tsx` and `src/pages/Settings/{NotificationDeliverySettings,McpConnectionsSettings}.tsx` - assistant OAuth consent and account notification/connection controls; their HTTP helpers live under `src/api/Auth/` and `src/api/Engagement/`.
 - `src/api/api.ts` - `apiCall(endpoint, options)` helper: base URL `/api`, query `params`, JSON/FormData bodies, `responseType`, error toasts, `suppress404Toast`. Use it for all backend requests.
 - `src/api/<Domain>/` - per-domain API clients built on `apiCall`.

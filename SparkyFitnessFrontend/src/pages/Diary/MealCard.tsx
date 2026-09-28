@@ -105,6 +105,8 @@ interface MealCardProps {
   ) => number;
   customNutrients?: UserCustomNutrient[]; // Add customNutrients prop
   shouldOpenFoodSearch?: boolean;
+  /** With shouldOpenFoodSearch: open the barcode scanner right away. */
+  startWithScanner?: boolean;
   onFoodSearchClose?: () => void;
 }
 
@@ -121,6 +123,7 @@ const MealCard = ({
   energyUnit,
   convertEnergy,
   shouldOpenFoodSearch,
+  startWithScanner = false,
   onFoodSearchClose,
   selectedDate,
   customNutrients = [], // Default to empty array
@@ -313,6 +316,7 @@ const MealCard = ({
                   </DialogHeader>
                   <EnhancedFoodSearch
                     mealType={meal.type}
+                    startWithScanner={shouldOpenFoodSearch && startWithScanner}
                     onFoodSelect={(item, type) => {
                       if (type === 'food') {
                         debug(

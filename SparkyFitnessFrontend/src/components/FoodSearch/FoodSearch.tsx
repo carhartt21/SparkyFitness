@@ -112,6 +112,8 @@ interface EnhancedFoodSearchProps {
   // meal cannot contain another meal).
   hideMealTab?: boolean;
   mealType?: string;
+  /** Opens the barcode scanner as soon as the search mounts (Dashboard Scan). */
+  startWithScanner?: boolean;
 }
 
 const SectionHeader = ({ children }: { children: ReactNode }) => (
@@ -166,6 +168,7 @@ const EnhancedFoodSearch = ({
   hideDatabaseTab = false,
   hideMealTab = false,
   mealType = undefined,
+  startWithScanner = false,
 }: EnhancedFoodSearchProps) => {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -212,7 +215,8 @@ const EnhancedFoodSearch = ({
 
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Food | null>(null);
-  const [showBarcodeScanner, setShowBarcodeScanner] = useState(false);
+  const [showBarcodeScanner, setShowBarcodeScanner] =
+    useState(startWithScanner);
   const [barcodeProviderId, setBarcodeProviderId] = useState<string | null>(
     null
   );

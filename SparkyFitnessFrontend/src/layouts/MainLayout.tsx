@@ -5,6 +5,8 @@ import { useLocation, Outlet, useNavigate } from 'react-router-dom';
 import { debug, info, error } from '@/utils/logging';
 import {
   Home,
+  LayoutDashboard,
+  BookOpen,
   Activity, // Used for Check-In
   CalendarHeart,
   BarChart3,
@@ -50,6 +52,7 @@ import { useCycleSettings } from '@/hooks/useCycle';
 import { cn } from '@/lib/utils';
 import { getGridClassNormal } from '@/utils/layout';
 import BrandMark from '@/components/brand/BrandMark';
+import { mealTypeLabel } from '@/utils/mealTypeLabel';
 
 interface AddCompItem {
   value: string;
@@ -91,6 +94,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   // Fetch cycle settings to determine tab visibility
   const { data: cycleSettings } = useCycleSettings();
+
+  const accountInitials = (activeUserName || '')
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
 
   const handleSignOut = async () => {
     info(loggingLevel, 'MainLayout: Attempting to sign out.');
@@ -191,21 +202,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
 
   // Get display name for meal type
   const getMealTypeLabel = useCallback(
-    (name: string): string => {
-      const lowerName = name.toLowerCase();
-      switch (lowerName) {
-        case 'breakfast':
-          return t('common.breakfast', 'Breakfast');
-        case 'lunch':
-          return t('common.lunch', 'Lunch');
-        case 'dinner':
-          return t('common.dinner', 'Dinner');
-        case 'snacks':
-          return t('common.snacks', 'Snacks');
-        default:
-          return name; // Custom meal types use their own name
-      }
-    },
+    (name: string): string => mealTypeLabel(t, name),
     [t]
   );
 
@@ -232,7 +229,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     const tabs = [];
     if (!isActingOnBehalf) {
       tabs.push(
-        { value: '/', label: t('nav.diary'), icon: Home },
+        {
+          value: '/',
+          label: t('nav.dashboard', 'Dashboard'),
+          icon: LayoutDashboard,
+        },
+        { value: '/diary', label: t('nav.diary'), icon: BookOpen },
         { value: '/checkin', label: t('nav.checkin'), icon: Activity }
       );
       if (cycleSettings?.enabled) {
@@ -264,7 +266,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       );
     } else {
       if (hasWritePermission('diary')) {
-        tabs.push({ value: '/', label: t('nav.diary'), icon: Home });
+        tabs.push(
+          {
+            value: '/',
+            label: t('nav.dashboard', 'Dashboard'),
+            icon: LayoutDashboard,
+          },
+          { value: '/diary', label: t('nav.diary'), icon: BookOpen }
+        );
       }
       if (hasWritePermission('checkin')) {
         tabs.push({
@@ -314,18 +323,22 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     // (see addCompItems), not the bottom bar, to keep the bar uncluttered.
     if (!isActingOnBehalf) {
       mobileTabs.push(
-        { value: '/', label: t('nav.diary'), icon: Home },
-        { value: '/reports', label: t('nav.reports'), icon: BarChart3 },
+        { value: '/', label: t('nav.home', 'Home'), icon: Home },
+        { value: '/diary', label: t('nav.diary'), icon: BookOpen },
         {
           value: 'Add',
           label: t('common.add', 'Add'),
           icon: isAddCompOpen ? X : Plus,
         },
+        { value: '/reports', label: t('nav.reports'), icon: BarChart3 },
         { value: '/settings', label: t('nav.settings'), icon: SettingsIcon }
       );
     } else {
       if (hasWritePermission('diary')) {
-        mobileTabs.push({ value: '/', label: t('nav.diary'), icon: Home });
+        mobileTabs.push(
+          { value: '/', label: t('nav.home', 'Home'), icon: Home },
+          { value: '/diary', label: t('nav.diary'), icon: BookOpen }
+        );
       }
       if (hasWritePermission('checkin')) {
         mobileTabs.push({
@@ -389,7 +402,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
         `[MainLayout] Navigating to diary with meal type: ${mealType}`
       );
       setIsMealTypeSelectOpen(false);
-      navigate('/', { state: { openFoodSearchForMeal: mealType } });
+      navigate('/diary', { state: { openFoodSearchForMeal: mealType } });
     },
     [loggingLevel, navigate]
   );
@@ -399,12 +412,15 @@ const MainLayout: React.FC<MainLayoutProps> = ({
   const location = useLocation();
   const isActiveTab = (value: string) =>
     value === '/'
-      ? location.pathname === '/' ||
-        location.pathname.startsWith('/workout-playback')
-      : location.pathname === value ||
-        location.pathname.startsWith(`${value}/`);
+      ? location.pathname === '/'
+      : value === '/diary'
+        ? location.pathname === '/diary' ||
+          location.pathname.startsWith('/workout-playback')
+        : location.pathname === value ||
+          location.pathname.startsWith(`${value}/`);
   const primaryPaths = new Set([
     '/',
+    '/diary',
     '/checkin',
     '/reports',
     '/goals',
@@ -431,8 +447,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     // Match exactly or as prefix (e.g. /medications/log should match /medications)
     return availableTabs.some((tab) => {
       if (tab.value === '/') {
+        return currentPath === '/';
+      }
+      if (tab.value === '/diary') {
         return (
-          currentPath === '/' ||
+          currentPath === '/diary' ||
           currentPath === '/workout-playback' ||
           currentPath.startsWith('/workout-playback/')
         );
@@ -497,9 +516,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 key={value}
                 variant="ghost"
                 className={cn(
-                  'min-h-11 w-full justify-start gap-3 rounded-lg px-3 text-sm',
+                  'min-h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm',
                   isActiveTab(value)
-                    ? 'border border-primary/30 bg-primary/10 font-semibold text-foreground'
+                    ? 'glow-surface font-semibold text-foreground [--glow:var(--neon-mint)]'
                     : 'text-muted-foreground hover:bg-accent/60 hover:text-foreground'
                 )}
                 onClick={() => navigate(value)}
@@ -513,9 +532,39 @@ const MainLayout: React.FC<MainLayoutProps> = ({
               </Button>
             ))}
           </nav>
+          <div className="mt-auto pt-6">
+            <div className="rounded-2xl border border-border/70 bg-card/70 p-3">
+              <div className="flex items-center gap-3">
+                <span
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-primary/40 bg-background text-sm font-semibold text-foreground"
+                  aria-hidden="true"
+                >
+                  {accountInitials}
+                </span>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-semibold text-foreground">
+                    {activeUserName}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {isActingOnBehalf
+                      ? t('layout.actingOnBehalf', 'Family profile')
+                      : t('layout.ownAccount', 'Your account')}
+                  </div>
+                </div>
+              </div>
+              <Button
+                variant="ghost"
+                className="mt-2 min-h-11 w-full justify-start gap-3 rounded-xl px-3 text-sm text-muted-foreground hover:text-foreground"
+                onClick={handleSignOut}
+              >
+                <LogOut className="h-[18px] w-[18px]" aria-hidden="true" />
+                {t('auth.signOut', 'Sign Out')}
+              </Button>
+            </div>
+          </div>
         </aside>
         <div className="min-w-0 px-2 py-4 sm:px-4 sm:py-6 lg:px-6">
-          <div className="mb-6 flex flex-wrap items-center justify-between gap-y-3">
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-y-3 xl:justify-end">
             <div className="flex shrink-0 items-center gap-1 xl:hidden">
               <img
                 src="/images/brand/progression-x-light.png"
@@ -537,7 +586,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             </div>
             <div className="flex flex-wrap items-center justify-end gap-1 sm:gap-2">
               <ProfileSwitcher />
-              <span className="text-sm text-muted-foreground hidden sm:inline">
+              <span className="text-sm text-muted-foreground hidden sm:inline xl:hidden">
                 {t('layout.welcome', 'Welcome {{activeUserName}}', {
                   activeUserName,
                 })}
@@ -565,7 +614,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                 variant="outline"
                 size="icon"
                 onClick={handleSignOut}
-                className="sm:w-auto sm:px-3 flex items-center gap-2"
+                className="sm:w-auto sm:px-3 flex items-center gap-2 xl:hidden"
                 aria-label={t('auth.signOut', 'Sign Out')}
               >
                 <LogOut className="h-4 w-4" />

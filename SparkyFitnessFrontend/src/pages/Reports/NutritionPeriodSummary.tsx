@@ -26,7 +26,13 @@ import {
 } from 'recharts';
 import ZoomableChart from '@/components/ZoomableChart';
 import { format } from 'date-fns';
-import { TrendingUp, BarChart3, ChevronDown } from 'lucide-react';
+import {
+  TrendingUp,
+  BarChart3,
+  ChevronDown,
+  CalendarCheck,
+  Gauge,
+} from 'lucide-react';
 import { getEnergyUnitString } from '@/utils/nutritionCalculations';
 import {
   calculateSmartYAxisDomain,
@@ -513,9 +519,9 @@ const NutritionPeriodSummary = ({
       </div>
 
       {/* KPI Dashboard and Daily Chart */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 items-stretch">
+      <div className="space-y-4">
         <div
-          className={`flex flex-col gap-4 h-full ${!showCumulativeChart ? 'hidden' : ''}`}
+          className={`grid gap-4 sm:grid-cols-2 2xl:grid-cols-4 ${!showCumulativeChart ? 'hidden' : ''}`}
         >
           <Card className="flex-1">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -590,11 +596,50 @@ const NutritionPeriodSummary = ({
               </p>
             </CardContent>
           </Card>
+
+          <Card className="flex-1" data-testid="reports-days-logged">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t('reports.daysLogged', 'Days logged')}
+              </CardTitle>
+              <CalendarCheck className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">
+                {loggedDayCount}
+                <span className="text-base font-medium text-muted-foreground">
+                  {' '}
+                  / {totalDayCount}
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {t(
+                  'reports.daysLoggedHint',
+                  'Days in the range with at least one entry'
+                )}
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="flex-1" data-testid="reports-average-logged">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                {t('reports.averagePerLoggedDay', 'Average per logged day')}
+              </CardTitle>
+              <Gauge className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold tabular-nums">
+                {formattedAverageEaten} {unitStr}
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {primaryNutrientLabel}
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
-        <div
-          className={`${showCumulativeChart ? 'lg:col-span-2' : 'lg:col-span-3'} h-full min-h-0`}
-        >
+        <div className="h-80 min-h-0">
           <ZoomableChart
             title={`${selectedOption?.label} (${unitStr})`}
             className="h-full"

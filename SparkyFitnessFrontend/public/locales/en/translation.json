@@ -36,7 +36,9 @@
     "brandLine": "Whatever your X, keep it on track.",
     "welcome": "Welcome {{activeUserName}}",
     "docs": "Docs",
-    "translate": "Translate"
+    "translate": "Translate",
+    "actingOnBehalf": "Family profile",
+    "ownAccount": "Your account"
   },
   "chat": {
     "toolCategories": {
@@ -728,7 +730,9 @@
     "pregnancy": "Pregnancy",
     "medications": "Medications",
     "foodLog": "Food Log",
-    "wellness": "Wellness"
+    "wellness": "Wellness",
+    "dashboard": "Dashboard",
+    "home": "Home"
   },
   "nutrition": {
     "calories": "Calories",
@@ -1250,7 +1254,8 @@
       "restEditorDescription": "Pick a rest duration for this set.",
       "restEditorTitle": "Edit Rest",
       "restTimer": "Rest",
-      "volume": "Volume"
+      "volume": "Volume",
+      "noPlannedSets": "No planned sets"
     }
   },
   "workoutPresetsManager": {
@@ -3139,7 +3144,24 @@
     "entryImageRemoveFailedTitle": "Remove failed",
     "entryImageRemoveFailed": "Could not remove the photo for this entry.",
     "inheritedPhotoAlt": "Inherited image {{number}}",
-    "savingPhotos": "Saving photos…"
+    "savingPhotos": "Saving photos…",
+    "loggingStreak_one": "day logging streak",
+    "loggingStreak_other": "day logging streak",
+    "focus": {
+      "title": "Today's focus",
+      "editGoals": "Edit goals",
+      "energy": "Stay within {{goal}} {{unit}}",
+      "protein": "Reach {{goal}} g protein",
+      "water": "Drink {{goal}} {{unit}} of water",
+      "logFood": "Log food for this day",
+      "progress": "{{current}} of {{goal}} {{unit}}",
+      "entries_one": "{{count}} entry",
+      "entries_other": "{{count}} entries",
+      "met": "Done",
+      "open": "Not yet"
+    },
+    "quickActions": "Quick actions",
+    "showWaterCard": "Show the hydration card in dashboard customization to log water."
   },
   "nutrientGoalDirection": {
     "min": "Min",
@@ -3243,7 +3265,12 @@
       "linkedFoodRemoved": "Linked food entry was also removed from your food diary.",
       "linkedDrink": "Linked to a food entry",
       "noWaterCredit": "no water",
-      "noWaterCreditHint": "This drink is set to count as no water"
+      "noWaterCreditHint": "This drink is set to count as no water",
+      "addWater": "Add water",
+      "nextContainer": "Next container",
+      "noGoal": "No hydration goal set",
+      "previousContainer": "Previous container",
+      "removeWater": "Remove water"
     },
     "copyFoodEntryDialog": {
       "title": "Copy Food Entries",
@@ -4158,7 +4185,15 @@
     "hips": "Hips",
     "height": "Height",
     "bodyFatPercentage": "Body Fat %",
-    "nutrientBalance": "{{nutrient}} Balance"
+    "nutrientBalance": "{{nutrient}} Balance",
+    "daysLogged": "Days logged",
+    "daysLoggedHint": "Days in the range with at least one entry",
+    "averagePerLoggedDay": "Average per logged day",
+    "nutritionTitle": "Nutrition reports",
+    "sectionTitle": "{{section}} reports",
+    "subtitle": "Track patterns across your logged days. Missing days stay unknown.",
+    "categories": "Report categories",
+    "title": "Reports"
   },
   "sleepHealth": {
     "hrvStatus": "HRV Status",
@@ -6188,5 +6223,60 @@
     "quickAdd": "Quick-Add Drinks",
     "caffeineBadge": "{{amount}} mg caffeine",
     "alcoholBadge": "{{abv}}% ABV"
+  },
+  "dashboardWeb": {
+    "title": "Today's overview",
+    "titleOtherDay": "Day overview",
+    "subtitle": "Your nutrition, activity and habits at a glance.",
+    "viewDetails": "View details",
+    "energy": {
+      "title": "Daily energy",
+      "over": "{{unit}} over target",
+      "remaining": "{{unit}} remaining",
+      "eatenNoGoal": "{{unit}} eaten",
+      "consumed": "Consumed",
+      "burned": "Burned",
+      "goal": "Daily goal",
+      "progress": "Daily progress"
+    },
+    "macros": {
+      "title": "Macronutrients"
+    },
+    "hydration": {
+      "title": "Hydration",
+      "log": "Log water",
+      "ofGoal": "of {{value}} {{unit}}"
+    },
+    "activity": {
+      "title": "Today's activity",
+      "minutes": "Minutes",
+      "log": "Log exercise",
+      "recent": "Recent activity",
+      "none": "No exercise logged for this day.",
+      "unnamed": "Exercise",
+      "itemDetail": "{{minutes}} min · {{calories}} {{unit}}"
+    },
+    "meals": {
+      "title": "Today's meals",
+      "viewAll": "View all meals",
+      "add": "Add food",
+      "none": "No food logged for this day yet."
+    },
+    "quickAdd": {
+      "title": "Quick add",
+      "food": "Food",
+      "exercise": "Exercise",
+      "water": "Water",
+      "scan": "Scan"
+    },
+    "glance": {
+      "today": "Today at a glance",
+      "day": "Day at a glance",
+      "meals": "Meals logged",
+      "workouts": "Workouts",
+      "drinks": "Drinks",
+      "net": "Net {{unit}}",
+      "goal": "Daily goal"
+    }
   }
 }

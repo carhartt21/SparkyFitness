@@ -95,11 +95,19 @@
     --identity-progress-yellow: #f7ee36;
     --identity-progress-lime: #d6f83d;
     --identity-progress-green: #15e99b;
+    /* Neon identity (shared with mobile): glow tints for cards, tiles, charts. */
+    --neon-red: #c93a2e;
+    --neon-orange: #c2512a;
+    --neon-yellow: #9a7400;
+    --neon-green: #11884a;
+    --neon-mint: #0b7a58;
+    --neon-cyan: #0f76a8;
+    --neon-violet: #6a4bc4;
     --metric-calories: 165 84% 27%;
-    --metric-protein: 36 80% 34%;
-    --metric-carbs: 151 71% 29%;
-    --metric-fat: 193 75% 35%;
-    --metric-fiber: 352 47% 50%;
+    --metric-protein: 4 63% 48%;
+    --metric-carbs: 44 100% 30%;
+    --metric-fat: 145 78% 30%;
+    --metric-fiber: 256 50% 53%;
     --brand-primary: 163 79% 21%;
     --brand-secondary: 163 79% 21%;
     --brand-supporting: 145 30% 42%;
@@ -149,54 +157,61 @@
   }
 
   .dark {
-    --metric-calories: 166 78% 48%;
-    --metric-protein: 40 89% 63%;
-    --metric-carbs: 148 61% 62%;
-    --metric-fat: 193 77% 61%;
-    --metric-fiber: 357 100% 74%;
+    --neon-red: #ff4d3f;
+    --neon-orange: #ff6a3d;
+    --neon-yellow: #fcd533;
+    --neon-green: #3ff276;
+    --neon-mint: #14e89a;
+    --neon-cyan: #22b8f5;
+    --neon-violet: #b08cff;
+    --metric-calories: 158 80% 50%;
+    --metric-protein: 4 100% 62%;
+    --metric-carbs: 47 97% 59%;
+    --metric-fat: 138 85% 61%;
+    --metric-fiber: 262 100% 77%;
     --brand-primary: 163 79% 21%;
-    --brand-secondary: 164 81% 36%;
-    --brand-supporting: 158 44% 62%;
+    --brand-secondary: 158 80% 44%;
+    --brand-supporting: 158 60% 60%;
     --brand-accent: 16 100% 66%;
-    --background: 207 58% 6%;
+    --background: 200 60% 5%;
     --foreground: 41 51% 93%;
 
-    --card: 198 37% 12%;
+    --card: 197 45% 9%;
     --card-foreground: var(--foreground);
 
-    --popover: 198 37% 12%;
+    --popover: 197 45% 9%;
     --popover-foreground: var(--foreground);
 
     --primary: var(--brand-secondary);
-    --primary-foreground: 213 19% 11%;
+    --primary-foreground: 200 60% 5%;
 
-    --secondary: 153 22% 17%;
+    --secondary: 195 32% 14%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 153 22% 17%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 195 32% 14%;
+    --muted-foreground: 195 15% 68%;
 
-    --accent: 153 22% 20%;
+    --accent: 165 40% 15%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 188 26% 25%;
-    --input: 188 26% 25%;
+    --border: 193 30% 18%;
+    --input: 193 30% 18%;
     --ring: var(--brand-secondary);
 
     --date-today: 158 64% 52%;
     --date-past: 20 90% 30%;
     --date-future: 40 90% 30%;
 
-    --sidebar-background: 213 19% 11%;
+    --sidebar-background: 200 55% 6%;
     --sidebar-foreground: var(--foreground);
     --sidebar-primary: var(--brand-secondary);
     --sidebar-primary-foreground: 213 19% 11%;
-    --sidebar-accent: 153 22% 17%;
+    --sidebar-accent: 165 40% 15%;
     --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 153 22% 22%;
+    --sidebar-border: 193 30% 16%;
     --sidebar-ring: var(--brand-secondary);
   }
 
@@ -208,6 +223,22 @@
     @apply bg-background text-foreground;
   }
 
+  /* Ambient red/green edge light from the reference, dark theme only. */
+  .dark body {
+    background-image:
+      radial-gradient(
+        60rem 40rem at 0% 10%,
+        color-mix(in srgb, var(--neon-red) 7%, transparent),
+        transparent 60%
+      ),
+      radial-gradient(
+        60rem 40rem at 100% 0%,
+        color-mix(in srgb, var(--neon-green) 8%, transparent),
+        transparent 60%
+      );
+    background-attachment: fixed;
+  }
+
   /* The customizable widget grid measures its container width and picks a
      react-grid-layout breakpoint from it, while tile heights are measured from
      their content. Without a reserved gutter, a scrollbar appearing/disappearing
@@ -216,6 +247,30 @@
      Reserving the gutter breaks that loop at the source. */
   html {
     scrollbar-gutter: stable;
+  }
+}
+
+/* Shared X on Track card surface. Set `--glow` (a neon token) for a tinted
+   border, inner wash and, in dark mode, an outer neon glow. */
+@utility glow-surface {
+  --glow: var(--neon-mint);
+  border-width: 1px;
+  border-color: color-mix(in srgb, var(--glow) 30%, hsl(var(--border)));
+  background-color: hsl(var(--card));
+  background-image: linear-gradient(
+    160deg,
+    color-mix(in srgb, var(--glow) 6%, transparent),
+    transparent 55%
+  );
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.06);
+  &:where(.dark *) {
+    border-color: color-mix(in srgb, var(--glow) 45%, transparent);
+    background-image: linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--glow) 11%, transparent),
+      transparent 55%
+    );
+    box-shadow: 0 0 22px -8px color-mix(in srgb, var(--glow) 60%, transparent);
   }
 }
 

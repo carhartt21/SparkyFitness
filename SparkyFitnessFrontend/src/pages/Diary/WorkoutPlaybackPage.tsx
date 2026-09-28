@@ -97,7 +97,7 @@ function getReturnPath(
   }
 
   if (requestedDate) {
-    return `/?date=${requestedDate}`;
+    return `/diary?date=${requestedDate}`;
   }
 
   return '/';

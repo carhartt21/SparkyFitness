@@ -84,3 +84,6 @@ dossier sans titre/
 
 # Local MCP server config (contains bearer tokens)
 .mcp.json
+
+# Local visual review: isolated demo database, logs and captures
+.visual-sample/

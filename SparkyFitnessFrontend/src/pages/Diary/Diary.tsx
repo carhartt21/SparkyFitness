@@ -11,6 +11,7 @@ import CaffeineCard from './CaffeineCard';
 import MealCard from './MealCard';
 import ExerciseCard from './ExerciseCard';
 import DiaryWidgetGrid, { type DiaryWidget } from './DiaryWidgetGrid';
+import { LoggingStreakBadge, TodaysFocusCard } from './TodaysFocusCard';
 import { mealWidgetKey } from '@/utils/dashboardLayout';
 import {
   Flame,
@@ -20,7 +21,6 @@ import {
   UtensilsCrossed,
   Dumbbell,
   HeartPulse,
-  ArrowRight,
 } from 'lucide-react';
 import { DailyHealthMetricsCard } from '@/components/Health/DailyHealthMetricsCard';
 import { useDailyHealthMetrics } from '@/hooks/useGenericHealth';
@@ -99,6 +99,7 @@ const Diary = () => {
 
   const [selectedMealType, setSelectedMealType] = useState<string>('');
   const [selectedMealTypeId, setSelectedMealTypeId] = useState<string>('');
+  const [openScannerForMeal, setOpenScannerForMeal] = useState(false);
   const [openFoodSearchForMealType, setOpenFoodSearchForMealType] = useState<
     string | null
   >(null);
@@ -163,7 +164,10 @@ const Diary = () => {
 
   // Handle navigation for opening food search dialog
   useEffect(() => {
-    const state = location.state as { openFoodSearchForMeal?: string };
+    const state = location.state as {
+      openFoodSearchForMeal?: string;
+      startWithScanner?: boolean;
+    };
     debug(loggingLevel, '[Diary] Location state:', state);
     if (
       state?.openFoodSearchForMeal &&
@@ -181,6 +185,7 @@ const Diary = () => {
       );
 
       // Set which meal dialog should open
+      setOpenScannerForMeal(state.startWithScanner === true);
       setOpenFoodSearchForMealType(mealType);
 
       // Clear the navigation state for next render
@@ -193,6 +198,23 @@ const Diary = () => {
     navigate,
     location.pathname,
   ]);
+
+  // Dashboard "Log exercise" / hydration details land on the matching widget.
+  useEffect(() => {
+    const focus = (location.state as { focusWidget?: string } | null)
+      ?.focusWidget;
+    if (!focus || loading) return;
+    // Not cancelled on cleanup: clearing the state below re-runs this effect.
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById(`diary-widget-${focus}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: {},
+    });
+  }, [location.state, location.pathname, location.search, loading, navigate]);
 
   const handleCopyClick = (mealType: string) => {
     setCopySourceMealType(mealType);
@@ -456,7 +478,11 @@ const Diary = () => {
               openFoodSearchForMealType?.toLowerCase() ===
               mealTypeObj.name.toLowerCase()
             }
-            onFoodSearchClose={() => setOpenFoodSearchForMealType(null)}
+            startWithScanner={openScannerForMeal}
+            onFoodSearchClose={() => {
+              setOpenFoodSearchForMealType(null);
+              setOpenScannerForMeal(false);
+            }}
           />
         ),
       });
@@ -498,6 +524,7 @@ const Diary = () => {
     customNutrients,
     exercisesToLogFromPreset,
     openFoodSearchForMealType,
+    openScannerForMeal,
     todaysHealthMetrics,
     loadingHealthMetrics,
     t,
@@ -525,6 +552,7 @@ const Diary = () => {
           </p>
         </div>
         <div className="flex min-w-0 flex-wrap items-center gap-2 sm:ml-auto">
+          <LoggingStreakBadge selectedDate={selectedDate} />
           <div
             ref={setToolbarContainer}
             className="flex min-w-0 flex-wrap items-center gap-2"
@@ -609,46 +637,20 @@ const Diary = () => {
           </div>
         </section>
         {effectiveGoals && (
-          <section
-            aria-label={t('diary.configuredGoals', 'Configured goals')}
-            className="rounded-xl border border-border/60 bg-card p-4"
-          >
-            <div className="mb-3 flex items-center justify-between gap-2">
-              <h2 className="text-base font-semibold text-foreground">
-                {t('diary.configuredGoals', 'Configured goals')}
-              </h2>
-              <Button
-                variant="ghost"
-                className="min-h-11 gap-1 px-2 text-primary"
-                onClick={() => navigate('/goals')}
-              >
-                {t('common.details', 'Details')}{' '}
-                <ArrowRight aria-hidden="true" className="h-4 w-4" />
-              </Button>
-            </div>
-            <dl className="grid grid-cols-2 gap-3 text-sm">
-              {effectiveGoals.calories > 0 && (
-                <div>
-                  <dt className="text-muted-foreground">
-                    {t('diary.dailyEnergyGoal', 'Daily energy goal')}
-                  </dt>
-                  <dd className="mt-1 font-semibold tabular-nums text-foreground">
-                    {Math.round(effectiveGoals.calories).toLocaleString()} kcal
-                  </dd>
-                </div>
-              )}
-              {effectiveGoals.protein > 0 && (
-                <div>
-                  <dt className="text-muted-foreground">
-                    {t('nutrients.protein', 'Protein')}
-                  </dt>
-                  <dd className="mt-1 font-semibold tabular-nums text-foreground">
-                    {Math.round(effectiveGoals.protein).toLocaleString()} g
-                  </dd>
-                </div>
-              )}
-            </dl>
-          </section>
+          <TodaysFocusCard
+            caloriesEaten={
+              summaryData?.calorieBalance.eaten ?? dayTotals.calories
+            }
+            calorieGoal={effectiveGoals.calories}
+            proteinConsumed={dayTotals.protein}
+            proteinGoal={effectiveGoals.protein}
+            waterMl={summaryData ? summaryData.waterIntake : null}
+            waterGoalMl={effectiveGoals.water_goal_ml ?? 0}
+            foodEntryCount={
+              (fetchedFoodEntries?.length ?? 0) + (foodEntryMeals?.length ?? 0)
+            }
+            onEditGoals={() => navigate('/goals')}
+          />
         )}
       </div>
 

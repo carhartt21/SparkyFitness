@@ -73,44 +73,64 @@ const ReportsControls = ({
     },
   ];
 
+  const activeLabel =
+    reportTypes.find((type) => type.id === activeTab)?.label ??
+    t('reports.title', 'Reports');
+
   return (
-    <div className="w-full flex flex-col lg:flex-row items-center gap-4 lg:gap-6">
-      {/* Navigation Pills */}
-      <div className="flex flex-wrap items-center justify-center lg:justify-start gap-1 flex-1">
+    <div className="w-full space-y-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+            {activeTab === 'charts'
+              ? t('reports.nutritionTitle', 'Nutrition reports')
+              : t('reports.sectionTitle', '{{section}} reports', {
+                  section: activeLabel,
+                })}
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {t(
+              'reports.subtitle',
+              'Track patterns across your logged days. Missing days stay unknown.'
+            )}
+          </p>
+        </div>
+        <div className="shrink-0">
+          <DateRangePickerWithPresets
+            startDate={startDate}
+            endDate={endDate}
+            onStartDateChange={onStartDateChange}
+            onEndDateChange={onEndDateChange}
+          />
+        </div>
+      </div>
+
+      <nav
+        aria-label={t('reports.categories', 'Report categories')}
+        className="flex flex-wrap items-center gap-2"
+      >
         {reportTypes.map((type) => {
           const Icon = type.icon;
           const isActive = activeTab === type.id;
           return (
             <Button
               key={type.id}
-              variant={isActive ? 'secondary' : 'ghost'}
+              variant="ghost"
               size="sm"
               onClick={() => onTabChange(type.id)}
-              className={`rounded-full px-4 h-9 gap-2 transition-all ${
+              aria-current={isActive ? 'page' : undefined}
+              className={`h-10 gap-2 rounded-full px-4 transition-all ${
                 isActive
-                  ? 'bg-slate-200/60 dark:bg-muted shadow-sm text-foreground'
-                  : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                  ? 'glow-surface text-foreground [--glow:var(--neon-mint)]'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="h-4 w-4" />
               <span className="text-xs font-semibold">{type.label}</span>
             </Button>
           );
         })}
-      </div>
-
-      {/* Vertical Divider (Desktop Only) */}
-      <div className="hidden lg:block w-px h-6 bg-border" />
-
-      {/* Secondary Filter: Date Picker */}
-      <div className="shrink-0">
-        <DateRangePickerWithPresets
-          startDate={startDate}
-          endDate={endDate}
-          onStartDateChange={onStartDateChange}
-          onEndDateChange={onEndDateChange}
-        />
-      </div>
+      </nav>
     </div>
   );
 };

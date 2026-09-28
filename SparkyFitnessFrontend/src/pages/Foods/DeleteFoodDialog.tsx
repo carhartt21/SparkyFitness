@@ -107,7 +107,7 @@ const DeleteFoodDialog: React.FC<DeleteFoodDialogProps> = ({
                         {entry.isCurrentUser ? (
                           <Link
                             to={
-                              '/?date=' +
+                              '/diary?date=' +
                               toISODate(entry.entry_date) +
                               '&highlight=' +
                               food.id

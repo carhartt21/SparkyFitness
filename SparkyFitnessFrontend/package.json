@@ -17,6 +17,7 @@
     "preview": "vite preview",
     "test": "jest",
     "test:ci": "jest --ci --coverage --maxWorkers=2",
+    "visual:review": "node scripts/visual-review.mjs",
     "format": "prettier . --write"
   },
   "jest": {
@@ -173,6 +174,7 @@
     "jest": "^30.5.1",
     "jest-environment-jsdom": "^30.5.1",
     "knip": "^6.35.1",
+    "playwright-core": "^1.63.0",
     "prettier": "3.9.6",
     "tailwindcss": "4.3.3",
     "ts-jest": "^29.4.12",
