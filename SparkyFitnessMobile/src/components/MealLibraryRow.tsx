@@ -60,6 +60,7 @@ const MealLibraryRow: React.FC<MealLibraryRowProps> = ({
       <View className="pl-4 py-3">
         <FoodThumbnail
           image={primaryImageOf(meal)}
+          name={meal.name}
           getImageSource={getImageSource}
           size={40}
           onPress={openImages}

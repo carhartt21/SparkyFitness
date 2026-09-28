@@ -14,6 +14,7 @@ import { EnergyUnit } from '@/contexts/PreferencesContext';
 import { useActiveUser } from '@/contexts/ActiveUserContext';
 import { formatServingLabel } from '@/utils/foodServing';
 import { resolveFoodImageSrc, usableFoodImages } from '@/utils/foodImages';
+import { foodFallbackImageSrc } from '@/utils/foodFallbackImages';
 import ImageLightbox from './ImageLightbox';
 import {
   CONFIDENCE_TONES,
@@ -84,6 +85,7 @@ const FoodResultCard = ({
   // Set when the thumbnail 404s and we swap to the full-size variant, so the
   // viewer opens the image that actually loaded rather than the failed one.
   const [thumbnailFailed, setThumbnailFailed] = useState(false);
+  const [failedRealImage, setFailedRealImage] = useState<string | null>(null);
   // Providers that serve a small and a full-size variant give us both; if the
   // small one is missing upstream, swap to the full size before giving up.
   const fallbackImageSrc = resolveFoodImageSrc(foodItem.image_source_url);
@@ -101,6 +103,11 @@ const FoodResultCard = ({
     return single ? [single] : [];
   })();
   const resolvedImageSrc = galleryImages[0] ?? null;
+  const hasRealThumbnail =
+    resolvedImageSrc !== null && resolvedImageSrc !== failedRealImage;
+  const displayImageSrc = hasRealThumbnail
+    ? resolvedImageSrc
+    : foodFallbackImageSrc(item.name, isMeal, foodItem.food_group_tags);
   const mealItem = item as Meal;
   // Hex opacity suffixes are only valid on a full #rrggbb value; other colour
   // formats (CSS vars, named colours, #rgb) are used as-is without a tint.
@@ -119,7 +126,7 @@ const FoodResultCard = ({
           {/* Thumbnail rail, mirroring the diary rows: image on the left with
               the name and nutrients stacked beside it, so a row with a photo
               is no taller than one without. */}
-          {resolvedImageSrc && (
+          {hasRealThumbnail ? (
             <button
               type="button"
               className="shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -131,7 +138,7 @@ const FoodResultCard = ({
               aria-label={t('food.viewImages', 'View images')}
             >
               <img
-                src={resolvedImageSrc}
+                src={displayImageSrc}
                 alt={item.name}
                 className="w-14 h-14 object-cover rounded-md cursor-zoom-in"
                 loading="lazy"
@@ -147,11 +154,21 @@ const FoodResultCard = ({
                     setThumbnailFailed(true);
                     return;
                   }
-                  // A dead provider link shouldn't leave a broken-image icon.
-                  img.style.display = 'none';
+                  // The bundled illustration is visual only; never open a
+                  // dead provider URL in the real-photo lightbox.
+                  setFailedRealImage(resolvedImageSrc);
                 }}
               />
             </button>
+          ) : (
+            <div className="w-14 h-14 shrink-0 rounded-md bg-muted/50 flex items-center justify-center">
+              <img
+                src={displayImageSrc}
+                alt=""
+                className="w-14 h-14 object-contain rounded-md"
+                loading="lazy"
+              />
+            </div>
           )}
           <div className="flex-1 min-w-0">
             <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mb-2">

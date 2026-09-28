@@ -52,6 +52,8 @@ const OnlineResultRow: React.FC<OnlineResultRowProps> = ({
       <View className="pl-4 py-2">
         <FoodThumbnail
           image={image}
+          name={item.name}
+          foodGroupTags={item.food_group_tags}
           getImageSource={getImageSource}
           size={40}
           onPress={

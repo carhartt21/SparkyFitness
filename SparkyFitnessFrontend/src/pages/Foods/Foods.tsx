@@ -73,6 +73,7 @@ import { Badge } from '@/components/ui/badge';
 import type { Food, FoodVariant } from '@/types/food';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import FoodListArtwork from '@/components/FoodSearch/FoodListArtwork';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useCustomNutrients } from '@/hooks/Foods/useCustomNutrients';
 import { formatServingLabel } from '@/utils/foodServing';
@@ -266,26 +267,15 @@ const FoodDatabaseManager = () => {
           const imageSrc = foodImages[0] ?? null;
           return (
             <div className="flex items-start gap-2 min-w-[150px]">
-              {imageSrc && (
-                <button
-                  type="button"
-                  className="flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  onClick={() => openLightbox(foodImages, 0, food.name)}
-                  aria-label={t('food.viewImages', 'View images')}
-                >
-                  <img
-                    src={imageSrc}
-                    alt=""
-                    aria-hidden="true"
-                    loading="lazy"
-                    className="w-10 h-10 object-cover rounded-md cursor-zoom-in"
-                    onError={(e) => {
-                      // A dead provider link shouldn't leave a broken-image icon.
-                      e.currentTarget.style.display = 'none';
-                    }}
-                  />
-                </button>
-              )}
+              <FoodListArtwork
+                name={food.name}
+                src={imageSrc}
+                onOpen={
+                  imageSrc
+                    ? () => openLightbox(foodImages, 0, food.name)
+                    : undefined
+                }
+              />
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-gray-900 dark:text-gray-100">

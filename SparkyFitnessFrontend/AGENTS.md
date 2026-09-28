@@ -14,7 +14,7 @@ If a task also touches the server, mobile app, or `shared/`, read that package g
 
 ## Current Snapshot
 
-- Stack: React 19, Vite 8, TypeScript 5, Tailwind CSS v4 (via `@tailwindcss/vite`), shadcn/ui-style Radix primitives, TanStack Query 5, React Router 7 (`createBrowserRouter`), i18next, Better Auth client, Zod 4, Recharts.
+- Stack: React 19, Vite 8, TypeScript 6, Tailwind CSS v4 (via `@tailwindcss/vite`), shadcn/ui-style Radix primitives, TanStack Query 5, React Router 7 (`createBrowserRouter`), i18next, Better Auth client, Zod 4, Recharts.
 - `@/*` maps to `src/`; `@workspace/shared` maps to `../shared/src/index.ts` (also in Jest via `moduleNameMapper`).
 - Dev server runs on port `8080` and proxies `/api`, `/mcp`, and `/uploads` to the backend on `3010`; `/health-data` is proxied with an `/api` prefix rewrite. Override the backend host with `VITE_BACKEND_HOST`.
 - PWA (`vite-plugin-pwa`) is enabled in production builds only.
@@ -39,9 +39,9 @@ pnpm run visual:review   # needs ../scripts/visual-sample.sh start; see root AGE
 - `pnpm run build` runs `validate` first, then `vite build`.
 - CI (`.github/workflows/ci-tests.yml`) runs `pnpm run validate` and `pnpm run test:ci` for this package when its files change; matching those locally means a green PR.
 
-## Domain-Mirrored Layout (the most important convention)
+## Domain-Oriented Layout
 
-Features are organized by domain, and the same domain folder name appears in `src/pages/`, `src/api/`, and `src/hooks/`. A feature change usually touches the matching folder in all three:
+Features are organized by domain across `src/pages/`, `src/api/`, and `src/hooks/`, but folder names and layers are not uniform. Start with the closest domain and follow its imports:
 
 - Page domains: `Admin`, `Auth`, `Chat`, `CheckIn`, `Cycle`, `Diary`, `Errors`, `Exercises`, `Fasting`, `Foods`, `Goals`, `Integrations`, `Medications`, `Reports`, `Settings`.
 - API domains add a few more: `AiConversions`, `Chatbot`, `Onboarding`, `Pregnancy`, `SleepScience`.
@@ -55,12 +55,13 @@ Features are organized by domain, and the same domain folder name appears in `sr
 - Routes: `/` is the Dashboard summary (`src/pages/Dashboard/`); the full Diary lives at `/diary`. Legacy `/?date=` links and `openFoodSearchForMeal` navigation state are forwarded to `/diary` by `DashboardRoute`. Diary accepts navigation state `openFoodSearchForMeal` (+ `startWithScanner`) and `focusWidget` (`exercise` | `water`).
 - Shared look: `src/components/ui/glow-card.tsx` (`GlowCard`, neon tones) and the `glow-surface` utility / `--neon-*` tokens in `src/index.css`; `ui/card.tsx` carries the same radius/border. Water logging logic is shared through `src/hooks/Diary/useWaterControls.ts`.
 - `src/pages/Auth/McpConsent.tsx` and `src/pages/Settings/{NotificationDeliverySettings,McpConnectionsSettings}.tsx` - assistant OAuth consent and account notification/connection controls; their HTTP helpers live under `src/api/Auth/` and `src/api/Engagement/`.
-- `src/api/api.ts` - `apiCall(endpoint, options)` helper: base URL `/api`, query `params`, JSON/FormData bodies, `responseType`, error toasts, `suppress404Toast`. Use it for all backend requests.
+- `src/api/api.ts` - `apiCall(endpoint, options)` helper for normal app API requests: base URL `/api`, query `params`, JSON/FormData bodies, `responseType`, error toasts, `suppress404Toast`. Better Auth and specialized streaming paths have their own clients.
 - `src/api/<Domain>/` - per-domain API clients built on `apiCall`.
 - `src/hooks/<Domain>/` and `src/hooks/use*.ts(x)` - TanStack Query hooks and shared UI hooks (`use-toast`, `useDebounce`, `useAuth`, ...).
 - `src/components/` - shared components; `ui/` holds the shadcn-style primitives (~37 files); domain component folders include `Foods/`, `FoodSearch/`, `FoodUnitSelector/`, `Onboarding/`, `ExerciseCharts/`, `ai/` (assistant-ui chat pieces).
 - `src/contexts/` - `ActiveUserContext` (family-access acting-user switching), `PreferencesContext`, `ThemeContext`, `WaterContainerContext`, `ChatbotVisibilityContext`, `ChatToolCategoriesContext` (runtime chat tool-category selection, localStorage-backed).
 - `src/layouts/` - `MainLayout.tsx` and `AddComp.tsx`.
+- `src/utils/dashboardLayout.ts` and `src/components/widgets/WidgetGrid.tsx` - default Diary widget placement, saved-layout reconciliation, and drag/resize behavior. `src/pages/Reports/ReportsControls.tsx` owns report title, date controls, and category navigation.
 - `src/lib/` - `auth-client.ts` (Better Auth React client), `utils.ts` (`cn`), scanner engines, sleep helpers.
 - `src/services/` - pure calculation helpers (BMR, body composition, nutrient calculation), not HTTP clients.
 - `src/utils/` - logging, user preferences, date helpers, misc.
@@ -74,7 +75,12 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 - Only ever edit `public/locales/en/translation.json`. The other 35 locales are machine-synced through the `sync-translations.yml` workflow and a separate SparkyFitnessTranslations repo; hand-editing them creates conflicts with that pipeline.
 - UI strings go through `useTranslation()` / `t('...')` keys, not hardcoded literals.
 - `en/translation.json` is ~120 KB - grep for the key or section you need instead of reading the whole file.
-- Developer docs: `../docs/content/8.developer/9.translations.md`.
+- Developer docs: `../docs/src/developer/translations.md`.
+
+## Visual Review
+
+- Use `../PRODUCT.md`, `../DESIGN.md`, and `../docs/implementation/x-on-track-ui-redesign-audit.md` for the approved identity and reference screens. The current web Dashboard and Nutrition Reports batch is tracked in `../docs/implementation/web-mockup-alignment-2026-09-27.md`.
+- From the repository root, `scripts/visual-sample.sh serve` starts an isolated seeded demo account for authenticated local captures. Compare the actual `/` and `/reports?tab=charts` pages at the 1586 × 992 reference size, narrower desktop, and mobile widths in both themes. Preserve user-saved widget layouts and real-data semantics; do not copy the mockups' invented figures into product UI.
 
 ## Conventions
 

@@ -66,6 +66,9 @@ export const NormalizedFoodSchema = z.object({
   // these keys the surrounding z.object() silently strips them, which leaves
   // provider results image-less and starves the localization pipeline.
   image_url: z.string().nullable().optional(),
+  // Transient OFF classification for choosing fallback artwork; never stored
+  // as a food's own image or nutrition data.
+  food_group_tags: z.array(z.string()).optional(),
   // Full-size counterpart when a provider serves two sizes (mealie, tandoor).
   image_source_url: z.string().nullable().optional(),
   // Local foods returned through this shape carry their stored array.

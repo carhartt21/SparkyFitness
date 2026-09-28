@@ -69,6 +69,7 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
       <View className="pl-4 pr-3 py-3">
         <FoodThumbnail
           image={primaryImageOf(item)}
+          name={item.name}
           getImageSource={getImageSource}
           size={48}
           onPress={

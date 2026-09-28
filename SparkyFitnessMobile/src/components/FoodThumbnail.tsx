@@ -1,18 +1,21 @@
-import React from 'react';
+import React, { useCallback, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Pressable, type StyleProp, type ViewStyle } from 'react-native';
-import { useCSSVariable } from 'uniwind';
+import { Image } from 'expo-image';
 import SafeImage from './SafeImage';
-import Icon from './Icon';
 import type { GetFoodImageSource } from '../hooks/useFoodImageSource';
+import { foodFallbackImage } from '../utils/foodFallbackImages';
 
 interface FoodThumbnailProps {
   /** Stored image path, or null when the entity has no picture. */
   image: string | null;
+  /** Display name used only to choose non-persistent fallback artwork. */
+  name?: string | null;
+  foodGroupTags?: readonly string[] | null;
   /** From `useFoodImageSource()`; hoisted so one cache serves a whole list. */
   getImageSource: GetFoodImageSource;
   size?: number;
-  /** Which placeholder glyph to show when there is no image. */
+  /** Meals use a dish illustration rather than a guessed ingredient. */
   variant?: 'food' | 'meal';
   /**
    * When false, an entity with no image renders nothing at all rather than a
@@ -36,6 +39,8 @@ interface FoodThumbnailProps {
  */
 const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
   image,
+  name,
+  foodGroupTags,
   getImageSource,
   size = 44,
   variant = 'food',
@@ -45,9 +50,11 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
   testID = 'food-thumbnail',
 }) => {
   const { t } = useTranslation();
-  const [textMuted] = useCSSVariable(['--color-text-muted']) as [string];
-
   const source = image ? getImageSource(image) : null;
+  const [failedSource, setFailedSource] = useState<string | null>(null);
+  const onImageError = useCallback(() => {
+    setFailedSource(source?.uri ?? null);
+  }, [source?.uri]);
 
   if (!source && !showFallback) {
     return null;
@@ -55,6 +62,7 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
 
   const box = { width: size, height: size, borderRadius: 8 };
 
+  const canOpenPhoto = !!onPress && !!source && failedSource !== source.uri;
   const Container = onPress ? Pressable : View;
 
   return (
@@ -63,11 +71,16 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
       style={style}
       {...(onPress
         ? {
-            onPress,
-            accessibilityRole: 'imagebutton' as const,
-            accessibilityLabel: t('foodSearch.accessibility.viewPhoto', {
-              defaultValue: 'View photo',
-            }),
+            onPress: canOpenPhoto ? onPress : undefined,
+            disabled: !canOpenPhoto,
+            accessibilityRole: canOpenPhoto
+              ? ('imagebutton' as const)
+              : undefined,
+            accessibilityLabel: canOpenPhoto
+              ? t('foodSearch.accessibility.viewPhoto', {
+                  defaultValue: 'View photo',
+                })
+              : undefined,
             // Sibling pressable, never nested inside the row's own — nesting
             // leaves the inner one live while the parent is disabled. Matches
             // the exercise thumbnail pattern.
@@ -77,14 +90,23 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
     >
       <SafeImage
         source={source}
+        onTerminalError={onImageError}
         style={box}
         contentFit="cover"
         fallback={
-          <View className="bg-raised items-center justify-center" style={box}>
-            <Icon
-              name={variant === 'meal' ? 'meal' : 'food'}
-              size={Math.round(size / 2)}
-              color={textMuted}
+          <View
+            className="bg-raised items-center justify-center overflow-hidden"
+            style={box}
+          >
+            <Image
+              source={foodFallbackImage(
+                name,
+                variant === 'meal',
+                foodGroupTags
+              )}
+              style={box}
+              contentFit="contain"
+              accessibilityLabel={undefined}
             />
           </View>
         }

@@ -69,6 +69,8 @@ export interface ExternalFoodItem {
   provider_verified?: boolean;
   /** Provider thumbnail URL; absolute, not yet imported into /uploads. */
   image_url?: string | null;
+  /** Open Food Facts food-group tags for visual fallback selection only. */
+  food_group_tags?: string[];
   /** Full-size counterpart of `image_url`, preferred when localizing on save. */
   image_source_url?: string | null;
   /** Present once the food has been imported and localized server-side. */

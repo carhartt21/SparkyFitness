@@ -23,9 +23,13 @@ import { useWaterControls } from '@/hooks/Diary/useWaterControls';
 
 interface WaterIntakeProps {
   selectedDate: string;
+  initialLogOpen?: boolean;
 }
 
-const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
+const WaterIntake = ({
+  selectedDate,
+  initialLogOpen = true,
+}: WaterIntakeProps) => {
   const { t } = useTranslation();
   const {
     user,
@@ -51,7 +55,7 @@ const WaterIntake = ({ selectedDate }: WaterIntakeProps) => {
     water_display_unit,
   } = useWaterControls(selectedDate);
   // Local state for log panel visibility (defaults to open so synced/manual logs are immediately visible)
-  const [showLog, setShowLog] = useState(true);
+  const [showLog, setShowLog] = useState(initialLogOpen);
 
   // State for editing time on a log entry
   const [editingTimeId, setEditingTimeId] = useState<string | null>(null);

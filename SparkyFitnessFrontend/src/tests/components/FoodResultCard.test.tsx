@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import FoodResultCard from '@/components/FoodSearch/FoodResultCard';
 import type { Food } from '@/types/food';
@@ -51,6 +51,41 @@ const createFood = (overrides: Partial<Food> = {}): Food => ({
 });
 
 describe('FoodResultCard', () => {
+  it('shows non-clickable group artwork when a food has no photo', () => {
+    const { container } = render(
+      <FoodResultCard
+        item={createFood({ name: 'Tomate roh' })}
+        nutrientConfig={nutrientConfig}
+      />
+    );
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      '/images/food-fallbacks/vegetables.webp'
+    );
+    expect(screen.queryByRole('button', { name: 'View images' })).toBeNull();
+  });
+
+  it('keeps the real image first and falls back when the provider URL fails', () => {
+    const { container } = render(
+      <FoodResultCard
+        item={createFood({
+          name: 'Tomate roh',
+          images: ['/uploads/tomato.jpg'],
+        })}
+        nutrientConfig={nutrientConfig}
+      />
+    );
+    const photo = container.querySelector('img');
+    expect(photo?.getAttribute('src')).toBe('/uploads/tomato.jpg');
+    expect(
+      screen.getByRole('button', { name: 'View images' })
+    ).toBeInTheDocument();
+    fireEvent.error(photo!);
+    expect(container.querySelector('img')?.getAttribute('src')).toBe(
+      '/images/food-fallbacks/vegetables.webp'
+    );
+    expect(screen.queryByRole('button', { name: 'View images' })).toBeNull();
+  });
+
   it('shows a preparation warning only for a broader match', () => {
     render(
       <FoodResultCard

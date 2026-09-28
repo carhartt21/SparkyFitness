@@ -20,6 +20,7 @@ dist-ssr
 *.local
 .env
 .localenv
+.visual-sample/
 .vitepress/dist
 .vitepress/cache
 .nuxt

@@ -496,6 +496,7 @@ interface NormalizedFood {
   // arrive on the wire; they only reach the UI if this interface declares them
   // AND transformNormalizedFood copies them across.
   image_url?: string | null;
+  food_group_tags?: string[];
   image_source_url?: string | null;
   images?: string[];
   default_variant: NormalizedFoodVariant;
@@ -515,6 +516,7 @@ export interface BarcodeFood {
   // arrive on the wire; they only reach the UI if this interface declares them
   // AND transformNormalizedFood copies them across.
   image_url?: string | null;
+  food_group_tags?: string[];
   image_source_url?: string | null;
   images?: string[];
 
@@ -588,6 +590,7 @@ export function _transformNormalizedFood(
     // Carry the provider photo through. Every field this mapper omits is
     // invisible to the UI no matter what the server sent.
     image_url: food.image_url ?? null,
+    food_group_tags: food.food_group_tags,
     image_source_url: food.image_source_url ?? null,
     images: food.images,
   };
@@ -681,6 +684,7 @@ export async function lookupBarcodeV2(
     // Same omission trap as the search mapper: a scanned barcode's photo is
     // lost unless it is copied here.
     image_url: food.image_url ?? null,
+    food_group_tags: food.food_group_tags,
     image_source_url: food.image_source_url ?? null,
     images: food.images,
     default_variant: food.default_variant,

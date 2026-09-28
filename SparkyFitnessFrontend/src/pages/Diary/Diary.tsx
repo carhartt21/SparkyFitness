@@ -77,6 +77,7 @@ const Diary = () => {
   const [selectedDate, setSelectedDate] = useState(
     searchParams.get('date') ?? todayInZone(timezone)
   );
+  const isToday = selectedDate === todayInZone(timezone);
   debug(loggingLevel, 'FoodDiary component rendered for date:', selectedDate);
   const [exercisesToLogFromPreset, setExercisesToLogFromPreset] = useState<
     PresetExercise[] | undefined
@@ -393,9 +394,9 @@ const Diary = () => {
   // selects one row rather than merging several, which would mislabel the badge.
   const todaysHealthMetrics = selectDisplayableHealthMetrics(healthMetricsData);
 
-  // Build the ordered widget registry: energy, nutrition, water, one card per
-  // visible meal type, then exercise. Keys match buildWidgetKeys() so the saved
-  // grid layout reconciles cleanly against the user's current meal types.
+  // Build the widget registry with stable keys so saved layouts reconcile
+  // against the user's current meal types. The default placement is defined
+  // separately in dashboardLayout.ts.
   const widgets: DiaryWidget[] = useMemo(() => {
     if (!effectiveGoals) return [];
     const list: DiaryWidget[] = [
@@ -412,6 +413,7 @@ const Diary = () => {
         render: () => (
           <NutritionSummaryCard
             selectedDate={selectedDate}
+            compact
             dayTotals={dayTotals as unknown as DayTotals}
             goals={effectiveGoals}
             energyUnit={energyUnit}
@@ -424,7 +426,9 @@ const Diary = () => {
         key: 'water',
         title: t('diary.waterIntake', 'Water Intake'),
         icon: Droplet,
-        render: () => <WaterIntake selectedDate={selectedDate} />,
+        render: () => (
+          <WaterIntake selectedDate={selectedDate} initialLogOpen={false} />
+        ),
       },
     ];
 
@@ -495,15 +499,14 @@ const Diary = () => {
       render: () => (
         <ExerciseCard
           selectedDate={selectedDate}
+          compact
           initialExercisesToLog={exercisesToLogFromPreset}
           onExercisesLogged={() => setExercisesToLogFromPreset(undefined)}
         />
       ),
     });
 
-    // Last in the registry to match its default tile, which sits below
-    // exercise; the grid positions by layout, but keeping the two in the same
-    // order stops the next reader wondering which one is authoritative.
+    // Secondary detail follows the daily and meal widgets in the registry.
     list.push({
       key: 'caffeine',
       title: t('diary.caffeine.title', 'Caffeine Kinetics'),
@@ -542,12 +545,14 @@ const Diary = () => {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-3 border-b border-border/60">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            {t('diary.pageTitle', 'Your day')}
+            {isToday
+              ? t('diary.todayOverview', "Today's overview")
+              : t('diary.dayOverview', 'Day overview')}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {t(
-              'diary.pageDescription',
-              'A clear view of your daily progress and entries.'
+              'diary.overviewDescription',
+              'Review your logged nutrition and activity.'
             )}
           </p>
         </div>

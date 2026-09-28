@@ -1317,6 +1317,10 @@
   },
   "exerciseCard": {
     "title": "Exercise",
+    "duration": "Duration",
+    "recentActivity": "Recent activity",
+    "viewEntries": "View exercise entries",
+    "hideEntries": "Show summary",
     "addExercise": "Add Exercise",
     "noEntries": "No exercise entries for this day.",
     "exerciseTotal": "Exercise Total",
@@ -2918,6 +2922,11 @@
     "noMealTypeForQuickAdd": "Set up a meal to add food",
     "pageTitle": "Your day",
     "pageDescription": "A clear view of your daily progress and entries.",
+    "todayOverview": "Today's overview",
+    "dayOverview": "Day overview",
+    "overviewDescription": "Review your logged nutrition and activity.",
+    "showAllNutrients": "View all nutrients",
+    "showNutritionSummary": "Show summary",
     "goalsLoadErrorTitle": "Your daily view could not load",
     "goalsLoadErrorDescription": "Try again to load your goals and daily entries.",
     "goalsEmptyTitle": "Set up your daily goals",
@@ -3843,6 +3852,9 @@
     "pasteButton": "Paste"
   },
   "reports": {
+    "nutritionPageTitle": "Nutrition reports",
+    "pageDescription": "Explore patterns in your logged data.",
+    "categories": "Report categories",
     "nutrientTrends": "Nutrient trends",
     "selectNutrient": "Select nutrient",
     "focusChart": "Focus one chart",

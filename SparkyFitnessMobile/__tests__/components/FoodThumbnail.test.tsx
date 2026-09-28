@@ -2,6 +2,7 @@ import React from 'react';
 import { Image } from 'expo-image';
 import { fireEvent, render } from '@testing-library/react-native';
 import FoodThumbnail from '../../src/components/FoodThumbnail';
+import { OFF_FOOD_GROUP_IMAGES } from '../../src/utils/offFoodGroupImages';
 
 const getImageSource = (path: string) => ({
   uri: `https://server/api${path}`,
@@ -9,6 +10,9 @@ const getImageSource = (path: string) => ({
 });
 
 describe('FoodThumbnail', () => {
+  it('bundles a distinct asset slot for every substantive OFF food group', () => {
+    expect(Object.keys(OFF_FOOD_GROUP_IMAGES)).toHaveLength(88);
+  });
   it('renders the resolved image for a stored path', () => {
     const { UNSAFE_getByType } = render(
       <FoodThumbnail
@@ -23,12 +27,33 @@ describe('FoodThumbnail', () => {
     });
   });
 
-  it('renders a placeholder box when there is no image', () => {
-    const { queryByTestId } = render(
-      <FoodThumbnail image={null} getImageSource={getImageSource} />
+  it('renders bundled group artwork when there is no image', () => {
+    const { queryByTestId, UNSAFE_getByType } = render(
+      <FoodThumbnail
+        image={null}
+        name="Tomate roh"
+        getImageSource={getImageSource}
+      />
     );
 
     expect(queryByTestId('food-thumbnail')).not.toBeNull();
+    expect(UNSAFE_getByType(Image).props.source).toEqual(
+      require('../../assets/food-fallbacks/vegetables.png')
+    );
+  });
+
+  it('uses an OFF food group when the name alone is misleading', () => {
+    const { UNSAFE_getByType } = render(
+      <FoodThumbnail
+        image={null}
+        name="Chocolate Pasta"
+        foodGroupTags={['en:cereals-and-potatoes', 'en:white-pasta']}
+        getImageSource={getImageSource}
+      />
+    );
+    expect(UNSAFE_getByType(Image).props.source).toEqual(
+      require('../../assets/off-food-groups/white-pasta.png')
+    );
   });
 
   it('renders nothing at all when fallbacks are suppressed', () => {
