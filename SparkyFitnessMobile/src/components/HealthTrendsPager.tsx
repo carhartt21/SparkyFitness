@@ -154,7 +154,7 @@ const HealthTrendsPager: React.FC<HealthTrendsPagerProps> = ({
 
   if (pages.length === 0) {
     return (
-      <View className="bg-surface rounded-xl p-6 my-2 shadow-sm">
+      <View className="bg-surface rounded-2xl border border-border-subtle p-6 my-2">
         <Text className="text-text-muted text-sm text-center">
           {t('charts.allTrendsHidden', {
             defaultValue:

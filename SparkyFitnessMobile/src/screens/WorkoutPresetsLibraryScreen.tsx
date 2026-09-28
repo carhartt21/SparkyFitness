@@ -187,7 +187,7 @@ const WorkoutPresetsLibraryScreen: React.FC<
           })}
           action={{
             label: t('presetLibrary.go', { defaultValue: 'Go to Settings' }),
-            onPress: () => navigation.navigate('Tabs', { screen: 'Settings' }),
+            onPress: () => navigation.navigate('Settings'),
             variant: 'primary',
           }}
         />

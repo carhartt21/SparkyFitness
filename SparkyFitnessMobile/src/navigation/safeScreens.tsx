@@ -53,6 +53,7 @@ import PasskeySettingsScreen from '../screens/PasskeySettingsScreen';
 import AppSettingsScreen from '../screens/AppSettingsScreen';
 import NotificationSettingsScreen from '../screens/NotificationSettingsScreen';
 import AboutScreen from '../screens/AboutScreen';
+import SettingsScreen from '../screens/SettingsScreen';
 import WhatsNewScreen from '../screens/WhatsNewScreen';
 import MeasurementsAddScreen from '../screens/MeasurementsAddScreen';
 import ProgressPhotosScreen from '../screens/ProgressPhotosScreen';
@@ -148,6 +149,7 @@ export const SafePasskeySettings = withErrorBoundary(PasskeySettingsScreen, 'Pas
 export const SafeAppSettings = withErrorBoundary(AppSettingsScreen, 'AppSettings', { canGoBack: true });
 export const SafeNotificationSettings = withErrorBoundary(NotificationSettingsScreen, 'NotificationSettings', { canGoBack: true });
 export const SafeAbout = withErrorBoundary(AboutScreen, 'About', { canGoBack: true });
+export const SafeSettings = withErrorBoundary(SettingsScreen, 'Settings', { canGoBack: true });
 export const SafeWhatsNew = withErrorBoundary(WhatsNewScreen, 'WhatsNew', { canGoBack: true });
 export const SafeDailyNutritionDetails = withErrorBoundary(DailyNutritionDetailsScreen, 'DailyNutritionDetails', { canGoBack: true });
 export const SafeNutrientTrends = withErrorBoundary(NutrientTrendsScreen, 'NutrientTrends', { canGoBack: true });

@@ -12,8 +12,8 @@ import {
 import DashboardScreen from '../screens/DashboardScreen';
 import DiaryScreen from '../screens/DiaryScreen';
 import LibraryScreen from '../screens/LibraryScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import type { TabParamList } from '../types/navigation';
+import InsightsScreen from '../screens/InsightsScreen';
+import type { RootStackParamList, TabParamList } from '../types/navigation';
 import {
   useBottomTabBarHeight,
   type AppleIcon,
@@ -32,13 +32,10 @@ import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
 import { useHeaderActionColors } from '../hooks/useHeaderActionColors';
 import { useTranslation } from 'react-i18next';
 import BrandMark from './brand/BrandMark';
+import { createSettingsNativeHeaderItem } from './SettingsHeaderButton';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
-export const NON_ADD_TABS = [
-  'Dashboard',
-  'Diary',
-  'Library',
-  'Settings',
-] as const;
+export const NON_ADD_TABS = ['Dashboard', 'Diary', 'Insights', 'More'] as const;
 export type NonAddTabName = (typeof NON_ADD_TABS)[number];
 const ADD_TAB_ICON: AppleIcon = { sfSymbol: 'plus' };
 
@@ -74,8 +71,8 @@ const AddRedirectScreen = ({
 // Tab screens — no Go Back (tab bar provides navigation)
 const SafeDashboard = withErrorBoundary(DashboardScreen, 'Dashboard');
 const SafeDiary = withErrorBoundary(DiaryScreen, 'Diary');
-const SafeLibrary = withErrorBoundary(LibraryScreen, 'Library');
-const SafeSettings = withErrorBoundary(SettingsScreen, 'Settings');
+const SafeInsights = withErrorBoundary(InsightsScreen, 'Insights');
+const SafeMore = withErrorBoundary(LibraryScreen, 'More');
 
 // Native iOS Tab Navigator (iOS 26+ Liquid Glass)
 const NativeTab = createNativeBottomTabNavigator<TabParamList>();
@@ -89,13 +86,13 @@ type DashboardStackParamList = {
 type DiaryStackParamList = {
   DiaryRoot: { selectedDate?: string } | undefined;
 };
-type LibraryStackParamList = { LibraryRoot: undefined };
-type SettingsStackParamList = { SettingsRoot: undefined };
+type InsightsStackParamList = { InsightsRoot: undefined };
+type MoreStackParamList = { MoreRoot: undefined };
 
 const DashboardStack = createNativeStackNavigator<DashboardStackParamList>();
 const DiaryStack = createNativeStackNavigator<DiaryStackParamList>();
-const LibraryStack = createNativeStackNavigator<LibraryStackParamList>();
-const SettingsStack = createNativeStackNavigator<SettingsStackParamList>();
+const InsightsStack = createNativeStackNavigator<InsightsStackParamList>();
+const MoreStack = createNativeStackNavigator<MoreStackParamList>();
 
 const NativeTabsOverlayContext = React.createContext<ReturnType<
   typeof useWhatsNewBannerState
@@ -187,10 +184,36 @@ function DiaryStackScreen() {
   );
 }
 
-function LibraryStackScreen() {
+/**
+ * Settings moved out of the tab bar into the root stack. Tab stacks that do
+ * not configure their own native header items get it in the upper-left slot.
+ */
+function useSettingsHeaderLeftItems() {
+  const { t } = useTranslation();
+  const { defaultColor } = useHeaderActionColors();
+  return React.useCallback(
+    ({
+      navigation,
+    }: {
+      navigation: NativeStackNavigationProp<RootStackParamList>;
+    }) => ({
+      unstable_headerLeftItems: () => [
+        createSettingsNativeHeaderItem({
+          onPress: () => navigation.navigate('Settings'),
+          tintColor: defaultColor,
+          t,
+        }),
+      ],
+    }),
+    [defaultColor, t]
+  );
+}
+
+function InsightsStackScreen() {
   const { t } = useTranslation();
   const { defaultColor } = useHeaderActionColors();
   const textPrimary = useCSSVariable('--color-text-primary') as string;
+  const settingsItems = useSettingsHeaderLeftItems();
   const screenOptions = React.useMemo(
     () => createIOSNativeHeaderOptions(defaultColor, textPrimary),
     [defaultColor, textPrimary]
@@ -198,27 +221,32 @@ function LibraryStackScreen() {
 
   return (
     <View className="flex-1">
-      <LibraryStack.Navigator screenOptions={screenOptions}>
-        <LibraryStack.Screen
-          name="LibraryRoot"
-          component={SafeLibrary as React.ComponentType}
-          options={{
-            title: t('navigation.library', { defaultValue: 'Library' }),
-            headerBackTitle: t('navigation.library', {
-              defaultValue: 'Library',
+      <InsightsStack.Navigator screenOptions={screenOptions}>
+        <InsightsStack.Screen
+          name="InsightsRoot"
+          component={SafeInsights as React.ComponentType}
+          options={({ navigation }) => ({
+            ...settingsItems({
+              navigation:
+                navigation as unknown as NativeStackNavigationProp<RootStackParamList>,
             }),
-          }}
+            title: t('navigation.insights', { defaultValue: 'Insights' }),
+            headerBackTitle: t('navigation.insights', {
+              defaultValue: 'Insights',
+            }),
+          })}
         />
-      </LibraryStack.Navigator>
+      </InsightsStack.Navigator>
       <NativeTabsBannerOverlay />
     </View>
   );
 }
 
-function SettingsStackScreen() {
+function MoreStackScreen() {
   const { t } = useTranslation();
   const { defaultColor } = useHeaderActionColors();
   const textPrimary = useCSSVariable('--color-text-primary') as string;
+  const settingsItems = useSettingsHeaderLeftItems();
   const screenOptions = React.useMemo(
     () => createIOSNativeHeaderOptions(defaultColor, textPrimary),
     [defaultColor, textPrimary]
@@ -226,18 +254,20 @@ function SettingsStackScreen() {
 
   return (
     <View className="flex-1">
-      <SettingsStack.Navigator screenOptions={screenOptions}>
-        <SettingsStack.Screen
-          name="SettingsRoot"
-          component={SafeSettings as React.ComponentType}
-          options={{
-            title: t('navigation.settings', { defaultValue: 'Settings' }),
-            headerBackTitle: t('navigation.settings', {
-              defaultValue: 'Settings',
+      <MoreStack.Navigator screenOptions={screenOptions}>
+        <MoreStack.Screen
+          name="MoreRoot"
+          component={SafeMore as React.ComponentType}
+          options={({ navigation }) => ({
+            ...settingsItems({
+              navigation:
+                navigation as unknown as NativeStackNavigationProp<RootStackParamList>,
             }),
-          }}
+            title: t('navigation.more', { defaultValue: 'More' }),
+            headerBackTitle: t('navigation.more', { defaultValue: 'More' }),
+          })}
         />
-      </SettingsStack.Navigator>
+      </MoreStack.Navigator>
       <NativeTabsBannerOverlay />
     </View>
   );
@@ -283,11 +313,9 @@ export function NativeTabsLayout({
           name="Dashboard"
           component={DashboardStackScreen}
           options={{
-            tabBarLabel: t('navigation.dashboard', {
-              defaultValue: 'Dashboard',
-            }),
+            tabBarLabel: t('navigation.home', { defaultValue: 'Home' }),
             tabBarIcon: () =>
-              ({ sfSymbol: 'square.grid.2x2.fill' }) as unknown as AppleIcon,
+              ({ sfSymbol: 'house.fill' }) as unknown as AppleIcon,
           }}
         />
         <NativeTab.Screen
@@ -317,21 +345,21 @@ export function NativeTabsLayout({
           {() => <AddRedirectScreen getLastActiveTab={getLastActiveTab} />}
         </NativeTab.Screen>
         <NativeTab.Screen
-          name="Library"
-          component={LibraryStackScreen}
+          name="Insights"
+          component={InsightsStackScreen}
           options={{
-            tabBarLabel: t('navigation.library', { defaultValue: 'Library' }),
+            tabBarLabel: t('navigation.insights', { defaultValue: 'Insights' }),
             tabBarIcon: () =>
-              ({ sfSymbol: 'books.vertical.fill' }) as unknown as AppleIcon,
+              ({ sfSymbol: 'lightbulb.fill' }) as unknown as AppleIcon,
           }}
         />
         <NativeTab.Screen
-          name="Settings"
-          component={SettingsStackScreen}
+          name="More"
+          component={MoreStackScreen}
           options={{
-            tabBarLabel: t('navigation.settings', { defaultValue: 'Settings' }),
+            tabBarLabel: t('navigation.more', { defaultValue: 'More' }),
             tabBarIcon: () =>
-              ({ sfSymbol: 'gearshape.fill' }) as unknown as AppleIcon,
+              ({ sfSymbol: 'ellipsis' }) as unknown as AppleIcon,
           }}
         />
       </NativeTab.Navigator>
@@ -375,9 +403,9 @@ export function FallbackTabsLayout({
         name="Dashboard"
         component={SafeDashboard}
         options={{
-          tabBarLabel: t('navigation.dashboard', { defaultValue: 'Dashboard' }),
-          tabBarAccessibilityLabel: t('navigation.dashboard', {
-            defaultValue: 'Dashboard',
+          tabBarLabel: t('navigation.home', { defaultValue: 'Home' }),
+          tabBarAccessibilityLabel: t('navigation.home', {
+            defaultValue: 'Home',
           }),
         }}
       />
@@ -409,22 +437,22 @@ export function FallbackTabsLayout({
         {() => <AddRedirectScreen getLastActiveTab={getLastActiveTab} />}
       </FallbackTab.Screen>
       <FallbackTab.Screen
-        name="Library"
-        component={SafeLibrary}
+        name="Insights"
+        component={SafeInsights}
         options={{
-          tabBarLabel: t('navigation.library', { defaultValue: 'Library' }),
-          tabBarAccessibilityLabel: t('navigation.library', {
-            defaultValue: 'Library',
+          tabBarLabel: t('navigation.insights', { defaultValue: 'Insights' }),
+          tabBarAccessibilityLabel: t('navigation.insights', {
+            defaultValue: 'Insights',
           }),
         }}
       />
       <FallbackTab.Screen
-        name="Settings"
-        component={SafeSettings}
+        name="More"
+        component={SafeMore}
         options={{
-          tabBarLabel: t('navigation.settings', { defaultValue: 'Settings' }),
-          tabBarAccessibilityLabel: t('navigation.settings', {
-            defaultValue: 'Settings',
+          tabBarLabel: t('navigation.more', { defaultValue: 'More' }),
+          tabBarAccessibilityLabel: t('navigation.more', {
+            defaultValue: 'More',
           }),
         }}
       />

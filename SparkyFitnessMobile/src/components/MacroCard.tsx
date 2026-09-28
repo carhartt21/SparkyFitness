@@ -97,71 +97,61 @@ const MacroCard: React.FC<MacroCardProps> = ({
   }));
 
   if (row) {
-    const expanded = fontScale > 1.3;
+    // Reference layout: name and amount on one line, a slim glowing bar with
+    // its percentage underneath. Missing goals omit bar and percentage.
     const amount = `${formatLocalizedNumber(Math.round(consumed))}${hasGoal ? ` / ${formatLocalizedNumber(Math.round(goal!))}` : ''} ${unit}`;
+    const pct = Math.min(100, Math.max(0, progress * 100));
     return (
       <View
-        className="w-full py-1"
-        style={{
-          flexDirection: expanded ? 'column' : 'row',
-          alignItems: expanded ? 'stretch' : 'center',
-          gap: 5,
-          minHeight: 28,
-        }}
+        className="w-full py-1.5"
         accessible
         accessibilityLabel={`${label}: ${formatLocalizedNumber(consumed)} ${unit}${hasGoal ? ` / ${formatLocalizedNumber(goal!)} ${unit}` : ''}`}
       >
-        <Text
-          className="text-[13px] font-medium text-text-primary"
-          maxFontSizeMultiplier={1.8}
-          style={expanded ? undefined : { width: '26%' }}
+        <View
+          className="gap-x-2"
+          style={{
+            flexDirection: fontScale > 1.3 ? 'column' : 'row',
+            justifyContent: 'space-between',
+            alignItems: fontScale > 1.3 ? 'flex-start' : 'baseline',
+          }}
         >
-          {compactLabel ?? label}
-        </Text>
-        {hasGoal && (
-          <View
-            className="h-2 rounded-full overflow-hidden"
-            style={{
-              backgroundColor: trackColor,
-              flex: expanded ? undefined : 1,
-            }}
-          >
-            <View
-              style={{
-                width: `${Math.min(100, Math.max(0, progress * 100))}%`,
-                height: '100%',
-                backgroundColor: color,
-                borderRadius: 4,
-              }}
-            />
-          </View>
-        )}
-        <Text
-          className="text-xs text-text-secondary"
-          maxFontSizeMultiplier={1.8}
-          style={
-            expanded
-              ? undefined
-              : {
-                  width: 72,
-                  textAlign: 'right',
-                  marginLeft: hasGoal ? 0 : 'auto',
-                }
-          }
-        >
-          {amount}
-        </Text>
-        {hasGoal && (
           <Text
-            className="text-xs text-text-secondary"
+            className="text-[13px] font-medium text-text-primary"
             maxFontSizeMultiplier={1.8}
-            style={[
-              expanded ? undefined : { width: 30, textAlign: 'right' },
-              dark ? { color } : undefined,
-            ]}
           >
-            {formatLocalizedNumber(Math.round(progress * 100))}%
+            {compactLabel ?? label}
           </Text>
+          <Text
+            className="text-[13px] font-semibold text-text-primary"
+            maxFontSizeMultiplier={1.8}
+          >
+            {amount}
+          </Text>
+        </View>
+        {hasGoal && (
+          <View className="mt-1.5 flex-row items-center gap-2">
+            <View
+              className="h-2 flex-1 rounded-full"
+              style={{ backgroundColor: trackColor }}
+            >
+              <View
+                style={{
+                  width: `${pct}%`,
+                  height: '100%',
+                  backgroundColor: color,
+                  borderRadius: 4,
+                  boxShadow: dark ? `0px 0px 8px 0px ${color}99` : undefined,
+                }}
+              />
+            </View>
+            <Text
+              className="text-[11px] text-text-secondary"
+              maxFontSizeMultiplier={1.8}
+              style={{ minWidth: 30, textAlign: 'right' }}
+            >
+              {formatLocalizedNumber(Math.round(progress * 100))}%
+            </Text>
+          </View>
         )}
       </View>
     );

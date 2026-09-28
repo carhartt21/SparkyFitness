@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
+import GlowCard from './ui/GlowCard';
+import NeonButton from './ui/NeonButton';
 import { useCachedNutritionFavorites } from '../hooks/useCachedNutritionFavorites';
 import {
   logFavoriteFood,
@@ -105,7 +107,7 @@ export default function NutritionQuickActions({
 
   const foods = cache?.foods.slice(0, 4) ?? [];
   return (
-    <View className="bg-surface rounded-xl p-4 mb-3 gap-3">
+    <GlowCard className="p-4 mb-3 gap-3">
       <Text className="text-base font-bold text-text-primary">
         {t('nutritionQuick.title', { defaultValue: 'Quick nutrition' })}
       </Text>
@@ -118,57 +120,45 @@ export default function NutritionQuickActions({
       )}
       <View className="flex-row flex-wrap gap-2">
         {onSearchFood && (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('diary.addFood', {
-              defaultValue: 'Add Food',
-            })}
+          <NeonButton
+            size="sm"
+            icon="search"
+            label={t('diary.addFood', { defaultValue: 'Add Food' })}
             onPress={onSearchFood}
-            className="min-h-11 justify-center rounded-lg bg-accent-primary px-4 py-2"
-          >
-            <Text className="text-sm font-semibold text-accent-text">
-              {t('diary.addFood', { defaultValue: 'Add Food' })}
-            </Text>
-          </Pressable>
+          />
         )}
         {onTakePhoto && (
-          <Pressable
-            accessibilityRole="button"
+          <NeonButton
+            size="sm"
+            variant="outline"
+            label={t('nutritionQuick.photo', { defaultValue: '📷 Meal photo' })}
             onPress={onTakePhoto}
-            className="min-h-11 justify-center rounded-lg bg-background px-3 py-2"
-          >
-            <Text className="text-sm text-text-primary">
-              {t('nutritionQuick.photo', { defaultValue: '📷 Meal photo' })}
-            </Text>
-          </Pressable>
+          />
         )}
         {foods.map((food) => (
-          <Pressable
+          <NeonButton
             key={food.id}
-            accessibilityRole="button"
+            size="sm"
+            variant="outline"
+            icon="star"
+            label={food.name}
             accessibilityLabel={t('nutritionQuick.logFavorite', {
               defaultValue: 'Log {{name}}',
               name: food.name,
             })}
             disabled={busy}
             onPress={() => void favorite(food.id)}
-            className="min-h-11 justify-center rounded-lg bg-background px-3 py-2"
-          >
-            <Text className="text-sm text-text-primary">★ {food.name}</Text>
-          </Pressable>
+          />
         ))}
-        <Pressable
-          accessibilityRole="button"
+        <NeonButton
+          size="sm"
+          variant="outline"
+          label={t('nutritionQuick.manual', {
+            defaultValue: '+ Calories and macros',
+          })}
           disabled={busy || !ready}
           onPress={() => setShowQuick(true)}
-          className="min-h-11 justify-center rounded-lg bg-background px-3 py-2"
-        >
-          <Text className="text-sm text-text-primary">
-            {t('nutritionQuick.manual', {
-              defaultValue: '+ Calories and macros',
-            })}
-          </Text>
-        </Pressable>
+        />
       </View>
       <Modal
         visible={showQuick}
@@ -247,6 +237,6 @@ export default function NutritionQuickActions({
           </View>
         </View>
       </Modal>
-    </View>
+    </GlowCard>
   );
 }

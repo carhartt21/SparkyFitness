@@ -1,38 +1,88 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useCSSVariable } from 'uniwind';
-import ProgressRing from './ProgressRing';
+import EnergyGauge from './EnergyGauge';
 import Icon, { type IconName } from './Icon';
+import GlowCard from './ui/GlowCard';
+import IconBadge from './ui/IconBadge';
+import NeonButton from './ui/NeonButton';
+import { useGlowTheme, withAlpha } from './ui/glow';
 import { formatLocalizedNumber } from '../localization';
 
-interface SideStatProps {
+interface StatRowProps {
   icon: IconName;
   color: string;
   label: string;
-  value: number | string;
+  value: number | null;
+  unit: string;
+  onPress?: () => void;
+  testID?: string;
+  last?: boolean;
 }
 
-const SideStat: React.FC<SideStatProps> = ({ label, value, icon, color }) => (
-  <View className="flex-row items-center gap-2">
-    <View className="w-7 items-center">
-      <Icon name={icon} size={22} color={color} />
+const StatRow: React.FC<StatRowProps> = ({
+  icon,
+  color,
+  label,
+  value,
+  unit,
+  onPress,
+  testID,
+  last,
+}) => {
+  const chevron = useCSSVariable('--color-text-muted') as string;
+  const shown = value == null ? '—' : formatLocalizedNumber(Math.round(value));
+  const content = (
+    <>
+      <IconBadge icon={icon} color={color} size={38} />
+      <View className="flex-1">
+        <Text
+          className="text-xs text-text-secondary"
+          maxFontSizeMultiplier={1.8}
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
+        >
+          {label}
+        </Text>
+        <Text
+          className="text-lg font-bold text-text-primary"
+          maxFontSizeMultiplier={1.6}
+        >
+          {shown}
+          {value == null ? null : (
+            <Text className="text-xs font-medium text-text-secondary">
+              {' '}
+              {unit}
+            </Text>
+          )}
+        </Text>
+      </View>
+      {onPress ? (
+        <Icon name="chevron-forward" size={14} color={chevron} />
+      ) : null}
+    </>
+  );
+  const className = `min-h-14 flex-row items-center gap-3 py-2 ${
+    last ? '' : 'border-b border-border-subtle'
+  }`;
+  return onPress ? (
+    <Pressable
+      testID={testID}
+      accessibilityRole="button"
+      accessibilityLabel={`${label}: ${shown} ${value == null ? '' : unit}`.trim()}
+      onPress={onPress}
+      className={`${className} active:opacity-70`}
+    >
+      {content}
+    </Pressable>
+  ) : (
+    <View testID={testID} className={className}>
+      {content}
     </View>
-    <View className="flex-1">
-      <Text
-        className="text-lg font-semibold text-text-primary"
-        maxFontSizeMultiplier={1.6}
-      >
-        {typeof value === 'number'
-          ? formatLocalizedNumber(Math.round(value))
-          : value}
-      </Text>
-      <Text className="text-text-secondary text-xs" maxFontSizeMultiplier={1.8}>
-        {label}
-      </Text>
-    </View>
-  </View>
-);
+  );
+};
 
 interface CalorieRingCardProps {
   caloriesConsumed: number;
@@ -41,9 +91,15 @@ interface CalorieRingCardProps {
   calorieGoal: number;
   remainingCalories: number;
   progressPercent: number;
-  children?: React.ReactNode;
+  onEditGoal?: () => void;
+  onConsumedPress?: () => void;
+  onBurnedPress?: () => void;
 }
 
+/**
+ * The reference's Calories card: a 270° energy gauge with the remaining
+ * balance, and consumed / burned / goal rows that open their real details.
+ */
 const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   caloriesConsumed,
   caloriesBurned,
@@ -51,28 +107,26 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   calorieGoal,
   remainingCalories,
   progressPercent,
-  children,
+  onEditGoal,
+  onConsumedPress,
+  onBurnedPress,
 }) => {
   const { t } = useTranslation();
-  const { fontScale } = useWindowDimensions();
+  const { fontScale, width } = useWindowDimensions();
+  const glowing = useGlowTheme();
   const expanded = fontScale > 1.3;
-  const [
-    progressTrackColor,
-    progressFillColor,
-    burnedColor,
-    secondaryColor,
-    separatorColor,
-  ] = useCSSVariable([
-    '--color-energy-track',
-    '--color-calories',
+  const [flame, food, burn, neutral, red, green] = useCSSVariable([
     '--color-activity-energy',
+    '--color-action-food',
+    '--color-neon-green',
     '--color-text-secondary',
-    '--color-border-subtle',
-  ]) as [string, string, string, string, string];
+    '--color-neon-red',
+    '--color-neon-green',
+  ]) as string[];
 
   const hasGoal = calorieGoal > 0;
   const isOverTarget = hasGoal && remainingCalories < 0;
-  const ringValue = hasGoal
+  const centerValue = hasGoal
     ? Math.abs(Math.round(remainingCalories))
     : Math.round(caloriesConsumed);
   // This is the server balance's effective adjustment, which can differ from
@@ -80,46 +134,88 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   const balanceAdjustment = hasGoal
     ? Math.round(remainingCalories - (calorieGoal - caloriesConsumed))
     : 0;
+  const kcal = t('dashboard.kcal', { defaultValue: 'kcal' });
+  const gaugeSize = Math.min(168, Math.max(132, Math.round(width * 0.4)));
 
   return (
-    <View
+    <GlowCard
       accessibilityLabel={t('dashboard.dailyEnergy', {
         defaultValue: 'Daily energy',
       })}
-      className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3"
+      className="p-4 mb-3"
+      style={
+        glowing
+          ? {
+              borderLeftColor: withAlpha(red, 0.55),
+              borderRightColor: withAlpha(green, 0.55),
+              boxShadow: `-6px 0px 18px -6px ${withAlpha(red, 0.45)}, 6px 0px 18px -6px ${withAlpha(green, 0.45)}`,
+            }
+          : undefined
+      }
     >
-      <View className="mb-3 flex-row items-center gap-2">
-        <Icon name="flame" size={19} color={burnedColor} />
-        <Text
-          className="text-base font-semibold text-text-primary"
-          maxFontSizeMultiplier={1.8}
-        >
-          {t('dashboard.dailyEnergy', { defaultValue: 'Daily energy' })}
-        </Text>
+      <View className="mb-2 flex-row items-start gap-3">
+        <Icon name="flame" size={24} color={flame} />
+        <View className="flex-1">
+          <Text
+            className="text-lg font-semibold text-text-primary"
+            accessibilityRole="header"
+            maxFontSizeMultiplier={1.8}
+          >
+            {t('dashboard.calories', { defaultValue: 'Calories' })}
+          </Text>
+          <Text
+            className="text-xs text-text-secondary"
+            maxFontSizeMultiplier={1.8}
+          >
+            {t('dashboard.caloriesSubtitle', {
+              defaultValue: 'From logged food and activity',
+            })}
+          </Text>
+        </View>
+        {onEditGoal ? (
+          <NeonButton
+            testID="dashboard-edit-goal"
+            variant="outline"
+            size="sm"
+            icon="target"
+            label={t('dashboard.editGoal', { defaultValue: 'Edit goal' })}
+            onPress={onEditGoal}
+          />
+        ) : null}
       </View>
       <View
-        style={{ flexDirection: expanded ? 'column' : 'row', gap: 16 }}
+        style={{ flexDirection: expanded ? 'column' : 'row', gap: 12 }}
         className="items-center"
       >
-        <View className="relative items-center justify-center">
+        <View className="items-center justify-center">
           {!expanded && (
-            <ProgressRing
-              progress={progressPercent}
-              size={144}
-              strokeWidth={10}
-              color={progressFillColor}
-              backgroundColor={progressTrackColor}
+            <EnergyGauge
+              progress={hasGoal ? progressPercent : 0}
+              size={gaugeSize}
+              strokeWidth={14}
             />
           )}
           <View
             className="items-center justify-center"
-            style={expanded ? undefined : { position: 'absolute', width: 116 }}
+            style={
+              expanded
+                ? undefined
+                : { position: 'absolute', width: gaugeSize - 40 }
+            }
           >
             <Text
-              className="text-[28px] font-bold text-text-primary"
+              className="text-[32px] font-bold text-text-primary"
               maxFontSizeMultiplier={1.6}
+              numberOfLines={1}
+              adjustsFontSizeToFit
             >
-              {formatLocalizedNumber(ringValue)}
+              {formatLocalizedNumber(centerValue)}
+            </Text>
+            <Text
+              className="text-sm font-medium text-text-primary"
+              maxFontSizeMultiplier={1.8}
+            >
+              {kcal}
             </Text>
             <Text
               className="text-text-secondary text-xs text-center"
@@ -131,42 +227,22 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
                   : t('dashboard.remaining', { defaultValue: 'remaining' })
                 : t('dashboard.consumed', { defaultValue: 'Consumed' })}
             </Text>
-            <Text
-              className="text-text-secondary text-xs"
-              maxFontSizeMultiplier={1.8}
-            >
-              {t('dashboard.kcal', { defaultValue: 'kcal' })}
-            </Text>
           </View>
         </View>
-        <View
-          className="gap-2"
-          style={
-            expanded
-              ? { width: '100%' }
-              : {
-                  flex: 1,
-                  borderLeftWidth: 1,
-                  borderLeftColor: separatorColor,
-                  paddingLeft: 12,
-                }
-          }
-        >
-          <SideStat
+        <View style={expanded ? { width: '100%' } : { flex: 1 }}>
+          <StatRow
+            testID="dashboard-energy-consumed"
             icon="food"
-            color={progressFillColor}
+            color={food}
             label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
             value={caloriesConsumed}
+            unit={kcal}
+            onPress={onConsumedPress}
           />
-          <SideStat
-            icon="target"
-            color={secondaryColor}
-            label={t('dashboard.target', { defaultValue: 'Base target' })}
-            value={hasGoal ? calorieGoal : '—'}
-          />
-          <SideStat
-            icon="exercise"
-            color={burnedColor}
+          <StatRow
+            testID="dashboard-energy-burned"
+            icon="flame"
+            color={burn}
             label={
               burnedIncludesBmr
                 ? t('dashboard.totalExpenditure', {
@@ -177,21 +253,31 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
                   })
             }
             value={caloriesBurned}
+            unit={kcal}
+            onPress={onBurnedPress}
+          />
+          <StatRow
+            testID="dashboard-energy-goal"
+            icon="target"
+            color={neutral}
+            label={t('dashboard.target', { defaultValue: 'Base target' })}
+            value={hasGoal ? calorieGoal : null}
+            unit={kcal}
+            onPress={onEditGoal}
+            last
           />
         </View>
       </View>
       {balanceAdjustment !== 0 && (
-        <Text className="mt-3 text-center text-xs text-text-secondary">
+        <Text className="mt-2 text-center text-xs text-text-secondary">
           {t('dashboard.balanceAdjustment', {
             defaultValue: 'Allowance adjustment',
           })}{' '}
           {balanceAdjustment > 0 ? '+' : '−'}
-          {formatLocalizedNumber(Math.abs(balanceAdjustment))}{' '}
-          {t('dashboard.kcal', { defaultValue: 'kcal' })}
+          {formatLocalizedNumber(Math.abs(balanceAdjustment))} {kcal}
         </Text>
       )}
-      {children}
-    </View>
+    </GlowCard>
   );
 };
 

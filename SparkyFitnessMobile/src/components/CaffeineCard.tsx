@@ -133,7 +133,7 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
           : t('caffeine.anytimeSafe', { defaultValue: 'Any time' });
 
   return (
-    <View className="bg-surface rounded-xl p-4 my-2 shadow-sm">
+    <View className="bg-surface rounded-2xl border border-border-subtle p-4 my-2">
       <Text className="text-text-primary text-lg font-semibold mb-2">
         {t('caffeine.title', { defaultValue: 'Active Caffeine' })}
       </Text>

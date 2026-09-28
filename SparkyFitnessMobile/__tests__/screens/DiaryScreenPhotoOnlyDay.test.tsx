@@ -84,6 +84,11 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
+jest.mock('../../src/components/ProgressRing', () => {
+  const { View } = require('react-native');
+  return { __esModule: true, default: () => <View testID="progress-ring" /> };
+});
+
 jest.mock('../../src/components/ActiveWorkoutBar', () => ({
   useActiveWorkoutBarPadding: () => 0,
 }));

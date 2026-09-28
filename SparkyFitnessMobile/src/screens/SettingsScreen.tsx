@@ -3,15 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  useFocusEffect,
-  type CompositeScreenProps,
-} from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useCSSVariable } from 'uniwind';
 import {
   useServerConnection,
   useServerConfigs,
   usePreferences,
+  useProfile,
   queryClient,
 } from '../hooks';
 import DevTools from '../components/DevTools';
@@ -22,21 +20,20 @@ import {
   sanitizeQueryKey,
 } from '../services/diagnosticReportService';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
-import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
+import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
+import { useScreenHeader } from '../hooks/useScreenHeader';
+import SettingsAccountCard from '../components/SettingsAccountCard';
+import ScreenBackground from '../components/ui/ScreenBackground';
+import { withAlpha } from '../components/ui/glow';
 import { loadLastSyncedTime } from '../services/storage';
 import { formatRelativeTime } from '../utils/dateUtils';
 import type { DiagnosticQueryState } from '../types/diagnosticReport';
 import Constants from 'expo-constants';
 import { useDiscreetMode } from '../hooks/useDiscreetMode';
 
-import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
-import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { RootStackParamList, TabParamList } from '../types/navigation';
+import type { RootStackScreenProps } from '../types/navigation';
 
-type SettingsScreenProps = CompositeScreenProps<
-  BottomTabScreenProps<TabParamList, 'Settings'>,
-  NativeStackScreenProps<RootStackParamList>
->;
+type SettingsScreenProps = RootStackScreenProps<'Settings'>;
 
 const SettingsSection: React.FC<{
   title: string;
@@ -65,8 +62,12 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
     ? 'pl-PL'
     : 'en-US';
   const insets = useSafeAreaInsets();
-  const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
-  const usesNativeTabs = useNativeIOSTabsActive();
+  const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
+  const usesNativeHeader = useNativeIOSHeadersActive();
+  const header = useScreenHeader({
+    title: t('settings.title', { defaultValue: 'Settings' }),
+    left: { kind: 'back' },
+  });
 
   const { isConnected, isLoading: isCheckingConnection } =
     useServerConnection();
@@ -74,6 +75,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   const { preferences: userPreferences } = usePreferences({
     enabled: isConnected,
   });
+  const { profile, isLoading: isProfileLoading } = useProfile();
   const { discreetMode } = useDiscreetMode();
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [lastSyncedTime, setLastSyncedTime] = useState<string | null>(null);
@@ -120,13 +122,32 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
           })
         : t('date.neverSynced', { defaultValue: 'Never synced' });
 
-  const [success, danger, brand, secondary, iconBackground] = useCSSVariable([
+  const [
+    success,
+    danger,
+    brand,
+    secondary,
+    hydration,
+    calories,
+    exercise,
+    activityEnergy,
+    protein,
+    fat,
+    fiber,
+  ] = useCSSVariable([
     '--color-icon-success',
     '--color-bg-danger',
     '--color-brand-secondary',
     '--color-text-secondary',
-    '--color-raised',
-  ]) as [string, string, string, string, string];
+    '--color-hydration',
+    '--color-calories',
+    '--color-exercise',
+    '--color-activity-energy',
+    '--color-macro-protein',
+    '--color-macro-fat',
+    '--color-macro-fiber',
+  ]) as string[];
+  const tint = (color: string) => withAlpha(color, 0.15);
 
   const connectionStatus = isCheckingConnection
     ? t('settings.connectionStatus.checking', {
@@ -223,234 +244,246 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <ScrollView
+    <View
       className="flex-1 bg-background"
-      style={usesNativeTabs ? undefined : { paddingTop: insets.top }}
-      contentContainerStyle={{ paddingBottom: 80 + activeWorkoutBarPadding }}
-      contentInsetAdjustmentBehavior={usesNativeTabs ? 'automatic' : 'never'}
-      automaticallyAdjustsScrollIndicatorInsets={usesNativeTabs}
+      style={usesNativeHeader ? undefined : { paddingTop: insets.top }}
     >
-      <View className={usesNativeTabs ? 'px-5 pt-2' : 'px-5 pt-5'}>
-        {!usesNativeTabs && (
-          <Text
-            className="text-3xl font-bold text-text-primary mb-7"
-            accessibilityRole="header"
-          >
-            {t('settings.title', { defaultValue: 'Settings' })}
-          </Text>
-        )}
+      <ScreenBackground />
+      {header}
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 80 + activeWorkoutBarPadding,
+        }}
+        contentInsetAdjustmentBehavior={
+          usesNativeHeader ? 'automatic' : 'never'
+        }
+        automaticallyAdjustsScrollIndicatorInsets={usesNativeHeader}
+      >
+        <View className="px-5 pt-3">
+          {activeConfig && (
+            <SettingsAccountCard
+              name={profile?.full_name ?? null}
+              serverUrl={activeConfig.url}
+              isLoading={isConnected && isProfileLoading}
+              onPress={() => navigation.navigate('ServerSettings')}
+            />
+          )}
 
-        <SectionErrorBoundary
-          sectionName={t('settings.sections.connection', {
-            defaultValue: 'Data & sync',
-          })}
-        >
-          <SettingsSection
-            title={t('settings.sections.connection', {
+          <SectionErrorBoundary
+            sectionName={t('settings.sections.connection', {
               defaultValue: 'Data & sync',
             })}
           >
-            <SettingsRow
-              icon="server"
-              title={t('settings.rows.server', { defaultValue: 'Server' })}
-              subtitle={serverSubtitle}
-              onPress={() => navigation.navigate('ServerSettings')}
-              iconColor={brand}
-              iconBackgroundColor={iconBackground}
-              accessibilityLabel={serverAccessibilityLabel}
-            />
-            <SettingsRow
-              icon="health-data-sync"
-              title={t('settings.rows.healthSync', {
-                defaultValue: 'Health Data Sync',
-              })}
-              subtitle={syncSubtitle}
-              onPress={() => navigation.navigate('Sync')}
-              iconColor={brand}
-              iconBackgroundColor={iconBackground}
-            />
-          </SettingsSection>
-        </SectionErrorBoundary>
-
-        <SectionErrorBoundary
-          sectionName={t('settings.sections.experience', {
-            defaultValue: 'App experience',
-          })}
-        >
-          <SettingsSection
-            title={t('settings.sections.experience', {
-              defaultValue: 'App experience',
-            })}
-          >
-            <SettingsRow
-              icon="app-settings"
-              title={t('settings.rows.app', { defaultValue: 'App Settings' })}
-              onPress={() => navigation.navigate('AppSettings')}
-              iconColor={secondary}
-              iconBackgroundColor={iconBackground}
-            />
-            {isConnected && (
-              <SettingsRow
-                icon="dashboard-settings"
-                title={t('settings.rows.dashboard', {
-                  defaultValue: 'Dashboard',
-                })}
-                onPress={() => navigation.navigate('DashboardSettings')}
-                iconColor={secondary}
-                iconBackgroundColor={iconBackground}
-              />
-            )}
-            {isConnected && (
-              <SettingsRow
-                icon="diary-settings"
-                title={t('settings.rows.diary', { defaultValue: 'Diary' })}
-                onPress={() => navigation.navigate('DiarySettings')}
-                iconColor={secondary}
-                iconBackgroundColor={iconBackground}
-              />
-            )}
-          </SettingsSection>
-        </SectionErrorBoundary>
-
-        <SectionErrorBoundary
-          sectionName={t('settings.sections.tracking', {
-            defaultValue: 'Tracking preferences',
-          })}
-        >
-          <SettingsSection
-            title={t('settings.sections.tracking', {
-              defaultValue: 'Tracking preferences',
-            })}
-          >
-            {isConnected && (
-              <SettingsRow
-                icon="food-search-settings"
-                title={t('settings.rows.food', { defaultValue: 'Food' })}
-                onPress={() => navigation.navigate('FoodSettings')}
-                iconColor={brand}
-                iconBackgroundColor={iconBackground}
-              />
-            )}
-            {isConnected && (
-              <SettingsRow
-                icon="calorie-settings"
-                title={t('settings.rows.calories', {
-                  defaultValue: 'Calories & BMR',
-                })}
-                onPress={() => navigation.navigate('CalorieSettings')}
-                iconColor={brand}
-                iconBackgroundColor={iconBackground}
-              />
-            )}
-            <SettingsRow
-              icon="workout-settings"
-              title={t('settings.rows.workout', { defaultValue: 'Workout' })}
-              onPress={() => navigation.navigate('WorkoutSettings')}
-              iconColor={brand}
-              iconBackgroundColor={iconBackground}
-            />
-            {isConnected && (
-              <SettingsRow
-                icon="wellness"
-                title={
-                  discreetMode
-                    ? t('settings.rows.wellness', {
-                        defaultValue: 'Wellness',
-                      })
-                    : t('settings.rows.cyclePregnancy', {
-                        defaultValue: 'Cycle & Pregnancy',
-                      })
-                }
-                onPress={() => navigation.navigate('CycleSettings')}
-                iconColor={brand}
-                iconBackgroundColor={iconBackground}
-              />
-            )}
-          </SettingsSection>
-        </SectionErrorBoundary>
-
-        {isConnected && (
-          <SectionErrorBoundary
-            sectionName={t('settings.sections.family', {
-              defaultValue: 'Family & sharing',
-            })}
-          >
             <SettingsSection
-              title={t('settings.sections.family', {
-                defaultValue: 'Family & sharing',
+              title={t('settings.sections.connection', {
+                defaultValue: 'Data & sync',
               })}
             >
               <SettingsRow
-                icon="people"
-                title={t('familyDiary.title', {
-                  defaultValue: 'Family Diaries',
-                })}
-                onPress={() => navigation.navigate('FamilyMembers')}
+                icon="server"
+                title={t('settings.rows.server', { defaultValue: 'Server' })}
+                subtitle={serverSubtitle}
+                onPress={() => navigation.navigate('ServerSettings')}
                 iconColor={brand}
-                iconBackgroundColor={iconBackground}
+                iconBackgroundColor={tint(brand)}
+                accessibilityLabel={serverAccessibilityLabel}
+              />
+              <SettingsRow
+                icon="health-data-sync"
+                title={t('settings.rows.healthSync', {
+                  defaultValue: 'Health Data Sync',
+                })}
+                subtitle={syncSubtitle}
+                onPress={() => navigation.navigate('Sync')}
+                iconColor={hydration}
+                iconBackgroundColor={tint(hydration)}
               />
             </SettingsSection>
           </SectionErrorBoundary>
-        )}
 
-        <SectionErrorBoundary
-          sectionName={t('settings.sections.support', {
-            defaultValue: 'Help & information',
-          })}
-        >
-          <SettingsSection
-            title={t('settings.sections.support', {
-              defaultValue: 'Help & information',
-            })}
-            footer={t('settings.shareReportDescription', {
-              defaultValue:
-                'Exports a local diagnostic report (app version, sync status, logs). No personal health or food data is included. Nothing is sent automatically.',
+          <SectionErrorBoundary
+            sectionName={t('settings.sections.experience', {
+              defaultValue: 'App experience',
             })}
           >
-            <SettingsRow
-              icon="whats-new"
-              title={t('settings.rows.whatsNew', {
-                defaultValue: "What's New",
+            <SettingsSection
+              title={t('settings.sections.experience', {
+                defaultValue: 'App experience',
               })}
-              onPress={() => navigation.navigate('WhatsNew')}
-              iconColor={secondary}
-              iconBackgroundColor={iconBackground}
-            />
-            <SettingsRow
-              icon="info-circle"
-              title={t('settings.rows.about', { defaultValue: 'About' })}
-              onPress={() => navigation.navigate('About')}
-              iconColor={secondary}
-              iconBackgroundColor={iconBackground}
-            />
-            <SettingsRow
-              icon="document-text"
-              title={t('settings.rows.logs', { defaultValue: 'View Logs' })}
-              onPress={() => navigation.navigate('Logs')}
-              iconColor={secondary}
-              iconBackgroundColor={iconBackground}
-            />
-            <SettingsRow
-              icon="share"
-              title={t('settings.rows.shareReport', {
-                defaultValue: 'Share Diagnostic Report',
-              })}
-              onPress={handleShareDiagnosticReport}
-              disabled={isSharing}
-              iconColor={secondary}
-              iconBackgroundColor={iconBackground}
-              rightAccessory={
-                isSharing ? <ActivityIndicator size="small" /> : undefined
-              }
-            />
-          </SettingsSection>
-        </SectionErrorBoundary>
+            >
+              <SettingsRow
+                icon="app-settings"
+                title={t('settings.rows.app', { defaultValue: 'App Settings' })}
+                onPress={() => navigation.navigate('AppSettings')}
+                iconColor={exercise}
+                iconBackgroundColor={tint(exercise)}
+              />
+              {isConnected && (
+                <SettingsRow
+                  icon="dashboard-settings"
+                  title={t('settings.rows.dashboard', {
+                    defaultValue: 'Dashboard',
+                  })}
+                  onPress={() => navigation.navigate('DashboardSettings')}
+                  iconColor={hydration}
+                  iconBackgroundColor={tint(hydration)}
+                />
+              )}
+              {isConnected && (
+                <SettingsRow
+                  icon="diary-settings"
+                  title={t('settings.rows.diary', { defaultValue: 'Diary' })}
+                  onPress={() => navigation.navigate('DiarySettings')}
+                  iconColor={protein}
+                  iconBackgroundColor={tint(protein)}
+                />
+              )}
+            </SettingsSection>
+          </SectionErrorBoundary>
 
-        {__DEV__ &&
-          (Constants.expoConfig?.extra?.APP_VARIANT === 'development' ||
-            Constants.expoConfig?.extra?.APP_VARIANT === 'dev') && <DevTools />}
-      </View>
-    </ScrollView>
+          <SectionErrorBoundary
+            sectionName={t('settings.sections.tracking', {
+              defaultValue: 'Tracking preferences',
+            })}
+          >
+            <SettingsSection
+              title={t('settings.sections.tracking', {
+                defaultValue: 'Tracking preferences',
+              })}
+            >
+              {isConnected && (
+                <SettingsRow
+                  icon="food-search-settings"
+                  title={t('settings.rows.food', { defaultValue: 'Food' })}
+                  onPress={() => navigation.navigate('FoodSettings')}
+                  iconColor={activityEnergy}
+                  iconBackgroundColor={tint(activityEnergy)}
+                />
+              )}
+              {isConnected && (
+                <SettingsRow
+                  icon="calorie-settings"
+                  title={t('settings.rows.calories', {
+                    defaultValue: 'Calories & BMR',
+                  })}
+                  onPress={() => navigation.navigate('CalorieSettings')}
+                  iconColor={calories}
+                  iconBackgroundColor={tint(calories)}
+                />
+              )}
+              <SettingsRow
+                icon="workout-settings"
+                title={t('settings.rows.workout', { defaultValue: 'Workout' })}
+                onPress={() => navigation.navigate('WorkoutSettings')}
+                iconColor={protein}
+                iconBackgroundColor={tint(protein)}
+              />
+              {isConnected && (
+                <SettingsRow
+                  icon="wellness"
+                  title={
+                    discreetMode
+                      ? t('settings.rows.wellness', {
+                          defaultValue: 'Wellness',
+                        })
+                      : t('settings.rows.cyclePregnancy', {
+                          defaultValue: 'Cycle & Pregnancy',
+                        })
+                  }
+                  onPress={() => navigation.navigate('CycleSettings')}
+                  iconColor={fiber}
+                  iconBackgroundColor={tint(fiber)}
+                />
+              )}
+            </SettingsSection>
+          </SectionErrorBoundary>
+
+          {isConnected && (
+            <SectionErrorBoundary
+              sectionName={t('settings.sections.family', {
+                defaultValue: 'Family & sharing',
+              })}
+            >
+              <SettingsSection
+                title={t('settings.sections.family', {
+                  defaultValue: 'Family & sharing',
+                })}
+              >
+                <SettingsRow
+                  icon="people"
+                  title={t('familyDiary.title', {
+                    defaultValue: 'Family Diaries',
+                  })}
+                  onPress={() => navigation.navigate('FamilyMembers')}
+                  iconColor={fat}
+                  iconBackgroundColor={tint(fat)}
+                />
+              </SettingsSection>
+            </SectionErrorBoundary>
+          )}
+
+          <SectionErrorBoundary
+            sectionName={t('settings.sections.support', {
+              defaultValue: 'Help & information',
+            })}
+          >
+            <SettingsSection
+              title={t('settings.sections.support', {
+                defaultValue: 'Help & information',
+              })}
+              footer={t('settings.shareReportDescription', {
+                defaultValue:
+                  'Exports a local diagnostic report (app version, sync status, logs). No personal health or food data is included. Nothing is sent automatically.',
+              })}
+            >
+              <SettingsRow
+                icon="whats-new"
+                title={t('settings.rows.whatsNew', {
+                  defaultValue: "What's New",
+                })}
+                onPress={() => navigation.navigate('WhatsNew')}
+                iconColor={calories}
+                iconBackgroundColor={tint(calories)}
+              />
+              <SettingsRow
+                icon="info-circle"
+                title={t('settings.rows.about', { defaultValue: 'About' })}
+                onPress={() => navigation.navigate('About')}
+                iconColor={fat}
+                iconBackgroundColor={tint(fat)}
+              />
+              <SettingsRow
+                icon="document-text"
+                title={t('settings.rows.logs', { defaultValue: 'View Logs' })}
+                onPress={() => navigation.navigate('Logs')}
+                iconColor={secondary}
+                iconBackgroundColor={tint(secondary)}
+              />
+              <SettingsRow
+                icon="share"
+                title={t('settings.rows.shareReport', {
+                  defaultValue: 'Share Diagnostic Report',
+                })}
+                onPress={handleShareDiagnosticReport}
+                disabled={isSharing}
+                iconColor={secondary}
+                iconBackgroundColor={tint(secondary)}
+                rightAccessory={
+                  isSharing ? <ActivityIndicator size="small" /> : undefined
+                }
+              />
+            </SettingsSection>
+          </SectionErrorBoundary>
+
+          {__DEV__ &&
+            (Constants.expoConfig?.extra?.APP_VARIANT === 'development' ||
+              Constants.expoConfig?.extra?.APP_VARIANT === 'dev') && (
+              <DevTools />
+            )}
+        </View>
+      </ScrollView>
+    </View>
   );
 };
 

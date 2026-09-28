@@ -186,7 +186,7 @@ const MeasurementsSummary: React.FC<MeasurementsSummaryProps> = ({
         key={row.kind === 'custom' ? `custom-${idx}` : row.kind}
         className="w-[48%] mb-2"
       >
-        <View className="bg-surface rounded-xl py-3 px-3 shadow-sm flex-row items-center">
+        <View className="bg-surface rounded-2xl border border-border-subtle py-3 px-3 flex-row items-center">
           {IconComponent ? (
             <IconComponent
               size={56}

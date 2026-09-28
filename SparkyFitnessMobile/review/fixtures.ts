@@ -173,10 +173,50 @@ export function reviewResponse(path: string, scenario: string): unknown {
     ].includes(path)
   )
     return [];
+  // Library (More tab) reads for the screen tour: an empty synthetic library.
   if (
-    path.startsWith('/api/measurements/check-in-measurements-range/') ||
-    path.startsWith('/api/measurements/water-intake-range/')
+    ['/api/meals', '/api/meal-plan-templates', '/api/v2/medications'].includes(
+      path
+    )
   )
     return [];
+  if (path === '/api/exercises/' || path === '/api/exercises')
+    return { exercises: [], totalCount: 0 };
+  if (path === '/api/exercises/suggested')
+    return { recentExercises: [], topExercises: [] };
+  if (path === '/api/reports/mini-nutrition-trends')
+    return syntheticNutritionTrend();
+  if (path.startsWith('/api/measurements/check-in-measurements-range/'))
+    return syntheticWeightRange();
+  if (path.startsWith('/api/measurements/water-intake-range/')) return [];
   throw new Error(`Unconfigured review endpoint: ${path}`);
+}
+
+function reviewDayOffset(offset: number): string {
+  const day = new Date(`${reviewDate}T12:00:00Z`);
+  day.setUTCDate(day.getUTCDate() - offset);
+  return day.toISOString().slice(0, 10);
+}
+
+/** Deterministic synthetic intake for the Insights tour; every fourth day is unlogged. */
+function syntheticNutritionTrend() {
+  return Array.from({ length: 90 }, (_, offset) => offset)
+    .filter((offset) => offset % 4 !== 3)
+    .map((offset) => ({
+      date: reviewDayOffset(offset),
+      calories: 1700 + ((offset * 137) % 700),
+      protein: 110 + ((offset * 7) % 40),
+      carbs: 190 + ((offset * 11) % 80),
+      fat: 55 + ((offset * 5) % 25),
+      dietary_fiber: 20 + (offset % 10),
+    }));
+}
+
+/** Synthetic weekly weigh-ins, drifting down by 0.2 kg per week. */
+function syntheticWeightRange() {
+  return Array.from({ length: 13 }, (_, week) => ({
+    entry_date: reviewDayOffset(week * 7),
+    weight: 78 + week * 0.2,
+    steps: null,
+  }));
 }

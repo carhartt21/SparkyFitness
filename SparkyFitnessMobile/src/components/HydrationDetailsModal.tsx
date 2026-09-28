@@ -130,7 +130,7 @@ export default function HydrationDetailsModal({
                 </Text>
                 <Text className="text-base text-text-primary">
                   {entry.container_name ??
-                    t('dashboard.quickWater', { defaultValue: 'Water' })}
+                    t('dashboard.water', { defaultValue: 'Water' })}
                 </Text>
                 <Text className="text-sm text-text-secondary">
                   {new Date(entry.logged_at).toLocaleTimeString(locale, {

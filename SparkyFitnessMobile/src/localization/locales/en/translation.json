@@ -288,6 +288,11 @@
     "cameraShutter": {
       "title": "Camera shutter",
       "subtitle": "Play a sound when capturing photos."
+    },
+    "account": {
+      "loading": "Loading profile",
+      "fallbackName": "Your account",
+      "accessibilityLabel": "{{name}}. Connected to {{host}}. Opens server settings."
     }
   },
   "languageSettings": {
@@ -304,7 +309,11 @@
     "details": "Details",
     "dashboard": "Dashboard",
     "add": "Add",
-    "mealTypes": "Meal Types"
+    "mealTypes": "Meal Types",
+    "home": "Home",
+    "insights": "Insights",
+    "more": "More",
+    "openSettings": "Open settings"
   },
   "familyDiary": {
     "title": "Family Diaries",
@@ -662,7 +671,8 @@
       "loadingRecentItems": "Loading recent items...",
       "failedRecentItems": "Failed to load recent items.",
       "noRecentItems": "No recent items yet",
-      "recentItemsHint": "Foods, meals, and exercises you log will appear here for quick access."
+      "recentItemsHint": "Foods, meals, and exercises you log will appear here for quick access.",
+      "subtitle": "Your foods, meals, exercises and plans."
     },
     "sleep": "Sleep",
     "healthTrendsSettings": "Health Trends",
@@ -917,9 +927,9 @@
     "logDrink": "Log {{drink}}",
     "perPress": "{{value}} {{unit}}",
     "logDrinkFailed": "Could not log that drink",
-    "quickFood": "Food",
-    "quickExercise": "Exercise",
-    "quickWater": "Water",
+    "quickFood": "Log food",
+    "quickExercise": "Log exercise",
+    "quickWater": "Log water",
     "quickScan": "Scan",
     "nutrientRemaining": "{{value}} {{unit}} left",
     "nutrientOver": "{{value}} {{unit}} over",
@@ -942,7 +952,22 @@
     "localHealthNote": "Shown separately; not added to the saved daily target.",
     "localHealthUnknown": "No shared data is available for this day.",
     "localActiveEnergy": "Active energy: {{value}} kcal",
-    "steps": "Steps"
+    "steps": "Steps",
+    "quickScanDetail": "Food label",
+    "appName": "X on Track",
+    "tagline": "Keep getting better.",
+    "caloriesSubtitle": "From logged food and activity",
+    "editGoal": "Edit goal",
+    "macronutrients": "Macronutrients",
+    "targetKcal": "Target {{value}} kcal",
+    "drinks": "Drinks",
+    "burnedToday": "burned",
+    "totalTime": "total time",
+    "statOfGoal": "{{label}} · of {{goal}}",
+    "todayOverview": "Today at a glance",
+    "viewAll": "View all",
+    "workout": "Workout",
+    "water": "Water"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",
@@ -1279,7 +1304,8 @@
       "invalidDate": "Enter a valid date.",
       "apply": "Apply",
       "failed": "Could not update selected foods"
-    }
+    },
+    "subtitle": "Log your meals and activity."
   },
   "medications": {
     "title": "Medications",
@@ -2770,7 +2796,9 @@
     "fallbackProjectionSource": "BMR + active calories fallback",
     "legacyProjectionSource": "Device projection",
     "collapse": "Collapse this section",
-    "expand": "Expand this section"
+    "expand": "Expand this section",
+    "ofGoal": "of {{value}}",
+    "gramsUnit": "g"
   },
   "dateRange": {
     "removeTitle": "Select a date range to remove",
@@ -3552,7 +3580,8 @@
       "entryNotes": "Note for this entry",
       "entryNotesPlaceholder": "Anything specific about this time you ate it",
       "carbsShort": "Carbs",
-      "netCarbsShort": "Net carbs"
+      "netCarbsShort": "Net carbs",
+      "quickAmounts": "Quick amounts"
     },
     "pickers": {
       "selectServing": "Select Serving",
@@ -3755,6 +3784,21 @@
     "title": "Add food",
     "tabs": {
       "recent": "Recent"
+    },
+    "scanCard": {
+      "title": "Scan barcode",
+      "subtitle": "Quickly add packaged foods"
+    },
+    "quickAdd": {
+      "open": "Quick add {{name}}",
+      "added": "Added {{food}} to {{meal}}",
+      "diary": "your diary",
+      "macros": "P {{protein}} g · C {{carbs}} g · F {{fat}} g",
+      "serving": "Serving",
+      "amount": "Amount",
+      "meal": "Meal",
+      "moreOptions": "More options",
+      "add": "Add to diary"
     }
   },
   "editBarcode": {
@@ -5664,5 +5708,24 @@
     "legendCurve": "Active caffeine",
     "legendThreshold": "{{threshold}}mg threshold",
     "unitMg": "mg"
+  },
+  "insights": {
+    "subtitle": "Trends from your logged data.",
+    "unavailableTitle": "Insights unavailable",
+    "unavailableSubtitle": "Connect to your server in Settings to see trends from your logged data.",
+    "viewDetails": "View details",
+    "averagePerLoggedDay": "{{unit}} per logged day",
+    "vsTodayGoal": "vs. today's goal of {{goal}}",
+    "macronutrients": "Macronutrients",
+    "gramsPerDay": "{{value}} g / day",
+    "noNutrition": "No food logged in this period.",
+    "macroShareNote": "Share of energy from protein, carbs and fat, averaged over logged days.",
+    "weightTrend": "Weight trend",
+    "logWeight": "Log weight",
+    "latestWeight": "Latest in range",
+    "changeInRange": "Change in range",
+    "keyInsights": "Key insights",
+    "loggedDays_one": "You logged food on {{count}} of the last {{total}} days.",
+    "loggedDays_other": "You logged food on {{count}} of the last {{total}} days."
   }
 }

@@ -14,6 +14,7 @@ import {
   TextInput,
   Platform,
   Linking,
+  Pressable,
 } from 'react-native';
 import Button from '../components/ui/Button';
 import SegmentedControl from '../components/SegmentedControl';
@@ -28,6 +29,12 @@ import type { AnchoredMenuItem } from '../components/AnchoredMenu';
 import StatusView from '../components/StatusView';
 import LandingEntryRow from '../components/foodSearch/LandingEntryRow';
 import FoodSearchResultRow from '../components/foodSearch/FoodSearchResultRow';
+import ScreenBackground from '../components/ui/ScreenBackground';
+import { useGlowTheme, withAlpha } from '../components/ui/glow';
+import QuickAddFoodSheet, {
+  type QuickAddFoodSheetRef,
+} from '../components/foodSearch/QuickAddFoodSheet';
+import { useDiaryDateStore } from '../stores/diaryDateStore';
 import FoodSearchSectionHeader, {
   SectionTitleHeader,
 } from '../components/foodSearch/FoodSearchSectionHeader';
@@ -60,7 +67,10 @@ import { getApiErrorMessage } from '../services/api/errors';
 import { FoodItem } from '../types/foods';
 import { ExternalFoodItem } from '../types/externalFoods';
 import { Meal } from '../types/meals';
-import { externalFoodItemToFoodInfo } from '../types/foodInfo';
+import {
+  externalFoodItemToFoodInfo,
+  foodItemToFoodInfo,
+} from '../types/foodInfo';
 import type { FoodInfoItem } from '../types/foodInfo';
 import type { RootStackScreenProps } from '../types/navigation';
 import { useProviderColor } from '../utils/providerColor';
@@ -225,6 +235,16 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     clear: clearSelection,
   } = useFoodSearchSelection(MULTI_ADD_MAX_ITEMS, mealTypeId);
   const [isSelectMode, setIsSelectMode] = useState(false);
+  const glowing = useGlowTheme();
+  const borderSubtle = useCSSVariable('--color-border-subtle') as string;
+  // Serving quick add from the list: diary logging only, never while the
+  // multi-select basket is active or when a photo capture is being matched.
+  const quickAddRef = useRef<QuickAddFoodSheetRef>(null);
+  const quickAddAvailable = multiSelectAvailable && !isSelectMode;
+  const openQuickAdd = useCallback(
+    (food: FoodItem) => quickAddRef.current?.present(food),
+    []
+  );
   // Measured basket-bar height (onLayout) so the lists can reserve exactly
   // the room it needs — a fixed clearance breaks at larger text sizes, and
   // the explicit contentContainerStyle replaces (not adds to) the
@@ -1177,6 +1197,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         isMealBuilderMode={isMealBuilderMode}
         getProviderColor={getProviderColor}
         onSelectFood={showFoodInfo}
+        onQuickAddFood={quickAddAvailable ? openQuickAdd : undefined}
         onSelectOnlineFood={handleExternalFoodTap}
         onSelectProvider={handleSelectProvider}
         onShowAllLocal={handleShowAllLocal}
@@ -1371,10 +1392,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       </View>
       <View className="px-4 pb-3">
         <View
-          className="min-h-14 flex-row items-center bg-raised rounded-lg px-3 py-2.5"
+          className="min-h-14 flex-row items-center bg-surface rounded-2xl px-4 py-2.5"
           style={{
             borderWidth: 1,
-            borderColor: isSearchFocused ? accentColor : 'transparent',
+            borderColor: isSearchFocused ? accentColor : borderSubtle,
+            boxShadow:
+              glowing && isSearchFocused
+                ? `0px 0px 14px 0px ${withAlpha(accentColor, 0.4)}`
+                : undefined,
           }}
         >
           <View className="w-[20px] h-[20px] items-center justify-center">
@@ -1472,7 +1497,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
     if (inSearchMode) {
       return (
-        <View className="flex-1 bg-surface">
+        <View className="flex-1">
           <SectionList
             sections={resultSections}
             keyExtractor={resultKeyExtractor}
@@ -1539,7 +1564,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       );
     }
     return (
-      <View className="flex-1 bg-surface">
+      <View className="flex-1">
         <SectionList
           sections={landingSections}
           keyExtractor={(item) => item.key}
@@ -1550,6 +1575,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
               favoriteKeys={favoriteKeys}
               favoriteGold={favoriteGold}
               onSelect={showFoodInfo}
+              onQuickAdd={quickAddAvailable ? openQuickAdd : undefined}
               selection={
                 isSelectMode && item.kind === 'food'
                   ? {
@@ -1584,6 +1610,30 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           keyboardDismissMode="on-drag"
           contentContainerClassName="pb-safe-or-4"
           contentContainerStyle={basketListPadding}
+          ListFooterComponent={
+            isSelectMode ? null : (
+              <Pressable
+                testID="food-search-scan-card"
+                accessibilityRole="button"
+                onPress={openFoodScan}
+                className="mx-4 my-4 min-h-16 flex-row items-center justify-center gap-3 rounded-2xl border border-border-subtle bg-raised px-4 py-3 active:opacity-70"
+              >
+                <Icon name="scan" size={26} color={accentColor} />
+                <View className="flex-shrink">
+                  <Text className="text-base font-semibold text-text-primary">
+                    {t('foodSearch.scanCard.title', {
+                      defaultValue: 'Scan barcode',
+                    })}
+                  </Text>
+                  <Text className="text-xs text-text-secondary">
+                    {t('foodSearch.scanCard.subtitle', {
+                      defaultValue: 'Quickly add packaged foods',
+                    })}
+                  </Text>
+                </View>
+              </Pressable>
+            )
+          }
         />
       </View>
     );
@@ -1594,6 +1644,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       className="flex-1 bg-background"
       style={Platform.OS === 'android' ? { paddingTop: insets.top } : undefined}
     >
+      <ScreenBackground />
       {renderHeaderBar()}
       {pickerMode === 'log-entry' && !photoCapture && (
         <View className="flex-row gap-2 px-4 pb-3">
@@ -1701,6 +1752,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         onClose={() => setMenuVisible(false)}
         items={menuItems}
       />
+      {quickAddAvailable ? (
+        <QuickAddFoodSheet
+          ref={quickAddRef}
+          date={date ?? useDiaryDateStore.getState().selectedDate}
+          mealTypeId={mealTypeId}
+          onMoreOptions={(food) => showFoodInfo(foodItemToFoodInfo(food))}
+        />
+      ) : null}
     </View>
   );
 };

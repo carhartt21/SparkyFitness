@@ -59,6 +59,8 @@ const NATIVE_TABS_ROUTE_EXCLUSIONS = {
   WorkoutSettings: 'Root-stack settings route presented above the tab host.',
   ServerSettings: 'Root-stack settings route presented above the tab host.',
   AppSettings: 'Root-stack settings route presented above the tab host.',
+  Settings:
+    'Root-stack settings hub opened from the upper-left header action of every content tab.',
   About: 'Root-stack settings route presented above the tab host.',
   WhatsNew: 'Root-stack informational route presented above the tab host.',
   CycleSettings: 'Root-stack settings route presented above the tab host.',
@@ -345,7 +347,7 @@ function failNativeHeaderContract(message: string): never {
       '- Root stack routes must be declared in RootStackParamList and registered as <Stack.Screen> in App.tsx.',
       '- iOS root-stack screens should use createStackScreenOptions(...) or equivalent explicit iOS native-stack options so the native header is configured in the same place as the route.',
       '- Tab routes must be declared in TabParamList and registered in both NativeTab.Screen and FallbackTab.Screen in TabsLayout.tsx.',
-      '- Native iOS tab content must stay wrapped in its tab-local createNativeStackNavigator screen so Dashboard, Diary, Library, and Settings get native headers under the Liquid Glass tab path.',
+      '- Native iOS tab content must stay wrapped in its tab-local createNativeStackNavigator screen so Dashboard, Diary, Insights, and More get native headers under the Liquid Glass tab path.',
       '- When adding a new native tab, add the TabParamList entry, the NativeTab.Screen entry, the FallbackTab.Screen entry, and a matching tab-local native stack screen with createIOSNativeHeaderOptions.',
       '- Root-stack screens with a screen-owned React header must use the native iOS stack header in App.tsx through createStackScreenOptions(...) or equivalent explicit iOS options. Do not set headerShown: false for those routes.',
       "- Root-stack screens with a screen-owned React header and a real iOS back button must either set headerBackTitle or use headerBackButtonDisplayMode: 'minimal' in App.tsx so iOS does not inherit a stale or misleading back-button label. Screens that replace the iOS back button with a native Cancel header item do not need either option.",

@@ -91,6 +91,7 @@ export default function ReviewApp() {
         cycleCardVisible: false,
         medicationsCardVisible: false,
         progressPhotosCardVisible: false,
+        diarySummaryVisible: true,
       });
       await AsyncStorage.multiSet([
         ['syncOnOpenEnabled', 'false'],

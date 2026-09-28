@@ -34,7 +34,11 @@ import CalendarSheet, {
   type CalendarSheetRef,
 } from '../components/CalendarSheet';
 import CheckInPhotosSummary from '../components/CheckInPhotosSummary';
-import DateNavigator from '../components/DateNavigator';
+import DateBar from '../components/DateBar';
+import Icon from '../components/Icon';
+import TabScreenHeader from '../components/TabScreenHeader';
+import ScreenBackground from '../components/ui/ScreenBackground';
+import { settingsButtonLabel } from '../components/SettingsHeaderButton';
 import DiaryCalorieMacroSummary from '../components/DiaryCalorieMacroSummary';
 import EmptyDayIllustration from '../components/EmptyDayIllustration';
 import ExerciseSummary from '../components/ExerciseSummary';
@@ -161,7 +165,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const familyDiariesAccessibilityLabel = t('familyDiary.openFamilyDiaries', {
     defaultValue: 'Open family diaries',
   });
-  const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const [accentColor, textPrimaryColor] = useCSSVariable([
+    '--color-accent-primary',
+    '--color-text-primary',
+  ]) as [string, string];
   const usesNativeTabs = useNativeIOSTabsActive();
   const { defaultColor: nativeHeaderActionColor } = useHeaderActionColors();
 
@@ -186,6 +193,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         dateLabel: `${formatDateLabel(selectedDate, t, dateLocale)} ▾`,
         t,
         locale: dateLocale,
+        settingsAction: {
+          onPress: () => navigation.navigate('Settings'),
+          accessibilityLabel: settingsButtonLabel(t),
+        },
         leadingAction: hasFamilyDiaries
           ? {
               sfSymbol: 'person.2.fill',
@@ -709,7 +720,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     return (
       <ScrollView
         ref={scrollViewRef}
-        className="flex-1 bg-background"
+        className="flex-1"
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
@@ -728,6 +739,18 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           />
         }
       >
+        {(summary.foodEntries.length > 0 ||
+          pendingPhotoDiaryEntries.length > 0 ||
+          hasSupplementNutrition(summary.supplementTotals) ||
+          summary.exerciseEntries.length > 0 ||
+          summary.calorieGoal > 0) && (
+          <DiaryCalorieMacroSummary
+            summary={visibleSummary ?? summary}
+            showNetCarbs={preferences?.show_net_carbs === true}
+            customNutrientKeys={customNutrientKeys}
+            customNutrients={customNutrients}
+          />
+        )}
         <PendingNutritionActions
           actions={localFoodActions}
           storageError={nutritionStorageError}
@@ -805,18 +828,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               </View>
             )}
           </View>
-        )}
-        {(summary.foodEntries.length > 0 ||
-          pendingPhotoDiaryEntries.length > 0 ||
-          hasSupplementNutrition(summary.supplementTotals) ||
-          summary.exerciseEntries.length > 0 ||
-          summary.calorieGoal > 0) && (
-          <DiaryCalorieMacroSummary
-            summary={visibleSummary ?? summary}
-            showNetCarbs={preferences?.show_net_carbs === true}
-            customNutrientKeys={customNutrientKeys}
-            customNutrients={customNutrients}
-          />
         )}
         {isDayEmpty ? (
           <>
@@ -932,8 +943,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     return (
       <>
         <GestureDetector gesture={swipeGesture}>
-          <View collapsable={false} className="flex-1">
-            {renderedContent ?? <View className="flex-1 bg-background" />}
+          <View collapsable={false} className="flex-1 bg-background">
+            <ScreenBackground />
+            {renderedContent ?? <View className="flex-1" />}
           </View>
         </GestureDetector>
         <CalendarSheet
@@ -968,34 +980,42 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
   const content = (
     <>
-      {!isConnectionLoading && (isConnected || nutritionIdentity) ? (
-        <DateNavigator
+      <View className="px-4" style={{ paddingTop: insets.top + 12 }}>
+        <TabScreenHeader
           title={t('diary.title', { defaultValue: 'Diary' })}
-          selectedDate={selectedDate}
-          onPreviousDay={goToPreviousDay}
-          onNextDay={goToNextDay}
-          onToday={goToToday}
-          onDatePress={openCalendar}
-          showDateAlways
-          action={
-            hasFamilyDiaries
-              ? {
-                  icon: 'people',
-                  accessibilityLabel: familyDiariesAccessibilityLabel,
-                  onPress: openFamilyDiaries,
-                }
-              : undefined
+          subtitle={t('diary.subtitle', {
+            defaultValue: 'Log your meals and activity.',
+          })}
+          onSettings={() => navigation.navigate('Settings')}
+          right={
+            hasFamilyDiaries ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={familyDiariesAccessibilityLabel}
+                onPress={openFamilyDiaries}
+                className="h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-surface active:opacity-70"
+              >
+                <Icon name="people" size={20} color={textPrimaryColor} />
+              </Pressable>
+            ) : null
           }
         />
-      ) : (
-        !isConnectionLoading && (
-          <View className="px-4 pb-5" style={{ paddingTop: insets.top + 16 }}>
-            <Text className="text-2xl font-bold text-text-primary">
-              {t('diary.title', { defaultValue: 'Diary' })}
-            </Text>
+        {!isConnectionLoading && (isConnected || nutritionIdentity) ? (
+          <View className="pb-3">
+            <DateBar
+              selectedDate={selectedDate}
+              onPreviousDay={goToPreviousDay}
+              onNextDay={goToNextDay}
+              onToday={goToToday}
+              onDatePress={openCalendar}
+              testIDPrefix="diary"
+              chooseDateLabel={t('diary.chooseDate', {
+                defaultValue: 'Choose diary date',
+              })}
+            />
           </View>
-        )
-      )}
+        ) : null}
+      </View>
       {renderedContent}
       <CalendarSheet
         ref={calendarRef}
@@ -1027,7 +1047,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   return (
     <>
       <GestureDetector gesture={swipeGesture}>
-        <View className="flex-1 bg-background">{content}</View>
+        <View className="flex-1 bg-background">
+          <ScreenBackground />
+          {content}
+        </View>
       </GestureDetector>
     </>
   );

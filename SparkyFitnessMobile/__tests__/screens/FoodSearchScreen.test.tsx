@@ -50,6 +50,22 @@ jest.mock('../../src/hooks', () => ({
   useDebounce: (value: unknown) => value,
 }));
 
+const mockQuickAddPresent = jest.fn();
+jest.mock('../../src/components/foodSearch/QuickAddFoodSheet', () => {
+  const React = require('react');
+  const MockQuickAddFoodSheet = React.forwardRef(
+    (_props: unknown, ref: React.Ref<unknown>) => {
+      React.useImperativeHandle(ref, () => ({
+        present: mockQuickAddPresent,
+        dismiss: jest.fn(),
+      }));
+      return null;
+    }
+  );
+  MockQuickAddFoodSheet.displayName = 'MockQuickAddFoodSheet';
+  return { __esModule: true, default: MockQuickAddFoodSheet };
+});
+
 jest.mock('../../src/services/api/externalFoodSearchApi', () => ({
   fetchExternalFoodDetails: jest.fn(),
 }));
@@ -518,6 +534,27 @@ describe('FoodSearchScreen', () => {
     expect(screen.getByTestId('verified-badge')).toBeTruthy();
   });
 
+  it('opens the serving quick-add sheet from a local result without leaving search', () => {
+    const food = buildFood();
+    mockUseFoodSearch.mockReturnValue({
+      searchResults: [food],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+    } as any);
+
+    const screen = renderSearching();
+    fireEvent.press(screen.getByLabelText(`Quick add ${food.name}`));
+
+    expect(mockQuickAddPresent).toHaveBeenCalledWith(
+      expect.objectContaining({ id: food.id })
+    );
+    expect(navigation.navigate).not.toHaveBeenCalledWith(
+      'FoodEntryAdd',
+      expect.anything()
+    );
+  });
+
   it('renders local provider portion units in search result rows', () => {
     mockUseFoodSearch.mockReturnValue({
       searchResults: [
@@ -541,7 +578,7 @@ describe('FoodSearchScreen', () => {
 
     const screen = renderSearching();
 
-    expect(screen.getByText('1 whole')).toBeTruthy();
+    expect(screen.getByText(/1 whole/)).toBeTruthy();
   });
 
   it('forwards an optional mealTypeId param through to FoodEntryAdd', () => {

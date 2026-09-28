@@ -17,6 +17,7 @@ import {
 } from '../../utils/foodDetails';
 import { mealToFoodInfo } from '../../types/foodInfo';
 import type { FoodInfoItem } from '../../types/foodInfo';
+import type { FoodItem } from '../../types/foods';
 import type { ExternalFoodItem } from '../../types/externalFoods';
 import type { ExternalProvider } from '../../types/externalProviders';
 import type { ResultRow } from './types';
@@ -307,6 +308,8 @@ interface FoodSearchResultRowProps {
   /** Multi-select affordance for LOCAL food rows only (#1980 request 2);
    * meals and online provider results never receive it. */
   selection?: FoodRowSelection;
+  /** Serving quick-add for local food rows when logging to the diary. */
+  onQuickAddFood?: (food: FoodItem) => void;
   onSelectOnlineFood: (
     item: ExternalFoodItem,
     providerId?: string
@@ -318,6 +321,7 @@ interface FoodSearchResultRowProps {
 const FoodSearchResultRow: React.FC<FoodSearchResultRowProps> = ({
   row,
   selection,
+  onQuickAddFood,
   profileId,
   favoriteKeys,
   favoriteGold,
@@ -343,6 +347,7 @@ const FoodSearchResultRow: React.FC<FoodSearchResultRowProps> = ({
           favoriteGold={favoriteGold}
           onSelect={onSelectFood}
           selection={selection}
+          onQuickAdd={onQuickAddFood}
         />
       );
     case 'meal':

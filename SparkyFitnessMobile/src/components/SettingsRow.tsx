@@ -8,6 +8,7 @@ import {
 } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import Icon, { type IconName } from './Icon';
+import { useGlowTheme } from './ui/glow';
 
 const SettingsRowGroupContext = createContext<{ grouped: boolean }>({
   grouped: false,
@@ -29,11 +30,20 @@ export const SettingsRowGroup: React.FC<SettingsRowGroupProps> = ({
   className = '',
 }) => {
   const items = React.Children.toArray(children).filter(Boolean);
+  const glowing = useGlowTheme();
   return (
     <SettingsRowGroupContext.Provider value={{ grouped: true }}>
       <View
-        className={`bg-surface rounded-xl mb-4 shadow-sm ${className}`}
-        style={style}
+        className={`bg-surface rounded-2xl mb-4 border border-border-subtle overflow-hidden ${className}`}
+        style={[
+          glowing
+            ? {
+                experimental_backgroundImage:
+                  'linear-gradient(180deg, #ffffff0a 0%, #ffffff00 45%)',
+              }
+            : null,
+          style,
+        ]}
       >
         {title && (
           <View className="px-4 pt-3 pb-1">
@@ -100,7 +110,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
 
   const wrapperClass = grouped
     ? 'p-4 flex-row items-center'
-    : 'bg-surface rounded-xl p-4 mb-4 shadow-sm flex-row items-center';
+    : 'bg-surface rounded-2xl p-4 mb-4 border border-border-subtle flex-row items-center';
 
   const tintColor = iconColor ?? textSecondary;
   const tileBg = iconBackgroundColor ?? 'transparent';
@@ -112,7 +122,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
     <>
       {icon ? (
         <View
-          className="w-10 h-10 rounded-lg items-center justify-center mr-3"
+          className="w-10 h-10 rounded-full items-center justify-center mr-3"
           style={{ backgroundColor: tileBg }}
         >
           <Icon name={icon} size={22} color={tintColor} weight="semibold" />

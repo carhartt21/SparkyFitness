@@ -201,20 +201,20 @@ const LiquidGlassMockup: React.FC = () => {
 
   const tabs: { name: IconName; label: string; active?: boolean }[] = [
     {
-      name: 'tab-dashboard',
-      label: t('navigation.dashboard', { defaultValue: 'Dashboard' }),
-    },
-    {
-      name: 'document-text',
-      label: t('navigation.diary', { defaultValue: 'Diary' }),
+      name: 'tab-home',
+      label: t('navigation.home', { defaultValue: 'Home' }),
     },
     {
       name: 'book',
-      label: t('navigation.library', { defaultValue: 'Library' }),
+      label: t('navigation.diary', { defaultValue: 'Diary' }),
     },
     {
-      name: 'settings',
-      label: t('navigation.settings', { defaultValue: 'Settings' }),
+      name: 'tab-insights',
+      label: t('navigation.insights', { defaultValue: 'Insights' }),
+    },
+    {
+      name: 'tab-more',
+      label: t('navigation.more', { defaultValue: 'More' }),
     },
   ];
 

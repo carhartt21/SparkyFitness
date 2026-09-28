@@ -3,7 +3,8 @@ import { render } from '@testing-library/react-native';
 import CalorieRingCard from '../../src/components/CalorieRingCard';
 
 jest.mock('uniwind', () => ({
-  useCSSVariable: (keys: string[]) => keys.map(() => '#175b43'),
+  useCSSVariable: (keys: string | string[]) =>
+    Array.isArray(keys) ? keys.map(() => '#175b43') : '#175b43',
 }));
 
 jest.mock('../../src/components/ProgressRing', () => {

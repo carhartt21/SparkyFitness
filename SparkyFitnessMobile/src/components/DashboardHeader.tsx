@@ -1,41 +1,33 @@
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
-import { useAppLocale } from '../localization';
-import { formatDate } from '../utils/dateUtils';
-import Icon from './Icon';
 import BrandMark from './brand/BrandMark';
+import SettingsHeaderButton from './SettingsHeaderButton';
+import DateBar from './DateBar';
+import { useGlowTheme, withAlpha } from './ui/glow';
 
 interface Props {
   selectedDate: string;
   onHome?: () => void;
+  onSettings: () => void;
   onPreviousDay: () => void;
   onNextDay: () => void;
   onToday: () => void;
   onDatePress: () => void;
 }
 
+/**
+ * Dashboard header from the reference: logo and product name on the first
+ * line with Settings in the upper-right corner, then a full-width date bar.
+ */
 export default function DashboardHeader(props: Props) {
   const { t } = useTranslation();
-  const locale = useAppLocale();
-  const { fontScale } = useWindowDimensions();
-  const color = useCSSVariable('--color-text-primary') as string;
-  const today = (
-    <Pressable
-      accessibilityRole="button"
-      testID="dashboard-today"
-      onPress={props.onToday}
-      className="min-w-11 min-h-11 px-2 rounded-md border border-border-subtle bg-surface items-center justify-center active:opacity-70"
-    >
-      <Text className="text-sm font-medium text-text-link">
-        {t('dashboard.today', { defaultValue: 'Today' })}
-      </Text>
-    </Pressable>
-  );
+  const glowing = useGlowTheme();
+  const accent = useCSSVariable('--color-accent-primary') as string;
 
   return (
-    <View className="pt-3 pb-3 gap-2">
-      <View className="flex-row items-center gap-2">
+    <View className="pt-3 pb-3 gap-3">
+      <View className="flex-row items-center gap-3">
         <Pressable
           testID="dashboard-home"
           onPress={props.onHome ?? props.onToday}
@@ -43,52 +35,45 @@ export default function DashboardHeader(props: Props) {
           accessibilityLabel={t('dashboard.home', {
             defaultValue: 'X on Track — Dashboard',
           })}
-          className="w-11 min-h-11 items-center justify-center active:opacity-70"
+          className="h-14 w-14 items-center justify-center rounded-2xl border border-border-subtle bg-surface active:opacity-70"
+          style={
+            glowing
+              ? { boxShadow: `0px 0px 14px 0px ${withAlpha(accent, 0.35)}` }
+              : undefined
+          }
         >
-          <BrandMark size={40} />
+          <BrandMark size={44} />
         </Pressable>
-        <View className="flex-1 flex-row items-center rounded-md border border-border-subtle bg-surface overflow-hidden">
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('familyDiary.previousDay', {
-              defaultValue: 'Previous day',
-            })}
-            testID="dashboard-previous-day"
-            onPress={props.onPreviousDay}
-            className="w-11 min-h-11 items-center justify-center active:bg-raised"
+        <View className="flex-1" accessible accessibilityRole="header">
+          <Text
+            className="text-[26px] font-bold text-text-primary"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            maxFontSizeMultiplier={1.4}
           >
-            <Icon name="chevron-back" size={18} color={color} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('dashboard.chooseDate', {
-              defaultValue: 'Choose dashboard date',
-            })}
-            accessibilityValue={{ text: props.selectedDate }}
-            testID="dashboard-date"
-            onPress={props.onDatePress}
-            className="flex-1 min-w-11 min-h-11 flex-row items-center justify-center gap-1 py-2 active:bg-raised"
+            {t('dashboard.appName', { defaultValue: 'X on Track' })}
+          </Text>
+          <Text
+            className="text-sm text-text-secondary"
+            maxFontSizeMultiplier={1.6}
           >
-            <Text className="text-sm font-medium text-text-primary flex-shrink text-center">
-              {formatDate(props.selectedDate, locale)}
-            </Text>
-            <Icon name="chevron-down" size={12} color={color} />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={t('familyDiary.nextDay', {
-              defaultValue: 'Next day',
-            })}
-            testID="dashboard-next-day"
-            onPress={props.onNextDay}
-            className="w-11 min-h-11 items-center justify-center active:bg-raised"
-          >
-            <Icon name="chevron-forward" size={18} color={color} />
-          </Pressable>
+            {t('dashboard.tagline', { defaultValue: 'Keep getting better.' })}
+          </Text>
         </View>
-        {fontScale <= 1.3 && today}
+        <SettingsHeaderButton onPress={props.onSettings} />
       </View>
-      {fontScale > 1.3 && <View className="self-end">{today}</View>}
+
+      <DateBar
+        selectedDate={props.selectedDate}
+        onPreviousDay={props.onPreviousDay}
+        onNextDay={props.onNextDay}
+        onToday={props.onToday}
+        onDatePress={props.onDatePress}
+        testIDPrefix="dashboard"
+        chooseDateLabel={t('dashboard.chooseDate', {
+          defaultValue: 'Choose dashboard date',
+        })}
+      />
     </View>
   );
 }

@@ -23,7 +23,7 @@ describe('appPreferencesStore', () => {
       expect(state.askSparkyVisible).toBe(true);
       expect(state.liquidGlassTabBarEnabled).toBe(false);
       expect(state.activeWorkoutMetricColumn).toBe('rpe');
-      expect(state.diarySummaryVisible).toBe(false);
+      expect(state.diarySummaryVisible).toBe(true);
       expect(state.diarySummaryExpanded).toBe(false);
       expect(state.defaultRestSec).toBe(90);
       expect(state.languagePreference).toBe('system');

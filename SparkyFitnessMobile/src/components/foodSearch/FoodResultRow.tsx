@@ -1,6 +1,8 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Pressable } from 'react-native';
+import { useGlowTheme, withAlpha } from '../ui/glow';
+import { useCSSVariable } from 'uniwind';
 import Icon from '../Icon';
 import ShareStatusBadge from '../ShareStatusBadge';
 import VerifiedBadge from '../VerifiedBadge';
@@ -35,6 +37,8 @@ interface FoodResultRowProps {
   favoriteGold: string;
   onSelect: (item: FoodInfoItem) => void;
   selection?: FoodRowSelection;
+  /** Opens the serving quick-add sheet; omitted where logging is unavailable. */
+  onQuickAdd?: (item: FoodItem) => void;
 }
 
 const FoodResultRow: React.FC<FoodResultRowProps> = ({
@@ -44,8 +48,11 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
   favoriteGold,
   onSelect,
   selection,
+  onQuickAdd,
 }) => {
   const { t } = useTranslation();
+  const glowing = useGlowTheme();
+  const addColor = useCSSVariable('--color-accent-primary') as string;
   const status = deriveShareStatus(
     item.user_id,
     item.shared_with_public,
@@ -128,21 +135,38 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
               />
             )}
           </View>
-          {item.brand ? (
-            <Text className="text-text-secondary text-sm mt-0.5">
-              {item.brand}
-            </Text>
-          ) : null}
+          <Text className="text-text-secondary text-sm mt-0.5">
+            {/* i18n-audit-ignore-next-line hardcoded-ui-text -- brand, quantity and unit are literal data values. */}
+            <>
+              {item.brand ? `${item.brand} · ` : ''}
+              {item.default_variant.serving_size}{' '}
+              {formatServingUnit(item.default_variant.serving_unit)}
+            </>
+          </Text>
           <FoodNutritionComparison serving={item.default_variant} />
         </View>
-        <Text className="text-text-secondary text-xs">
-          {/* i18n-audit-ignore-next-line hardcoded-ui-text -- quantity and unit are literal data values. */}
-          <>
-            {item.default_variant.serving_size}{' '}
-            {formatServingUnit(item.default_variant.serving_unit)}
-          </>
-        </Text>
       </TouchableOpacity>
+      {onQuickAdd && !selection ? (
+        <Pressable
+          testID={`quick-add-${item.id}`}
+          accessibilityRole="button"
+          accessibilityLabel={t('foodSearch.quickAdd.open', {
+            defaultValue: 'Quick add {{name}}',
+            name: item.name,
+          })}
+          onPress={() => onQuickAdd(item)}
+          hitSlop={6}
+          className="mr-4 w-11 h-11 rounded-full border-2 items-center justify-center active:opacity-70"
+          style={{
+            borderColor: addColor,
+            boxShadow: glowing
+              ? `0px 0px 10px 0px ${withAlpha(addColor, 0.5)}`
+              : undefined,
+          }}
+        >
+          <Icon name="add" size={20} color={addColor} weight="bold" />
+        </Pressable>
+      ) : null}
     </View>
   );
 };

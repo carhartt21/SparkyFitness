@@ -29,6 +29,7 @@ jest.mock('../../src/hooks', () => ({
   useServerConnection: jest.fn(),
   useServerConfigs: jest.fn(),
   usePreferences: jest.fn(),
+  useProfile: () => ({ profile: undefined, isLoading: false }),
   queryClient: { getQueryCache: () => ({ getAll: () => [] }) },
 }));
 
@@ -42,6 +43,11 @@ jest.mock('../../src/components/ActiveWorkoutBar', () => ({
 
 jest.mock('../../src/services/nativeTabBarPreference', () => ({
   useNativeIOSTabsActive: () => false,
+  useNativeIOSHeadersActive: () => false,
+}));
+
+jest.mock('../../src/hooks/useScreenHeader', () => ({
+  useScreenHeader: () => null,
 }));
 
 jest.mock('../../src/services/storage', () => ({

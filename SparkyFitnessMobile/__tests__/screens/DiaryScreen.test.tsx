@@ -4,7 +4,6 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DiaryScreen from '../../src/screens/DiaryScreen';
-import type DateNavigatorComponent from '../../src/components/DateNavigator';
 import {
   useDailySummary,
   useCustomNutrients,
@@ -26,7 +25,6 @@ import type { FoodEntry } from '../../src/types/foodEntries';
 import { buildSleepEntry } from '../helpers/sleepFixtures';
 
 type DiaryScreenProps = React.ComponentProps<typeof DiaryScreen>;
-type DateNavigatorProps = React.ComponentProps<typeof DateNavigatorComponent>;
 
 const mockNavigation = {
   setOptions: jest.fn(),
@@ -160,26 +158,6 @@ jest.mock('../../src/components/CalendarSheet', () => {
 jest.mock('../../src/components/ServingAdjustSheet', () => {
   const { View } = require('react-native');
   return { __esModule: true, default: () => <View testID="serving-sheet" /> };
-});
-
-jest.mock('../../src/components/DateNavigator', () => {
-  const { Pressable, Text, View } = require('react-native');
-  return {
-    __esModule: true,
-    default: ({ title, action }: DateNavigatorProps) => (
-      <View testID="date-navigator">
-        <Text>{title}</Text>
-        {action ? (
-          <Pressable
-            accessibilityLabel={action.accessibilityLabel}
-            onPress={action.onPress}
-          >
-            <Text>{action.accessibilityLabel}</Text>
-          </Pressable>
-        ) : null}
-      </View>
-    ),
-  };
 });
 
 jest.mock('../../src/components/StatusView', () => {
@@ -538,7 +516,7 @@ describe('DiaryScreen custom queries', () => {
       '2024-06-16',
       expect.objectContaining({ enabled: true })
     );
-    expect(getByTestId('date-navigator')).toBeTruthy();
+    expect(getByTestId('diary-date')).toBeTruthy();
   });
 
   test('Test G — a failing custom refetch does not block the other refetches nor throw', async () => {

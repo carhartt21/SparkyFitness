@@ -166,7 +166,11 @@ export default function OnboardingScreen({ navigation }: Props) {
 
   const finishOnboarding = () => {
     void markCurrentVersionSeen();
-    navigation.replace('Tabs', { screen: 'Settings' });
+    // Settings lives above the tab host; keep Tabs underneath so Back works.
+    navigation.reset({
+      index: 1,
+      routes: [{ name: 'Tabs' }, { name: 'Settings' }],
+    });
   };
 
   const finishWithConnection = async () => {

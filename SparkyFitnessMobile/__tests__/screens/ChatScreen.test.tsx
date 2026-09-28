@@ -313,15 +313,10 @@ describe('ChatScreen thread', () => {
     const { findByPlaceholderText, getByPlaceholderText } = renderScreen();
     await findByPlaceholderText('Message Trackbot…');
 
-    fireEvent.changeText(
-      getByPlaceholderText('Message Trackbot…'),
-      'hello'
-    );
+    fireEvent.changeText(getByPlaceholderText('Message Trackbot…'), 'hello');
 
     expect((global as any).__mockComposerSetText).toHaveBeenCalledWith('hello');
-    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe(
-      'hello'
-    );
+    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe('hello');
   });
 
   it('does not flicker to a stale value when backspacing to an earlier text before echoes catch up', async () => {
@@ -350,9 +345,7 @@ describe('ChatScreen thread', () => {
         (c: string[]) => c[0]
       )
     ).toEqual(['a', 'ab', 'abc', 'ab']);
-    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe(
-      'ab'
-    );
+    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe('ab');
 
     // Now let the deferred echoes arrive in order, one render at a time. The
     // input must stay "ab" throughout — never flickering to the stale "abc".
@@ -365,9 +358,7 @@ describe('ChatScreen thread', () => {
 
     expect(observed).toEqual(['ab', 'ab', 'ab', 'ab']);
     expect(observed).not.toContain('abc');
-    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe(
-      'ab'
-    );
+    expect(getByPlaceholderText('Message Trackbot…').props.value).toBe('ab');
   });
 
   it('scrolls the message list to the bottom after the thread mounts', async () => {

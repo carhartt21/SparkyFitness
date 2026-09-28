@@ -1,18 +1,17 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, LayoutAnimation } from 'react-native';
 import Animated, {
   useSharedValue,
-  useDerivedValue,
   useAnimatedStyle,
   withTiming,
-  Easing,
 } from 'react-native-reanimated';
-import { useIsFocused } from '@react-navigation/native';
 import { useCSSVariable } from 'uniwind';
 
 import Icon from './Icon';
 import NutrientPill from './NutrientPill';
+import ProgressRing from './ProgressRing';
+import { useGlowTheme, withAlpha } from './ui/glow';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import { getNetCarbsValue } from '../utils/nutrientUtils';
 import { NUTRIENT_META, getNutrientLabel } from '../constants/nutrients';
@@ -21,143 +20,85 @@ import type { UserCustomNutrient } from '../hooks/useCustomNutrients';
 import { formatLocalizedNumber } from '../localization';
 
 const CORE_MACROS = ['protein', 'carbs', 'fat', 'dietary_fiber'] as const;
+const RING_MACROS = ['carbs', 'protein', 'fat'] as const;
 
-interface CalorieBarProps {
-  eaten: number;
-  goal: number;
-  remaining: number;
-  progressPercent: number;
+interface SummaryRingProps {
+  label: string;
+  consumed: number;
+  goal?: number;
+  unit: string;
+  color: string;
+  trackColor: string;
+  testID: string;
 }
 
-const CalorieBar: React.FC<CalorieBarProps> = ({
-  eaten,
+/** One nutrient in the Diary's ring row; a missing goal shows no denominator. */
+const SummaryRing: React.FC<SummaryRingProps> = ({
+  label,
+  consumed,
   goal,
-  remaining,
-  progressPercent,
+  unit,
+  color,
+  trackColor,
+  testID,
 }) => {
   const { t } = useTranslation();
-  const [barWidth, setBarWidth] = useState(0);
-  const [trackColor, fillColor] = useCSSVariable([
-    '--color-progress-track',
-    '--color-calories',
-  ]) as [string, string];
-  const barHeight = 7;
-  const borderRadius = 3.5;
-  const hasGoal = goal > 0;
-
-  const animatedProgress = useSharedValue(0);
-  const isFocused = useIsFocused();
-  useEffect(() => {
-    if (!isFocused) return;
-    animatedProgress.value = 0;
-    animatedProgress.value = withTiming(hasGoal ? progressPercent : 0, {
-      duration: 500,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [isFocused, hasGoal, progressPercent, animatedProgress]);
-
-  const fillWidth = useDerivedValue(() => {
-    const p = animatedProgress.value;
-    if (p <= 0 || barWidth <= 0) return 0;
-    return p > 1 ? barWidth / p : barWidth * p;
-  }, [barWidth]);
-
-  const overflowX = useDerivedValue(() => {
-    const p = animatedProgress.value;
-    if (p <= 1 || barWidth <= 0) return barWidth;
-    return barWidth / p + 2;
-  }, [barWidth]);
-
-  const overflowWidth = useDerivedValue(() => {
-    const p = animatedProgress.value;
-    if (p <= 1 || barWidth <= 0) return 0;
-    const gapStart = barWidth / p + 2;
-    return Math.max(0, barWidth - gapStart);
-  }, [barWidth]);
-
-  const fillStyle = useAnimatedStyle(() => ({ width: fillWidth.value }));
-  const overflowStyle = useAnimatedStyle(() => ({
-    left: overflowX.value,
-    width: overflowWidth.value,
-  }));
-
+  const hasGoal = goal != null && goal > 0;
+  const value = formatLocalizedNumber(Math.round(consumed));
+  const goalText = hasGoal
+    ? t('diarySummary.ofGoal', {
+        defaultValue: 'of {{value}}',
+        value: formatLocalizedNumber(Math.round(goal)),
+      })
+    : null;
   return (
-    <View>
-      <View className="flex-row justify-between items-baseline mb-3">
-        <Text className="text-lg font-bold text-text-primary">
-          {formatLocalizedNumber(Math.round(eaten))}
-          {hasGoal && (
-            <Text className="text-lg font-semibold text-text-muted">
-              {/* i18n-audit-ignore-next-line hardcoded-ui-text -- slash and spacing are numeric presentation punctuation. */}
-              {t('nutrition.goalSeparator', {
-                defaultValue: ' / {{value}}',
-                value: formatLocalizedNumber(Math.round(goal)),
-              })}
-            </Text>
-          )}
-          <Text className="text-sm font-normal text-text-muted">
-            {' '}
-            {t('nutrition.caloriesShort', { defaultValue: 'kcal' })}
+    <View
+      className="flex-1 items-center"
+      testID={testID}
+      accessible
+      accessibilityLabel={`${label}: ${value} ${goalText ? `${goalText} ` : ''}${unit}`}
+    >
+      <View
+        className="items-center justify-center"
+        style={{ width: RING_SIZE, height: RING_SIZE }}
+      >
+        <ProgressRing
+          progress={hasGoal ? consumed / goal : 0}
+          size={RING_SIZE}
+          strokeWidth={6}
+          color={color}
+          backgroundColor={trackColor}
+        />
+        <View className="absolute items-center px-1">
+          <Text
+            className="text-sm font-bold text-text-primary"
+            numberOfLines={1}
+            adjustsFontSizeToFit
+          >
+            {value}
           </Text>
-        </Text>
-        {hasGoal && (
-          <Text className="text-sm font-bold text-text-primary">
-            {formatLocalizedNumber(Math.abs(Math.round(remaining)))}
-            <Text className="text-sm font-normal text-text-muted">
-              {' '}
-              {remaining >= 0
-                ? t('diarySummary.remaining', { defaultValue: 'remaining' })
-                : t('diarySummary.over', { defaultValue: 'over' })}
-            </Text>
-          </Text>
-        )}
-      </View>
-      {hasGoal && (
-        <View
-          className="h-[7px]"
-          onLayout={(e) => setBarWidth(e.nativeEvent.layout.width)}
-        >
-          {barWidth > 0 && (
-            <View
-              style={{
-                width: barWidth,
-                height: barHeight,
-                borderRadius,
-                overflow: 'hidden',
-                backgroundColor: trackColor,
-              }}
+          {goalText ? (
+            <Text
+              className="text-[10px] text-text-secondary text-center"
+              numberOfLines={1}
+              adjustsFontSizeToFit
             >
-              <Animated.View
-                style={[
-                  {
-                    position: 'absolute',
-                    left: 0,
-                    top: 0,
-                    height: barHeight,
-                    backgroundColor: fillColor,
-                  },
-                  fillStyle,
-                ]}
-              />
-              <Animated.View
-                style={[
-                  {
-                    position: 'absolute',
-                    top: 0,
-                    height: barHeight,
-                    backgroundColor: fillColor,
-                    opacity: 0.65,
-                  },
-                  overflowStyle,
-                ]}
-              />
-            </View>
-          )}
+              {goalText}
+            </Text>
+          ) : null}
+          <Text className="text-[10px] text-text-secondary text-center">
+            {unit}
+          </Text>
         </View>
-      )}
+      </View>
+      <Text className="mt-1 text-xs font-medium text-text-secondary">
+        {label}
+      </Text>
     </View>
   );
 };
+
+const RING_SIZE = 76;
 
 interface DiaryCalorieMacroSummaryProps {
   summary: DailySummary;
@@ -183,7 +124,31 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
   const setDiarySummaryExpanded = useAppPreferencesStore(
     (s) => s.setDiarySummaryExpanded
   );
-  const textSecondary = useCSSVariable('--color-text-secondary') as string;
+  const [
+    textSecondary,
+    trackColor,
+    caloriesColor,
+    proteinColor,
+    carbsColor,
+    fatColor,
+  ] = useCSSVariable([
+    '--color-text-secondary',
+    '--color-progress-track',
+    '--color-calories',
+    '--color-macro-protein',
+    '--color-macro-carbs',
+    '--color-macro-fat',
+  ]) as string[];
+  const glowing = useGlowTheme();
+  const [neonRed, neonGreen] = useCSSVariable([
+    '--color-neon-red',
+    '--color-neon-green',
+  ]) as [string, string];
+  const macroColors = {
+    protein: proteinColor,
+    carbs: carbsColor,
+    fat: fatColor,
+  };
 
   const rotation = useSharedValue(diarySummaryExpanded ? 0 : -90);
   useEffect(() => {
@@ -199,7 +164,7 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
     return null;
   }
 
-  const { eaten, goal, remaining, progress } = summary.calorieBalance;
+  const { eaten, goal, remaining } = summary.calorieBalance;
   const projection = summary.calorieBalance.tdeeProjection;
 
   const handleToggleExpanded = () => {
@@ -242,7 +207,18 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
   };
 
   return (
-    <View className="mb-4">
+    <View
+      className="mb-4 rounded-2xl border border-border-subtle bg-surface p-3"
+      style={
+        glowing
+          ? {
+              borderLeftColor: withAlpha(neonRed, 0.55),
+              borderRightColor: withAlpha(neonGreen, 0.55),
+              boxShadow: `-6px 0px 18px -6px ${withAlpha(neonRed, 0.45)}, 6px 0px 18px -6px ${withAlpha(neonGreen, 0.45)}`,
+            }
+          : undefined
+      }
+    >
       <TouchableOpacity
         onPress={handleToggleExpanded}
         activeOpacity={0.7}
@@ -256,20 +232,52 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
             : t('diarySummary.expand', { defaultValue: 'Expand this section' })
         }
       >
-        <View className="flex-row justify-between items-center mb-2">
-          <Text className="text-md font-bold text-text-secondary">
+        <View className="flex-row items-center mb-3 gap-2">
+          <Text className="flex-1 text-md font-bold text-text-secondary">
             {t('diarySummary.title', { defaultValue: 'Summary' })}
           </Text>
+          {goal > 0 && (
+            <Text className="text-sm font-bold text-text-primary">
+              {formatLocalizedNumber(Math.abs(Math.round(remaining)))}
+              <Text className="text-sm font-normal text-text-muted">
+                {' '}
+                {t('nutrition.caloriesShort', { defaultValue: 'kcal' })}{' '}
+                {remaining >= 0
+                  ? t('diarySummary.remaining', { defaultValue: 'remaining' })
+                  : t('diarySummary.over', { defaultValue: 'over' })}
+              </Text>
+            </Text>
+          )}
           <Animated.View style={chevronStyle}>
             <Icon name="chevron-down" size={20} color={textSecondary} />
           </Animated.View>
         </View>
-        <CalorieBar
-          eaten={eaten}
-          goal={goal}
-          remaining={remaining}
-          progressPercent={progress / 100}
-        />
+        <View className="flex-row justify-between">
+          <SummaryRing
+            testID="diary-summary-calories"
+            label={t('nutrients.calories', { defaultValue: 'Calories' })}
+            consumed={eaten}
+            goal={goal}
+            unit={t('nutrition.caloriesShort', { defaultValue: 'kcal' })}
+            color={caloriesColor}
+            trackColor={trackColor}
+          />
+          {RING_MACROS.map((key) => {
+            const macro = resolveCoreMacro(key);
+            return (
+              <SummaryRing
+                key={key}
+                testID={`diary-summary-${key}`}
+                label={macro.label}
+                consumed={macro.consumed}
+                goal={macro.goal}
+                unit={t('diarySummary.gramsUnit', { defaultValue: 'g' })}
+                color={macroColors[key]}
+                trackColor={trackColor}
+              />
+            );
+          })}
+        </View>
       </TouchableOpacity>
       {projection && (
         <View className="mt-2 rounded-lg bg-surface px-3 py-2">
@@ -306,7 +314,9 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
       )}
       {diarySummaryExpanded && (
         <View className="flex-row flex-wrap justify-between gap-y-2 mt-3">
-          {CORE_MACROS.map((key) => {
+          {CORE_MACROS.filter(
+            (key) => !(RING_MACROS as readonly string[]).includes(key)
+          ).map((key) => {
             const { label, consumed, goal: macroGoal } = resolveCoreMacro(key);
             return (
               <NutrientPill

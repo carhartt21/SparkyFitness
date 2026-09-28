@@ -6,6 +6,7 @@ import type { FoodEntry } from '../types/foodEntries';
 import type { DailyGoals } from '../types/goals';
 import type { MealType } from '../types/mealTypes';
 import Icon from './Icon';
+import { glowSurfaceStyle, useGlowTheme } from './ui/glow';
 import { MEAL_CONFIG } from '../constants/meals';
 import SwipeableFoodRow from './SwipeableFoodRow';
 import type { CapturePhotoRef } from './SwipeableFoodRow';
@@ -67,7 +68,7 @@ const EmptyState: React.FC<{ onAddFood?: () => void }> = ({ onAddFood }) => {
       accessibilityLabel={t('foodSummary.tapToAddFood', {
         defaultValue: 'Tap to add food',
       })}
-      className="bg-surface rounded-xl p-4 mb-2 shadow-sm items-center py-6"
+      className="bg-surface rounded-2xl border border-border-subtle p-4 mb-2 items-center py-6"
     >
       <Text className="text-text-muted text-base">
         {t('foodSummary.tapToAddFood', { defaultValue: 'Tap to add food' })}
@@ -93,7 +94,15 @@ const MealSection: React.FC<MealSectionProps> = ({
   onPressMealType,
 }) => {
   const { t } = useTranslation();
-  const accentPrimary = useCSSVariable('--color-accent-primary') as string;
+  const glowing = useGlowTheme();
+  const [accentPrimary, breakfastColor, lunchColor, dinnerColor, snackColor] =
+    useCSSVariable([
+      '--color-accent-primary',
+      '--color-action-training',
+      '--color-action-scan',
+      '--color-hydration',
+      '--color-exercise',
+    ]) as string[];
 
   const label = getMealGroupLabel(group, t);
   // Single canonical MEAL_CONFIG lookup (read once, reuse both fields). A
@@ -103,6 +112,16 @@ const MealSection: React.FC<MealSectionProps> = ({
     ? MEAL_CONFIG[group.name.toLowerCase()]
     : undefined;
   const icon = systemConfig?.icon ?? 'meal-snack';
+  // Accent per system meal, echoing the reference's sun/lunch/snack/moon cues.
+  const iconColor =
+    (group.isSystem &&
+      {
+        breakfast: breakfastColor,
+        lunch: lunchColor,
+        dinner: dinnerColor,
+        snacks: snackColor,
+      }[group.name.toLowerCase()]) ||
+    accentPrimary;
 
   const totalCalories = calculateMealNutrition(group.entries).values.calories;
   const targetCalories = React.useMemo(() => {
@@ -116,18 +135,20 @@ const MealSection: React.FC<MealSectionProps> = ({
 
   const headerContent = (
     <>
-      <Icon name={icon} size={18} color={accentPrimary} />
-      <Text className="text-base font-bold text-text-secondary flex-1">
+      <Icon name={icon} size={20} color={iconColor} />
+      <Text className="text-base font-bold text-text-primary flex-1">
         {label}
       </Text>
       {(totalCalories > 0 || targetCalories > 0) && (
-        <View className="bg-accent-primary/5 rounded-md px-2.5 py-0.5">
-          <Text className="text-xs text-accent-primary font-semibold">
-            {totalCalories}
-            {targetCalories > 0 ? ` / ${targetCalories}` : ''}{' '}
-            {t('foodSummary.caloriesUnit', { defaultValue: 'Cal' })}
-          </Text>
-        </View>
+        <Text className="text-sm text-text-primary font-semibold">
+          {totalCalories}
+          {targetCalories > 0 ? (
+            <Text className="text-text-muted font-normal">
+              {` / ${targetCalories}`}
+            </Text>
+          ) : null}{' '}
+          {t('foodSummary.caloriesUnit', { defaultValue: 'Cal' })}
+        </Text>
       )}
       {onPressMealType && (
         <Icon name="chevron-forward" size={14} color={accentPrimary} />
@@ -141,7 +162,12 @@ const MealSection: React.FC<MealSectionProps> = ({
         if (group.mealTypeId && onAddFood)
           registerDropTarget?.(group.mealTypeId, view);
       }}
-      className={`bg-surface rounded-xl p-4 overflow-hidden shadow-sm ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : ''}`}
+      className={`bg-surface rounded-2xl p-4 overflow-hidden ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : 'border border-border-subtle'}`}
+      style={
+        draggingFood && onAddFood
+          ? undefined
+          : glowSurfaceStyle(iconColor, glowing, 'soft')
+      }
     >
       {onPressMealType ? (
         <Pressable
@@ -207,10 +233,10 @@ const MealSection: React.FC<MealSectionProps> = ({
             defaultValue: 'Add food to {{meal}}',
             meal: label,
           })}
-          className="min-h-11 flex-row items-center justify-center gap-2 border-t border-border-subtle mt-2 pt-2"
+          className="min-h-11 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised mt-3 active:opacity-70"
         >
           <Icon name="add" size={18} color={accentPrimary} />
-          <Text className="text-sm font-semibold text-accent-primary">
+          <Text className="text-sm font-semibold text-text-primary">
             {t('foodSummary.addFood', { defaultValue: 'Add food' })}
           </Text>
         </Pressable>

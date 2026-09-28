@@ -19,7 +19,10 @@ export default function DashboardSectionHeader({
   testID?: string;
 }) {
   const { t } = useTranslation();
-  const accent = useCSSVariable('--color-text-link') as string;
+  const [accent, muted] = useCSSVariable([
+    '--color-text-link',
+    '--color-text-secondary',
+  ]) as [string, string];
   if (compact && onDetails) {
     return (
       <Pressable
@@ -48,11 +51,16 @@ export default function DashboardSectionHeader({
         flexDirection: compact ? 'column' : 'row',
         alignItems: compact ? 'flex-start' : 'center',
       }}
-      className="flex-wrap justify-between gap-x-2 mb-2"
+      className="justify-between gap-x-2 mb-2"
     >
-      <View className="flex-row items-center gap-2 min-h-8 flex-shrink">
+      <View className="flex-row items-center gap-2 min-h-8 flex-1">
         <Icon name={icon} size={22} color={color} />
-        <Text className="text-base font-semibold text-text-primary flex-shrink">
+        <Text
+          className="text-[17px] font-semibold text-text-primary flex-shrink"
+          numberOfLines={compact ? undefined : 1}
+          adjustsFontSizeToFit={!compact}
+          minimumFontScale={0.8}
+        >
           {title}
         </Text>
       </View>
@@ -62,12 +70,9 @@ export default function DashboardSectionHeader({
           accessibilityRole="button"
           accessibilityLabel={`${title}: ${t('common.details', { defaultValue: 'Details' })}`}
           onPress={onDetails}
-          className="flex-row items-center gap-1 min-h-11 min-w-11"
+          className="items-center justify-center min-h-11 min-w-11 -mr-2"
         >
-          <Text className="text-xs font-medium text-text-link">
-            {t('common.details', { defaultValue: 'Details' })}
-          </Text>
-          <Icon name="chevron-forward" size={12} color={accent} />
+          <Icon name="chevron-forward" size={16} color={muted} />
         </Pressable>
       )}
     </View>

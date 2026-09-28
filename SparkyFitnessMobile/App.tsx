@@ -71,6 +71,7 @@ import {
   SafeFastingDetail,
   SafeSleepDetail,
   SafeLogs,
+  SafeSettings,
   SafeSync,
   SafeImportHistory,
   SafeMeasurementsAdd,
@@ -729,6 +730,11 @@ function AppContent() {
             name="SleepDetail"
             component={SafeSleepDetail}
             options={createStackScreenOptions(t('screens.sleep', { defaultValue: 'Sleep' }), { headerBackTitle: t('navigation.diary', { defaultValue: 'Diary' }) })}
+          />
+          <Stack.Screen
+            name="Settings"
+            component={SafeSettings}
+            options={createStackScreenOptions(t('settings.title', { defaultValue: 'Settings' }), { headerBackButtonDisplayMode: 'minimal' })}
           />
           <Stack.Screen
             name="Logs"

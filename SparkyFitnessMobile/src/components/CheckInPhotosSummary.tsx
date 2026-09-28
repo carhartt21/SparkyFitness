@@ -65,7 +65,7 @@ const CheckInPhotosSummary: React.FC<CheckInPhotosSummaryProps> = ({
         accessibilityLabel={t('progressPhotos.addDayA11y', {
           defaultValue: 'Add progress photos for this day',
         })}
-        className="bg-surface rounded-xl p-4 mb-2 shadow-sm items-center py-6"
+        className="bg-surface rounded-2xl border border-border-subtle p-4 mb-2 items-center py-6"
       >
         <Text className="text-text-muted text-base">
           {t('progressPhotos.tapToAdd', { defaultValue: 'Tap to add photos' })}
@@ -110,7 +110,7 @@ const CheckInPhotosSummary: React.FC<CheckInPhotosSummaryProps> = ({
           <Icon name="chevron-forward" size={14} color={accentPrimary} />
         </View>
 
-        <View className="bg-surface rounded-xl py-3 px-3 shadow-sm flex-row gap-2">
+        <View className="bg-surface rounded-2xl border border-border-subtle py-3 px-3 flex-row gap-2">
           {PHOTO_TYPES.map((type: PhotoType) => {
             const photo = byType.get(type);
             const label = angleLabel(type);

@@ -311,7 +311,7 @@ const WaterContainersScreen: React.FC<WaterContainersScreenProps> = ({
             label: t('waterContainers.goToSettings', {
               defaultValue: 'Go to Settings',
             }),
-            onPress: () => navigation.navigate('Tabs', { screen: 'Settings' }),
+            onPress: () => navigation.navigate('Settings'),
             variant: 'primary',
           }}
         />

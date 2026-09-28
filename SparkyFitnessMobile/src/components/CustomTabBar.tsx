@@ -11,14 +11,15 @@ import { useCSSVariable } from 'uniwind';
 import { useTranslation } from 'react-i18next';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import Icon, { type IconName } from './Icon';
+import { useGlowTheme, withAlpha } from './ui/glow';
 
 export const TAB_BAR_HEIGHT = 56;
 
 const TAB_ICONS: Record<string, IconName> = {
-  Dashboard: 'tab-dashboard',
+  Dashboard: 'tab-home',
   Diary: 'book',
-  Library: 'tab-library',
-  Settings: 'settings',
+  Insights: 'tab-insights',
+  More: 'tab-more',
 };
 
 const CustomTabBar: React.FC<BottomTabBarProps> = ({
@@ -28,6 +29,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const glowing = useGlowTheme();
   const [
     chrome,
     chromeBorder,
@@ -51,7 +53,10 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
         backgroundColor: chrome,
         borderTopColor: chromeBorder,
         borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
         paddingBottom: Math.max(insets.bottom, 4),
+        boxShadow: glowing ? '0px -6px 18px 0px #00000080' : undefined,
       }}
     >
       {state.routes.map((route, index) => {
@@ -97,20 +102,26 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
                 onPress={onPress}
                 onLongPress={onLongPress}
                 activeOpacity={0.8}
-                className="w-14 h-14 rounded-full items-center justify-center -mt-5"
+                className="w-16 h-16 rounded-full items-center justify-center -mt-6"
                 style={{
                   backgroundColor: accentPrimary,
-                  ...Platform.select({
-                    ios: {
-                      shadowColor: '#000',
-                      shadowOffset: { width: 2, height: 4 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 6,
-                    },
-                    android: {
-                      elevation: 4,
-                    },
-                  }),
+                  borderWidth: 3,
+                  borderColor: withAlpha(accentPrimary, 0.45),
+                  ...(glowing
+                    ? {
+                        boxShadow: `0px 0px 22px 2px ${withAlpha(accentPrimary, 0.55)}`,
+                      }
+                    : Platform.select({
+                        ios: {
+                          shadowColor: '#000',
+                          shadowOffset: { width: 2, height: 4 },
+                          shadowOpacity: 0.25,
+                          shadowRadius: 6,
+                        },
+                        android: {
+                          elevation: 4,
+                        },
+                      })),
                 }}
               >
                 <Icon name="add" size={28} color={accentText} weight="bold" />
@@ -154,6 +165,10 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
             >
               {label}
             </Text>
+            <View
+              className="h-0.5 w-6 rounded-full mt-0.5"
+              style={{ backgroundColor: isFocused ? tintColor : 'transparent' }}
+            />
           </TouchableOpacity>
         );
       })}

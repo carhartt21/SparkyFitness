@@ -79,6 +79,7 @@ const ICON_MAP = {
   wrench: { sf: 'wrench', ion: 'build-outline' },
   globe: { sf: 'globe', ion: 'globe-outline' },
   people: { sf: 'person.2.fill', ion: 'people' },
+  person: { sf: 'person.fill', ion: 'person' },
   wifi: { sf: 'wifi', ion: 'wifi-outline' },
 
   // Food
@@ -124,6 +125,9 @@ const ICON_MAP = {
   // Tabs
   'tab-dashboard': { sf: 'square.grid.2x2.fill', ion: 'grid' },
   'tab-library': { sf: 'books.vertical.fill', ion: 'library' },
+  'tab-home': { sf: 'house.fill', ion: 'home' },
+  'tab-insights': { sf: 'lightbulb.fill', ion: 'bulb' },
+  'tab-more': { sf: 'ellipsis', ion: 'ellipsis-horizontal' },
 
   // Charts/Data
   'chart-bar': { sf: 'chart.bar.fill', ion: 'bar-chart' },

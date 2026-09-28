@@ -6,6 +6,7 @@ import { landingKey } from '../../utils/landingLists';
 import type { LandingEntry } from '../../utils/landingLists';
 import { mealToFoodInfo } from '../../types/foodInfo';
 import type { FoodInfoItem } from '../../types/foodInfo';
+import type { FoodItem } from '../../types/foods';
 
 interface LandingEntryRowProps {
   entry: LandingEntry;
@@ -19,6 +20,7 @@ interface LandingEntryRowProps {
    * is selecting, so logging a meal stays one tap.
    */
   selection?: FoodRowSelection;
+  onQuickAdd?: (food: FoodItem) => void;
 }
 
 // A landing row is either a food or a saved meal (tagged with a "Meal" badge
@@ -30,6 +32,7 @@ const LandingEntryRow: React.FC<LandingEntryRowProps> = ({
   favoriteGold,
   onSelect,
   selection,
+  onQuickAdd,
 }) => {
   if (entry.kind === 'meal') {
     return (
@@ -50,6 +53,7 @@ const LandingEntryRow: React.FC<LandingEntryRowProps> = ({
       favoriteGold={favoriteGold}
       onSelect={onSelect}
       selection={selection}
+      onQuickAdd={onQuickAdd}
     />
   );
 };

@@ -60,10 +60,10 @@
 
       --color-calories: #087257;
       --color-energy-track: #d6e5df;
-      --color-macro-protein: #95590f;
-      --color-macro-carbs: #0e7746;
-      --color-macro-fat: #116f8d;
-      --color-macro-fiber: #a3394b;
+      --color-macro-protein: #c93a2e;
+      --color-macro-carbs: #9a7400;
+      --color-macro-fat: #11884a;
+      --color-macro-fiber: #6a4bc4;
 
       --color-hydration: #146f8f;
       --color-exercise: #09785d;
@@ -109,18 +109,29 @@
       --color-wellness-ovulation: hsl(214, 90%, 56%);
       --color-wellness-luteal: hsl(265, 60%, 58%);
       --color-wellness-pregnant: hsl(330, 70%, 60%);
+
+      /* Neon identity in light mode: same hues, darkened for contrast on
+         cream; components swap glow for a soft shadow. */
+      --color-neon-red: #c93a2e;
+      --color-neon-orange: #c2512a;
+      --color-neon-yellow: #9a7400;
+      --color-neon-green: #11884a;
+      --color-neon-mint: #0b7a58;
+      --color-neon-cyan: #0f76a8;
+      --color-neon-violet: #6a4bc4;
+      --color-card-highlight: #ffffff00;
     }
 
     @variant dark {
       --color-brand-primary: #f6f0e3;
       --color-brand-primary-dark: #0b5e46;
-      --color-brand-secondary: #08d6ad;
+      --color-brand-secondary: #14e89a;
       --color-brand-accent: #ff8052;
       --color-brand-supporting: #72c7a8;
-      --color-background-primary: #09161d;
-      --color-background-secondary: #0e2028;
-      --color-surface-primary: #13272f;
-      --color-surface-elevated: #1d343e;
+      --color-background-primary: #020c10;
+      --color-background-secondary: #06151a;
+      --color-surface-primary: #08181e;
+      --color-surface-elevated: #10242b;
       --color-text-tertiary: #99b2bf;
       --color-separator: #30474f;
       --color-positive: #08d6ad;
@@ -133,12 +144,12 @@
       --color-background: var(--color-background-primary);
       --color-surface: var(--color-surface-primary);
       --color-raised: var(--color-surface-elevated);
-      --color-chrome: #09161d;
+      --color-chrome: #040f14;
 
-      --color-border-subtle: #30474f;
-      --color-border: #405963;
+      --color-border-subtle: #17313a;
+      --color-border: #22404a;
       --color-border-strong: #66828e;
-      --color-chrome-border: hsl(220, 18%, 16%);
+      --color-chrome-border: #10252c;
 
       --color-text-primary: #edf5f7;
       --color-text-secondary: #b4c8d2;
@@ -147,7 +158,7 @@
 
       --color-accent-primary: var(--color-brand-secondary);
       --color-accent-muted: var(--color-brand-supporting);
-      --color-accent-text: #09161d;
+      --color-accent-text: #02140c;
 
       --color-text-link: var(--color-brand-secondary);
 
@@ -156,19 +167,19 @@
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 26%);
 
-      --color-calories: #08dfb4;
-      --color-energy-track: #154b47;
-      --color-macro-protein: #f4bd4c;
-      --color-macro-carbs: #65d99a;
-      --color-macro-fat: #4ec6e8;
-      --color-macro-fiber: #ff7c83;
+      --color-calories: #3ff276;
+      --color-energy-track: #12302a;
+      --color-macro-protein: #ff5146;
+      --color-macro-carbs: #fdd32b;
+      --color-macro-fat: #45f07a;
+      --color-macro-fiber: #b08cff;
 
-      --color-hydration: #39c9f1;
-      --color-exercise: #21ddb0;
-      --color-activity-energy: #ff8052;
-      --color-action-food: #ff795a;
-      --color-action-training: #f6d743;
-      --color-action-scan: #31dfa0;
+      --color-hydration: #22b8f5;
+      --color-exercise: #fcd533;
+      --color-activity-energy: #ff6a3d;
+      --color-action-food: #ff5a3c;
+      --color-action-training: #fcd533;
+      --color-action-scan: #3ff276;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);
@@ -179,8 +190,8 @@
       --color-cat-teal: hsl(182, 35%, 52%);
       --color-cat-amber: hsl(40, 60%, 58%);
 
-      --color-progress-track: #2b424c;
-      --color-progress-rail: #20363f;
+      --color-progress-track: #1a2c33;
+      --color-progress-rail: #12222a;
       --color-progress-overfill: hsl(357, 66%, 65%);
 
       --color-bg-success: hsl(159, 35%, 19%);
@@ -206,18 +217,29 @@
       --color-wellness-ovulation: hsl(214, 90%, 66%);
       --color-wellness-luteal: hsl(265, 60%, 68%);
       --color-wellness-pregnant: hsl(330, 70%, 68%);
+
+      /* Neon identity (mockup-sampled). Glow colors for cards, tiles and
+         progress; hex so components can derive translucent fills. */
+      --color-neon-red: #ff4d3f;
+      --color-neon-orange: #ff6a3d;
+      --color-neon-yellow: #fcd533;
+      --color-neon-green: #3ff276;
+      --color-neon-mint: #14e89a;
+      --color-neon-cyan: #22b8f5;
+      --color-neon-violet: #b08cff;
+      --color-card-highlight: #ffffff08;
     }
 
     @variant amoled {
       --color-brand-primary: #f6f0e3;
       --color-brand-primary-dark: #0b5e46;
-      --color-brand-secondary: #11a67e;
+      --color-brand-secondary: #14e89a;
       --color-brand-accent: #ff8052;
       --color-brand-supporting: #72c7a8;
       --color-background-primary: #000000;
-      --color-background-secondary: #101913;
-      --color-surface-primary: #19251c;
-      --color-surface-elevated: #253329;
+      --color-background-secondary: #050b0d;
+      --color-surface-primary: #071114;
+      --color-surface-elevated: #0e1c20;
       --color-text-tertiary: #91a699;
       --color-separator: #30473b;
       --color-positive: #11a67e;
@@ -232,8 +254,8 @@
       --color-raised: var(--color-surface-elevated);
       --color-chrome: hsla(0, 0%, 0%, 0.9);
 
-      --color-border-subtle: #304335;
-      --color-border: #3c5141;
+      --color-border-subtle: #16292f;
+      --color-border: #20383f;
       --color-border-strong: #506954;
       --color-chrome-border: hsl(220, 18%, 11%);
 
@@ -244,7 +266,7 @@
 
       --color-accent-primary: var(--color-brand-secondary);
       --color-accent-muted: var(--color-brand-supporting);
-      --color-accent-text: #000000;
+      --color-accent-text: #02140c;
 
       --color-text-link: var(--color-brand-secondary);
 
@@ -253,19 +275,19 @@
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 18%);
 
-      --color-calories: #1bd8ad;
-      --color-energy-track: #24524a;
-      --color-macro-protein: #f4bd4c;
-      --color-macro-carbs: #65d99a;
-      --color-macro-fat: #4ec6e8;
-      --color-macro-fiber: #ff7c83;
+      --color-calories: #3ff276;
+      --color-energy-track: #10281f;
+      --color-macro-protein: #ff5146;
+      --color-macro-carbs: #fdd32b;
+      --color-macro-fat: #45f07a;
+      --color-macro-fiber: #b08cff;
 
-      --color-hydration: hsl(200, 50%, 52%);
-      --color-exercise: #21ddb0;
-      --color-activity-energy: #ff8052;
-      --color-action-food: #ff795a;
-      --color-action-training: #f6d743;
-      --color-action-scan: #31dfa0;
+      --color-hydration: #22b8f5;
+      --color-exercise: #fcd533;
+      --color-activity-energy: #ff6a3d;
+      --color-action-food: #ff5a3c;
+      --color-action-training: #fcd533;
+      --color-action-scan: #3ff276;
 
       --color-cat-slate: hsl(220, 10%, 48%);
       --color-cat-pink: hsl(340, 50%, 60%);
@@ -276,7 +298,7 @@
       --color-cat-teal: hsl(182, 35%, 52%);
       --color-cat-amber: hsl(40, 60%, 58%);
 
-      --color-progress-track: hsl(218, 41%, 15%);
+      --color-progress-track: #16252b;
       --color-progress-rail: hsl(218, 41%, 9%);
       --color-progress-overfill: hsl(357, 66%, 65%);
 
@@ -302,6 +324,17 @@
       --color-wellness-ovulation: hsl(214, 90%, 66%);
       --color-wellness-luteal: hsl(265, 60%, 68%);
       --color-wellness-pregnant: hsl(330, 70%, 68%);
+
+      /* Neon identity (mockup-sampled). Glow colors for cards, tiles and
+         progress; hex so components can derive translucent fills. */
+      --color-neon-red: #ff4d3f;
+      --color-neon-orange: #ff6a3d;
+      --color-neon-yellow: #fcd533;
+      --color-neon-green: #3ff276;
+      --color-neon-mint: #14e89a;
+      --color-neon-cyan: #22b8f5;
+      --color-neon-violet: #b08cff;
+      --color-card-highlight: #ffffff08;
     }
   }
 }

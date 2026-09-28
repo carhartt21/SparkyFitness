@@ -20,6 +20,8 @@ interface DateNavigatorProps {
   skipTopInset?: boolean;
   skipHorizontalPadding?: boolean;
   compact?: boolean;
+  /** Rendered before the title, e.g. the tab-level Settings button. */
+  leading?: React.ReactNode;
   action?: {
     icon: IconName;
     accessibilityLabel: string;
@@ -49,6 +51,7 @@ const DateNavigator: React.FC<DateNavigatorProps> = ({
   skipTopInset,
   skipHorizontalPadding,
   compact,
+  leading,
   action,
   dateControls,
 }) => {
@@ -98,6 +101,7 @@ const DateNavigator: React.FC<DateNavigatorProps> = ({
       }`}
     >
       <View className="flex-row items-center">
+        {leading ? <View className="mr-3">{leading}</View> : null}
         <Text className="text-2xl font-bold text-text-primary">{title}</Text>
         {action ? (
           <TouchableOpacity

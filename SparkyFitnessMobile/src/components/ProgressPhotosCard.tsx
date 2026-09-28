@@ -89,7 +89,7 @@ const ProgressPhotosCard: React.FC<ProgressPhotosCardProps> = ({
         accessibilityLabel={t('progressPhotos.addDayA11y', {
           defaultValue: 'Add progress photos for this day',
         })}
-        className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
+        className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3"
       >
         <Text className="text-md font-bold text-text-primary mb-4">
           {t('progressPhotos.card.title', { defaultValue: 'Progress' })}
@@ -111,7 +111,7 @@ const ProgressPhotosCard: React.FC<ProgressPhotosCardProps> = ({
       accessibilityLabel={t('progressPhotos.card.openA11y', {
         defaultValue: 'View progress photos',
       })}
-      className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
+      className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3"
     >
       <View className="flex-row items-center justify-between mb-2">
         <Text className="font-bold text-text-secondary">

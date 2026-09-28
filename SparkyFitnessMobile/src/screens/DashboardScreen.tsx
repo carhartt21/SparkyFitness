@@ -6,7 +6,6 @@ import type { CompositeScreenProps } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQueryClient } from '@tanstack/react-query';
-import { hasSupplementNutrition } from '@workspace/shared';
 import React, {
   useCallback,
   useEffect,
@@ -36,6 +35,7 @@ import CalendarSheet, {
 import CalorieRingCard from '../components/CalorieRingCard';
 import CycleCard from '../components/CycleCard';
 import DashboardHeader from '../components/DashboardHeader';
+import { settingsButtonLabel } from '../components/SettingsHeaderButton';
 import DashboardDayOverview from '../components/DashboardDayOverview';
 import ExerciseProgressCard from '../components/ExerciseProgressCard';
 import FastingCard from '../components/FastingCard';
@@ -52,6 +52,9 @@ import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
 import { reconcileNutritionActions } from '../services/nutritionActionSync';
 import CaffeineCard from '../components/CaffeineCard';
 import Icon from '../components/Icon';
+import ActionTile from '../components/ui/ActionTile';
+import GlowCard from '../components/ui/GlowCard';
+import ScreenBackground from '../components/ui/ScreenBackground';
 import MacroCard from '../components/MacroCard';
 import MedicationsCard from '../components/MedicationsCard';
 import ProgressPhotosCard from '../components/ProgressPhotosCard';
@@ -84,13 +87,18 @@ import {
   selectVisibleHealthTrends,
 } from '../utils/healthTrendPreferences';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
-import { formatDate } from '../utils/dateUtils';
+import { formatDate, getTodayDate } from '../utils/dateUtils';
 import {
   setNativeHeaderDatePickerOptions,
   type NativeHeaderDatePickerNavigation,
 } from '../utils/nativeHeaderDatePicker';
 import { getNetCarbsValue } from '../utils/nutrientUtils';
-import { weightFromKg } from '../utils/unitConversions';
+import {
+  WATER_UNIT_LABELS,
+  formatVolumeForUnit,
+  volumeFromMl,
+  weightFromKg,
+} from '../utils/unitConversions';
 
 const RANGE_SEGMENTS = (
   t: (key: string, options: { defaultValue: string }) => string
@@ -151,6 +159,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   );
   const usesNativeTabs = useNativeIOSTabsActive();
   const insets = useSafeAreaInsets();
+  const openSettings = useCallback(
+    () => navigation.navigate('Settings'),
+    [navigation]
+  );
   const { defaultColor: nativeHeaderActionColor } = useHeaderActionColors();
   const syncNativeHeaderDatePicker = useCallback(() => {
     if (!usesNativeTabs) return;
@@ -173,11 +185,17 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         dateLabel: `${formatDate(selectedDate, dateLocale)} ▾`,
         t,
         locale: dateLocale,
+        settingsAction: {
+          onPress: openSettings,
+          accessibilityLabel: settingsButtonLabel(t),
+          placement: 'right',
+        },
       }
     );
   }, [
     goToNextDay,
     goToPreviousDay,
+    openSettings,
     nativeHeaderActionColor,
     navigation,
     openCalendar,
@@ -367,7 +385,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     '--color-progress-overfill',
   ]) as [string, string, string, string, string];
 
-  const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const [accentColor, textSecondary] = useCSSVariable([
+    '--color-accent-primary',
+    '--color-text-secondary',
+  ]) as [string, string];
   const [
     foodActionColor,
     trainingActionColor,
@@ -512,6 +533,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         <View className="flex-1 px-4 pb-4">
           {!usesNativeTabs && (
             <DashboardHeader
+              onSettings={openSettings}
               selectedDate={selectedDate}
               onPreviousDay={goToPreviousDay}
               onNextDay={goToNextDay}
@@ -550,24 +572,33 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     const showNetCarbs = preferences.show_net_carbs === true;
 
     const quickActions = (
-      <View className="flex-row flex-wrap gap-2 mt-3">
+      <View
+        className="flex-row flex-wrap mb-3"
+        style={{ gap: 8 }}
+        testID="dashboard-quick-actions"
+      >
         {[
           {
-            label: t('dashboard.quickFood', { defaultValue: 'Food' }),
+            key: 'food',
+            label: t('dashboard.quickFood', { defaultValue: 'Log food' }),
             icon: 'food' as const,
             color: foodActionColor,
             onPress: () =>
               navigation.navigate('FoodSearch', { date: selectedDate }),
           },
           {
-            label: t('dashboard.quickExercise', { defaultValue: 'Exercise' }),
+            key: 'exercise-running',
+            label: t('dashboard.quickExercise', {
+              defaultValue: 'Log exercise',
+            }),
             icon: 'exercise-running' as const,
             color: trainingActionColor,
             onPress: () =>
               addSheetRef.current?.present({ initialMenu: 'exercise' }),
           },
           {
-            label: t('dashboard.quickWater', { defaultValue: 'Water' }),
+            key: 'water',
+            label: t('dashboard.quickWater', { defaultValue: 'Log water' }),
             icon: 'water' as const,
             color: waterActionColor,
             onPress: () =>
@@ -576,43 +607,201 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 : navigation.navigate('WaterContainers'),
           },
           {
+            key: 'scan',
             label: t('dashboard.quickScan', { defaultValue: 'Scan' }),
+            sublabel: t('dashboard.quickScanDetail', {
+              defaultValue: 'Food label',
+            }),
             icon: 'scan' as const,
             color: scanActionColor,
             onPress: () =>
               navigation.navigate('FoodScan', { date: selectedDate }),
           },
         ].map((action) => (
-          <Pressable
-            testID={`dashboard-${action.icon}`}
-            key={action.label}
-            accessibilityRole="button"
-            accessibilityLabel={action.label}
+          <ActionTile
+            testID={`dashboard-${action.key}`}
+            key={action.key}
+            label={action.label}
+            sublabel={action.sublabel}
+            icon={action.icon}
+            color={action.color}
             onPress={action.onPress}
             style={{
               flexBasis: fontScale > 1.3 ? '46%' : '21%',
               flexGrow: 1,
-              minHeight: 60,
-              borderColor: `${action.color}66`,
             }}
-            className="items-center justify-center rounded-xl border border-border-subtle bg-raised px-1 py-2"
-          >
-            <Icon name={action.icon} size={23} color={action.color} />
-            <Text
-              className="mt-2 text-center text-xs font-medium text-text-primary"
-              maxFontSizeMultiplier={1.8}
-            >
-              {action.label}
-            </Text>
-          </Pressable>
+          />
         ))}
       </View>
     );
+    // Macronutrients and Hydration share a row at ordinary text sizes, as in
+    // the reference; larger text stacks them at full width.
+    const pairSummaries = fontScale <= 1.3 && hydrationCardVisible;
+    const macrosCard =
+      summaryNutrients.length > 0
+        ? (() => {
+            const CORE_MACROS = new Set([
+              'protein',
+              'carbs',
+              'fat',
+              'dietary_fiber',
+            ]);
+            const customNutrientNames = new Set(
+              customNutrients.map((cn) => cn.name)
+            );
+            const dashboardNutrients = summaryNutrients.filter(
+              (key) => CORE_MACROS.has(key) || customNutrientNames.has(key)
+            );
+            if (dashboardNutrients.length === 0) return null;
+            return (
+              <GlowCard
+                glowColor={proteinColor}
+                className={pairSummaries ? 'p-3 flex-1' : 'p-3 mb-3'}
+                testID="dashboard-macros"
+              >
+                <Pressable
+                  onPress={() =>
+                    navigation.navigate('DailyNutritionDetails', {
+                      date: summary.date,
+                    })
+                  }
+                  accessibilityRole="button"
+                  accessibilityLabel={`${t('dashboard.macronutrients', {
+                    defaultValue: 'Macronutrients',
+                  })}: ${t('common.details', { defaultValue: 'Details' })}`}
+                  className="flex-row items-center min-h-11 mb-1 gap-2"
+                >
+                  <Icon name="chart-bar" size={18} color={textSecondary} />
+                  <View className="flex-1">
+                    <Text
+                      className="text-[15px] font-semibold text-text-primary"
+                      maxFontSizeMultiplier={1.8}
+                      numberOfLines={pairSummaries ? 1 : undefined}
+                      adjustsFontSizeToFit={pairSummaries}
+                      minimumFontScale={0.8}
+                    >
+                      {t('dashboard.macronutrients', {
+                        defaultValue: 'Macronutrients',
+                      })}
+                    </Text>
+                    {goal > 0 ? (
+                      <Text
+                        className="text-[11px] text-text-secondary"
+                        maxFontSizeMultiplier={1.8}
+                      >
+                        {t('dashboard.targetKcal', {
+                          defaultValue: 'Target {{value}} kcal',
+                          value: formatLocalizedNumber(Math.round(goal)),
+                        })}
+                      </Text>
+                    ) : null}
+                  </View>
+                  <Icon
+                    name="chevron-forward"
+                    size={16}
+                    color={textSecondary}
+                  />
+                </Pressable>
+                <View className="flex-row flex-wrap justify-between">
+                  {dashboardNutrients.map((nutrientKey) => {
+                    // Resolve display label and unit.
+                    const meta = NUTRIENT_META[nutrientKey];
+                    const customDef = !meta
+                      ? customNutrients.find((cn) => cn.name === nutrientKey)
+                      : undefined;
+                    const label = meta
+                      ? getNutrientLabel(t, nutrientKey)
+                      : (customDef?.name ?? nutrientKey);
+                    const unit = meta?.unit ?? customDef?.unit ?? 'g';
+
+                    // Use theme-aware CSS variable colors for the 4 core macros;
+                    // custom nutrients fall back to the app accent color.
+                    let color: string;
+                    if (nutrientKey === 'protein') color = proteinColor;
+                    else if (nutrientKey === 'carbs') color = carbsColor;
+                    else if (nutrientKey === 'fat') color = fatColor;
+                    else if (nutrientKey === 'dietary_fiber')
+                      color = fiberColor;
+                    else color = accentColor;
+
+                    // Resolve consumed value.
+                    let consumed: number;
+                    if (nutrientKey === 'carbs' && showNetCarbs) {
+                      consumed = getNetCarbsValue(
+                        summary.carbs.consumed,
+                        summary.fiber.consumed
+                      );
+                    } else if (nutrientKey === 'protein') {
+                      consumed = summary.protein.consumed;
+                    } else if (nutrientKey === 'carbs') {
+                      consumed = summary.carbs.consumed;
+                    } else if (nutrientKey === 'fat') {
+                      consumed = summary.fat.consumed;
+                    } else if (nutrientKey === 'dietary_fiber') {
+                      consumed = summary.fiber.consumed;
+                    } else {
+                      consumed = summary.customNutrientTotals[nutrientKey] ?? 0;
+                    }
+
+                    // Resolve goal. Core macros use their tracked goals; custom
+                    // nutrients use their per-nutrient goal when one is set. When a
+                    // custom nutrient has no goal, `goal` stays undefined and
+                    // MacroCard hides the "/0".
+                    let goal: number | undefined;
+                    if (nutrientKey === 'protein')
+                      goal = summary.protein.goal || undefined;
+                    else if (nutrientKey === 'carbs')
+                      goal = summary.carbs.goal || undefined;
+                    else if (nutrientKey === 'fat')
+                      goal = summary.fat.goal || undefined;
+                    else if (nutrientKey === 'dietary_fiber')
+                      goal = summary.fiber.goal || undefined;
+                    else
+                      goal =
+                        summary.customNutrientGoals[nutrientKey] || undefined;
+
+                    const displayLabel =
+                      nutrientKey === 'carbs' && showNetCarbs
+                        ? t('nutrients.netCarbs', {
+                            defaultValue: 'Net Carbs',
+                          })
+                        : label;
+
+                    return (
+                      <MacroCard
+                        key={nutrientKey}
+                        label={displayLabel}
+                        compactLabel={
+                          nutrientKey === 'carbs'
+                            ? showNetCarbs
+                              ? t('foodEntryAdd.labels.netCarbsShort', {
+                                  defaultValue: 'Net carbs',
+                                })
+                              : t('foodEntryAdd.labels.carbsShort', {
+                                  defaultValue: 'Carbs',
+                                })
+                            : undefined
+                        }
+                        consumed={consumed}
+                        goal={goal}
+                        color={color}
+                        overfillColor={progressTrackOverfillColor}
+                        unit={unit}
+                        row
+                        widthClassName="w-full"
+                      />
+                    );
+                  })}
+                </View>
+              </GlowCard>
+            );
+          })()
+        : null;
     return (
       <ScrollView
         testID="dashboard-scroll"
         ref={scrollViewRef}
-        className="flex-1 bg-background"
+        className="flex-1"
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: 16,
@@ -632,6 +821,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
       >
         {!usesNativeTabs && (
           <DashboardHeader
+            onSettings={openSettings}
             selectedDate={selectedDate}
             onPreviousDay={goToPreviousDay}
             onNextDay={goToNextDay}
@@ -665,9 +855,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           calorieGoal={goal}
           remainingCalories={remaining}
           progressPercent={progress / 100}
-        >
-          {quickActions}
-        </CalorieRingCard>
+          onEditGoal={() => navigation.navigate('CalorieSettings')}
+          onConsumedPress={() => navigation.navigate('Diary', { selectedDate })}
+          onBurnedPress={() =>
+            navigation.navigate('ExerciseReview', { date: selectedDate })
+          }
+        />
+        {quickActions}
         {/* Macros Section — driven by nutrient display preferences (summary/mobile).
             Only the 4 core macros (with goals) and user-defined custom nutrients are
             shown here. Other enabled nutrients (sodium, sugars, etc.) belong in a
@@ -675,156 +869,52 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         {/* Supplements count toward these figures, so a day with a logged supplement and no
             meal still has macros to show. Gating on food rows alone hid the card while the
             ring above it displayed the supplement's calories. */}
-        {(summary.foodEntries.length > 0 ||
-          hasSupplementNutrition(summary.supplementTotals)) &&
-        summaryNutrients.length > 0
-          ? (() => {
-              const CORE_MACROS = new Set([
-                'protein',
-                'carbs',
-                'fat',
-                'dietary_fiber',
-              ]);
-              const customNutrientNames = new Set(
-                customNutrients.map((cn) => cn.name)
-              );
-              const dashboardNutrients = summaryNutrients.filter(
-                (key) => CORE_MACROS.has(key) || customNutrientNames.has(key)
-              );
-              if (dashboardNutrients.length === 0) return null;
-              return (
-                <View className="bg-surface rounded-2xl border border-border-subtle p-3 mb-3">
-                  <Pressable
-                    onPress={() =>
-                      navigation.navigate('DailyNutritionDetails', {
-                        date: summary.date,
-                      })
-                    }
-                    accessibilityRole="button"
-                    className="flex-row justify-between items-center min-h-11 mb-1 gap-3"
-                  >
-                    <Text
-                      className="text-base font-semibold text-text-primary flex-shrink"
-                      maxFontSizeMultiplier={1.8}
-                    >
-                      {t('dashboard.nutrients', { defaultValue: 'Nutrients' })}
-                    </Text>
-                    <View className="flex-row items-center">
-                      <Text
-                        className="text-xs font-semibold text-accent-primary mr-1"
-                        maxFontSizeMultiplier={1.8}
-                      >
-                        {t('common.details', { defaultValue: 'Details' })}
-                      </Text>
-                      <Icon
-                        name="chevron-forward"
-                        size={14}
-                        color={accentColor}
-                      />
-                    </View>
-                  </Pressable>
-                  <View className="flex-row flex-wrap justify-between">
-                    {dashboardNutrients.map((nutrientKey) => {
-                      // Resolve display label and unit.
-                      const meta = NUTRIENT_META[nutrientKey];
-                      const customDef = !meta
-                        ? customNutrients.find((cn) => cn.name === nutrientKey)
-                        : undefined;
-                      const label = meta
-                        ? getNutrientLabel(t, nutrientKey)
-                        : (customDef?.name ?? nutrientKey);
-                      const unit = meta?.unit ?? customDef?.unit ?? 'g';
 
-                      // Use theme-aware CSS variable colors for the 4 core macros;
-                      // custom nutrients fall back to the app accent color.
-                      let color: string;
-                      if (nutrientKey === 'protein') color = proteinColor;
-                      else if (nutrientKey === 'carbs') color = carbsColor;
-                      else if (nutrientKey === 'fat') color = fatColor;
-                      else if (nutrientKey === 'dietary_fiber')
-                        color = fiberColor;
-                      else color = accentColor;
-
-                      // Resolve consumed value.
-                      let consumed: number;
-                      if (nutrientKey === 'carbs' && showNetCarbs) {
-                        consumed = getNetCarbsValue(
-                          summary.carbs.consumed,
-                          summary.fiber.consumed
-                        );
-                      } else if (nutrientKey === 'protein') {
-                        consumed = summary.protein.consumed;
-                      } else if (nutrientKey === 'carbs') {
-                        consumed = summary.carbs.consumed;
-                      } else if (nutrientKey === 'fat') {
-                        consumed = summary.fat.consumed;
-                      } else if (nutrientKey === 'dietary_fiber') {
-                        consumed = summary.fiber.consumed;
-                      } else {
-                        consumed =
-                          summary.customNutrientTotals[nutrientKey] ?? 0;
-                      }
-
-                      // Resolve goal. Core macros use their tracked goals; custom
-                      // nutrients use their per-nutrient goal when one is set. When a
-                      // custom nutrient has no goal, `goal` stays undefined and
-                      // MacroCard hides the "/0".
-                      let goal: number | undefined;
-                      if (nutrientKey === 'protein')
-                        goal = summary.protein.goal || undefined;
-                      else if (nutrientKey === 'carbs')
-                        goal = summary.carbs.goal || undefined;
-                      else if (nutrientKey === 'fat')
-                        goal = summary.fat.goal || undefined;
-                      else if (nutrientKey === 'dietary_fiber')
-                        goal = summary.fiber.goal || undefined;
-                      else
-                        goal =
-                          summary.customNutrientGoals[nutrientKey] || undefined;
-
-                      const displayLabel =
-                        nutrientKey === 'carbs' && showNetCarbs
-                          ? t('nutrients.netCarbs', {
-                              defaultValue: 'Net Carbs',
-                            })
-                          : label;
-
-                      return (
-                        <MacroCard
-                          key={nutrientKey}
-                          label={displayLabel}
-                          compactLabel={
-                            nutrientKey === 'carbs'
-                              ? showNetCarbs
-                                ? t('foodEntryAdd.labels.netCarbsShort', {
-                                    defaultValue: 'Net carbs',
-                                  })
-                                : t('foodEntryAdd.labels.carbsShort', {
-                                    defaultValue: 'Carbs',
-                                  })
-                              : undefined
-                          }
-                          consumed={consumed}
-                          goal={goal}
-                          color={color}
-                          overfillColor={progressTrackOverfillColor}
-                          unit={unit}
-                          row
-                          widthClassName="w-full"
-                        />
-                      );
-                    })}
-                  </View>
-                </View>
-              );
-            })()
-          : null}
-
-        <View>
-          {hydrationCardVisible && (
-            <View className="w-full">
-              {hydrationCardVisible && (
+        {pairSummaries ? (
+          <View className="flex-row mb-3" style={{ gap: 10 }}>
+            {macrosCard}
+            <HydrationGauge
+              variant="tile"
+              onDetails={() => setHydrationDetailsVisible(true)}
+              consumed={summary.waterConsumed}
+              goal={summary.waterGoal}
+              fromFoodMl={summary.waterFromFood}
+              pendingMl={manualWater.pendingMl}
+              attentionMl={manualWater.attentionMl}
+              pendingContainerCount={manualWater.pendingContainerCount}
+              attentionContainerCount={manualWater.attentionContainerCount}
+              pendingStorageError={manualWater.storageError}
+              onRetryAttention={retrySavedWater}
+              retryingAttention={retryingSavedWater}
+              unit={waterDisplayUnit}
+              containerVolume={servingVolume}
+              linkedPressLabel={linkedPressLabel}
+              onConfigure={
+                isContainersLoaded && !activeWaterContainer
+                  ? () => navigation.navigate('WaterContainers')
+                  : undefined
+              }
+              onIncrement={isContainersLoaded ? incrementWater : undefined}
+              onDecrement={isContainersLoaded ? decrementWater : undefined}
+              disableDecrement={summary.waterConsumed <= 0}
+              containers={waterContainers}
+              activeContainerId={activeWaterContainer?.id}
+              onSelectContainer={selectWaterContainer}
+              quickAddPresets={quickAddOptions}
+              onQuickAdd={
+                isContainersLoaded
+                  ? (id: number) => logWaterPreset(id)
+                  : undefined
+              }
+            />
+          </View>
+        ) : (
+          <>
+            {macrosCard}
+            {hydrationCardVisible && (
+              <View className="mb-3">
                 <HydrationGauge
+                  variant="tile"
                   onDetails={() => setHydrationDetailsVisible(true)}
                   consumed={summary.waterConsumed}
                   goal={summary.waterGoal}
@@ -857,24 +947,55 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                       : undefined
                   }
                 />
-              )}
-            </View>
-          )}
-          <View className="w-full">
-            <ExerciseProgressCard
-              onDetails={() =>
-                navigation.navigate('ExerciseReview', { date: selectedDate })
-              }
-              onLog={() =>
-                addSheetRef.current?.present({ initialMenu: 'exercise' })
-              }
-              exerciseMinutes={summary.exerciseMinutes}
-              exerciseMinutesGoal={summary.exerciseMinutesGoal}
-              exerciseCalories={summary.otherExerciseCalories}
-              exerciseCaloriesGoal={summary.exerciseCaloriesGoal}
-            />
-          </View>
-        </View>
+              </View>
+            )}
+          </>
+        )}
+        {hydrationCardVisible && (
+          <HydrationGauge
+            variant="options"
+            onDetails={() => setHydrationDetailsVisible(true)}
+            consumed={summary.waterConsumed}
+            goal={summary.waterGoal}
+            fromFoodMl={summary.waterFromFood}
+            pendingMl={manualWater.pendingMl}
+            attentionMl={manualWater.attentionMl}
+            pendingContainerCount={manualWater.pendingContainerCount}
+            attentionContainerCount={manualWater.attentionContainerCount}
+            pendingStorageError={manualWater.storageError}
+            onRetryAttention={retrySavedWater}
+            retryingAttention={retryingSavedWater}
+            unit={waterDisplayUnit}
+            containerVolume={servingVolume}
+            linkedPressLabel={linkedPressLabel}
+            onConfigure={
+              isContainersLoaded && !activeWaterContainer
+                ? () => navigation.navigate('WaterContainers')
+                : undefined
+            }
+            onIncrement={isContainersLoaded ? incrementWater : undefined}
+            onDecrement={isContainersLoaded ? decrementWater : undefined}
+            disableDecrement={summary.waterConsumed <= 0}
+            containers={waterContainers}
+            activeContainerId={activeWaterContainer?.id}
+            onSelectContainer={selectWaterContainer}
+            quickAddPresets={quickAddOptions}
+            onQuickAdd={
+              isContainersLoaded
+                ? (id: number) => logWaterPreset(id)
+                : undefined
+            }
+          />
+        )}
+        <ExerciseProgressCard
+          onDetails={() =>
+            navigation.navigate('ExerciseReview', { date: selectedDate })
+          }
+          exerciseMinutes={summary.exerciseMinutes}
+          exerciseMinutesGoal={summary.exerciseMinutesGoal}
+          exerciseCalories={summary.otherExerciseCalories}
+          exerciseCaloriesGoal={summary.exerciseCaloriesGoal}
+        />
         <HydrationDetailsModal
           visible={hydrationDetailsVisible}
           date={selectedDate}
@@ -887,7 +1008,20 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         />
         <DashboardDayOverview
           summary={summary}
+          isToday={selectedDate === getTodayDate()}
           onOpenDiary={() => navigation.navigate('Diary', { selectedDate })}
+          onOpenExercise={() =>
+            navigation.navigate('ExerciseReview', { date: selectedDate })
+          }
+          water={
+            summary.waterConsumed > 0
+              ? `${formatVolumeForUnit(
+                  volumeFromMl(summary.waterConsumed, waterDisplayUnit),
+                  waterDisplayUnit
+                )} ${WATER_UNIT_LABELS[waterDisplayUnit] ?? waterDisplayUnit}`
+              : null
+          }
+          onOpenWater={() => setHydrationDetailsVisible(true)}
         />
         {/* Tap-to-open launcher for Trackbot chat. Styled like an input to
             invite, but it pushes the full chat screen rather than capturing text
@@ -896,15 +1030,16 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             on arrival so the affordance is honored immediately. Visibility is a
             local app setting toggled from Dashboard Settings. */}
         {askSparkyVisible && (
-          <Pressable
+          <GlowCard
             onPress={() => navigation.navigate('Chat')}
-            className="flex-row items-center bg-surface rounded-lg  px-4 py-3 mb-3 shadow-sm"
+            glowColor={accentColor}
+            className="flex-row items-center px-4 py-3 mb-3 min-h-12"
           >
             <Icon name="sparkles" size={18} color={accentColor} />
             <Text className="text-text-muted text-base ml-3">
               {t('dashboard.askSparky', { defaultValue: 'Ask Trackbot…' })}
             </Text>
-          </Pressable>
+          </GlowCard>
         )}
 
         {/* Active caffeine, like hydration, is a local visibility setting. The
@@ -969,7 +1104,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
 
   if (usesNativeTabs) {
     return (
-      <>
+      <View className="flex-1 bg-background">
+        <ScreenBackground />
         {renderedContent}
         <CalendarSheet
           ref={calendarRef}
@@ -977,12 +1113,13 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           onSelectDate={handleCalendarSelect}
           markedDates={photoDates}
         />
-      </>
+      </View>
     );
   }
 
   return (
     <View className="flex-1 bg-background" style={{ paddingTop: insets.top }}>
+      <ScreenBackground />
       {renderedContent}
       <CalendarSheet
         ref={calendarRef}

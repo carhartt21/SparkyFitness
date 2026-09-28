@@ -86,7 +86,7 @@ const FastingCard: React.FC<FastingCardProps> = ({ navigation }) => {
   // Loading placeholder (current-fast query still resolving).
   if (isLoading && !currentFast) {
     return (
-      <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
+      <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
         <View className="flex-row items-center justify-between">
           <Text className="text-md font-bold text-text-secondary">
             {t('fastingCard.title', { defaultValue: 'Fasting' })}
@@ -103,7 +103,7 @@ const FastingCard: React.FC<FastingCardProps> = ({ navigation }) => {
     return (
       <>
         <Pressable
-          className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
+          className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3"
           onPress={() => navigation.navigate('FastingDetail')}
           accessibilityRole="button"
           accessibilityLabel={t('fastingCard.openDetails', {
@@ -234,7 +234,7 @@ const FastingCard: React.FC<FastingCardProps> = ({ navigation }) => {
   return (
     <>
       <Pressable
-        className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
+        className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3"
         onPress={openProtocolSheet}
         accessibilityRole="button"
         accessibilityLabel={t('fastingCard.startFast', {

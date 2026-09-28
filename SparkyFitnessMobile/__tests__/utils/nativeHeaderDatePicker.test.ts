@@ -116,4 +116,33 @@ describe('nativeHeaderDatePicker', () => {
 
     expect(configuredOptions.unstable_headerLeftItems).toBeUndefined();
   });
+  it('places the settings action before the leading action', () => {
+    const openSettings = jest.fn();
+    const setOptions = jest.fn();
+
+    setNativeHeaderDatePickerOptions(
+      { setOptions },
+      {
+        ...options,
+        settingsAction: {
+          onPress: openSettings,
+          accessibilityLabel: 'Open settings',
+        },
+        leadingAction: {
+          sfSymbol: 'person.2.fill',
+          onPress: jest.fn(),
+          accessibilityLabel: 'Open family diaries',
+          identifier: 'family-diaries',
+        },
+      }
+    );
+
+    const leadingItems =
+      setOptions.mock.calls[0]?.[0].unstable_headerLeftItems();
+    expect(
+      leadingItems.map((item: { identifier: string }) => item.identifier)
+    ).toEqual(['open-settings', 'family-diaries']);
+    leadingItems[0]?.onPress();
+    expect(openSettings).toHaveBeenCalledTimes(1);
+  });
 });

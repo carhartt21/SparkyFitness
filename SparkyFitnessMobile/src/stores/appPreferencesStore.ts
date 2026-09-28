@@ -71,7 +71,8 @@ export const PREFERENCE_DEFAULTS = {
   movementBreakReminderTime: '15:00' as string,
   liquidGlassTabBarEnabled: false,
   activeWorkoutMetricColumn: 'rpe' as ActiveWorkoutMetricColumn,
-  diarySummaryVisible: false,
+  // The reference Diary leads with the calorie/macro rings; users can hide it.
+  diarySummaryVisible: true,
   diarySummaryExpanded: false,
   defaultRestSec: DEFAULT_REST_SEC as number,
   restTimerSoundEnabled: true,

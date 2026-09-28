@@ -48,8 +48,8 @@ export type TabParamList = {
   Dashboard: undefined;
   Diary: { selectedDate?: string } | undefined;
   Add: undefined;
-  Library: undefined;
-  Settings: undefined;
+  Insights: undefined;
+  More: undefined;
 };
 
 export type RootStackParamList = {
@@ -306,6 +306,7 @@ export type RootStackParamList = {
   FastingDetail: undefined;
   SleepDetail: { entryId: string; day: string };
   Chat: undefined;
+  Settings: undefined;
   Logs: undefined;
   Sync: undefined;
   ImportHistory: undefined;

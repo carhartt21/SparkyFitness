@@ -9,7 +9,8 @@ import { fetchProfile } from '../../src/services/api/profileApi';
 
 // Mock navigation
 const mockReplace = jest.fn();
-const mockNavigation = { replace: mockReplace } as any;
+const mockReset = jest.fn();
+const mockNavigation = { replace: mockReplace, reset: mockReset } as any;
 const mockRoute = {
   key: 'onboarding',
   name: 'Onboarding' as const,
@@ -90,7 +91,7 @@ describe('OnboardingScreen', () => {
       const { getByText, getByPlaceholderText } = renderScreen();
 
       expect(getByText('X on Track')).toBeTruthy();
-      expect(getByText('Keep getting better.')).toBeTruthy();
+      expect(getByText('Whatever your X, keep it on track.')).toBeTruthy();
       expect(getByPlaceholderText('https://your-server.example')).toBeTruthy();
       expect(getByText('Next')).toBeTruthy();
       expect(getByText('Later')).toBeTruthy();
@@ -181,7 +182,10 @@ describe('OnboardingScreen', () => {
         fireEvent.press(getByText('Later'));
       });
 
-      expect(mockReplace).toHaveBeenCalledWith('Tabs', { screen: 'Settings' });
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [{ name: 'Tabs' }, { name: 'Settings' }],
+      });
     });
 
     test('settings-fetch timeout skips the reachability fallback', async () => {
@@ -263,7 +267,10 @@ describe('OnboardingScreen', () => {
         fireEvent.press(result.getByText('Later'));
       });
 
-      expect(mockReplace).toHaveBeenCalledWith('Tabs', { screen: 'Settings' });
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 1,
+        routes: [{ name: 'Tabs' }, { name: 'Settings' }],
+      });
     });
 
     test('Connect with API key saves config and finishes', async () => {

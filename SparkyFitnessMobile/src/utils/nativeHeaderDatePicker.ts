@@ -20,6 +20,13 @@ export type NativeHeaderDatePickerOptions = {
     accessibilityLabel: string;
     identifier: string;
   };
+  /** Settings entry pinned to the upper-left corner of content tabs. */
+  settingsAction?: {
+    onPress: () => void;
+    accessibilityLabel: string;
+    /** Dashboard pins Settings to the upper-right; other tabs use the left. */
+    placement?: 'left' | 'right';
+  };
 };
 
 export type NativeHeaderDatePickerNavigation = {
@@ -33,21 +40,38 @@ export function setNativeHeaderDatePickerOptions(
   navigation: NativeHeaderDatePickerNavigation,
   options: NativeHeaderDatePickerOptions
 ) {
-  const leadingAction = options.leadingAction;
+  const { leadingAction, settingsAction } = options;
+  const leftItems: NativeStackHeaderItem[] = [];
+  const settingsItem = settingsAction
+    ? createNativeHeaderIconButtonItem({
+        sfSymbol: 'gearshape',
+        onPress: settingsAction.onPress,
+        tintColor: options.tintColor,
+        accessibilityLabel: settingsAction.accessibilityLabel,
+        identifier: 'open-settings',
+      })
+    : null;
+  const settingsOnRight = settingsAction?.placement === 'right';
+  if (settingsItem && !settingsOnRight) leftItems.push(settingsItem);
+  if (leadingAction) {
+    leftItems.push(
+      createNativeHeaderIconButtonItem({
+        sfSymbol: leadingAction.sfSymbol,
+        onPress: leadingAction.onPress,
+        tintColor: options.tintColor,
+        accessibilityLabel: leadingAction.accessibilityLabel,
+        identifier: leadingAction.identifier,
+      })
+    );
+  }
 
   navigation.setOptions({
-    unstable_headerRightItems: () => createNativeHeaderDatePickerItems(options),
-    unstable_headerLeftItems: leadingAction
-      ? () => [
-          createNativeHeaderIconButtonItem({
-            sfSymbol: leadingAction.sfSymbol,
-            onPress: leadingAction.onPress,
-            tintColor: options.tintColor,
-            accessibilityLabel: leadingAction.accessibilityLabel,
-            identifier: leadingAction.identifier,
-          }),
-        ]
-      : undefined,
+    unstable_headerRightItems: () => [
+      ...createNativeHeaderDatePickerItems(options),
+      ...(settingsItem && settingsOnRight ? [settingsItem] : []),
+    ],
+    unstable_headerLeftItems:
+      leftItems.length > 0 ? () => leftItems : undefined,
   });
 }
 

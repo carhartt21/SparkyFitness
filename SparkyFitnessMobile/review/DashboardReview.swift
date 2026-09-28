@@ -68,6 +68,55 @@ final class DashboardReview: XCTestCase {
   func testDashboardAlignment() throws {
     try reviewDashboard(logFood: false)
   }
+  /// Visual tour of the other primary surfaces for design review captures.
+  func testScreenTour() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let tabs = [["Diary", "Tagebuch"], ["Insights"], ["More"]]
+    for labels in tabs {
+      let tab = app.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+      XCTAssertTrue(tab.waitForExistence(timeout: 10))
+      tab.tap()
+      sleep(3)
+      capture("tour-\(labels[0].lowercased())-top", app)
+      app.swipeUp()
+      sleep(1)
+      capture("tour-\(labels[0].lowercased())-lower", app)
+      app.swipeDown()
+      app.swipeDown()
+    }
+    let settings = app.buttons["open-settings"]
+    XCTAssertTrue(settings.waitForExistence(timeout: 10))
+    settings.tap()
+    sleep(2)
+    capture("tour-settings", app)
+    app.swipeUp()
+    capture("tour-settings-lower", app)
+    app.swipeRight()
+    let home = app.buttons.matching(NSPredicate(format: "label IN %@", ["Home"])).firstMatch
+    if home.waitForExistence(timeout: 5) && home.isHittable { home.tap() }
+    let food = app.buttons["dashboard-food"]
+    XCTAssertTrue(food.waitForExistence(timeout: 15))
+    food.tap()
+    XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 15))
+    sleep(3)
+    capture("tour-food-search", app)
+    let quickAdd = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Quick add")).firstMatch
+    XCTAssertTrue(quickAdd.waitForExistence(timeout: 10))
+    quickAdd.tap()
+    let confirm = app.buttons["quick-add-confirm"]
+    XCTAssertTrue(confirm.waitForExistence(timeout: 10))
+    sleep(1)
+    capture("tour-quick-add-sheet", app)
+    app.buttons["quick-add-more"].tap()
+    sleep(3)
+    capture("tour-food-details", app)
+    app.swipeUp()
+    sleep(1)
+    capture("tour-food-details-lower", app)
+  }
   private func reviewDashboard(logFood: Bool) throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
@@ -94,12 +143,20 @@ final class DashboardReview: XCTestCase {
     let next = usesNativeHeader ? nativeButtons.element(boundBy: 2) : app.buttons["dashboard-next-day"]
     XCTAssertTrue(date.isHittable)
     if !usesNativeHeader {
+      // Reference header: logo and title first, Settings in the upper-right
+      // corner, the full-width date bar underneath.
       let logo = app.buttons["dashboard-home"]
-      XCTAssertEqual(date.frame.midY, logo.frame.midY, accuracy: 2)
+      let settings = app.buttons["open-settings"]
+      XCTAssertGreaterThan(date.frame.minY, logo.frame.maxY - 1)
+      XCTAssertEqual(settings.frame.midY, logo.frame.midY, accuracy: 2)
+      XCTAssertGreaterThan(settings.frame.minX, logo.frame.maxX)
     }
+    var headerIds = ["dashboard-home", "open-settings", "dashboard-date", "dashboard-previous-day", "dashboard-next-day"]
+    // Today appears only when another day is selected.
+    if app.buttons["dashboard-today"].exists { headerIds.append("dashboard-today") }
     let controls = usesNativeHeader
       ? [previous, date, next]
-      : ["dashboard-home", "dashboard-date", "dashboard-previous-day", "dashboard-next-day", "dashboard-today"].map { app.buttons[$0] }
+      : headerIds.map { app.buttons[$0] }
     for control in controls {
       XCTAssertTrue(control.isHittable)
       // UIKit owns the native button's extended hit region; its AX frame is

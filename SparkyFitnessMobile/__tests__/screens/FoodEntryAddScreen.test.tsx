@@ -488,6 +488,32 @@ describe('FoodEntryAddScreen', () => {
     expect(navigation.dispatch).toHaveBeenCalledWith({ type: 'POP_TO_TOP' });
   });
 
+  it('offers one-tap serving amounts that set the logged quantity', () => {
+    // Amounts are multiples of the selected stored serving (1 cup here).
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+
+    expect(screen.getByTestId('food-entry-quick-amounts')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('food-entry-quick-amount-1.5'));
+    expect(
+      screen.getByTestId('food-entry-quick-amount-1.5').props.accessibilityState
+    ).toEqual(expect.objectContaining({ selected: true }));
+
+    fireEvent.press(screen.getAllByText('Add Food')[0]);
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          quantity: 1.5,
+          unit: 'cup',
+        }),
+      })
+    );
+  });
+
+  it('does not offer serving amounts for a saved meal', () => {
+    const screen = renderScreen({ item: baseMealItem, date: '2026-04-23' });
+    expect(screen.queryByTestId('food-entry-quick-amounts')).toBeNull();
+  });
+
   it('keeps an Add Food action reachable above the keyboard', () => {
     const showKeyboard: ((event: any) => void)[] = [];
     const hideKeyboard: (() => void)[] = [];

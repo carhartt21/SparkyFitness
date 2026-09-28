@@ -1115,7 +1115,22 @@
     "localHealthNote": "Separat angezeigt; wird nicht zum gespeicherten Tagesziel addiert.",
     "localHealthUnknown": "Keine freigegebenen Daten für diesen Tag verfügbar.",
     "localActiveEnergy": "Aktivitätsenergie: {{value}} kcal",
-    "steps": "Schritte"
+    "steps": "Schritte",
+    "quickScanDetail": "Etikett",
+    "appName": "X on Track",
+    "tagline": "Jeden Tag ein Stück besser.",
+    "caloriesSubtitle": "Aus Mahlzeiten und Aktivität",
+    "editGoal": "Ziel ändern",
+    "macronutrients": "Makronährstoffe",
+    "targetKcal": "Ziel {{value}} kcal",
+    "drinks": "Getränke",
+    "burnedToday": "verbrannt",
+    "totalTime": "Gesamtzeit",
+    "statOfGoal": "{{label}} · von {{goal}}",
+    "todayOverview": "Heute im Überblick",
+    "viewAll": "Alle anzeigen",
+    "workout": "Training",
+    "water": "Wasser"
   },
   "syncScreen": {
     "healthConnectSettings": "Gesundheit Connect Einstellungen",

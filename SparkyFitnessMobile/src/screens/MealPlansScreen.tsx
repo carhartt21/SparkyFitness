@@ -297,7 +297,7 @@ const MealPlansScreen: React.FC<MealPlansScreenProps> = ({ navigation }) => {
             label: t('mealPlans.goToSettings', {
               defaultValue: 'Go to Settings',
             }),
-            onPress: () => navigation.navigate('Tabs', { screen: 'Settings' }),
+            onPress: () => navigation.navigate('Settings'),
             variant: 'primary',
           }}
         />

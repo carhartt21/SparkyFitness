@@ -209,7 +209,7 @@ const CycleCard: React.FC<CycleCardProps> = ({ navigation }) => {
   if (!isSetup) {
     return (
       <Pressable
-        className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
+        className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3"
         onPress={() => navigation.navigate('CycleOnboarding')}
         accessibilityRole="button"
         accessibilityLabel={t('cycleCard.setupA11y', {
@@ -363,7 +363,7 @@ const CycleCard: React.FC<CycleCardProps> = ({ navigation }) => {
 
   return (
     <Pressable
-      className="bg-surface rounded-xl p-4 mb-3 shadow-sm"
+      className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3"
       onPress={() => navigation.navigate('CycleHub')}
       accessibilityRole="button"
       accessibilityLabel={t('cycleCard.hubA11y', {

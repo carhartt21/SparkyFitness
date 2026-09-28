@@ -79,7 +79,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
 
   if (isLoadingMeds || isLoadingEntries) {
     return (
-      <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
+      <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
         <View className="flex-row items-center justify-between">
           <Text className="font-bold text-text-secondary">
             {t('medications.card.title', { defaultValue: 'Medications' })}
@@ -93,7 +93,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
   if (dueDoses.length === 0 && prnMeds.length === 0) return null;
 
   return (
-    <View className="bg-surface rounded-xl p-4 mb-3 shadow-sm">
+    <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
       <TouchableOpacity
         onPress={() => navigation.navigate('MedicationsList')}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

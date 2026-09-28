@@ -172,7 +172,7 @@ const MealsLibraryScreen: React.FC<MealsLibraryScreenProps> = ({
           })}
           action={{
             label: t('mealLibrary.go', { defaultValue: 'Go to Settings' }),
-            onPress: () => navigation.navigate('Tabs', { screen: 'Settings' }),
+            onPress: () => navigation.navigate('Settings'),
             variant: 'primary',
           }}
         />

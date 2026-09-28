@@ -43,21 +43,21 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
           accessibilityLabel={t('exerciseSummary.addExercise', {
             defaultValue: 'Add exercise',
           })}
-          className="bg-surface rounded-xl p-4 mb-2 shadow-sm items-center py-6"
+          className="bg-surface rounded-2xl border border-border-subtle p-4 mb-2 items-center py-6"
         >
           {emptyContent}
         </Pressable>
       );
     }
     return (
-      <View className="bg-surface rounded-xl p-4 mb-2 shadow-sm items-center py-6">
+      <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-2 items-center py-6">
         {emptyContent}
       </View>
     );
   }
 
   return (
-    <View className="bg-surface rounded-xl p-4 mb-2 shadow-sm overflow-hidden">
+    <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-2 overflow-hidden">
       <View className="flex-row items-center gap-2 mb-2">
         <Icon name="exercise" size={18} color={accentPrimary} />
         <Text className="text-base font-bold text-text-secondary">

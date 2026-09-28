@@ -198,9 +198,7 @@ describe('ExercisesLibraryScreen', () => {
 
     expect(screen.getByText('No server configured')).toBeTruthy();
     fireEvent.press(screen.getByText('Go to Settings'));
-    expect(navigation.navigate).toHaveBeenCalledWith('Tabs', {
-      screen: 'Settings',
-    });
+    expect(navigation.navigate).toHaveBeenCalledWith('Settings');
   });
 
   it('renders an error state with a working Retry button', () => {

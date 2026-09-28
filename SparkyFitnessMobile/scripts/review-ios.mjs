@@ -395,9 +395,11 @@ try {
       interactionScenario: process.argv.includes('--interactions')
         ? process.argv.includes('--launch-icon-actions')
           ? 'launch-icon-actions'
-          : process.argv.includes('--dashboard-only')
-            ? 'dashboard-alignment'
-            : 'food-entry-flow'
+          : process.argv.includes('--tour')
+            ? 'screen-tour'
+            : process.argv.includes('--dashboard-only')
+              ? 'dashboard-alignment'
+              : 'food-entry-flow'
         : null,
       logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
     });
@@ -423,7 +425,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

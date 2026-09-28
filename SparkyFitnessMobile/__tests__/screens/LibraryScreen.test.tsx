@@ -141,8 +141,8 @@ describe('LibraryScreen', () => {
   } as any;
 
   const route = {
-    key: 'Library-key',
-    name: 'Library' as const,
+    key: 'More-key',
+    name: 'More' as const,
     params: undefined,
   };
 

@@ -27,6 +27,7 @@ it('localizes the actual dashboard date and keeps all date destinations operable
   await initializeI18n('de');
   const handlers = {
     onHome: jest.fn(),
+    onSettings: jest.fn(),
     onPreviousDay: jest.fn(),
     onNextDay: jest.fn(),
     onToday: jest.fn(),
@@ -37,8 +38,9 @@ it('localizes the actual dashboard date and keeps all date destinations operable
   );
   expect(screen.getByText(/Sa.*26.*Sept/)).toBeTruthy();
   expect(screen.getByText('Heute')).toBeTruthy();
-  expect(screen.queryByText('X on Track')).toBeNull();
-  expect(screen.queryByText('Keep getting better.')).toBeNull();
+  // Reference header: product name and localized tagline beside the logo.
+  expect(screen.getByText('X on Track')).toBeTruthy();
+  expect(screen.getByText('Jeden Tag ein Stück besser.')).toBeTruthy();
   const buttons = screen.getAllByRole('button');
   buttons.forEach((button) => fireEvent.press(button));
   Object.values(handlers).forEach((handler) =>

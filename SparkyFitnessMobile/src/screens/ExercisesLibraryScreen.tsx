@@ -206,7 +206,7 @@ const ExercisesLibraryScreen: React.FC<ExercisesLibraryScreenProps> = ({
           })}
           action={{
             label: t('exerciseLibrary.go', { defaultValue: 'Go to Settings' }),
-            onPress: () => navigation.navigate('Tabs', { screen: 'Settings' }),
+            onPress: () => navigation.navigate('Settings'),
             variant: 'primary',
           }}
         />

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-28_
 
 X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and Trackbot chat.
 
@@ -65,7 +65,7 @@ npx expo prebuild --clean
 - Deep links are enabled only after startup confirms `Tabs`, so widget links do not bypass first-run onboarding.
 - Navigation source of truth is `App.tsx` plus `src/types/navigation.ts`; update both and the linking config when routes change.
 - Root stack uses `@react-navigation/native-stack`. Tabs use `@react-navigation/bottom-tabs`.
-- Tabs are `Dashboard`, `Diary`, `Add`, `Library`, and `Settings`. `Add` is a center action in `CustomTabBar`, not a content screen.
+- Tabs are `Dashboard` (labelled Home), `Diary`, `Add`, `Insights`, and `More`. `Add` is a center action in `CustomTabBar`, not a content screen. `More` renders `LibraryScreen`; `Insights` renders `InsightsScreen` (nutrition-trend and weight-range data only). `Settings` is a root-stack route opened from the upper-left header action of every content tab (`SettingsHeaderButton` on custom headers, `settingsAction` in `setNativeHeaderDatePickerOptions` or the tab stack's `unstable_headerLeftItems` on native headers); navigate with `navigation.navigate('Settings')`, never `('Tabs', { screen: 'Settings' })`.
 - Native iOS Liquid Glass tabs use `@bottom-tabs/react-navigation` in `src/components/TabsLayout.tsx`; each content tab is wrapped in its own `createNativeStackNavigator` so the tab path still gets native headers.
 - `TabsLayout` switches at runtime via `useNativeIOSTabsActive()` (`services/nativeTabBarPreference.ts`): native tabs require iOS 26+ Liquid Glass support AND the user's `liquidGlassTabBarEnabled` preference (opt-in). Everything else renders `CustomTabBar` (`TAB_BAR_HEIGHT = 56`); `ActiveWorkoutBar` reads the native tab-bar height instead when native tabs are active.
 - When adding a root-stack screen, add the route to `RootStackParamList` and register a matching `<Stack.Screen>` in `App.tsx` with `createStackScreenOptions(...)` or equivalent explicit iOS native-stack header options.
@@ -88,6 +88,7 @@ npx expo prebuild --clean
 
 ## Source Map
 
+- `src/components/ui/` - shared primitives: `Button`, sheet chrome, and the neon design system (`glow.ts`, `GlowCard`, `NeonButton`, `ActionTile`, `IconBadge`, `ScreenBackground`). Compose these for cards, capsule buttons and glows instead of restating classes; see `DESIGN.md` → Mobile neon component system.
 - `src/components/` - reusable UI, charts, settings rows, custom tab bar, add sheet, workout HUD, form chrome, library rows, diary rows, serving sheets, food/workout editors, fasting UI, writeback UI, and `ui/` primitives.
 - `src/components/auth/` - MFA UI shared by onboarding, setup, and reauth.
 - `src/screens/` - top-level route destinations: dashboard, diary, family member/diary/meal/copy-review flows, settings, sync, logs, Whats New, fasting, food search/scan/photo, library CRUD flows, workout/activity flows, and measurement entry.

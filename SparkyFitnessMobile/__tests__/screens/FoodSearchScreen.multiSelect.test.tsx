@@ -47,6 +47,14 @@ jest.mock('../../src/hooks', () => ({
   useDebounce: (value: unknown) => value,
 }));
 
+// The quick-add sheet owns its own queries; these tests cover the basket.
+jest.mock('../../src/components/foodSearch/QuickAddFoodSheet', () => {
+  const React = require('react');
+  const MockQuickAddFoodSheet = React.forwardRef(() => null);
+  MockQuickAddFoodSheet.displayName = 'MockQuickAddFoodSheet';
+  return { __esModule: true, default: MockQuickAddFoodSheet };
+});
+
 jest.mock('uniwind', () => ({
   useCSSVariable: (keys: string | string[]) =>
     Array.isArray(keys) ? keys.map(() => '#111827') : '#111827',

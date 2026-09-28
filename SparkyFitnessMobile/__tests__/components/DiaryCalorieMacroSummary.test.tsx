@@ -8,6 +8,11 @@ import {
 import type { DailySummary } from '../../src/types/dailySummary';
 import type { UserCustomNutrient } from '../../src/hooks/useCustomNutrients';
 
+jest.mock('../../src/components/ProgressRing', () => {
+  const { View } = jest.requireActual('react-native');
+  return () => <View testID="progress-ring" />;
+});
+
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useIsFocused: () => true,
@@ -78,12 +83,12 @@ describe('DiaryCalorieMacroSummary', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('renders only the calorie row when collapsed (default)', () => {
+  it('renders the calorie and macro rings when collapsed (default)', () => {
     useAppPreferencesStore.setState({
       diarySummaryVisible: true,
       diarySummaryExpanded: false,
     });
-    const { getByText, queryByText } = renderWidget({
+    const { getByText, getByTestId, queryByText } = renderWidget({
       summary: buildSummary({
         calorieBalance: {
           ...buildSummary().calorieBalance,
@@ -94,13 +99,30 @@ describe('DiaryCalorieMacroSummary', () => {
       }),
     });
     expect(getByText('Summary')).toBeTruthy();
-    expect(getByText(/500 \/ 2,000 kcal/)).toBeTruthy();
+    expect(getByTestId('diary-summary-calories')).toHaveTextContent(
+      /500of 2,000kcal/
+    );
+    expect(getByTestId('diary-summary-carbs')).toHaveTextContent(/50of 250g/);
     expect(getByText(/1,500/)).toBeTruthy();
     expect(getByText(/remaining/)).toBeTruthy();
-    expect(queryByText('Protein')).toBeNull();
+    expect(getByText('Protein')).toBeTruthy();
+    expect(queryByText('Fiber')).toBeNull();
   });
 
-  it('reveals the macro pill grid when diarySummaryExpanded is true', () => {
+  it('omits the denominator when a macro has no goal', () => {
+    useAppPreferencesStore.setState({
+      diarySummaryVisible: true,
+      diarySummaryExpanded: false,
+    });
+    const { getByTestId } = renderWidget({
+      summary: buildSummary({ protein: { consumed: 42, goal: 0 } }),
+    });
+    expect(getByTestId('diary-summary-protein')).toHaveTextContent(
+      '42gProtein'
+    );
+  });
+
+  it('reveals fiber and other nutrients when diarySummaryExpanded is true', () => {
     useAppPreferencesStore.setState({
       diarySummaryVisible: true,
       diarySummaryExpanded: true,

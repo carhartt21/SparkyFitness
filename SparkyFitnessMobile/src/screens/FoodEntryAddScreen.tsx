@@ -24,6 +24,9 @@ import Toast from 'react-native-toast-message';
 import { StackActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
+import { useGlowTheme, withAlpha } from '../components/ui/glow';
+import { buildQuickAddPresets } from '../utils/quickAddServings';
+import { formatLocalizedUnitQuantity } from '../utils/foodUnitLocalization';
 import { useQuery } from '@tanstack/react-query';
 import Icon from '../components/Icon';
 import StepperInput from '../components/StepperInput';
@@ -912,10 +915,22 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const scaled = (value: number) => value * servings;
 
   const insets = useSafeAreaInsets();
-  const [accentColor, textPrimary] = useCSSVariable([
+  const glowing = useGlowTheme();
+  const [
+    accentColor,
+    textPrimary,
+    caloriesHighlight,
+    proteinHighlight,
+    carbsHighlight,
+    fatHighlight,
+  ] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-primary',
-  ]) as [string, string];
+    '--color-calories',
+    '--color-macro-protein',
+    '--color-macro-carbs',
+    '--color-macro-fat',
+  ]) as string[];
 
   const buildSaveFoodPayload = useCallback(() => {
     return {
@@ -1423,6 +1438,12 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   );
   const carbsGoalPct = goalPercent(scaled(carbsForGoal), goals?.carbs);
   const fatGoalPct = goalPercent(scaled(displayValues.fat), goals?.fat);
+  const highlightColors: Record<string, string> = {
+    calories: caloriesHighlight,
+    protein: proteinHighlight,
+    carbs: carbsHighlight,
+    fat: fatHighlight,
+  };
   const nutritionHighlights = [
     {
       key: 'calories',
@@ -1432,11 +1453,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       goalPercent: calorieGoalPct,
     },
     {
-      key: 'fat',
-      value: scaled(displayValues.fat),
+      key: 'protein',
+      value: scaled(displayValues.protein),
       unit: 'g',
-      label: localizeNutrientKey(t, 'fat'),
-      goalPercent: fatGoalPct,
+      label: localizeNutrientKey(t, 'protein'),
+      goalPercent: proteinGoalPct,
     },
     {
       key: 'carbs',
@@ -1448,11 +1469,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       goalPercent: carbsGoalPct,
     },
     {
-      key: 'protein',
-      value: scaled(displayValues.protein),
+      key: 'fat',
+      value: scaled(displayValues.fat),
       unit: 'g',
-      label: localizeNutrientKey(t, 'protein'),
-      goalPercent: proteinGoalPct,
+      label: localizeNutrientKey(t, 'fat'),
+      goalPercent: fatGoalPct,
     },
   ];
 
@@ -1857,8 +1878,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         ) : null}
 
         <View
-          className="mx-4 rounded-2xl bg-raised px-5 py-6 gap-6"
-          style={foodImagePath ? { marginTop: -32 } : undefined}
+          className="mx-4 rounded-2xl border border-border-subtle bg-surface px-5 py-6 gap-6"
+          style={[
+            foodImagePath ? { marginTop: -32 } : null,
+            glowing
+              ? {
+                  experimental_backgroundImage:
+                    'linear-gradient(180deg, #ffffff0d 0%, #ffffff00 40%)',
+                }
+              : null,
+          ]}
         >
           <View>
             <View className="flex-row items-start gap-2">
@@ -1881,11 +1910,19 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </Text>
           </View>
 
-          <View className="flex-row justify-between gap-2 border-y border-border-subtle py-4">
+          <View className="flex-row justify-between gap-2">
             {nutritionHighlights.map((nutrient) => (
               <View
                 key={nutrient.key}
-                className="min-w-0 flex-1 items-center gap-1"
+                testID={`food-entry-highlight-${nutrient.key}`}
+                className="min-w-0 flex-1 items-center gap-1 rounded-xl border px-1 py-3"
+                style={{
+                  borderColor: highlightColors[nutrient.key],
+                  backgroundColor: withAlpha(
+                    highlightColors[nutrient.key],
+                    0.15
+                  ),
+                }}
               >
                 <Text
                   className="text-center text-xl font-bold text-text-primary"
@@ -2007,6 +2044,59 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 </View>
               )}
             </View>
+            {item.source !== 'meal' && displayValues.servingSize > 0 ? (
+              <View
+                className="mt-3 flex-row gap-2"
+                testID="food-entry-quick-amounts"
+                accessibilityLabel={t('foodEntryAdd.labels.quickAmounts', {
+                  defaultValue: 'Quick amounts',
+                })}
+              >
+                {buildQuickAddPresets({
+                  serving_size: displayValues.servingSize,
+                }).map((preset) => {
+                  const selected = Math.abs(quantity - preset.quantity) < 1e-6;
+                  return (
+                    <TouchableOpacity
+                      key={preset.multiplier}
+                      testID={`food-entry-quick-amount-${preset.multiplier}`}
+                      onPress={() =>
+                        updateQuantityText(String(preset.quantity))
+                      }
+                      disabled={isActionPending}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected }}
+                      className={`min-h-11 flex-1 items-center justify-center rounded-xl border px-1 ${
+                        selected ? '' : 'border-border-subtle bg-surface'
+                      }`}
+                      style={
+                        selected
+                          ? {
+                              borderColor: accentColor,
+                              backgroundColor: withAlpha(accentColor, 0.14),
+                              boxShadow: glowing
+                                ? `0px 0px 10px 0px ${withAlpha(accentColor, 0.45)}`
+                                : undefined,
+                            }
+                          : undefined
+                      }
+                    >
+                      <Text
+                        className="text-sm font-medium text-text-primary"
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                      >
+                        {formatLocalizedUnitQuantity(
+                          preset.quantity,
+                          displayValues.servingUnit,
+                          t
+                        )}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            ) : null}
             <View className="flex-row flex-wrap items-center mt-2">
               <Text className="text-text-secondary text-sm">
                 {formatLocalizedNumber(servings, { maximumFractionDigits: 1 })}{' '}

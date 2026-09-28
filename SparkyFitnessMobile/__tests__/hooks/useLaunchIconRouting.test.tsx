@@ -15,7 +15,7 @@ jest.mock('../../src/hooks/useStartLiveWorkout', () => ({
   promptForActiveWorkoutConflict: jest.fn(),
 }));
 jest.mock('../../src/components/TabsLayout', () => ({
-  NON_ADD_TABS: ['Dashboard', 'Diary', 'Library', 'Settings'],
+  NON_ADD_TABS: ['Dashboard', 'Diary', 'Insights', 'More'],
 }));
 jest.mock('../../src/components/ActiveWorkoutBar', () => ({
   navigationRef: {

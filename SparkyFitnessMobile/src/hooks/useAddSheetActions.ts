@@ -188,7 +188,7 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
               text: t('common.goToSettings', {
                 defaultValue: 'Go to Settings',
               }),
-              onPress: () => navigateFromSheet('Tabs', { screen: 'Settings' }),
+              onPress: () => navigateFromSheet('Settings'),
             },
           ]
         );
