@@ -34,7 +34,7 @@ export default function ProgressTrackX({
   showValue = true,
 }: ProgressTrackXProps) {
   const target = normalizeProgress(progress);
-  const animated = React.useRef(new Animated.Value(target ?? 0)).current;
+  const [animated] = React.useState(() => new Animated.Value(target ?? 0));
   const currentValue = React.useRef(target ?? 0);
   const [rendered, setRendered] = React.useState<number | null>(target);
   const [reduceMotion, setReduceMotion] = React.useState(false);
@@ -150,7 +150,11 @@ export default function ProgressTrackX({
                   fill="none"
                   stroke={baseline}
                   strokeWidth={segment.strokeWidth}
-                  strokeLinecap="round"
+                  strokeLinecap={
+                    'linecap' in segment && segment.linecap === 'butt'
+                      ? 'butt'
+                      : 'round'
+                  }
                   strokeLinejoin="round"
                 />
                 {'taperPath' in segment && (
@@ -180,7 +184,11 @@ export default function ProgressTrackX({
                     fill="none"
                     stroke={fill}
                     strokeWidth={segment.strokeWidth}
-                    strokeLinecap="round"
+                    strokeLinecap={
+                      'linecap' in segment && segment.linecap === 'butt'
+                        ? 'butt'
+                        : 'round'
+                    }
                     strokeLinejoin="round"
                   />
                   {'taperPath' in segment && (

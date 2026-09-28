@@ -27,10 +27,10 @@ function markSvg({ state = "full", light = false, background = true } = {}) {
     .join("");
   const renderPaths = (colorFor) =>
     geometry.segments
-      .map(({ id, kind, path, strokeWidth, taperPath }) => {
+      .map(({ id, kind, path, strokeWidth, taperPath, linecap }) => {
         const color = colorFor(id, kind);
         return kind === "stroke"
-          ? `<path d="${path}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="round" stroke-linejoin="round"/>${taperPath ? `<path d="${taperPath}" fill="${color}"/>` : ""}`
+          ? `<path d="${path}" fill="none" stroke="${color}" stroke-width="${strokeWidth}" stroke-linecap="${linecap ?? "round"}" stroke-linejoin="round"/>${taperPath ? `<path d="${taperPath}" fill="${color}"/>` : ""}`
           : `<path d="${path}" fill="${color}"/>`;
       })
       .join("");
@@ -43,7 +43,7 @@ function markSvg({ state = "full", light = false, background = true } = {}) {
     <linearGradient id="background" x1="0" y1="0" x2="320" y2="320" gradientUnits="userSpaceOnUse"><stop stop-color="${light ? "#F7F6F1" : "#08131A"}"/><stop offset="0.58" stop-color="${light ? "#F2F3EE" : "#060E14"}"/><stop offset="1" stop-color="${light ? "#E9EDE8" : "#05090F"}"/></linearGradient>
     <radialGradient id="green-wash" cx="244" cy="99" r="106" gradientUnits="userSpaceOnUse"><stop stop-color="#002A15" stop-opacity="0.7"/><stop offset="0.5" stop-color="#002A15" stop-opacity="0.3"/><stop offset="1" stop-color="#002A15" stop-opacity="0"/></radialGradient>
     <linearGradient id="slate-mark" x1="50" y1="55" x2="260" y2="270" gradientUnits="userSpaceOnUse"><stop stop-color="#5C7085"/><stop offset="0.46" stop-color="#4E6176"/><stop offset="1" stop-color="#36475D"/></linearGradient>
-    <linearGradient id="slate-sweep" x1="210" y1="106" x2="177" y2="258" gradientUnits="userSpaceOnUse"><stop stop-color="#35465A"/><stop offset="0.52" stop-color="#2B3D50"/><stop offset="1" stop-color="#1D2E40"/></linearGradient>
+    <linearGradient id="slate-sweep" x1="214" y1="103" x2="220" y2="254" gradientUnits="userSpaceOnUse"><stop stop-color="#35465A"/><stop offset="0.52" stop-color="#2B3D50"/><stop offset="1" stop-color="#3C4D63"/></linearGradient>
     <linearGradient id="border-spectrum" x1="26" y1="296" x2="294" y2="24" gradientUnits="userSpaceOnUse"><stop stop-color="#345867"/><stop offset="0.34" stop-color="#3B4052"/><stop offset="0.68" stop-color="#236A69"/><stop offset="1" stop-color="#0CA67D"/></linearGradient>
     <radialGradient id="border-warm" cx="45" cy="271" r="105" gradientUnits="userSpaceOnUse"><stop stop-color="#B61549" stop-opacity="0.96"/><stop offset="1" stop-color="#B61549" stop-opacity="0"/></radialGradient>
     <linearGradient id="border-slate" x1="26" y1="24" x2="294" y2="296" gradientUnits="userSpaceOnUse"><stop stop-color="#8198B0"/><stop offset="0.48" stop-color="#53667B"/><stop offset="1" stop-color="#272B40"/></linearGradient>

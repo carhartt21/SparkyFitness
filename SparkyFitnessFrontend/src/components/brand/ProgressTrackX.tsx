@@ -130,7 +130,11 @@ export default function ProgressTrackX({
                   fill="none"
                   stroke={baseline}
                   strokeWidth={segment.strokeWidth}
-                  strokeLinecap="round"
+                  strokeLinecap={
+                    'linecap' in segment && segment.linecap === 'butt'
+                      ? 'butt'
+                      : 'round'
+                  }
                   strokeLinejoin="round"
                 />
                 {'taperPath' in segment && (
@@ -160,7 +164,11 @@ export default function ProgressTrackX({
                     fill="none"
                     stroke={fill}
                     strokeWidth={segment.strokeWidth}
-                    strokeLinecap="round"
+                    strokeLinecap={
+                      'linecap' in segment && segment.linecap === 'butt'
+                        ? 'butt'
+                        : 'round'
+                    }
                     strokeLinejoin="round"
                   />
                   {'taperPath' in segment && (
