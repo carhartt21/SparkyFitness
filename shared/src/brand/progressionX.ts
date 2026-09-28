@@ -1,4 +1,4 @@
-import geometry from "./progressionX.geometry.json";
+import geometry from "./progressionX.geometry.json" with { type: "json" };
 
 export { geometry as progressionXGeometry };
 
