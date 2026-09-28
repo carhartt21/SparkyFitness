@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image } from 'expo-image';
-import { render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import SafeImage from '../../src/components/SafeImage';
 
 const source = {
@@ -26,5 +26,29 @@ describe('SafeImage autoplay', () => {
     );
 
     expect(UNSAFE_getByType(Image).props.autoplay).toBe(true);
+  });
+});
+
+describe('SafeImage terminal failure', () => {
+  it('notifies once after retries so callers can disable the photo viewer', () => {
+    jest.useFakeTimers();
+    try {
+      const onTerminalError = jest.fn();
+      const view = render(
+        <SafeImage
+          source={source}
+          style={{ width: 42, height: 42 }}
+          onTerminalError={onTerminalError}
+        />
+      );
+      for (const delay of [1500, 3000]) {
+        fireEvent(view.UNSAFE_getByType(Image), 'onError');
+        act(() => jest.advanceTimersByTime(delay));
+      }
+      fireEvent(view.UNSAFE_getByType(Image), 'onError');
+      expect(onTerminalError).toHaveBeenCalledTimes(1);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });

@@ -23,12 +23,19 @@ describe('FoodThumbnail', () => {
     });
   });
 
-  it('renders a placeholder box when there is no image', () => {
-    const { queryByTestId } = render(
-      <FoodThumbnail image={null} getImageSource={getImageSource} />
+  it('renders bundled group artwork when there is no image', () => {
+    const { queryByTestId, UNSAFE_getByType } = render(
+      <FoodThumbnail
+        image={null}
+        name="Tomate roh"
+        getImageSource={getImageSource}
+      />
     );
 
     expect(queryByTestId('food-thumbnail')).not.toBeNull();
+    expect(UNSAFE_getByType(Image).props.source).toEqual(
+      require('../../assets/food-fallbacks/vegetables.png')
+    );
   });
 
   it('renders nothing at all when fallbacks are suppressed', () => {

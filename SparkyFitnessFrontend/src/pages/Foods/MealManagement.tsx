@@ -73,6 +73,7 @@ import {
 } from '@/hooks/Foods/useFavorites';
 import { DataTable } from '@/components/ui/DataTable';
 import { primaryImageOf, usableFoodImages } from '@/utils/foodImages';
+import FoodListArtwork from '@/components/FoodSearch/FoodListArtwork';
 import {
   ColumnDef,
   RowSelectionState,
@@ -380,18 +381,7 @@ const MealManagement: React.FC = () => {
           const imageSrc = primaryImageOf(meal);
           return (
             <div className="flex items-start gap-2">
-              {imageSrc && (
-                <img
-                  src={imageSrc}
-                  alt=""
-                  aria-hidden="true"
-                  loading="lazy"
-                  className="w-10 h-10 flex-shrink-0 object-cover rounded-md"
-                  onError={(e) => {
-                    e.currentTarget.style.display = 'none';
-                  }}
-                />
-              )}
+              <FoodListArtwork name={meal.name} src={imageSrc} isMeal />
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <span className="font-semibold">{meal.name}</span>

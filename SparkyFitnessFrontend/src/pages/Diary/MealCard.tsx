@@ -64,6 +64,7 @@ import { useSearchParams } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import AllergenBadges from '@/components/AllergenBadges';
 import { diaryEntryImages, usableFoodImages } from '@/utils/foodImages';
+import { foodFallbackImageSrc } from '@/utils/foodFallbackImages';
 import { useImageLightbox } from '@/hooks/Foods/useImageLightbox';
 import ImageLightbox from '@/components/FoodSearch/ImageLightbox';
 
@@ -106,6 +107,47 @@ interface MealCardProps {
   customNutrients?: UserCustomNutrient[]; // Add customNutrients prop
   shouldOpenFoodSearch?: boolean;
   onFoodSearchClose?: () => void;
+}
+
+function EntryArtwork({
+  src,
+  name,
+  isMeal,
+  onOpen,
+}: {
+  src: string | null;
+  name: string | null | undefined;
+  isMeal: boolean;
+  onOpen: () => void;
+}) {
+  const { t } = useTranslation();
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  if (!src || src === failedSrc) {
+    return (
+      <img
+        src={foodFallbackImageSrc(name, isMeal)}
+        alt=""
+        className="w-16 h-16 object-contain rounded-md bg-muted/50 flex-shrink-0"
+        loading="lazy"
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      className="flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+      onClick={onOpen}
+      aria-label={t('food.viewImages', 'View images')}
+    >
+      <img
+        src={src}
+        alt={name ?? ''}
+        className="w-16 h-16 object-cover rounded-md cursor-zoom-in"
+        loading="lazy"
+        onError={() => setFailedSrc(src)}
+      />
+    </button>
+  );
 }
 
 const MealCard = ({
@@ -636,27 +678,14 @@ const MealCard = ({
                       entryIsHighlighted && 'border-2 border-blue-500'
                     )}
                   >
-                    {entryImageSrc && (
-                      <button
-                        type="button"
-                        className="flex-shrink-0 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        onClick={() =>
-                          openLightbox(entryImages, 0, entryName ?? undefined)
-                        }
-                        aria-label={t('food.viewImages', 'View images')}
-                      >
-                        <img
-                          src={entryImageSrc}
-                          alt={entryName ?? ''}
-                          className="w-16 h-16 object-cover rounded-md cursor-zoom-in"
-                          loading="lazy"
-                          onError={(e) => {
-                            // A dead provider link shouldn't leave a broken icon.
-                            e.currentTarget.style.display = 'none';
-                          }}
-                        />
-                      </button>
-                    )}
+                    <EntryArtwork
+                      src={entryImageSrc}
+                      name={entryName}
+                      isMeal={isFoodEntryMeal}
+                      onOpen={() =>
+                        openLightbox(entryImages, 0, entryName ?? undefined)
+                      }
+                    />
                     <div className="flex-1">
                       <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-1">
                         <span className="font-medium">{entryName}</span>

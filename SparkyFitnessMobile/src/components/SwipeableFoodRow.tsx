@@ -233,6 +233,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
           ) : (
             <FoodThumbnail
               image={entryImage}
+              name={name}
               getImageSource={getImageSource}
               size={48}
               style={{ marginRight: 12 }}

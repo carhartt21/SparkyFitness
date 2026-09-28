@@ -14,6 +14,8 @@ interface SafeImageProps {
   style: StyleProp<ImageStyle>;
   contentFit?: ImageContentFit;
   fallback?: React.ReactNode;
+  /** Called after the last retry fails, allowing a photo viewer to be disabled. */
+  onTerminalError?: () => void;
   /**
    * Whether animated formats (GIF, animated WebP) play. Off by default: most
    * SafeImage slots are list thumbnails, where a looping GIF next to static
@@ -60,6 +62,7 @@ const SafeImage: React.FC<SafeImageProps> = ({
   style,
   contentFit,
   fallback = null,
+  onTerminalError,
   autoplay = false,
 }) => {
   const [error, setError] = useState(false);
@@ -108,9 +111,15 @@ const SafeImage: React.FC<SafeImageProps> = ({
     return () => clearTimeout(timer);
   }, [loaded, settled]);
 
-  if (!source) return fallback;
-
   const failed = error && attempt >= MAX_RETRIES;
+
+  // The fallback itself remains visible; callers may also remove actions
+  // that would open a permanently broken image URL.
+  useEffect(() => {
+    if (sourceSignature && failed) onTerminalError?.();
+  }, [failed, onTerminalError, sourceSignature]);
+
+  if (!source) return fallback;
 
   // Terminal failures keep the frame (rather than returning the bare
   // fallback) so the already-visible underlay doesn't remount or shift.
