@@ -1484,6 +1484,7 @@
       "unskipped": "{{name}} unskipped",
       "removed": "{{name}} dose removed",
       "tapUndo": "Tap to undo",
+      "undo": "Undo",
       "failedRemoveDose": "Failed to remove {{name}} dose",
       "failedUnmark": "Failed to unmark {{name}}",
       "failedUpdate": "Failed to update {{name}}",

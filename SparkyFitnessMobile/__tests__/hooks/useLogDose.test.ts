@@ -272,9 +272,9 @@ describe('useLogDose', () => {
     });
     expect(Toast.show).toHaveBeenCalledWith({
       type: 'success',
+      visibilityTime: 6500,
       text1: 'Lisinopril logged',
-      text2: 'Tap to undo',
-      props: { onPress: expect.any(Function) },
+      props: { actionLabel: 'Undo', onPress: expect.any(Function) },
     });
   });
 
@@ -286,7 +286,7 @@ describe('useLogDose', () => {
     });
   };
 
-  test('tapping the PRN toast deletes the created entry', async () => {
+  test('the PRN snackbar undo action deletes the created entry', async () => {
     mockCreateEntry.mockResolvedValue(
       buildEntry({ id: 'prn-entry', schedule_id: null, status: 'prn_taken' })
     );
@@ -297,7 +297,9 @@ describe('useLogDose', () => {
     });
     await waitFor(() => {
       expect(Toast.show).toHaveBeenCalledWith(
-        expect.objectContaining({ text2: 'Tap to undo' })
+        expect.objectContaining({
+          props: expect.objectContaining({ actionLabel: 'Undo' }),
+        })
       );
     });
 
@@ -324,7 +326,9 @@ describe('useLogDose', () => {
     });
     await waitFor(() => {
       expect(Toast.show).toHaveBeenCalledWith(
-        expect.objectContaining({ text2: 'Tap to undo' })
+        expect.objectContaining({
+          props: expect.objectContaining({ actionLabel: 'Undo' }),
+        })
       );
     });
 

@@ -1009,7 +1009,16 @@ function AppContent() {
 
 function SafeAreaToast() {
   const insets = useSafeAreaInsets();
-  const toast = <Toast config={toastConfig} topOffset={insets.top + 8} />;
+  // Keep feedback clear of both the tab bar and the keyboard. The previous
+  // top placement obscured navigation titles and edit actions.
+  const toast = (
+    <Toast
+      config={toastConfig}
+      position="bottom"
+      bottomOffset={insets.bottom + 88}
+      keyboardOffset={16}
+    />
+  );
   // On iOS a plain Toast renders in the normal view tree, so it appears *under*
   // native modals (rename dialogs, form sheets, anchored menus). A
   // FullWindowOverlay hoists it above every window — matching how the app's

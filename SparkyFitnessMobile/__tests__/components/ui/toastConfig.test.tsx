@@ -8,6 +8,11 @@ jest.mock('uniwind', () => ({
     Array.isArray(keys) ? keys.map(() => '#111827') : '#111827',
 }));
 
+jest.mock('../../../src/components/Icon', () => {
+  const { View } = require('react-native');
+  return ({ name }: { name: string }) => <View testID={`icon-${name}`} />;
+});
+
 function buildParams(
   overrides: Partial<ToastConfigParams<unknown>> = {}
 ): ToastConfigParams<unknown> {
@@ -30,21 +35,54 @@ describe('toastConfig', () => {
     const screen = render(<>{toastConfig.success!(buildParams())}</>);
 
     expect(screen.getByText('Lisinopril logged')).toBeTruthy();
+    expect(screen.getByTestId('icon-checkmark-circle')).toBeTruthy();
     expect(screen.queryByRole('button')).toBeNull();
   });
 
-  it('becomes tappable when an action is passed through props', () => {
+  it('shows a separate, accessible undo action without duplicating its label', () => {
     const onPress = jest.fn();
     const screen = render(
       <>
         {toastConfig.success!(
-          buildParams({ text2: 'Tap to undo', props: { onPress } })
+          buildParams({
+            text2: 'Details about the saved entry',
+            props: { onPress, actionLabel: 'Undo' },
+          })
         )}
       </>
     );
 
-    expect(screen.getByText('Tap to undo')).toBeTruthy();
-    fireEvent.press(screen.getByRole('button'));
+    expect(screen.getByText('Details about the saved entry')).toBeTruthy();
+    expect(screen.getByLabelText('Undo').props.style).toMatchObject({
+      minHeight: 44,
+    });
+    fireEvent.press(screen.getByLabelText('Undo'));
     expect(onPress).toHaveBeenCalled();
+  });
+
+  it('uses an older action toast hint as its button label', () => {
+    const onPress = jest.fn();
+    const screen = render(
+      <>
+        {toastConfig.success!(
+          buildParams({ text2: 'Undo', props: { onPress } })
+        )}
+      </>
+    );
+
+    expect(screen.getAllByText('Undo')).toHaveLength(1);
+    fireEvent.press(screen.getByLabelText('Undo'));
+    expect(onPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps errors on the neutral snackbar surface with a distinct status icon', () => {
+    const screen = render(
+      <>{toastConfig.error!(buildParams({ text1: 'Could not save' }))}</>
+    );
+
+    expect(screen.getByTestId('icon-alert-circle')).toBeTruthy();
+    expect(
+      screen.getByTestId('app-snackbar').props.accessibilityLiveRegion
+    ).toBe('assertive');
   });
 });

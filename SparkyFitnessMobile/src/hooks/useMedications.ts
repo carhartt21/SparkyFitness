@@ -378,14 +378,15 @@ export function useLogDose(
           onSuccess: (created) =>
             Toast.show({
               type: 'success',
+              visibilityTime: 6500,
               text1: t('medications.dose.logged', {
                 defaultValue: '{{name}} logged',
                 name: med.name,
               }),
-              text2: t('medications.dose.tapUndo', {
-                defaultValue: 'Tap to undo',
-              }),
               props: {
+                actionLabel: t('medications.dose.undo', {
+                  defaultValue: 'Undo',
+                }),
                 onPress: () => {
                   Toast.hide();
                   deleteEntryMutation.mutate(created.id, {
