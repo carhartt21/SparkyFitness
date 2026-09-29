@@ -5914,7 +5914,8 @@
     "title": "{{meal}} status",
     "message": "Logged foods alone do not mark a meal as complete.",
     "clear": "Clear status",
-    "a11y": "{{meal}}: {{status}}. Change status",
+    "a11y": "{{meal}}: {{status}}. Tap to cycle status",
+    "hint": "Touch and hold to choose a specific status.",
     "saveFailed": "Could not save the meal status.",
     "coverageIncomplete_one": "{{count}} incomplete",
     "coverageIncomplete_other": "{{count}} incomplete"

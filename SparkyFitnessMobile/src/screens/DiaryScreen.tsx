@@ -1028,6 +1028,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               onPressMealType={openMealTypeDetail}
               mealStates={isConnected ? mealStates : undefined}
               onSetMealStatus={isConnected ? onSetMealStatus : undefined}
+              mealStatusBusy={setMealStatus.isPending}
               selectionMode={editingFoods}
               selectedEntryIds={selectedFoodIds}
               onSelectEntry={toggleFoodSelection}
@@ -1063,6 +1064,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               onPressMealType={openMealTypeDetail}
               mealStates={isConnected ? mealStates : undefined}
               onSetMealStatus={isConnected ? onSetMealStatus : undefined}
+              mealStatusBusy={setMealStatus.isPending}
               selectionMode={editingFoods}
               selectedEntryIds={selectedFoodIds}
               onSelectEntry={toggleFoodSelection}

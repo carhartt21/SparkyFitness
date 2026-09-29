@@ -44,6 +44,7 @@ interface FoodSummaryProps {
     mealTypeId: string,
     status: MealDayStatusValue | null
   ) => void;
+  mealStatusBusy?: boolean;
 }
 
 interface MealSectionProps {
@@ -67,6 +68,7 @@ interface MealSectionProps {
   ) => void;
   mealState?: MealTrackingState;
   onSetMealStatus?: (status: MealDayStatusValue | null) => void;
+  mealStatusBusy?: boolean;
 }
 
 const EmptyState: React.FC<{ onAddFood?: () => void }> = ({ onAddFood }) => {
@@ -104,6 +106,7 @@ const MealSection: React.FC<MealSectionProps> = ({
   onPressMealType,
   mealState,
   onSetMealStatus,
+  mealStatusBusy,
 }) => {
   const { t } = useTranslation();
   const glowing = useGlowTheme();
@@ -238,7 +241,7 @@ const MealSection: React.FC<MealSectionProps> = ({
         );
       })}
       {(onAddFood && group.mealTypeId) || (mealState && onSetMealStatus) ? (
-        <View className="mt-3 flex-row gap-2">
+        <View className="mt-3 flex-row items-center gap-2">
           {onAddFood && group.mealTypeId ? (
             <Pressable
               onPress={() => onAddFood(group.mealTypeId!)}
@@ -247,10 +250,10 @@ const MealSection: React.FC<MealSectionProps> = ({
                 defaultValue: 'Add food to {{meal}}',
                 meal: label,
               })}
-              className="min-h-11 flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised active:opacity-70"
+              className="min-h-11 min-w-0 flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised px-2 py-2 active:opacity-70"
             >
               <Icon name="add" size={18} color={accentPrimary} />
-              <Text className="text-sm font-semibold text-text-primary">
+              <Text className="shrink text-center text-sm font-semibold text-text-primary">
                 {t('foodSummary.addFood', { defaultValue: 'Add food' })}
               </Text>
             </Pressable>
@@ -260,6 +263,7 @@ const MealSection: React.FC<MealSectionProps> = ({
               mealLabel={label}
               state={mealState}
               onChange={onSetMealStatus}
+              busy={mealStatusBusy}
             />
           ) : null}
         </View>
@@ -273,6 +277,7 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
   capturePhotos,
   mealStates,
   onSetMealStatus,
+  mealStatusBusy,
   mealTypes,
   goals,
   calorieGoal,
@@ -398,6 +403,7 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
               ? (status) => onSetMealStatus(group.mealTypeId!, status)
               : undefined
           }
+          mealStatusBusy={mealStatusBusy}
         />
       ))}
     </View>

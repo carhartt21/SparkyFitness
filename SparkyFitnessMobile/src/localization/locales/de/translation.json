@@ -5925,10 +5925,11 @@
     "title": "{{meal}}-Status",
     "message": "Erfasste Lebensmittel allein markieren eine Mahlzeit nicht als abgeschlossen.",
     "clear": "Status zurücksetzen",
-    "a11y": "{{meal}}: {{status}}. Status ändern",
+    "a11y": "{{meal}}: {{status}}. Tippen, um den Status zu wechseln",
     "saveFailed": "Der Mahlzeitenstatus konnte nicht gespeichert werden.",
     "coverageIncomplete_one": "{{count}} unvollständig",
-    "coverageIncomplete_other": "{{count}} unvollständig"
+    "coverageIncomplete_other": "{{count}} unvollständig",
+    "hint": "Gedrückt halten, um einen bestimmten Status auszuwählen."
   },
   "checkin": {
     "completedToast": "Check-in gespeichert",
