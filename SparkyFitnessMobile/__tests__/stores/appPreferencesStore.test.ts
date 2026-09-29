@@ -21,7 +21,6 @@ describe('appPreferencesStore', () => {
       expect(state.hydrationCardVisible).toBe(true);
       expect(state.fastingCardVisible).toBe(true);
       expect(state.askSparkyVisible).toBe(true);
-      expect(state.liquidGlassTabBarEnabled).toBe(false);
       expect(state.activeWorkoutMetricColumn).toBe('rpe');
       expect(state.diarySummaryVisible).toBe(true);
       expect(state.diarySummaryExpanded).toBe(false);
@@ -60,11 +59,6 @@ describe('appPreferencesStore', () => {
 
       store.setHapticsEnabled(false);
       expect(useAppPreferencesStore.getState().hapticsEnabled).toBe(false);
-
-      store.setLiquidGlassTabBarEnabled(true);
-      expect(useAppPreferencesStore.getState().liquidGlassTabBarEnabled).toBe(
-        true
-      );
 
       store.setActiveWorkoutMetricColumn('e1rm');
       expect(useAppPreferencesStore.getState().activeWorkoutMetricColumn).toBe(
@@ -177,10 +171,6 @@ describe('appPreferencesStore', () => {
       // previously saved them with the old booleanPreference factory.
       await AsyncStorage.setItem('@HealthConnect:soundsEnabled', 'false');
       await AsyncStorage.setItem('@HealthConnect:hapticsEnabled', 'false');
-      await AsyncStorage.setItem(
-        '@HealthConnect:liquidGlassTabBarEnabled',
-        'true'
-      );
 
       // Force re-hydration from storage (simulates cold-start with legacy data).
       await useAppPreferencesStore.persist.rehydrate();
@@ -188,7 +178,6 @@ describe('appPreferencesStore', () => {
       const state = useAppPreferencesStore.getState();
       expect(state.soundsEnabled).toBe(false);
       expect(state.hapticsEnabled).toBe(false);
-      expect(state.liquidGlassTabBarEnabled).toBe(true);
       // Unset legacy keys fall back to store defaults.
       expect(state.notificationsEnabled).toBe(true);
       expect(state.hydrationCardVisible).toBe(true);

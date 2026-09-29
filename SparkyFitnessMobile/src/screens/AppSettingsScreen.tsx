@@ -19,7 +19,6 @@ import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import { cancelFastGoalNotification } from '../hooks/useFasting';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useScreenHeader } from '../hooks/useScreenHeader';
-import { canUseLiquidGlass } from '../utils/liquidGlass';
 import type { RootStackScreenProps } from '../types/navigation';
 import {
   getNativeIOSLanguage,
@@ -59,18 +58,11 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
     },
     [setFastingEnabled]
   );
-  const liquidGlassEnabled = useAppPreferencesStore(
-    (s) => s.liquidGlassTabBarEnabled
-  );
-  const setLiquidGlassTabBarEnabled = useAppPreferencesStore(
-    (s) => s.setLiquidGlassTabBarEnabled
-  );
   const languagePreference = useAppPreferencesStore(
     (s) => s.languagePreference
   );
   const isIOS = Platform.OS === 'ios';
   const iosLanguage = isIOS ? getNativeIOSLanguage() : null;
-  const supportsLiquidGlassTabBar = canUseLiquidGlass();
   const usesNativeHeader = useNativeIOSHeadersActive();
 
   const handleLanguageSelect = useCallback(
@@ -228,23 +220,6 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
           />
         )}
 
-        {supportsLiquidGlassTabBar && (
-          <SettingsRow
-            title={t('settings.liquidGlass.title', {
-              defaultValue: 'Liquid Glass navigation',
-            })}
-            subtitle={t('settings.liquidGlass.subtitle', {
-              defaultValue: 'Use the iOS 26 glass tab bar and screen headers.',
-            })}
-            subtitleNumberOfLines={0}
-            rightAccessory={
-              <Switch
-                value={liquidGlassEnabled}
-                onValueChange={setLiquidGlassTabBarEnabled}
-              />
-            }
-          />
-        )}
         <SettingsRow
           title={t('settings.fasting.title', { defaultValue: 'Fasting' })}
           subtitle={t('settings.fasting.subtitle', {

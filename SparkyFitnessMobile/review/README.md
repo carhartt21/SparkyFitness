@@ -9,7 +9,7 @@ node scripts/review-ios.mjs \
   --interactions
 ```
 
-Prerequisites: Xcode with iOS 26.2 runtime (override with `--runtime`), an existing compatible Expo development **simulator** app with bundle ID `com.cg.phi`, installed project dependencies, Swift/Vision, and Ruby's `xcodeproj` gem. Use a fresh output directory. Ports 43990 and 43991 must be free. `--single` runs the German 390-point baseline case only. Add `--native-tabs` to render the iOS 26 native-tab/header path; the default uses the fallback tab bar. The package shortcut is `pnpm ui:review:ios --app ...`.
+Prerequisites: Xcode with iOS 26.2 runtime (override with `--runtime`), an existing compatible Expo development **simulator** app with bundle ID `com.cg.phi`, installed project dependencies, Swift/Vision, and Ruby's `xcodeproj` gem. Use a fresh output directory. Ports 43990 and 43991 must be free. `--single` runs the German 390-point baseline case only. The app no longer offers the Liquid Glass tab bar, so `--native-tabs` has no effect. The package shortcut is `pnpm ui:review:ios --app ...`.
 
 The runner creates/reuses only simulators named `XOT UI Review …`; it does not erase the user's simulator or launch a physical phone. It installs the supplied native app into those disposable review devices and serves current JavaScript through a dedicated Metro process. It uses iOS launch arguments for the actual date locale, theme preferences for the app, and system Dynamic Type for the large-text case.
 

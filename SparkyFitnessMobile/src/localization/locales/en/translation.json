@@ -276,10 +276,6 @@
       "amoled": "AMOLED",
       "system": "System"
     },
-    "liquidGlass": {
-      "title": "Liquid Glass navigation",
-      "subtitle": "Use the iOS 26 glass tab bar and screen headers."
-    },
     "notifications": {
       "title": "Notifications",
       "subtitle": "Rest timers, fasting goals, and medication reminders."
@@ -3079,12 +3075,6 @@
         "eyebrow": "WORKOUT & EXERCISES",
         "headline": "Revamped workout workflows",
         "body": "Streamlined exercise logging, updated exercise library management, and improved multi-set performance tracking."
-      },
-      "ios": {
-        "eyebrow": "iOS 26",
-        "headline": "A Liquid Glass look",
-        "body": "Turn on Liquid Glass navigation for translucent tabs and headers that pick up the color behind them. Toggle it anytime in App settings.",
-        "cta": "Open settings"
       },
       "chat": {
         "eyebrow": "TRACKBOT",

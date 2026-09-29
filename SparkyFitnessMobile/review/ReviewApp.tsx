@@ -83,7 +83,6 @@ export default function ReviewApp() {
       await useAppPreferencesStore.persist.rehydrate();
       useAppPreferencesStore.setState({
         languagePreference: config.language,
-        liquidGlassTabBarEnabled: config.nativeTabs === true,
         hiddenHealthTrends: ['steps', 'weight', 'sleep', 'hydration'],
         notificationsEnabled: false,
         fastingEnabled: false,
