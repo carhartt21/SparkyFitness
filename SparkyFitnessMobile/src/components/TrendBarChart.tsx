@@ -9,6 +9,7 @@ import {
   formatXLabel7d,
   formatXLabel30d90d,
   formatChartYLabel,
+  getSafeChartXTickCount,
 } from './charts/chartFormatting';
 import type { HealthTrendDateRange } from '../types/healthTrends';
 import ChartTouchOverlay, {
@@ -53,12 +54,6 @@ const INNER_PADDING: Record<HealthTrendDateRange, number> = {
   '90d': 0.1,
 };
 
-const X_TICK_COUNT: Record<HealthTrendDateRange, number> = {
-  '7d': 7,
-  '30d': 6,
-  '90d': 5,
-};
-
 const font = makeChartFont(CHART_LABEL_FONT_SIZE);
 
 const TrendTooltip: React.FC<{ text: string }> = ({ text }) => (
@@ -92,6 +87,7 @@ function TrendBarChart<TPoint extends { day: string }>({
     '--color-text-muted',
   ]) as [string, string];
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [chartWidth, setChartWidth] = useState(0);
   const [touchLayout, setTouchLayout] = useState<ChartTouchLayout>(
     EMPTY_CHART_TOUCH_LAYOUT
   );
@@ -178,7 +174,10 @@ function TrendBarChart<TPoint extends { day: string }>({
           <Text className="text-text-muted text-sm">{emptyText}</Text>
         </View>
       ) : (
-        <View style={{ height: 175 }}>
+        <View
+          style={{ height: 175 }}
+          onLayout={(event) => setChartWidth(event.nativeEvent.layout.width)}
+        >
           <CartesianChart
             data={chartData}
             xKey="day"
@@ -187,7 +186,12 @@ function TrendBarChart<TPoint extends { day: string }>({
             domainPadding={{ left: 25, right: 25 }}
             xAxis={{
               font,
-              tickCount: X_TICK_COUNT[range],
+              tickCount: getSafeChartXTickCount(
+                range,
+                chartData.length,
+                chartWidth,
+                { labelSpacing: range === '7d' ? 56 : 76, axisReserve: 70 }
+              ),
               labelColor: textMuted,
               formatXLabel,
             }}

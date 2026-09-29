@@ -31,6 +31,7 @@ import {
   formatTooltipDate,
   formatXLabel30d90d,
   formatXLabel7d,
+  getSafeChartXTickCount,
 } from './charts/chartFormatting';
 import {
   buildSleepTimelineLayout,
@@ -62,12 +63,6 @@ const INNER_PADDING: Record<HealthTrendDateRange, number> = {
   '7d': 0.3,
   '30d': 0.2,
   '90d': 0.1,
-};
-
-const X_TICK_COUNT: Record<HealthTrendDateRange, number> = {
-  '7d': 7,
-  '30d': 6,
-  '90d': 5,
 };
 
 /**
@@ -179,6 +174,8 @@ const formatAxisClockLabel = (
 
 /** Evenly spaced day indices, so 90 columns do not print 90 overlapping labels. */
 const buildXLabelIndices = (dayCount: number, tickCount: number): number[] => {
+  if (dayCount === 0 || tickCount === 0) return [];
+  if (tickCount === 1) return [0];
   if (dayCount <= tickCount) {
     return Array.from({ length: dayCount }, (_, index) => index);
   }
@@ -342,7 +339,12 @@ const SleepTimelineChart: React.FC<SleepTimelineChartProps> = ({
       : '';
 
   const formatXLabel = range === '7d' ? formatXLabel7d : formatXLabel30d90d;
-  const xLabelIndices = buildXLabelIndices(data.length, X_TICK_COUNT[range]);
+  const xLabelIndices = buildXLabelIndices(
+    data.length,
+    getSafeChartXTickCount(range, data.length, plotWidth, {
+      labelSpacing: X_LABEL_WIDTH + 8,
+    })
+  );
 
   const renderPlaceholder = (message: string) => (
     <View className="h-50 justify-center items-center">

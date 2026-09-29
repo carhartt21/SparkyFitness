@@ -10,6 +10,7 @@ import {
   formatXLabel30d90d,
   formatTooltipDate,
   formatChartYLabel,
+  getSafeChartXTickCount,
 } from './charts/chartFormatting';
 import { formatLocalizedNumber } from '../localization';
 import type { TrendRange } from '../hooks/useNutritionTrends';
@@ -39,12 +40,6 @@ const INNER_PADDING: Record<TrendRange, number> = {
   '7d': 0.3,
   '30d': 0.2,
   '90d': 0.1,
-};
-
-const X_TICK_COUNT: Record<TrendRange, number> = {
-  '7d': 7,
-  '30d': 6,
-  '90d': 5,
 };
 
 const font = makeChartFont(11);
@@ -105,6 +100,7 @@ const NutrientBarChart: React.FC<NutrientBarChartProps> = ({
     '--color-text-muted',
   ]) as [string, string];
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [chartWidth, setChartWidth] = useState(0);
   const [touchLayout, setTouchLayout] = useState<ChartTouchLayout>(
     EMPTY_CHART_TOUCH_LAYOUT
   );
@@ -196,7 +192,10 @@ const NutrientBarChart: React.FC<NutrientBarChartProps> = ({
           </Text>
         </View>
       ) : (
-        <View style={{ height: 175 }}>
+        <View
+          style={{ height: 175 }}
+          onLayout={(event) => setChartWidth(event.nativeEvent.layout.width)}
+        >
           <CartesianChart
             data={data}
             xKey="day"
@@ -205,7 +204,15 @@ const NutrientBarChart: React.FC<NutrientBarChartProps> = ({
             domainPadding={{ left: 25, right: 25 }}
             xAxis={{
               font,
-              tickCount: X_TICK_COUNT[range],
+              tickCount: getSafeChartXTickCount(
+                range,
+                data.length,
+                chartWidth,
+                {
+                  labelSpacing: range === '7d' ? 56 : 76,
+                  axisReserve: 70,
+                }
+              ),
               labelColor: textMuted,
               formatXLabel,
             }}

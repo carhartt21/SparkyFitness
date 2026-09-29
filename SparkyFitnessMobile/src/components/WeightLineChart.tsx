@@ -10,6 +10,7 @@ import {
   formatXLabel7d,
   formatXLabel30d90d,
   formatTooltipDate,
+  getSafeChartXTickCount,
 } from './charts/chartFormatting';
 import LineSeriesMark from './charts/LineSeriesMark';
 import type { WeightDataPoint } from '../hooks/useMeasurementsRange';
@@ -27,12 +28,6 @@ type WeightLineChartProps = {
   isError: boolean;
   range: HealthTrendDateRange;
   unit: string;
-};
-
-const X_TICK_COUNT: Record<HealthTrendDateRange, number> = {
-  '7d': 7,
-  '30d': 6,
-  '90d': 5,
 };
 
 const font = makeChartFont(CHART_LABEL_FONT_SIZE);
@@ -76,6 +71,7 @@ const WeightLineChart: React.FC<WeightLineChartProps> = ({
     '--color-text-muted',
   ]) as [string, string];
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [chartWidth, setChartWidth] = useState(0);
   const [touchLayout, setTouchLayout] = useState<ChartTouchLayout>(
     EMPTY_CHART_TOUCH_LAYOUT
   );
@@ -166,7 +162,10 @@ const WeightLineChart: React.FC<WeightLineChartProps> = ({
           </Text>
         </View>
       ) : (
-        <View style={{ height: 175 }}>
+        <View
+          style={{ height: 175 }}
+          onLayout={(event) => setChartWidth(event.nativeEvent.layout.width)}
+        >
           <CartesianChart
             data={data}
             xKey="day"
@@ -174,7 +173,15 @@ const WeightLineChart: React.FC<WeightLineChartProps> = ({
             domainPadding={{ left: 25, right: 25 }}
             xAxis={{
               font,
-              tickCount: X_TICK_COUNT[range],
+              tickCount: getSafeChartXTickCount(
+                range,
+                data.length,
+                chartWidth,
+                {
+                  labelSpacing: range === '7d' ? 56 : 76,
+                  axisReserve: 70,
+                }
+              ),
               labelColor: textMuted,
               formatXLabel,
             }}
