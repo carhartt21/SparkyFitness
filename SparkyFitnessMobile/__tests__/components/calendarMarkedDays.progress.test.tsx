@@ -10,14 +10,15 @@ const colors = {
 
 function dayCell(
   Day: NonNullable<ReturnType<typeof useMarkedDayComponent>['Day']>,
-  date: string
+  date: string,
+  isSelected = false
 ) {
   return render(
     <>
       {Day({
         date: new Date(`${date}T12:00:00`) as unknown as string,
         text: date.slice(-2),
-        isSelected: false,
+        isSelected,
         isDisabled: false,
       } as never)}
     </>
@@ -30,6 +31,7 @@ describe('calendar day progress marks', () => {
       textPrimary: '#fff',
       textMuted: '#999',
       accentPrimary: '#0f0',
+      accentText: '#07251c',
       progressStates: {
         '2026-09-10': 'complete',
         '2026-09-11': 'partial',
@@ -75,5 +77,15 @@ describe('calendar day progress marks', () => {
   it('gives each marked day an accessible description', () => {
     const cell = dayCell(Day, '2026-09-11');
     expect(cell.getByLabelText('11, progress partial')).toBeTruthy();
+  });
+
+  it('uses contrasting accent text and marks on the selected day', () => {
+    const selected = dayCell(Day, '2026-09-10', true);
+    expect(selected.getByText('10').props.style).toMatchObject({
+      color: '#07251c',
+    });
+    expect(
+      selected.getByTestId('calendar-day-progress-complete').props.style
+    ).toMatchObject({ backgroundColor: '#07251c' });
   });
 });

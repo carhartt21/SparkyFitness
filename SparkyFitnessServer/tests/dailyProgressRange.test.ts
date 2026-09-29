@@ -18,6 +18,7 @@ const repo = vi.hoisted(() => ({
   firstDailyCheckinDate: vi.fn(),
   listMeasurementRemindersWithHistory: vi.fn(),
   recordedWeightsInRange: vi.fn(),
+  recordedCustomMeasurementsInRange: vi.fn(),
   listMealActivityInRange: vi.fn(),
   getDailyCheckin: vi.fn(),
   listHabits: vi.fn(),
@@ -33,7 +34,10 @@ vi.mock('../models/medicationEntryRepository.js', () => ({
   default: { listEntries: vi.fn(async () => []) },
 }));
 
-import { getDailyProgressRange } from '../services/dailyProgressService.js';
+import {
+  getDailyProgress,
+  getDailyProgressRange,
+} from '../services/dailyProgressService.js';
 
 const habit = (overrides: Record<string, unknown> = {}) => ({
   id: 'h1',
@@ -73,6 +77,89 @@ beforeEach(() => {
   repo.firstDailyCheckinDate.mockResolvedValue(null);
   repo.listMeasurementRemindersWithHistory.mockResolvedValue([]);
   repo.recordedWeightsInRange.mockResolvedValue({});
+  repo.recordedCustomMeasurementsInRange.mockResolvedValue({});
+});
+
+describe('calendar and daily progress reconciliation', () => {
+  it('includes an enabled first check-in as pending today', async () => {
+    repo.listHabits.mockResolvedValue([habit()]);
+    repo.getDailyCheckin.mockResolvedValue(null);
+    repo.listMeasurementReminders.mockResolvedValue([]);
+    repo.recordedMeasurementsOn.mockResolvedValue({});
+    repo.listHabitLogs.mockResolvedValue([
+      {
+        habit_id: 'h1',
+        entry_date: '2026-09-28',
+        value: 1,
+        recorded_at: '2026-09-28T10:00:00Z',
+      },
+    ]);
+    const daily = await getDailyProgress('u', '2026-09-28');
+    const [calendar] = await getDailyProgressRange(
+      'u',
+      '2026-09-28',
+      '2026-09-28'
+    );
+    expect(calendar).toMatchObject({
+      applicable: daily.applicable,
+      completed: daily.completed,
+      state: 'partial',
+    });
+  });
+
+  it('counts a saved custom measurement on its reminder day', async () => {
+    repo.getDailyTrackingPreferences.mockResolvedValue({
+      include_checkin: false,
+      include_habits: false,
+      include_supplements: false,
+      include_meals: false,
+    });
+    const reminder = {
+      id: 'r1',
+      measurement_key: 'custom:00000000-0000-0000-0000-000000000001',
+      label: 'Waist',
+      enabled: true,
+      days: null,
+      include_in_daily_progress: true,
+      created_at: '2026-09-20T08:00:00Z',
+      updated_at: '2026-09-20T08:00:00Z',
+    };
+    const recordedAt = '2026-09-28T10:00:00Z';
+    repo.listMeasurementReminders.mockResolvedValue([reminder]);
+    repo.listMeasurementRemindersWithHistory.mockResolvedValue([reminder]);
+    repo.recordedMeasurementsOn.mockResolvedValue({
+      [reminder.measurement_key]: recordedAt,
+    });
+    repo.recordedCustomMeasurementsInRange.mockResolvedValue({
+      '2026-09-28': { [reminder.measurement_key]: recordedAt },
+    });
+    const daily = await getDailyProgress('u', '2026-09-28');
+    const [calendar] = await getDailyProgressRange(
+      'u',
+      '2026-09-28',
+      '2026-09-28'
+    );
+    expect(calendar).toMatchObject({
+      applicable: daily.applicable,
+      completed: daily.completed,
+      state: 'complete',
+    });
+    expect(calendar.completed).toBe(1);
+  });
+
+  it('shows the configured check-in as pending for a first-time user today', async () => {
+    repo.listHabitDefinitionsWithHistory.mockResolvedValue([]);
+    const [calendar] = await getDailyProgressRange(
+      'u',
+      '2026-09-28',
+      '2026-09-28'
+    );
+    expect(calendar).toMatchObject({
+      applicable: 1,
+      completed: 0,
+      state: 'not_started',
+    });
+  });
 });
 
 describe('getDailyProgressRange', () => {

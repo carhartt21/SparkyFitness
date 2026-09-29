@@ -24,6 +24,7 @@ import {
   listMealActivityInRange,
   listMeasurementRemindersWithHistory,
   recordedWeightsInRange,
+  recordedCustomMeasurementsInRange,
   listHabitLogs,
   listHabits,
   listMealStatuses,
@@ -237,6 +238,14 @@ export async function getDailyProgressRange(
     }) as Promise<MedicationEntryRow[]>,
   ]);
   const supplements = medications.filter((med) => med.is_supplement);
+  const customMeasurements = await recordedCustomMeasurementsInRange(
+    userId,
+    startDate,
+    endDate,
+    reminders
+      .filter((reminder) => reminder.include_in_daily_progress)
+      .map((reminder) => reminder.measurement_key)
+  );
   const meals = preferences.include_meals
     ? await Promise.all([
         getMealTrackingStatus(userId, startDate),
@@ -280,9 +289,8 @@ export async function getDailyProgressRange(
   for (let day = startDate; day <= endDate; day = addDays(day, 1)) {
     if (
       day > today ||
-      trackingStart === null ||
-      day < trackingStart ||
-      (day < today && changedAfter(day))
+      (day < today &&
+        (trackingStart === null || day < trackingStart || changedAfter(day)))
     ) {
       days.push({ date: day, state: 'unknown', completed: 0, applicable: 0 });
       continue;
@@ -320,11 +328,11 @@ export async function getDailyProgressRange(
       date: day,
       preferences: {
         ...preferences,
-        // The check-in applies once the account has started checking in.
+        // Keep historical days conservative; today uses the same enabled
+        // check-in preference as the single-day progress summary.
         include_checkin:
           preferences.include_checkin &&
-          firstCheckin !== null &&
-          day >= firstCheckin,
+          (day === today || (firstCheckin !== null && day >= firstCheckin)),
       },
       checkin,
       habits: habits.filter((habit) => dayOf(habit.created_at) <= day),
@@ -332,7 +340,10 @@ export async function getDailyProgressRange(
       measurementReminders: reminders.filter(
         (reminder) => dayOf(reminder.created_at) <= day
       ),
-      recordedMeasurements: weights[day] ? { weight: weights[day] } : {},
+      recordedMeasurements: {
+        ...(weights[day] ? { weight: weights[day] } : {}),
+        ...customMeasurements[day],
+      },
       supplementDoses: preferences.include_supplements ? supplementDoses : [],
       meals: meals
         ? meals[0].meals.map((meal) => {

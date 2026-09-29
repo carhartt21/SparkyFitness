@@ -1043,6 +1043,45 @@ export async function recordedWeightsInRange(
   });
 }
 
+/** Saved custom measurements by day and reminder key for a bounded calendar range. */
+export async function recordedCustomMeasurementsInRange(
+  userId: string,
+  startDate: string,
+  endDate: string,
+  keys: readonly string[]
+): Promise<Record<string, Record<string, string>>> {
+  const categoryIds = [
+    ...new Set(
+      keys
+        .filter((key) => key.startsWith('custom:'))
+        .map((key) => key.slice('custom:'.length))
+    ),
+  ];
+  if (categoryIds.length === 0) return {};
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<{
+      entry_date: Date | string;
+      category_id: string;
+      at: Date;
+    }>(
+      `SELECT entry_date, category_id,
+              MAX(COALESCE(updated_at, entry_timestamp)) AS at
+       FROM custom_measurements
+       WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3
+         AND category_id = ANY($4::uuid[])
+       GROUP BY entry_date, category_id`,
+      [userId, startDate, endDate, categoryIds]
+    );
+    const recorded: Record<string, Record<string, string>> = {};
+    for (const row of result.rows) {
+      const day = dayString(row.entry_date);
+      (recorded[day] ??= {})[`custom:${row.category_id}`] =
+        row.at.toISOString();
+    }
+    return recorded;
+  });
+}
+
 export interface MealDayRow {
   entry_date: string;
   meal_type_id: string;

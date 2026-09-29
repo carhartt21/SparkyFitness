@@ -21,6 +21,7 @@ interface MarkedDayOptions {
   textPrimary: string;
   textMuted: string;
   accentPrimary: string;
+  accentText: string;
 }
 
 /**
@@ -37,6 +38,7 @@ export function useMarkedDayComponent({
   textPrimary,
   textMuted,
   accentPrimary,
+  accentText,
   progressStates,
   progressColors,
   progressLabel,
@@ -77,6 +79,12 @@ export function useMarkedDayComponent({
       // does, so the label and the dot have to invert there too or they vanish
       // into it.
       const onAccent = day.isSelected || day.rangeStart || day.rangeEnd;
+      const selectedProgressMark =
+        onAccent && progressMark
+          ? progress === 'complete'
+            ? { backgroundColor: accentText }
+            : { borderWidth: 1.5, borderColor: accentText }
+          : progressMark;
       return (
         <View
           style={{ alignItems: 'center', justifyContent: 'center' }}
@@ -85,7 +93,7 @@ export function useMarkedDayComponent({
           <Text
             style={{
               color: onAccent
-                ? '#FFFFFF'
+                ? accentText
                 : day.isDisabled
                   ? textMuted
                   : textPrimary,
@@ -101,7 +109,7 @@ export function useMarkedDayComponent({
                   width: 6,
                   height: 6,
                   borderRadius: 3,
-                  ...(progressMark ?? {}),
+                  ...(selectedProgressMark ?? {}),
                 }}
               />
             ) : null}
@@ -114,7 +122,7 @@ export function useMarkedDayComponent({
                 marginTop: 1,
                 backgroundColor: marked
                   ? onAccent
-                    ? '#FFFFFF'
+                    ? accentText
                     : accentPrimary
                   : 'transparent',
               }}
@@ -128,6 +136,7 @@ export function useMarkedDayComponent({
       textPrimary,
       textMuted,
       accentPrimary,
+      accentText,
       hasProgress,
       progressStates,
       progressColors,

@@ -141,6 +141,7 @@ const CalendarContent = ({
     textPrimary,
     textMuted,
     accentPrimary,
+    accentText,
     progressStates: showDailyProgress ? progressStates : undefined,
     progressColors,
     progressLabel,
