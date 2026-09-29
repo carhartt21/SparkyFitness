@@ -6,7 +6,13 @@ import labelScanService, {
   type LabelScanErrorCategory,
 } from '../services/labelScanService.js';
 import foodPhotoEstimationService from '../services/foodPhotoEstimationService.js';
-import type { FoodPhotoEstimateErrorCode } from '@workspace/shared';
+import {
+  saveFoodServingsBodySchema,
+  type FoodPhotoEstimateErrorCode,
+} from '@workspace/shared';
+import foodServingService, {
+  ServingSaveError,
+} from '../services/foodServingService.js';
 import { backfillOffAllergens } from '../utils/backfillAllergens.js';
 import { resolveIsAdmin } from '../utils/adminCheck.js';
 import {
@@ -626,6 +632,94 @@ router.delete('/food-variants/:id', authenticate, async (req, res, next) => {
       // @ts-expect-error TS(2571): Object is of type 'unknown'.
       return res.status(404).json({ error: error.message });
     }
+    next(error);
+  }
+});
+/**
+ * @swagger
+ * /foods/{foodId}/servings:
+ *   put:
+ *     summary: Save a food's serving portions
+ *     tags: [Nutrition & Meals]
+ *     description: >
+ *       Replaces the saved portions of a food you own in one transaction:
+ *       label, amount, unit, weight and order. Portions with a known weight
+ *       (or in the food's own serving unit) get nutrition derived from the
+ *       food's nutrition values; `derive: false` keeps a row's own values.
+ *       The nutrition values themselves are edited through the variant
+ *       routes and cannot be deleted here.
+ *     parameters:
+ *       - in: path
+ *         name: foodId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: The food's servings after saving, in order.
+ *       400:
+ *         description: Invalid servings.
+ *       403:
+ *         description: You do not own this food.
+ *       404:
+ *         description: Food not found.
+ *       409:
+ *         description: A removed serving is used by meal plan templates; resend with confirm_cascade.
+ *       422:
+ *         description: A serving needs a weight before its nutrition can be calculated.
+ */
+router.put('/:foodId/servings', authenticate, async (req, res, next) => {
+  const parsed = saveFoodServingsBodySchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({
+      error: 'Invalid servings.',
+      details: parsed.error.issues,
+    });
+  }
+  try {
+    const servings = await foodServingService.saveFoodServings(
+      req.authenticatedUserId || req.userId,
+      String(req.params.foodId),
+      parsed.data
+    );
+    res.status(200).json(servings);
+  } catch (error) {
+    if (error instanceof ServingSaveError) {
+      return res
+        .status(error.status)
+        .json({ error: error.message, ...error.details });
+    }
+    next(error);
+  }
+});
+/**
+ * @swagger
+ * /foods/{foodId}/last-serving:
+ *   get:
+ *     summary: Last serving you logged for a food
+ *     tags: [Nutrition & Meals]
+ *     description: The amount and unit last logged by hand for this food, or null.
+ *     parameters:
+ *       - in: path
+ *         name: foodId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: The last serving, or null when there is none.
+ */
+router.get('/:foodId/last-serving', authenticate, async (req, res, next) => {
+  try {
+    const lastServing = await foodServingService.getLastServing(
+      req.userId,
+      req.originalUserId || req.userId,
+      String(req.params.foodId)
+    );
+    res.status(200).json(lastServing);
+  } catch (error) {
     next(error);
   }
 });

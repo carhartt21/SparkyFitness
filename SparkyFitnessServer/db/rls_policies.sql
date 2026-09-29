@@ -40,6 +40,7 @@ BEGIN
     'nutrition_capture_images',
     'food_entry_meals',
     'food_favorites',
+    'food_last_servings',
     'food_variants',
     'foods',
     'goal_presets',
@@ -835,6 +836,15 @@ USING (has_diary_access(user_id))
 WITH CHECK (has_diary_access(user_id));
 CREATE POLICY delete_policy ON public.food_entries FOR DELETE TO PUBLIC
 USING (has_diary_access(user_id));
+
+-- The last-used serving follows the diary it describes: whoever may read or
+-- write this person's diary (the owner or a can_manage_diary delegate) may
+-- read or update it. Keep here: startup purges all policies.
+CREATE POLICY select_policy ON public.food_last_servings FOR SELECT TO PUBLIC
+USING (has_diary_read_access(user_id));
+CREATE POLICY modify_policy ON public.food_last_servings FOR ALL TO PUBLIC
+USING (has_diary_access(user_id))
+WITH CHECK (has_diary_access(user_id));
 
 -- A meal capture contains private images and belongs only to its author;
 -- family diary delegation does not grant access to the photo occurrence.
