@@ -18,7 +18,7 @@ jest.mock('../../src/components/Icon', () => {
   };
 });
 
-// Sleep times follow the account's 12h/24h `time_format`, same as diary food entries.
+// Sleep times use 24-hour presentation, including with a legacy account preference.
 jest.mock('../../src/hooks/usePreferences', () => ({
   usePreferences: jest.fn(() => ({ preferences: { time_format: 'h:mm A' } })),
 }));
@@ -66,7 +66,7 @@ describe('SleepCards', () => {
         <WakeUpCard entry={entry} day={DAY} navigation={mockNavigation} />
       );
 
-      expect(getByText('6:45 AM')).toBeTruthy();
+      expect(getByText('06:45')).toBeTruthy();
       expect(getByText('7h 30m')).toBeTruthy();
       expect(getByTestId('sleep-score')).toBeTruthy();
       expect(getByText('82')).toBeTruthy();
@@ -115,8 +115,7 @@ describe('SleepCards', () => {
     });
 
     test("renders 24-hour time under the account's 'HH:mm' preference", () => {
-      // The regression: these times used to follow the locale's 12h/24h convention and
-      // ignore the account setting, so they disagreed with diary food entries.
+      // Sleep and Diary use the same 24-hour clock regardless of locale.
       (usePreferences as jest.Mock).mockReturnValue({
         preferences: { time_format: 'HH:mm' },
       });
@@ -164,9 +163,9 @@ describe('SleepCards', () => {
 
       expect(getByTestId('nap-row-nap-1')).toBeTruthy();
       expect(getByTestId('nap-row-nap-2')).toBeTruthy();
-      expect(getByText('1:15 PM')).toBeTruthy();
+      expect(getByText('13:15')).toBeTruthy();
       expect(getByText('45m')).toBeTruthy();
-      expect(getByText('5:30 PM')).toBeTruthy();
+      expect(getByText('17:30')).toBeTruthy();
       expect(getByText('20m')).toBeTruthy();
     });
 
@@ -205,8 +204,8 @@ describe('SleepCards', () => {
         />
       );
 
-      expect(getByLabelText('Open nap details, 1:15 PM, 45m')).toBeTruthy();
-      expect(getByLabelText('Open nap details, 5:30 PM, 20m')).toBeTruthy();
+      expect(getByLabelText('Open nap details, 13:15, 45m')).toBeTruthy();
+      expect(getByLabelText('Open nap details, 17:30, 20m')).toBeTruthy();
     });
 
     test('navigates with the tapped nap’s id, not the main sleep’s', () => {
@@ -242,7 +241,7 @@ describe('SleepCards', () => {
         <BedTimeCard entry={tonight} day={DAY} navigation={mockNavigation} />
       );
 
-      expect(getByText('10:45 PM')).toBeTruthy();
+      expect(getByText('22:45')).toBeTruthy();
     });
 
     test('hides the card entirely until tonight’s sleep has synced', () => {
@@ -286,7 +285,7 @@ describe('SleepCards', () => {
         <WakeUpCard entry={entry} day={DAY} navigation={mockNavigation} />
       );
 
-      expect(getByText('7:45 AM')).toBeTruthy();
+      expect(getByText('07:45')).toBeTruthy();
     });
 
     test('falls back to the profile timezone when the session recorded no zone', () => {
@@ -302,7 +301,7 @@ describe('SleepCards', () => {
         />
       );
 
-      expect(getByText('7:45 AM')).toBeTruthy();
+      expect(getByText('07:45')).toBeTruthy();
     });
 
     test('reads a nap against its own recorded zone', () => {
@@ -318,7 +317,7 @@ describe('SleepCards', () => {
         <NapsCard naps={[nap]} day={DAY} navigation={mockNavigation} />
       );
 
-      expect(getByText('7:45 AM')).toBeTruthy();
+      expect(getByText('07:45')).toBeTruthy();
     });
   });
 });

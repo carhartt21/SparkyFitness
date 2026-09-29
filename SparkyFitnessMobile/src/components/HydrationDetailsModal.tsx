@@ -136,6 +136,7 @@ export default function HydrationDetailsModal({
                   {new Date(entry.logged_at).toLocaleTimeString(locale, {
                     hour: '2-digit',
                     minute: '2-digit',
+                    hourCycle: 'h23',
                   })}{' '}
                   ·{' '}
                   {entry.source === 'manual'

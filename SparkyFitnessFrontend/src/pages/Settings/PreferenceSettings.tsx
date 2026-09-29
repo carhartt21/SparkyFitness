@@ -43,8 +43,6 @@ export const PreferenceSettings = () => {
     setEnergyUnit, // Add energyUnit and setEnergyUnit
     dateFormat,
     setDateFormat,
-    timeFormat,
-    setTimeFormat,
     chartScaleMode,
     setChartScaleMode,
     itemDisplayLimit,
@@ -90,7 +88,6 @@ export const PreferenceSettings = () => {
         distanceUnit,
         energyUnit,
         dateFormat,
-        timeFormat,
         itemDisplayLimit,
         autoScaleOpenFoodFactsImports,
         autoScaleOnlineImports,
@@ -160,31 +157,10 @@ export const PreferenceSettings = () => {
             </Select>
           </div>
           <div>
-            <Label htmlFor="time_format">
-              {t('settings.preferences.timeFormat', 'Time Format')}
-            </Label>
-            <Select value={timeFormat} onValueChange={setTimeFormat}>
-              <SelectTrigger id="time_format">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="HH:mm">
-                  {t('settings.preferences.timeFormat24', '24-hour (14:30)')}
-                </SelectItem>
-                <SelectItem value="h:mm A">
-                  {t(
-                    'settings.preferences.timeFormat12Upper',
-                    '12-hour AM/PM (2:30 PM)'
-                  )}
-                </SelectItem>
-                <SelectItem value="h:mm a">
-                  {t(
-                    'settings.preferences.timeFormat12Lower',
-                    '12-hour am/pm (2:30 pm)'
-                  )}
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <Label>{t('settings.preferences.timeFormat', 'Time Format')}</Label>
+            <p className="mt-2 text-sm text-muted-foreground">
+              {t('settings.preferences.timeFormat24', '24-hour (14:30)')}
+            </p>
           </div>
           <div>
             <Label htmlFor="chart_scale_mode">

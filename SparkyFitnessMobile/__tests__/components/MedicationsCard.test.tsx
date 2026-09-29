@@ -148,9 +148,9 @@ describe('MedicationsCard', () => {
     const screen = setupCard([buildMedication()]);
 
     expect(screen.getByText('Lisinopril')).toBeTruthy();
-    expect(screen.getByText('8:00 AM')).toBeTruthy();
+    expect(screen.getByText('08:00')).toBeTruthy();
     expect(
-      screen.getByText('8:00 AM · Pill · 1 tablet', { exact: false })
+      screen.getByText('08:00 · Pill · 1 tablet', { exact: false })
     ).toBeTruthy();
     fireEvent.press(screen.getByText('Log'));
     expect(mockLogDose).toHaveBeenCalledWith(
@@ -217,7 +217,7 @@ describe('MedicationsCard', () => {
     ]);
 
     expect(
-      screen.getByText('8:00 AM · Pill · 2 tablet', { exact: false })
+      screen.getByText('08:00 · Pill · 2 tablet', { exact: false })
     ).toBeTruthy();
   });
 

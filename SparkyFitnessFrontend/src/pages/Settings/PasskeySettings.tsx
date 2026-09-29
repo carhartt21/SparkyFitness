@@ -116,7 +116,7 @@ const PasskeySettings = () => {
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {t('settings.passkey.addedOn', 'Added on')}{' '}
-                        {format(new Date(pk.createdAt), 'PPp', {
+                        {format(new Date(pk.createdAt), 'PP HH:mm', {
                           locale: getDateLocale(language),
                         })}
                       </p>

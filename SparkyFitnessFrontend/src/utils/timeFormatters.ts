@@ -5,10 +5,9 @@ import {
   type RecordZone,
 } from '@workspace/shared';
 
-export function normalizeTimeFormat(timeFormat: string): string {
-  if (timeFormat === 'h:mm A') return 'h:mm aa'; // date-fns `aa` -> AM/PM
-  if (timeFormat === 'h:mm a') return 'h:mm aaa'; // date-fns `aaa` -> am/pm
-  return timeFormat;
+/** Legacy stored formats remain valid API values, but the UI uses 24-hour time. */
+export function normalizeTimeFormat(_timeFormat: string): string {
+  return 'HH:mm';
 }
 
 export const formatMinutesToHHMM = (totalMinutes: number): string => {
@@ -41,10 +40,10 @@ export const formatSecondsToHHMM = (totalSeconds: number): string => {
 };
 
 /**
- * Formats a Date or timestamp as a time string according to the user's timeFormat preference
+ * Formats a Date or timestamp as a 24-hour time string.
  *
  * @param date - The date to format.
- * @param timeFormat - The time format preference ('HH:mm' for 24h, anything else for 12h).
+ * @param timeFormat - Legacy account preference (accepted for API compatibility).
  * @returns Formatted time string.
  */
 export function formatTimeWithPreference(
@@ -52,17 +51,14 @@ export function formatTimeWithPreference(
   timeFormat: string
 ): string {
   if (isNaN(date.getTime())) return '';
-  // Use date-fns so the user's time-format preference is respected. The stored
-  // labels ('h:mm A' / 'h:mm a') are mapped to date-fns compatible tokens.
   return format(date, normalizeTimeFormat(timeFormat));
 }
 
 /**
- * Formats a 'HH:mm' or 'HH:mm:ss' time-of-day string according to the user's
- * timeFormat preference. Useful for schedule times that are stored without a date.
+ * Formats a 'HH:mm' or 'HH:mm:ss' schedule time as a 24-hour clock.
  *
  * @param timeOfDay - Time string such as '14:30' or '14:30:00'.
- * @param timeFormat - The user's time format preference.
+ * @param timeFormat - Legacy account preference (accepted for API compatibility).
  * @returns Formatted time string.
  */
 export function formatTimeOfDayString(
@@ -72,6 +68,14 @@ export function formatTimeOfDayString(
   const parts = timeOfDay.split(':');
   const h = parseInt(parts[0] ?? '0', 10);
   const m = parseInt(parts[1] ?? '0', 10);
+  if (
+    !/^\d{1,2}:\d{1,2}(?::\d{1,2})?$/.test(timeOfDay) ||
+    h < 0 ||
+    h > 23 ||
+    m < 0 ||
+    m > 59
+  )
+    return '';
   // Use a fixed non-DST calendar date so parsing a schedule time does not
   // shift across DST boundaries and remains consistent regardless of the
   // current date.
@@ -82,8 +86,7 @@ export function formatTimeOfDayString(
 
 /**
  * Formats a UTC instant as a time-of-day string in the given record zone
- * (IANA timezone or fixed UTC offset), honoring the user's 12h/24h
- * time-format preference. Renders from extracted hour/minute rather than a
+ * (IANA timezone or fixed UTC offset), using the 24-hour clock. Renders from extracted hour/minute rather than a
  * host-local Date so a wall clock that falls inside the browser zone's DST
  * spring-forward gap is not normalized an hour forward. Deliberately
  * independent of PreferencesContext so nothing routes through its

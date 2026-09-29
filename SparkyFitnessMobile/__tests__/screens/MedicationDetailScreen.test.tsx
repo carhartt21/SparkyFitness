@@ -240,7 +240,7 @@ describe('MedicationDetailScreen', () => {
   it('offers Log and Skip on a pending scheduled dose', () => {
     const screen = setupScreen(buildMedication());
 
-    expect(screen.getByText('8:00 AM')).toBeTruthy();
+    expect(screen.getByText('08:00')).toBeTruthy();
     fireEvent.press(screen.getByText('Log'));
     expect(mockLogDose).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -305,7 +305,7 @@ describe('MedicationDetailScreen', () => {
       })
     );
 
-    expect(screen.getByText('Daily at 8:00 AM')).toBeTruthy();
+    expect(screen.getByText('Daily at 08:00')).toBeTruthy();
     expect(screen.getByText('2 tablet · Before meal')).toBeTruthy();
   });
 
@@ -370,7 +370,7 @@ describe('MedicationDetailScreen', () => {
   it('opens the schedule editor when a schedule row is pressed', () => {
     const screen = setupScreen(buildMedication());
 
-    fireEvent.press(screen.getByText('Daily at 8:00 AM'));
+    fireEvent.press(screen.getByText('Daily at 08:00'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith(
       'MedicationScheduleForm',
       {

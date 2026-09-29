@@ -844,7 +844,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                 defaultValue:
                   'Saved summary · {{time}}. More recent changes may not be included.',
                 time: saved
-                  ? new Date(saved.savedAt).toLocaleString(dateLocale)
+                  ? new Date(saved.savedAt).toLocaleString(dateLocale, {
+                      hourCycle: 'h23',
+                    })
                   : t('dashboard.offlineTitle', {
                       defaultValue: 'Server unavailable',
                     }),

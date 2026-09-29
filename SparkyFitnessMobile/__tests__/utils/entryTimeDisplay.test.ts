@@ -4,7 +4,7 @@ import {
   is12HourTimeFormat,
 } from '../../src/utils/entryTimeDisplay';
 
-describe('entry time display respects account time_format', () => {
+describe('entry time display uses a 24-hour clock', () => {
   beforeAll(async () => {
     await initializeI18n('en');
   });
@@ -14,14 +14,13 @@ describe('entry time display respects account time_format', () => {
     expect(formatTimeLabel('09:05:00', 'HH:mm')).toBe('09:05');
   });
 
-  test("h:mm A / h:mm a (12-hour) render '3:38 PM'", () => {
-    expect(formatTimeLabel('15:38', 'h:mm A')).toBe('3:38 PM');
-    expect(formatTimeLabel('09:05', 'h:mm a')).toBe('9:05 AM');
+  test('legacy 12-hour account values still display 24-hour time', () => {
+    expect(formatTimeLabel('15:38', 'h:mm A')).toBe('15:38');
+    expect(formatTimeLabel('09:05', 'h:mm a')).toBe('09:05');
   });
 
-  test('no preference falls back to the app locale default', async () => {
-    // en-US default is 12-hour AM/PM.
-    expect(formatTimeLabel('15:38')).toBe('3:38 PM');
+  test('no preference still uses 24 hours in an English locale', () => {
+    expect(formatTimeLabel('15:38')).toBe('15:38');
   });
 
   test('null/empty/invalid returns null', () => {
@@ -30,11 +29,10 @@ describe('entry time display respects account time_format', () => {
     expect(formatTimeLabel('not-a-time', 'HH:mm')).toBeNull();
   });
 
-  test('is12HourTimeFormat resolves 12h vs 24h correctly', () => {
+  test('pickers never show an AM/PM column', () => {
     expect(is12HourTimeFormat('HH:mm')).toBe(false);
-    expect(is12HourTimeFormat('h:mm A')).toBe(true);
-    expect(is12HourTimeFormat('h:mm a')).toBe(true);
-    // In English locale default, should be 12-hour
-    expect(is12HourTimeFormat()).toBe(true);
+    expect(is12HourTimeFormat('h:mm A')).toBe(false);
+    expect(is12HourTimeFormat('h:mm a')).toBe(false);
+    expect(is12HourTimeFormat()).toBe(false);
   });
 });

@@ -673,13 +673,19 @@ export const ProviderCard = ({
           <div className="text-sm text-muted-foreground">
             {config.lastSync && (
               <span>
-                Last Sync: {new Date(config.lastSync).toLocaleString()}
+                Last Sync:{' '}
+                {new Date(config.lastSync).toLocaleString(undefined, {
+                  hourCycle: 'h23',
+                })}
               </span>
             )}
             {config.lastSync && config.tokenExpires && <span> | </span>}
             {config.tokenExpires && (
               <span>
-                Token Expires: {new Date(config.tokenExpires).toLocaleString()}
+                Token Expires:{' '}
+                {new Date(config.tokenExpires).toLocaleString(undefined, {
+                  hourCycle: 'h23',
+                })}
               </span>
             )}
           </div>

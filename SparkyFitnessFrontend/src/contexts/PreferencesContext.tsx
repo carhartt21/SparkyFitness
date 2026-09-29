@@ -299,7 +299,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<MeasurementUnit>('cm');
   const [distanceUnit, setDistanceUnitState] = useState<'km' | 'miles'>('km');
   const [dateFormat, setDateFormatState] = useState<string>('MM/dd/yyyy');
-  const [timeFormat, setTimeFormatState] = useState<string>('h:mm A');
+  const [timeFormat, setTimeFormatState] = useState<string>('HH:mm');
   const [autoClearHistory, setAutoClearHistoryState] =
     useState<string>('never');
   const [loggingLevel, setLoggingLevelState] = useState<
@@ -648,7 +648,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
       const defaultPrefs: Partial<DefaultPreferences> = {
         user_id: user.id,
         date_format: 'MM/dd/yyyy',
-        time_format: 'h:mm A',
+        time_format: 'HH:mm',
         default_weight_unit: 'kg',
         default_measurement_unit: 'cm',
         default_distance_unit: 'km',
@@ -716,7 +716,9 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
         setDateFormatState(
           data.date_format.replace(/DD/g, 'dd').replace(/YYYY/g, 'yyyy')
         );
-        setTimeFormatState(data.time_format || 'h:mm A');
+        // Old accounts can still store an AM/PM preference. Presentation is
+        // always 24-hour, and the next settings save persists that choice.
+        setTimeFormatState('HH:mm');
         setAutoClearHistoryState(data.auto_clear_history || 'never');
         setLoggingLevelState(data.logging_level || 'INFO');
         setDefaultFoodDataProviderIdState(
@@ -872,8 +874,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
           localStorage.setItem('distanceUnit', updates.default_distance_unit);
         if (updates.date_format)
           localStorage.setItem('dateFormat', updates.date_format);
-        if (updates.time_format)
-          localStorage.setItem('timeFormat', updates.time_format);
+        if (updates.time_format) localStorage.setItem('timeFormat', 'HH:mm');
         if (updates.language)
           localStorage.setItem('language', updates.language);
         if (updates.calorie_goal_adjustment_mode)
@@ -904,6 +905,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
         const updateData: Partial<DefaultPreferences> = {
           user_id: user.id,
           ...updates,
+          ...(updates.time_format ? { time_format: 'HH:mm' } : {}),
           updated_at: new Date().toISOString(),
         };
         await upsertUserPreferences(updateData);
@@ -935,7 +937,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
         default_measurement_unit: newPrefs?.measurementUnit ?? measurementUnit,
         default_distance_unit: newPrefs?.distanceUnit ?? distanceUnit,
         date_format: newPrefs?.dateFormat ?? dateFormat,
-        time_format: newPrefs?.timeFormat ?? timeFormat,
+        time_format: 'HH:mm',
         auto_clear_history: newPrefs?.autoClearHistory ?? autoClearHistory,
         logging_level: newPrefs?.loggingLevel ?? loggingLevel,
         default_food_data_provider_id:
@@ -1043,7 +1045,6 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
       measurementUnit,
       distanceUnit,
       dateFormat,
-      timeFormat,
       autoClearHistory,
       defaultFoodDataProviderId,
       defaultBarcodeProviderId,
@@ -1109,8 +1110,8 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
     setDateFormatState(formatStr.replace(/DD/g, 'dd').replace(/YYYY/g, 'yyyy'));
   }, []);
 
-  const setTimeFormat = useCallback((formatStr: string) => {
-    setTimeFormatState(formatStr);
+  const setTimeFormat = useCallback((_formatStr: string) => {
+    setTimeFormatState('HH:mm');
   }, []);
 
   const setAutoClearHistory = useCallback((value: string) => {
@@ -1287,7 +1288,6 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
         const savedDistanceUnit = localStorage.getItem('distanceUnit') as
           'km' | 'miles';
         const savedDateFormat = localStorage.getItem('dateFormat');
-        const savedTimeFormat = localStorage.getItem('timeFormat');
         const savedLanguage = localStorage.getItem('language');
         // The shared union, not another hand-maintained copy: the inline one here also
         // omitted `'smart'`, so a stored `smart` was typed as impossible while flowing
@@ -1305,7 +1305,7 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
         if (savedWeightUnit) setWeightUnitState(savedWeightUnit);
         if (savedMeasurementUnit) setMeasurementUnitState(savedMeasurementUnit);
         if (savedDateFormat) setDateFormatState(savedDateFormat);
-        if (savedTimeFormat) setTimeFormatState(savedTimeFormat);
+        setTimeFormatState('HH:mm');
         if (savedDistanceUnit) setDistanceUnitState(savedDistanceUnit);
         if (savedLanguage) setLanguageState(savedLanguage);
         if (savedCalorieGoalAdjustmentMode)

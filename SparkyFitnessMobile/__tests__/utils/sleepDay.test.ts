@@ -81,26 +81,24 @@ describe('formatClockTime', () => {
   });
 
   test("renders 24-hour time under the account's 'HH:mm' preference", () => {
-    // The regression: en-US defaults to 12-hour, so this only passes if the account
-    // setting wins over the locale convention.
+    // English locale defaults to 12-hour, but app clocks always use 24-hour time.
     expect(formatClockTime(localInstant(15, 38), 'HH:mm')).toBe('15:38');
   });
 
-  test("renders 12-hour time under the account's 'h:mm A' preference", () => {
-    expect(formatClockTime(localInstant(15, 38), 'h:mm A')).toBe('3:38 PM');
-    expect(formatClockTime(localInstant(9, 5), 'h:mm a')).toBe('9:05 AM');
+  test('ignores legacy 12-hour account preferences', () => {
+    expect(formatClockTime(localInstant(15, 38), 'h:mm A')).toBe('15:38');
+    expect(formatClockTime(localInstant(9, 5), 'h:mm a')).toBe('09:05');
   });
 
-  test('the account preference overrides the locale default in both directions', async () => {
-    // en-US is a 12-hour locale, pl-PL a 24-hour one; the setting beats both.
+  test('uses 24-hour time across app locales', async () => {
     expect(formatClockTime(localInstant(15, 38), 'HH:mm')).toBe('15:38');
 
     await i18n.changeLanguage('pl');
-    expect(formatClockTime(localInstant(15, 38), 'h:mm A')).toBe('3:38 PM');
+    expect(formatClockTime(localInstant(15, 38), 'h:mm A')).toBe('15:38');
   });
 
-  test('falls back to the locale convention when no preference is set', async () => {
-    expect(formatClockTime(localInstant(15, 38), undefined)).toBe('3:38 PM');
+  test('uses 24-hour time when no preference is set', async () => {
+    expect(formatClockTime(localInstant(15, 38), undefined)).toBe('15:38');
 
     await i18n.changeLanguage('pl');
     expect(formatClockTime(localInstant(15, 38), undefined)).toBe('15:38');
@@ -137,10 +135,10 @@ describe('formatClockTime', () => {
       ).toBe('04:15');
     });
 
-    test('still honours the account time format inside a zone', () => {
+    test('uses 24-hour time inside a record zone', () => {
       expect(
         formatClockTime(instant, 'h:mm A', { kind: 'tz', tz: 'Asia/Tokyo' })
-      ).toBe('7:45 AM');
+      ).toBe('07:45');
     });
 
     test('falls back to the device clock when no zone is known', () => {

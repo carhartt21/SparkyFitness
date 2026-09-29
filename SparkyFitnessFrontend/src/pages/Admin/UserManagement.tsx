@@ -405,12 +405,18 @@ const UserManagement: React.FC = () => {
                           </TableCell>
                           <TableCell>
                             {user.created_at
-                              ? new Date(user.created_at).toLocaleString()
+                              ? new Date(user.created_at).toLocaleString(
+                                  undefined,
+                                  { hourCycle: 'h23' }
+                                )
                               : 'N/A'}
                           </TableCell>
                           <TableCell>
                             {user.last_login_at
-                              ? new Date(user.last_login_at).toLocaleString()
+                              ? new Date(user.last_login_at).toLocaleString(
+                                  undefined,
+                                  { hourCycle: 'h23' }
+                                )
                               : 'N/A'}
                           </TableCell>
                           <TableCell>

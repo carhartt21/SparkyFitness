@@ -36,7 +36,7 @@ export const BackupSettingsForm: React.FC<BackupSettingsFormProps> = ({
 
   const getStatusText = (status?: string | null, timestamp?: Date | null) => {
     if (status && timestamp) {
-      return `${status} on ${new Date(timestamp).toLocaleString()}`;
+      return `${status} on ${new Date(timestamp).toLocaleString(undefined, { hourCycle: 'h23' })}`;
     }
     return status || 'N/A';
   };

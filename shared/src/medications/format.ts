@@ -107,14 +107,21 @@ export function formatStrengthPerUnit(
     : strength;
 }
 
-/** Formats an "HH:MM"(":SS") time-of-day string for display in the device locale. */
+/** Formats an "HH:MM"(":SS") time-of-day string as a 24-hour clock. */
 export function formatTimeOfDay(timeOfDay: string): string {
   const [h, m] = timeOfDay.split(":").map(Number);
-  if (!Number.isFinite(h) || !Number.isFinite(m)) return timeOfDay;
-  return new Date(2000, 0, 1, h, m).toLocaleTimeString([], {
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  if (
+    h === undefined ||
+    m === undefined ||
+    !Number.isInteger(h) ||
+    !Number.isInteger(m) ||
+    h < 0 ||
+    h > 23 ||
+    m < 0 ||
+    m > 59
+  )
+    return timeOfDay;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
 /** Formats a schedule's meal-timing value ('before' | 'with' | 'after' | 'away_from_meals') for display. */
@@ -127,8 +134,8 @@ export function formatWithMeal(withMeal: string): string {
 }
 
 /**
- * Human-readable frequency summary for a schedule, e.g. "Daily at 8:00 AM",
- * "Mon, Wed, Fri at 9:00 PM", "Every 3 days", or "As needed".
+ * Human-readable frequency summary for a schedule, e.g. "Daily at 08:00",
+ * "Mon, Wed, Fri at 21:00", "Every 3 days", or "As needed".
  */
 export function describeSchedule(
   schedule: Pick<
@@ -155,7 +162,7 @@ export function describeSchedule(
 
 /**
  * One-line regimen summary across a medication's schedules, e.g.
- * "Daily at 8:00 AM & 8:00 PM" or "Daily at 8:00 AM; As needed".
+ * "Daily at 08:00 & 20:00" or "Daily at 08:00; As needed".
  *
  * Schedules with the same frequency are merged with their times joined;
  * distinct frequencies are separated with "; ". Inactive schedules are

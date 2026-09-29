@@ -65,7 +65,7 @@ describe('MedicationRow', () => {
     );
 
     expect(screen.getByText('Lisinopril')).toBeTruthy();
-    expect(screen.getByText('1 tablet · Daily at 8:00 AM')).toBeTruthy();
+    expect(screen.getByText('1 tablet · Daily at 08:00')).toBeTruthy();
   });
 
   it('summarizes schedule-less medications as as-needed', () => {

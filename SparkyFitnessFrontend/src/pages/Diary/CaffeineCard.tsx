@@ -29,6 +29,7 @@ const clockLabel = (instant: string | number) =>
   new Date(instant).toLocaleTimeString([], {
     hour: '2-digit',
     minute: '2-digit',
+    hourCycle: 'h23',
   });
 
 interface CaffeineCardProps {
@@ -520,6 +521,7 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
                   {new Date(dose.at).toLocaleTimeString([], {
                     hour: '2-digit',
                     minute: '2-digit',
+                    hourCycle: 'h23',
                   })}
                   )
                 </span>

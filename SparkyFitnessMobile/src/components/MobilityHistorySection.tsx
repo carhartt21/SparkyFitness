@@ -47,6 +47,7 @@ export default function MobilityHistorySection({
             const date = new Intl.DateTimeFormat(locale, {
               dateStyle: 'medium',
               timeStyle: 'short',
+              hourCycle: 'h23',
             }).format(new Date(session.endedAt ?? session.startedAt));
             const completed = session.outcomes.filter(
               (outcome) => outcome.result === 'completed'

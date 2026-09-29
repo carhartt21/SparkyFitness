@@ -277,7 +277,7 @@ const LogScreen: React.FC<LogScreenProps> = ({ navigation }) => {
       logText += `${t('logScreen.clipboard.details', { defaultValue: 'Details' })}: ${item.details.join(', ')}\n`;
     }
 
-    logText += `${t('logScreen.clipboard.timestamp', { defaultValue: 'Timestamp' })}: ${new Date(item.timestamp).toLocaleString(getAppLocale())}`;
+    logText += `${t('logScreen.clipboard.timestamp', { defaultValue: 'Timestamp' })}: ${new Date(item.timestamp).toLocaleString(getAppLocale(), { hourCycle: 'h23' })}`;
 
     Clipboard.setString(logText);
 
@@ -396,7 +396,9 @@ const LogScreen: React.FC<LogScreenProps> = ({ navigation }) => {
                   ))}
               </View>
               <Text className="text-sm text-text-muted">
-                {new Date(item.timestamp).toLocaleString(getAppLocale())}
+                {new Date(item.timestamp).toLocaleString(getAppLocale(), {
+                  hourCycle: 'h23',
+                })}
               </Text>
             </View>
           </TouchableOpacity>

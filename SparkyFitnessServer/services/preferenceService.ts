@@ -160,7 +160,7 @@ function getDefaultPreferences() {
     calorie_goal_adjustment_mode: 'dynamic',
     show_net_carbs: false,
     timezone: null,
-    time_format: 'h:mm A',
+    time_format: 'HH:mm',
     calorie_safety_floor_mode: 'standard',
     calorie_safety_floor_value: DEFAULT_CUSTOM_CALORIE_SAFETY_FLOOR,
     chart_scale_mode: DEFAULT_CHART_SCALE_MODE,
@@ -232,7 +232,7 @@ async function getUserPreferences(authenticatedUserId: any, targetUserId: any) {
     }
     return {
       ...preferences,
-      time_format: preferences.time_format ?? 'h:mm A',
+      time_format: preferences.time_format ?? 'HH:mm',
     };
   } catch (error) {
     log(

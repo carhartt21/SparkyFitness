@@ -130,7 +130,9 @@ export default function AppointmentsPanel() {
                     t('cycle.care.appointment', 'Appointment')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {new Date(a.scheduled_at).toLocaleString()}
+                  {new Date(a.scheduled_at).toLocaleString(undefined, {
+                    hourCycle: 'h23',
+                  })}
                   {a.location ? ` · ${a.location}` : ''}
                 </p>
               </div>

@@ -58,8 +58,8 @@ export const resolveSleepZone = (
   resolveRecordZone(profileTimezone, null);
 
 /**
- * Formats an ISO instant as a clock time, honouring the account's `time_format`
- * preference exactly as diary food entries do.
+ * Formats an ISO instant as a 24-hour clock time like diary food entries do.
+ * Legacy account `time_format` values are accepted for API compatibility.
  *
  * `zone` is the wall clock to read the instant against — see {@link resolveSleepZone}.
  * Omitting it falls back to the device's own clock, which is only right when nothing is

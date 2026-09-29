@@ -260,18 +260,15 @@ describe('formatLastFast', () => {
 describe('formatTime / formatDateTime locale handling', () => {
   const iso = new Date('2026-06-03T15:30:00').toISOString();
 
-  test('follows the active application locale (not the device locale) for time', async () => {
+  test('uses 24-hour time for every application locale', async () => {
     await initializeI18n('en');
     await i18n.changeLanguage('en');
     const enTime = formatTime(iso);
-    // en-US uses 12-hour AM/PM presentation.
-    expect(enTime.toLowerCase()).toContain('pm');
+    expect(enTime).toBe('15:30');
 
     await i18n.changeLanguage('pl');
     const plTime = formatTime(iso);
-    // pl-PL uses 24-hour presentation, no AM/PM suffix.
-    expect(plTime.toLowerCase()).not.toContain('pm');
-    expect(plTime).not.toBe(enTime);
+    expect(plTime).toBe('15:30');
 
     await i18n.changeLanguage('en');
   });
@@ -281,11 +278,11 @@ describe('formatTime / formatDateTime locale handling', () => {
     await i18n.changeLanguage('en');
     const date = new Date('2026-06-03T15:30:00');
     const enDateTime = formatDateTime(date);
-    expect(enDateTime.toLowerCase()).toContain('pm');
+    expect(enDateTime).toContain('15:30');
 
     await i18n.changeLanguage('pl');
     const plDateTime = formatDateTime(date);
-    expect(plDateTime.toLowerCase()).not.toContain('pm');
+    expect(plDateTime).toContain('15:30');
     expect(plDateTime).not.toBe(enDateTime);
 
     await i18n.changeLanguage('en');

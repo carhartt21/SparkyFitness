@@ -447,7 +447,7 @@ describe('MedicationScheduleFormScreen', () => {
       scheduleId: 'sched-1',
     });
 
-    expect(screen.getByText('8:30 AM')).toBeTruthy();
+    expect(screen.getByText('08:30')).toBeTruthy();
 
     pressAction(screen, mockNavigation, 'Save');
 

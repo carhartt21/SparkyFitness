@@ -194,14 +194,5 @@ export function formatLocalizedTimeOfDay(
   locale = getAppLocale(),
   timeFormat?: EntryTimeFormat | null
 ): string {
-  if (timeFormat) {
-    const formatted = formatTimeLabel(timeOfDay, timeFormat);
-    if (formatted) return formatted;
-  }
-  const [hours, minutes] = timeOfDay.split(':').map(Number);
-  if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return timeOfDay;
-  return new Date(2000, 0, 1, hours, minutes).toLocaleTimeString(locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
+  return formatTimeLabel(timeOfDay, timeFormat, locale) ?? timeOfDay;
 }

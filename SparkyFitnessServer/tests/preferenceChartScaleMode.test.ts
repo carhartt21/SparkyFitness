@@ -60,3 +60,15 @@ describe('chart scale mode preference validation', () => {
     ).rejects.toMatchObject({ status: 400 });
   });
 });
+
+describe('24-hour time preference default', () => {
+  it('uses 24-hour time for a new account', async () => {
+    vi.mocked(preferenceRepository.getUserPreferences).mockResolvedValueOnce(
+      null
+    );
+
+    await expect(
+      preferenceService.getUserPreferences('user-1', 'user-1')
+    ).resolves.toMatchObject({ time_format: 'HH:mm' });
+  });
+});

@@ -49,7 +49,7 @@ describe('TimeSheet', () => {
     expect(picker.use12Hours).toBe(false);
   });
 
-  it('uses 12-hour presentation (use12Hours=true) when preferences set time_format to h:mm A', () => {
+  it('uses 24-hour presentation for legacy 12-hour preferences', () => {
     mockedUsePreferences.mockReturnValue({
       preferences: { time_format: 'h:mm A' },
       isLoading: false,
@@ -62,7 +62,7 @@ describe('TimeSheet', () => {
       <TimeSheet value="13:30" onSelectTime={jest.fn()} />
     );
     const picker = pickerProps(queries);
-    expect(picker.use12Hours).toBe(true);
+    expect(picker.use12Hours).toBe(false);
   });
 
   it('explicit timeFormat prop overrides preferences', () => {

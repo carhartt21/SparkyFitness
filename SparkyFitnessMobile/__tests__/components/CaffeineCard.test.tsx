@@ -105,13 +105,13 @@ describe('CaffeineCard (mobile)', () => {
     expect(screen.getByText('At 22:30')).toBeTruthy();
   });
 
-  it('shows the cutoff time when one is still ahead in 12h format', () => {
+  it('shows the cutoff time in 24-hour format despite a legacy preference', () => {
     mockPreferences = { time_format: 'h:mm A' };
     render(
       <CaffeineCard kinetics={baseKinetics} nowMs={NOW} isLoading={false} />
     );
-    expect(screen.getByText('5:45 PM')).toBeTruthy();
-    expect(screen.getByText('At 10:30 PM')).toBeTruthy();
+    expect(screen.getByText('17:45')).toBeTruthy();
+    expect(screen.getByText('At 22:30')).toBeTruthy();
   });
 
   // The web card and this one read the same cutoff_state, so "already over"

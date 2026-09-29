@@ -386,12 +386,12 @@ export const FastingReport = ({ fastingData }: FastingReportProps) => {
                   .map((f) => {
                     const startStr = formatDateInUserTimezone(
                       parseISO(f.start_time),
-                      'MMM dd, yyyy h:mm a'
+                      'MMM dd, yyyy HH:mm'
                     );
                     const endStr = f.end_time
                       ? formatDateInUserTimezone(
                           parseISO(f.end_time),
-                          'MMM dd, yyyy h:mm a'
+                          'MMM dd, yyyy HH:mm'
                         )
                       : t('reports.fasting.ongoing', 'Ongoing');
                     const duration = formatHoursToReadable(

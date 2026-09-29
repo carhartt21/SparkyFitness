@@ -27,6 +27,6 @@ describe('localizedDescribeSchedules', () => {
           time_of_day: '20:00',
         },
       ])
-    ).toContain('8:00 AM & 8:00 PM');
+    ).toContain('08:00 & 20:00');
   });
 });

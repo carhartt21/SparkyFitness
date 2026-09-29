@@ -179,11 +179,11 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
       () =>
         startDate.toLocaleString(appLocale, {
           weekday: 'short',
-          hour: 'numeric',
+          hour: '2-digit',
           minute: '2-digit',
-          hour12: use12Hours,
+          hourCycle: 'h23',
         }),
-      [appLocale, startDate, use12Hours]
+      [appLocale, startDate]
     );
 
     const handleStart = () => {

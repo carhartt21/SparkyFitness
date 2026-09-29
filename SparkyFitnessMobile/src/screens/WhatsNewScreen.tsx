@@ -456,7 +456,7 @@ const MedicationsMockup: React.FC = () => {
               className="text-[10px] font-semibold"
               style={{ color: catTeal }}
             >
-              {t('whatsNewPage.mockup.eightAm', { defaultValue: '8:00 AM' })}
+              08:00
             </Text>
           </View>
         </View>

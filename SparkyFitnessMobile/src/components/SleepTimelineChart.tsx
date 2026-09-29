@@ -48,9 +48,8 @@ type SleepTimelineChartProps = SleepTimelineAggregates &
 const PLOT_HEIGHT = 150;
 
 /**
- * Wide enough for the longest label the axis can produce, "12 AM". Dropping the ":00"
- * from the hour labels is what let this shrink from 72px — the difference goes to the
- * plot, which is the part worth the horizontal space.
+ * Wide enough for the two-digit 24-hour tick labels. Dropping the ":00"
+ * leaves more room for the plot.
  */
 const TICK_LABEL_WIDTH = 44;
 

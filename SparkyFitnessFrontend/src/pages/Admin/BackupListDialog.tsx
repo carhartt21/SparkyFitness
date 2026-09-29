@@ -193,10 +193,16 @@ export const BackupListDialog: React.FC<BackupListDialogProps> = ({
                                 {backup.fileName}
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
-                                {new Date(backup.createdAt).toLocaleString()}
+                                {new Date(backup.createdAt).toLocaleString(
+                                  undefined,
+                                  { hourCycle: 'h23' }
+                                )}
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
-                                {new Date(backup.completedAt).toLocaleString()}
+                                {new Date(backup.completedAt).toLocaleString(
+                                  undefined,
+                                  { hourCycle: 'h23' }
+                                )}
                               </TableCell>
                               <TableCell className="whitespace-nowrap">
                                 {formatFileSize(backup.size)}
