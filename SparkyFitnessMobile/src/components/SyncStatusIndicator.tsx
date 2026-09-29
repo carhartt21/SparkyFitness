@@ -141,7 +141,7 @@ export default function SyncStatusIndicator() {
       // Only a problem is announced; routine progress stays quiet.
       accessibilityLiveRegion={state === 'attention' ? 'polite' : 'none'}
       onPress={() => navigation.navigate('Sync')}
-      className="h-9 w-9 items-center justify-center rounded-full active:opacity-70"
+      className="h-11 w-11 items-center justify-center rounded-full active:opacity-70"
     >
       <View testID={`sync-status-${state}`}>
         {state === 'syncing' ? (

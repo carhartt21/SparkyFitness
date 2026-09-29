@@ -24,19 +24,39 @@ export const NutrientGrid = ({
     [key: string]: { color: string; label: string; unit: string };
   } = {
     calories: {
-      color: 'text-gray-900 dark:text-gray-100',
+      color: 'text-[hsl(var(--metric-calories))]',
       label: getEnergyUnitString(energyUnit),
       unit: '',
     },
-    protein: { color: 'text-blue-600', label: 'protein', unit: 'g' },
-    carbs: { color: 'text-orange-600', label: 'carbs', unit: 'g' },
-    fat: { color: 'text-yellow-600', label: 'fat', unit: 'g' },
-    dietary_fiber: { color: 'text-green-600', label: 'fiber', unit: 'g' },
+    protein: {
+      color: 'text-[hsl(var(--metric-protein))]',
+      label: 'protein',
+      unit: 'g',
+    },
+    carbs: {
+      color: 'text-[hsl(var(--metric-carbs))]',
+      label: 'carbs',
+      unit: 'g',
+    },
+    fat: { color: 'text-[hsl(var(--metric-fat))]', label: 'fat', unit: 'g' },
+    dietary_fiber: {
+      color: 'text-[hsl(var(--metric-fiber))]',
+      label: 'fiber',
+      unit: 'g',
+    },
     sugars: { color: 'text-pink-500', label: 'sugar', unit: 'g' },
     sodium: { color: 'text-purple-500', label: 'sodium', unit: 'mg' },
     cholesterol: { color: 'text-indigo-500', label: 'cholesterol', unit: 'mg' },
-    saturated_fat: { color: 'text-red-500', label: 'sat fat', unit: 'g' },
-    trans_fat: { color: 'text-red-700', label: 'trans fat', unit: 'g' },
+    saturated_fat: {
+      color: 'text-[hsl(var(--metric-fat-saturated))]',
+      label: 'sat fat',
+      unit: 'g',
+    },
+    trans_fat: {
+      color: 'text-[hsl(var(--metric-fat-trans))]',
+      label: 'trans fat',
+      unit: 'g',
+    },
     potassium: { color: 'text-teal-500', label: 'potassium', unit: 'mg' },
     vitamin_a: { color: 'text-yellow-400', label: 'vit a', unit: 'mcg' },
     vitamin_c: { color: 'text-orange-400', label: 'vit c', unit: 'mg' },

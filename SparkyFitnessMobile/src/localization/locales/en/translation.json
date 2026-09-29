@@ -3580,6 +3580,7 @@
       "nutritionForAmount": "Nutrition for selected amount",
       "logTo": "Log to",
       "ofGoal": "{{percent}}% of goal",
+      "goalNotSet": "No goal",
       "quickPortions": "Available portions",
       "unknownGramSize": "A gram weight was not provided for this serving.",
       "quickPortionNutrition": "{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein",

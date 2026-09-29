@@ -58,12 +58,14 @@
       --color-form-enabled: hsl(220, 22%, 55%);
       --color-form-disabled: hsl(220, 12%, 82%);
 
-      --color-calories: #087257;
+      /* Nutrient colors identify categories; the X progress spectrum is separate. */
+      --color-card-glow: #7c8a94;
+      --color-calories: #526473;
       --color-energy-track: #d6e5df;
-      --color-macro-protein: #c93a2e;
-      --color-macro-carbs: #9a7400;
-      --color-macro-fat: #11884a;
-      --color-macro-fiber: #6a4bc4;
+      --color-macro-protein: #21649e;
+      --color-macro-carbs: #6945a5;
+      --color-macro-fat: #8a5813;
+      --color-macro-fiber: #a23d69;
 
       --color-hydration: #146f8f;
       --color-exercise: #09785d;
@@ -167,12 +169,13 @@
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 26%);
 
-      --color-calories: #3ff276;
+      --color-card-glow: #8497a3;
+      --color-calories: #b4c8d2;
       --color-energy-track: #12302a;
-      --color-macro-protein: #ff5146;
-      --color-macro-carbs: #fdd32b;
-      --color-macro-fat: #45f07a;
-      --color-macro-fiber: #b08cff;
+      --color-macro-protein: #57b9f8;
+      --color-macro-carbs: #b59cff;
+      --color-macro-fat: #f5b647;
+      --color-macro-fiber: #e98aae;
 
       --color-hydration: #22b8f5;
       --color-exercise: #fcd533;
@@ -275,12 +278,13 @@
       --color-form-enabled: hsl(220, 30%, 62%);
       --color-form-disabled: hsl(220, 12%, 18%);
 
-      --color-calories: #3ff276;
+      --color-card-glow: #95a7b3;
+      --color-calories: #b4c8d2;
       --color-energy-track: #10281f;
-      --color-macro-protein: #ff5146;
-      --color-macro-carbs: #fdd32b;
-      --color-macro-fat: #45f07a;
-      --color-macro-fiber: #b08cff;
+      --color-macro-protein: #57b9f8;
+      --color-macro-carbs: #b59cff;
+      --color-macro-fat: #f5b647;
+      --color-macro-fiber: #e98aae;
 
       --color-hydration: #22b8f5;
       --color-exercise: #fcd533;

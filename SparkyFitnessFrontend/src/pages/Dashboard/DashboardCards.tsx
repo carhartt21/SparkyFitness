@@ -146,13 +146,16 @@ function StatLine({
 function Bar({
   value,
   tone,
+  color,
   label,
 }: {
   value: number;
-  tone: GlowTone;
+  tone?: GlowTone;
+  color?: string;
   label: string;
 }) {
   const pct = Math.min(Math.max(value, 0), 1) * 100;
+  const barColor = color ?? glowColor(tone ?? 'neutral');
   return (
     <div
       className="h-2 flex-1 overflow-hidden rounded-full bg-muted"
@@ -167,8 +170,8 @@ function Bar({
         style={
           {
             width: `${pct}%`,
-            backgroundColor: glowColor(tone),
-            '--bar-color': glowColor(tone),
+            backgroundColor: barColor,
+            '--bar-color': barColor,
           } as React.CSSProperties
         }
       />
@@ -207,7 +210,7 @@ export function EnergyCard({
   const over = hasGoal && remaining < 0;
   return (
     <GlowCard
-      tone="mint"
+      tone="neutral"
       as="section"
       className="p-5"
       aria-labelledby="dash-energy"
@@ -224,13 +227,13 @@ export function EnergyCard({
       <div className="flex items-center gap-4">
         <NeonRing
           progress={hasGoal ? progress / 100 : 0}
-          tone="mint"
+          tone="neutral"
           size={136}
           stroke={11}
         >
           <Flame
             className="mb-1 h-5 w-5"
-            style={{ color: glowColor('mint') }}
+            style={{ color: glowColor('neutral') }}
             aria-hidden="true"
           />
           <div className="text-2xl font-bold tabular-nums text-foreground">
@@ -253,7 +256,7 @@ export function EnergyCard({
         <div className="grid min-w-0 flex-1 gap-3">
           <StatLine
             icon={<Utensils className="h-5 w-5" />}
-            tone="mint"
+            tone="neutral"
             value={`${format(eaten)} ${unit}`}
             label={t('dashboardWeb.energy.consumed', 'Consumed')}
           />
@@ -293,11 +296,10 @@ export function EnergyCard({
 /* ------------------------------------------------------------------ */
 
 export interface MacroRow {
-  key: string;
+  key: 'protein' | 'carbs' | 'fat' | 'fiber';
   label: string;
   consumed: number;
   goal: number;
-  tone: GlowTone;
 }
 
 export function MacrosCard({
@@ -309,10 +311,10 @@ export function MacrosCard({
 }) {
   const { t } = useTranslation();
   return (
-    <GlowCard tone="red" as="section" className="p-5">
+    <GlowCard tone="neutral" as="section" className="p-5">
       <CardTitle
         icon={<BarChart3 className="h-5 w-5" />}
-        tone="red"
+        tone="neutral"
         title={t('dashboardWeb.macros.title', 'Macronutrients')}
         action={{
           label: t('dashboardWeb.viewDetails', 'View details'),
@@ -324,6 +326,7 @@ export function MacrosCard({
         {rows.map((row) => {
           const hasGoal = row.goal > 0;
           const pct = hasGoal ? row.consumed / row.goal : 0;
+          const color = `hsl(var(--metric-${row.key}))`;
           return (
             <li key={row.key} data-testid={`dash-macro-${row.key}`}>
               <div className="mb-1.5 flex items-baseline justify-between gap-2 text-sm">
@@ -335,10 +338,10 @@ export function MacrosCard({
               </div>
               {hasGoal ? (
                 <div className="flex items-center gap-3">
-                  <Bar value={pct} tone={row.tone} label={row.label} />
+                  <Bar value={pct} color={color} label={row.label} />
                   <span
                     className="w-10 text-right text-xs font-semibold tabular-nums"
-                    style={{ color: glowColor(row.tone) }}
+                    style={{ color }}
                   >
                     {Math.round(pct * 100)}%
                   </span>

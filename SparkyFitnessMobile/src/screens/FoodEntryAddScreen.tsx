@@ -1942,9 +1942,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </Text>
           </View>
 
-          {/* Compact cards: amount on top, "Label · NN%" underneath. The
-              percentage appears only with a valid daily target; the full
-              meaning stays in the accessibility label. */}
+          {/* Category, amount and goal share each have a stable line. */}
           <View
             className="flex-row flex-wrap justify-between gap-2"
             testID="food-entry-highlights"
@@ -1991,7 +1989,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   }}
                 >
                   <Text
-                    className="text-center text-lg font-bold text-text-primary"
+                    className="text-center text-xs font-semibold text-text-secondary"
+                    testID={`food-entry-highlight-${nutrient.key}-label`}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                  >
+                    {nutrient.label}
+                  </Text>
+                  <Text
+                    className="text-center text-lg font-bold text-text-primary my-1"
                     numberOfLines={1}
                     adjustsFontSizeToFit
                   >
@@ -2001,10 +2008,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   <Text
                     className="text-center text-xs text-text-secondary"
                     testID={`food-entry-highlight-${nutrient.key}-caption`}
+                    numberOfLines={1}
                   >
                     {percent === null
-                      ? nutrient.label
-                      : `${nutrient.label} · ${percent}%`}
+                      ? t('foodEntryAdd.labels.goalNotSet', {
+                          defaultValue: 'No goal',
+                        })
+                      : `${percent}%`}
                   </Text>
                 </View>
               );

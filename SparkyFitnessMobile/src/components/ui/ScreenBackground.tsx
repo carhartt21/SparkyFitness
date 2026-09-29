@@ -3,16 +3,12 @@ import { useCSSVariable } from 'uniwind';
 import { useGlowTheme, withAlpha } from './glow';
 
 /**
- * Ambient edge glow behind a screen's content in dark themes, echoing the
- * reference's red and green light spill. Decorative only; render it as the
- * first child of a full-screen container.
+ * Quiet neutral edge light behind dark screens. The colored progress mark and
+ * metric accents stay legible without casting a red/green rating onto cards.
  */
 export default function ScreenBackground() {
   const glowing = useGlowTheme();
-  const [red, green] = useCSSVariable([
-    '--color-neon-red',
-    '--color-neon-green',
-  ]) as [string, string];
+  const neutral = useCSSVariable('--color-card-glow') as string;
   if (!glowing) return null;
   return (
     <View
@@ -23,10 +19,8 @@ export default function ScreenBackground() {
         StyleSheet.absoluteFill,
         {
           experimental_backgroundImage: [
-            `radial-gradient(circle at 0% 22%, ${withAlpha(red, 0.16)} 0%, ${withAlpha(red, 0)} 38%)`,
-            `radial-gradient(circle at 100% 18%, ${withAlpha(green, 0.14)} 0%, ${withAlpha(green, 0)} 36%)`,
-            `radial-gradient(circle at 100% 62%, ${withAlpha(green, 0.1)} 0%, ${withAlpha(green, 0)} 34%)`,
-            `radial-gradient(circle at 0% 78%, ${withAlpha(red, 0.1)} 0%, ${withAlpha(red, 0)} 32%)`,
+            `radial-gradient(circle at 0% 22%, ${withAlpha(neutral, 0.1)} 0%, ${withAlpha(neutral, 0)} 38%)`,
+            `radial-gradient(circle at 100% 18%, ${withAlpha(neutral, 0.08)} 0%, ${withAlpha(neutral, 0)} 36%)`,
           ].join(', '),
         },
       ]}

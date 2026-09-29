@@ -2,17 +2,24 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 export type GlowTone =
-  'mint' | 'green' | 'red' | 'orange' | 'yellow' | 'cyan' | 'violet';
+  | 'neutral'
+  | 'mint'
+  | 'green'
+  | 'red'
+  | 'orange'
+  | 'yellow'
+  | 'cyan'
+  | 'violet';
 
 type GlowCardProps = React.HTMLAttributes<HTMLElement> & {
-  /** Neon tint for border, wash and (dark mode) glow; omit for a neutral card. */
+  /** Border and glow tint; omit for a plain card surface. */
   tone?: GlowTone;
   as?: 'div' | 'section' | 'article';
 };
 
 /**
  * Shared X on Track card: 16px corners and a tinted border; in dark mode a
- * soft neon glow. Mirrors the mobile `GlowCard` so both apps read as one.
+ * restrained glow. Mirrors the mobile `GlowCard` so both apps read as one.
  */
 const GlowCard = React.forwardRef<HTMLElement, GlowCardProps>(
   ({ tone, as = 'div', className, style, ...props }, ref) => {
@@ -28,7 +35,7 @@ const GlowCard = React.forwardRef<HTMLElement, GlowCardProps>(
         style={
           tone
             ? ({
-                '--glow': `var(--neon-${tone})`,
+                '--glow': glowColor(tone),
                 ...style,
               } as React.CSSProperties)
             : style
@@ -41,6 +48,7 @@ const GlowCard = React.forwardRef<HTMLElement, GlowCardProps>(
 GlowCard.displayName = 'GlowCard';
 
 /** Hex neon token for a tone, for icons and chart strokes. */
-export const glowColor = (tone: GlowTone) => `var(--neon-${tone})`;
+export const glowColor = (tone: GlowTone) =>
+  tone === 'neutral' ? 'var(--card-glow)' : `var(--neon-${tone})`;
 
 export { GlowCard };

@@ -103,11 +103,17 @@
     --neon-mint: #0b7a58;
     --neon-cyan: #0f76a8;
     --neon-violet: #6a4bc4;
-    --metric-calories: 165 84% 27%;
-    --metric-protein: 4 63% 48%;
-    --metric-carbs: 44 100% 30%;
-    --metric-fat: 145 78% 30%;
-    --metric-fiber: 256 50% 53%;
+    /* Categorical nutrients never borrow the warm-to-green progress scale. */
+    --card-glow: #7c8a94;
+    --metric-calories: 207 17% 39%;
+    --metric-protein: 208 65% 37%;
+    --metric-carbs: 262 41% 46%;
+    --metric-fat: 35 76% 31%;
+    --metric-fat-saturated: 27 66% 35%;
+    --metric-fat-poly: 42 65% 30%;
+    --metric-fat-mono: 49 55% 30%;
+    --metric-fat-trans: 19 58% 35%;
+    --metric-fiber: 334 45% 44%;
     --brand-primary: 163 79% 21%;
     --brand-secondary: 163 79% 21%;
     --brand-supporting: 145 30% 42%;
@@ -164,11 +170,16 @@
     --neon-mint: #14e89a;
     --neon-cyan: #22b8f5;
     --neon-violet: #b08cff;
-    --metric-calories: 158 80% 50%;
-    --metric-protein: 4 100% 62%;
-    --metric-carbs: 47 97% 59%;
-    --metric-fat: 138 85% 61%;
-    --metric-fiber: 262 100% 77%;
+    --card-glow: #8497a3;
+    --metric-calories: 200 25% 76%;
+    --metric-protein: 203 92% 66%;
+    --metric-carbs: 255 100% 81%;
+    --metric-fat: 38 90% 62%;
+    --metric-fat-saturated: 30 90% 65%;
+    --metric-fat-poly: 46 85% 62%;
+    --metric-fat-mono: 53 75% 65%;
+    --metric-fat-trans: 21 75% 65%;
+    --metric-fiber: 337 68% 73%;
     --brand-primary: 163 79% 21%;
     --brand-secondary: 158 80% 44%;
     --brand-supporting: 158 60% 60%;
@@ -223,17 +234,17 @@
     @apply bg-background text-foreground;
   }
 
-  /* Ambient red/green edge light from the reference, dark theme only. */
+  /* Keep background ambience quiet so category colors belong to data. */
   .dark body {
     background-image:
       radial-gradient(
         60rem 40rem at 0% 10%,
-        color-mix(in srgb, var(--neon-red) 7%, transparent),
+        color-mix(in srgb, var(--card-glow) 5%, transparent),
         transparent 60%
       ),
       radial-gradient(
         60rem 40rem at 100% 0%,
-        color-mix(in srgb, var(--neon-green) 8%, transparent),
+        color-mix(in srgb, var(--card-glow) 6%, transparent),
         transparent 60%
       );
     background-attachment: fixed;
@@ -250,8 +261,8 @@
   }
 }
 
-/* Shared X on Track card surface. Set `--glow` (a neon token) for a tinted
-   border, inner wash and, in dark mode, an outer neon glow. */
+/* Shared X on Track card surface. Set `--glow` for a tinted border, inner
+   wash and, in dark mode, a restrained outer glow. */
 @utility glow-surface {
   --glow: var(--neon-mint);
   border-width: 1px;
