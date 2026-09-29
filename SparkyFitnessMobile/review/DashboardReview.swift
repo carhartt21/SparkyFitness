@@ -126,6 +126,23 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
     sleep(2)
     capture("tracking-dashboard", app)
+    // Calendar with Daily Progress marks, then the quick-log sheet.
+    let date = app.buttons["dashboard-date"]
+    if date.waitForExistence(timeout: 10) {
+      date.tap()
+      sleep(3)
+      capture("tracking-calendar", app)
+      app.swipeDown(velocity: .fast)
+      sleep(2)
+    }
+    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add", "Hinzufügen"])).firstMatch
+    if add.waitForExistence(timeout: 10) && add.isHittable {
+      add.tap()
+      sleep(2)
+      capture("tracking-add-sheet", app)
+      app.swipeDown(velocity: .fast)
+      sleep(2)
+    }
     let screens: [(tile: String, id: String)] = [
       ("more-daily-checkin", "daily-checkin"),
       ("more-habits", "habits"),

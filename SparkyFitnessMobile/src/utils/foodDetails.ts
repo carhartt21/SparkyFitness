@@ -487,7 +487,12 @@ export function formatVariantLabel(
   equivalents?: EquivalentUnit[]
 ): string {
   const servingLabel = formatVariantServingLabel(values, equivalents);
-  return `${servingLabel} (${formatCaloriesForDisplay(values.calories)} cal)`;
+  // The energy suffix is localized so German picker rows read "kcal".
+  const calories = i18n.t('foodDetails.caloriesAbbreviation', {
+    defaultValue: '{{value}} cal',
+    value: formatCaloriesForDisplay(values.calories),
+  });
+  return `${servingLabel} (${calories})`;
 }
 
 function getVisibleLocalVariantGroups(groups: VariantGroup[]) {

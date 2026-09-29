@@ -6106,5 +6106,8 @@
     "legendNotStarted": "Not started",
     "note": "Tracking tasks only, not nutrition completeness. Blank days have no tasks or cannot be reconstructed.",
     "openDay": "Progress for the selected day"
+  },
+  "foodDetails": {
+    "caloriesAbbreviation": "{{value}} cal"
   }
 }
