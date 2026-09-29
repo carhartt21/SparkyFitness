@@ -119,16 +119,9 @@ final class DashboardReview: XCTestCase {
     unitPicker.tap()
     sleep(2)
     capture("tour-food-unit-menu", app)
-    // The quick-add row carries the same name; pick the visible sheet option.
-    let portions = app.staticTexts.matching(NSPredicate(format: "label == %@", "Medium pot (130 g)"))
-    XCTAssertTrue(portions.firstMatch.waitForExistence(timeout: 5))
-    // The sheet sits at the bottom, below the quick-add row with the same name.
-    let screen = app.windows.firstMatch.frame
-    let portion = portions.allElementsBoundByIndex
-      .filter { screen.contains($0.frame) }
-      .max(by: { $0.frame.minY < $1.frame.minY })
-    XCTAssertNotNil(portion)
-    portion?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    // Second option of the serving sheet (the first saved portion). The
+    // sheet's rows are not reliably exposed as elements, so tap its row.
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.88)).tap()
     sleep(2)
     capture("tour-food-details-portion", app)
     app.swipeUp()
@@ -137,45 +130,18 @@ final class DashboardReview: XCTestCase {
     app.swipeUp()
     sleep(1)
     capture("tour-food-details-bottom", app)
-    // Edit Food from the library: the saved portions editor.
-    // Close the food details and then the search (both modal, X at top left).
-    for _ in 0..<2 {
-      let close = app.buttons.matching(NSPredicate(format: "label == %@", "Close")).firstMatch
-      if close.waitForExistence(timeout: 3) && close.isHittable {
-        close.tap()
-      } else {
-        app.coordinate(withNormalizedOffset: CGVector(dx: 0.09, dy: 0.1)).tap()
-      }
-      sleep(2)
-    }
-    sleep(1)
-    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More"])).firstMatch
-    XCTAssertTrue(more.waitForExistence(timeout: 10))
-    more.tap()
-    sleep(2)
-    app.swipeUp()
-    sleep(1)
-    let foods = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Foods")).firstMatch
-    XCTAssertTrue(foods.waitForExistence(timeout: 10))
-    foods.tap()
-    sleep(2)
-    capture("tour-foods-library", app)
-    let reviewFood = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt")).firstMatch
-    XCTAssertTrue(reviewFood.waitForExistence(timeout: 15))
-    reviewFood.tap()
-    sleep(2)
-    capture("tour-food-library-detail", app)
-    let edit = app.descendants(matching: .any).matching(NSPredicate(format: "label IN %@", ["Edit food", "Edit"])).firstMatch
+    // Edit Food straight from the details pencil (the review food is the
+    // user's own), the reference Edit Food layout.
+    let edit = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Edit food and serving sizes")).firstMatch
     XCTAssertTrue(edit.waitForExistence(timeout: 10))
     edit.tap()
     let editor = app.descendants(matching: .any)["serving-sizes-editor"]
     XCTAssertTrue(editor.waitForExistence(timeout: 15))
+    sleep(2)
+    capture("tour-edit-food-top", app)
     app.swipeUp()
     sleep(1)
     capture("tour-edit-food-servings", app)
-    app.descendants(matching: .any)["serving-row-select-0"].tap()
-    sleep(1)
-    capture("tour-edit-food-serving-open", app)
     app.swipeUp()
     sleep(1)
     capture("tour-edit-food-preview", app)
@@ -362,6 +328,10 @@ final class DashboardReview: XCTestCase {
     let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", foodName)).firstMatch
     XCTAssertTrue(result.waitForExistence(timeout: 20))
     result.tap()
+    // The amount is a vertical spinner; a long press opens the number field.
+    let wheel = app.descendants(matching: .any)["food-entry-amount-wheel"]
+    XCTAssertTrue(wheel.waitForExistence(timeout: 15))
+    wheel.press(forDuration: 0.8)
     let amount = app.textFields.matching(NSPredicate(format: "label IN %@", ["Amount", "Menge"])).firstMatch
     XCTAssertTrue(amount.waitForExistence(timeout: 15))
     replace(amount, with: "200")
@@ -377,7 +347,7 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
     let noteText = String(repeating: "Synthetic review note with berries. ", count: 12) + "END-REVIEW"
     note.typeText(noteText)
-    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add Food", "Hinzufügen"])).firstMatch
+    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add Food", "Hinzufügen", "Add to Diary", "Zum Tagebuch hinzufügen"])).firstMatch
     let visibleNote = NSPredicate { _, _ in
       note.isHittable && note.frame.minY > 100 && note.frame.maxY <= add.frame.minY - 12
     }

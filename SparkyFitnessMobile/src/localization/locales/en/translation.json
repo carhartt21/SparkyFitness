@@ -2932,7 +2932,18 @@
       "inUseTitle": "Remove from meal plans?",
       "inUseMessage": "Meal plan templates use a serving you removed ({{entries}} entries). Removing it also removes those entries. Your diary is not affected.",
       "inUseConfirm": "Remove",
-      "weight": "Weight ({{unit}})"
+      "weight": "Weight ({{unit}})",
+      "grams": "Grams",
+      "labelA11y": "Label of {{name}}",
+      "amountA11y": "Amount of {{name}}",
+      "weightA11y": "Weight of {{name}} in {{unit}}",
+      "subtitle": "Define the serving sizes for this food.",
+      "previewSubtitle": "Nutrition for the selected serving size.",
+      "previewPick": "Preview serving, {{serving}}"
+    },
+    "additionalInfo": {
+      "title": "Additional information",
+      "subtitle": "Edit nutrition values, notes and more"
     }
   },
   "exerciseHistory": {
@@ -3620,7 +3631,9 @@
       "addFood": "Add Food",
       "addMeal": "Add Meal",
       "removeFavorite": "Remove from favorites",
-      "addFavorite": "Add to favorites"
+      "addFavorite": "Add to favorites",
+      "addToDiary": "Add to Diary",
+      "editFood": "Edit food and serving sizes"
     },
     "labels": {
       "foodPhoto": "Photo of {{name}}",
@@ -3661,7 +3674,7 @@
       "title": "Quick add",
       "subtitle": "Saved portions",
       "lastUsed": "Last used",
-      "nutrition": "{{calories}} kcal · {{fat}} g F · {{carbs}} g C · {{protein}} g P",
+      "nutrition": "{{calories}} kcal – {{fat}} g F, {{carbs}} g C, {{protein}} g P",
       "addLastA11y": "Add last used, {{portion}}, {{calories}} kilocalories",
       "addA11y": "Add {{portion}}, {{calories}} kilocalories",
       "multiplePortions": "{{amount}} × {{portion}}"
@@ -3670,11 +3683,22 @@
       "title": "Serving size",
       "milliliters": "Milliliters",
       "grams": "Grams",
-      "totalWeight": "{{weight}} in total"
+      "totalWeight": "{{weight}} in total",
+      "amountPerServing": "Amount per serving"
     },
     "moreOptions": {
       "title": "More options",
-      "subtitle": "Nutrition facts and all nutrients"
+      "subtitle": "Nutrition facts & more",
+      "editFood": "Edit food",
+      "adjustEntry": "Adjust this entry only"
+    },
+    "wheel": {
+      "hint": "Swipe up or down to change. Long press to type an amount.",
+      "enterAmount": "Enter amount"
+    },
+    "editServings": {
+      "title": "Add serving sizes",
+      "subtitle": "Save portions like “1 slice” to log them with one tap."
     }
   },
   "foodEntryMultiAdd": {
@@ -4336,10 +4360,12 @@
       "chooseFromLibrary": "Choose from Library",
       "setAsMain": "Set as main",
       "remove": "Remove",
-      "photo": "Photo"
+      "photo": "Photo",
+      "nextAsMain": "Show next photo first"
     },
     "labels": {
-      "main": "Main"
+      "main": "Main",
+      "count": "{{total}} photos"
     },
     "accessibility": {
       "mainPhotoEdit": "Main photo, edit",

@@ -14,7 +14,6 @@ import {
   ActivityIndicator,
   Keyboard,
   Platform,
-  TextInput,
 } from 'react-native';
 import {
   KeyboardAwareScrollView,
@@ -41,6 +40,8 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import { useFoodImageSourceContext } from '../components/FoodImageSourceProvider';
 import { externalFoodImage, usableFoodImages } from '../utils/foodImages';
 import BottomSheetPicker from '../components/BottomSheetPicker';
+import AmountWheel from '../components/AmountWheel';
+import { buildEditFoodParams } from '../utils/editFoodRoute';
 import { FoodNutrientBreakdown } from '../components/FoodNutritionSummary';
 import { localizeNutrientKey } from '../utils/nutrientLocalization';
 import { fetchDailyGoals } from '../services/api/goalsApi';
@@ -63,6 +64,7 @@ import {
 } from '../utils/dateUtils';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import {
+  isMetricInputUnit,
   prefillEntryTime,
   servingWeightOf,
   userHourMinute,
@@ -75,6 +77,7 @@ import {
   useFavorites,
   useMealTypes,
   usePreferences,
+  useProfile,
   useServerConnection,
   useToggleFavorite,
 } from '../hooks';
@@ -122,6 +125,7 @@ import {
   buildExternalVariantOptions,
   buildLocalUnitVariants,
   foodInfoToUnitVariant,
+  localVariantToUnitVariant,
   formatQuantityUnitLabel,
   formatServingSizeDisplay,
   formatVariantLabel,
@@ -135,12 +139,13 @@ import {
   buildQuickAddServings,
   buildServingOptions,
   convertServingQuantity,
+  findNutritionBasis,
   type QuickAddServing,
   type ServingOption,
 } from '../utils/servingOptions';
 import { buildMealIngredientDraft } from '../utils/mealBuilderDraft';
 import { persistExternalVariants } from '../utils/persistExternalVariants';
-import { DECIMAL_INPUT_REGEX, parseDecimalInput } from '../utils/numericInput';
+import { parseDecimalInput } from '../utils/numericInput';
 import { completeMealPhotoWithFoodLocally } from '../services/nutritionPhotoCompletion';
 import { reconcileNutritionActions } from '../services/nutritionActionSync';
 
@@ -337,6 +342,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   >(undefined);
   const [savedFoodOverride, setSavedFoodOverride] =
     useState<FoodInfoItem | null>(null);
+  // Edit Food returns the saved food (name, brand, photos) to this screen.
+  const updatedItemFromEdit = route.params?.updatedItem;
+  useEffect(() => {
+    if (!updatedItemFromEdit) return;
+    setSavedFoodOverride(updatedItemFromEdit);
+    navigation.setParams({
+      updatedItem: undefined,
+      updatedSelectedVariantId: undefined,
+    });
+  }, [updatedItemFromEdit, navigation]);
   const [selectedVariantOverride, setSelectedVariantOverride] =
     useState<FoodUnitVariant | null>(
       route.params?.selectedVariantOverride ?? null
@@ -954,37 +969,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     [externalVariantOptions, localVariantOptions, quantity, selectedVariantId]
   );
 
-  const updateQuantityText = (text: string) => {
-    if (DECIMAL_INPUT_REGEX.test(text)) {
-      setQuantityText(text);
-    }
-  };
-
-  const clampQuantity = () => {
-    if (quantity <= 0) {
-      const minQuantity = displayValues.servingSize * 0.5 || 1;
-      setQuantityText(String(minQuantity));
-    }
-  };
-
   const scaled = (value: number) => value * servings;
 
   const insets = useSafeAreaInsets();
   const glowing = useGlowTheme();
-  const [
-    accentColor,
-    textPrimary,
-    caloriesHighlight,
-    proteinHighlight,
-    carbsHighlight,
-    fatHighlight,
-  ] = useCSSVariable([
+  const [accentColor, textPrimary] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-primary',
-    '--color-calories',
-    '--color-macro-protein',
-    '--color-macro-carbs',
-    '--color-macro-fat',
   ]) as string[];
 
   const buildSaveFoodPayload = useCallback(() => {
@@ -1494,12 +1485,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   );
   const carbsGoalPct = goalPercent(scaled(carbsForGoal), goals?.carbs);
   const fatGoalPct = goalPercent(scaled(displayValues.fat), goals?.fat);
-  const highlightColors: Record<string, string> = {
-    calories: caloriesHighlight,
-    protein: proteinHighlight,
-    carbs: carbsHighlight,
-    fat: fatHighlight,
-  };
+
   const nutritionHighlights = [
     {
       key: 'calories',
@@ -1509,11 +1495,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       goalPercent: calorieGoalPct,
     },
     {
-      key: 'protein',
-      value: scaled(displayValues.protein),
+      key: 'fat',
+      value: scaled(displayValues.fat),
       unit: 'g',
-      label: localizeNutrientKey(t, 'protein'),
-      goalPercent: proteinGoalPct,
+      label: localizeNutrientKey(t, 'fat'),
+      goalPercent: fatGoalPct,
     },
     {
       key: 'carbs',
@@ -1525,11 +1511,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       goalPercent: carbsGoalPct,
     },
     {
-      key: 'fat',
-      value: scaled(displayValues.fat),
+      key: 'protein',
+      value: scaled(displayValues.protein),
       unit: 'g',
-      label: localizeNutrientKey(t, 'fat'),
-      goalPercent: fatGoalPct,
+      label: localizeNutrientKey(t, 'protein'),
+      goalPercent: proteinGoalPct,
     },
   ];
 
@@ -1761,7 +1747,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     ? t('nutritionPhotos.completeMeal', { defaultValue: 'Complete meal' })
     : activeItem.source === 'meal'
       ? t('foodEntryAdd.actions.addMeal', { defaultValue: 'Add Meal' })
-      : t('foodEntryAdd.actions.addFood', { defaultValue: 'Add Food' });
+      : isSelectionMode
+        ? t('foodEntryAdd.actions.addFood', { defaultValue: 'Add Food' })
+        : t('foodEntryAdd.actions.addToDiary', {
+            defaultValue: 'Add to Diary',
+          });
   const addDisabled =
     isActionPending ||
     isPhotoCompletionPending ||
@@ -1877,6 +1867,47 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   };
   const [moreOptionsExpanded, setMoreOptionsExpanded] = useState(false);
 
+  // Outlined inputs of the reference: accent hairline over the card surface.
+  const outlinedFieldStyle = {
+    borderColor: withAlpha(accentColor, 0.7),
+    backgroundColor: withAlpha(accentColor, 0.05),
+  };
+
+  // A food you own opens Edit Food (name, photo, serving sizes, nutrition);
+  // other foods keep the per-entry adjustment.
+  const { profile } = useProfile();
+  const canEditFood =
+    isLocalFood &&
+    isConnected &&
+    !isSelectionMode &&
+    !photoCapture &&
+    !!loggedVariantId &&
+    !!activeItem.userId &&
+    profile?.id === activeItem.userId;
+  // The food's own nutrition serving is listed as a unit, not a saved portion.
+  const nutritionBasisId = findNutritionBasis(variants)?.id;
+  const hasSavedPortions = localVariantOptions.some(
+    (option) =>
+      option.kind === 'portion' && option.variantId !== nutritionBasisId
+  );
+  const handleEditFood = () => {
+    if (!loggedVariantId) return;
+    // Open the stored row, never a derived grams view of it.
+    const row = variants?.find((variant) => variant.id === loggedVariantId);
+    navigation.navigate(
+      'FoodForm',
+      buildEditFoodParams({
+        food: activeItem,
+        values: row
+          ? unitVariantToDisplayValues(localVariantToUnitVariant(row))
+          : selectedBaseVariant,
+        variantId: loggedVariantId,
+        customNutrients: row?.custom_nutrients ?? null,
+        returnKey: route.key,
+      })
+    );
+  };
+
   // The food name lives in the summary card; keep the navigation bar quiet.
   const header = useScreenHeader({
     nativeTitle: '',
@@ -1930,11 +1961,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                     ionicon: 'create-outline',
                     role: 'secondary',
                     disabled: isActionPending,
-                    onPress: handleAdjustNutrition,
-                    accessibilityLabel: t(
-                      'foodEntryAdd.actions.adjustNutrition',
-                      { defaultValue: 'Adjust nutrition' }
-                    ),
+                    onPress: canEditFood
+                      ? handleEditFood
+                      : handleAdjustNutrition,
+                    accessibilityLabel: canEditFood
+                      ? t('foodEntryAdd.actions.editFood', {
+                          defaultValue: 'Edit food and serving sizes',
+                        })
+                      : t('foodEntryAdd.actions.adjustNutrition', {
+                          defaultValue: 'Adjust nutrition',
+                        }),
                     identifier: 'food-entry-add-edit',
                   } as const,
                   ...(showSaveExternalAction
@@ -2048,19 +2084,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 {displayBrand}
               </Text>
             ) : null}
-            <Text className="mt-1 text-sm text-text-secondary">
-              {t('foodEntryAdd.labels.nutritionForAmount', {
-                defaultValue: 'Nutrition for selected amount',
-              })}
-            </Text>
           </View>
 
-          {/* Category, amount and goal share each have a stable line. */}
-          <View
-            className="flex-row flex-wrap justify-between gap-2"
-            testID="food-entry-highlights"
-          >
-            {nutritionHighlights.map((nutrient) => {
+          {/* Energy and macros for the chosen amount, as in the reference:
+              value over label, separated by hairlines. The goal share is
+              spoken, not shown. */}
+          <View className="flex-row" testID="food-entry-highlights">
+            {nutritionHighlights.map((nutrient, index) => {
               const amount = formatLocalizedNumber(nutrient.value, {
                 maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
               });
@@ -2092,42 +2122,30 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                           percent,
                         })
                   }
-                  className="min-w-[22%] flex-1 items-center rounded-xl border px-1 py-2"
-                  style={{
-                    borderColor: highlightColors[nutrient.key],
-                    backgroundColor: withAlpha(
-                      highlightColors[nutrient.key],
-                      0.15
-                    ),
-                  }}
+                  className={`min-w-0 flex-1 items-center py-1 ${
+                    index > 0 ? 'border-l border-border-subtle' : ''
+                  }`}
                 >
                   <Text
-                    className="text-center text-xs font-semibold text-text-secondary"
+                    className="text-2xl font-bold text-text-primary"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.7}
+                  >
+                    {nutrient.key === 'calories'
+                      ? amount
+                      : `${amount} ${nutrient.unit}`}
+                  </Text>
+                  <Text
+                    className="text-base text-text-secondary"
                     testID={`food-entry-highlight-${nutrient.key}-label`}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.75}
                   >
-                    {nutrient.label}
-                  </Text>
-                  <Text
-                    className="text-center text-lg font-bold text-text-primary my-1"
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                  >
-                    {amount}{' '}
-                    <Text className="text-xs font-medium">{nutrient.unit}</Text>
-                  </Text>
-                  <Text
-                    className="text-center text-xs text-text-secondary"
-                    testID={`food-entry-highlight-${nutrient.key}-caption`}
-                    numberOfLines={1}
-                  >
-                    {percent === null
-                      ? t('foodEntryAdd.labels.goalNotSet', {
-                          defaultValue: 'No goal',
-                        })
-                      : `${percent}%`}
+                    {nutrient.key === 'calories'
+                      ? nutrient.unit
+                      : nutrient.label}
                   </Text>
                 </View>
               );
@@ -2135,24 +2153,31 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
           </View>
 
           <View>
-            <Text className="mb-2 text-sm font-semibold text-text-primary">
-              {t('foodEntryAdd.servings.title', {
-                defaultValue: 'Serving size',
-              })}
-            </Text>
-            <View className="flex-row items-center gap-3">
-              <TextInput
-                testID="food-entry-amount-input"
-                value={quantityText}
-                onChangeText={updateQuantityText}
-                onBlur={clampQuantity}
-                keyboardType="decimal-pad"
-                returnKeyType="done"
-                selectTextOnFocus
-                accessibilityLabel={t('foodEntryAdd.labels.amount', {
-                  defaultValue: 'Amount',
+            <View className="mb-2 flex-row items-end justify-between gap-3">
+              <Text className="text-sm text-text-secondary">
+                {t('foodEntryAdd.servings.title', {
+                  defaultValue: 'Serving size',
                 })}
-                className="min-h-12 w-28 rounded-xl border border-border-subtle bg-surface px-4 text-center text-lg font-semibold text-text-primary"
+              </Text>
+              <Text className="text-sm text-text-secondary">
+                {t('foodEntryAdd.servings.amountPerServing', {
+                  defaultValue: 'Amount per serving',
+                })}
+              </Text>
+            </View>
+            <View className="flex-row items-center gap-3">
+              <AmountWheel
+                value={quantity}
+                onChange={(next) =>
+                  setQuantityText(formatServingSizeDisplay(next))
+                }
+                metric={
+                  selectedServingOption
+                    ? selectedServingOption.kind === 'metric'
+                    : isMetricInputUnit(displayValues.servingUnit)
+                }
+                unitLabel={quantityUnitLabel}
+                disabled={isActionPending}
               />
               {variantPickerOptions.length > 1 ? (
                 <BottomSheetPicker
@@ -2176,7 +2201,8 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                         defaultValue: 'Change unit: {{unit}}',
                         unit: quantityUnitLabel,
                       })}
-                      className="min-h-12 min-w-0 flex-1 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-4"
+                      className="min-h-14 min-w-0 flex-1 flex-row items-center justify-between rounded-xl border px-4"
+                      style={outlinedFieldStyle}
                     >
                       <Text
                         className="min-w-0 flex-1 text-base font-medium text-text-primary"
@@ -2198,7 +2224,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   )}
                 />
               ) : (
-                <View className="min-h-12 min-w-0 flex-1 justify-center rounded-xl border border-border-subtle bg-surface px-4">
+                <View
+                  className="min-h-14 min-w-0 flex-1 justify-center rounded-xl border px-4"
+                  style={outlinedFieldStyle}
+                >
                   <Text
                     className="text-base font-medium text-text-primary"
                     numberOfLines={1}
@@ -2371,21 +2400,50 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </View>
           ) : null}
 
-          <Button
-            variant="primary"
+          <TouchableOpacity
+            testID="food-entry-add-button"
             onPress={handleAddPress}
             disabled={addDisabled}
-            loading={isActionPending || isPhotoCompletionPending}
+            activeOpacity={0.75}
+            accessibilityRole="button"
             accessibilityLabel={addLabel}
-            className="min-h-14 rounded-2xl"
-            textClassName="text-base text-center"
+            accessibilityState={{
+              disabled: addDisabled,
+              busy: isActionPending || isPhotoCompletionPending,
+            }}
+            className="min-h-14 flex-row items-center justify-center gap-3 rounded-2xl border px-4"
+            style={{
+              borderColor: withAlpha(accentColor, 0.8),
+              backgroundColor: withAlpha(accentColor, 0.14),
+              opacity: addDisabled ? 0.5 : 1,
+              boxShadow: glowing
+                ? `0px 0px 14px 0px ${withAlpha(accentColor, 0.35)}`
+                : undefined,
+            }}
           >
-            {addLabel}
-          </Button>
+            {isActionPending || isPhotoCompletionPending ? (
+              <ActivityIndicator size="small" color={accentColor} />
+            ) : (
+              <View
+                className="h-8 w-8 items-center justify-center rounded-full border"
+                style={{ borderColor: accentColor }}
+              >
+                <Icon name="add" size={18} color={accentColor} />
+              </View>
+            )}
+            <Text
+              className="text-lg font-semibold"
+              style={{ color: accentColor }}
+              numberOfLines={1}
+            >
+              {addLabel}
+            </Text>
+          </TouchableOpacity>
 
           {!isSelectionMode && !photoCapture ? (
-            <View className="gap-3 border-t border-border-subtle pt-4">
+            <View className="gap-3">
               <TouchableOpacity
+                testID="food-entry-log-destination"
                 onPress={() => setLogDetailsExpanded((expanded) => !expanded)}
                 activeOpacity={0.7}
                 accessibilityRole="button"
@@ -2395,24 +2453,17 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   { defaultValue: 'Edit log destination' }
                 )}
                 accessibilityHint={logDestinationSummary}
-                className="min-h-14 flex-row items-center gap-3"
+                className="min-h-14 flex-row items-center gap-3 rounded-xl border border-border-subtle bg-raised px-4"
               >
-                <View className="h-10 w-10 items-center justify-center rounded-full bg-surface">
-                  <Icon name="calendar" size={18} color={accentColor} />
-                </View>
-                <View className="min-w-0 flex-1">
-                  <Text className="text-sm font-semibold text-text-secondary">
-                    {t('foodEntryAdd.labels.logTo', { defaultValue: 'Log to' })}
-                  </Text>
-                  <Text
-                    className="mt-0.5 text-base font-medium text-text-primary"
-                    numberOfLines={2}
-                  >
-                    {logDestinationSummary}
-                  </Text>
-                </View>
+                <Icon name="calendar" size={22} color={accentColor} />
+                <Text
+                  className="min-w-0 flex-1 text-base font-medium text-text-primary"
+                  numberOfLines={2}
+                >
+                  {logDestinationSummary}
+                </Text>
                 <Icon
-                  name={logDetailsExpanded ? 'chevron-up' : 'chevron-down'}
+                  name={logDetailsExpanded ? 'chevron-down' : 'chevron-forward'}
                   size={16}
                   color={textPrimary}
                 />
@@ -2542,22 +2593,29 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               ) : null}
             </View>
           ) : null}
-          {quickAddServings.length > 0 ? (
-            <View
-              className="border-t border-border-subtle pt-4"
-              testID="food-entry-quick-add"
-            >
-              <Text className="text-lg font-semibold text-text-primary">
+        </View>
+
+        {quickAddServings.length > 0 || (canEditFood && !hasSavedPortions) ? (
+          <View
+            className="mx-4 mt-4 rounded-2xl border bg-surface p-4"
+            style={{ borderColor: withAlpha(accentColor, 0.35) }}
+            testID="food-entry-quick-add"
+          >
+            <View className="mb-3 flex-row items-center gap-2">
+              <Icon name="bolt" size={20} color={accentColor} />
+              <Text className="flex-1 text-xl font-semibold text-text-primary">
                 {t('foodEntryAdd.quickAdd.title', {
                   defaultValue: 'Quick add',
                 })}
               </Text>
-              <Text className="mb-1 text-xs font-semibold uppercase tracking-wider text-text-muted">
+              <Text className="text-xs font-medium uppercase tracking-widest text-text-secondary">
                 {t('foodEntryAdd.quickAdd.subtitle', {
                   defaultValue: 'Saved portions',
                 })}
               </Text>
-              {quickAddServings.map((row) => {
+            </View>
+            <View className="overflow-hidden rounded-xl border border-border-subtle bg-raised">
+              {quickAddServings.map((row, index) => {
                 const kcal = formatLocalizedNumber(row.calories, {
                   maximumFractionDigits: 0,
                 });
@@ -2568,35 +2626,37 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   <View
                     key={row.key}
                     testID={`food-entry-quick-add-${row.key}`}
-                    className="min-h-16 flex-row items-center gap-3 border-t border-border-subtle py-3"
+                    className={`min-h-16 flex-row items-center gap-3 px-4 py-3 ${
+                      index > 0 ? 'border-t border-border-subtle' : ''
+                    }`}
                   >
                     <View className="min-w-0 flex-1">
                       {row.kind === 'last' ? (
-                        <Text className="text-xs font-semibold uppercase text-text-muted">
+                        <Text className="text-xs font-semibold uppercase tracking-wider text-text-muted">
                           {t('foodEntryAdd.quickAdd.lastUsed', {
                             defaultValue: 'Last used',
                           })}
                         </Text>
                       ) : null}
                       <Text
-                        className="text-base font-semibold text-text-primary"
+                        className="text-lg font-medium text-text-primary"
                         numberOfLines={2}
                       >
                         {row.title}
                       </Text>
-                      <Text className="text-sm text-text-secondary">
+                      <Text className="text-base text-text-secondary">
                         {t('foodEntryAdd.quickAdd.nutrition', {
                           defaultValue:
-                            '{{calories}} kcal · {{fat}} g F · {{carbs}} g C · {{protein}} g P',
+                            '{{calories}} kcal – {{fat}} g F, {{carbs}} g C, {{protein}} g P',
                           calories: kcal,
                           fat: formatLocalizedNumber(row.fat, {
-                            maximumFractionDigits: 1,
+                            maximumFractionDigits: 0,
                           }),
                           carbs: formatLocalizedNumber(row.carbs, {
-                            maximumFractionDigits: 1,
+                            maximumFractionDigits: 0,
                           }),
                           protein: formatLocalizedNumber(row.protein, {
-                            maximumFractionDigits: 1,
+                            maximumFractionDigits: 0,
                           }),
                         })}
                       </Text>
@@ -2623,9 +2683,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                               calories: kcal,
                             })
                       }
-                      className="h-11 w-11 items-center justify-center rounded-full"
+                      className="h-11 w-11 items-center justify-center rounded-full border"
                       style={{
-                        backgroundColor: withAlpha(accentColor, 0.16),
+                        borderColor: accentColor,
+                        backgroundColor: withAlpha(accentColor, 0.12),
                         opacity: disabled && !busy ? 0.5 : 1,
                       }}
                     >
@@ -2638,6 +2699,112 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   </View>
                 );
               })}
+              {canEditFood && !hasSavedPortions ? (
+                <TouchableOpacity
+                  testID="food-entry-edit-servings"
+                  onPress={handleEditFood}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  className={`min-h-16 flex-row items-center gap-3 px-4 py-3 ${
+                    quickAddServings.length > 0
+                      ? 'border-t border-border-subtle'
+                      : ''
+                  }`}
+                >
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-lg font-medium text-text-primary">
+                      {t('foodEntryAdd.editServings.title', {
+                        defaultValue: 'Add serving sizes',
+                      })}
+                    </Text>
+                    <Text className="text-sm text-text-secondary">
+                      {t('foodEntryAdd.editServings.subtitle', {
+                        defaultValue:
+                          'Save portions like “1 slice” to log them with one tap.',
+                      })}
+                    </Text>
+                  </View>
+                  <Icon name="chevron-forward" size={18} color={accentColor} />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+          </View>
+        ) : null}
+
+        <View
+          className="mx-4 mt-4 rounded-2xl border bg-surface px-4"
+          style={{ borderColor: withAlpha(accentColor, 0.35) }}
+        >
+          <TouchableOpacity
+            testID="food-entry-more-options"
+            onPress={() => setMoreOptionsExpanded((expanded) => !expanded)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: moreOptionsExpanded }}
+            className="min-h-20 flex-row items-center gap-3"
+          >
+            <View className="h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-raised">
+              <Icon name="ellipsis-horizontal" size={20} color={textPrimary} />
+            </View>
+            <Text
+              className="flex-1 text-lg font-medium text-text-primary"
+              numberOfLines={1}
+            >
+              {t('foodEntryAdd.moreOptions.title', {
+                defaultValue: 'More options',
+              })}
+            </Text>
+            <Text
+              className="max-w-[40%] text-right text-[10px] font-medium uppercase tracking-widest text-text-secondary"
+              numberOfLines={2}
+            >
+              {t('foodEntryAdd.moreOptions.subtitle', {
+                defaultValue: 'Nutrition facts & more',
+              })}
+            </Text>
+            <Icon
+              name={moreOptionsExpanded ? 'chevron-down' : 'chevron-forward'}
+              size={16}
+              color={textPrimary}
+            />
+          </TouchableOpacity>
+          {moreOptionsExpanded ? (
+            <View className="gap-4 border-t border-border-subtle pb-4 pt-4">
+              {canEditFood ? (
+                <View className="flex-row flex-wrap gap-2">
+                  <Button
+                    variant="secondary"
+                    onPress={handleEditFood}
+                    className="min-h-11 flex-1 rounded-xl"
+                    accessibilityLabel={t('foodEntryAdd.moreOptions.editFood', {
+                      defaultValue: 'Edit food',
+                    })}
+                  >
+                    {t('foodEntryAdd.moreOptions.editFood', {
+                      defaultValue: 'Edit food',
+                    })}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onPress={handleAdjustNutrition}
+                    className="min-h-11 flex-1 rounded-xl"
+                    accessibilityLabel={t(
+                      'foodEntryAdd.moreOptions.adjustEntry',
+                      { defaultValue: 'Adjust this entry only' }
+                    )}
+                  >
+                    {t('foodEntryAdd.moreOptions.adjustEntry', {
+                      defaultValue: 'Adjust this entry only',
+                    })}
+                  </Button>
+                </View>
+              ) : null}
+              <FoodNutrientBreakdown
+                values={displayValues}
+                servings={servings}
+                showNetCarbs={showNetCarbs}
+                customNutrients={selectedCustomNutrients}
+              />
             </View>
           ) : null}
         </View>
@@ -2689,45 +2856,6 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </View>
           </>
         ) : null}
-
-        <View className="mx-4 mt-5">
-          <TouchableOpacity
-            testID="food-entry-more-options"
-            onPress={() => setMoreOptionsExpanded((expanded) => !expanded)}
-            activeOpacity={0.7}
-            accessibilityRole="button"
-            accessibilityState={{ expanded: moreOptionsExpanded }}
-            className="min-h-14 flex-row items-center gap-3 rounded-2xl border border-border-subtle bg-surface px-4"
-          >
-            <View className="min-w-0 flex-1">
-              <Text className="text-base font-semibold text-text-primary">
-                {t('foodEntryAdd.moreOptions.title', {
-                  defaultValue: 'More options',
-                })}
-              </Text>
-              <Text className="text-sm text-text-secondary" numberOfLines={1}>
-                {t('foodEntryAdd.moreOptions.subtitle', {
-                  defaultValue: 'Nutrition facts and all nutrients',
-                })}
-              </Text>
-            </View>
-            <Icon
-              name={moreOptionsExpanded ? 'chevron-up' : 'chevron-down'}
-              size={16}
-              color={textPrimary}
-            />
-          </TouchableOpacity>
-          {moreOptionsExpanded ? (
-            <View className="mt-3">
-              <FoodNutrientBreakdown
-                values={displayValues}
-                servings={servings}
-                showNetCarbs={showNetCarbs}
-                customNutrients={selectedCustomNutrients}
-              />
-            </View>
-          ) : null}
-        </View>
       </KeyboardAwareScrollView>
 
       {/* The card owns the action at rest; the keyboard gets a reachable copy. */}

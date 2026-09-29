@@ -60,6 +60,7 @@ jest.mock('../../src/hooks', () => ({
     refetch: jest.fn(),
   })),
   useServerConnection: jest.fn(() => ({ isConnected: true, isLoading: false })),
+  useProfile: jest.fn(() => ({ profile: { id: 'user-1' } })),
   useFavorites: jest.fn(() => ({
     favoriteFoods: [],
     favoriteMeals: [],
@@ -309,6 +310,33 @@ const mockToast = Toast as unknown as { show: jest.Mock };
 const insets = { top: 0, bottom: 0, left: 0, right: 0 };
 const frame = { x: 0, y: 0, width: 390, height: 844 };
 
+/** Log-entry mode says "Add to Diary"; picker modes keep "Add Food". */
+const ADD_LABEL = /^Add (Food|to Diary)$/;
+
+/** The amount shown by the vertical spinner. */
+function amountValue(screen: { getByTestId: (id: string) => any }): number {
+  const text = screen.getByTestId('food-entry-amount-wheel').props
+    .accessibilityValue.text as string;
+  return Number(text.split(' ')[0].replace(',', '.'));
+}
+
+/** Long press opens the number field; submitting commits the amount. */
+function typeAmount(
+  screen: { getByTestId: (id: string) => any },
+  text: string
+) {
+  fireEvent(
+    screen.getByTestId('food-entry-amount-wheel'),
+    'accessibilityAction',
+    {
+      nativeEvent: { actionName: 'longpress' },
+    }
+  );
+  const input = screen.getByTestId('food-entry-amount-input');
+  fireEvent.changeText(input, text);
+  fireEvent(input, 'submitEditing');
+}
+
 describe('FoodEntryAddScreen', () => {
   const navigation = mockNavigation;
 
@@ -488,32 +516,32 @@ describe('FoodEntryAddScreen', () => {
     expect(navigation.dispatch).toHaveBeenCalledWith({ type: 'POP_TO_TOP' });
   });
 
-  it('shows category, amount and goal percentage on separate ordered lines', () => {
+  it('shows energy and macros in the reference order, with the goal spoken', () => {
     useQuery.mockReturnValue({
       data: { calories: 2000, protein: 100, carbs: 250, fat: 70 },
       isLoading: false,
     });
     const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
-    const caption = screen.getByTestId('food-entry-highlight-calories-caption');
-    expect(caption.props.children).toMatch(/^\d+%$/);
-    const card = screen.getByTestId('food-entry-highlight-calories');
-    expect(card.children[0].props.testID).toBe(
-      'food-entry-highlight-calories-label'
-    );
-    expect(card.children[2].props.testID).toBe(
-      'food-entry-highlight-calories-caption'
-    );
-    expect(screen.queryByText(/of goal/)).toBeNull();
+    const row = screen.getByTestId('food-entry-highlights');
+    expect(row.children.map((child: any) => child.props.testID)).toEqual([
+      'food-entry-highlight-calories',
+      'food-entry-highlight-fat',
+      'food-entry-highlight-carbs',
+      'food-entry-highlight-protein',
+    ]);
     expect(
       screen.getByTestId('food-entry-highlight-calories').props
         .accessibilityLabel
     ).toMatch(/% of your daily goal$/);
+    expect(screen.queryByText(/of goal/)).toBeNull();
   });
 
-  it('omits the percentage without a valid target', () => {
+  it('speaks only the amount without a valid target', () => {
     const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
-    const caption = screen.getByTestId('food-entry-highlight-protein-caption');
-    expect(caption.props.children).toBe('No goal');
+    expect(
+      screen.getByTestId('food-entry-highlight-protein').props
+        .accessibilityLabel
+    ).toBe('Protein: 15 g');
   });
 
   it('shows category artwork, not a stored image, when a food has no photo', () => {
@@ -572,9 +600,7 @@ describe('FoodEntryAddScreen', () => {
     const screen = renderScreen({ item: yogurtItem, date: '2026-04-23' });
 
     expect(screen.getByTestId('food-entry-quick-add')).toBeTruthy();
-    expect(
-      screen.getByText('78 kcal · 0.5 g F · 5.2 g C · 13 g P')
-    ).toBeTruthy();
+    expect(screen.getByText('78 kcal – 1 g F, 5 g C, 13 g P')).toBeTruthy();
     await act(async () => {
       fireEvent.press(
         screen.getByTestId('food-entry-quick-add-button-variant-medium')
@@ -643,6 +669,65 @@ describe('FoodEntryAddScreen', () => {
     });
   });
 
+  it('opens Edit Food from the pencil for a food the user owns', () => {
+    const screen = renderScreen({
+      item: { ...baseLocalItem, userId: 'user-1' },
+      date: '2026-04-23',
+    });
+    pressActionByAccessibilityLabel(
+      screen,
+      navigation,
+      'Edit food and serving sizes'
+    );
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'FoodForm',
+      expect.objectContaining({
+        mode: 'edit-food',
+        foodId: 'food-1',
+        variantId: 'variant-1',
+        initialValues: expect.objectContaining({
+          name: 'Greek Yogurt',
+          servingUnit: 'cup',
+        }),
+      })
+    );
+    // Without saved portions the screen offers to add some.
+    fireEvent.press(screen.getByTestId('food-entry-edit-servings'));
+    expect(navigation.navigate).toHaveBeenCalledTimes(2);
+  });
+
+  it('keeps the per-entry adjustment for foods the user does not own', () => {
+    const screen = renderScreen({
+      item: { ...baseLocalItem, userId: 'someone-else' },
+      date: '2026-04-23',
+    });
+    expect(screen.queryByTestId('food-entry-edit-servings')).toBeNull();
+    pressActionByAccessibilityLabel(screen, navigation, 'Adjust nutrition');
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'FoodForm',
+      expect.objectContaining({ mode: 'adjust-entry-nutrition' })
+    );
+  });
+
+  it('steps the amount with the spinner and types it after a long press', () => {
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+    const wheel = screen.getByTestId('food-entry-amount-wheel');
+    expect(wheel.props.accessibilityRole).toBe('adjustable');
+    expect(amountValue(screen)).toBe(1);
+    fireEvent(wheel, 'accessibilityAction', {
+      nativeEvent: { actionName: 'increment' },
+    });
+    expect(amountValue(screen)).toBe(1.25);
+    typeAmount(screen, '3.5');
+    expect(amountValue(screen)).toBe(3.5);
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({ quantity: 3.5 }),
+      })
+    );
+  });
+
   it('does not offer serving amounts for a saved meal', () => {
     const screen = renderScreen({ item: baseMealItem, date: '2026-04-23' });
     expect(screen.queryByTestId('food-entry-quick-add')).toBeNull();
@@ -660,20 +745,20 @@ describe('FoodEntryAddScreen', () => {
       });
     try {
       const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
-      expect(screen.getAllByText('Add Food')).toHaveLength(1);
+      expect(screen.getAllByText(ADD_LABEL)).toHaveLength(1);
 
       act(() =>
         showKeyboard.forEach((handler) =>
           handler({ endCoordinates: { screenY: 500 } })
         )
       );
-      const addActions = screen.getAllByText('Add Food');
+      const addActions = screen.getAllByText(ADD_LABEL);
       expect(addActions).toHaveLength(2);
       fireEvent.press(addActions[1]);
       expect(mockAddEntry).toHaveBeenCalledTimes(1);
 
       act(() => hideKeyboard.forEach((handler) => handler()));
-      expect(screen.getAllByText('Add Food')).toHaveLength(1);
+      expect(screen.getAllByText(ADD_LABEL)).toHaveLength(1);
     } finally {
       listener.mockRestore();
     }
@@ -715,7 +800,7 @@ describe('FoodEntryAddScreen', () => {
       returnDepth: 2,
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockSetPendingMealIngredientSelection).toHaveBeenCalledWith({
@@ -758,7 +843,7 @@ describe('FoodEntryAddScreen', () => {
       returnDepth: 3,
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockSaveFoodAsync).toHaveBeenCalledTimes(1);
@@ -849,7 +934,7 @@ describe('FoodEntryAddScreen', () => {
       });
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockCreateVariant).toHaveBeenCalledTimes(1);
@@ -888,7 +973,7 @@ describe('FoodEntryAddScreen', () => {
       returnDepth: 1,
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockSaveFoodAsync).toHaveBeenCalledTimes(1);
@@ -932,7 +1017,7 @@ describe('FoodEntryAddScreen', () => {
       pickerMode: 'meal-builder',
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockSaveFoodAsync).toHaveBeenCalledTimes(1);
@@ -974,7 +1059,7 @@ describe('FoodEntryAddScreen', () => {
       },
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockSetPendingMealPlanSelection).toHaveBeenCalledWith({
@@ -1083,7 +1168,7 @@ describe('FoodEntryAddScreen', () => {
       pickerMode: 'meal-builder',
     });
 
-    expect(screen.getByDisplayValue('2.5')).toBeTruthy();
+    expect(amountValue(screen)).toBe(2.5);
   });
 
   it('pre-selects a mealTypeId passed through navigation and sends it in the payload', () => {
@@ -1237,7 +1322,7 @@ describe('FoodEntryAddScreen', () => {
       pickerMode: 'meal-builder',
     });
 
-    expect(screen.getByDisplayValue('2.5')).toBeTruthy();
+    expect(amountValue(screen)).toBe(2.5);
   });
 
   it('keeps the normal log-entry path and diary controls outside meal-builder mode', () => {
@@ -1246,7 +1331,7 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
-    expect(screen.getByText('Log to')).toBeTruthy();
+    expect(screen.getByTestId('food-entry-log-destination')).toBeTruthy();
     expect(screen.queryByText('Date')).toBeNull();
     fireEvent.press(screen.getByLabelText('Edit log destination'));
     expect(screen.getByText('Date')).toBeTruthy();
@@ -1255,7 +1340,7 @@ describe('FoodEntryAddScreen', () => {
       screen.getByText('A gram weight was not provided for this serving.')
     ).toBeTruthy();
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     expect(mockAddEntry).toHaveBeenCalledWith({
       saveFoodPayload: undefined,
@@ -1279,10 +1364,8 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
-    const quantityInput = screen.getByTestId('food-entry-amount-input');
-    fireEvent(quantityInput, 'focus');
-    fireEvent.changeText(quantityInput, '2');
-    fireEvent.press(screen.getByText('Add Food'));
+    typeAmount(screen, '2');
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     expect(mockAddEntry).toHaveBeenCalledTimes(1);
     expect(mockAddEntry).toHaveBeenCalledWith(
@@ -1302,7 +1385,7 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     expect(mockPopToTop).toHaveBeenCalledTimes(1);
     expect(mockPop).not.toHaveBeenCalled();
@@ -1316,7 +1399,7 @@ describe('FoodEntryAddScreen', () => {
       returnDepth: 1,
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     expect(mockPop).toHaveBeenCalledWith(1);
     expect(mockPopToTop).not.toHaveBeenCalled();
@@ -1391,9 +1474,7 @@ describe('FoodEntryAddScreen', () => {
     });
 
     expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
-    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
-      '15'
-    );
+    expect(amountValue(screen)).toBe(15);
     expect(screen.getAllByText('1 piece (15 g)').length).toBeGreaterThan(0);
   });
 
@@ -1462,22 +1543,20 @@ describe('FoodEntryAddScreen', () => {
 
     expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
     expect(screen.queryByText('150 g')).toBeNull();
-    expect(screen.getByText('Log to')).toBeTruthy();
-    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '300');
+    expect(screen.getByTestId('food-entry-log-destination')).toBeTruthy();
+    typeAmount(screen, '300');
     fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
     expect(screen.getByLabelText(/Change unit:.*portion/)).toBeTruthy();
-    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe('1');
+    expect(amountValue(screen)).toBe(1);
     expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
       '150 g in total'
     );
-    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
+    typeAmount(screen, '2');
     fireEvent.press(screen.getAllByText('Grams')[0]);
-    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
-      '300'
-    );
+    expect(amountValue(screen)).toBe(300);
     fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
-    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
-    fireEvent.press(screen.getByText('Add Food'));
+    typeAmount(screen, '2');
+    fireEvent.press(screen.getByText(ADD_LABEL));
     expect(mockAddEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         createEntryPayload: expect.objectContaining({
@@ -1520,11 +1599,9 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
     expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
-    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
-      '45'
-    );
-    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '30');
-    fireEvent.press(screen.getByText('Add Food'));
+    expect(amountValue(screen)).toBe(45);
+    typeAmount(screen, '30');
+    fireEvent.press(screen.getByText(ADD_LABEL));
     expect(mockAddEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         createEntryPayload: expect.objectContaining({
@@ -1585,7 +1662,7 @@ describe('FoodEntryAddScreen', () => {
       });
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     expect(mockAddEntry).toHaveBeenCalledWith({
       saveFoodPayload: undefined,
@@ -1715,7 +1792,7 @@ describe('FoodEntryAddScreen', () => {
       });
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockAddEntry).toHaveBeenCalledWith({
@@ -1781,7 +1858,7 @@ describe('FoodEntryAddScreen', () => {
       });
     });
 
-    fireEvent.press(screen.getByText('Add Food'));
+    fireEvent.press(screen.getByText(ADD_LABEL));
 
     await waitFor(() => {
       expect(mockAddEntryAsync).toHaveBeenCalledWith({
@@ -1893,7 +1970,7 @@ describe('FoodEntryAddScreen', () => {
         });
       });
 
-      fireEvent.press(screen.getByText('Add Food'));
+      fireEvent.press(screen.getByText(ADD_LABEL));
 
       await waitFor(() => {
         expect(mockAddEntry).toHaveBeenCalledWith(
@@ -1938,7 +2015,7 @@ describe('FoodEntryAddScreen', () => {
       });
 
       // For external foods the screen should render without crash
-      expect(screen.getByText('Add Food')).toBeTruthy();
+      expect(screen.getByText(ADD_LABEL)).toBeTruthy();
     });
 
     it('passes displayValues-based selectedUnitSelection when re-opening AdjustNutrition after draft return', async () => {

@@ -27,6 +27,13 @@ interface FoodImagePickerProps {
   helpText?: string;
   maxImages?: number;
   disabled?: boolean;
+  /**
+   * `cover` shows one large main-photo tile with an edit badge (Edit Food);
+   * further photos are added and managed from its action menu.
+   */
+  variant?: 'strip' | 'cover';
+  /** Edge length of the cover tile. */
+  coverSize?: number;
 }
 
 /**
@@ -44,6 +51,8 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
   helpText,
   maxImages = MAX_IMAGES,
   disabled = false,
+  variant = 'strip',
+  coverSize = 132,
 }) => {
   const { t } = useTranslation();
   const getImageSource = useFoodImageSourceContext();
@@ -177,6 +186,118 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
       buttons
     );
   };
+
+  if (variant === 'cover') {
+    const main = items[0];
+    const promptCover = () => {
+      if (disabled || busy) return;
+      if (!main) {
+        promptAdd();
+        return;
+      }
+      const buttons: {
+        text: string;
+        style?: 'cancel' | 'destructive';
+        onPress?: () => void;
+      }[] = [];
+      if (canAdd) {
+        buttons.push({
+          text: t('foodImagePicker.actions.takePhoto', {
+            defaultValue: 'Take Photo',
+          }),
+          onPress: () => void addFromCamera(),
+        });
+        buttons.push({
+          text: t('foodImagePicker.actions.chooseFromLibrary', {
+            defaultValue: 'Choose from Library',
+          }),
+          onPress: () => void addFromLibrary(),
+        });
+      }
+      if (items.length > 1) {
+        buttons.push({
+          text: t('foodImagePicker.actions.nextAsMain', {
+            defaultValue: 'Show next photo first',
+          }),
+          onPress: () => onItemsChange(setAsMain(items, 1)),
+        });
+      }
+      buttons.push({
+        text: t('foodImagePicker.actions.remove', { defaultValue: 'Remove' }),
+        style: 'destructive',
+        onPress: () => onItemsChange(removeImageAt(items, 0)),
+      });
+      buttons.push({
+        text: t('common.cancel', { defaultValue: 'Cancel' }),
+        style: 'cancel',
+      });
+      Alert.alert(
+        t('foodImagePicker.actions.photo', { defaultValue: 'Photo' }),
+        undefined,
+        buttons
+      );
+    };
+    return (
+      <Pressable
+        onPress={promptCover}
+        disabled={disabled || busy}
+        testID="food-image-cover"
+        accessibilityRole="button"
+        accessibilityLabel={
+          main
+            ? t('foodImagePicker.accessibility.mainPhotoEdit', {
+                defaultValue: 'Main photo, edit',
+              })
+            : t('foodImagePicker.accessibility.addPhoto', {
+                defaultValue: 'Add photo',
+              })
+        }
+        className="items-center justify-center overflow-hidden bg-raised"
+        style={({ pressed }) => ({
+          width: coverSize,
+          height: coverSize,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: main ? 'solid' : 'dashed',
+          borderColor: borderSubtle,
+          opacity: pressed || busy ? 0.7 : 1,
+        })}
+      >
+        {main ? (
+          <SafeImage
+            source={
+              main.kind === 'saved'
+                ? getImageSource(main.path)
+                : { uri: main.uri, headers: {} }
+            }
+            style={{ width: coverSize, height: coverSize }}
+            contentFit="cover"
+          />
+        ) : (
+          <Icon name="add" size={28} color={textMuted} />
+        )}
+        <View
+          className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/60"
+          pointerEvents="none"
+        >
+          <Icon name="pencil" size={14} color="#ffffff" />
+        </View>
+        {items.length > 1 ? (
+          <View
+            className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5"
+            pointerEvents="none"
+          >
+            <Text className="text-[11px] font-medium text-white">
+              {t('foodImagePicker.labels.count', {
+                defaultValue: '{{total}} photos',
+                total: items.length,
+              })}
+            </Text>
+          </View>
+        ) : null}
+      </Pressable>
+    );
+  }
 
   return (
     <View>

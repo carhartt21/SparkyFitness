@@ -156,6 +156,9 @@ export type RootStackParamList = {
     /** Optional canonical meal type id to pre-select when logging. */
     mealTypeId?: string;
     mealPlanTarget?: MealPlanPickerTarget;
+    /** Returned by Edit Food after saving the food. */
+    updatedItem?: FoodInfoItem;
+    updatedSelectedVariantId?: string;
   };
   /** Multi-select batch review (#1980): the basket lives in
    * useFoodSearchSelectionStore, not route params, so no selection data

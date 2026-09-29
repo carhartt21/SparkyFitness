@@ -128,6 +128,8 @@ export type HeaderItem =
       label?: string;
       onPress: () => void;
       placement?: HeaderPlacement;
+      /** Custom bar only: a filled accent pill (Edit Food's Save). */
+      pill?: boolean;
       disabled?: boolean;
       busy?: boolean;
       busyLabel?: string;
@@ -475,6 +477,20 @@ function HeaderBarButton({
             style={{ backgroundColor: badgeColor }}
           />
         )}
+      </View>
+    );
+  } else if (item.kind === 'primary' && item.pill) {
+    content = (
+      <View
+        className="rounded-xl bg-accent-primary px-5 py-2"
+        style={{ boxShadow: `0px 0px 12px 0px ${color}66` }}
+      >
+        <Text
+          className="text-accent-text"
+          style={{ fontSize: 17, fontWeight: '600' }}
+        >
+          {label}
+        </Text>
       </View>
     );
   } else {

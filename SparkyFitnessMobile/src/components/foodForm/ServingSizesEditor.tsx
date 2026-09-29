@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Text,
+  TextInput,
   TouchableOpacity,
   View,
   type AccessibilityActionEvent,
@@ -16,11 +17,11 @@ import { useCSSVariable } from 'uniwind';
 import { isMetricInputUnit, type MetricUnit } from '@workspace/shared';
 import BottomSheetPicker from '../BottomSheetPicker';
 import FormInput from '../FormInput';
-import Icon from '../Icon';
+import Icon, { type IconName } from '../Icon';
+import { withAlpha } from '../ui/glow';
 import {
   computeReorderTargetIndex,
   createReorderRowPanGesture,
-  REORDER_ROW_HEIGHT,
   resetReorderDragPreview,
   useReorderRowGeometry,
   useReorderRowPreviewStyle,
@@ -61,60 +62,95 @@ export interface ServingSizesEditorProps {
   disabled?: boolean;
 }
 
-type FormInputProps = React.ComponentProps<typeof FormInput>;
+type TFn = ReturnType<typeof useTranslation>['t'];
 
-/** A form input with a visible label that is also its accessibility label. */
-const LabeledInput: React.FC<FormInputProps & { label: string }> = ({
-  label,
-  ...props
-}) => (
-  <View className="gap-1.5">
-    <Text className="text-sm font-medium text-text-secondary">{label}</Text>
-    <FormInput accessibilityLabel={label} {...props} />
-  </View>
-);
+/** Every row has the same height so the shared drag geometry stays exact. */
+const ROW_HEIGHT = 96;
+const ROW_GAP = 10;
 
-function amountLabel(
-  size: number,
-  unit: string,
-  t: ReturnType<typeof useTranslation>['t']
-) {
+function amountLabel(size: number, unit: string, t: TFn) {
   return formatLocalizedUnitQuantity(size, unit, t);
 }
 
+/** Compact inline field of a serving row (Label / Amount / Grams). */
+const CellInput: React.FC<{
+  testID: string;
+  value: string;
+  onChangeText: (text: string) => void;
+  accessibilityLabel: string;
+  numeric?: boolean;
+  placeholder?: string;
+  suffix?: string;
+  invalid?: boolean;
+  dangerColor: string;
+  placeholderColor: string;
+}> = ({
+  testID,
+  value,
+  onChangeText,
+  accessibilityLabel,
+  numeric = false,
+  placeholder,
+  suffix,
+  invalid = false,
+  dangerColor,
+  placeholderColor,
+}) => (
+  <View
+    className="h-11 flex-row items-center rounded-lg border border-border-subtle bg-background px-1.5"
+    style={invalid ? { borderColor: dangerColor } : undefined}
+  >
+    <TextInput
+      testID={testID}
+      value={value}
+      onChangeText={onChangeText}
+      placeholder={placeholder}
+      placeholderTextColor={placeholderColor}
+      accessibilityLabel={accessibilityLabel}
+      keyboardType={numeric ? 'decimal-pad' : 'default'}
+      returnKeyType="done"
+      maxLength={numeric ? 10 : 40}
+      className="min-w-0 flex-1 text-base text-text-primary"
+    />
+    {suffix ? (
+      <Text className="ml-0.5 text-sm text-text-secondary">{suffix}</Text>
+    ) : null}
+  </View>
+);
+
 const ServingRow: React.FC<{
+  draft: ServingDraft;
   index: number;
   lastIndex: number;
-  selected: boolean;
   title: string;
-  subtitle: string;
-  hasError: boolean;
-  onSelect: () => void;
+  summary: string;
+  weightSuffix: string;
+  error: ServingDraftError | undefined;
+  onUpdate: (patch: Partial<ServingDraft>) => void;
   onDelete: () => void;
   onMove: (fromIndex: number, toIndex: number) => void;
   disabled: boolean;
   textMuted: string;
   dangerColor: string;
-  accentColor: string;
   activeDragIndex: SharedValue<number>;
   panY: SharedValue<number>;
   committingTranslate: SharedValue<number>;
   targetIndex: SharedValue<number>;
   strides: number[];
 }> = ({
+  draft,
   index,
   lastIndex,
-  selected,
   title,
-  subtitle,
-  hasError,
-  onSelect,
+  summary,
+  weightSuffix,
+  error,
+  onUpdate,
   onDelete,
   onMove,
   disabled,
   textMuted,
   dangerColor,
-  accentColor,
   activeDragIndex,
   panY,
   committingTranslate,
@@ -145,28 +181,32 @@ const ServingRow: React.FC<{
       onMove(index, Math.max(index - 1, 0));
     }
   };
+  const metricUnit = isMetricInputUnit(draft.unit);
+  const amount = parseDecimalInput(draft.amountText);
+  const headers = [
+    ['label', t('foodForm.servings.label', { defaultValue: 'Label' }), 1.45],
+    ['amount', t('foodForm.servings.amount', { defaultValue: 'Amount' }), 0.75],
+    ['unit', t('foodForm.servings.unit', { defaultValue: 'Unit' }), 1.25],
+    ['grams', t('foodForm.servings.grams', { defaultValue: 'Grams' }), 1.25],
+  ] as const;
 
   return (
     <Animated.View
       testID={`serving-row-${index}`}
-      className="flex-row items-center rounded-xl border bg-raised"
+      className="flex-row items-center rounded-2xl border bg-raised pr-1"
       style={[
         previewStyle,
         {
-          height: REORDER_ROW_HEIGHT - 8,
-          marginBottom: 8,
-          borderColor: hasError
-            ? dangerColor
-            : selected
-              ? accentColor
-              : 'transparent',
+          height: ROW_HEIGHT,
+          marginBottom: ROW_GAP,
+          borderColor: error ? dangerColor : withAlpha(textMuted, 0.3),
         },
       ]}
     >
       <GestureDetector gesture={dragGesture}>
         <View
           testID={`serving-drag-handle-${index}`}
-          className="h-full justify-center px-3"
+          className="h-full w-8 items-center justify-center"
           accessibilityRole="adjustable"
           accessibilityLabel={t('foodForm.servings.reorder', {
             defaultValue: 'Reorder {{name}}',
@@ -196,50 +236,166 @@ const ServingRow: React.FC<{
           <Icon name="reorder-handle" size={20} color={textMuted} />
         </View>
       </GestureDetector>
-      <TouchableOpacity
+      <View
         testID={`serving-row-select-${index}`}
-        className="h-full min-w-0 flex-1 justify-center"
-        onPress={onSelect}
-        disabled={disabled}
-        accessibilityRole="button"
-        accessibilityState={{ selected }}
-        accessibilityLabel={`${title}, ${subtitle}`}
-        accessibilityHint={t('foodForm.servings.editHint', {
-          defaultValue: 'Edit this serving',
-        })}
+        accessibilityLabel={`${title}, ${summary}`}
+        className="min-w-0 flex-1 gap-1.5 py-2"
       >
-        <Text
-          className="text-base font-semibold text-text-primary"
-          numberOfLines={1}
-        >
-          {title}
-        </Text>
-        <Text className="text-xs text-text-secondary" numberOfLines={1}>
-          {subtitle}
-        </Text>
-      </TouchableOpacity>
+        <View className="flex-row gap-2">
+          {headers.map(([key, label, flex]) => (
+            <Text
+              key={key}
+              className="text-xs text-text-secondary"
+              style={{ flex }}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+            >
+              {label}
+            </Text>
+          ))}
+        </View>
+        <View className="flex-row items-center gap-2">
+          <View style={{ flex: 1.45 }}>
+            <CellInput
+              testID={`serving-edit-label-${index}`}
+              value={draft.label}
+              onChangeText={(text) => onUpdate({ label: text })}
+              placeholder={
+                amount > 0 ? amountLabel(amount, draft.unit, t) : undefined
+              }
+              accessibilityLabel={t('foodForm.servings.labelA11y', {
+                defaultValue: 'Label of {{name}}',
+                name: title,
+              })}
+              dangerColor={dangerColor}
+              placeholderColor={textMuted}
+              invalid={error === 'duplicate'}
+            />
+          </View>
+          <View style={{ flex: 0.75 }}>
+            <CellInput
+              testID={`serving-edit-amount-${index}`}
+              value={draft.amountText}
+              numeric
+              onChangeText={(text) => {
+                if (DECIMAL_INPUT_REGEX.test(text))
+                  onUpdate({ amountText: text });
+              }}
+              accessibilityLabel={t('foodForm.servings.amountA11y', {
+                defaultValue: 'Amount of {{name}}',
+                name: title,
+              })}
+              dangerColor={dangerColor}
+              placeholderColor={textMuted}
+              invalid={error === 'amount'}
+            />
+          </View>
+          <View style={{ flex: 1.25 }}>
+            <BottomSheetPicker
+              value={draft.unit}
+              sections={makeServingUnitSections(t)}
+              onSelect={(value) => onUpdate({ unit: value })}
+              title={t('foodForm.selectUnit', { defaultValue: 'Select Unit' })}
+              renderTrigger={({ onPress, selectedOption }) => (
+                <TouchableOpacity
+                  testID={`serving-edit-unit-${index}`}
+                  onPress={onPress}
+                  disabled={disabled}
+                  activeOpacity={0.7}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('foodForm.servings.unitA11y', {
+                    defaultValue: 'Unit, {{unit}}',
+                    unit:
+                      selectedOption?.label ?? localizeFoodUnit(draft.unit, t),
+                  })}
+                  className="h-11 flex-row items-center justify-between rounded-lg border border-border-subtle bg-background px-1.5"
+                  style={
+                    error === 'unit' ? { borderColor: dangerColor } : undefined
+                  }
+                >
+                  <Text
+                    className="min-w-0 flex-1 text-base text-text-primary"
+                    numberOfLines={1}
+                  >
+                    {selectedOption?.label ?? localizeFoodUnit(draft.unit, t)}
+                  </Text>
+                  <Icon name="chevron-down" size={12} color={textMuted} />
+                </TouchableOpacity>
+              )}
+            />
+          </View>
+          <View style={{ flex: 1.25 }}>
+            {metricUnit ? (
+              <View className="h-11 justify-center px-1">
+                <Text
+                  className="text-base text-text-primary"
+                  numberOfLines={1}
+                  testID={`serving-grams-${index}`}
+                >
+                  {amount > 0 ? amountLabel(amount, draft.unit, t) : '—'}
+                </Text>
+              </View>
+            ) : (
+              <CellInput
+                testID={`serving-edit-weight-${index}`}
+                value={draft.weightText}
+                numeric
+                suffix={weightSuffix}
+                placeholder="?"
+                onChangeText={(text) => {
+                  if (DECIMAL_INPUT_REGEX.test(text))
+                    onUpdate({ weightText: text });
+                }}
+                accessibilityLabel={t('foodForm.servings.weightA11y', {
+                  defaultValue: 'Weight of {{name}} in {{unit}}',
+                  name: title,
+                  unit: weightSuffix,
+                })}
+                dangerColor={dangerColor}
+                placeholderColor={textMuted}
+                invalid={error === 'weight'}
+              />
+            )}
+          </View>
+        </View>
+      </View>
       <TouchableOpacity
         testID={`serving-delete-${index}`}
         onPress={onDelete}
         disabled={disabled}
-        className="h-11 w-11 items-center justify-center"
+        className="h-11 w-10 items-center justify-center"
         accessibilityRole="button"
         accessibilityLabel={t('foodForm.servings.delete', {
           defaultValue: 'Delete {{name}}',
           name: title,
         })}
       >
-        <Icon name="trash" size={18} color={textMuted} />
+        <Icon name="trash" size={20} color={dangerColor} />
       </TouchableOpacity>
     </Animated.View>
   );
 };
 
+type PreviewKey = 'calories' | 'protein' | 'carbs' | 'fat';
+
+const PREVIEW_TILES: {
+  key: PreviewKey;
+  icon: IconName;
+  digits: number;
+  suffix: string;
+}[] = [
+  { key: 'calories', icon: 'flame', digits: 0, suffix: '' },
+  { key: 'protein', icon: 'fork-knife', digits: 1, suffix: ' g' },
+  { key: 'carbs', icon: 'wellness', digits: 1, suffix: ' g' },
+  { key: 'fat', icon: 'water', digits: 1, suffix: ' g' },
+];
+
 /**
- * The Edit Food "Serving sizes" card: saved portions with label, amount, unit
- * and weight, reordered by drag (or VoiceOver actions), plus a preview of
- * what one serving holds. Grams/ml are always available when logging and are
- * never rows here; the food's own nutrition values are edited separately.
+ * The Edit Food "Serving sizes" and "Serving preview" cards: saved portions
+ * edited inline (label, amount, unit, weight), reordered by drag or VoiceOver,
+ * and the nutrition one serving holds. Grams/ml are always available when
+ * logging and are never rows; the nutrition values are edited separately.
  */
 const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
   basis,
@@ -253,19 +409,37 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
   disabled = false,
 }) => {
   const { t } = useTranslation();
-  const [textMuted, accentColor, dangerColor] = useCSSVariable([
+  const [
+    textMuted,
+    accentColor,
+    dangerColor,
+    caloriesColor,
+    proteinColor,
+    carbsColor,
+    fatColor,
+  ] = useCSSVariable([
     '--color-text-muted',
     '--color-accent-primary',
     '--color-text-danger',
-  ]) as [string, string, string];
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+    '--color-calories',
+    '--color-macro-protein',
+    '--color-macro-carbs',
+    '--color-macro-fat',
+  ]) as string[];
+  const tileColors: Record<PreviewKey, string> = {
+    calories: caloriesColor,
+    protein: proteinColor,
+    carbs: carbsColor,
+    fat: fatColor,
+  };
   const [previewKey, setPreviewKey] = useState<string>('basis');
-  const selectedIndex = drafts.findIndex((draft) => draft.key === selectedKey);
-  const selected = selectedIndex >= 0 ? drafts[selectedIndex] : null;
   const weightOfBasis = basisWeight(basis);
   const basisIsMetric = !!basis && isMetricInputUnit(basis.serving_unit);
 
-  const { strides, offsets } = useReorderRowGeometry(drafts.length);
+  const { strides, offsets } = useReorderRowGeometry(
+    drafts.length,
+    ROW_HEIGHT + ROW_GAP
+  );
   const activeDragIndex = useSharedValue(-1);
   const panY = useSharedValue(0);
   const committingTranslate = useSharedValue(0);
@@ -319,11 +493,10 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
   };
 
   const addServing = () => {
-    const key = newDraftKey();
     onChange([
       ...drafts,
       {
-        key,
+        key: newDraftKey(),
         label: '',
         amountText: '1',
         unit: 'piece',
@@ -332,12 +505,10 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
         reweighed: false,
       },
     ]);
-    setSelectedKey(key);
   };
 
   const removeServing = (key: string) => {
     onChange(drafts.filter((draft) => draft.key !== key));
-    if (selectedKey === key) setSelectedKey(null);
     if (previewKey === key) setPreviewKey('basis');
   };
 
@@ -350,7 +521,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
       : t('foodForm.servings.untitled', { defaultValue: 'New serving' });
   };
 
-  const subtitleOf = (draft: ServingDraft) => {
+  const summaryOf = (draft: ServingDraft) => {
     const parts: string[] = [];
     const amount = parseDecimalInput(draft.amountText);
     if (draft.label.trim() && amount > 0) {
@@ -383,7 +554,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
     return parts.join(' · ');
   };
 
-  const errorText = (error: ServingDraftError | undefined) => {
+  const errorText = (error: ServingDraftError) => {
     switch (error) {
       case 'amount':
         return t('foodForm.servings.errors.amount', {
@@ -406,14 +577,16 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
               defaultValue:
                 'Enter the weight of the food’s nutrition serving first, or use its own unit.',
             });
-      default:
-        return null;
     }
   };
 
   const basisLabel = basis
     ? amountLabel(basis.serving_size, basis.serving_unit, t)
     : '';
+  const weightSuffix = localizeFoodUnit(
+    weightOfBasis?.metric_unit ?? basisWeightUnit,
+    t
+  );
   const previewDraft = drafts.find((draft) => draft.key === previewKey);
   const previewValues = previewDraft
     ? draftPreviewNutrition(
@@ -429,337 +602,254 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
           fat: Number(basis.fat) || 0,
         }
       : null;
-  const weightUnitLabel = localizeFoodUnit(
-    weightOfBasis?.metric_unit ?? basisWeightUnit,
-    t
-  );
+  const previewOptions = [
+    { value: 'basis', label: basisLabel },
+    ...drafts.map((draft) => ({ value: draft.key, label: titleOf(draft) })),
+  ];
+  const previewLabel =
+    previewOptions.find(
+      (option) => option.value === (previewDraft ? previewKey : 'basis')
+    )?.label ?? basisLabel;
+  const rowErrors = drafts.flatMap((draft) => {
+    const error = errors[draft.key];
+    return error ? [{ draft, error }] : [];
+  });
+  const cardStyle = { borderColor: withAlpha(accentColor, 0.3) };
+  const tileLabel = (key: PreviewKey) =>
+    key === 'calories'
+      ? t('foodForm.servings.calories', { defaultValue: 'Calories' })
+      : key === 'protein'
+        ? t('foodForm.servings.protein', { defaultValue: 'Protein' })
+        : key === 'carbs'
+          ? t('foodForm.servings.carbs', { defaultValue: 'Carbs' })
+          : t('foodForm.servings.fat', { defaultValue: 'Fat' });
 
   return (
-    <View
-      className="gap-3 rounded-xl bg-surface p-4"
-      testID="serving-sizes-editor"
-      pointerEvents={disabled ? 'none' : 'auto'}
-      style={disabled ? { opacity: 0.6 } : undefined}
-    >
-      <View className="flex-row items-center justify-between">
-        <Text className="text-lg font-semibold text-text-primary">
-          {t('foodForm.servings.title', { defaultValue: 'Serving sizes' })}
-        </Text>
-        <TouchableOpacity
-          testID="serving-add"
-          onPress={addServing}
-          className="min-h-11 flex-row items-center gap-1 px-1"
-          accessibilityRole="button"
-        >
-          <Icon name="add" size={18} color={accentColor} />
-          <Text
-            className="text-sm font-semibold"
-            style={{ color: accentColor }}
-          >
-            {t('foodForm.servings.add', { defaultValue: 'Add serving size' })}
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      {basis && !basisIsMetric ? (
-        <View className="gap-1">
-          <Text className="text-sm font-medium text-text-secondary">
-            {t('foodForm.servings.basisWeight', {
-              defaultValue: 'Weight of {{serving}}',
-              serving: basisLabel,
-            })}
-          </Text>
-          <View className="flex-row items-center gap-2">
-            <View className="flex-1">
-              <FormInput
-                testID="serving-basis-weight"
-                placeholder={t('foodForm.servings.weightUnknown', {
-                  defaultValue: 'Unknown',
-                })}
-                value={basisWeightText}
-                onChangeText={(text) => {
-                  if (DECIMAL_INPUT_REGEX.test(text)) onBasisWeightChange(text);
-                }}
-                keyboardType="decimal-pad"
-                returnKeyType="done"
-                accessibilityLabel={t('foodForm.servings.basisWeight', {
-                  defaultValue: 'Weight of {{serving}}',
-                  serving: basisLabel,
-                })}
-              />
-            </View>
-            <Text className="text-base text-text-secondary">
-              {weightUnitLabel}
+    <View className="gap-4" pointerEvents={disabled ? 'none' : 'auto'}>
+      <View
+        className="gap-3 rounded-2xl border bg-surface p-4"
+        testID="serving-sizes-editor"
+        style={[cardStyle, disabled ? { opacity: 0.6 } : null]}
+      >
+        <View className="flex-row items-start justify-between gap-3">
+          <View className="min-w-0 flex-1">
+            <Text className="text-xl font-semibold text-text-primary">
+              {t('foodForm.servings.title', { defaultValue: 'Serving sizes' })}
+            </Text>
+            <Text className="mt-0.5 text-sm text-text-secondary">
+              {t('foodForm.servings.subtitle', {
+                defaultValue: 'Define the serving sizes for this food.',
+              })}
             </Text>
           </View>
-          <Text className="text-xs text-text-muted">
-            {t('foodForm.servings.basisWeightHint', {
-              defaultValue:
-                'With a weight, you can log this food in grams and add portions by weight.',
-            })}
-          </Text>
+          <TouchableOpacity
+            testID="serving-add"
+            onPress={addServing}
+            className="min-h-11 flex-row items-center gap-1.5 rounded-xl border px-3"
+            style={{
+              borderColor: accentColor,
+              backgroundColor: withAlpha(accentColor, 0.1),
+            }}
+            accessibilityRole="button"
+          >
+            <Icon name="add" size={18} color={accentColor} />
+            <Text
+              className="text-sm font-semibold"
+              style={{ color: accentColor }}
+            >
+              {t('foodForm.servings.add', {
+                defaultValue: 'Add serving size',
+              })}
+            </Text>
+          </TouchableOpacity>
         </View>
-      ) : null}
 
-      {drafts.length === 0 ? (
-        <Text className="text-sm text-text-secondary" testID="serving-empty">
-          {t('foodForm.servings.empty', {
-            defaultValue: 'No saved portions. Add one to log it with one tap.',
-          })}
-        </Text>
-      ) : (
-        <View>
-          {drafts.map((draft, index) => (
-            <ServingRow
-              key={draft.key}
-              index={index}
-              lastIndex={drafts.length - 1}
-              selected={draft.key === selectedKey}
-              title={titleOf(draft)}
-              subtitle={subtitleOf(draft)}
-              hasError={!!errors[draft.key]}
-              onSelect={() =>
-                setSelectedKey((current) =>
-                  current === draft.key ? null : draft.key
-                )
-              }
-              onDelete={() => removeServing(draft.key)}
-              onMove={handleMove}
-              disabled={disabled}
-              textMuted={textMuted}
-              dangerColor={dangerColor}
-              accentColor={accentColor}
-              activeDragIndex={activeDragIndex}
-              panY={panY}
-              committingTranslate={committingTranslate}
-              targetIndex={targetIndex}
-              strides={strides}
-            />
-          ))}
-          <Text className="text-xs text-text-muted">
-            {t('foodForm.servings.orderHint', {
-              defaultValue:
-                'Drag to reorder. Portions appear in this order when you log the food.',
-            })}
-          </Text>
-        </View>
-      )}
-
-      {selected ? (
-        <View
-          className="gap-3 rounded-xl border border-border-subtle p-3"
-          testID="serving-edit-panel"
-        >
-          <LabeledInput
-            testID="serving-edit-label"
-            label={t('foodForm.servings.label', { defaultValue: 'Label' })}
-            placeholder={t('foodForm.servings.labelPlaceholder', {
-              defaultValue: 'e.g. Medium',
-            })}
-            value={selected.label}
-            maxLength={40}
-            onChangeText={(text) => update(selected.key, { label: text })}
-            returnKeyType="done"
-          />
-          <View className="flex-row gap-2">
-            <View className="flex-1">
-              <LabeledInput
-                testID="serving-edit-amount"
-                label={t('foodForm.servings.amount', {
-                  defaultValue: 'Amount',
-                })}
-                value={selected.amountText}
-                keyboardType="decimal-pad"
-                returnKeyType="done"
-                onChangeText={(text) => {
-                  if (DECIMAL_INPUT_REGEX.test(text)) {
-                    update(selected.key, { amountText: text });
-                  }
-                }}
-              />
-            </View>
-            <View className="flex-1 gap-1.5">
-              <Text className="text-sm font-medium text-text-secondary">
-                {t('foodForm.servings.unit', { defaultValue: 'Unit' })}
-              </Text>
-              <BottomSheetPicker
-                value={selected.unit}
-                sections={makeServingUnitSections(t)}
-                onSelect={(value) => update(selected.key, { unit: value })}
-                title={t('foodForm.selectUnit', {
-                  defaultValue: 'Select Unit',
-                })}
-                renderTrigger={({ onPress, selectedOption }) => (
-                  <TouchableOpacity
-                    testID="serving-edit-unit"
-                    onPress={onPress}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel={t('foodForm.servings.unitA11y', {
-                      defaultValue: 'Unit, {{unit}}',
-                      unit:
-                        selectedOption?.label ??
-                        localizeFoodUnit(selected.unit, t),
-                    })}
-                    className="flex-row items-center justify-between rounded-lg border border-border-subtle bg-raised px-3"
-                    style={{ height: 44 }}
-                  >
-                    <Text
-                      className="flex-1 text-base text-text-primary"
-                      numberOfLines={1}
-                    >
-                      {selectedOption?.label ??
-                        localizeFoodUnit(selected.unit, t)}
-                    </Text>
-                    <Icon name="chevron-down" size={12} color={textMuted} />
-                  </TouchableOpacity>
-                )}
-              />
-            </View>
-          </View>
-          {isMetricInputUnit(selected.unit) ? null : (
-            <View className="flex-row items-end gap-2">
+        {basis && !basisIsMetric ? (
+          <View className="gap-1">
+            <Text className="text-sm font-medium text-text-secondary">
+              {t('foodForm.servings.basisWeight', {
+                defaultValue: 'Weight of {{serving}}',
+                serving: basisLabel,
+              })}
+            </Text>
+            <View className="flex-row items-center gap-2">
               <View className="flex-1">
-                <LabeledInput
-                  testID="serving-edit-weight"
-                  label={t('foodForm.servings.weight', {
-                    defaultValue: 'Weight ({{unit}})',
-                    unit: weightUnitLabel,
-                  })}
+                <FormInput
+                  testID="serving-basis-weight"
                   placeholder={t('foodForm.servings.weightUnknown', {
                     defaultValue: 'Unknown',
                   })}
-                  value={selected.weightText}
+                  value={basisWeightText}
+                  onChangeText={(text) => {
+                    if (DECIMAL_INPUT_REGEX.test(text))
+                      onBasisWeightChange(text);
+                  }}
                   keyboardType="decimal-pad"
                   returnKeyType="done"
-                  onChangeText={(text) => {
-                    if (DECIMAL_INPUT_REGEX.test(text)) {
-                      update(selected.key, { weightText: text });
-                    }
-                  }}
+                  accessibilityLabel={t('foodForm.servings.basisWeight', {
+                    defaultValue: 'Weight of {{serving}}',
+                    serving: basisLabel,
+                  })}
                 />
               </View>
+              <Text className="text-base text-text-secondary">
+                {weightSuffix}
+              </Text>
             </View>
-          )}
-          {selected.ownNutrition && selected.reweighed ? (
-            <Text className="text-xs text-text-secondary">
-              {t('foodForm.servings.recalculated', {
+            <Text className="text-xs text-text-muted">
+              {t('foodForm.servings.basisWeightHint', {
                 defaultValue:
-                  'This serving had its own nutrition. Saving recalculates it from {{basis}}.',
-                basis: basisLabel,
+                  'With a weight, you can log this food in grams and add portions by weight.',
               })}
             </Text>
-          ) : null}
-          {errors[selected.key] ? (
-            <Text className="text-sm" style={{ color: dangerColor }}>
-              {errorText(errors[selected.key])}
-            </Text>
-          ) : null}
-        </View>
-      ) : null}
+          </View>
+        ) : null}
 
-      {Object.keys(errors).length > 0 && !(selected && errors[selected.key]) ? (
-        <Text
-          className="text-sm"
-          style={{ color: dangerColor }}
-          testID="serving-errors"
-        >
-          {t('foodForm.servings.errors.fixRows', {
-            defaultValue: 'Check the highlighted servings.',
-          })}
-        </Text>
-      ) : null}
-
-      {basis ? (
-        <View className="gap-2 border-t border-border-subtle pt-3">
-          <Text className="text-sm font-semibold text-text-primary">
-            {t('foodForm.servings.preview', {
-              defaultValue: 'Serving preview',
+        {drafts.length === 0 ? (
+          <Text className="text-sm text-text-secondary" testID="serving-empty">
+            {t('foodForm.servings.empty', {
+              defaultValue:
+                'No saved portions. Add one to log it with one tap.',
             })}
           </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {[
-              { key: 'basis', label: basisLabel },
-              ...drafts.map((draft) => ({
-                key: draft.key,
-                label: titleOf(draft),
-              })),
-            ].map((chip) => {
-              const active = chip.key === (previewDraft ? previewKey : 'basis');
-              return (
+        ) : (
+          <View>
+            {drafts.map((draft, index) => (
+              <ServingRow
+                key={draft.key}
+                draft={draft}
+                index={index}
+                lastIndex={drafts.length - 1}
+                title={titleOf(draft)}
+                summary={summaryOf(draft)}
+                weightSuffix={weightSuffix}
+                error={errors[draft.key]}
+                onUpdate={(patch) => update(draft.key, patch)}
+                onDelete={() => removeServing(draft.key)}
+                onMove={handleMove}
+                disabled={disabled}
+                textMuted={textMuted}
+                dangerColor={dangerColor}
+                activeDragIndex={activeDragIndex}
+                panY={panY}
+                committingTranslate={committingTranslate}
+                targetIndex={targetIndex}
+                strides={strides}
+              />
+            ))}
+            {rowErrors.length > 0 ? (
+              <View className="mb-2 gap-1" testID="serving-errors">
+                {rowErrors.map(({ draft, error }) => (
+                  <View key={draft.key} className="flex-row flex-wrap gap-1">
+                    <Text
+                      className="text-sm font-semibold"
+                      style={{ color: dangerColor }}
+                    >
+                      {`${titleOf(draft)}:`}
+                    </Text>
+                    <Text className="text-sm" style={{ color: dangerColor }}>
+                      {errorText(error)}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            <Text className="text-xs text-text-muted">
+              {t('foodForm.servings.orderHint', {
+                defaultValue:
+                  'Drag to reorder. Portions appear in this order when you log the food.',
+              })}
+            </Text>
+          </View>
+        )}
+      </View>
+
+      {basis ? (
+        <View
+          className="gap-3 rounded-2xl border bg-surface p-4"
+          style={cardStyle}
+          testID="serving-preview"
+        >
+          <View className="flex-row items-start justify-between gap-3">
+            <View className="min-w-0 flex-1">
+              <Text className="text-xl font-semibold text-text-primary">
+                {t('foodForm.servings.preview', {
+                  defaultValue: 'Serving preview',
+                })}
+              </Text>
+              <Text className="mt-0.5 text-sm text-text-secondary">
+                {t('foodForm.servings.previewSubtitle', {
+                  defaultValue: 'Nutrition for the selected serving size.',
+                })}
+              </Text>
+            </View>
+            <BottomSheetPicker
+              value={previewDraft ? previewKey : 'basis'}
+              options={previewOptions}
+              onSelect={setPreviewKey}
+              title={t('foodForm.servings.preview', {
+                defaultValue: 'Serving preview',
+              })}
+              renderTrigger={({ onPress }) => (
                 <TouchableOpacity
-                  key={chip.key}
-                  testID={`serving-preview-chip-${chip.key}`}
-                  onPress={() => setPreviewKey(chip.key)}
+                  testID="serving-preview-picker"
+                  onPress={onPress}
+                  activeOpacity={0.7}
                   accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  className="min-h-9 justify-center rounded-full border px-3"
-                  style={{
-                    borderColor: active ? accentColor : 'transparent',
-                  }}
+                  accessibilityLabel={t('foodForm.servings.previewPick', {
+                    defaultValue: 'Preview serving, {{serving}}',
+                    serving: previewLabel,
+                  })}
+                  className="max-w-[45%] flex-row items-center gap-1 rounded-xl border border-border-subtle bg-raised px-3 py-2"
                 >
-                  <Text className="text-sm text-text-primary">
-                    {chip.label}
+                  <Text
+                    className="text-base font-medium text-text-primary"
+                    numberOfLines={1}
+                  >
+                    {previewLabel}
                   </Text>
+                  <Icon name="chevron-down" size={12} color={textMuted} />
                 </TouchableOpacity>
-              );
-            })}
+              )}
+            />
           </View>
           {previewValues ? (
             <View className="flex-row gap-2" testID="serving-preview-values">
-              {(
-                [
-                  [
-                    'calories',
-                    t('foodForm.servings.calories', {
-                      defaultValue: 'Calories',
-                    }),
-                    0,
-                    '',
-                  ],
-                  [
-                    'protein',
-                    t('foodForm.servings.protein', { defaultValue: 'Protein' }),
-                    1,
-                    ' g',
-                  ],
-                  [
-                    'carbs',
-                    t('foodForm.servings.carbs', { defaultValue: 'Carbs' }),
-                    1,
-                    ' g',
-                  ],
-                  [
-                    'fat',
-                    t('foodForm.servings.fat', { defaultValue: 'Fat' }),
-                    1,
-                    ' g',
-                  ],
-                ] as const
-              ).map(([key, label, digits, suffix]) => (
-                <View
-                  key={key}
-                  className="flex-1 items-center rounded-lg bg-raised px-1 py-2"
-                  accessible
-                  accessibilityLabel={`${label}: ${formatLocalizedNumber(previewValues[key], { maximumFractionDigits: digits })}${suffix}`}
-                >
-                  <Text
-                    className="text-xs text-text-secondary"
-                    numberOfLines={1}
+              {PREVIEW_TILES.map((tile) => {
+                const color = tileColors[tile.key];
+                const label = tileLabel(tile.key);
+                const value = `${formatLocalizedNumber(
+                  previewValues[tile.key],
+                  { maximumFractionDigits: tile.digits }
+                )}${tile.suffix}`;
+                return (
+                  <View
+                    key={tile.key}
+                    className="min-w-0 flex-1 gap-1 rounded-xl border px-2 py-2.5"
+                    style={{
+                      borderColor: withAlpha(color, 0.6),
+                      backgroundColor: withAlpha(color, 0.18),
+                    }}
+                    accessible
+                    accessibilityLabel={`${label}: ${value}`}
                   >
-                    {label}
-                  </Text>
-                  <Text
-                    className="text-base font-semibold text-text-primary"
-                    numberOfLines={1}
-                  >
-                    {formatLocalizedNumber(previewValues[key], {
-                      maximumFractionDigits: digits,
-                    })}
-                    {suffix}
-                  </Text>
-                </View>
-              ))}
+                    <Icon name={tile.icon} size={18} color={color} />
+                    <Text
+                      className="text-lg font-bold text-text-primary"
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                    >
+                      {value}
+                    </Text>
+                    <Text
+                      className="text-xs text-text-secondary"
+                      numberOfLines={1}
+                    >
+                      {label}
+                    </Text>
+                  </View>
+                );
+              })}
             </View>
           ) : (
             <Text className="text-sm text-text-secondary">

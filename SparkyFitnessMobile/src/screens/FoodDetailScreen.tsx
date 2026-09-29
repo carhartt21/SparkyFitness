@@ -52,6 +52,7 @@ import {
   applyDisplayValuesToFoodInfo,
 } from '../utils/foodDetails';
 import type { RootStackScreenProps } from '../types/navigation';
+import { buildEditFoodParams } from '../utils/editFoodRoute';
 
 type FoodDetailScreenProps = RootStackScreenProps<'FoodDetail'>;
 
@@ -299,63 +300,16 @@ const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({
       return;
     }
 
-    navigation.navigate('FoodForm', {
-      mode: 'edit-food',
-      item: applyDisplayValuesToFoodInfo(
+    navigation.navigate(
+      'FoodForm',
+      buildEditFoodParams({
         food,
-        displayValues,
-        selectedVariantId
-      ),
-      returnKey: route.key,
-      foodId: food.id,
-      variantId: selectedVariantId,
-      customNutrients: selectedCustomNutrients,
-      initialValues: {
-        name: food.name,
-        brand: food.brand ?? '',
-        notes: food.notes ?? '',
-        servingSize: String(displayValues.servingSize),
-        servingUnit: displayValues.servingUnit,
-        calories: String(displayValues.calories),
-        protein: String(displayValues.protein),
-        carbs: String(displayValues.carbs),
-        fat: String(displayValues.fat),
-        fiber: displayValues.fiber != null ? String(displayValues.fiber) : '',
-        saturatedFat:
-          displayValues.saturatedFat != null
-            ? String(displayValues.saturatedFat)
-            : '',
-        sodium:
-          displayValues.sodium != null ? String(displayValues.sodium) : '',
-        sugars:
-          displayValues.sugars != null ? String(displayValues.sugars) : '',
-        transFat:
-          displayValues.transFat != null ? String(displayValues.transFat) : '',
-        potassium:
-          displayValues.potassium != null
-            ? String(displayValues.potassium)
-            : '',
-        calcium:
-          displayValues.calcium != null ? String(displayValues.calcium) : '',
-        iron: displayValues.iron != null ? String(displayValues.iron) : '',
-        caffeineMg:
-          displayValues.caffeineMg != null
-            ? String(displayValues.caffeineMg)
-            : '',
-        waterMl:
-          displayValues.waterMl != null ? String(displayValues.waterMl) : '',
-        alcoholG:
-          displayValues.alcoholG != null ? String(displayValues.alcoholG) : '',
-        cholesterol:
-          displayValues.cholesterol != null
-            ? String(displayValues.cholesterol)
-            : '',
-        vitaminA:
-          displayValues.vitaminA != null ? String(displayValues.vitaminA) : '',
-        vitaminC:
-          displayValues.vitaminC != null ? String(displayValues.vitaminC) : '',
-      },
-    });
+        values: displayValues,
+        variantId: selectedVariantId,
+        customNutrients: selectedCustomNutrients,
+        returnKey: route.key,
+      })
+    );
   };
 
   // Favorite star (accent-tinted, reads as a button) sits before the neutral

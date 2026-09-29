@@ -422,7 +422,7 @@
       "title": "Schnell hinzufügen",
       "subtitle": "Gespeicherte Portionen",
       "lastUsed": "Zuletzt verwendet",
-      "nutrition": "{{calories}} kcal · {{fat}} g F · {{carbs}} g KH · {{protein}} g E",
+      "nutrition": "{{calories}} kcal – {{fat}} g F, {{carbs}} g KH, {{protein}} g E",
       "addLastA11y": "Zuletzt verwendet hinzufügen, {{portion}}, {{calories}} Kilokalorien",
       "addA11y": "{{portion}} hinzufügen, {{calories}} Kilokalorien",
       "multiplePortions": "{{amount}} × {{portion}}"
@@ -431,11 +431,26 @@
       "title": "Portionsgröße",
       "milliliters": "Milliliter",
       "grams": "Gramm",
-      "totalWeight": "insgesamt {{weight}}"
+      "totalWeight": "insgesamt {{weight}}",
+      "amountPerServing": "Menge pro Portion"
     },
     "moreOptions": {
       "title": "Weitere Optionen",
-      "subtitle": "Nährwertangaben und alle Nährstoffe"
+      "subtitle": "Nährwertangaben & mehr",
+      "editFood": "Lebensmittel bearbeiten",
+      "adjustEntry": "Nur diesen Eintrag anpassen"
+    },
+    "actions": {
+      "addToDiary": "Zum Tagebuch hinzufügen",
+      "editFood": "Lebensmittel und Portionsgrößen bearbeiten"
+    },
+    "editServings": {
+      "title": "Portionsgrößen hinzufügen",
+      "subtitle": "Speichere Portionen wie „1 Scheibe“, um sie mit einem Tipp einzutragen."
+    },
+    "wheel": {
+      "hint": "Nach oben oder unten wischen, um die Menge zu ändern. Lange drücken, um sie einzugeben.",
+      "enterAmount": "Menge eingeben"
     }
   },
   "foodEntryMultiAdd": {
@@ -962,11 +977,13 @@
       "invalidTotalServingsMessage": "Die Gesamtportionen müssen größer als Null sein.",
       "invalidTotalAmountMessage": "Die Gesamtmenge muss größer als null sein.",
       "noIngredientsMessage": "Fügen Sie mindestens ein Lebensmittel hinzu, bevor Sie diese Mahlzeit speichern.",
-      "missingIngredientMessage": "Bei einem der ausgewählten Lebensmittel fehlt eine Serviervariante. Bitte fügen Sie es erneut hinzu."
+      "missingIngredientMessage": "Bei einem der ausgewählten Lebensmittel fehlt eine Serviervariante. Bitte fügen Sie es erneut hinzu.",
+      "invalidServingSizeTitle": "Ungültige Portionsgröße"
     },
     "notesPlaceholder": "z.B. das Rezept oder wie Sie es zubereiten",
     "loadErrorTitle": "Mahlzeit konnte nicht geladen werden.",
-    "addFood": "Lebensmittel hinzufügen"
+    "addFood": "Lebensmittel hinzufügen",
+    "servingSize": "Portionsgröße ({{unit}}) *"
   },
   "familyDiary": {
     "manageOnWeb": "Der Zugriff auf das Familientagebuch wird in der Web-App verwaltet.",
@@ -1408,11 +1425,17 @@
         "high": "Gute Schätzung",
         "medium": "Mittlere Schätzqualität",
         "low": "Grobe Schätzung"
-      }
+      },
+      "couldNotEstimate": "Schätzung nicht möglich",
+      "servingSizeRequired": "Lege zuerst eine Portionsgröße fest",
+      "convertWithAI": "Mit KI umrechnen",
+      "estimateFailed": "Die KI-Schätzung ist fehlgeschlagen."
     },
     "manualUpdate": {
       "message": "Eine Umrechnung zwischen Einheiten ist nicht möglich. Aktualisieren Sie die Nährwerte vor dem Speichern manuell.",
-      "banner": "Eine Umrechnung zwischen Einheiten ist nicht möglich. Nährwerte manuell aktualisieren."
+      "banner": "Eine Umrechnung zwischen Einheiten ist nicht möglich. Nährwerte manuell aktualisieren.",
+      "title": "Nährwerte manuell anpassen",
+      "saveAnyway": "Trotzdem speichern"
     },
     "loadingDetails": "Es werden immer noch Lebensmitteldetails geladen. Versuchen Sie es gleich noch einmal.",
     "equivalentUnitsFailed": "Einige entsprechende Einheiten konnten nicht gespeichert werden",
@@ -1470,7 +1493,35 @@
       "inUseTitle": "Aus Essensplänen entfernen?",
       "inUseMessage": "Essensplan-Vorlagen verwenden eine entfernte Portion ({{entries}} Einträge). Beim Entfernen werden diese Einträge ebenfalls entfernt. Ihr Tagebuch bleibt unverändert.",
       "inUseConfirm": "Entfernen",
-      "weight": "Gewicht ({{unit}})"
+      "weight": "Gewicht ({{unit}})",
+      "subtitle": "Lege die Portionsgrößen für dieses Lebensmittel fest.",
+      "grams": "Gramm",
+      "labelA11y": "Bezeichnung von {{name}}",
+      "amountA11y": "Menge von {{name}}",
+      "weightA11y": "Gewicht von {{name}} in {{unit}}",
+      "previewSubtitle": "Nährwerte der gewählten Portionsgröße.",
+      "previewPick": "Vorschau-Portion, {{serving}}"
+    },
+    "selectUnit": "Einheit wählen",
+    "unit": "Einheit",
+    "removeEquivalent": "Gleichwertige Größe entfernen",
+    "addEquivalent": "+ Gleichwertige Größe hinzufügen",
+    "foodName": "Name des Lebensmittels",
+    "optional": "Optional",
+    "servingSize": "Portionsgröße",
+    "servingUnit": "Einheit",
+    "autoScaleNutrition": "Nährwerte automatisch umrechnen",
+    "caloriesRequired": "Kalorien (kcal) *",
+    "savedNewVariant": "Als neue Portion gespeichert",
+    "editTitle": "Lebensmittel bearbeiten",
+    "saved": "Gespeichert",
+    "equivalentUnitsUpdated_one": "Gespeichert · {{formattedCount}} gleichwertige Einheit aktualisiert",
+    "equivalentUnitsUpdated_other": "Gespeichert · {{formattedCount}} gleichwertige Einheiten aktualisiert",
+    "notes": "Notizen",
+    "notesPlaceholder": "z. B. weißer Reis, doppelt Hähnchen, ohne Bohnen (Markdown möglich)",
+    "additionalInfo": {
+      "title": "Weitere Angaben",
+      "subtitle": "Nährwerte, Notizen und mehr bearbeiten"
     }
   },
   "foodFormPersistence": {
@@ -1490,7 +1541,21 @@
     "foodSaved": "Lebensmittel gespeichert.",
     "updateFoodFailed": "Lebensmittel konnte nicht aktualisiert werden.",
     "saveUnitFailed": "Neue Einheit konnte nicht gespeichert werden.",
-    "saveVariantFailed": "Neue Variante konnte nicht gespeichert werden."
+    "saveVariantFailed": "Neue Variante konnte nicht gespeichert werden.",
+    "discardTitle": "Nicht gespeicherte Größen verwerfen?",
+    "discard": "Verwerfen",
+    "dontUpdate": "Nicht aktualisieren",
+    "update": "Aktualisieren",
+    "updateNutritionPhotos": "Nährwerte und Fotos aktualisieren",
+    "saveNutritionTitle": "Nährwerte speichern",
+    "saveAsNew": "Als neu speichern",
+    "updateExisting": "Bestehende aktualisieren",
+    "missingName": "Name fehlt",
+    "invalidServingSize": "Ungültige Portionsgröße",
+    "savedNewVariant": "Als neue Portion gespeichert",
+    "editFoodTitle": "Lebensmittel bearbeiten",
+    "adjustNutritionTitle": "Nährwerte für diesen Eintrag",
+    "saveNutritionFuture": "Für künftige Einträge speichern"
   },
   "foodPhotoImprove": {
     "cameraPermissionMessage": "Aktivieren Sie den Kamerazugriff, um ein Foto hinzuzufügen.",
@@ -1743,7 +1808,8 @@
       "amountRequired": "Die Menge muss größer als null sein.",
       "noMealTypesAvailable": "Es sind keine Mahlzeitenarten verfügbar. Bitte überprüfen Sie Ihre Kontoeinstellungen.",
       "nameRequired": "Geben Sie einen Lebensmittelnamen ein.",
-      "foodSaveFailed": "Lebensmittel konnte nicht gespeichert werden."
+      "foodSaveFailed": "Lebensmittel konnte nicht gespeichert werden.",
+      "invalidServingSize": "Ungültige Portionsgröße"
     },
     "actions": {
       "addFood": "Lebensmittel hinzufügen"
@@ -1800,7 +1866,11 @@
       "addFailed": "Foto konnte nicht hinzugefügt werden."
     },
     "labels": {
-      "main": "Hauptbild"
+      "main": "Hauptbild",
+      "count": "{{total}} Fotos"
+    },
+    "actions": {
+      "nextAsMain": "Nächstes Foto zuerst zeigen"
     }
   },
   "editLoggedMeal": {
@@ -1857,7 +1927,8 @@
       "invalidOptionalNutrition": "Alle Nährwerte müssen nicht negative Zahlen sein.",
       "invalidServingSizeMessage": "Die Portionsgröße muss eine positive Zahl sein.",
       "noIngredients": "Behalten Sie mindestens eine Zutat oder wechseln Sie zu einem Lebensmittel.",
-      "positiveServings": "Die Gesamtmenge des Gerichts, die Portionsgröße und die verzehrte Menge müssen alle größer als Null sein."
+      "positiveServings": "Die Gesamtmenge des Gerichts, die Portionsgröße und die verzehrte Menge müssen alle größer als Null sein.",
+      "invalidServingSize": "Ungültige Portionsgröße"
     },
     "ingredients": {
       "recalcFromGrams": "Die Nährwerte wurden von Hand bearbeitet und richten sich daher nicht mehr nach dem Gewicht. Tippen Sie, um das Gewicht neu zu berechnen.",
@@ -2732,5 +2803,9 @@
   "nutritionQuick": {
     "storageError": "Prüfen Sie den Gerätespeicher und versuchen Sie es erneut.",
     "caloriesRequired": "Geben Sie die Kalorien ein."
+  },
+  "foodNutrition": {
+    "hideExtra": "Weitere Nährstoffe ausblenden ▴",
+    "showMore": "Weitere Nährstoffe anzeigen ▾"
   }
 }
