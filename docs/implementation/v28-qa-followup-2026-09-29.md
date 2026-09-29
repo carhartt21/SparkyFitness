@@ -39,8 +39,16 @@ The review also exposed a runtime error on the Diary that came in with the upstr
 
 ## Not done / pending
 
-- The progress mark on the selected (accent-filled) calendar day has low contrast.
+- The selected calendar date now uses the accent's contrasting text color for its label and progress/photo marks. A component test covers the filled complete state. VoiceOver on a physical device is still pending.
 - Device checks: launcher icon on iOS home screen (light, dark and tinted), Android adaptive icon, VoiceOver on calendar marks and the sync indicator, Dynamic Type on physical devices.
 - Web: the X geometry and exports changed for web too; the web calendar has no progress marks and web sync feedback was not changed.
 - German strings for the new keys follow the next translation sync.
 - The server suite showed one intermittent failure in `workoutPlanTemplateRoutes.setTypes` under full parallel load; it passes alone and on the unchanged tree.
+
+## Reconciliation and color follow-up
+
+The range endpoint previously checked only weight records, leaving a completed custom measurement pending in the calendar. It also treated an enabled first check-in as inapplicable today until the first check-in had been saved. The range query now reads the configured custom measurement categories in one user-scoped SQL query and merges their dated records with weight records. Today's check-in follows the single-day summary; older dates retain the conservative historical start rule. Repository and service tests cover empty custom keys, scoped SQL, custom measurement completion, a pending first check-in, and first-time tracking today.
+
+Energy/calories now use neutral slate, protein blue, carbohydrates violet, fat amber, and fiber rose across mobile and web semantic tokens. Those are category identifiers, not good/bad states; the X progress spectrum remains separate. The Dashboard energy, macro and Diary summary cards use a neutral border/glow, and the mobile/web ambient edge light is neutral. The selected-food nutrient tiles read category, amount, then goal percentage; missing goals say “No goal” or “Kein Ziel.” The selected calendar label and marks contrast against the accent fill, and the header sync target is 44 points.
+
+The existing `tracking-dashboard-before.png` and `tour-food-details-before.png` are the earlier synthetic baseline. New captures at 390×844 are [`neutral-dashboard-after.png`](../../x-on-track-design/review/v28-qa-2026-09-29/neutral-dashboard-after.png) and [`food-macro-order-after.png`](../../x-on-track-design/review/v28-qa-2026-09-29/food-macro-order-after.png). The iOS review runner passed its render smoke and native food-entry interaction scenario with synthetic in-memory transport; it verified save and refreshed summaries, not backend persistence. An isolated web demo produced [1280 dark](../../x-on-track-design/review/v28-qa-2026-09-29/neutral-web-dashboard-1280-dark-after.png), [1280 light](../../x-on-track-design/review/v28-qa-2026-09-29/neutral-web-dashboard-1280-light-after.png), and [390 dark](../../x-on-track-design/review/v28-qa-2026-09-29/neutral-web-dashboard-390-dark-after.png) Dashboard captures. All 18 web Dashboard/Diary/Reports captures at 1586, 1280 and 390 widths had no horizontal overflow or console errors. Physical-device and Android visual checks remain open.

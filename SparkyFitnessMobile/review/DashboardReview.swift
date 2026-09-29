@@ -217,8 +217,14 @@ final class DashboardReview: XCTestCase {
       XCTAssertTrue(control.isHittable)
       // UIKit owns the native button's extended hit region; its AX frame is
       // the 36-point visible symbol. React-owned controls require 44 points.
-      XCTAssertGreaterThanOrEqual(control.frame.width, usesNativeHeader ? 36 : 44)
-      XCTAssertGreaterThanOrEqual(control.frame.height, usesNativeHeader ? 36 : 44)
+      // XCTest reports some exact 44-point React frames as 43.999996 after
+      // coordinate conversion. Allow only that sub-pixel rounding difference.
+      XCTAssertGreaterThanOrEqual(
+        control.frame.width, (usesNativeHeader ? 36 : 44) - 0.01
+      )
+      XCTAssertGreaterThanOrEqual(
+        control.frame.height, (usesNativeHeader ? 36 : 44) - 0.01
+      )
     }
     let originalDate = usesNativeHeader ? date.label : date.value as? String
     XCTAssertNotNil(originalDate)
@@ -269,7 +275,9 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(exerciseDetails.isHittable)
     capture("stacked-exercise", app)
     exerciseDetails.tap()
-    let back = app.buttons["BackButton"]
+    let back = app.buttons.matching(
+      NSPredicate(format: "label IN %@", ["Zurück", "Back"])
+    ).firstMatch
     XCTAssertTrue(back.waitForExistence(timeout: 10))
     XCTAssertGreaterThan(back.frame.minY, 40)
     XCTAssertGreaterThanOrEqual(back.frame.height, 44)
