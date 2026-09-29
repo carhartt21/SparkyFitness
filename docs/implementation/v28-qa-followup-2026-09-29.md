@@ -31,8 +31,15 @@ The repository has no record mapping TestFlight build 28 to a commit. The latest
 - Marks: filled green (complete), yellow ring (partly done), grey ring (applicable, nothing done). Today and the selected day keep their own styling. The legend states that marks cover tracking tasks, not nutrition completeness.
 - Limitation: meal-type visibility is not versioned, so with meals counted, a past day uses today's visible meal types.
 
+## Visual evidence
+
+`x-on-track-design/review/v28-qa-2026-09-29/` holds before (`e5f685218`) and after (this branch) captures at 430 pt English dark: food details, food search, Diary/Insights/More headers, Dashboard, Add sheet and calendar. Produced with `node scripts/review-ios.mjs --case 430-en-dark --interactions --tour` and `--tracking-tour`; synthetic fixture data only.
+
+The review also exposed a runtime error on the Diary that came in with the upstream v1.7.3 workout merge: two stray `{' '}` strings directly inside a `View` in `ExerciseSummary` ("Text strings must be rendered within a <Text> component"). Bisected to the upstream merge and fixed; both tours now finish without runtime errors. The fixture gained the calendar photo-date, active-workout-plan and calendar-range responses.
+
 ## Not done / pending
 
+- The progress mark on the selected (accent-filled) calendar day has low contrast.
 - Device checks: launcher icon on iOS home screen (light, dark and tinted), Android adaptive icon, VoiceOver on calendar marks and the sync indicator, Dynamic Type on physical devices.
 - Web: the X geometry and exports changed for web too; the web calendar has no progress marks and web sync feedback was not changed.
 - German strings for the new keys follow the next translation sync.

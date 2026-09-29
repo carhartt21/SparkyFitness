@@ -1,3 +1,4 @@
+import { trackingProgressRange } from './trackingFixture';
 import {
   containerWaterActionBodySchema,
   type WaterIntakeLogEntry,
@@ -186,6 +187,15 @@ export function createNutritionFixture(scenario: string) {
           };
         }
 
+        if (method === 'GET' && path === '/api/v2/tracking/daily-progress') {
+          const now = new Date();
+          const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+          return trackingProgressRange(
+            url.searchParams.get('start_date') ?? today,
+            url.searchParams.get('end_date') ?? today,
+            today
+          );
+        }
         if (path === '/api/goals/for-date') return summaryFixture.goals;
         if (path === '/api/workout-presets') return { presets: [], total: 0 };
         if (path === '/api/daily-summary') {
