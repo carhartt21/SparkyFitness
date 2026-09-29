@@ -1,3 +1,4 @@
+import { useTweenedValue } from '../hooks/useTweenedValue';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -103,6 +104,9 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
   );
   const displayGoal = formatVolumeForUnit(volumeFromMl(goal, unit), unit);
   const progress = goal > 0 ? Math.min(Math.max(consumed / goal, 0), 1) : null;
+  // The bar eases after a logged drink, correction or deletion; the text
+  // above always shows the exact recorded amount.
+  const shownProgress = useTweenedValue(progress ?? 0);
   const noContainer = containerVolume == null && !linkedPressLabel;
   const showButtons = !!onIncrement || !!onDecrement;
   const pressLabel =
@@ -174,7 +178,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                     <View
                       className="h-full rounded-full"
                       style={{
-                        width: `${progress * 100}%` as `${number}%`,
+                        width: `${shownProgress * 100}%` as `${number}%`,
                         backgroundColor: hydrationColor,
                         boxShadow: glowing
                           ? `0px 0px 8px 0px ${withAlpha(hydrationColor, 0.6)}`

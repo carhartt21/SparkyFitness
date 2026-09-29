@@ -1,6 +1,7 @@
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import { useCSSVariable } from 'uniwind';
 import { useGlowTheme } from './ui/glow';
+import { useTweenedValue } from '../hooks/useTweenedValue';
 
 const START_DEG = 135;
 const SWEEP_DEG = 270;
@@ -45,9 +46,10 @@ export default function EnergyGauge({
     '--color-neon-yellow',
     '--color-neon-green',
   ]) as [string, string, string, string];
-  const fill = Number.isFinite(progress)
+  const target = Number.isFinite(progress)
     ? Math.min(Math.max(progress, 0), 1)
     : 0;
+  const fill = useTweenedValue(target);
   const trackPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG);
   const fillPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG * fill);
 
