@@ -24,3 +24,10 @@
 "widget.nutrition.captured" = "%d Mahlzeiteneintrag/Einträge erfasst";
 "widget.nutrition.photo" = "Mahlzeitenfoto";
 "widget.nutrition.search" = "Lebensmittel suchen";
+"widget.routine.name" = "Trainingsroutinen";
+"widget.routine.description" = "Deine Trainingsroutinen öffnen.";
+"widget.routine.unavailable" = "X on Track zum Aktualisieren öffnen";
+"widget.routine.empty" = "Noch keine Routinen";
+"widget.routine.one" = "%d Routine verfügbar";
+"widget.routine.count" = "%d Routinen verfügbar";
+"widget.routine.open" = "Routinen öffnen";

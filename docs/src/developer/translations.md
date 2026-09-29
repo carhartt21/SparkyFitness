@@ -5,6 +5,8 @@ This document outlines the technical setup for internationalization (i18n) in th
 ::: info
 **Only the English (`en`) files may be edited by hand.** Every other language is translated on [Weblate](https://weblate.sparkyfitness.com/engage/sparkyfitness) and synced from [SparkyFitnessTranslations](https://github.com/CodeWithCJ/SparkyFitnessTranslations).
 :::
+
+X on Track maintains a German product-copy overlay in `localization-overrides/de/`. The translation sync applies it after copying Weblate catalogs, so app-specific corrections survive the sync. Edit the overlay rather than the generated German catalogs. Run `node scripts/apply-german-overrides.mjs` at the repository root to refresh the mobile and web catalogs, iOS permission text, and Watch widget labels; use `--check` to verify complete key coverage and placeholders. Other languages and German strings outside this overlay remain owned by [SparkyFitnessTranslations](https://github.com/CodeWithCJ/SparkyFitnessTranslations).
 ## 1. Core Libraries
 
 The following npm packages are used for i18n:

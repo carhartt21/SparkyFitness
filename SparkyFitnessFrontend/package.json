@@ -10,7 +10,7 @@
     "knip": "knip",
     "typecheck": "tsc -b",
     "format:check": "prettier . --check",
-    "validate": "pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run knip",
+    "validate": "node ../scripts/apply-german-overrides.mjs --check && pnpm run typecheck && pnpm run lint && pnpm run format:check && pnpm run knip",
     "build": "pnpm run validate && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint . --max-warnings 0",

@@ -11,7 +11,13 @@
     "pregnancy": "Schwangerschaft",
     "medications": "Medikamente",
     "foodLog": "Ernährungsprotokoll",
-    "wellness": "Wellness"
+    "wellness": "Wellness",
+    "primary": "Primäre Navigation",
+    "mobile": "Mobile Navigation",
+    "more": "Mehr",
+    "skipToContent": "Zum Inhalt springen",
+    "dashboard": "Dashboard",
+    "home": "Startseite"
   },
   "settings": {
     "notificationDelivery": {
@@ -343,7 +349,9 @@
         "ollamaFullProfileWarningHint": "Das Ausführen eines lokalen Modells mit dem vollständigen Toolset kann zu erheblicher Latenz oder Fehlern führen, es sei denn, Sie verfügen über ein sehr leistungsstarkes System (z. B. eine GPU mit hohem VRAM). Wenn die Leistung langsam ist oder das Modell verwirrt ist, wechseln Sie zum Core-Toolset.",
         "recommendedModel": "Empfohlen: {{- model}} – eine gute Balance zwischen Kosten und Leistungsfähigkeit.",
         "visionNone": "Keine",
-        "visionService": "Globaler Vision-KI-Dienst"
+        "visionService": "Globaler Vision-KI-Dienst",
+        "allowPrivateNetworkAi": "Private Netzwerkendpunkte zulassen (z. B. Local Ollama/vLLM)",
+        "allowPrivateNetworkAiDescription": "Erlauben Sie die Verbindung zu KI-Endpunkten, die auf privaten IP-Adressen gehostet werden (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, localhost)."
       },
       "userSettings": {
         "title": "KI-Dienst",
@@ -520,7 +528,10 @@
       "newKeyGenerated": "Neuer API Schlüssel generiert!",
       "placeholder": "Beschreibung (z. B. „iPhone Health Shortcut“)",
       "updateError": "Aktualisierung API fehlgeschlagen key",
-      "updateSuccess": "API Schlüsselstatus erfolgreich aktualisiert!"
+      "updateSuccess": "API Schlüsselstatus erfolgreich aktualisiert!",
+      "scope": "Berechtigung",
+      "mcpReadOnly": "MCP schreibgeschützt",
+      "fullAccess": "Vollständiger API-Zugriff"
     },
     "accountSecurity": {
       "title": "Account-Sicherheit",
@@ -654,7 +665,10 @@
       "nutritionDiet": "Ernährung & Diet",
       "developerIntegrations": "Entwickler & Integrationen",
       "profileAccount": "Profil & Konto",
-      "wellness": "Wellness"
+      "wellness": "Wellness",
+      "nutritionTracking": "Ernährung & Tracking",
+      "familySharing": "Familie & Teilen",
+      "dataConnections": "Daten und Verbindungen"
     },
     "passkey": {
       "add": "Passkey hinzufügen",
@@ -764,7 +778,64 @@
         "title": "Trainingsaktivitäten (FIT)"
       },
       "importButton": "Importieren",
-      "title": "Datenimport"
+      "title": "Datenimport",
+      "fddb": {
+        "title": "FDDB-Kontoexport",
+        "description": "Prüfe einen vollständigen FDDB-Export, bevor du Tagebucheinträge und ausgewählte gespeicherte Inhalte übernimmst.",
+        "previewTitle": "1. Vorschau auf diesem Gerät",
+        "previewDescription": "Wählen Sie eine vollständige CSV-Datei für das FDDB-Konto. Das Parsen erfolgt in diesem Browser. Profil, Transaktionen und Bilder werden nicht hochgeladen.",
+        "chooseFile": "FDDB-Export als CSV auswählen",
+        "tooLarge": "Wählen Sie einen Export kleiner als 10 MB.",
+        "noDates": "Keine Tagebuchdaten gefunden",
+        "previewCounts": "{{diary}} Lebensmitteleinträge · {{foods}} benutzerdefinierte Lebensmittel · {{recipes}} gespeicherte Listen · {{favorites}} Favoriten · {{measurements}} Gewichte · {{activities}} Aktivitäten",
+        "excluded": "Ausgeschlossen: {{profiles}} Profilzeilen, {{transactions}} Transaktionszeilen, {{images}} Bildreferenzen.",
+        "warnings": "{{count}} Zeilen erfordern Aufmerksamkeit",
+        "diaryTitle": "2. Tagebuchverlauf wiederherstellen",
+        "diaryDescription": "Jedes protokollierte Element wird zu einem separaten historischen Eintrag mit seinem ursprünglichen Datum, seiner ursprünglichen Uhrzeit, seiner ursprünglichen Energie und seinen Makros. Bestehende Einträge bleiben unverändert. Bei einer erneuten Ausführung dieses Exports werden die importierten Zeilen übersprungen, Einträge aus anderen Quellen werden jedoch nicht automatisch zusammengeführt.",
+        "progress": "{{done}} / {{total}} verarbeitet · {{imported}} importiert · {{existing}} bereits vorhanden",
+        "batchError": "Der Import wurde unterbrochen. Bereits verarbeitete Teile bleiben erhalten. Versuche es erneut, um fortzufahren. {{error}}",
+        "continue": "Tagebuchimport fortsetzen",
+        "importDiary": "Tagebucheinträge importieren",
+        "extrasTitle": "3. Optionale Bereiche prüfen",
+        "extrasDescription": "Wählen Sie nur die gewünschten Abschnitte aus. Rezepte werden zu Entwürfen mit nicht verknüpftem Zutatentext; Aktivitäten können sich mit einer anderen Aktivitätssynchronisierungsquelle überschneiden.",
+        "customFoods": "Eigene Lebensmittel",
+        "recipes": "Gespeicherte Rezepte",
+        "favorites": "Favoriten",
+        "measurements": "Gewichtsmessungen",
+        "activities": "Aktivitätsaufzeichnungen",
+        "recipeWarning": "Diese Entwürfe haben keinen berechneten Nährwert, bis Sie ihre Zutaten verknüpfen.",
+        "activityWarning": "Überprüfen Sie zunächst Ihre vorhandenen Trainings- und Gesundheitsimporte, um überlappende Aktivitätssummen zu vermeiden.",
+        "extraResult": "{{imported}} importiert · {{existing}} bereits vorhanden · {{unmatched}} ohne Zuordnung · {{errors}} Fehler",
+        "reviewIssues": "Überprüfen Sie nicht übereinstimmende Elemente und Fehler",
+        "unmatchedItem": "Keine eindeutige Übereinstimmung mit eigenen Lebensmitteln für {{name}}",
+        "importSelected": "Importieren Sie {{count}} ausgewählte Elemente"
+      },
+      "hevy": {
+        "alreadyImported": "Bereits importiert (wird übersprungen)",
+        "description": "Importieren Sie abgeschlossene Trainingseinheiten aus einem Hevy-Verlaufsexport. Gespeicherte Routinen erfordern eine Hevy-API-Verbindung.",
+        "exerciseCount": "{{count}} Übungen",
+        "exerciseMappingSummary": "Die Übungsnamen von {{existing}} stimmen mit Ihrer Bibliothek überein. · {{create}} wird erstellt",
+        "unmatchedExercises": "Neue Übungsnamen",
+        "duplicateReviewTitle": "Mögliche doppelte Trainingseinheiten müssen überprüft werden",
+        "duplicateReviewHint": "Diese Trainings haben dasselbe Datum und denselben Titel wie vorhandene Einheiten aus einer anderen Quelle oder einem älteren Import. Sie werden nicht automatisch zusammengeführt.",
+        "duplicateReviewed": "Ich habe diese möglichen Duplikate überprüft und möchte fortfahren.",
+        "unknownSource": "Unbekannte Quelle",
+        "file": "Hevy-Trainingsverlauf (CSV)",
+        "fileTooLarge": "Die CSV-Datei muss weniger als 20 MB groß sein.",
+        "import": "Importieren Sie diese Trainingseinheiten",
+        "importing": "Importieren…",
+        "noWorkouts": "Keine Trainings gefunden.",
+        "preview": "Vorschau der Trainingseinheiten",
+        "previewCount": "{{workouts}} Trainings · {{sets}} Sätze",
+        "previewing": "Wird geprüft…",
+        "readFailed": "Diese Datei konnte nicht gelesen werden.",
+        "result": "{{imported}} importiert, {{skipped}} übersprungen, {{failed}} fehlgeschlagen.",
+        "retry": "Wiederholen Sie fehlgeschlagene Trainingseinheiten",
+        "routineNote": "Diese Datei enthält nur abgeschlossene Trainingseinheiten. Es werden keine gespeicherten Routinen erstellt.",
+        "timezone": "Trainingszeitzone",
+        "timezoneHint": "Hevy-CSV-Zeitangaben enthalten keinen UTC-Offset. Gib die IANA-Zeitzone an, in der du trainiert hast. Uneindeutige Zeiten beim Wechsel zur Sommerzeit können nicht importiert werden.",
+        "title": "Hevy-Trainingsverlauf (CSV)"
+      }
     },
     "developerResources": {
       "description": "Zugriff auf API Dokumentation und Ressourcen",
@@ -966,6 +1037,19 @@
         "WHO_MAXIMUM": "WHO-Maximum (10 % der Kalorien)",
         "AHA_FIXED": "AHA-Festwert (36 g Männer / 25 g Frauen)"
       }
+    },
+    "overview": {
+      "description": "Verwalte dein Konto, deine Tracking-Einstellungen und verbundene Dienste.",
+      "activeProfile": "Aktives Profil",
+      "loading": "Profil wird geladen",
+      "familyContext": "Familienmitglied",
+      "yourContext": "Ihr Konto",
+      "sections": "Einstellungsbereiche",
+      "profileDescription": "Profil, App-Einstellungen und Kontosicherheit.",
+      "nutritionDescription": "Ernährung, Nährstoffe, Energieziele und Trinkmenge.",
+      "wellnessDescription": "Zykluseinstellungen und eigene Gesundheitsmessungen.",
+      "familyDescription": "Lege fest, wer auf deine Daten zugreifen und sie verwalten darf.",
+      "dataDescription": "Import, Export, Integrationen und Entwicklerwerkzeuge."
     }
   },
   "aboutDialog": {
@@ -989,7 +1073,10 @@
     "gotIt": "Verstanden",
     "close": "Schließen",
     "swissFoodApi": "API der Schweizer Nährwertdatenbank",
-    "usdaApi": "USDA Lebensmitteldatenbank API"
+    "usdaApi": "USDA Lebensmitteldatenbank API",
+    "personalBestDescription": "X on Track hilft dir, Wichtiges zu erfassen, Muster zu verstehen und dich an deinem eigenen Ausgangspunkt zu orientieren. Keep getting better.",
+    "upstreamSourceAndLicense": "Upstream-Quelle und Lizenz:",
+    "bls4Credit": "Bundeslebensmittelschlüssel 4.0 · Max Rubner-Institut (2025), CC BY 4.0"
   },
   "exercise": {
     "title": "Training",
@@ -1110,7 +1197,9 @@
       "healthConnectProjectionSource": "Health Connect Kalorien gesamt",
       "legacyProjectionSource": "Gerät Projektion",
       "goalModeTarget": "Zielmodus Ziel",
-      "fallbackProjectionSource": "BMR + Ausweichwert für aktive Kalorien"
+      "fallbackProjectionSource": "BMR + Ausweichwert für aktive Kalorien",
+      "activityBurned": "Aktivität verbrannt",
+      "totalExpenditure": "Gesamtausgaben"
     },
     "editExerciseEntryDialog": {
       "setLabel": "Satz",
@@ -1369,7 +1458,8 @@
       "description": "Verfolgen Sie Ihre Sätze live verfolgen, Pausen-Countdowns verfolgen und speichern, wenn Sie fertig sind.",
       "restEditorDescription": "Wählen Sie eine Pausendauer für diesen Satz.",
       "restTimer": "Pause",
-      "volume": "Volumen"
+      "volume": "Volumen",
+      "noPlannedSets": "Keine geplanten Sets"
     },
     "modality": {
       "weightReps": "Gewicht und Wiederholungen",
@@ -1412,7 +1502,8 @@
     "suggestions": {
       "recentLoadError": "Letzte Übungen konnten nicht geladen werden.",
       "topLoadError": "Top-Übungen konnten nicht geladen werden."
-    }
+    },
+    "readInstructionsAloud": "Lesen Sie die Anweisungen laut vor"
   },
   "workoutPresetsManager": {
     "addPresetButton": "Vorlage hinzufügen",
@@ -1469,7 +1560,17 @@
     "plans": "Pläne",
     "status": "Status",
     "activate": "Aktivieren",
-    "deactivate": "Deaktivieren"
+    "deactivate": "Deaktivieren",
+    "scheduleType": "Modus",
+    "weeklyMode": "Wöchentlich",
+    "weeklyPromptMode": "Wöchentlich (prompt)",
+    "weeklyPrefillMode": "Wöchentlich (Vorausfüllung)",
+    "sequentialMode": "Sequentielle",
+    "upNextBadge": "Als Nächstes in der Reihenfolge",
+    "scheduledTodayBadge": "Heute geplant",
+    "scheduledWorkout": "Trainingseinheit",
+    "activePlanLabel": "Aktiver Plan: {{name}}",
+    "failedToLoadActivePlan": "Der aktive Trainingsplan konnte nicht geladen werden."
   },
   "exerciseCard": {
     "title": "Übung",
@@ -1562,7 +1663,26 @@
       "static": "Statisch",
       "isolation": "Isolierung",
       "compound": "Grundübungen"
-    }
+    },
+    "duration": "Dauer",
+    "recentActivity": "Aktuelle Aktivität",
+    "viewEntries": "Übungseinträge ansehen",
+    "hideEntries": "Zusammenfassung anzeigen",
+    "upNextInPlanBadge": "Als Nächstes im Plan",
+    "scheduledTodayBadge": "Heute geplant",
+    "activePlanHint": "Trainingsplan: {{name}}",
+    "activeWeeklyPlanHint": "Aktiver Plan: {{name}}",
+    "scheduledWorkout": "Trainingseinheit",
+    "logToDiaryButton": "Im Tagebuch erfassen",
+    "startWorkoutButton": "Training starten",
+    "noExercisesInPlanSession": "Für diese Einheit wurden keine Übungen gefunden.",
+    "switchSessionLabel": "Einheit wechseln oder auswählen:",
+    "sessionNumber": "Einheit {{num}}",
+    "dayNumber": "Tag {{num}}",
+    "suggestedBadge": "Vorgeschlagen",
+    "planWorkoutLogged": "Trainingseinheit im Tagebuch protokolliert.",
+    "setCount_other": "{{count}} Sätze",
+    "repCount_other": "{{count}} Wiederholungen"
   },
   "foodSearchDialog": {
     "title": "Lebensmittel suchen und hinzufügen",
@@ -1659,7 +1779,15 @@
     "cluster": "Clustersatz",
     "technique": "Ausführung",
     "replaceExerciseButton": "Übung ersetzen",
-    "duplicateExerciseButton": "Übung duplizieren"
+    "duplicateExerciseButton": "Übung duplizieren",
+    "formatLabel": "Trainingsformat",
+    "formatStandard": "Standard (Sätze und Wiederholungen)",
+    "formatInterval": "Intervall / HIIT",
+    "formatTabata": "Tabata",
+    "formatEmom": "EMOM",
+    "formatAmrap": "AMRAP",
+    "formatForTime": "Für die Zeit",
+    "timeCapLabel": "Zeitlimit (Minuten)"
   },
   "addWorkoutPlanDialog": {
     "editTitle": "Trainingsplan bearbeiten",
@@ -1692,7 +1820,34 @@
     "errorToastTitle": "Fehler",
     "errorToastDescription": "Laden der Trainingsvorlage oder der Übung fehlgeschlagen.",
     "addExerciseButtonInDay": "Übung hinzufügen",
-    "pasteButton": "Einfügen"
+    "pasteButton": "Einfügen",
+    "planNamePlaceholder": "z.B. Summer Shred",
+    "descriptionPlaceholder": "Optionale Planbeschreibung...",
+    "scheduleTypeLabel": "Zeitplanmodus",
+    "weeklyModeTitle": "Wöchentlich (feste Tage)",
+    "weeklyModeSubtitle": "Trainingseinheiten, die bestimmten Wochentagen zugeordnet sind (Mo-So)",
+    "sequentialModeTitle": "Sequentiell (Zyklus)",
+    "sequentialModeSubtitle": "Kontinuierliche Sequenz; pausiert an verpassten Tagen",
+    "sequentialNoteDescription": "Bei aufeinanderfolgenden Plänen werden Kalendertage nicht vorab belegt. Nach Abschluss eines Trainings wird automatisch die nächste Einheit ausgewählt.",
+    "sequentialAssignmentsTitle": "Trainingssequenz",
+    "sequenceOrderHeading": "Reihenfolge der Einheiten",
+    "sequenceOrderHelp": "Ziehe die Einheiten in die gewünschte Reihenfolge.",
+    "noSequentialWorkouts": "Noch keine Trainings hinzugefügt. Wähle „Training oder Übung hinzufügen“, um die erste Einheit anzulegen.",
+    "sessionNumber": "Einheit {{number}}",
+    "addExerciseOrPresetButton": "Training/Übung hinzufügen",
+    "entryModeLabel": "Tagebuchintegration",
+    "promptModeTitle": "Schnell und auf Abruf (empfohlen)",
+    "promptModeSubtitle": "Zeigt an geplanten Tagen einen Hinweis zum Starten des Trainings oder zum Erfassen im Tagebuch.",
+    "prefillModeTitle": "Kalender vorausfüllen",
+    "prefillModeSubtitle": "Erstellt automatisch im Voraus Übungstagebucheinträge",
+    "addNextSessionButton": "Nächste Einheit hinzufügen (Einheit {{number}})",
+    "exerciseSingular": "Übung",
+    "exercisePlural": "Übungen",
+    "noExercisesInSession": "Keine Übungen in dieser Einheit. Wähle „Übung hinzufügen“, um Übungen oder Vorlagen hinzuzufügen.",
+    "removeSessionTitle": "Einheit entfernen",
+    "moveSessionUp": "Einheit nach oben verschieben",
+    "moveSessionDown": "Einheit nach unten verschieben",
+    "sessionNamePlaceholder": "Benutzerdefinierter Name (z. B. Push Day, Legs)"
   },
   "exerciseReportsDashboard": {
     "totalWorkouts": "Gesamtzahl der Trainingseinheiten",
@@ -1834,7 +1989,11 @@
       "failedToSaveLoginSettings": "Anmeldeeinstellungen konnten nicht gespeichert werden.",
       "loadingSettings": "Einstellungen werden geladen...",
       "loginSettingUpdated": "Anmeldeeinstellung erfolgreich aktualisiert.",
-      "settingsSaved": "Einstellungen gespeichert"
+      "settingsSaved": "Einstellungen gespeichert",
+      "publicApiDocs": "Öffentliche API-Dokumentation",
+      "publicApiDocsDescription": "Ermöglichen Sie den Zugriff auf Swagger-API-Dokumente (/api/api-docs), ohne dass eine Benutzerauthentifizierung erforderlich ist.",
+      "devTools": "Diagnosetools für Entwickler",
+      "devToolsDescription": "Aktivieren Sie MCP- und Diagnose-Datenbank-Inspektionstools für Administratoren."
     },
     "oidcSettings": {
       "editProvider": "OIDC-Anbieter bearbeiten",
@@ -2198,7 +2357,11 @@
     "welcomeUser": "Willkommen {{name}}",
     "selectAll": "Alle auswählen",
     "selectRow": "Zeile auswählen",
-    "unknown": "Unbekannt"
+    "unknown": "Unbekannt",
+    "working": "Arbeiten…",
+    "retry": "Versuchen Sie es erneut",
+    "avg": "Durchschn",
+    "max": "Max"
   },
   "diary": {
     "nutritionSummary": "Ernährungsübersicht",
@@ -2320,7 +2483,13 @@
       "modeDynamic": "Dynamisches Ziel",
       "modeFixed": "Festes Ziel",
       "modePercentage": "Prozentualer Nachschlag",
-      "modeDevice": "Geräteprojektion"
+      "modeDevice": "Geräteprojektion",
+      "assumedInputs": "Diese Vorschau verwendet angenommene Werte für {{inputs}}. Erfasse diese Messwerte unter Check-in und in den Profileinstellungen, um eine persönliche Berechnung zu erhalten.",
+      "weightAssumed": "Gewicht (70 kg)",
+      "heightAssumed": "Körpergröße (170 cm)",
+      "genderAssumed": "Geschlecht (männlich)",
+      "ageAssumed": "Alter (30 Jahre)",
+      "bodyFatAssumed": "Körperfett (0%)"
     },
     "copyAllError": "Kopieren des gesamten Tages fehlgeschlagen.",
     "copyAllFromYesterday": "Alles von gestern kopieren",
@@ -2413,8 +2582,41 @@
       "legendNow": "Jetzt",
       "legendDose": "Erfasste Dosis",
       "legendEstimated": "Angenommene Zeit",
-      "legendCutoff": "Letzte Dosis von {{dose}} mg um {{time}}"
-    }
+      "legendCutoff": "Letzte Dosis von {{dose}} mg um {{time}}",
+      "empty": "Für diesen Tag wurde kein Koffein protokolliert."
+    },
+    "addFood": "Lebensmittel hinzufügen",
+    "noMealTypeForQuickAdd": "Wähle zuerst eine Mahlzeit, um ein Lebensmittel hinzuzufügen.",
+    "pageTitle": "Dein Tag",
+    "pageDescription": "Dein täglicher Überblick über Fortschritt und Einträge.",
+    "todayOverview": "Heute im Überblick",
+    "dayOverview": "Tagesübersicht",
+    "overviewDescription": "Prüfe deine erfasste Ernährung und Aktivität.",
+    "showAllNutrients": "Alle Nährstoffe anzeigen",
+    "showNutritionSummary": "Zusammenfassung anzeigen",
+    "goalsLoadErrorTitle": "Deine Tagesansicht konnte nicht geladen werden",
+    "goalsLoadErrorDescription": "Versuche erneut, Ziele und Tageseinträge zu laden.",
+    "goalsEmptyTitle": "Lege deine Tagesziele fest",
+    "goalsEmptyDescription": "Lege Ziele fest, um hier deine Tagesübersicht zu sehen und mit dem Erfassen zu beginnen.",
+    "goalsDelegateDescription": "Die kontoführende Person muss Tagesziele festlegen, bevor diese Ansicht verfügbar ist.",
+    "openGoals": "Ziele öffnen",
+    "loggingStreak_one": "Tag mit Einträgen in Folge",
+    "loggingStreak_other": "Tage mit Einträgen in Folge",
+    "focus": {
+      "title": "Heute im Fokus",
+      "editGoals": "Ziele bearbeiten",
+      "energy": "Innerhalb von {{goal}} {{unit}} bleiben",
+      "protein": "{{goal}} g Protein erreichen",
+      "water": "{{goal}} {{unit}} Wasser trinken",
+      "logFood": "Für diesen Tag Lebensmittel erfassen",
+      "progress": "{{current}} von {{goal}} {{unit}}",
+      "entries_one": "{{count}} Eintrag",
+      "entries_other": "{{count}} Einträge",
+      "met": "Erreicht",
+      "open": "Noch offen"
+    },
+    "quickActions": "Schnelle Aktionen",
+    "showWaterCard": "Aktiviere die Trinkmengen-Karte in der Dashboard-Anpassung, um Wasser zu erfassen."
   },
   "foodDiary": {
     "title": "Ernährungstagebuch",
@@ -2452,7 +2654,12 @@
       "linkedFoodRemoved": "Der verknüpfte Lebensmitteleintrag wurde ebenfalls aus Ihrem Ernährungstagebuch entfernt.",
       "linkedDrink": "Mit einem Lebensmitteleintrag verknüpft",
       "noWaterCredit": "kein Wasser",
-      "noWaterCreditHint": "Dieses Getränk zählt nicht als Wasser"
+      "noWaterCreditHint": "Dieses Getränk zählt nicht als Wasser",
+      "addWater": "Wasser hinzufügen",
+      "nextContainer": "Nächster Trinkbehälter",
+      "noGoal": "Kein Trinkziel festgelegt",
+      "previousContainer": "Vorheriger Trinkbehälter",
+      "removeWater": "Wasser entfernen"
     },
     "copyFoodEntryDialog": {
       "title": "Essenseintrag kopieren",
@@ -3135,7 +3342,8 @@
       "elapsedTime": "Verstrichene Zeit",
       "elevationRange": "Min./Max. Höhe",
       "movingTime": "Bewegungszeit",
-      "weather": "Wetter"
+      "weather": "Wetter",
+      "avgMovingPace": "Durchschnittliches Bewegungstempo"
     },
     "bodyBattery": "Energielevel",
     "charged": "Aufgeladen",
@@ -3293,7 +3501,27 @@
     "hips": "Hüfte",
     "height": "Größe",
     "bodyFatPercentage": "Körperfett %",
-    "nutrientBalance": "{{nutrient}}-Bilanz"
+    "nutrientBalance": "{{nutrient}}-Bilanz",
+    "nutritionPageTitle": "Ernährungsberichte",
+    "pageDescription": "Entdecke Muster in deinen erfassten Daten.",
+    "categories": "Berichtskategorien",
+    "nutrientTrends": "Nährstofftrends",
+    "selectNutrient": "Nährstoff auswählen",
+    "focusChart": "Konzentrieren Sie sich auf ein Diagramm",
+    "showAllCharts": "Alle Diagramme anzeigen",
+    "noVisibleNutrientCharts": "Es sind keine Nährstoffdiagramme ausgewählt. Ändere die Diagrammeinstellungen, um einen Verlauf zu sehen.",
+    "loggedAverageVariance": "Durchschnittliche protokollierte Varianz pro Tag",
+    "loggedCumulativeVariance": "Kumulierte protokollierte Varianz",
+    "loggedIntakeVsTarget": "Protokollierte Aufnahme im Vergleich zum Ziel",
+    "loggedBalanceCaveat": "Basierend auf erfassten Einträgen. Fehlende Mahlzeiten können diesen Wert verändern; er bestätigt kein Energiedefizit.",
+    "loggedTotalIntake": "Protokollierte Aufnahme",
+    "daysLogged": "Tage protokolliert",
+    "daysLoggedHint": "Tage im Bereich mit mindestens einem Eintrag",
+    "averagePerLoggedDay": "Durchschnitt pro protokolliertem Tag",
+    "nutritionTitle": "Ernährungsberichte",
+    "sectionTitle": "Berichte: {{section}}",
+    "subtitle": "Erkenne Muster in deinen erfassten Tagen. Tage ohne Einträge bleiben unbekannt.",
+    "title": "Berichte"
   },
   "reportsTables": {
     "foodDiaryTable": "Tabelle Mahlzeitenübersicht",
@@ -3520,7 +3748,7 @@
     "nutritionixSource": "Nutritionix",
     "addExternalExerciseSuccess": "{{exerciseName}} zu deinen Trainings hinzugefügt. Du kannst es nun über dein Tagebuch loggen.",
     "addExternalExerciseError": "Hinzufügen des Trainings fehlgeschlagen: {{errorMessage}}",
-    "textToSpeechNotSupported": "Text-to-Speech nicht unterstützt",
+    "textToSpeechNotSupported": "Sprachausgabe wird nicht unterstützt",
     "textToSpeechNotSupportedDescription": "Dein Browser unterstützt die Web Speech API nicht.",
     "unknownProvider": "Unbekannter Anbieter zum Hinzufügen des Trainings: {{providerType}}",
     "failedToLoadRecentTopExercises": "Laden kürzlicher oder top Trainings fehlgeschlagen.",
@@ -3537,7 +3765,8 @@
     "failedToLoadMuscles": "Muskelgruppen konnten nicht geladen werden."
   },
   "addComp": {
-    "addNew": "Neu hinzufügen"
+    "addNew": "Neu hinzufügen",
+    "chooseAction": "Wählen Sie aus, was Sie hinzufügen möchten."
   },
   "barcodeScanner": {
     "error": {
@@ -3844,7 +4073,7 @@
     "noActiveProviders": "Keine aktiven Anbieter zur Synchronisierung gefunden.",
     "syncCompleted_one": "{{count}} Anbieter erfolgreich synchronisiert.",
     "syncCompleted_other": "{{count}} Anbieter erfolgreich synchronisiert.",
-    "syncFailed_one": "Synchronisierung mit einem Anbieter fehlgeschlagen.",
+    "syncFailed_one": "{{count}} Anbieter konnte nicht synchronisiert werden.",
     "syncFailed_other": "Synchronisierung mit {{count}} Anbietern fehlgeschlagen."
   },
   "sleepHealth": {
@@ -3876,7 +4105,11 @@
     "normalRHR": "Normaler Erwachsener: 60–100 Schläge pro Minute",
     "normalRange": "Normal: 12–20 Schläge pro Minute",
     "pulseOx": "Pulsoxymetrie (SpO2)",
-    "range": "Bereich"
+    "range": "Bereich",
+    "dailyTrend": "Trend",
+    "overnightSeries": "Nachtserie",
+    "overnightHrvSeriesDesc": "5-Minuten-Intervall-HRV-Serie über Nacht",
+    "spotTests": "Stichproben"
   },
   "sleepSummary": {
     "title": "Letzte Nacht Schlafdauer",
@@ -4104,7 +4337,8 @@
       "snoozedOnly": "Nur zurückgestellte",
       "tooltipPrn": "{{count}} Bedarfsdosen eingenommen",
       "skipped": "übersprungen",
-      "tooltipSnoozed": "{{count}} pausiert"
+      "tooltipSnoozed": "{{count}} pausiert",
+      "loggedCount": "{{count}} protokolliertes Symptom"
     },
     "gi": {
       "subtitle": "Rate pro Woche in den letzten 30 Tagen",
@@ -4314,7 +4548,8 @@
       "effectivenessDetail": "Wirksamkeit",
       "adherenceDescriptionBefore": "Zeitpläne und tägliche Checklisten für Nicht-GLP-1-Medikamente sind aktiv. Verwalte die Zeitplanregeln unten und trage die tägliche Einnahme ein von",
       "todayTab": "Heute",
-      "adherenceDescriptionAfter": "Tab."
+      "adherenceDescriptionAfter": "Tab.",
+      "nutrientCount": "{{count}} Nährstoff"
     },
     "schedule": {
       "subheading": "Konfiguriere Erinnerungen und Einnahmeregeln",
@@ -4907,8 +5142,8 @@
     "missingDefaultValidationError": "Mindestens eine Variante pro Lebensmittel muss als Standardeinheit eingestellt werden.",
     "showAllRows": "Zeige alle Reihen ({{count}})",
     "noDataText": "Die CSV-Datei enthält eine Kopfzeile aber keine Datenzeilen.",
-    "defaultVariantNote": "Mindestens eine Variante pro Lebensmittel muss als Standardeinheit (Is Default = True) eingestellt werden.",
-    "upfrontNote": "Hinweis: Jedes Lebensmittel muss mindestens eine Variante als Standardeinheit (Is Default = True) haben.",
+    "defaultVariantNote": "Für jedes Lebensmittel muss mindestens eine Variante als Standardeinheit markiert sein (CSV-Spalte „Is Default“ = True).",
+    "upfrontNote": "Hinweis: Jedes Lebensmittel braucht mindestens eine als Standardeinheit markierte Variante (CSV-Spalte „Is Default“ = True).",
     "filterMissingDefault": "Zeigen fehlenden Standard ({{count}})",
     "headersMismatchFile": "Die CSV-Spalten entsprechen nicht dem erforderlichen Format. Bitte ordne die Felder zu, um fortzufahren.",
     "missingDefaultWarning": "Warnung: Bei {{count}} Lebensmitteln ist keine Standardvariante festgelegt. Bitte lege mindestens eine Variante als Standard fest (unten gelb markiert)."
@@ -4984,11 +5219,22 @@
     "title": "Tägliche Gesundheitsübersicht vom Fitnessgerät",
     "fitnessAge": "Fitnessalter: {{val}}",
     "readiness": "Erholungsstatus",
-    "recHours": "Erh.: {{val}}"
+    "recHours": "Erh.: {{val}}",
+    "trainingLoad": "Trainingsbelastung",
+    "acute": "akut",
+    "ratio": "Verhältnis: {{val}}",
+    "chronic": "Chronisch: {{val}}",
+    "empty": "Für diesen Tag wurden keine Wearable-Daten synchronisiert.",
+    "skinTemp": "Hauttemperatur",
+    "weekly": "wöchentlich"
   },
   "layout": {
     "brandLine": "Was auch immer dein X ist: Bleib auf Kurs.",
-    "welcome": "Willkommen {{activeUserName}}"
+    "welcome": "Willkommen {{activeUserName}}",
+    "docs": "Dokumente",
+    "translate": "Übersetzen",
+    "actingOnBehalf": "Familienprofil",
+    "ownAccount": "Ihr Konto"
   },
   "food": {
     "imagesLabel": "Bilder",
@@ -5176,7 +5422,8 @@
     "viewLicense": "Lizenz ansehen",
     "signedOut": "Erfolgreich abgemeldet",
     "signOutFailed": "Abmelden fehlgeschlagen",
-    "signOut": "Abmelden"
+    "signOut": "Abmelden",
+    "privateAccess": "Dies ist ein privater Raum. Wenn Sie Zugriff benötigen, wenden Sie sich an die Person, die diese Instanz verwaltet."
   },
   "copied": "Kopiert!",
   "customNutrients": {
@@ -5250,7 +5497,14 @@
     "stravaError": "Verknüpfung des Kontos Strava fehlgeschlagen. Bitte versuchen Sie es erneut.",
     "stravaSuccess": "Ihr Konto Strava wurde erfolgreich verknüpft.",
     "withingsError": "Die Verknüpfung des Kontos Withings ist fehlgeschlagen. Bitte versuchen Sie es erneut.",
-    "withingsSuccess": "Ihr Withings-Konto wurde erfolgreich verknüpft."
+    "withingsSuccess": "Ihr Withings-Konto wurde erfolgreich verknüpft.",
+    "hevySyncPartial": "Hevy-Synchronisierung teilweise abgeschlossen",
+    "hevySyncDetails": "{{workoutsImported}} Trainings und {{routinesImported}} gespeicherte Routinen importiert; {{failures}} Probleme.",
+    "liftosaurSyncError": "Die Liftosaur-Synchronisierung ist fehlgeschlagen. Bitte überprüfen Sie Ihren API-Schlüssel in den Einstellungen.",
+    "liftosaurSyncErrorDesc": "Die Liftosaur-Synchronisierung ist fehlgeschlagen. Bitte überprüfen Sie Ihren API-Schlüssel in den Einstellungen.",
+    "liftosaurSyncSuccess": "Liftosaur-Daten wurden erfolgreich synchronisiert.",
+    "liftosaurSyncSuccessTitle": "Liftosaur wurde erfolgreich synchronisiert",
+    "liftosaurSyncDetails": "Synchronisiert: {{workoutsImported}}-Workouts, {{measurementsImported}}-Messungen importiert."
   },
   "mealCreation": {
     "convertToMeal": "Mahlzeit aus Tagebuch erstellen",
@@ -5299,7 +5553,11 @@
     "hideFromDiary": "Im Tagebuch ausblenden",
     "showInDiary": "Im Tagebuch anzeigen",
     "hideFromQuickLog": "Im Schnellprotokoll ausblenden",
-    "showInQuickLog": "Im Schnellprotokoll anzeigen"
+    "showInQuickLog": "Im Schnellprotokoll anzeigen",
+    "edit": "Bearbeiten Sie {{name}}",
+    "moveDown": "Verschieben Sie {{name}} nach unten",
+    "moveUp": "Verschieben Sie {{name}} nach oben",
+    "reorderError": "Die Essenskategorien konnten nicht neu angeordnet werden."
   },
   "measurements": {
     "errorLoadingBodyFat": "Das letzte Körperfett konnte nicht geladen werden.",
@@ -5472,7 +5730,9 @@
     "statusUpdateError": "Fehler beim Aktualisieren des Status des externen Datenanbieters",
     "statusUpdateSuccess": "Status des externen Datenanbieters erfolgreich aktualisiert",
     "updateError": "Fehler beim Aktualisieren des externen Datenanbieters",
-    "updateSuccess": "Externer Datenanbieter erfolgreich aktualisiert"
+    "updateSuccess": "Externer Datenanbieter erfolgreich aktualisiert",
+    "bls4Attribution": "Daten zur Lebensmittelzusammensetzung: Max Rubner-Institut (2025), Bundeslebensmittelschlüssel 4.0. Werte pro 100 g essbarer Portion.",
+    "bls4Source": "Datensatz"
   },
   "review": {
     "errorLoadingCount": "Bewertungsanzahl konnte nicht geladen werden.",
@@ -5491,7 +5751,12 @@
     "startDate": "Startdatum",
     "syncNow": "Synchronisierung starten",
     "timeoutWarning": "Bei großen Datumsbereichen kann es zu einer Zeitüberschreitung des Browsers kommen, aber der Server setzt die Synchronisierung im Hintergrund fort.",
-    "title": "Synchronisierung {{provider}} Daten"
+    "title": "Synchronisierung {{provider}} Daten",
+    "troubleshooting": "Fehlerbehebung",
+    "modeLive": "Normale Synchronisierung von {{provider}}",
+    "modeCapture": "Synchronisieren Sie von {{provider}} und speichern Sie die Rohantworten dieser Synchronisierung in einer Datei auf dem Server",
+    "modeReplay": "Synchronisieren Sie von der zuvor gespeicherten Datei anstelle von {{provider}}",
+    "replayIgnoresDates": "Der Datumsbereich gilt hier nicht – die gespeicherte Datei wird vollständig wiedergegeben und deckt den Zeitraum ab, in dem sie erfasst wurde."
   },
   "warning": "Warnung",
   "workout": {
@@ -5507,7 +5772,8 @@
     "restSec": "Ruhe (s)",
     "rpe": "RPE",
     "type": "Typ",
-    "weight": "Gewicht"
+    "weight": "Gewicht",
+    "durationSecShort": "Sek"
   },
   "markdownView": {
     "externalImage": "Externes Bild",
@@ -5831,7 +6097,8 @@
     "entryNotes": "Notiz zu diesem Eintrag (optional)"
   },
   "release": {
-    "whatsNew": "Neuerungen"
+    "whatsNew": "Neuerungen",
+    "upstreamReleases": "Upstream-Veröffentlichungen"
   },
   "foodUnitSelector": {
     "editTitle": "{{name}} bearbeiten",
@@ -6027,5 +6294,110 @@
     "quickAdd": "Getränke-Schnellauswahl",
     "caffeineBadge": "{{amount}} mg Koffein",
     "alcoholBadge": "{{abv}} % Vol."
+  },
+  "dashboardWeb": {
+    "title": "Heute im Überblick",
+    "titleOtherDay": "Tagesübersicht",
+    "subtitle": "Deine Ernährung, Aktivität und Gewohnheiten auf einen Blick.",
+    "viewDetails": "Details anzeigen",
+    "energy": {
+      "title": "Tägliche Energie",
+      "over": "{{unit}} über Ziel",
+      "remaining": "{{unit}} verbleibend",
+      "eatenNoGoal": "{{unit}} aufgenommen",
+      "consumed": "Aufgenommen",
+      "burned": "Durch Aktivität verbraucht",
+      "goal": "Tagesziel",
+      "progress": "Täglicher Fortschritt"
+    },
+    "macros": {
+      "title": "Makronährstoffe"
+    },
+    "hydration": {
+      "title": "Trinkmenge",
+      "log": "Wasser erfassen",
+      "ofGoal": "von {{value}} {{unit}}"
+    },
+    "activity": {
+      "title": "Die heutige Aktivität",
+      "minutes": "Minuten",
+      "log": "Aktivität erfassen",
+      "recent": "Aktuelle Aktivität",
+      "none": "Für diesen Tag wurde kein Training protokolliert.",
+      "unnamed": "Übung",
+      "itemDetail": "{{minutes}} min · {{calories}} {{unit}}"
+    },
+    "meals": {
+      "title": "Die heutigen Mahlzeiten",
+      "viewAll": "Alle Mahlzeiten ansehen",
+      "add": "Lebensmittel hinzufügen",
+      "none": "Für diesen Tag wurden noch keine Lebensmittel erfasst."
+    },
+    "quickAdd": {
+      "title": "Schnell hinzufügen",
+      "food": "Essen",
+      "exercise": "Übung",
+      "water": "Wasser",
+      "scan": "Scannen"
+    },
+    "glance": {
+      "today": "Heute auf einen Blick",
+      "day": "Tag auf einen Blick",
+      "meals": "Mahlzeiten protokolliert",
+      "workouts": "Trainingseinheiten",
+      "drinks": "Getränke",
+      "net": "Netto {{unit}}",
+      "goal": "Tagesziel"
+    },
+    "today": "Heute"
+  },
+  "interval": {
+    "countdown": "Machen Sie sich bereit",
+    "decrementRound": "1 Runde rückgängig machen",
+    "extraReps": "Zusätzliche Wiederholungen",
+    "finished": "Zeitlimit erreicht",
+    "pause": "Pause",
+    "ready": "Bereit",
+    "rest": "Ruhe dich aus",
+    "resume": "Fortsetzen",
+    "round": "Runde {{current}}",
+    "roundOfTotal": "Runden Sie {{current}} von {{total}}",
+    "roundPlusOne": "+1 Runde ({{current}} abgeschlossen)",
+    "rx": "Rx",
+    "scaled": "Skaliert",
+    "timeCapLabel": "Obergrenze: {{cap}}",
+    "wodScoring": "WOD-Wertung",
+    "work": "Arbeit"
+  },
+  "dailyTracking": {
+    "domain": {
+      "checkin": "Check-in",
+      "habit": "Gewohnheit",
+      "measurement": "Messung",
+      "supplement": "Nahrungsergänzung",
+      "meal": "Mahlzeit"
+    },
+    "state": {
+      "complete": "Abgeschlossen",
+      "started": "Begonnen",
+      "excluded": "Übersprungen, zählt nicht mit",
+      "pending": "Noch nicht erfasst"
+    },
+    "checkinItem": "Täglicher Check-in",
+    "weighIn": "Wiegen",
+    "title": "Täglicher Fortschritt",
+    "nothingApplies": "Keine Aufgaben heute",
+    "countLine": "{{day}} · {{completed}} von {{applicable}} abgeschlossen",
+    "nothingAppliesLine": "{{day}} · keine Tracking-Aufgaben",
+    "explanation": "Jede Aufgabe zählt gleich viel; dies ist kein Gesundheitswert.",
+    "emptyExplanation": "Für diesen Tag ist nichts geplant oder ausgewählt.",
+    "more": "+{{count}} mehr"
+  },
+  "mealStatus": {
+    "label": "{{meal}}-Status",
+    "pending": "Status offen",
+    "complete": "Abgeschlossen",
+    "skipped": "Keine Mahlzeit",
+    "incomplete": "Unvollständig"
   }
 }

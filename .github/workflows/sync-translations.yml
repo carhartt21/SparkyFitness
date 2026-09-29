@@ -167,6 +167,10 @@ jobs:
           cp "$MOBILE/locales/en.json" "$MIRROR/locales/"
           echo "Copied English mobile sources successfully."
 
+      # Restore reviewed X on Track German copy after upstream locale replacement.
+      - name: Apply German product translations
+        run: node main-repo/scripts/apply-german-overrides.mjs
+
       # 3.5 Format the updated localization files with Prettier
       - name: Format localization files with Prettier
         run: |
