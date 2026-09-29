@@ -238,7 +238,19 @@ describe('FoodSearchScreen multi-select', () => {
 
   test('offers the Select toggle in log-entry mode', () => {
     const screen = renderLanding();
-    expect(screen.getByLabelText('Select')).toBeTruthy();
+    const selectButton = screen.getByLabelText('Select');
+    expect(selectButton.props.accessibilityState).toMatchObject({
+      selected: false,
+    });
+    expect(screen.getByTestId('icon-checkmark-circle')).toBeTruthy();
+
+    fireEvent.press(selectButton);
+    expect(
+      screen.getByLabelText('Cancel').props.accessibilityState
+    ).toMatchObject({
+      selected: true,
+    });
+    expect(screen.getByTestId('icon-checkmark-circle-filled')).toBeTruthy();
   });
 
   test('hides the Select toggle in meal-builder mode', () => {

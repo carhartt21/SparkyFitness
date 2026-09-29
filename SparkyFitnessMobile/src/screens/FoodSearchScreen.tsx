@@ -1326,7 +1326,10 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           </Button>
         )}
 
-        <Text className="flex-1 text-lg font-bold text-text-primary">
+        <Text
+          className="min-w-0 flex-1 text-lg font-bold text-text-primary"
+          numberOfLines={1}
+        >
           {t('foodSearch.title', { defaultValue: 'Add food' })}
         </Text>
 
@@ -1334,24 +1337,22 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           <Button
             variant="ghost"
             onPress={() => setIsSelectMode((prev) => !prev)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            className="p-0"
+            className="h-11 w-11 shrink-0 p-0"
+            accessibilityRole="button"
+            accessibilityState={{ selected: isSelectMode }}
             accessibilityLabel={
               isSelectMode
                 ? t('foodSearch.multiSelect.cancel', { defaultValue: 'Cancel' })
                 : t('foodSearch.multiSelect.select', { defaultValue: 'Select' })
             }
           >
-            <Text
-              className="text-sm font-semibold"
-              style={{ color: headerActionColor }}
-            >
-              {isSelectMode
-                ? t('foodSearch.multiSelect.cancel', { defaultValue: 'Cancel' })
-                : t('foodSearch.multiSelect.select', {
-                    defaultValue: 'Select',
-                  })}
-            </Text>
+            <Icon
+              name={
+                isSelectMode ? 'checkmark-circle-filled' : 'checkmark-circle'
+              }
+              size={24}
+              color={isSelectMode ? accentColor : headerActionColor}
+            />
           </Button>
         )}
 
