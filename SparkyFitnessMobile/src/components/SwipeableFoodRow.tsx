@@ -211,7 +211,13 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
         overshootRight={false}
         rightThreshold={40}
       >
-        <View className="min-h-11 py-2.5 flex-row items-center bg-surface">
+        {/* Transparent so the meal card's tinted surface continues behind
+            each row; the delete action sits off-row until swiped, so it
+            never shows through. */}
+        <View
+          testID="food-row-surface"
+          className="min-h-11 py-2.5 flex-row items-center bg-transparent"
+        >
           {selectionMode && onSelect && (
             <TouchableOpacity
               accessibilityRole="checkbox"
