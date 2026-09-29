@@ -80,3 +80,9 @@ Captures, synthetic fixture, English, dark, 430 pt, are in `x-on-track-design/re
   - The row field text is vertically centred.
   - The name field is labelled "Name".
 - **Captures:** side-by-side comparisons are `compare-food-details.png` and `compare-edit-food.png` in the review folder.
+
+## Third pass against the Edit Food reference
+
+- **Photo tile:** without a photo, the tile shows the food's category artwork dimmed, with "+ Add photo". It is display-only and never saved.
+- **Serving rows:** trash icons use the danger icon red, and rows are more compact (88 pt, 14 pt field text).
+- **Cancel:** it keeps the header's standard text colour. The shared header enforces one accent and neutral navigation actions on every screen, so the reference's muted Cancel is not copied.

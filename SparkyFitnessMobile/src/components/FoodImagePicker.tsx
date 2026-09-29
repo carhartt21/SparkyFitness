@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
@@ -34,6 +35,11 @@ interface FoodImagePickerProps {
   variant?: 'strip' | 'cover';
   /** Edge length of the cover tile. */
   coverSize?: number;
+  /**
+   * Cover tile without a photo: category artwork shown dimmed behind an
+   * "Add photo" hint. Display-only; it is never saved as the food's image.
+   */
+  coverPlaceholder?: number;
 }
 
 /**
@@ -53,6 +59,7 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
   disabled = false,
   variant = 'strip',
   coverSize = 132,
+  coverPlaceholder,
 }) => {
   const { t } = useTranslation();
   const getImageSource = useFoodImageSourceContext();
@@ -273,6 +280,29 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
             style={{ width: coverSize, height: coverSize }}
             contentFit="cover"
           />
+        ) : coverPlaceholder !== undefined ? (
+          <>
+            <Image
+              source={coverPlaceholder}
+              style={{
+                width: coverSize * 0.8,
+                height: coverSize * 0.8,
+                opacity: 0.55,
+              }}
+              contentFit="contain"
+            />
+            <View
+              className="absolute bottom-2 flex-row items-center gap-1 rounded-full bg-black/60 px-2 py-0.5"
+              pointerEvents="none"
+            >
+              <Icon name="add" size={12} color="#ffffff" />
+              <Text className="text-[11px] font-medium text-white">
+                {t('foodImagePicker.actions.addPhoto', {
+                  defaultValue: 'Add photo',
+                })}
+              </Text>
+            </View>
+          </>
         ) : (
           <Icon name="add" size={28} color={textMuted} />
         )}

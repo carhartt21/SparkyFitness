@@ -15,6 +15,7 @@ import FoodImagePicker from '../../components/FoodImagePicker';
 import ServingSizesEditor from '../../components/foodForm/ServingSizesEditor';
 import i18n from '../../localization/i18n';
 import { usableFoodImages } from '../../utils/foodImages';
+import { foodFallbackImage } from '../../utils/foodFallbackImages';
 import {
   pickerImagesDiffer,
   splitPickerImages,
@@ -528,6 +529,7 @@ export function EditFoodMode({
         identityAside={
           <FoodImagePicker
             variant="cover"
+            coverPlaceholder={foodFallbackImage(item?.name)}
             items={pickerImages}
             onItemsChange={setPickerImages}
             disabled={isSubmitting}

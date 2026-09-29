@@ -65,7 +65,7 @@ export interface ServingSizesEditorProps {
 type TFn = ReturnType<typeof useTranslation>['t'];
 
 /** Every row has the same height so the shared drag geometry stays exact. */
-const ROW_HEIGHT = 96;
+const ROW_HEIGHT = 88;
 const ROW_GAP = 10;
 
 function amountLabel(size: number, unit: string, t: TFn) {
@@ -97,7 +97,7 @@ const CellInput: React.FC<{
   placeholderColor,
 }) => (
   <View
-    className="h-11 flex-row items-center rounded-lg border border-border-subtle bg-background px-1.5"
+    className="h-10 flex-row items-center rounded-lg border border-border-subtle bg-background px-1.5"
     style={invalid ? { borderColor: dangerColor } : undefined}
   >
     <TextInput
@@ -110,7 +110,7 @@ const CellInput: React.FC<{
       keyboardType={numeric ? 'decimal-pad' : 'default'}
       returnKeyType="done"
       maxLength={numeric ? 10 : 40}
-      className="min-w-0 flex-1 text-[15px] text-text-primary"
+      className="min-w-0 flex-1 text-[14px] text-text-primary"
       style={{ paddingVertical: 0, textAlignVertical: 'center' }}
     />
     {suffix ? (
@@ -240,13 +240,13 @@ const ServingRow: React.FC<{
       <View
         testID={`serving-row-select-${index}`}
         accessibilityLabel={`${title}, ${summary}`}
-        className="min-w-0 flex-1 gap-1.5 py-2"
+        className="min-w-0 flex-1 gap-1 py-2"
       >
         <View className="flex-row gap-2">
           {headers.map(([key, label, flex]) => (
             <Text
               key={key}
-              className="text-xs text-text-secondary"
+              className="text-[11px] text-text-secondary"
               style={{ flex }}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -310,13 +310,13 @@ const ServingRow: React.FC<{
                     unit:
                       selectedOption?.label ?? localizeFoodUnit(draft.unit, t),
                   })}
-                  className="h-11 flex-row items-center justify-between rounded-lg border border-border-subtle bg-background px-1.5"
+                  className="h-10 flex-row items-center justify-between rounded-lg border border-border-subtle bg-background px-1.5"
                   style={
                     error === 'unit' ? { borderColor: dangerColor } : undefined
                   }
                 >
                   <Text
-                    className="min-w-0 flex-1 text-[15px] text-text-primary"
+                    className="min-w-0 flex-1 text-[14px] text-text-primary"
                     numberOfLines={1}
                   >
                     {selectedOption?.label ?? localizeFoodUnit(draft.unit, t)}
@@ -328,7 +328,7 @@ const ServingRow: React.FC<{
           </View>
           <View style={{ flex: 1.25 }}>
             {metricUnit ? (
-              <View className="h-11 justify-center px-1">
+              <View className="h-10 justify-center px-1">
                 <Text
                   className="text-base text-text-primary"
                   numberOfLines={1}
@@ -421,7 +421,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
   ] = useCSSVariable([
     '--color-text-muted',
     '--color-accent-primary',
-    '--color-text-danger',
+    '--color-icon-danger',
     '--color-calories',
     '--color-macro-protein',
     '--color-macro-carbs',
