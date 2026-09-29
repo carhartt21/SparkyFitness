@@ -49,11 +49,17 @@ function DockedActionButton({
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className="flex-1 flex-row items-center justify-center gap-1.5 bg-raised rounded-xl py-3"
+      className="min-h-11 min-w-0 flex-row items-center justify-center gap-1.5 bg-raised rounded-xl px-3 py-3"
       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
     >
       <Icon name={icon} size={16} color={textMuted} />
-      <Text className="text-sm font-semibold text-text-primary">{label}</Text>
+      <Text
+        className="min-w-0 shrink text-sm font-semibold text-text-primary"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
+        {label}
+      </Text>
     </Pressable>
   );
 }
@@ -226,7 +232,7 @@ function WorkoutCompleteScreen({ navigation, route }: Props) {
         className="bg-surface border-t border-border-subtle px-4 pt-3"
         style={{ paddingBottom: insets.bottom + 12 }}
       >
-        <View className="flex-row gap-2 mb-2">
+        <View className="gap-2 mb-2">
           <DockedActionButton
             icon="bookmark"
             label={t('workoutComplete.actions.saveAsPreset', {

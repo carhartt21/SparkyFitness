@@ -395,14 +395,18 @@ const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
                   {activeConfig.url}
                 </Text>
               </Pressable>
-              <View className="flex-row gap-3 mt-4">
+              <View className="gap-2 mt-4">
                 <Button
                   variant="ghost"
                   onPress={openWebDashboard}
-                  className="flex-1 flex-row"
+                  className="flex-row"
                 >
                   <Icon name="globe" size={18} color={accentPrimary} />
-                  <Text className="text-base text-accent-primary font-semibold ml-2">
+                  <Text
+                    className="min-w-0 shrink text-base text-accent-primary font-semibold ml-2"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {t('serverSettingsUi.openWeb', {
                       defaultValue: 'Open Web',
                     })}
@@ -412,14 +416,18 @@ const ServerSettingsScreen: React.FC<ServerSettingsScreenProps> = ({
                   variant="ghost"
                   onPress={handleTestConnection}
                   disabled={isTesting}
-                  className="flex-1 flex-row"
+                  className="flex-row"
                 >
                   {isTesting ? (
                     <ActivityIndicator size="small" />
                   ) : (
                     <>
                       <Icon name="wifi" size={18} color={accentPrimary} />
-                      <Text className="text-base text-accent-primary font-semibold ml-2">
+                      <Text
+                        className="min-w-0 shrink text-base text-accent-primary font-semibold ml-2"
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
                         {t('serverSettingsUi.testConnection', {
                           defaultValue: 'Test Connection',
                         })}
