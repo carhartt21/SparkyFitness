@@ -711,3 +711,10 @@ if (!testI18n.isInitialized) {
     interpolation: { escapeValue: false },
   });
 }
+
+// The header sync indicator needs navigation, connectivity and the outbox.
+// Screen tests don't exercise it; its own test unmocks it.
+jest.mock('./src/components/SyncStatusIndicator', () => ({
+  __esModule: true,
+  default: () => null,
+}));

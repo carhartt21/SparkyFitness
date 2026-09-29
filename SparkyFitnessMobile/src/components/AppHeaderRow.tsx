@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import BrandMark from './brand/BrandMark';
 import SettingsHeaderButton from './SettingsHeaderButton';
+import SyncStatusIndicator from './SyncStatusIndicator';
 import { useGlowTheme, withAlpha } from './ui/glow';
 
 interface AppHeaderRowProps {
@@ -83,6 +84,7 @@ export default function AppHeaderRow({
         ) : null}
       </View>
       {right}
+      <SyncStatusIndicator />
       <SettingsHeaderButton onPress={onSettings} />
     </View>
   );

@@ -3596,7 +3596,9 @@
       "entryNotesPlaceholder": "Anything specific about this time you ate it",
       "carbsShort": "Carbs",
       "netCarbsShort": "Net carbs",
-      "quickAmounts": "Quick amounts"
+      "quickAmounts": "Quick amounts",
+      "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
+      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal"
     },
     "pickers": {
       "selectServing": "Select Serving",
@@ -6084,5 +6086,13 @@
   },
   "tracking": {
     "chooseDate": "Choose date"
+  },
+  "syncStatus": {
+    "synced": "Health data synced",
+    "savedLocally": "Saved on this phone, not yet uploaded",
+    "waiting": "Offline. Saved changes will upload when connected",
+    "attention": "Sync needs attention. Open sync details",
+    "syncing": "Syncing",
+    "hint": "Opens sync details"
   }
 }
