@@ -121,11 +121,14 @@ const Button: React.FC<ButtonProps> = ({
     <Pressable
       className={`${basePadding} items-center justify-center ${styles.container} ${isDisabled ? 'opacity-50' : ''} ${className}`}
       disabled={isDisabled}
+      accessibilityRole="button"
+      accessibilityLabel={typeof children === 'string' ? children : undefined}
       {...(variant === 'header' && !rest.hitSlop
         ? { hitSlop: { top: 10, bottom: 10, left: 10, right: 10 } }
         : {})}
       {...rest}
       style={({ pressed }) => [
+        { maxWidth: '100%', minWidth: 0 },
         variant === 'primary' && glowing && !isDisabled
           ? { boxShadow: `0px 0px 16px 0px ${withAlpha(accent, 0.5)}` }
           : {},
@@ -138,7 +141,11 @@ const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator size="small" color={accentText} />
       ) : typeof children === 'string' ? (
-        <Text className={`text-base ${textClass} ${textClassName}`}>
+        <Text
+          className={`min-w-0 shrink text-base ${textClass} ${textClassName}`}
+          numberOfLines={2}
+          ellipsizeMode="tail"
+        >
           {children}
         </Text>
       ) : (

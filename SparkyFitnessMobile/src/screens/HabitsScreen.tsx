@@ -537,14 +537,13 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
             </View>
-            <View className="flex-row flex-wrap gap-2">
+            <View className="gap-2">
               <NeonButton
                 variant="outline"
                 size="sm"
                 icon="pencil"
                 label={t('habits.editHabits', { defaultValue: 'Edit habits' })}
                 onPress={() => navigation.navigate('HabitsManage')}
-                className="flex-1"
               />
               <NeonButton
                 variant="outline"
@@ -554,7 +553,6 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
                   defaultValue: 'Reminders',
                 })}
                 onPress={() => navigation.navigate('TrackingSettings')}
-                className="flex-1"
               />
             </View>
           </GlowCard>

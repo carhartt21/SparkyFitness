@@ -12,6 +12,16 @@ import { glowSurfaceStyle, useGlowTheme, withAlpha } from './glow';
 
 type NeonButtonVariant = 'primary' | 'outline' | 'subtle';
 
+/** Keeps user-generated and translated labels from making a button wider than its card. */
+export const MAX_VISIBLE_BUTTON_LABEL_LENGTH = 32;
+
+export const limitVisibleButtonLabel = (label: string): string => {
+  const characters = Array.from(label);
+  return characters.length > MAX_VISIBLE_BUTTON_LABEL_LENGTH
+    ? `${characters.slice(0, MAX_VISIBLE_BUTTON_LABEL_LENGTH - 1).join('')}…`
+    : label;
+};
+
 interface NeonButtonProps {
   label: string;
   onPress?: () => void;
@@ -56,6 +66,7 @@ export default function NeonButton({
   ]) as [string, string, string];
   const tint = color ?? accent;
   const inactive = disabled || loading;
+  const visibleLabel = limitVisibleButtonLabel(label);
 
   const variantStyle: ViewStyle =
     variant === 'primary'
@@ -92,12 +103,12 @@ export default function NeonButton({
       className={`${size === 'sm' ? 'min-h-11 px-4' : 'min-h-12 px-5'} flex-row items-center justify-center gap-2 rounded-full border ${
         variant === 'subtle' ? 'border-border-subtle bg-raised' : ''
       } ${inactive ? 'opacity-50' : 'active:opacity-80'} ${className}`}
-      style={[variantStyle, style]}
+      style={[variantStyle, { maxWidth: '100%', minWidth: 0 }, style]}
     >
       {loading ? (
         <ActivityIndicator size="small" color={labelColor} />
       ) : (
-        <View className="flex-row items-center gap-2">
+        <View className="min-w-0 shrink flex-row items-center gap-2">
           {icon ? (
             <Icon
               name={icon}
@@ -106,13 +117,15 @@ export default function NeonButton({
             />
           ) : null}
           <Text
-            className={`${size === 'sm' ? 'text-sm' : 'text-base'} font-semibold`}
+            className={`${size === 'sm' ? 'text-sm' : 'text-base'} min-w-0 shrink font-semibold`}
             style={{ color: labelColor }}
             numberOfLines={1}
+            ellipsizeMode="tail"
             adjustsFontSizeToFit
+            minimumFontScale={0.9}
             maxFontSizeMultiplier={1.6}
           >
-            {label}
+            {visibleLabel}
           </Text>
         </View>
       )}

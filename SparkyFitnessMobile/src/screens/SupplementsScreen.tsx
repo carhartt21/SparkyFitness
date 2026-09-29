@@ -505,7 +505,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
             </View>
-            <View className="flex-row flex-wrap gap-2">
+            <View className="gap-2">
               <NeonButton
                 variant="outline"
                 size="sm"
@@ -514,7 +514,6 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                   defaultValue: 'Notifications',
                 })}
                 onPress={() => navigation.navigate('NotificationSettings')}
-                className="flex-1"
               />
               <NeonButton
                 variant="outline"
@@ -525,7 +524,6 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                   count: supplements.length,
                 })}
                 onPress={() => navigation.navigate('MedicationsList')}
-                className="flex-1"
               />
             </View>
           </GlowCard>
