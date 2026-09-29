@@ -25,6 +25,16 @@ RUN pnpm install --frozen-lockfile --filter sparkyfitnessfrontend...
 COPY SparkyFitnessFrontend/ ./SparkyFitnessFrontend/
 COPY shared/ ./shared/
 
+# The German catalog check runs as part of the frontend build. Include its
+# shared override data and the English/German native reference catalogs.
+COPY scripts/apply-german-overrides.mjs ./scripts/
+COPY localization-overrides/ ./localization-overrides/
+COPY SparkyFitnessMobile/src/localization/locales/en/ ./SparkyFitnessMobile/src/localization/locales/en/
+COPY SparkyFitnessMobile/src/localization/locales/de/ ./SparkyFitnessMobile/src/localization/locales/de/
+COPY SparkyFitnessMobile/locales/en.json SparkyFitnessMobile/locales/de.json ./SparkyFitnessMobile/locales/
+COPY SparkyFitnessMobile/targets/widget/en.lproj/Localizable.strings ./SparkyFitnessMobile/targets/widget/en.lproj/Localizable.strings
+COPY SparkyFitnessMobile/targets/widget/de.lproj/Localizable.strings ./SparkyFitnessMobile/targets/widget/de.lproj/Localizable.strings
+
 # Build the application
 RUN pnpm --filter sparkyfitnessfrontend run build
 
