@@ -14,6 +14,7 @@ import {
 } from '../services/api/foodEntriesApi';
 import type { ImageUploadArgs } from '../utils/pickerImages';
 import { invalidateFoodCache } from './invalidateFoodCache';
+import { foodLastServingQueryKey } from './queryKeys';
 import { invalidateMealUsageCaches } from './useMeals';
 import type { FoodEntry } from '../types/foodEntries';
 import type { ExternalFoodVariant } from '../types/externalFoods';
@@ -175,6 +176,12 @@ export function useAddFoodEntry(options?: UseAddFoodEntryOptions) {
     },
     onSuccess: (entry) => {
       invalidateCache(entry.entry_date);
+      // The server remembered this serving as the food's next suggestion.
+      if (entry.food_id) {
+        void queryClient.invalidateQueries({
+          queryKey: foodLastServingQueryKey(entry.food_id),
+        });
+      }
       if (entry.meal_id) {
         invalidateMealUsageCaches(queryClient);
       }

@@ -112,6 +112,10 @@ export interface FoodFormProps {
   /** Saved photos of the food, offered by the notes toolbar's insert-photo picker. */
   noteImages?: readonly string[];
   headerChildren?: React.ReactNode;
+  /** Rendered between the nutrition card and the notes (Edit Food portions). */
+  servingsSection?: React.ReactNode;
+  /** Called with the current values whenever the user edits the form. */
+  onFormChange?: (form: FoodFormData) => void;
   children?: React.ReactNode;
   /** Initial custom nutrient values (key = nutrient name, value = amount). */
   customNutrients?: Record<string, string | number> | null;
@@ -143,6 +147,8 @@ const FoodForm: React.FC<FoodFormProps> = ({
   equivalents,
   noteImages,
   headerChildren,
+  servingsSection,
+  onFormChange,
   children,
   customNutrients: customNutrientsProp,
   onCustomNutrientsChange,
@@ -918,6 +924,13 @@ const FoodForm: React.FC<FoodFormProps> = ({
     );
   };
 
+  // Lets a parent preview values derived from the unsaved form.
+  const onFormChangeRef = useRef(onFormChange);
+  onFormChangeRef.current = onFormChange;
+  useEffect(() => {
+    onFormChangeRef.current?.(form);
+  }, [form]);
+
   useEffect(() => {
     if (!submitRequestRef) return;
     submitRequestRef.current = handleSubmitPress;
@@ -1398,6 +1411,8 @@ const FoodForm: React.FC<FoodFormProps> = ({
             </>
           )}
         </View>
+
+        {servingsSection}
 
         {/*
           After the nutrition fields, not before them: those are the point of

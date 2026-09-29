@@ -7,6 +7,7 @@ import {
 } from '../services/api/foodEntriesApi';
 import { normalizeDate } from '../utils/dateUtils';
 import { invalidateFoodCache } from './invalidateFoodCache';
+import { foodLastServingQueryKey } from './queryKeys';
 import type { FoodEntry } from '../types/foodEntries';
 
 interface UseUpdateFoodEntryOptions {
@@ -27,6 +28,11 @@ export function useUpdateFoodEntry({
     mutationFn: (payload: UpdateFoodEntryPayload) =>
       updateFoodEntry(entryId, payload),
     onSuccess: (updatedEntry) => {
+      if (updatedEntry.food_id) {
+        void queryClient.invalidateQueries({
+          queryKey: foodLastServingQueryKey(updatedEntry.food_id),
+        });
+      }
       onSuccess?.(updatedEntry);
     },
     onError: (error) => {

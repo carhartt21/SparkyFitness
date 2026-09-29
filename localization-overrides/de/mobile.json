@@ -364,6 +364,28 @@
       "quickAmounts": "Schnelle Mengen",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels"
+    },
+    "quickAdd": {
+      "added": "{{portion}} hinzugefügt",
+      "tapToUndo": "Zum Rückgängigmachen tippen",
+      "undone": "Eintrag entfernt",
+      "undoFailed": "Der Eintrag konnte nicht entfernt werden",
+      "title": "Schnell hinzufügen",
+      "subtitle": "Gespeicherte Portionen",
+      "lastUsed": "Zuletzt verwendet",
+      "nutrition": "{{calories}} kcal · {{fat}} g F · {{carbs}} g KH · {{protein}} g E",
+      "addLastA11y": "Zuletzt verwendet hinzufügen, {{portion}}, {{calories}} Kilokalorien",
+      "addA11y": "{{portion}} hinzufügen, {{calories}} Kilokalorien",
+      "multiplePortions": "{{amount}} × {{portion}}"
+    },
+    "servings": {
+      "title": "Portionsgröße",
+      "milliliters": "Milliliter",
+      "grams": "Gramm"
+    },
+    "moreOptions": {
+      "title": "Weitere Optionen",
+      "subtitle": "Nährwertangaben und alle Nährstoffe"
     }
   },
   "foodEntryMultiAdd": {
@@ -1254,7 +1276,52 @@
     "saveNutritionFailed": "Die Nährstoffe konnten nicht für die zukünftige Verwendung gespeichert werden",
     "equivalentSizes": "Äquivalente Größen",
     "foodNamePlaceholder": "z.B. Hähnchenbrust",
-    "brand": "Marke"
+    "brand": "Marke",
+    "servings": {
+      "reorder": "{{name}} verschieben",
+      "position": "Portion {{position}} von {{total}}",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "editHint": "Diese Portion bearbeiten",
+      "delete": "{{name}} löschen",
+      "untitled": "Neue Portion",
+      "kcal": "{{value}} kcal",
+      "ownNutrition": "Eigene Nährwerte",
+      "errors": {
+        "amount": "Gib eine Menge größer als null ein.",
+        "unit": "Wähle eine Einheit.",
+        "duplicate": "Eine andere Portion hat dieselbe Menge, Einheit und denselben Namen.",
+        "weight": "Gib an, wie viel diese Portion wiegt.",
+        "basisWeight": "Gib zuerst das Gewicht der Nährwert-Portion an oder verwende ihre eigene Einheit.",
+        "fixRows": "Prüfe die markierten Portionen."
+      },
+      "title": "Portionsgrößen",
+      "add": "Portionsgröße hinzufügen",
+      "basisWeight": "Gewicht von {{serving}}",
+      "weightUnknown": "Unbekannt",
+      "basisWeightHint": "Mit einem Gewicht kannst du dieses Lebensmittel in Gramm eintragen und Portionen nach Gewicht anlegen.",
+      "empty": "Keine gespeicherten Portionen. Füge eine hinzu, um sie mit einem Tipp einzutragen.",
+      "orderHint": "Zum Sortieren ziehen. In dieser Reihenfolge erscheinen die Portionen beim Eintragen.",
+      "label": "Bezeichnung",
+      "labelPlaceholder": "z. B. Mittel",
+      "amount": "Menge",
+      "unit": "Einheit",
+      "unitA11y": "Einheit, {{unit}}",
+      "recalculated": "Diese Portion hatte eigene Nährwerte. Beim Speichern werden sie aus {{basis}} neu berechnet.",
+      "preview": "Portionsvorschau",
+      "calories": "Kalorien",
+      "protein": "Eiweiß",
+      "carbs": "Kohlenhydrate",
+      "fat": "Fett",
+      "previewUnknown": "Gib ein Gewicht an, um die Nährwerte dieser Portion zu sehen.",
+      "basisNote": "Die Nährwerte gelten für {{basis}}. Portionen werden daraus berechnet.",
+      "discardTitle": "Änderungen an den Portionsgrößen verwerfen?",
+      "discardMessage": "Deine Änderungen an den Portionsgrößen sind nicht gespeichert.",
+      "inUseTitle": "Aus Essensplänen entfernen?",
+      "inUseMessage": "Essensplan-Vorlagen verwenden eine entfernte Portion ({{entries}} Einträge). Beim Entfernen werden diese Einträge ebenfalls entfernt. Dein Tagebuch bleibt unverändert.",
+      "inUseConfirm": "Entfernen",
+      "weight": "Gewicht ({{unit}})"
+    }
   },
   "foodFormPersistence": {
     "discardMessage": "Sie haben nicht gespeicherte äquivalente Größen. Sie verwerfen, um fortzufahren?",

@@ -5,7 +5,12 @@ import type { QueryClient } from '@tanstack/react-query';
 import type { FoodFormData } from '../../components/FoodForm';
 import { parseOptional } from '../../types/foodInfo';
 import { updateFoodVariant, updateFood } from '../../services/api/foodsApi';
-import { foodVariantsQueryKey, foodsQueryKey } from '../../hooks/queryKeys';
+import {
+  foodLastServingQueryKey,
+  foodVariantsQueryKey,
+  foodsQueryKey,
+  mealPlansQueryKey,
+} from '../../hooks/queryKeys';
 import type { FoodVariantDetail } from '../../types/foods';
 import type {
   EquivalentUnit,
@@ -317,6 +322,12 @@ export function invalidateFoodCaches(queryClient: QueryClient, foodId: string) {
     queryKey: ['foodSearch'],
     refetchType: 'all',
   });
+  // The last-used suggestion snapshots a portion's label and weight.
+  void queryClient.invalidateQueries({
+    queryKey: foodLastServingQueryKey(foodId),
+  });
+  // Removing a portion also removes meal plan template rows that used it.
+  void queryClient.invalidateQueries({ queryKey: mealPlansQueryKey });
 }
 
 function updateFoodVariantCache(
