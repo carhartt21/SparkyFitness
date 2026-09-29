@@ -35,7 +35,7 @@
           "name": "X on Track Light",
           "opacity-specializations": [
             {
-              "value": 1
+              "value": 0
             },
             {
               "appearance": "dark",
@@ -55,7 +55,7 @@
           "name": "X on Track Dark",
           "opacity-specializations": [
             {
-              "value": 0
+              "value": 1
             },
             {
               "appearance": "dark",

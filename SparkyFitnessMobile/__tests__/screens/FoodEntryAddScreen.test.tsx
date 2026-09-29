@@ -488,6 +488,32 @@ describe('FoodEntryAddScreen', () => {
     expect(navigation.dispatch).toHaveBeenCalledWith({ type: 'POP_TO_TOP' });
   });
 
+  it('shows compact nutrient captions with the goal share but no "of goal" text', () => {
+    useQuery.mockReturnValue({
+      data: { calories: 2000, protein: 100, carbs: 250, fat: 70 },
+      isLoading: false,
+    });
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+    const caption = screen.getByTestId('food-entry-highlight-calories-caption');
+    expect(caption.props.children).toMatch(/ · \d+%$/);
+    expect(screen.queryByText(/of goal/)).toBeNull();
+    expect(
+      screen.getByTestId('food-entry-highlight-calories').props
+        .accessibilityLabel
+    ).toMatch(/% of your daily goal$/);
+  });
+
+  it('omits the percentage without a valid target', () => {
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+    const caption = screen.getByTestId('food-entry-highlight-protein-caption');
+    expect(caption.props.children).not.toMatch(/%/);
+  });
+
+  it('shows category artwork, not a stored image, when a food has no photo', () => {
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+    expect(screen.getByTestId('food-entry-category-thumbnail')).toBeTruthy();
+  });
+
   it('offers one-tap serving amounts that set the logged quantity', () => {
     // Amounts are multiples of the selected stored serving (1 cup here).
     const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
