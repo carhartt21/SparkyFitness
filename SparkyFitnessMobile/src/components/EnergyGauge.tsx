@@ -5,6 +5,8 @@ import { useTweenedValue } from '../hooks/useTweenedValue';
 
 const START_DEG = 135;
 const SWEEP_DEG = 270;
+const GLOW_EXTRA_STROKE = 10;
+const EDGE_CLEARANCE = 1;
 
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = (deg * Math.PI) / 180;
@@ -12,8 +14,13 @@ function polar(cx: number, cy: number, r: number, deg: number) {
 }
 
 /** SVG path for a clockwise arc of `sweep` degrees starting at 135°. */
-export function gaugeArcPath(size: number, stroke: number, sweep: number) {
-  const r = (size - stroke) / 2;
+export function gaugeArcPath(
+  size: number,
+  stroke: number,
+  sweep: number,
+  inset = 0
+) {
+  const r = Math.max(0, (size - stroke) / 2 - inset);
   const c = size / 2;
   const clamped = Math.min(Math.max(sweep, 0), SWEEP_DEG);
   const start = polar(c, c, r, START_DEG);
@@ -50,8 +57,11 @@ export default function EnergyGauge({
     ? Math.min(Math.max(progress, 0), 1)
     : 0;
   const fill = useTweenedValue(target);
-  const trackPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG);
-  const fillPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG * fill);
+  // Leave half of the halo's extra width plus a point for antialiasing;
+  // otherwise its outer edge is cut into a flat vertical line on iOS.
+  const inset = EDGE_CLEARANCE + (glowing ? GLOW_EXTRA_STROKE / 2 : 0);
+  const trackPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG, inset);
+  const fillPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG * fill, inset);
 
   return (
     <Svg
@@ -88,7 +98,7 @@ export default function EnergyGauge({
               d={fillPath}
               stroke="url(#energyGauge)"
               strokeOpacity={0.22}
-              strokeWidth={strokeWidth + 10}
+              strokeWidth={strokeWidth + GLOW_EXTRA_STROKE}
               strokeLinecap="round"
               fill="none"
             />
