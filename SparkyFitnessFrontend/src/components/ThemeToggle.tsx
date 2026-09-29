@@ -1,9 +1,11 @@
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useTranslation } from 'react-i18next';
 
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
+  const { t } = useTranslation();
 
   const getIcon = () => {
     switch (theme) {
@@ -19,11 +21,11 @@ const ThemeToggle = () => {
   const getLabel = () => {
     switch (theme) {
       case 'light':
-        return 'Light mode';
+        return t('layout.themeLight');
       case 'dark':
-        return 'Dark mode';
+        return t('layout.themeDark');
       case 'system':
-        return 'System theme';
+        return t('layout.themeSystem');
     }
   };
 

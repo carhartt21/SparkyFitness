@@ -1,6 +1,8 @@
 {
   "widget.routine.name": "Trainingsroutinen",
-  "widget.routine.description": "Deine Trainingsroutinen öffnen.",
+  "widget.routine.description": "Ihre Trainingsroutinen öffnen.",
+  "widget.nutrition.review": "Fotos zur Prüfung: %d",
+  "widget.nutrition.captured": "Erfasste Mahlzeiteneinträge: %d",
   "widget.routine.unavailable": "X on Track zum Aktualisieren öffnen",
   "widget.routine.empty": "Noch keine Routinen",
   "widget.routine.one": "%d Routine verfügbar",

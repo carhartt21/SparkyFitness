@@ -19,13 +19,13 @@
 "widget.nutrition.name" = "Mahlzeiten erfassen";
 "widget.nutrition.description" = "Erfasste Mahlzeiten und Fotos zum Prüfen.";
 "widget.nutrition.unavailable" = "X on Track zum Aktualisieren öffnen";
-"widget.nutrition.review" = "%d Foto(s) zum Prüfen";
+"widget.nutrition.review" = "Fotos zur Prüfung: %d";
 "widget.nutrition.savedLocally" = "Auf diesem Gerät gespeichert";
-"widget.nutrition.captured" = "%d Mahlzeiteneintrag/Einträge erfasst";
+"widget.nutrition.captured" = "Erfasste Mahlzeiteneinträge: %d";
 "widget.nutrition.photo" = "Mahlzeitenfoto";
 "widget.nutrition.search" = "Lebensmittel suchen";
 "widget.routine.name" = "Trainingsroutinen";
-"widget.routine.description" = "Deine Trainingsroutinen öffnen.";
+"widget.routine.description" = "Ihre Trainingsroutinen öffnen.";
 "widget.routine.unavailable" = "X on Track zum Aktualisieren öffnen";
 "widget.routine.empty" = "Noch keine Routinen";
 "widget.routine.one" = "%d Routine verfügbar";

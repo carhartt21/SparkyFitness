@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-29_
 
 X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and Trackbot chat.
 
@@ -29,9 +29,11 @@ This is the package guide for `SparkyFitnessMobile/`. Work from this directory f
 
 English (`en`) is the canonical source locale and the deterministic fallback. Feature developers must add/update the English catalog, use semantic static keys, provide explicit English fallback/defaultValue text, use count-based i18next pluralization, use app-locale date/number/unit formatters, and avoid user-facing hardcoded text. Custom, user, and server content stays literal.
 
-Feature developers do not need to know or translate Polish or any future language, and do not need to wait for Weblate. Translators/Weblate own Polish and future translations and linguistic QA. Missing translation content is non-blocking and falls back to English; existing translated content remains structurally validated.
+For **every new or changed user-facing element**, ship reviewed German copy in `../localization-overrides/de/mobile.json` in the same change. This includes buttons, headers, hints, accessibility labels, errors, empty/loading states, notifications, shortcuts, and any affected native metadata or widget text in their corresponding overlay files. Use the formal `Sie` form when addressing the user, or a neutral construction; do not mix `du` and `Sie` within a flow. Keep terms consistent with `../docs/src/developer/translations.md`. Run `node ../scripts/apply-german-overrides.mjs` followed by `node ../scripts/apply-german-overrides.mjs --check`, then inspect the actual German UI at normal and enlarged text sizes. The structural i18n audit is necessary but does not review linguistic quality. English fallback is for resilience, not acceptance of missing German copy. Literal user/provider content is exempt.
 
-The shipped locale registry is `src/localization/localeRegistry.json`, read through the typed accessors in `src/localization/localeRegistry.ts`. Adding a catalog to Weblate does not ship it. Shipping requires explicit registry enablement plus native/platform support verification. RN catalogs and native resources are separate surfaces (Expo metadata, Android widget resources, and iOS widget/Live Activity `.lproj` resources), each its own Weblate component and each synced by `.github/workflows/sync-translations.yml`. Only the `en` side of any surface is edited by hand; the i18n audit blocks on registered locales and reports unregistered ones without failing. The workflow pulls the widget resources for registered locales only, because Android and iOS compile whatever resource directories are present and there is no build-time registry check for them.
+Feature developers do not need to know or translate Polish or any future language, and do not need to wait for Weblate. Translators/Weblate own Polish and future translations and linguistic QA. Missing non-German translation content is non-blocking and falls back to English; new German UI copy is required as described above. Existing translated content remains structurally validated.
+
+The shipped locale registry is `src/localization/localeRegistry.json`, read through the typed accessors in `src/localization/localeRegistry.ts`. Adding a catalog to Weblate does not ship it. Shipping requires explicit registry enablement plus native/platform support verification. RN catalogs and native resources are separate surfaces (Expo metadata, Android widget resources, and iOS widget/Live Activity `.lproj` resources), each its own Weblate component and each synced by `.github/workflows/sync-translations.yml`. Only the `en` source catalog and the reviewed German overlay are edited by hand; synced German catalogs are updated by the overlay script. The i18n audit blocks on registered locales and reports unregistered ones without failing. The workflow pulls the widget resources for registered locales only, because Android and iOS compile whatever resource directories are present and there is no build-time registry check for them.
 
 ## Commands
 

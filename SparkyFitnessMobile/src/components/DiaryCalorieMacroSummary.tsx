@@ -24,6 +24,7 @@ const RING_MACROS = ['carbs', 'protein', 'fat'] as const;
 
 interface SummaryRingProps {
   label: string;
+  displayLabel?: string;
   consumed: number;
   goal?: number;
   unit: string;
@@ -35,6 +36,7 @@ interface SummaryRingProps {
 /** One nutrient in the Diary's ring row; a missing goal shows no denominator. */
 const SummaryRing: React.FC<SummaryRingProps> = ({
   label,
+  displayLabel,
   consumed,
   goal,
   unit,
@@ -91,8 +93,13 @@ const SummaryRing: React.FC<SummaryRingProps> = ({
           </Text>
         </View>
       </View>
-      <Text className="mt-1 text-xs font-medium text-text-secondary">
-        {label}
+      <Text
+        className="mt-1 text-xs font-medium text-text-secondary text-center"
+        numberOfLines={1}
+        adjustsFontSizeToFit
+        minimumFontScale={0.85}
+      >
+        {displayLabel ?? label}
       </Text>
     </View>
   );
@@ -185,6 +192,9 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
         label: showNetCarbs
           ? t('nutrients.netCarbs', { defaultValue: 'Net Carbs' })
           : t('nutrients.carbs', { defaultValue: 'Carbs' }),
+        displayLabel: showNetCarbs
+          ? t('diarySummary.netCarbsShort', { defaultValue: 'Net carbs' })
+          : t('diarySummary.carbsShort', { defaultValue: 'Carbs' }),
         consumed,
         goal: summary.carbs.goal || undefined,
       };
@@ -258,6 +268,9 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
                 key={key}
                 testID={`diary-summary-${key}`}
                 label={macro.label}
+                displayLabel={
+                  'displayLabel' in macro ? macro.displayLabel : undefined
+                }
                 consumed={macro.consumed}
                 goal={macro.goal}
                 unit={t('diarySummary.gramsUnit', { defaultValue: 'g' })}

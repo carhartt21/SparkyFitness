@@ -6,6 +6,7 @@ import remarkGfm from 'remark-gfm';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+import { useTranslation } from 'react-i18next';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -64,6 +65,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
   releaseInfo,
   onDismissForVersion,
 }) => {
+  const { t, i18n } = useTranslation();
   const contentRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
@@ -177,23 +179,21 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
         {hasBreakingChange && (
           <div className="bg-red-500 text-white font-bold p-3 text-center text-xs flex items-center justify-center gap-2 rounded-t-lg -mx-6 -mt-6 mb-4 animate-pulse">
             <AlertTriangle className="h-4 w-4" />
-            <span>
-              CRITICAL WARNING: THIS RELEASE CONTAINS BREAKING CHANGES!
-            </span>
+            <span>{t('releaseDialog.breakingWarning')}</span>
           </div>
         )}
         <AlertDialogHeader>
           <AlertDialogTitle className="text-xl font-bold">
-            Upstream Release: {releaseInfo.version}
+            {t('releaseDialog.title', { version: releaseInfo.version })}
           </AlertDialogTitle>
           <AlertDialogDescription className="flex flex-col gap-2 mt-2">
-            <p>
-              SparkyFitness published an upstream release. This is not an X on
-              Track app update.
-            </p>
+            <p>{t('releaseDialog.intro')}</p>
             <p className="text-xs text-muted-foreground">
-              Published:{' '}
-              {new Date(releaseInfo.publishedAt).toLocaleDateString()}
+              {t('releaseDialog.published', {
+                date: new Date(releaseInfo.publishedAt).toLocaleDateString(
+                  i18n.resolvedLanguage || i18n.language
+                ),
+              })}
             </p>
 
             <div
@@ -202,7 +202,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
               className="mt-3 p-3 border border-border rounded-md max-h-64 overflow-y-auto bg-muted/30"
             >
               <h3 className="font-semibold mb-2 text-sm text-foreground">
-                Upstream Release Notes:
+                {t('releaseDialog.notesTitle')}
               </h3>
               <div className="prose prose-sm dark:prose-invert max-w-none text-xs text-foreground leading-relaxed">
                 <ReactMarkdown
@@ -309,8 +309,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
 
             {!hasReadFully && (
               <p className="text-xs text-yellow-600 dark:text-yellow-500 font-medium animate-pulse mt-1">
-                ⚠️ Please scroll to the bottom of the release notes to finish
-                reading.
+                ⚠️ {t('releaseDialog.scrollHint')}
               </p>
             )}
 
@@ -347,14 +346,14 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
                   >
                     {hasBreakingChange ? (
                       <>
-                        I acknowledge that this release contains a{' '}
+                        {t('releaseDialog.breakingAckBefore')}{' '}
                         <span className="underline decoration-wavy decoration-red-500">
-                          BREAKING CHANGE
+                          {t('releaseDialog.breakingChangeLabel')}
                         </span>{' '}
-                        and I have read the changes.
+                        {t('releaseDialog.breakingAckAfter')}
                       </>
                     ) : (
-                      'I have read and understood the release notes.'
+                      t('releaseDialog.standardAck')
                     )}
                   </label>
                   <p
@@ -366,8 +365,8 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
                     )}
                   >
                     {hasBreakingChange
-                      ? 'Please contact the platform administrator to coordinate updates before proceeding.'
-                      : 'Checking this box confirms you are up-to-date with the latest changes.'}
+                      ? t('releaseDialog.breakingHelp')
+                      : t('releaseDialog.standardHelp')}
                   </p>
 
                   {hasBreakingChange && (
@@ -376,11 +375,11 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
                         htmlFor="confirm-text-input"
                         className="text-xs font-semibold text-red-800 dark:text-red-300"
                       >
-                        To confirm you understand, please type{' '}
+                        {t('releaseDialog.confirmBefore')}{' '}
                         <strong className="font-mono text-red-600 dark:text-red-400 bg-red-100 dark:bg-red-950/40 px-1 py-0.5 rounded border border-red-200 dark:border-red-900/40">
                           BREAKING
                         </strong>{' '}
-                        below:
+                        {t('releaseDialog.confirmAfter')}
                       </label>
                       <Input
                         id="confirm-text-input"
@@ -388,7 +387,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
                         onKeyDown={handleKeyDownInput}
-                        placeholder="Type 'BREAKING' here"
+                        placeholder={t('releaseDialog.confirmPlaceholder')}
                         className="max-w-xs border-red-300 dark:border-red-900 focus-visible:ring-red-500 h-8 text-xs bg-background text-foreground"
                       />
                     </div>
@@ -398,7 +397,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
             )}
 
             <p className="mt-4 text-xs">
-              View upstream release on GitHub:{' '}
+              {t('releaseDialog.viewOnGitHub')}{' '}
               <a
                 href={releaseInfo.htmlUrl}
                 target="_blank"
@@ -416,7 +415,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
             disabled={!canClose}
             className="w-full sm:w-auto"
           >
-            Don't show again for this version
+            {t('releaseDialog.dismiss')}
           </AlertDialogCancel>
         </AlertDialogFooter>
         <AlertDialogCancel
@@ -425,7 +424,7 @@ const NewReleaseDialog: React.FC<NewReleaseDialogProps> = ({
           className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground p-0"
         >
           <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
+          <span className="sr-only">{t('releaseDialog.close')}</span>
         </AlertDialogCancel>
       </AlertDialogContent>
     </AlertDialog>

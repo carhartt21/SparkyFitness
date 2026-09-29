@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-29_
 
 This is the repo-root monorepo guide for SparkyFitness. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -69,6 +69,8 @@ Cheap ways to learn things:
 
 ## Cross-Package Rules
 
+- **German UI copy is required for every new user-facing element.** Add the English source key and a reviewed German value in `localization-overrides/de/` in the same change, including visible labels, accessibility names, empty/loading/error states, notifications, native metadata, and widget copy where affected. Apply the overlay with `node scripts/apply-german-overrides.mjs` and run its `--check` mode. Do not rely on English fallback or a syntactically complete Weblate catalog as evidence of German copy quality. Use consistent German terminology and one form of address within a flow; review the rendered German screen at normal and enlarged text sizes. Preserve user-entered and provider-supplied names literally. Do not hand-edit synced German catalogs: the reviewed overlay is the source of product-specific corrections. Other languages remain on the Weblate path.
+
 - For any server migration or user-visible data access change, follow the full eight-step `agent-docs/new-migration-checklist.md` and the `new-migration` skill. Create the timestamped migration, update RLS, boot the server to apply it, add/export the shared Zod schema and API contract where applicable, update the sharing/security-tier docs, check downstream clients, and validate. CI creates a separate schema-backup sync PR after merge; never edit or commit a locally generated `db_schema_backup.sql`.
 - Prefer the shared timezone helpers from `@workspace/shared` and `SparkyFitnessServer/utils/timezoneLoader.ts` for day-string logic. Avoid `toISOString().split('T')[0]` for user-facing or business-logic dates.
 - Keep `YYYY-MM-DD` values as calendar-day strings until you reach a database or external API boundary that needs UTC instants.
@@ -86,7 +88,7 @@ Cheap ways to learn things:
 - `PRODUCT.md` and `DESIGN.md` define the approved X on Track identity, design principles, and theme direction. The logo and **Keep getting better.** identity supersede alternate copy in reference mockups.
 - `docs/implementation/x-on-track-ui-redesign-audit.md` records the supplied mobile and web references; `docs/implementation/web-mockup-alignment-2026-09-27.md` tracks the current web Dashboard and Nutrition Reports work. Mockup foods, dates, figures, premium prompts, and health claims are illustrations, not app data or copy.
 - Preserve real API values, empty/error states, both themes, accessibility, responsive layout, and saved Dashboard widget layouts. Compare authenticated screens at the reference size and narrower widths before claiming visual fidelity.
-- `scripts/visual-sample.sh serve` starts an isolated PostgreSQL-backed demo account for local web captures. Its generated data and credentials live under ignored `.visual-sample/`; stop it with Ctrl+C or `scripts/visual-sample.sh stop`. See the implementation note for viewport and remote port-forward instructions.
+- `scripts/visual-sample.sh start` starts an isolated PostgreSQL-backed demo account for local web captures. Its generated data and credentials live under ignored `.visual-sample/`; stop it with `scripts/visual-sample.sh stop`. See the implementation note for viewport and remote port-forward instructions.
 
 ## Production Changes
 

@@ -38,7 +38,10 @@
     "docs": "Docs",
     "translate": "Translate",
     "actingOnBehalf": "Family profile",
-    "ownAccount": "Your account"
+    "ownAccount": "Your account",
+    "themeLight": "Light theme",
+    "themeDark": "Dark theme",
+    "themeSystem": "System theme"
   },
   "chat": {
     "toolCategories": {
@@ -5428,7 +5431,38 @@
     "successTitle": "Success",
     "signedOut": "Signed out successfully",
     "signOutFailed": "Failed to sign out",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "form": {
+      "warning": "Warning",
+      "authenticationFailed": "Authentication failed",
+      "signIn": "Sign in",
+      "signUp": "Sign up",
+      "email": "Email",
+      "password": "Password",
+      "emailPlaceholder": "Enter your email",
+      "passwordPlaceholder": "Enter your password",
+      "forgotPassword": "Forgot password?",
+      "signingIn": "Signing in…",
+      "orSignInWith": "Or sign in with",
+      "passkeySignIn": "Sign in with passkey",
+      "requestMagicLink": "Request magic link",
+      "oidcSignIn": "Sign in with OIDC",
+      "providerLogo": "{{name}} logo",
+      "fullName": "Full name",
+      "fullNamePlaceholder": "Enter your full name",
+      "createPasswordPlaceholder": "Create a password",
+      "creatingAccount": "Creating account…",
+      "passwordUppercase": "Password must contain at least one uppercase letter.",
+      "passwordLowercase": "Password must contain at least one lowercase letter.",
+      "passwordNumber": "Password must contain at least one number.",
+      "passwordSpecial": "Password must contain at least one special character.",
+      "magicLinkHelp": "Enter your email to receive a magic link for sign-in.",
+      "cancel": "Cancel",
+      "sending": "Sending…",
+      "sendMagicLink": "Send magic link",
+      "showPassword": "Show password",
+      "hidePassword": "Hide password"
+    }
   },
   "copied": "Copied!",
   "copyFoodEntryDialog": {
@@ -6398,5 +6432,25 @@
     "complete": "Complete",
     "skipped": "No meal",
     "incomplete": "Incomplete"
+  },
+  "releaseDialog": {
+    "breakingWarning": "Critical warning: this upstream release contains breaking changes.",
+    "title": "Upstream release: {{version}}",
+    "intro": "The upstream project published a release. This is not an X on Track app update.",
+    "published": "Published: {{date}}",
+    "notesTitle": "Upstream release notes",
+    "scrollHint": "Scroll to the bottom of the release notes to finish reading.",
+    "breakingAckBefore": "I acknowledge that this release contains a",
+    "breakingAckAfter": "and I have read the changes.",
+    "standardAck": "I have read and understood the release notes.",
+    "breakingHelp": "Contact the platform administrator to coordinate updates before proceeding.",
+    "standardHelp": "Checking this box confirms you have read the latest changes.",
+    "confirmBefore": "To confirm you understand, type",
+    "confirmAfter": "below:",
+    "confirmPlaceholder": "Type BREAKING here",
+    "viewOnGitHub": "View upstream release on GitHub:",
+    "dismiss": "Do not show again for this version",
+    "close": "Close",
+    "breakingChangeLabel": "BREAKING CHANGE"
   }
 }

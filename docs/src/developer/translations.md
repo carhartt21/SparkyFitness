@@ -7,14 +7,19 @@ This document outlines the technical setup for internationalization (i18n) in th
 :::
 
 X on Track maintains a German product-copy overlay in `localization-overrides/de/`. The translation sync applies it after copying Weblate catalogs, so app-specific corrections survive the sync. Edit the overlay rather than the generated German catalogs. Run `node scripts/apply-german-overrides.mjs` at the repository root to refresh the mobile and web catalogs, iOS permission text, and Watch widget labels; use `--check` to verify complete key coverage and placeholders. Other languages and German strings outside this overlay remain owned by [SparkyFitnessTranslations](https://github.com/CodeWithCJ/SparkyFitnessTranslations).
+
+Every new or changed user-facing element must ship with a reviewed German overlay value in the same change as its English source key. Include visible and accessible text, loading/empty/error/success states, notifications, shortcuts, and affected native/widget strings. Review real German screens, not just JSON coverage: the automated audit checks syntax, keys, and placeholders but cannot catch mixed-language sentences, awkward translations, inconsistent terms, or truncated labels. Use formal **Sie** when directly addressing the user, or a neutral imperative/description. Keep the same form throughout a flow. Preferred terms include **Lebensmittel**, **Mahlzeit**, **Training**, **Trinkmenge**, **Gewicht**, **Tagebuch**, **Einblicke**, **Synchronisieren**, and **Einstellungen**. Keep X on Track, provider names, standard units, and literal user/provider content unchanged. Do not translate persisted names by guessing their meaning. Check German at normal and enlarged text sizes, including buttons and accessibility labels.
+
+The mobile and web validation commands run `scripts/audit-german-copy.mjs` after applying the overlay. It flags informal address, common informal imperatives, and obvious English fragments in active German catalog keys while excluding placeholders and established product names. It is a regression guard, not a grammar or medical-content review; reviewers must still read the copy in context.
+
 ## 1. Core Libraries
 
 The following npm packages are used for i18n:
 
--   `i18next`: The core i18n library.
--   `react-i18next`: Integration for React applications.
--   `i18next-browser-languagedetector`: Detects the user's language from the browser.
--   `i18next-http-backend`: Loads translation files over HTTP.
+- `i18next`: The core i18n library.
+- `react-i18next`: Integration for React applications.
+- `i18next-browser-languagedetector`: Detects the user's language from the browser.
+- `i18next-http-backend`: Loads translation files over HTTP.
 
 These dependencies are installed in the `SparkyFitnessFrontend` directory.
 
@@ -22,8 +27,8 @@ These dependencies are installed in the `SparkyFitnessFrontend` directory.
 
 Translation files are stored in the `public/locales` directory, following the format `public/locales/{{languageCode}}/translation.json`.
 
--   `public/locales/en/translation.json`: the English source, and the only file a code contributor edits.
--   `public/locales/{{languageCode}}/translation.json`: every other language, owned by translators and synced from [SparkyFitnessTranslations](https://github.com/CodeWithCJ/SparkyFitnessTranslations) via Weblate.
+- `public/locales/en/translation.json`: the English source, and the only file a code contributor edits.
+- `public/locales/{{languageCode}}/translation.json`: every other language, owned by translators and synced from [SparkyFitnessTranslations](https://github.com/CodeWithCJ/SparkyFitnessTranslations) via Weblate.
 
 Each `translation.json` file is a simple JSON object where keys represent translation identifiers and values are the translated strings. Nested objects can be used to organize translations (e.g., `"nav.diary"`).
 
@@ -48,11 +53,11 @@ Example (`translation.json`):
 The `i18next` instance is configured in [`SparkyFitnessFrontend/src/i18n.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/i18n.ts).
 
 ```typescript
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
-import LanguageDetector from 'i18next-browser-languagedetector';
-import HttpApi from 'i18next-http-backend';
-import { getSupportedLanguages } from './utils/languageUtils';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import LanguageDetector from "i18next-browser-languagedetector";
+import HttpApi from "i18next-http-backend";
+import { getSupportedLanguages } from "./utils/languageUtils";
 
 i18n
   .use(HttpApi)
@@ -60,13 +65,20 @@ i18n
   .use(initReactI18next)
   .init({
     supportedLngs: getSupportedLanguages(), // from src/utils/languageUtils.ts
-    fallbackLng: 'en', // Fallback language if a translation is missing
+    fallbackLng: "en", // Fallback language if a translation is missing
     detection: {
-      order: ['localStorage', 'querystring', 'cookie', 'sessionStorage', 'navigator', 'htmlTag'],
-      caches: ['localStorage', 'cookie'],
+      order: [
+        "localStorage",
+        "querystring",
+        "cookie",
+        "sessionStorage",
+        "navigator",
+        "htmlTag",
+      ],
+      caches: ["localStorage", "cookie"],
     },
     backend: {
-      loadPath: '/locales/{{lng}}/{{ns}}.json', // Path to load translation files
+      loadPath: "/locales/{{lng}}/{{ns}}.json", // Path to load translation files
     },
     react: {
       useSuspense: false, // Set to true if you want to use React.Suspense for loading translations
@@ -78,25 +90,25 @@ export default i18n;
 
 **Key Configuration Details:**
 
--   `supportedLngs`: the languages the app offers, from `getSupportedLanguages()` in [`SparkyFitnessFrontend/src/utils/languageUtils.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/utils/languageUtils.ts). A locale directory that is not listed there cannot be selected.
--   `fallbackLng`: The language to use if a translation for the current language is missing.
--   `detection.order`: Specifies the order in which `i18next` tries to detect the user's language. `localStorage` is prioritized to use the user's saved preference.
--   `backend.loadPath`: The URL pattern to fetch translation files. `{{lng}}` is replaced by the current language code, and `{{ns}}` by the namespace (defaulting to `translation`).
--   `react.useSuspense`: Set to `false` to avoid using React's Suspense feature for translations, simplifying initial setup.
+- `supportedLngs`: the languages the app offers, from `getSupportedLanguages()` in [`SparkyFitnessFrontend/src/utils/languageUtils.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/utils/languageUtils.ts). A locale directory that is not listed there cannot be selected.
+- `fallbackLng`: The language to use if a translation for the current language is missing.
+- `detection.order`: Specifies the order in which `i18next` tries to detect the user's language. `localStorage` is prioritized to use the user's saved preference.
+- `backend.loadPath`: The URL pattern to fetch translation files. `{{lng}}` is replaced by the current language code, and `{{ns}}` by the namespace (defaulting to `translation`).
+- `react.useSuspense`: Set to `false` to avoid using React's Suspense feature for translations, simplifying initial setup.
 
 ## 4. Integration into React Application (`src/main.tsx`)
 
 The `i18next` instance is initialized and provided to the React application in [`SparkyFitnessFrontend/src/main.tsx`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/main.tsx).
 
 ```tsx
-import { createRoot } from 'react-dom/client';
-import App from './App.tsx';
-import './index.css';
-import './i18n'; // side-effect import: configures the shared i18next instance
-import { Suspense } from 'react';
+import { createRoot } from "react-dom/client";
+import App from "./App.tsx";
+import "./index.css";
+import "./i18n"; // side-effect import: configures the shared i18next instance
+import { Suspense } from "react";
 // ...
 
-createRoot(document.getElementById('root')!).render(
+createRoot(document.getElementById("root")!).render(
   <Suspense fallback="loading">
     <QueryClientProvider client={queryClient}>
       <App />
@@ -112,9 +124,9 @@ createRoot(document.getElementById('root')!).render(
 A dedicated component, [`SparkyFitnessFrontend/src/components/LanguageHandler.tsx`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/components/LanguageHandler.tsx), is used to synchronize the `i18next` language with the user's preference stored in the `PreferencesContext`.
 
 ```typescript
-import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
-import { usePreferences } from '@/contexts/PreferencesContext';
+import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
+import { usePreferences } from "@/contexts/PreferencesContext";
 
 const LanguageHandler = () => {
   const { i18n } = useTranslation();
@@ -160,7 +172,10 @@ The `t` function takes a translation key (e.g., `"nav.diary"`) and returns the c
 The language switcher lives in the Preferences section of the settings page. It renders one entry per supported language, so adding a language to `languageUtils.ts` is enough to make it appear — the list is never hardcoded here.
 
 ```tsx
-import { getLanguageDisplayName, getSupportedLanguages } from "@/utils/languageUtils";
+import {
+  getLanguageDisplayName,
+  getSupportedLanguages,
+} from "@/utils/languageUtils";
 // ...
 
 <Select value={language} onValueChange={setLanguage}>
@@ -174,7 +189,7 @@ import { getLanguageDisplayName, getSupportedLanguages } from "@/utils/languageU
       </SelectItem>
     ))}
   </SelectContent>
-</Select>
+</Select>;
 ```
 
 `getLanguageDisplayName` returns each language's endonym — `Deutsch`, `Español`, `日本語` — so the list reads the same whatever the interface language is.

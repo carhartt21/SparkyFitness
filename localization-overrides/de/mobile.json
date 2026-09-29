@@ -6,17 +6,20 @@
     "movementReminderTitle": "Zeit für eine Bewegungspause?",
     "movementReminderBody": "Öffnen Sie einen kurzen Timer, wenn dies für Sie funktioniert.",
     "checkinReminderTitle": "Täglicher Check-in",
-    "checkinReminderBody": "Wie war dein Tag? Es dauert ein paar Fingertipps.",
+    "checkinReminderBody": "Wie war Ihr Tag? Das dauert nur wenige Sekunden.",
     "weighInReminderTitle": "Wiegen",
     "weighInReminderBody": "Bereit, das heutige Gewicht aufzuzeichnen?",
     "habitReminderTitle": "Gewohnheit",
-    "habitReminderBody": "Bereit, wenn Sie es sind. Notieren Sie es auf dem Bildschirm „Gewohnheiten“."
+    "habitReminderBody": "Bereit für Ihren Gewohnheitseintrag? Öffnen Sie die Gewohnheiten.",
+    "reviewReminderBody": "Prüfen Sie Ihre Mahlzeitenfotos, wenn es für Sie passt.",
+    "breakExplanation": "Stehen Sie auf, gehen Sie ein Stück oder bewegen Sie sich auf eine für Sie passende Weise. Der Timer erfasst keine Bewegung; eine Aktivität können Sie separat speichern.",
+    "breakSettingSubtitle": "Starten Sie einen kurzen Timer. Das Beenden erfasst keine Bewegung."
   },
   "mobility": {
     "title": "Geführte Mobilität",
     "openRoutines": "Geführte Mobilitätsroutinen",
     "intro": "Erstellen Sie eine kurze Sequenz, die Sie kennen. Es werden nur die von Ihnen bestätigten Schritte aufgezeichnet.",
-    "loading": "Laderoutinen",
+    "loading": "Routinen werden geladen …",
     "accountRequired": "Stellen Sie eine Verbindung zu Ihrem Konto her, um gespeicherte Routinen zu verwenden.",
     "loadError": "Ihre Routinen konnten nicht geladen werden.",
     "actionError": "Diese Änderung konnte nicht gespeichert werden. Versuchen Sie es erneut.",
@@ -94,7 +97,9 @@
     "historyOlder": "Ältere Einheiten anzeigen"
   },
   "common": {
-    "optionalParen": "(Optional)"
+    "optionalParen": "(Optional)",
+    "connectionRetry": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "requestTimedOut": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung."
   },
   "settings": {
     "language": {
@@ -121,7 +126,8 @@
       "loading": "Profil wird geladen",
       "fallbackName": "Ihr Konto",
       "accessibilityLabel": "{{name}}. Verbunden mit {{host}}. Öffnet die Servereinstellungen."
-    }
+    },
+    "addServer": "Tippen Sie, um einen Server hinzuzufügen"
   },
   "navigation": {
     "home": "Zuhause",
@@ -134,8 +140,8 @@
       "hydration": "Trinkerinnerungen"
     },
     "hydration": {
-      "title": "Zeit, Feuchtigkeit zu spenden 💧",
-      "body": "Sie haben seit einiger Zeit kein Wasser mehr registriert.",
+      "title": "Zeit, etwas zu trinken 💧",
+      "body": "Sie haben seit einiger Zeit kein Wasser erfasst.",
       "log250ml": "250 ml erfassen"
     },
     "permission": {
@@ -143,6 +149,9 @@
     },
     "exactAlarm": {
       "message": "Android verzögert geplante Alarme, es sei denn, X on Track darf genaue Alarme festlegen. Aktivieren Sie „Alarme und Erinnerungen“, damit Ruhe-Timer und Medikamentenerinnerungen pünktlich klingeln."
+    },
+    "fasting": {
+      "body": "Ihr Fastenziel ist erreicht."
     }
   },
   "activeWorkout": {
@@ -168,14 +177,26 @@
     },
     "bar": {
       "unsavedChanges": "Einige Änderungen haben den Server nicht erreicht.",
-      "endWithoutSaving": "Dadurch wird das aktuelle Training beendet, ohne dass der Fortschritt gespeichert wird."
+      "endWithoutSaving": "Dadurch wird das aktuelle Training beendet, ohne dass der Fortschritt gespeichert wird.",
+      "clearWorkout": "Training leeren",
+      "clearWorkoutTitle": "Training leeren?",
+      "open": "Aktives Training öffnen",
+      "saveFailed": "Ihr Training konnte nicht gespeichert werden."
     },
     "exerciseCard": {
       "addSetFallback": "Set zur Übung hinzufügen",
-      "addSetTo": "Satz zu {{exerciseName}} hinzufügen"
+      "addSetTo": "Satz zu {{exerciseName}} hinzufügen",
+      "moreOptionsFor": "Weitere Optionen für {{exerciseName}}",
+      "moreOptionsFallback": "Weitere Optionen für Übung",
+      "addNote": "Fügen Sie eine Notiz zu dieser Übung hinzu …"
     },
     "exercise": {
-      "addSet": "Satz zu {{name}} hinzufügen"
+      "addSet": "Satz zu {{name}} hinzufügen",
+      "moreOptions": "Weitere Optionen für {{name}}",
+      "notePlaceholder": "Fügen Sie eine Notiz zu dieser Übung hinzu …"
+    },
+    "setDetail": {
+      "addNote": "Fügen Sie eine Notiz zu diesem Satz hinzu …"
     }
   },
   "screens": {
@@ -187,7 +208,8 @@
       "supplementsSubtitle": "Die heutige Routine",
       "progressSubtitle": "Heute erledigte Aufgaben",
       "contextSubtitle": "Verletzung, Krankheit, Urlaub",
-      "trackingSettingsSubtitle": "Fortschritt und Erinnerungen"
+      "trackingSettingsSubtitle": "Fortschritt und Erinnerungen",
+      "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihre Mediathek anzuzeigen."
     }
   },
   "syncScreen": {
@@ -209,7 +231,8 @@
     },
     "removal": {
       "errorMessage": "Daten konnten nicht aus {{store}} entfernt werden.",
-      "confirmTitle": "Entfernen Sie alle {{store}}-Daten"
+      "confirmTitle": "Entfernen Sie alle {{store}}-Daten",
+      "confirmMessage": "Alle von X on Track in {{store}} gespeicherten Ernährungs- und Trinkprotokolle löschen und die Rückübertragung deaktivieren? Ihr X on Track-Tagebuch und die Protokolle aus anderen Apps sind davon nicht betroffen."
     },
     "range": {
       "description": "Steuert, wie viele Daten in die nächste Synchronisierung einbezogen werden",
@@ -221,6 +244,13 @@
     },
     "report": {
       "privacy": "Liest die Daten der letzten 4 Stunden von Health Connect zur Fehlerbehebung.\nAus Datenschutzgründen werden die Werte gerundet. Es wird nichts automatisch gesendet."
+    },
+    "permissionDenied": {
+      "read": "Erteilen Sie in {{settings}} die Leseberechtigung für {{metric}}.",
+      "write": "Erteilen Sie in {{settings}} die Schreibberechtigung für {{metric}}."
+    },
+    "import": {
+      "subtitle": "Einmaliger Import aller bisherigen Gesundheitsdaten"
     }
   },
   "dashboardSettings": {
@@ -232,7 +262,8 @@
     "medicationsSubtitle": "Zeigen Sie die Medikamentenkarte im Dashboard an",
     "healthTrendsSubtitle": "Wählen Sie aus, welche Diagramme im Dashboard angezeigt werden und in welcher Reihenfolge",
     "progressPhotosSubtitle": "Zeigen Sie die Fortschrittsfotokarte im Dashboard an",
-    "caffeineSubtitle": "Zeigen Sie die aktive Koffeinkarte im Dashboard an"
+    "caffeineSubtitle": "Zeigen Sie die aktive Koffeinkarte im Dashboard an",
+    "fastingDisabledSubtitle": "Aktivieren Sie Fasten zuerst in den App-Einstellungen"
   },
   "notificationSettings": {
     "hydration": "Flüssigkeitszufuhr",
@@ -244,13 +275,21 @@
     "waterReminderStartAccessibility": "Startzeit, {{time}}",
     "waterReminderEnd": "Endzeit",
     "waterReminderEndAccessibility": "Endzeit, {{time}}",
-    "waterReminderInvalidWindow": "Die Endzeit muss nach der Startzeit liegen."
+    "waterReminderInvalidWindow": "Die Endzeit muss nach der Startzeit liegen.",
+    "restTimerSubtitle": "Benachrichtigt Sie am Ende einer Pause, auch im Hintergrund.",
+    "fastingGoalsSubtitle": "Benachrichtigt Sie, wenn Sie Ihr Fastenziel erreichen.",
+    "permissionBody": "Ohne Berechtigung erhalten Sie keine Benachrichtigungen zu Pausentimern, Fastenzielen oder Medikamenten.",
+    "remoteUpdateFailed": "Erinnerungen konnten nicht aktualisiert werden. Versuchen Sie es erneut.",
+    "remoteUnavailable": "Erinnerungen bei geschlossener App sind nicht verfügbar. Prüfen Sie die Benachrichtigungsberechtigung und die Push-Einrichtung."
   },
   "diary": {
     "bulk": {
-      "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen."
+      "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen.",
+      "invalidDate": "Geben Sie ein gültiges Datum ein."
     },
-    "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten."
+    "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten.",
+    "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihr Tagebuch anzuzeigen.",
+    "checkConnection": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
   },
   "privacyPolicy": {
     "storageSummary": "X on Track speichert die von Ihnen protokollierten Datensätze auf Ihrem Gerät und, wenn die Synchronisierung aktiviert ist, auf Ihrem ausgewählten selbst gehosteten Server.",
@@ -265,7 +304,8 @@
     "goalSeparator": "/ {{value}}"
   },
   "foodSummary": {
-    "addFoodToMeal": "Essen zu {{meal}} hinzufügen"
+    "addFoodToMeal": "Essen zu {{meal}} hinzufügen",
+    "tapToAddFood": "Tippen Sie, um ein Lebensmittel hinzuzufügen"
   },
   "nutritionOutbox": {
     "title": "Auf diesem Gerät gespeichert",
@@ -302,13 +342,15 @@
     "ofGoal": "von {{value}}",
     "gramsUnit": "g",
     "legacyProjectionSource": "Geräteprojektion",
-    "projectedTdee": "Prognostizierter TDEE: {{value}} kcal"
+    "projectedTdee": "Prognostizierter TDEE: {{value}} kcal",
+    "carbsShort": "KH",
+    "netCarbsShort": "Netto-KH"
   },
   "exerciseReview": {
     "logExercise": "Aktivität erfassen",
     "title": "Aktivitätsübersicht",
-    "librarySubtitle": "Vergleiche deine Aktivität nach Tag, Woche, Monat oder Jahr",
-    "intro": "Deine erfasste Aktivität im Vergleich zum vorherigen Zeitraum.",
+    "librarySubtitle": "Vergleichen Sie Ihre Aktivität nach Tag, Woche, Monat oder Jahr",
+    "intro": "Ihre erfasste Aktivität im Vergleich zum vorherigen Zeitraum.",
     "today": "Tag",
     "week": "Woche",
     "month": "Monat",
@@ -317,7 +359,7 @@
     "earlier": "Früherer Zeitraum",
     "later": "Späterer Zeitraum",
     "loading": "Aktivitätsübersicht wird geladen…",
-    "offline": "Verbinde dich mit dem Server, um die Aktivitätsübersicht zu sehen.",
+    "offline": "Verbinden Sie sich mit dem Server, um die Aktivitätsübersicht zu sehen.",
     "failed": "Die Aktivitätsübersicht konnte nicht geladen werden.",
     "overall": "Alle Aktivitäten",
     "sessions_one": "{{count}} Einheit",
@@ -351,11 +393,11 @@
     "empty": "In diesem Zeitraum wurde keine Aktivität aufgezeichnet",
     "emptyHint": "Versuchen Sie es mit einem früheren Zeitraum oder protokollieren Sie eine Aktivität.",
     "recordedSessions": "Erfasste Einheiten",
-    "openSourceHint": "Öffne eine Einheit, um Details und Datenquelle zu sehen.",
+    "openSourceHint": "Öffnen Sie eine Einheit, um Details und Datenquelle zu sehen.",
     "openSource": "Öffnen Sie {{name}} von {{date}}",
     "unnamedSource": "Aktivität",
     "showMoreSources": "Weitere Einheiten anzeigen",
-    "sourceUnavailable": "Diese Aktivität ist nicht mehr verfügbar. Lade die Übersicht erneut.",
+    "sourceUnavailable": "Diese Aktivität ist nicht mehr verfügbar. Laden Sie die Übersicht erneut.",
     "sourceOpenFailed": "Diese Aktivität konnte nicht geöffnet werden.",
     "recordedOnly": "Die Übersicht enthält nur erfasste Einträge. Fehlende Strecken, Zeiten und Sätze werden nicht geschätzt."
   },
@@ -363,7 +405,14 @@
     "labels": {
       "quickAmounts": "Schnelle Mengen",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
-      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels"
+      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
+      "entryNotesPlaceholder": "Was möchten Sie zu diesem Eintrag festhalten?"
+    },
+    "errors": {
+      "savedFoodUnitFailedDetails": "Sie können das Lebensmittel trotzdem hinzufügen und die Einheit später erneut speichern.",
+      "tryAgain": "Versuchen Sie es erneut.",
+      "selectFoodInstead": "Wählen Sie ein Lebensmittel statt einer weiteren Mahlzeit.",
+      "chooseDifferentServing": "Wählen Sie eine andere Portion."
     }
   },
   "foodEntryMultiAdd": {
@@ -414,7 +463,7 @@
     "quickAdd": {
       "open": "{{name}} schnell hinzufügen",
       "added": "{{food}} zu {{meal}} hinzugefügt",
-      "diary": "Dein Tagebuch",
+      "diary": "Ihr Tagebuch",
       "macros": "P {{protein}} g · KH {{carbs}} g · F {{fat}} g",
       "serving": "Portion",
       "amount": "Menge",
@@ -423,6 +472,17 @@
       "moreOptionsShort": "Optionen",
       "add": "Zum Tagebuch hinzufügen",
       "addShort": "Hinzufügen"
+    },
+    "sections": {
+      "yourFoods": "Ihre Lebensmittel",
+      "yourMeals": "Ihre Mahlzeiten"
+    },
+    "states": {
+      "connectToSearch": "Verbinden Sie sich mit dem Server, um Lebensmittel zu suchen.",
+      "searchToLog": "Suchen Sie ein Lebensmittel oder eine Mahlzeit zum Eintragen."
+    },
+    "multiSelect": {
+      "limitReached": "Sie können bis zu {{limit}} Lebensmittel auswählen"
     }
   },
   "workoutPresetForm": {
@@ -445,7 +505,7 @@
     "ready": "Bereit",
     "countdown": "Machen Sie sich bereit",
     "work": "Arbeit",
-    "rest": "Ruhe dich aus",
+    "rest": "Ruhen Sie sich aus",
     "finished": "Abgeschlossen",
     "roundOfTotal": "Runden Sie {{current}} von {{total}}",
     "round": "Runde {{current}}",
@@ -482,7 +542,12 @@
     "showGuide": "Anleitung anzeigen",
     "hideGuide": "Anleitung ausblenden",
     "guideNotSaved": "Der Leitfaden wird niemals mit Ihrem Foto gespeichert.",
-    "grantCamera": "Kamera zulassen"
+    "grantCamera": "Kamera zulassen",
+    "historyDescription": "Ihre Fotos aus dieser Perspektive, neueste zuerst.",
+    "historyDescriptionCapped": "Ihre {{limit}} neuesten Fotos. Über Vergleichen oder Zeitraffer finden Sie ältere Aufnahmen.",
+    "emptyBody": "Fügen Sie oben ein Foto hinzu. Es erscheint hier zusammen mit dem Gewicht dieses Tages.",
+    "pickWhich": "Tippen Sie auf eines der beiden Daten, um einen anderen Tag zu vergleichen.",
+    "timelapseEmpty": "Fügen Sie mindestens zwei Fotos aus dieser Perspektive hinzu, um einen Zeitraffer abzuspielen."
   },
   "insights": {
     "subtitle": "Trends aus Ihren protokollierten Daten.",
@@ -498,12 +563,12 @@
     "weightTrend": "Gewichtstrend",
     "logWeight": "Protokollgewicht",
     "latestWeight": "Zuletzt erfasstes Gewicht",
-    "changeInRange": "Reichweitenänderung",
+    "changeInRange": "Veränderung im Zeitraum",
     "keyInsights": "Wichtige Erkenntnisse",
-    "loggedDays_one": "Sie haben in den letzten {{total}} Tagen Essen auf {{count}} protokolliert.",
-    "loggedDays_other": "Sie haben in den letzten {{total}} Tagen Essen auf {{count}} protokolliert.",
+    "loggedDays_one": "In den letzten {{total}} Tagen wurde an {{count}} Tag ein Lebensmitteleintrag erfasst.",
+    "loggedDays_other": "In den letzten {{total}} Tagen wurden an {{count}} Tagen Lebensmitteleinträge erfasst.",
     "checkinsTitle": "Täglicher Check-in",
-    "checkinAction": "Checken Sie ein",
+    "checkinAction": "Check-in erfassen",
     "checkinDays": "{{completed}} von {{total}} Tagen abgeschlossen · {{skipped}} übersprungen",
     "checkinOverall": "Gesamttag: {{value}} von 5 im Durchschnitt ({{answered}} Antworten)",
     "checkinAnswer": "{{question}}: {{value}} von 5 im Durchschnitt ({{answered}}-Antworten)",
@@ -527,8 +592,8 @@
     "checkinItem": "Täglicher Check-in",
     "weighIn": "Wiegen",
     "measurement": "Messung",
-    "subtitle": "Anteil der für heute vorgesehenen Aufgaben, die du erledigt hast.",
-    "offline": "Verbinde dich mit dem Server, um deinen Fortschritt zu sehen.",
+    "subtitle": "Anteil der für heute vorgesehenen Aufgaben, die Sie erledigt haben.",
+    "offline": "Verbinden Sie sich mit dem Server, um Ihren Fortschritt zu sehen.",
     "loading": "Fortschritt wird geladen…",
     "countLine": "{{day}} · {{completed}} von {{applicable}} abgeschlossen",
     "nothingAppliesLine": "{{day}} · keine Tracking-Aufgaben",
@@ -588,7 +653,7 @@
     "everyDay": "Jeden Tag",
     "editHabits": "Gewohnheiten bearbeiten",
     "manageListSubtitle": "Ordnen, planen und archivieren Sie Ihre Gewohnheiten.",
-    "addHabit": "Füge Gewohnheit hinzu",
+    "addHabit": "Gewohnheit hinzufügen",
     "loading": "Ladegewohnheiten…",
     "emptyTitle": "Noch keine Gewohnheiten",
     "archived": "Archiviert",
@@ -658,7 +723,7 @@
     "skippedNotice": "Sie haben diesen Check-in übersprungen. Antworten Sie unten oder öffnen Sie es erneut, um von vorne zu beginnen.",
     "reopen": "Wieder öffnen",
     "completedNotice": "Check-in abgeschlossen. Sie können Ihre Antworten weiterhin bearbeiten.",
-    "overallTitle": "Wie war dein Tag insgesamt?",
+    "overallTitle": "Wie war Ihr Tag insgesamt?",
     "overallSubtitle": "Denken Sie an Ihren ganzen Tag, von Anfang bis Ende.",
     "summaryTitle": "Zusammenfassung des Tages",
     "summarySubtitle": "Optional. Tippen Sie erneut, um eine Antwort zu löschen.",
@@ -760,7 +825,7 @@
     "offlineSubtitle": "Stellen Sie eine Verbindung zu Ihrem Server her, um Ihre Routine anzuzeigen.",
     "loading": "Ergänzungen werden geladen…",
     "emptyTitle": "Noch keine Ergänzungen",
-    "emptySubtitle": "Füge eine Nahrungsergänzung mit Einnahmeplan hinzu, um sie hier zu sehen. Medikamente findest du weiterhin unter „Medikamente“.",
+    "emptySubtitle": "Fügen Sie eine Nahrungsergänzung mit Einnahmeplan hinzu, um sie hier zu sehen. Medikamente finden Sie weiterhin unter „Medikamente“.",
     "add": "Nahrungsergänzung hinzufügen",
     "takenToday": "genommen",
     "noneScheduled": "Für diesen Tag sind keine Nahrungsergänzungsmittel geplant.",
@@ -816,7 +881,7 @@
     "synced": "Gesundheitsdaten synchronisiert",
     "savedLocally": "Auf diesem Telefon gespeichert, noch nicht hochgeladen",
     "waiting": "Offline. Gespeicherte Änderungen werden nach dem Verbinden hochgeladen.",
-    "attention": "Die Synchronisierung braucht deine Aufmerksamkeit. Details öffnen.",
+    "attention": "Die Synchronisierung benötigt Ihre Aufmerksamkeit. Details öffnen.",
     "syncing": "Wird synchronisiert",
     "hint": "Öffnet Synchronisierungsdetails"
   },
@@ -853,7 +918,17 @@
     "card": {
       "viewAllA11y": "Alle Medikamente anzeigen"
     },
-    "notificationScheduledDose": "Sie haben eine geplante Dosis"
+    "notificationScheduledDose": "Sie haben eine geplante Dosis",
+    "loadFailed": "Medikamente konnten nicht geladen werden.",
+    "dose": {
+      "savedActionError": "Eine gespeicherte Reaktion auf die Nahrungsergänzungs-Erinnerung konnte nicht gelesen werden. Prüfen Sie das Protokoll, bevor Sie die Einnahme erneut eintragen.",
+      "discardRejectedMessage": "Der Server hat diese gespeicherte Reaktion nicht angenommen. Prüfen Sie den Einnahmeverlauf, bevor Sie sie erneut eintragen."
+    },
+    "form": {
+      "nameRequired": "Geben Sie einen Namen für das Medikament ein.",
+      "invalidNumberMessage": "Geben Sie gültige Zahlen für Wirkstärke und Dosis ein.",
+      "invalidNutrient": "Geben Sie für jeden Nährstoff eine nicht negative Zahl ein."
+    }
   },
   "mealBuilder": {
     "linkedMealWebEdit": "Bearbeiten Sie diese Untermahlzeitzutat in der Web-App.",
@@ -866,7 +941,9 @@
       "noIngredientsMessage": "Fügen Sie mindestens ein Lebensmittel hinzu, bevor Sie diese Mahlzeit speichern.",
       "missingIngredientMessage": "Bei einem der ausgewählten Lebensmittel fehlt eine Serviervariante. Bitte fügen Sie es erneut hinzu."
     },
-    "notesPlaceholder": "z.B. das Rezept oder wie Sie es zubereiten"
+    "notesPlaceholder": "z.B. das Rezept oder wie Sie es zubereiten",
+    "loadErrorTitle": "Mahlzeit konnte nicht geladen werden.",
+    "addFood": "Lebensmittel hinzufügen"
   },
   "familyDiary": {
     "manageOnWeb": "Der Zugriff auf das Familientagebuch wird in der Web-App verwaltet.",
@@ -883,7 +960,9 @@
     "copyPermissionRevokedGuidance": "Aktualisieren Sie Familientagebücher, um Ihren aktuellen Zugriff anzuzeigen.",
     "copyStaleGuidance": "Das neueste Familientagebuch wird zur Durchsicht geöffnet.",
     "nutritionSummary": "{{calories}} kcal · P {{protein}} g · KH {{carbs}} g · F {{fat}} g",
-    "copyInvalidSelection": "Die ausgewählten Lebensmittel sind nicht mehr verfügbar."
+    "copyInvalidSelection": "Die ausgewählten Lebensmittel sind nicht mehr verfügbar.",
+    "loadMembersFailed": "Familienmitglieder konnten nicht geladen werden.",
+    "copyTargetMealRequired": "Wählen Sie eine Mahlzeit aus, bevor Sie kopieren."
   },
   "healthSync": {
     "appleSummary": "Liest ausgewählte Daten von Apple Health und synchronisiert sie mit Ihrem selbst gehosteten Server.",
@@ -893,7 +972,7 @@
     "title": "Zu synchronisierende Gesundheitsdaten",
     "enableAll": "Aktivieren Sie alle Gesundheitsmetriken",
     "batteryNote": "Die Aktivierung vieler Gesundheitsmetriken kann den Akkuverbrauch erhöhen. Mit jeder aktivierten Metrik kann die App im Hintergrund aktiviert werden, wenn neue Daten verfügbar sind.",
-    "writeSummary": "Überträgt die Daten, die du in X on Track erfasst, an {{store}}, damit beide auf dem gleichen Stand bleiben.",
+    "writeSummary": "Überträgt die Daten, die Sie in X on Track erfassen, an {{store}}, damit beide auf dem gleichen Stand bleiben.",
     "removeFrom": "Aus {{store}} entfernen",
     "removeData": "Entfernen Sie X-on-Track-Daten aus {{store}}",
     "syncMetricHint": "Schaltet die Synchronisierung für diese Gesundheitsmetrik um.",
@@ -902,7 +981,8 @@
       "healthAppUnavailableMessage": "Bitte installieren Sie die Apple Health App, um Ihre Gesundheitsdaten zu synchronisieren.",
       "permissionErrorMessage": "Beim Versuch, Integritätsberechtigungen anzufordern, ist ein unerwarteter Fehler aufgetreten: {{error}}"
     },
-    "consultProfessional": "Wende dich für medizinische Beratung, Diagnosen oder Behandlungen an eine medizinische Fachperson."
+    "consultProfessional": "Wenden Sie sich für medizinische Beratung, Diagnosen oder Behandlungen an eine medizinische Fachperson.",
+    "workoutExportErrorMessage": "Ihr Training wurde gespeichert, aber der Apple-Health-Export ist fehlgeschlagen: {{error}}"
   },
   "auth": {
     "noMethods": "Auf diesem Server sind derzeit keine Standard-Anmeldemethoden aktiviert. Bitte verwenden Sie einen API-Schlüssel oder wenden Sie sich an einen Administrator.",
@@ -915,7 +995,12 @@
       "sessionExpired": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
       "sendEmailCodeFailed": "E-Mail-Code konnte nicht gesendet werden. Bitte versuchen Sie es erneut.",
       "frontendUrlRequired": "Bitte geben Sie zuerst Ihre Frontend-URL ein.",
-      "httpsRequiredEdit": "Für Serververbindungen ist HTTPS erforderlich. Bitte bearbeiten Sie diese Konfiguration, um HTTPS zu verwenden."
+      "httpsRequiredEdit": "Für Serververbindungen ist HTTPS erforderlich. Bitte bearbeiten Sie diese Konfiguration, um HTTPS zu verwenden.",
+      "connectionFailed": "Verbindung zum Server fehlgeschlagen. Prüfen Sie die URL und versuchen Sie es erneut.",
+      "invalidVerificationCode": "Ungültiger Bestätigungscode. Versuchen Sie es erneut.",
+      "verificationFailed": "Bestätigung fehlgeschlagen. Versuchen Sie es erneut.",
+      "generic": "Anmeldung fehlgeschlagen. Versuchen Sie es erneut.",
+      "connectionRetry": "Verbindung zum Server fehlgeschlagen. Versuchen Sie es erneut."
     },
     "requestEmailCode": "Tippen Sie auf die Schaltfläche unten, um einen Bestätigungscode per E-Mail zu erhalten.",
     "reservedHeaderMessage": "„{{name}}“ kann mit den von der App festgelegten Headern in Konflikt stehen. Trotzdem weitermachen?",
@@ -927,7 +1012,9 @@
     "errors": {
       "serverUnreachable": "Der Server konnte nicht erreicht werden. Überprüfen Sie die URL und versuchen Sie es erneut."
     },
-    "learnMoreTitle": "Mehr über X on Track erfahren"
+    "learnMoreTitle": "Mehr über X on Track erfahren",
+    "subtitle": "Ihr selbst gehosteter Fitness-Tracker",
+    "learnMoreBody": "X on Track hilft Ihnen, Ernährung, Training und Gesundheitsdaten an einem Ort zu erfassen."
   },
   "syncFrequency": {
     "iosNote": "Wenn diese Option aktiviert ist, wird die App im Hintergrund aktualisiert, wenn Ihr Telefon dies zulässt. Bei der manuellen Synchronisierung erfolgt die Aktualisierung immer sofort."
@@ -950,11 +1037,12 @@
     },
     "notes": {
       "tdee": "Die Prognose gleicht sich um Mitternacht dem Gesamtwert des Geräts an.",
-      "fixed": "Die Aktivität ändert nichts an Ihrem Budget"
+      "fixed": "Die Aktivität ändert nichts an Ihrem Budget",
+      "dynamic": "Das Ziel steigt mit Ihrer Aktivität"
     },
     "goalMode": {
       "deviceProjectionDescription": "Dieser Prozentsatz wird direkt auf die projizierte Geräte-TDEE angewendet.",
-      "description": "Passt dein Kalorienziel zum Halten, Abnehmen oder Zunehmen an."
+      "description": "Passt Ihr Kalorienziel zum Halten, Abnehmen oder Zunehmen an."
     },
     "safetyFloor": {
       "standardDescription": "Verwendet den höheren Wert Ihrer geschätzten RMR und des klinischen Minimums.",
@@ -962,7 +1050,8 @@
     },
     "useExternalBmrHint": "Standardmäßig deaktiviert – Ihre gewählte Formel wird immer verwendet, bis Sie diese Option aktivieren. Wenn diese Option aktiviert ist, ersetzt ein BMR, der bei einem Check-in aufgezeichnet oder von einer intelligenten Waage oder einem Gesundheitsdienstleister synchronisiert wird, die Formel für diesen Tag, sofern er für Sie physiologisch plausibel ist.",
     "useExternalBmrIosNote": "Die Ruheenergie von Apple Health umfasst bereits leichte tägliche Aktivitäten. Daher sollten Sie die Aktivitätsstufe auf „Keine“ (×1,0) setzen, um eine doppelte Zählung zu vermeiden.",
-    "modeDescription": "Steuert, wie dein tägliches Kalorienziel an Aktivität angepasst wird."
+    "modeDescription": "Steuert, wie Ihr tägliches Kalorienziel an Aktivität angepasst wird.",
+    "includeRestingDescription": "Berücksichtigt den Ruheenergiebedarf (Grundumsatz) bei der Berechnung der Energiebilanz."
   },
   "diarySettings": {
     "customNutrientsDescription": "Benutzerdefinierte Nährstoffe werden in der X on Track-Web-App erstellt. Sobald Sie welche hinzugefügt haben, werden sie hier angezeigt, sodass Sie auswählen können, welche Sendung in Ihrem Tagebuch angezeigt werden soll.",
@@ -970,7 +1059,9 @@
   },
   "about": {
     "descriptionTitle": "Über diese App",
-    "description": "Protokollieren Sie Ernährungs-, Trainings- und Gesundheitsdaten. Verstehen Sie Ihre Muster und verbessern Sie sich im Vergleich zu Ihrer eigenen Grundlinie."
+    "description": "Protokollieren Sie Ernährungs-, Trainings- und Gesundheitsdaten. Verstehen Sie Ihre Muster und verbessern Sie sich im Vergleich zu Ihrer eigenen Grundlinie.",
+    "personalBestDescription": "Erfassen Sie Ernährung, Training und Gesundheitsdaten. Erkennen Sie Muster und entwickeln Sie sich im Vergleich zu Ihrem eigenen Ausgangspunkt weiter.",
+    "openExternalLink": "Im Browser öffnen"
   },
   "errorBoundary": {
     "serverMayNeedUpdate": "Es ist ein unerwarteter Fehler aufgetreten. Möglicherweise muss Ihr Server aktualisiert werden.",
@@ -994,7 +1085,8 @@
     "watch": {
       "description": "Status des Watch-Companion-Links. Auf der Uhr erfasste Check-ins werden in die Warteschlange gestellt und zugestellt, auch wenn „erreichbar“ deaktiviert ist. Ein grauer Punkt bedeutet hier also nicht, dass Daten verloren gehen.",
       "unsupported": "Auf dieser Plattform nicht unterstützt",
-      "notReachable": "Watch-App nicht im Vordergrund"
+      "notReachable": "Watch-App nicht im Vordergrund",
+      "reachable": "Watch-App ist jetzt erreichbar"
     },
     "whatsNew": {
       "description": "Löschen Sie die zuletzt angezeigte Version, damit das Banner wieder über der Tab-Leiste angezeigt wird."
@@ -1014,10 +1106,22 @@
       "richWorkoutSeeded": "Einen 12-minütigen Spaziergang mit Route, Herzfrequenz, Geschwindigkeit und Runden festgelegt. Führen Sie eine Vordergrundsynchronisierung durch, um es einzubinden.",
       "richWorkoutIosSeeded": "Einen 12-minütigen Spaziergang mit Route und Herzfrequenz gesät. Führen Sie eine Vordergrundsynchronisierung durch, um es einzubinden.",
       "richStrengthSeeded": "Ein synthetisches 35-minütiges Krafttraining mit erhöhter Herzfrequenz wurde erstellt. Gerätedaten enthalten keine Route oder Wiederholungen. Synchronisiere im Vordergrund, um es zu übernehmen.",
-      "richStrengthIosSeeded": "Ein synthetisches 35-minütiges Krafttraining mit erhöhter Herzfrequenz wurde erstellt. Gerätedaten enthalten keine Route, Runden oder Wiederholungen. Synchronisiere im Vordergrund, um es zu übernehmen."
+      "richStrengthIosSeeded": "Ein synthetisches 35-minütiges Krafttraining mit erhöhter Herzfrequenz wurde erstellt. Gerätedaten enthalten keine Route, Runden oder Wiederholungen. Synchronisiere im Vordergrund, um es zu übernehmen.",
+      "healthSeedFailed": "Testdaten für Gesundheit konnten nicht erstellt werden.",
+      "historicalSeedFailed": "Historische Schrittdaten konnten nicht erstellt werden.",
+      "historicalSeedFailedWithMessage": "Historische Schrittdaten konnten nicht erstellt werden: {{message}}",
+      "seedOldFailedWithMessage": "Ältere Gesundheitsdaten konnten nicht erstellt werden: {{message}}",
+      "seedOldFailed": "Ältere Gesundheitsdaten konnten nicht erstellt werden.",
+      "richWorkoutFailed": "Detailliertes Testtraining konnte nicht erstellt werden.",
+      "richWorkoutFailedWithMessage": "Detailliertes Testtraining konnte nicht erstellt werden: {{message}}",
+      "richStrengthFailed": "Detailliertes Krafttraining konnte nicht erstellt werden.",
+      "richStrengthFailedWithMessage": "Detailliertes Krafttraining konnte nicht erstellt werden: {{message}}"
     },
     "gallery": {
       "description": "Fake-Data-Vorschau der Dashboard-Zykluskarte in jeder Phase. Die Schwangerschafts- und diskreten Layouts folgen realen Daten: Wechseln Sie den Modus in den Hub-Einstellungen."
+    },
+    "seed": {
+      "title": "Gesundheitsdaten für Tests erstellen"
     }
   },
   "workout": {
@@ -1055,14 +1159,31 @@
     "tryDifferentPresetSearch": "Versuchen Sie einen anderen Suchbegriff, um eine Trainingsvoreinstellung zu finden.",
     "presetsAppearHere": "Von Ihnen erstellte Trainingsvoreinstellungen werden hier angezeigt.",
     "categoryCardio": "Ausdauer",
-    "categoryPowerlifting": "Kraftdreikampf"
+    "categoryPowerlifting": "Kraftdreikampf",
+    "noActiveWorkout": "Kein aktives Training",
+    "editPreset": "Trainingsvorlage bearbeiten",
+    "viewWorkout": "Training anzeigen",
+    "loadingPresets": "Trainingsvorlagen werden geladen …",
+    "editWorkout": "Training bearbeiten",
+    "logPastWorkout": "Vergangenes Training erfassen",
+    "failedMorePresets": "Weitere Trainingsvorlagen konnten nicht geladen werden.",
+    "searchWorkoutPresets": "Trainingsvorlagen suchen …",
+    "couldNotSave": "Ihr Training konnte nicht gespeichert werden.",
+    "pickFirstExercise": "Wählen Sie zuerst eine Übung aus",
+    "addExerciseBeforeSave": "Fügen Sie vor dem Speichern mindestens eine Übung mit einem Satz hinzu.",
+    "presetAddBeforeSave": "Fügen Sie vor dem Speichern mindestens eine Übung mit einem Satz hinzu.",
+    "pleaseTryAgain": "Versuchen Sie es erneut.",
+    "addExerciseOrDelete": "Fügen Sie mindestens eine Übung mit einem Satz hinzu oder löschen Sie das Training."
   },
   "cycleCard": {
     "setupA11y": "Richten Sie die Zyklus- und Schwangerschaftsverfolgung ein",
     "daysToDue_one": "{{count}} Tag bis zum errechneten Geburtstermin",
     "daysToDue_other": "{{count}} Tage bis zum errechneten Geburtstermin",
     "hubA11y": "Zyklus- und Schwangerschaftsübersicht öffnen",
-    "description": "Zyklusphasen, Vorhersagen, Symptome und Schwangerschaftsverlauf erfassen."
+    "description": "Zyklusphasen, Vorhersagen, Symptome und Schwangerschaftsverlauf erfassen.",
+    "discreetDescription": "Erfassen Sie Ihre Gesundheitswerte und Vorhersagen.",
+    "gestationalProgress": "Tippen Sie, um den Schwangerschaftsverlauf anzuzeigen.",
+    "hubProgress": "Tippen Sie, um die Zyklusübersicht anzuzeigen."
   },
   "syncHealth": {
     "errorDetails": "Die Synchronisierung der Gesundheitsdaten ist fehlgeschlagen: {{message}}",
@@ -1081,12 +1202,16 @@
       },
       "warrior20": {
         "description": "Iss eine große Mahlzeit oder verteile die Kalorien auf vier Stunden."
+      },
+      "warrior18": {
+        "description": "Fasten mit einem Essensfenster von 6 Stunden."
       }
     }
   },
   "fastingHistory": {
     "deleteMessage": "Dies kann nicht rückgängig gemacht werden.",
-    "hint": "Zum Bearbeiten antippen · zum Löschen nach links wischen"
+    "hint": "Zum Bearbeiten antippen · zum Löschen nach links wischen",
+    "empty": "Noch keine vergangenen Fastenzeiten."
   },
   "fastingEdit": {
     "beforeEnd": "Die Startzeit muss vor der Endzeit liegen.",
@@ -1101,7 +1226,8 @@
       "conditionsSubtitle": "Wählen Sie die entsprechenden Bedingungen aus, um Ihr Tracking zu personalisieren."
     },
     "enable": {
-      "title": "Zyklus- und Schwangerschaftserfassung aktivieren"
+      "title": "Zyklus- und Schwangerschaftserfassung aktivieren",
+      "subtitle": "Aufzeichnung, Vorhersagen und Verlauf aktivieren"
     },
     "values": {
       "discreetSubtitle": "Blendet Bezeichnungen wie „Zyklus“ und „Schwangerschaft“ in der App aus."
@@ -1134,26 +1260,36 @@
       "measurement": "Messung",
       "measurements": "Messungen"
     },
-    "enterValue": "Gib mindestens einen Wert ein oder lösche einen vorhandenen Wert."
+    "enterValue": "Geben Sie mindestens einen Wert ein oder löschen Sie einen vorhandenen Wert.",
+    "custom": {
+      "loadError": "Eigene Messwerte konnten nicht geladen werden."
+    }
   },
   "foodScan": {
     "errors": {
       "analyzeLabel": "Nährwertkennzeichnung konnte nicht analysiert werden. Bitte versuchen Sie es erneut.",
-      "lookupBarcode": "Dieser Barcode konnte nicht gefunden werden. Bitte versuchen Sie es erneut."
+      "lookupBarcode": "Dieser Barcode konnte nicht gefunden werden. Bitte versuchen Sie es erneut.",
+      "loadPhoto": "Foto konnte nicht geladen werden.",
+      "timeout": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung."
     },
     "permission": {
-      "camera": "Wir benötigen Ihre Erlaubnis, die Kamera zu zeigen"
+      "camera": "Wir benötigen Ihre Erlaubnis, die Kamera zu zeigen",
+      "grant": "Berechtigung erteilen"
     },
     "lookup": {
-      "nextSteps": "Sie können die Nährwertkennzeichnung scannen oder manuell eingeben."
+      "nextSteps": "Sie können die Nährwertkennzeichnung scannen oder manuell eingeben.",
+      "addManually": "Lebensmittel manuell hinzufügen"
     },
     "photo": {
-      "frameMeal": "Rahmen Sie die gesamte Mahlzeit ein"
+      "frameMeal": "Rahmen Sie die gesamte Mahlzeit ein",
+      "setupHelp": "Öffnen Sie X on Track im Browser und gehen Sie zu Einstellungen → KI, um einen KI-Anbieter hinzuzufügen. Kehren Sie dann hierher zurück."
     },
     "accessibility": {
       "chooseLabelPhoto": "Wählen Sie ein Etikettenfoto aus der Bibliothek aus",
       "choosePhoto": "Wählen Sie ein Foto aus der Bibliothek",
-      "howItWorks": "So funktioniert die Schätzung anhand eines Fotos"
+      "howItWorks": "So funktioniert die Schätzung anhand eines Fotos",
+      "flashlightOn": "Taschenlampe einschalten",
+      "flashlightOff": "Taschenlampe ausschalten"
     },
     "label": {
       "analyzing": "Etikett wird analysiert...",
@@ -1188,7 +1324,8 @@
       "medium": "Mittel",
       "high": "Hoch"
     },
-    "notesPlaceholder": "Notiere, wie du dich fühlst, dein Energielevel und weitere Details …"
+    "notesPlaceholder": "Notieren Sie, wie Sie sich fühlen, Ihr Energielevel und weitere Details …",
+    "tapToSelect": "Tippen Sie, um auszuwählen …"
   },
   "cycleInsights": {
     "forecastHint": "Protokollieren Sie die Symptome über mehrere Zyklen hinweg, um die kommenden Tage vorherzusagen.",
@@ -1196,10 +1333,10 @@
       "irregular_cycles": "Ihre Zykluslängen haben sich in letzter Zeit um mehr als ein paar Tage verändert. Wenn dies für Sie neu ist, kann es sinnvoll sein, es einem Arzt mitzuteilen.",
       "heavy_bleeding": "Ihre letzten Protokolle zeigen einen stärkeren Durchfluss als gewöhnlich oder Zeiträume, die länger als 7 Tage dauern. Wenn dies weiterhin der Fall ist, sollten Sie darüber nachdenken, es einem Arzt mitzuteilen.",
       "unusual_discharge": "Sie haben einen ungewöhnlichen Ausfluss protokolliert. Achten Sie auf Farb-, Geruchs- oder Texturveränderungen.",
-      "short_cycle_one": "Du hast einen kurzen Zyklus von {{count}} Tag erfasst. Zyklen unter 21 Tagen können weiter beobachtet werden.",
-      "short_cycle_other": "Du hast einen kurzen Zyklus von {{count}} Tagen erfasst. Zyklen unter 21 Tagen können weiter beobachtet werden.",
-      "long_cycle_one": "Du hast einen langen Zyklus von {{count}} Tag erfasst. Zyklen über 45 Tagen können weiter beobachtet werden.",
-      "long_cycle_other": "Du hast einen langen Zyklus von {{count}} Tagen erfasst. Zyklen über 45 Tagen können weiter beobachtet werden.",
+      "short_cycle_one": "Sie haben einen kurzen Zyklus von {{count}} Tag erfasst. Zyklen unter 21 Tagen können weiter beobachtet werden.",
+      "short_cycle_other": "Sie haben einen kurzen Zyklus von {{count}} Tagen erfasst. Zyklen unter 21 Tagen können weiter beobachtet werden.",
+      "long_cycle_one": "Sie haben einen langen Zyklus von {{count}} Tag erfasst. Zyklen über 45 Tagen können weiter beobachtet werden.",
+      "long_cycle_other": "Sie haben einen langen Zyklus von {{count}} Tagen erfasst. Zyklen über 45 Tagen können weiter beobachtet werden.",
       "short_cycle_generic": "Ein kurzer Zyklus wurde erfasst. Zyklen unter 21 Tagen können weiter beobachtet werden.",
       "long_cycle_generic": "Ein langer Zyklus wurde erfasst. Zyklen über 45 Tagen können weiter beobachtet werden."
     },
@@ -1221,7 +1358,7 @@
     "noDataHint": "Protokollieren Sie Gewicht, Stimmung, Schlaf und Energie über mehrere Zyklen hinweg, um zu sehen, wie sie sich mit Ihren Phasen verändern.",
     "conditions": {
       "longCycles": "Ihre Zyklen dauern im Durchschnitt 35 Tage. Wenn dies für Sie neu ist, kann es sich lohnen, mit einem Arzt darüber zu sprechen.",
-      "irregularCycles": "Deine Zyklen variieren ziemlich stark. Wenn Sie noch ein paar davon verfolgen, wird Ihr Bild schärfer; Erwägen Sie, es einem Arzt mitzuteilen.",
+      "irregularCycles": "Ihre Zyklen variieren stark. Wenn Sie weitere Zyklen erfassen, wird der Verlauf deutlicher. Sie können die Veränderungen mit einer medizinischen Fachperson besprechen.",
       "shortCycles": "Ihre Zyklen sind kürzer als üblich. Wenn dies neu ist, kann es sich lohnen, einen Arzt aufzusuchen."
     },
     "phases": {
@@ -1229,14 +1366,16 @@
       "fertile": "Fruchtbar"
     },
     "higher": "höher",
-    "lower": "niedriger"
+    "lower": "niedriger",
+    "noDataTitle": "Für Zusammenhänge werden mehr Daten benötigt"
   },
   "dateRange": {
     "removeTitle": "Wählen Sie einen Datumsbereich zum Entfernen aus"
   },
   "entryImage": {
     "addHelp": "Fügen Sie ein Foto hinzu, um eines für diesen Eintrag festzulegen.",
-    "entryOnly": "Dieses Foto gilt nur für diesen Eintrag."
+    "entryOnly": "Dieses Foto gilt nur für diesen Eintrag.",
+    "saveFailed": "Foto konnte nicht gespeichert werden."
   },
   "foodForm": {
     "ai": {
@@ -1257,7 +1396,14 @@
     "saveNutritionFailed": "Die Nährstoffe konnten nicht für die zukünftige Verwendung gespeichert werden",
     "equivalentSizes": "Äquivalente Größen",
     "foodNamePlaceholder": "z.B. Hähnchenbrust",
-    "brand": "Marke"
+    "brand": "Marke",
+    "saveNewUnitFailed": "Neue Einheit konnte nicht gespeichert werden.",
+    "saveNewVariantFailed": "Neue Variante konnte nicht gespeichert werden.",
+    "pastEntriesUpdated": "Vergangene Einträge aktualisiert",
+    "pastEntriesFailed": "Vergangene Einträge konnten nicht aktualisiert werden.",
+    "foodSaved": "Lebensmittel gespeichert.",
+    "updateFailed": "Lebensmittel konnte nicht aktualisiert werden.",
+    "addFood": "Lebensmittel hinzufügen"
   },
   "foodFormPersistence": {
     "discardMessage": "Sie haben nicht gespeicherte äquivalente Größen. Sie verwerfen, um fortzufahren?",
@@ -1268,13 +1414,21 @@
     "servingSizeRequired": "Die Portionsgröße muss größer als Null sein.",
     "loadingDetails": "Es werden immer noch Lebensmitteldetails geladen. Versuchen Sie es gleich noch einmal.",
     "equivalentsFailed": "Einige entsprechende Einheiten konnten nicht gespeichert werden",
-    "saveNutritionFailed": "Die Nährstoffe konnten nicht für die zukünftige Verwendung gespeichert werden"
+    "saveNutritionFailed": "Die Nährstoffe konnten nicht für die zukünftige Verwendung gespeichert werden",
+    "updateTitle": "Vergangene Einträge aktualisieren?",
+    "nameRequired": "Geben Sie einen Lebensmittelnamen ein.",
+    "pastUpdated": "Vergangene Einträge aktualisiert",
+    "pastUpdateFailed": "Vergangene Einträge konnten nicht aktualisiert werden.",
+    "foodSaved": "Lebensmittel gespeichert.",
+    "updateFoodFailed": "Lebensmittel konnte nicht aktualisiert werden.",
+    "saveUnitFailed": "Neue Einheit konnte nicht gespeichert werden.",
+    "saveVariantFailed": "Neue Variante konnte nicht gespeichert werden."
   },
   "foodPhotoImprove": {
     "cameraPermissionMessage": "Aktivieren Sie den Kamerazugriff, um ein Foto hinzuzufügen.",
     "invalidWeightMessage": "Das Gesamtgewicht muss eine positive Zahl sein.",
     "descriptionTooLongMessage": "Behalten Sie es unter den Zeichen {{max}}.",
-    "noImagesMessage": "Füge mindestens ein Foto hinzu, um eine Schätzung zu erstellen.",
+    "noImagesMessage": "Fügen Sie mindestens ein Foto hinzu, um eine Schätzung zu erstellen.",
     "readPhotoFailedMessage": "Bitte machen Sie das Foto erneut und versuchen Sie es erneut.",
     "descriptionHint": "Fügen Sie alles hinzu, was der {{subject}} möglicherweise nicht offensichtlich macht.",
     "chooseFromLibrary": "Wählen Sie aus der Bibliothek",
@@ -1292,7 +1446,10 @@
     "title": "Schätzung verbessern",
     "generateEstimate": "Schätzung erstellen",
     "weightPlaceholder": "z. B. 350",
-    "descriptionExamples": "Berücksichtige Öle, Butter, Sahne, Soßen, Beläge, Beilagen und Restaurantnamen."
+    "descriptionExamples": "Berücksichtige Öle, Butter, Sahne, Soßen, Beläge, Beilagen und Restaurantnamen.",
+    "loadPhotoFailed": "Foto konnte nicht geladen werden.",
+    "readingPhoto": "Foto wird gelesen …",
+    "readingPhotos": "Fotos werden gelesen …"
   },
   "passkeySettings": {
     "nameRequired": "Bitte geben Sie einen Namen für diesen Passkey ein.",
@@ -1309,30 +1466,39 @@
     "namePlaceholder": "z.B. {{example}}",
     "iosNameExample": "Mein iPhone",
     "androidNameExample": "Mein Android-Telefon",
-    "iosAuthMethods": "Face ID, Touch ID oder deine Geräte-PIN",
-    "androidAuthMethods": "dein Fingerabdruck, die Gesichtserkennung oder deine Geräte-PIN"
+    "iosAuthMethods": "Face ID, Touch ID oder Ihre Geräte-PIN",
+    "androidAuthMethods": "Ihr Fingerabdruck, die Gesichtserkennung oder Ihre Geräte-PIN",
+    "loadFailed": "Passkeys konnten nicht geladen werden: {{error}}",
+    "deleteFailed": "Passkey konnte nicht gelöscht werden: {{error}}"
   },
   "whatsNewPage": {
     "mockup": {
       "chatQuestion": "Was kann ich zum Abendessen essen, wenn ich noch 500 Kalorien übrig habe?",
-      "eightAm": "08:00"
+      "eightAm": "08:00",
+      "chatAnswer": "Gegrillter Lachs mit einem Beilagensalat enthält ungefähr 480 kcal."
     },
     "features": {
       "medications": {
         "body": "Fügen Sie Ihre Medikamente hinzu, legen Sie Dosispläne fest und protokollieren Sie jede Dosis über das Dashboard mit optionalen Erinnerungen.",
-        "eyebrow": "MEDIKAMENTE"
+        "eyebrow": "MEDIKAMENTE",
+        "headline": "Medikamente erfassen"
       },
       "photo": {
         "headline": "Schnappen Sie sich eine Mahlzeit und protokollieren Sie die Makros",
-        "cta": "Probieren Sie es aus"
+        "cta": "Probieren Sie es aus",
+        "body": "Schätzen Sie Nährwerte anhand eines Fotos, wenn Sie wenig Zeit haben."
       },
       "cycle": {
         "eyebrow": "ZYKLUS UND SCHWANGERSCHAFT",
         "headline": "Zyklus und Schwangerschaft erfassen",
-        "body": "Erfasse Zyklusphasen, Symptome, Blutung und Schwangerschaftsverlauf. Dazu erhältst du passende Einblicke und Zielanpassungen."
+        "body": "Erfassen Sie Zyklusphasen, Symptome, Blutung und Schwangerschaftsverlauf. Dazu erhalten Sie passende Einblicke und Zielanpassungen."
       },
       "widget": {
-        "body": "Sieh deinen Tagesstand auf einen Blick. Füge das X on Track-Widget über die Widget-Galerie deines Startbildschirms hinzu."
+        "body": "Sehen Sie Ihren Tagesstand auf einen Blick. Fügen Sie das X on Track-Widget über die Widget-Galerie Ihres Startbildschirms hinzu.",
+        "headline": "Kalorien auf dem Startbildschirm"
+      },
+      "chat": {
+        "body": "Fragen Sie Trackbot nach Ernährung, Mahlzeiten und Ihrem Tag."
       }
     }
   },
@@ -1342,14 +1508,15 @@
     "setupFailedMessage": "Das Onboarding konnte nicht abgeschlossen werden. Bitte versuchen Sie es erneut.",
     "goalTitle": "Was ist Ihr Tracking-Ziel?",
     "goalDescription": "Wählen Sie den Modus, der am besten zu Ihrem aktuellen Gesundheitsschwerpunkt passt. Sie können dies jederzeit in den Einstellungen ändern.",
-    "dueDateDescription": "Wähle aus, wie der errechnete Geburtstermin bestimmt werden soll. Das kannst du später in den Einstellungen ändern.",
+    "dueDateDescription": "Wählen Sie aus, wie der errechnete Geburtstermin bestimmt werden soll. Das können Sie später in den Einstellungen ändern.",
     "recoveryDescription": "Wir werden Ihre Erkenntnisse auf die hormonelle Erholung oder die Übergangssymptome in den Wechseljahren abstimmen. Fahren wir mit dem nächsten Schritt fort.",
     "profileDescription": "Wählen Sie alle relevanten Erkrankungen oder Verhütungsmethoden aus, um Ihre Nachverfolgung zu personalisieren.",
-    "disclaimerBody": "Der Bereich für Wohlbefinden und reproduktive Gesundheit in X on Track hilft dir, Vorhersagen, Symptome und körperliche Messwerte zu verfolgen. Er ist weder zur Empfängnisverhütung noch zur Diagnose oder Behandlung gedacht.",
+    "disclaimerBody": "Der Bereich für Wohlbefinden und reproduktive Gesundheit in X on Track hilft Ihnen, Vorhersagen, Symptome und körperliche Messwerte zu verfolgen. Er ist weder zur Empfängnisverhütung noch zur Diagnose oder Behandlung gedacht.",
     "medicalDisclaimer": "Medizinischer Haftungsausschluss",
     "birthControl": {
       "injection": "Injektion"
-    }
+    },
+    "predictionsDescription": "Helfen Sie mit Ihren Angaben, Vorhersagen zu Ihrem Zyklus zu erstellen."
   },
   "fastingDetail": {
     "startDescription": "Starten Sie eine Fastenkur, um Ihr Fastenfenster und Ihre Stoffwechselstadien zu verfolgen.",
@@ -1372,12 +1539,15 @@
     }
   },
   "exerciseDetail": {
-    "makePublicMessage": "Diese Übung wird für alle Benutzer auf diesem Server sichtbar."
+    "makePublicMessage": "Diese Übung wird für alle Benutzer auf diesem Server sichtbar.",
+    "addFailed": "Übung konnte nicht hinzugefügt werden."
   },
   "mealTypeSettings": {
     "capacity": "Es können keine weiteren Essensarten platziert werden {{gap}}.",
     "createdPartial": "Erstellt, aber einige Einstellungen konnten nicht gespeichert werden.",
-    "visible": "{{name}} anzeigen"
+    "visible": "{{name}} anzeigen",
+    "failedDelete": "Mahlzeitenkategorie konnte nicht gelöscht werden.",
+    "loadFailed": "Mahlzeitenkategorien konnten nicht geladen werden."
   },
   "mealPlans": {
     "duplicateInactive": "Die Kopie ist inaktiv, sodass Sie sie zunächst überprüfen können.",
@@ -1403,32 +1573,48 @@
     "nutritionLine": "{{calories}} kcal · {{protein}} g P · {{carbs}} g KH · {{fat}} g F",
     "mealTypeMacros": "{{protein}} g P · {{carbs}} g KH · {{fat}} g F",
     "assignmentUnavailable": "Eine gespeicherte Mahlzeit und ein Mahlzeitentyp werden benötigt.",
-    "addFoodOrMeal": "Lebensmittel oder Mahlzeit hinzufügen"
+    "addFoodOrMeal": "Lebensmittel oder Mahlzeit hinzufügen",
+    "deleteFailed": "Mahlzeitenplan konnte nicht gelöscht werden.",
+    "loadFailed": "Mahlzeitenpläne konnten nicht geladen werden.",
+    "planningOptionsFailed": "Planungsoptionen konnten nicht geladen werden."
   },
   "mealDetail": {
     "makePublicMessage": "Diese Mahlzeit und alle darin enthaltenen Lebensmittel werden für alle Benutzer auf diesem Server sichtbar.",
     "removeFavorite": "Aus Favoriten entfernen",
     "addFavorite": "Zu Favoriten hinzufügen",
-    "configureServer": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Essensdetails anzuzeigen."
+    "configureServer": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Essensdetails anzuzeigen.",
+    "loadFailed": "Mahlzeit konnte nicht geladen werden."
   },
   "exerciseSearch": {
     "actions": {
-      "loadMoreFailed": "Es konnte nicht mehr geladen werden. Tippen Sie, um es noch einmal zu versuchen"
+      "loadMoreFailed": "Es konnte nicht mehr geladen werden. Tippen Sie, um es noch einmal zu versuchen",
+      "clearSearch": "Suche zurücksetzen"
     },
     "states": {
       "connectToView": "Stellen Sie eine Verbindung zu einem Server her, um Übungen anzuzeigen",
       "searchToStart": "Suchen Sie nach einer Übung, um loszulegen",
-      "connectToSearchOnline": "Stellen Sie eine Verbindung zu einem Server her, um nach Online-Übungen zu suchen"
+      "connectToSearchOnline": "Stellen Sie eine Verbindung zu einem Server her, um nach Online-Übungen zu suchen",
+      "failedToSearch": "Übungen konnten nicht durchsucht werden.",
+      "failedToLoad": "Übungen konnten nicht geladen werden.",
+      "failedToSearchProvider": "{{provider}} konnte nicht durchsucht werden.",
+      "failedToLoadProviders": "Anbieter konnten nicht geladen werden."
     },
     "filter": {
       "accessibility": "Filter {{noun}}, gefiltert nach {{filter}}",
       "emptySubtitle": "Ändern Sie den Filter, um Ihre anderen {{noun}} anzuzeigen.",
       "showAll": "Alle anzeigen"
+    },
+    "errors": {
+      "failedToAddExercise": "Übung konnte nicht hinzugefügt werden."
+    },
+    "accessibility": {
+      "loadingMore": "Weitere Übungen werden geladen"
     }
   },
   "editBarcode": {
     "errors": {
-      "invalidFormat": "Der Barcode muss 8–14 Ziffern lang sein."
+      "invalidFormat": "Der Barcode muss 8–14 Ziffern lang sein.",
+      "saveFailed": "Barcode konnte nicht gespeichert werden."
     },
     "confirm": {
       "inUseMessage": "Dieser Barcode ist bereits an „{{otherName}}“ angehängt. Hängen Sie es trotzdem an „{{foodName}}“ an?",
@@ -1444,7 +1630,14 @@
   },
   "workoutDetail": {
     "errors": {
-      "addExerciseOrDelete": "Fügen Sie mindestens eine Übung zu einem Satz hinzu oder löschen Sie das Training."
+      "addExerciseOrDelete": "Fügen Sie mindestens eine Übung zu einem Satz hinzu oder löschen Sie das Training.",
+      "saveFailed": "Training konnte nicht gespeichert werden."
+    },
+    "accessibility": {
+      "editWorkout": "Training bearbeiten"
+    },
+    "actions": {
+      "deleteWorkout": "Training löschen"
     }
   },
   "foodSettings": {
@@ -1468,6 +1661,9 @@
     "labels": {
       "personalRecordCount_one": "{{formattedCount}} persönlicher Rekord",
       "personalRecordCount_other": "{{formattedCount}} persönliche Rekorde"
+    },
+    "actions": {
+      "viewWorkout": "Training anzeigen"
     }
   },
   "createFood": {
@@ -1477,17 +1673,27 @@
       "barcodeRequired": "Der Barcode muss 8–14 Ziffern lang sein.",
       "equivalentsSaveFailed": "Einige entsprechende Einheiten konnten nicht gespeichert werden",
       "amountRequired": "Die Menge muss größer als null sein.",
-      "noMealTypesAvailable": "Es sind keine Mahlzeitenarten verfügbar. Bitte überprüfen Sie Ihre Kontoeinstellungen."
+      "noMealTypesAvailable": "Es sind keine Mahlzeitenarten verfügbar. Bitte überprüfen Sie Ihre Kontoeinstellungen.",
+      "nameRequired": "Geben Sie einen Lebensmittelnamen ein.",
+      "foodSaveFailed": "Lebensmittel konnte nicht gespeichert werden."
+    },
+    "actions": {
+      "addFood": "Lebensmittel hinzufügen"
     }
   },
   "foodDetail": {
     "makePublicMessage": "Dieses Essen wird für alle Benutzer auf diesem Server sichtbar.",
     "configureServer": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Lebensmitteldetails anzuzeigen.",
-    "servingOptionsError": "Einige Servieroptionen konnten derzeit nicht geladen werden."
+    "servingOptionsError": "Einige Servieroptionen konnten derzeit nicht geladen werden.",
+    "deleteFood": "Lebensmittel löschen",
+    "deleteSheetTitle": "Lebensmittel löschen"
   },
   "presetSearch": {
     "noPresetsYetMessage": "Starten Sie ein leeres Training oder speichern Sie ein Training als Voreinstellung, um es hier anzuzeigen",
-    "changeFilter": "Ändern Sie den Filter, um Ihre anderen Voreinstellungen anzuzeigen."
+    "changeFilter": "Ändern Sie den Filter, um Ihre anderen Voreinstellungen anzuzeigen.",
+    "searchFailed": "Vorlagen konnten nicht durchsucht werden.",
+    "loadFailed": "Vorlagen konnten nicht geladen werden.",
+    "pickFirstExercise": "Wählen Sie zuerst eine Übung aus"
   },
   "ownership": {
     "filter": "Filter {{noun}}, gefiltert nach {{filter}}",
@@ -1501,7 +1707,8 @@
     "copied": "Kopiert",
     "clipboard": {
       "timestamp": "Zeitstempel"
-    }
+    },
+    "filterSaveFailed": "Protokollfilter konnte nicht gespeichert werden."
   },
   "bumpPhotos": {
     "empty": "Nehmen Sie Ihr erstes Beule-Foto auf, um ein wöchentliches Tagebuch zu erstellen."
@@ -1515,11 +1722,14 @@
     "copied": "Kopiert",
     "tools": {
       "lookedUp": "Habe nach {{name}} gesucht"
-    }
+    },
+    "noServer": "Kein aktiver Server eingerichtet. Richten Sie zuerst einen Server in den Einstellungen ein.",
+    "emptyPrompt": "Fragen Sie Trackbot nach Ihrer Ernährung, Ihrem Training oder Ihren Zielen."
   },
   "foodImagePicker": {
     "errors": {
-      "cameraPermissionBody": "Aktivieren Sie den Kamerazugriff, um ein Foto hinzuzufügen."
+      "cameraPermissionBody": "Aktivieren Sie den Kamerazugriff, um ein Foto hinzuzufügen.",
+      "addFailed": "Foto konnte nicht hinzugefügt werden."
     },
     "labels": {
       "main": "Hauptbild"
@@ -1536,20 +1746,31 @@
       "noFoods": "In dieser Mahlzeit sind noch keine Lebensmittel enthalten."
     },
     "errors": {
-      "permission": "Sie sind nicht berechtigt, diese Mahlzeit zu bearbeiten."
+      "permission": "Sie sind nicht berechtigt, diese Mahlzeit zu bearbeiten.",
+      "saveFailed": "Mahlzeit konnte nicht gespeichert werden.",
+      "deleteFailed": "Mahlzeit konnte nicht gelöscht werden."
     },
-    "deleteConfirm": "Diese Mahlzeit löschen?"
+    "deleteConfirm": "Diese Mahlzeit löschen?",
+    "actions": {
+      "addFood": "Lebensmittel hinzufügen"
+    }
   },
   "exerciseMutations": {
     "errors": {
       "editPermission": "Sie sind nicht berechtigt, diese Übung zu bearbeiten.",
-      "deletePermission": "Sie sind nicht berechtigt, diese Übung zu löschen."
+      "deletePermission": "Sie sind nicht berechtigt, diese Übung zu löschen.",
+      "deleteFailed": "Eintrag konnte nicht gelöscht werden.",
+      "saveWorkout": "Training konnte nicht gespeichert werden.",
+      "updateWorkout": "Training konnte nicht aktualisiert werden.",
+      "saveActivity": "Aktivität konnte nicht gespeichert werden.",
+      "deleteExercise": "Übung konnte nicht gelöscht werden."
     },
     "confirm": {
       "deleteWorkoutMessage": "Dieses Training und alle seine Übungen werden dauerhaft entfernt.",
       "deleteActivityMessage": "Diese Aktivität wird dauerhaft entfernt.",
       "deleteExerciseMessage": "Diese Übung wird aus Ihrer Bibliothek entfernt. Vergangene protokollierte Sitzungen bleiben erhalten.",
-      "deleteWithHistoryMessage": "Dadurch werden auch Ihre protokollierten Trainingseinheiten für diese Übung dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden."
+      "deleteWithHistoryMessage": "Dadurch werden auch Ihre protokollierten Trainingseinheiten für diese Übung dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+      "deleteWorkoutTitle": "Training löschen?"
     },
     "hidden": {
       "usedByOthers": "Da es von anderen Personen verwendet wird, wurde es ausgeblendet statt gelöscht. Ihre Geschichte bleibt davon unberührt."
@@ -1574,11 +1795,12 @@
       "recalcFromGrams": "Die Nährwerte wurden von Hand bearbeitet und richten sich daher nicht mehr nach dem Gewicht. Tippen Sie, um das Gewicht neu zu berechnen.",
       "empty": "Jede Zutat wurde entfernt. Fügen Sie eins wieder hinzu oder wechseln Sie zu einem Lebensmittel.",
       "pickedFoodNote": "Aus Ihren Lebensmitteln hinzugefügt. Entfernen Sie es und fügen Sie es erneut hinzu, um die Menge zu ändern.",
-      "macroSummary": "{{calories}} kcal · {{protein}} g P · {{carbs}} g KH · {{fat}} g F"
+      "macroSummary": "{{calories}} kcal · {{protein}} g P · {{carbs}} g KH · {{fat}} g F",
+      "addFood": "Lebensmittel hinzufügen"
     },
     "match": {
       "useYourFood": "Aus Ihren Lebensmitteln: {{name}} · Tippen Sie, um es zu verwenden",
-      "usingYourFood": "Dein Lebensmittel verwenden: {{name}} · tippen für die KI-Schätzung",
+      "usingYourFood": "Ihr Lebensmittel verwenden: {{name}} · für die KI-Schätzung tippen",
       "matchedCount_one": "Auf Ihre Lebensmittel abgestimmte {{count}}-Zutat",
       "matchedCount_other": "Auf Ihre Lebensmittel abgestimmte {{count}}-Zutaten"
     },
@@ -1596,7 +1818,8 @@
       "eatenServings": "Verzehrte Portionen",
       "logging": "Wird erfasst",
       "derivedYield_one": "Ergibt etwa {{count}} Portion",
-      "derivedYield_other": "Ergibt etwa {{count}} Portionen"
+      "derivedYield_other": "Ergibt etwa {{count}} Portionen",
+      "eatenAmount": "Verzehrte Menge ({{unit}})"
     },
     "title": "Schätzung prüfen",
     "confidence": {
@@ -1614,10 +1837,12 @@
   "mealTypeDetail": {
     "states": {
       "noServerHint": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um den Nährwert Ihrer Mahlzeiten anzuzeigen.",
-      "noFoodsHint": "{{date}} hat für diese Mahlzeit keine Lebensmittel protokolliert."
+      "noFoodsHint": "{{date}} hat für diese Mahlzeit keine Lebensmittel protokolliert.",
+      "loadFailed": "Mahlzeit konnte nicht geladen werden."
     },
     "accessibility": {
-      "copyMeal": "Mahlzeit auf einen anderen Tag kopieren"
+      "copyMeal": "Mahlzeit auf einen anderen Tag kopieren",
+      "addFood": "Lebensmittel hinzufügen"
     }
   },
   "workoutPresetDetail": {
@@ -1629,20 +1854,28 @@
     },
     "actions": {
       "deleting": "Löschen…",
-      "duplicating": "Duplizieren…"
+      "duplicating": "Duplizieren…",
+      "logPast": "Vergangenes Training erfassen"
+    },
+    "accessibility": {
+      "edit": "Trainingsvorlage bearbeiten"
     }
   },
   "workoutPresetMutations": {
     "errors": {
       "editPermission": "Sie sind nicht berechtigt, diese Voreinstellung zu bearbeiten.",
-      "deletePermission": "Sie sind nicht berechtigt, diese Voreinstellung zu löschen."
+      "deletePermission": "Sie sind nicht berechtigt, diese Voreinstellung zu löschen.",
+      "create": "Trainingsvorlage konnte nicht erstellt werden.",
+      "delete": "Trainingsvorlage konnte nicht gelöscht werden."
     },
     "confirm": {
-      "message": "Diese Voreinstellung wird dauerhaft aus Ihrer Bibliothek entfernt."
+      "message": "Diese Voreinstellung wird dauerhaft aus Ihrer Bibliothek entfernt.",
+      "title": "Trainingsvorlage löschen?"
     }
   },
   "babyGrowth": {
-    "title": "Baby diese Woche"
+    "title": "Baby diese Woche",
+    "forYou": "Für Sie"
   },
   "addSheetActions": {
     "configureForExercise": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um eine Übung hinzuzufügen.",
@@ -1672,12 +1905,15 @@
     "servings": "Portionen"
   },
   "workoutAdd": {
-    "addExerciseMessage": "Fügen Sie vor dem Speichern mindestens eine Übung zu einem Satz hinzu."
+    "addExerciseMessage": "Fügen Sie vor dem Speichern mindestens eine Übung zu einem Satz hinzu.",
+    "saveFailed": "Training konnte nicht gespeichert werden.",
+    "tryAgain": "Versuchen Sie es erneut."
   },
   "mealMutations": {
     "deleteWithUsage": "Diese Mahlzeit aus Ihrer Bibliothek löschen? Protokollierte Tagebucheinträge bleiben unverändert, die zugehörigen Essenspläne können jedoch davon betroffen sein.",
     "deleteWithoutUsage": "Diese Mahlzeit aus Ihrer Bibliothek löschen? Protokollierte Tagebucheinträge bleiben unverändert.",
-    "deleteVerificationFailedMessage": "Ob diese Mahlzeit anderweitig verwendet wird, konnten wir nicht überprüfen. Versuchen Sie es erneut, bevor Sie es löschen."
+    "deleteVerificationFailedMessage": "Ob diese Mahlzeit anderweitig verwendet wird, konnten wir nicht überprüfen. Versuchen Sie es erneut, bevor Sie es löschen.",
+    "deleteFailed": "Mahlzeit konnte nicht gelöscht werden."
   },
   "liveWorkout": {
     "inProgressMessage": "Sie trainieren bereits. Das Starten eines anderen löscht es hier. Alle bereits gespeicherten Sets bleiben in Ihrem Tagebuch.",
@@ -1688,33 +1924,44 @@
   },
   "charts": {
     "weight": {
-      "empty": "Für diesen Zeitraum liegen keine Gewichtsdaten vor"
+      "empty": "Für diesen Zeitraum liegen keine Gewichtsdaten vor",
+      "loadFailed": "Gewichtsdaten konnten nicht geladen werden."
     },
     "steps": {
-      "empty": "Keine Schrittdaten für diesen Zeitraum"
+      "empty": "Keine Schrittdaten für diesen Zeitraum",
+      "loadFailed": "Schrittdaten konnten nicht geladen werden."
     },
     "sleep": {
-      "empty": "Für diesen Zeitraum liegen keine Schlafdaten vor"
+      "empty": "Für diesen Zeitraum liegen keine Schlafdaten vor",
+      "loadFailed": "Schlafdaten konnten nicht geladen werden."
     },
     "hydration": {
-      "empty": "Für diesen Zeitraum liegen keine Daten zur Flüssigkeitszufuhr vor"
+      "empty": "Für diesen Zeitraum liegen keine Daten zur Flüssigkeitszufuhr vor",
+      "loadFailed": "Daten zur Trinkmenge konnten nicht geladen werden."
     },
     "noStepData": "Keine Schrittdaten für diesen Zeitraum",
     "noLoggedIntake": "Für diesen Zeitraum wurde keine Aufnahme protokolliert",
     "nutrients": {
-      "empty": "Für diesen Zeitraum wurde keine Aufnahme protokolliert"
+      "empty": "Für diesen Zeitraum wurde keine Aufnahme protokolliert",
+      "loadFailed": "Trenddaten konnten nicht geladen werden."
     },
     "bbt": {
       "tooltip": "Klicken Sie auf die Zeile, um weitere Informationen zu erhalten",
       "empty": "Protokollieren Sie tägliche Temperaturprotokolle, um Ihr BBT-Diagramm anzuzeigen."
-    }
+    },
+    "weightLoadFailed": "Gewichtsdaten konnten nicht geladen werden.",
+    "stepsLoadFailed": "Schrittdaten konnten nicht geladen werden.",
+    "trendLoadFailed": "Trenddaten konnten nicht geladen werden.",
+    "allTrendsHidden": "Alle Diagramme sind ausgeblendet. Wählen Sie in den Dashboard-Einstellungen aus, welche angezeigt werden sollen."
   },
   "exerciseLibrary": {
     "configure": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Ihre Übungsbibliothek anzuzeigen.",
     "go": "Gehen Sie zu Einstellungen",
     "check": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "trySearch": "Versuchen Sie es mit einem anderen Suchbegriff, um gespeicherte Übungen zu finden.",
-    "empty": "Übungen, die Sie speichern oder protokollieren, werden hier angezeigt."
+    "empty": "Übungen, die Sie speichern oder protokollieren, werden hier angezeigt.",
+    "failed": "Übungen konnten nicht geladen werden.",
+    "moreFailed": "Weitere Übungen konnten nicht geladen werden."
   },
   "foodLibrary": {
     "configure": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Ihre Lebensmittelbibliothek anzuzeigen.",
@@ -1722,7 +1969,9 @@
     "check": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "trySearch": "Versuchen Sie es mit einem anderen Suchbegriff, um gespeicherte Lebensmittel zu finden.",
     "empty": "Lebensmittel, die Sie speichern oder protokollieren, werden hier angezeigt.",
-    "noun": "Lebensmittel"
+    "noun": "Lebensmittel",
+    "failed": "Lebensmittel konnten nicht geladen werden.",
+    "moreFailed": "Weitere Lebensmittel konnten nicht geladen werden."
   },
   "mealLibrary": {
     "configure": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Ihre Essensbibliothek anzuzeigen.",
@@ -1730,14 +1979,21 @@
     "check": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "trySearch": "Versuchen Sie es mit einem anderen Suchbegriff, um gespeicherte Mahlzeiten zu finden.",
     "empty": "Von Ihnen erstellte Mahlzeiten werden hier angezeigt.",
-    "noun": "Mahlzeiten"
+    "noun": "Mahlzeiten",
+    "failed": "Mahlzeiten konnten nicht geladen werden.",
+    "searchFailed": "Mahlzeiten konnten nicht durchsucht werden."
   },
   "presetLibrary": {
     "configure": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Ihre Trainingsvoreinstellungen anzuzeigen.",
     "go": "Gehen Sie zu Einstellungen",
     "check": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "trySearch": "Versuchen Sie einen anderen Suchbegriff, um eine Trainingsvoreinstellung zu finden.",
-    "empty": "Von Ihnen erstellte Trainingsvoreinstellungen werden hier angezeigt."
+    "empty": "Von Ihnen erstellte Trainingsvoreinstellungen werden hier angezeigt.",
+    "search": "Trainingsvorlagen suchen …",
+    "loading": "Trainingsvorlagen werden geladen …",
+    "failed": "Trainingsvorlagen konnten nicht geladen werden.",
+    "noItems": "Noch keine Trainingsvorlagen.",
+    "moreFailed": "Weitere Trainingsvorlagen konnten nicht geladen werden."
   },
   "workoutForm": {
     "removeFromSuperset": "Aus Obermenge entfernen"
@@ -1767,7 +2023,7 @@
     "errors": {
       "lmpFuture": "Ihre letzte Periode kann nicht in der Zukunft liegen.",
       "conceptionFuture": "Das Empfängnisdatum darf nicht in der Zukunft liegen.",
-      "past": "Der errechnete Geburtstermin liegt in der Vergangenheit. Prüfe das Datum.",
+      "past": "Der errechnete Geburtstermin liegt in der Vergangenheit. Prüfen Sie das Datum.",
       "tooFar": "Der errechnete Geburtstermin liegt zu weit in der Zukunft. Eine Schwangerschaft dauert ungefähr 40 Wochen."
     },
     "options": {
@@ -1775,11 +2031,14 @@
     }
   },
   "fertility": {
-    "testAccuracy": "Heimtests sind in der Regel 12 bis 14 Tage nach dem Eisprung am genauesten."
+    "testAccuracy": "Heimtests sind in der Regel 12 bis 14 Tage nach dem Eisprung am genauesten.",
+    "daysPastOvulation_one": "{{count}} Tag nach dem Eisprung",
+    "daysPastOvulation_other": "{{count}} Tage nach dem Eisprung",
+    "disclaimer": "Schätzungen auf Grundlage Ihrer erfassten Daten. Keine medizinische Beratung."
   },
   "pregnancySetup": {
     "checkDates": "Überprüfen Sie die Daten",
-    "description": "Wähle aus, wie der errechnete Geburtstermin bestimmt werden soll. Das kannst du später ändern.",
+    "description": "Wählen Sie aus, wie der errechnete Geburtstermin bestimmt werden soll. Das können Sie später ändern.",
     "saveFailed": "Die Schwangerschaftsdaten konnten nicht gespeichert werden."
   },
   "foodDelete": {
@@ -1793,7 +2052,9 @@
       "hideDescription": "Hält alles so wie es ist. Das Essen wird bei der Suche einfach nicht mehr angezeigt.",
       "deleteDescription": "Entfernt es aus Ihrer Bibliothek, Ihren Mahlzeiten und Essensplänen. Ihre protokollierten Einträge bleiben erhalten.",
       "deleteWithHistoryDescription": "Löscht außerdem dauerhaft Ihre protokollierten Tagebucheinträge für dieses Lebensmittel."
-    }
+    },
+    "failed": "Lebensmittel konnte nicht gelöscht werden.",
+    "title": "Lebensmittel löschen"
   },
   "exerciseEditing": {
     "removeMessage": "„{{name}}“ und alle seine Sätze entfernen?"
@@ -1815,7 +2076,10 @@
     "loadFailedSubtitle": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "noServerSubtitle": "Konfigurieren Sie Ihre Serververbindung für die Verwaltung von Wasserbehältern.",
     "goToSettings": "Gehen Sie zu Einstellungen",
-    "emptySubtitle": "Fügen Sie eine Flasche oder ein Glas hinzu, um die Flüssigkeitszufuhr zu verfolgen – optional verknüpft mit einem Lebensmittel, sodass ein Fingertipp beides protokolliert."
+    "emptySubtitle": "Fügen Sie eine Flasche oder ein Glas hinzu, um die Flüssigkeitszufuhr zu verfolgen – optional verknüpft mit einem Lebensmittel, sodass ein Fingertipp beides protokolliert.",
+    "loadFailed": "Trinkgefäße konnten nicht geladen werden.",
+    "deleteFailed": "Trinkgefäß konnte nicht gelöscht werden.",
+    "addPresetFailed": "Getränkevorlage konnte nicht hinzugefügt werden."
   },
   "waterContainerEdit": {
     "hydrationFactorHint": "Skaliert nur das Wasserguthaben: 1 für Wasser, etwa 0,9 für Kaffee oder Tee, 0 für ein Getränk, das als überhaupt kein Wasser gelten sollte. Kalorien, Koffein und Alkohol zählen immer voll.",
@@ -1833,7 +2097,9 @@
     "units": {
       "liter": "Liter"
     },
-    "namePlaceholder": "z. B. Meine Wasserflasche"
+    "namePlaceholder": "z. B. Meine Wasserflasche",
+    "selectFood": "Lebensmittel auswählen (optional)",
+    "saveFailed": "Trinkgefäß konnte nicht gespeichert werden."
   },
   "activeWorkoutAutosave": {
     "failedTitle": "Training nicht gespeichert",
@@ -1850,15 +2116,21 @@
     "weekBanner": {
       "daysToGo_one": "Noch {{days}} Tag",
       "daysToGo_other": "Noch {{days}} Tage",
-      "edit": "Schwangerschaftsdetails bearbeiten"
+      "edit": "Schwangerschaftsdetails bearbeiten",
+      "anyDayNow": "Bald ist es so weit"
     },
     "checklist": {
       "title": "Die Aufgaben dieser Woche",
       "empty": "Für diese Woche steht nichts auf Ihrer Checkliste.",
       "items": {
         "installCarSeat": "Installieren und überprüfen Sie den Autositz",
-        "shareNews": "Teile deine Neuigkeit, wenn du bereit bist.",
-        "birthClass": "Besuche einen Geburtsvorbereitungs- oder Elternkurs."
+        "shareNews": "Teilen Sie Ihre Neuigkeit, wenn Sie bereit sind.",
+        "birthClass": "Besuche einen Geburtsvorbereitungs- oder Elternkurs.",
+        "firstAppt": "Ersten Vorsorgetermin vereinbaren",
+        "anatomyScan": "Termin für den Organultraschall wahrnehmen",
+        "glucoseTest": "Termin für den Blutzuckertest vereinbaren",
+        "birthPlan": "Geburtsplan entwerfen",
+        "hospitalBag": "Kliniktasche packen"
       }
     },
     "babyDev": {
@@ -1888,7 +2160,8 @@
       },
       "w9": {
         "baby": "Wesentliche Organe werden gebildet; Das Baby ist nun offiziell ein Fötus.",
-        "comparison": "Eine Kirsche"
+        "comparison": "Eine Kirsche",
+        "mom": "Durch hormonelle Veränderungen können Sie Stimmungsschwankungen bemerken."
       },
       "w10": {
         "baby": "Lebenswichtige Organe funktionieren und winzige Nägel beginnen sich zu entwickeln.",
@@ -1917,7 +2190,8 @@
       },
       "w15": {
         "baby": "Das Baby kann Licht wahrnehmen und bewegt Fruchtwasser.",
-        "comparison": "Ein Apfel"
+        "comparison": "Ein Apfel",
+        "mom": "Vielleicht zeichnet sich nun eine kleine Rundung des Bauchs ab."
       },
       "w16": {
         "baby": "Das Baby kann Geräusche hören und sein Herz pumpt täglich viel Blut.",
@@ -1931,7 +2205,8 @@
       },
       "w18": {
         "baby": "Das Baby kann Ihre Stimme hören und möglicherweise auf Geräusche reagieren.",
-        "comparison": "Eine Paprika"
+        "comparison": "Eine Paprika",
+        "mom": "Möglicherweise spüren Sie nun deutlichere Bewegungen."
       },
       "w19": {
         "baby": "Ein Schutzmantel (Vernix) bedeckt die Haut.",
@@ -1940,11 +2215,13 @@
       },
       "w20": {
         "baby": "Auf halbem Weg! Das Baby schluckt und entwickelt Geschmacksknospen.",
-        "comparison": "Eine Banane"
+        "comparison": "Eine Banane",
+        "mom": "Der Organultraschall findet häufig um diese Zeit statt."
       },
       "w21": {
         "baby": "Das Baby bewegt sich mehr und hat regelmäßige Schlaf- und Wachzyklen.",
-        "comparison": "Eine Karotte"
+        "comparison": "Eine Karotte",
+        "mom": "Möglicherweise spüren Sie Tritte nun stärker und regelmäßiger."
       },
       "w22": {
         "mom": "Ihre Beule ist jetzt deutlich sichtbar.",
@@ -1986,19 +2263,22 @@
       },
       "w31": {
         "baby": "Das Baby nimmt schnell zu und bewegt sich häufig.",
-        "comparison": "Eine Kokosnuss"
+        "comparison": "Eine Kokosnuss",
+        "mom": "Möglicherweise bemerken Sie Übungswehen (Braxton-Hicks-Kontraktionen)."
       },
       "w32": {
         "baby": "Die Lunge übt das Atmen; Das Baby liegt oft mit dem Kopf nach unten.",
-        "comparison": "Ein Jicama"
+        "comparison": "Ein Jicama",
+        "mom": "Sie können nun mit dem Geburtsplan und dem Packen der Kliniktasche beginnen."
       },
       "w33": {
         "baby": "Die Knochen des Babys verhärten sich, der Schädel bleibt jedoch weich.",
-        "comparison": "Eine Ananas"
+        "comparison": "Eine Ananas",
+        "mom": "Möglicherweise spüren Sie mehr Druck im Becken."
       },
       "w34": {
         "baby": "Das Zentralnervensystem und die Lunge reifen gut heran.",
-        "mom": "Müdigkeit und Schwellung sind häufig; Ruhe dich aus, wenn du kannst.",
+        "mom": "Müdigkeit und Schwellung sind häufig; ruhen Sie sich aus, wenn Sie können.",
         "comparison": "Eine Melone"
       },
       "w35": {
@@ -2007,11 +2287,12 @@
         "comparison": "Eine Honigmelone"
       },
       "w36": {
-        "baby": "Das Baby liegt wahrscheinlich mit dem Kopf nach unten und nimmt etwa 28 g pro Tag zu."
+        "baby": "Das Baby liegt wahrscheinlich mit dem Kopf nach unten und nimmt etwa 28 g pro Tag zu.",
+        "mom": "Um diese Zeit beginnen häufig wöchentliche Vorsorgetermine."
       },
       "w37": {
         "baby": "Das Baby gilt als Frühgeburt und übt das Atmen.",
-        "mom": "Achte auf Anzeichen der Geburt und halte deine Tasche bereit."
+        "mom": "Achten Sie auf Anzeichen der Geburt und halten Sie Ihre Tasche bereit."
       },
       "w38": {
         "baby": "Organe sind bereit für das Leben im Freien; Das Baby hat einen festen Griff.",
@@ -2020,7 +2301,8 @@
       },
       "w39": {
         "baby": "Das Baby ist ausgewachsen und bereit, Sie kennenzulernen.",
-        "comparison": "Eine Mini-Wassermelone"
+        "comparison": "Eine Mini-Wassermelone",
+        "mom": "Bald kann es losgehen — achten Sie auf regelmäßige Wehen."
       },
       "w40": {
         "baby": "Der errechnete Geburtstermin ist da. Babys kommen in ihrem eigenen Tempo zur Welt.",
@@ -2029,7 +2311,8 @@
       },
       "w29": {
         "comparison": "Ein Butternusskürbis",
-        "baby": "Muskeln und Lungen entwickeln sich weiter; die Knochen sind vollständig angelegt."
+        "baby": "Muskeln und Lungen entwickeln sich weiter; die Knochen sind vollständig angelegt.",
+        "mom": "Wenn die Gebärmutter wächst, können Sie schneller außer Atem sein."
       }
     },
     "safety": {
@@ -2150,7 +2433,7 @@
         },
         "diphenhydramine": {
           "name": "Diphenhydramin (Benadryl)",
-          "note": "Eine kurzzeitige Anwendung wird oft als möglich angesehen. Frage vorher deine medizinische Fachperson."
+          "note": "Eine kurzzeitige Anwendung wird oft als möglich angesehen. Fragen Sie vorher Ihre medizinische Fachperson."
         }
       }
     },
@@ -2162,9 +2445,10 @@
   "foodPhotoIntro": {
     "weight": "Fügen Sie Gewicht hinzu, wenn Sie es wissen",
     "review": "Vor dem Speichern überprüfen",
-    "reviewHelp": "Fotoschätzungen sind ein Ausgangspunkt. Du kannst alles vor dem Erfassen anpassen.",
+    "reviewHelp": "Fotoschätzungen sind ein Ausgangspunkt. Sie können alles vor dem Erfassen anpassen.",
     "subtitle": "Aus einem Mahlzeitenfoto eine bearbeitbare Nährwertschätzung erstellen.",
-    "descriptionHelp": "Erwähne Soßen, Öle, Beläge, Restaurantnamen und Zutaten, die auf dem Foto nicht sichtbar sind."
+    "descriptionHelp": "Erwähne Soßen, Öle, Beläge, Restaurantnamen und Zutaten, die auf dem Foto nicht sichtbar sind.",
+    "logManually": "Stattdessen manuell erfassen"
   },
   "barcode": {
     "invalid": "Der Barcode muss 8–14 Ziffern lang sein.",
@@ -2282,5 +2566,103 @@
   },
   "foodProvenance": {
     "aiEstimate": "KI-Schätzung"
+  },
+  "cycleHistory": {
+    "toast": {
+      "manualAddFailed": "Zykluseintrag konnte nicht hinzugefügt werden.",
+      "deleteFailed": "Zykluseintrag konnte nicht gelöscht werden."
+    }
+  },
+  "exerciseHistory": {
+    "loadError": "Verlauf konnte nicht geladen werden."
+  },
+  "serverSettingsUi": {
+    "deleteFailed": "Serverkonfiguration konnte nicht gelöscht werden: {{error}}",
+    "noServerConfiguredMessage": "Fügen Sie zuerst einen Server hinzu.",
+    "openDashboardFailed": "Web-Dashboard konnte nicht geöffnet werden: {{error}}",
+    "addConfiguration": "Neue Konfiguration hinzufügen"
+  },
+  "activityDetail": {
+    "errors": {
+      "saveFailed": "Aktivität konnte nicht gespeichert werden."
+    }
+  },
+  "activityAdd": {
+    "errors": {
+      "saveFailed": "Aktivität konnte nicht gespeichert werden."
+    }
+  },
+  "foodEntryMeal": {
+    "failed": "Mahlzeit konnte nicht hinzugefügt werden."
+  },
+  "foodSave": {
+    "failed": "Lebensmittel konnte nicht gespeichert werden."
+  },
+  "symptoms": {
+    "saveFailed": "Symptom konnte nicht gespeichert werden."
+  },
+  "workoutDraft": {
+    "saveFailed": "Entwurf konnte nicht gespeichert werden."
+  },
+  "brand": {
+    "tagline": "Was auch immer Ihr X ist: Bleiben Sie auf Kurs."
+  },
+  "dashboard": {
+    "configureServer": "Richten Sie unter Einstellungen eine Serververbindung ein, um Ihre Tagesübersicht zu sehen.",
+    "checkConnection": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "loggedOnly": "Basierend auf erfassten Einträgen. Der Tag kann unvollständig sein.",
+    "offlineEmpty": "Für diesen Tag ist auf diesem Gerät noch keine Zusammenfassung gespeichert. Stellen Sie die Verbindung wieder her, um sie zu laden.",
+    "retrySavedWaterFailed": "Die gespeicherten Getränke konnten nicht synchronisiert werden. Versuchen Sie es erneut."
+  },
+  "importHistory": {
+    "paused": {
+      "quota": "Das tägliche Importlimit von {{source}} wurde erreicht. Ihr Fortschritt ist gespeichert. Setzen Sie den Import morgen an derselben Stelle fort.",
+      "deviceLocked": "Ihr Gerät wurde während des Imports gesperrt. Entsperren Sie es und setzen Sie den Import fort.",
+      "uploadFailed": "Der Upload auf Ihren Server ist fehlgeschlagen{{details}}. Prüfen Sie Ihre Verbindung und setzen Sie den Import fort.",
+      "appInactive": "Die App lief während des Imports im Hintergrund. Lassen Sie sie geöffnet und das Gerät entsperrt. Setzen Sie den Import dann fort.",
+      "serverChanged": "Der aktive Server hat sich während des Imports geändert. Wechseln Sie zum bisherigen Server zurück oder starten Sie den Import für diesen Server neu.",
+      "windowFailed": "Gesundheitsdaten konnten nicht gelesen werden{{details}}. Setzen Sie den Import an derselben Stelle fort.",
+      "alreadyRunningResume": "Eine andere Synchronisierung läuft gerade. Warten Sie, bis sie abgeschlossen ist, und setzen Sie den Import dann fort."
+    },
+    "idle": {
+      "description": "Importieren Sie Ihre bisherigen Daten aus {{source}} einmalig in X on Track – von der frühesten Aufzeichnung bis heute, für alle aktivierten Messwerte.",
+      "timing": "Das dauert einige Minuten. Sie können jederzeit pausieren und später an derselben Stelle fortfahren.",
+      "noMetrics": "Es sind keine Messwerte aktiviert. Wählen Sie zuerst unter „Gesundheitsdaten synchronisieren“ die gewünschten Daten aus.",
+      "serverChanged": "Der aktive Server hat sich während des Imports geändert. Starten Sie den Import für den aktuellen Server erneut.",
+      "alreadyRunning": "Eine andere Synchronisierung läuft gerade. Warten Sie, bis sie abgeschlossen ist, und starten Sie den Import dann."
+    },
+    "running": {
+      "keepOpen": "Lassen Sie die App geöffnet und Ihr Gerät entsperrt, bis der Import abgeschlossen ist.",
+      "limitedAccess": "Der Zugriff auf alle älteren Daten wurde nicht erlaubt. Der Import reicht daher nur etwa 30 Tage zurück. Erlauben Sie den Zugriff in den Health-Connect-Einstellungen und starten Sie den Import erneut."
+    },
+    "done": {
+      "nextSync": "Neue Daten werden automatisch bei der normalen Synchronisierung übernommen. Starten Sie nur dann einen weiteren Import, wenn Sie zusätzliche Gesundheitsdaten aktivieren."
+    },
+    "healthConnectUnavailable": "Health Connect ist nicht verfügbar. Prüfen Sie, ob es installiert und aktiviert ist."
+  },
+  "dailyNutritionDetails": {
+    "tryAgain": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+  },
+  "foodEntryView": {
+    "errors": {
+      "permission": "Sie dürfen diesen Eintrag nicht bearbeiten."
+    },
+    "deleteConfirm": "Möchten Sie diesen Lebensmitteleintrag löschen?"
+  },
+  "nutritionPhotos": {
+    "removeSignIn": "Melden Sie sich an, um dieses Mahlzeitenfoto zu entfernen.",
+    "removeCompleted": "Diese Mahlzeit wurde bereits vervollständigt. Aktualisieren Sie das Tagebuch, bevor Sie sie entfernen.",
+    "removeFailedHint": "Versuchen Sie es erneut, sobald der Server verfügbar ist.",
+    "selectFood": "Wählen Sie ein Lebensmittel für dieses Foto",
+    "caloriesRequired": "Wählen Sie ein Lebensmittel mit bekannten Kalorien oder tragen Sie sie manuell ein.",
+    "validCompletion": "Geben Sie einen Namen und einen bekannten Kalorienwert ein."
+  },
+  "healthMetrics": {
+    "walkingAsymmetryPercentage": "Asymmetrie beim Gehen (%)",
+    "walkingDoubleSupportPercentage": "Doppelte Stützphase beim Gehen (%)"
+  },
+  "nutritionQuick": {
+    "storageError": "Prüfen Sie den Gerätespeicher und versuchen Sie es erneut.",
+    "caloriesRequired": "Geben Sie die Kalorien ein."
   }
 }

@@ -10,7 +10,8 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { debug, info, error } from '@/utils/logging';
 import { format, parseISO, startOfDay } from 'date-fns';
-import { getDateLocale } from '@/utils/languageUtils';
+import { getDateLocale, getSupportedLanguages } from '@/utils/languageUtils';
+import i18n from '@/i18n';
 import { normalizeTimeFormat } from '@/utils/timeFormatters';
 import {
   FatBreakdownAlgorithm,
@@ -337,7 +338,23 @@ export const PreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
   const [waterDisplayUnit, setWaterDisplayUnitState] = useState<
     'ml' | 'oz' | 'liter'
   >('ml');
-  const [language, setLanguageState] = useState<string>('en');
+  const [language, setLanguageState] = useState<string>(() => {
+    // Preserve the language detected for the login screen until account
+    // preferences load. Starting at "en" made German sign-in toasts flash in
+    // English even when the browser had already selected German.
+    const detected =
+      (typeof window !== 'undefined' &&
+        (window.localStorage.getItem('language') ||
+          window.localStorage.getItem('i18nextLng') ||
+          window.navigator.language)) ||
+      i18n.resolvedLanguage ||
+      i18n.language ||
+      'en';
+    const supported = getSupportedLanguages();
+    if (supported.includes(detected)) return detected;
+    const base = detected.split('-')[0];
+    return base && supported.includes(base) ? base : 'en';
+  });
   const [bmrAlgorithm, setBmrAlgorithmState] = useState<BmrAlgorithm>(
     BmrAlgorithm.MIFFLIN_ST_JEOR
   );

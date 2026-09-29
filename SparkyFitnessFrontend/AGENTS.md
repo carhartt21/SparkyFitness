@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-28_
+_Last updated: 2026-09-29_
 
 SparkyFitness Frontend is the React web app for the SparkyFitness monorepo. Use this file as the primary guide for work inside `SparkyFitnessFrontend/`.
 
@@ -72,7 +72,7 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 
 ## Translations (i18n)
 
-- Only ever edit `public/locales/en/translation.json`. The other 35 locales are machine-synced through the `sync-translations.yml` workflow and a separate SparkyFitnessTranslations repo; hand-editing them creates conflicts with that pipeline.
+- Edit `public/locales/en/translation.json` for source copy. The other locales are machine-synced through the `sync-translations.yml` workflow and a separate SparkyFitnessTranslations repo; do not hand-edit their generated catalogs. For every new or changed user-facing element, add reviewed German copy in `../localization-overrides/de/web.json` in the same change, then apply and check the overlay with `node ../scripts/apply-german-overrides.mjs` and `node ../scripts/apply-german-overrides.mjs --check`. Review the rendered German UI at desktop and narrow widths. Use formal `Sie` or neutral copy consistently within a flow; English fallback and passing key/placeholder checks do not satisfy this requirement. User-entered and provider-supplied names remain literal.
 - UI strings go through `useTranslation()` / `t('...')` keys, not hardcoded literals.
 - `en/translation.json` is ~120 KB - grep for the key or section you need instead of reading the whole file.
 - Developer docs: `../docs/src/developer/translations.md`.
