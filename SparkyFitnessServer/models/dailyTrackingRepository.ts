@@ -941,3 +941,157 @@ export async function updateDailyTrackingPreferences(
     return toPreferences(result.rows[0]);
   });
 }
+
+// --- History (calendar) ---------------------------------------------------------
+// Bounded reads for the Daily Progress calendar. Timestamps let the service
+// refuse to apply a definition to a day it did not yet exist in that form.
+
+export interface HabitDefinitionHistory extends Habit {
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listHabitDefinitionsWithHistory(
+  userId: string
+): Promise<HabitDefinitionHistory[]> {
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<
+      HabitRow & { created_at: Date; updated_at: Date }
+    >(
+      `SELECT ${HABIT_COLUMNS}, created_at, updated_at FROM custom_categories
+       WHERE user_id = $1 AND habit_type IS NOT NULL
+       ORDER BY habit_sort_order ASC, created_at ASC`,
+      [userId]
+    );
+    return result.rows.map((row) => ({
+      ...toHabit(row),
+      created_at: row.created_at.toISOString(),
+      updated_at: row.updated_at.toISOString(),
+    }));
+  });
+}
+
+export interface MeasurementReminderHistory extends MeasurementReminder {
+  created_at: string;
+  updated_at: string;
+}
+
+export async function listMeasurementRemindersWithHistory(
+  userId: string
+): Promise<MeasurementReminderHistory[]> {
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<
+      ReminderRow & { created_at: Date; updated_at: Date }
+    >(
+      `SELECT ${REMINDER_COLUMNS}, created_at, updated_at FROM measurement_reminders
+       WHERE user_id = $1`,
+      [userId]
+    );
+    return result.rows.map((row) => ({
+      ...toReminder(row),
+      created_at: row.created_at.toISOString(),
+      updated_at: row.updated_at.toISOString(),
+    }));
+  });
+}
+
+/** When the tracking preferences last changed, or null if never saved. */
+export async function getDailyTrackingPreferencesUpdatedAt(
+  userId: string
+): Promise<string | null> {
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<{ updated_at: Date }>(
+      'SELECT updated_at FROM daily_tracking_preferences WHERE user_id = $1',
+      [userId]
+    );
+    return result.rows[0]?.updated_at.toISOString() ?? null;
+  });
+}
+
+export async function firstDailyCheckinDate(
+  userId: string
+): Promise<string | null> {
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<{ first: Date | string | null }>(
+      'SELECT MIN(entry_date) AS first FROM daily_checkins WHERE user_id = $1',
+      [userId]
+    );
+    const first = result.rows[0]?.first ?? null;
+    return first === null ? null : dayString(first);
+  });
+}
+
+/** Saved weights per day in a range: entry_date → last update. */
+export async function recordedWeightsInRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<Record<string, string>> {
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<{ entry_date: Date | string; at: Date }>(
+      `SELECT entry_date, MAX(updated_at) AS at FROM check_in_measurements
+       WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3 AND weight IS NOT NULL
+       GROUP BY entry_date`,
+      [userId, startDate, endDate]
+    );
+    return Object.fromEntries(
+      result.rows.map((row) => [
+        dayString(row.entry_date),
+        row.at.toISOString(),
+      ])
+    );
+  });
+}
+
+export interface MealDayRow {
+  entry_date: string;
+  meal_type_id: string;
+  status: MealDayStatusValue | null;
+  updated_at: string | null;
+  logged_item_count: number;
+}
+
+/** Explicit meal statuses and logged-item counts per day and meal type. */
+export async function listMealActivityInRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<MealDayRow[]> {
+  return withClient(userId, undefined, async (client) => {
+    const result = await client.query<{
+      entry_date: Date | string;
+      meal_type_id: string;
+      status: MealDayStatusValue | null;
+      updated_at: Date | null;
+      logged_item_count: string;
+    }>(
+      `WITH counts AS (
+         SELECT entry_date, meal_type_id, COUNT(*) AS n FROM food_entries
+         WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3
+         GROUP BY entry_date, meal_type_id
+         UNION ALL
+         SELECT entry_date, meal_type_id, COUNT(*) AS n FROM food_entry_meals
+         WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3
+         GROUP BY entry_date, meal_type_id
+       ), totals AS (
+         SELECT entry_date, meal_type_id, SUM(n) AS n FROM counts
+         GROUP BY entry_date, meal_type_id
+       )
+       SELECT COALESCE(s.entry_date, t.entry_date) AS entry_date,
+              COALESCE(s.meal_type_id, t.meal_type_id) AS meal_type_id,
+              s.status, s.updated_at, COALESCE(t.n, 0) AS logged_item_count
+       FROM (SELECT * FROM meal_day_statuses
+             WHERE user_id = $1 AND entry_date BETWEEN $2 AND $3) s
+       FULL OUTER JOIN totals t
+         ON t.entry_date = s.entry_date AND t.meal_type_id = s.meal_type_id`,
+      [userId, startDate, endDate]
+    );
+    return result.rows.map((row) => ({
+      entry_date: dayString(row.entry_date),
+      meal_type_id: row.meal_type_id,
+      status: row.status,
+      updated_at: iso(row.updated_at),
+      logged_item_count: Number(row.logged_item_count),
+    }));
+  });
+}

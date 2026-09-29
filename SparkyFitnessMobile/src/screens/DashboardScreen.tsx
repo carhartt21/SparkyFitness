@@ -1128,6 +1128,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           selectedDate={selectedDate}
           onSelectDate={handleCalendarSelect}
           markedDates={photoDates}
+          showDailyProgress={isConnected}
+          onOpenProgress={(date) =>
+            navigation.navigate('DailyProgress', { date })
+          }
         />
       </View>
     );
@@ -1142,6 +1146,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         selectedDate={selectedDate}
         onSelectDate={handleCalendarSelect}
         markedDates={photoDates}
+        showDailyProgress={isConnected}
+        onOpenProgress={(date) =>
+          navigation.navigate('DailyProgress', { date })
+        }
       />
     </View>
   );

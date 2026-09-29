@@ -15,6 +15,9 @@ import { toLocalDateString } from '../utils/dateUtils';
 import Icon from './Icon';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import { useMarkedDayComponent } from './calendarMarkedDays';
+import { useNeonScale } from './tracking/useNeonScale';
+import { useDailyProgressRange } from '../hooks/useDailyTracking';
+import type { DailyProgressDayState } from '@workspace/shared';
 import {
   useCalendarPresentation,
   getCalendarWeekdayShortNames,
@@ -35,6 +38,13 @@ interface CalendarSheetProps {
    * day cell, so existing callers are untouched.
    */
   markedDates?: string[];
+  /**
+   * Mark each day with its Daily Progress state (one bounded read per visible
+   * month). Only the owner's own calendars should enable this.
+   */
+  showDailyProgress?: boolean;
+  /** Opens a day's progress breakdown; shown as a link under the grid. */
+  onOpenProgress?: (date: string) => void;
 }
 
 interface CalendarContentProps extends CalendarSheetProps {
@@ -61,9 +71,12 @@ const CalendarContent = ({
   textMuted,
   accentPrimary,
   markedDates,
+  showDailyProgress = false,
+  onOpenProgress,
 }: CalendarContentProps) => {
   const { appLocale, presentation } = useCalendarPresentation();
   const { t } = useTranslation();
+  const neon = useNeonScale();
   const accentText = useCSSVariable('--color-accent-text') as string;
   const weekdayLabels = useMemo(
     () => getCalendarWeekdayShortNames(appLocale),
@@ -73,17 +86,64 @@ const CalendarContent = ({
     () => getCalendarMonthNames(appLocale),
     [appLocale]
   );
+  const [initialYear, initialMonth] = selectedDate.split('-').map(Number);
+  const [visible, setVisible] = useState({
+    year: initialYear,
+    month: initialMonth - 1,
+  });
+  const monthStart = toLocalDateString(
+    new Date(visible.year, visible.month, 1)
+  );
+  const monthEnd = toLocalDateString(
+    new Date(visible.year, visible.month + 1, 0)
+  );
+  const progressRange = useDailyProgressRange(monthStart, monthEnd, {
+    enabled: showDailyProgress,
+  });
+  const progressStates = useMemo(
+    () =>
+      Object.fromEntries(
+        (progressRange.data ?? []).map((day) => [day.date, day.state])
+      ),
+    [progressRange.data]
+  );
+  const progressColors = useMemo(
+    () => ({
+      complete: neon.green,
+      partial: neon.yellow,
+      notStarted: textMuted,
+    }),
+    [neon.green, neon.yellow, textMuted]
+  );
+  const progressLabel = useCallback(
+    (state: DailyProgressDayState) =>
+      state === 'complete'
+        ? t('calendarProgress.complete', { defaultValue: 'tracking complete' })
+        : state === 'partial'
+          ? t('calendarProgress.partial', {
+              defaultValue: 'tracking partly done',
+            })
+          : state === 'not_started'
+            ? t('calendarProgress.notStarted', {
+                defaultValue: 'tracking not started',
+              })
+            : state === 'none'
+              ? t('calendarProgress.none', {
+                  defaultValue: 'no tracking tasks',
+                })
+              : t('calendarProgress.unknown', {
+                  defaultValue: 'progress unavailable',
+                }),
+    [t]
+  );
   const markedDayComponent = useMarkedDayComponent({
     markedDates,
     textPrimary,
     textMuted,
     accentPrimary,
-  });
-
-  const [initialYear, initialMonth] = selectedDate.split('-').map(Number);
-  const [visible, setVisible] = useState({
-    year: initialYear,
-    month: initialMonth - 1,
+    progressStates: showDailyProgress ? progressStates : undefined,
+    progressColors,
+    progressLabel,
   });
   // react-native-ui-datepicker only honours `initialView` on mount. The parent
   // tracks `pickerView` ('day' | 'month' | 'year') as logical UI state and a
@@ -297,12 +357,84 @@ const CalendarContent = ({
           selected_year_label: { color: accentText },
         }}
       />
+      {showDailyProgress ? (
+        <View className="mt-2 gap-2" testID="calendar-progress-legend">
+          <View className="flex-row flex-wrap items-center justify-center gap-x-4 gap-y-1">
+            {[
+              {
+                key: 'complete',
+                style: { backgroundColor: neon.green },
+                label: t('calendarProgress.legendComplete', {
+                  defaultValue: 'Complete',
+                }),
+              },
+              {
+                key: 'partial',
+                style: { borderWidth: 1.5, borderColor: neon.yellow },
+                label: t('calendarProgress.legendPartial', {
+                  defaultValue: 'Partly done',
+                }),
+              },
+              {
+                key: 'not-started',
+                style: { borderWidth: 1.5, borderColor: textMuted },
+                label: t('calendarProgress.legendNotStarted', {
+                  defaultValue: 'Not started',
+                }),
+              },
+            ].map((item) => (
+              <View key={item.key} className="flex-row items-center gap-1">
+                <View
+                  style={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: 4,
+                    ...item.style,
+                  }}
+                />
+                <Text style={{ color: textSecondary, fontSize: 12 }}>
+                  {item.label}
+                </Text>
+              </View>
+            ))}
+          </View>
+          <Text style={{ color: textMuted, fontSize: 11, textAlign: 'center' }}>
+            {t('calendarProgress.note', {
+              defaultValue:
+                'Tracking tasks only, not nutrition completeness. Blank days have no tasks or cannot be reconstructed.',
+            })}
+          </Text>
+          {onOpenProgress ? (
+            <Pressable
+              testID="calendar-open-progress"
+              accessibilityRole="button"
+              onPress={() => onOpenProgress(selectedDate)}
+              className="min-h-11 items-center justify-center"
+            >
+              <Text style={{ color: accentPrimary, fontWeight: '600' }}>
+                {t('calendarProgress.openDay', {
+                  defaultValue: 'Progress for the selected day',
+                })}
+              </Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
     </BottomSheetView>
   );
 };
 
 const CalendarSheet = React.forwardRef<CalendarSheetRef, CalendarSheetProps>(
-  ({ selectedDate, onSelectDate, markedDates }, ref) => {
+  (
+    {
+      selectedDate,
+      onSelectDate,
+      markedDates,
+      showDailyProgress,
+      onOpenProgress,
+    },
+    ref
+  ) => {
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const [surfaceBg, textMuted, accentPrimary, textPrimary, textSecondary] =
       useCSSVariable([
@@ -345,6 +477,15 @@ const CalendarSheet = React.forwardRef<CalendarSheetRef, CalendarSheetProps>(
           textMuted={textMuted}
           accentPrimary={accentPrimary}
           markedDates={markedDates}
+          showDailyProgress={showDailyProgress}
+          onOpenProgress={
+            onOpenProgress
+              ? (date) => {
+                  bottomSheetRef.current?.dismiss();
+                  onOpenProgress(date);
+                }
+              : undefined
+          }
         />
       </BottomSheetModal>
     );

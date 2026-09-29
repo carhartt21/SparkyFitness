@@ -427,3 +427,33 @@ export function progressionStage(percent: number | null): ProgressionStage {
   if (percent >= 100) return "completed";
   return percent < 50 ? "started" : "progressing";
 }
+
+// --- Calendar ------------------------------------------------------------------
+
+/**
+ * Per-day state for calendar marks, derived from the same Daily Progress
+ * projection as the X. "unknown" covers days the app cannot reconstruct
+ * (future days, before tracking started, or definitions changed since); it
+ * is never shown as zero or as complete.
+ */
+export type DailyProgressDayState =
+  | "unknown"
+  | "none"
+  | "not_started"
+  | "partial"
+  | "complete";
+
+export interface DailyProgressDay {
+  date: string;
+  state: DailyProgressDayState;
+  completed: number;
+  applicable: number;
+}
+
+export function dayStateFromProgress(
+  progress: Pick<DailyProgress, "applicable" | "completed">,
+): DailyProgressDayState {
+  if (progress.applicable === 0) return "none";
+  if (progress.completed === 0) return "not_started";
+  return progress.completed >= progress.applicable ? "complete" : "partial";
+}

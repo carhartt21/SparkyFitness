@@ -35,13 +35,19 @@ export function useTweenedValue(target: number, durationMs = 450): number {
   const reduceMotion = useReduceMotion();
   const [value, setValue] = useState(target);
   const shown = useRef(target);
+  // Switching Reduce Motion re-syncs the shown value during render rather
+  // than in an effect.
+  const [lastReduceMotion, setLastReduceMotion] = useState(reduceMotion);
+  if (lastReduceMotion !== reduceMotion) {
+    setLastReduceMotion(reduceMotion);
+    setValue(target);
+  }
 
   useEffect(() => {
     if (!Number.isFinite(target)) return;
     const from = shown.current;
     if (reduceMotion || from === target) {
       shown.current = target;
-      setValue(target);
       return;
     }
     const start = Date.now();
@@ -59,5 +65,6 @@ export function useTweenedValue(target: number, durationMs = 450): number {
     return () => cancelAnimationFrame(frame);
   }, [target, reduceMotion, durationMs]);
 
+  if (reduceMotion) return target;
   return value;
 }

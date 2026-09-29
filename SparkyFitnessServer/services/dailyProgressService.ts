@@ -1,7 +1,12 @@
 import {
+  addDays,
   buildDailyProgress,
+  dayStateFromProgress,
   getDueDosesForDate,
+  instantToDay,
   summarizeMealCoverage,
+  todayInZone,
+  type DailyProgressDay,
   type DailyProgress,
   type DailyProgressInput,
   type MealTrackingStatus,
@@ -10,8 +15,15 @@ import {
 import medicationRepository from '../models/medicationRepository.js';
 import medicationEntryRepository from '../models/medicationEntryRepository.js';
 import {
+  firstDailyCheckinDate,
   getDailyCheckin,
   getDailyTrackingPreferences,
+  getDailyTrackingPreferencesUpdatedAt,
+  listDailyCheckins,
+  listHabitDefinitionsWithHistory,
+  listMealActivityInRange,
+  listMeasurementRemindersWithHistory,
+  recordedWeightsInRange,
   listHabitLogs,
   listHabits,
   listMealStatuses,
@@ -160,4 +172,190 @@ export async function getDailyProgress(
   date: string
 ): Promise<DailyProgress> {
   return buildDailyProgress(await getDailyProgressInput(userId, date));
+}
+
+interface ScheduleWithHistory {
+  id: string;
+  created_at: Date | string;
+  updated_at: Date | string;
+}
+
+interface SupplementWithHistory extends SupplementMedication {
+  is_active: boolean;
+  created_at: Date | string;
+  updated_at: Date | string;
+  schedules: (NonNullable<SupplementMedication['schedules']>[number] &
+    ScheduleWithHistory)[];
+}
+
+/** Longest calendar range read in one request (a six-week month grid). */
+export const DAILY_PROGRESS_RANGE_MAX_DAYS = 42;
+
+/**
+ * Daily Progress for each day of a calendar range, using the same projection
+ * as the X. A past day is reconstructed only from definitions that existed
+ * unchanged on that day; if a habit, reminder, supplement schedule or the
+ * tracking preferences changed afterwards, or the day predates any tracking,
+ * the day is "unknown" rather than guessed. Future days are unknown.
+ */
+export async function getDailyProgressRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+): Promise<DailyProgressDay[]> {
+  const tz = await loadUserTimezone(userId);
+  const today = todayInZone(tz);
+  const dayOf = (value: Date | string) =>
+    instantToDay(value instanceof Date ? value : new Date(value), tz);
+
+  const [
+    preferences,
+    preferencesUpdatedAt,
+    habits,
+    habitLogs,
+    checkins,
+    firstCheckin,
+    reminders,
+    weights,
+    medications,
+    entries,
+  ] = await Promise.all([
+    getDailyTrackingPreferences(userId),
+    getDailyTrackingPreferencesUpdatedAt(userId),
+    listHabitDefinitionsWithHistory(userId),
+    listHabitLogs(userId, startDate, endDate),
+    listDailyCheckins(userId, startDate, endDate),
+    firstDailyCheckinDate(userId),
+    listMeasurementRemindersWithHistory(userId),
+    recordedWeightsInRange(userId, startDate, endDate),
+    medicationRepository.listMedications(userId) as Promise<
+      SupplementWithHistory[]
+    >,
+    medicationEntryRepository.listEntries(userId, {
+      fromDate: startDate,
+      toDate: endDate,
+    }) as Promise<MedicationEntryRow[]>,
+  ]);
+  const supplements = medications.filter((med) => med.is_supplement);
+  const meals = preferences.include_meals
+    ? await Promise.all([
+        getMealTrackingStatus(userId, startDate),
+        listMealActivityInRange(userId, startDate, endDate),
+      ])
+    : null;
+
+  // The first day anything tracked existed; earlier days are unknown.
+  const starts = [
+    firstCheckin,
+    preferencesUpdatedAt ? dayOf(preferencesUpdatedAt) : null,
+    ...habits.map((habit) => dayOf(habit.created_at)),
+    ...reminders.map((reminder) => dayOf(reminder.created_at)),
+    ...supplements.flatMap((med) =>
+      med.schedules.map((schedule) => dayOf(schedule.created_at))
+    ),
+  ].filter((day): day is string => Boolean(day));
+  const trackingStart = starts.length > 0 ? starts.sort()[0] : null;
+
+  // True when a definition that applied on `day` was edited afterwards.
+  const changedAfter = (day: string) =>
+    (preferencesUpdatedAt !== null && dayOf(preferencesUpdatedAt) > day) ||
+    habits.some(
+      (habit) => dayOf(habit.created_at) <= day && dayOf(habit.updated_at) > day
+    ) ||
+    reminders.some(
+      (reminder) =>
+        dayOf(reminder.created_at) <= day && dayOf(reminder.updated_at) > day
+    ) ||
+    supplements.some(
+      (med) =>
+        (dayOf(med.created_at) <= day && dayOf(med.updated_at) > day) ||
+        med.schedules.some(
+          (schedule) =>
+            dayOf(schedule.created_at) <= day &&
+            dayOf(schedule.updated_at) > day
+        )
+    );
+
+  const days: DailyProgressDay[] = [];
+  for (let day = startDate; day <= endDate; day = addDays(day, 1)) {
+    if (
+      day > today ||
+      trackingStart === null ||
+      day < trackingStart ||
+      (day < today && changedAfter(day))
+    ) {
+      days.push({ date: day, state: 'unknown', completed: 0, applicable: 0 });
+      continue;
+    }
+    const dayEntries = entries.filter(
+      (entry) =>
+        (entry.entry_date instanceof Date
+          ? dayOf(entry.entry_date)
+          : String(entry.entry_date).slice(0, 10)) === day
+    );
+    const bySchedule = new Map<string, MedicationEntryRow>();
+    for (const entry of dayEntries) {
+      if (
+        entry.schedule_id &&
+        (entry.status === 'taken' || entry.status === 'skipped')
+      )
+        bySchedule.set(entry.schedule_id, entry);
+    }
+    const supplementDoses = getDueDosesForDate(
+      supplements.filter((med) => med.is_active),
+      day,
+      tz
+    ).map(({ medication, schedule }) => {
+      const entry = bySchedule.get(schedule.id);
+      return {
+        schedule_id: schedule.id,
+        medication_id: medication.id,
+        label: medication.display_name || medication.name,
+        status: entry ? (entry.status as 'taken' | 'skipped') : null,
+        recorded_at: entry ? toIso(entry.updated_at ?? entry.taken_at) : null,
+      };
+    });
+    const checkin = checkins.find((item) => item.entry_date === day) ?? null;
+    const progress = buildDailyProgress({
+      date: day,
+      preferences: {
+        ...preferences,
+        // The check-in applies once the account has started checking in.
+        include_checkin:
+          preferences.include_checkin &&
+          firstCheckin !== null &&
+          day >= firstCheckin,
+      },
+      checkin,
+      habits: habits.filter((habit) => dayOf(habit.created_at) <= day),
+      habitLogs,
+      measurementReminders: reminders.filter(
+        (reminder) => dayOf(reminder.created_at) <= day
+      ),
+      recordedMeasurements: weights[day] ? { weight: weights[day] } : {},
+      supplementDoses: preferences.include_supplements ? supplementDoses : [],
+      meals: meals
+        ? meals[0].meals.map((meal) => {
+            const activity = meals[1].find(
+              (row) =>
+                row.entry_date === day && row.meal_type_id === meal.meal_type_id
+            );
+            return {
+              meal_type_id: meal.meal_type_id,
+              name: meal.name,
+              state: activity?.status ?? 'pending',
+              logged_item_count: activity?.logged_item_count ?? 0,
+              updated_at: activity?.updated_at ?? null,
+            };
+          })
+        : [],
+    });
+    days.push({
+      date: day,
+      state: dayStateFromProgress(progress),
+      completed: progress.completed,
+      applicable: progress.applicable,
+    });
+  }
+  return days;
 }

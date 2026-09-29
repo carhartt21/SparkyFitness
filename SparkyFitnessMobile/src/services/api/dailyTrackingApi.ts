@@ -4,6 +4,7 @@ import type {
   CreateHealthContextPeriodRequest,
   DailyCheckin,
   DailyProgress,
+  DailyProgressDay,
   DailyTrackingPreferences,
   Habit,
   HabitLog,
@@ -220,3 +221,14 @@ export const getDailyProgress = (date: string) =>
     serviceName: SERVICE_NAME,
     operation: 'get daily progress',
   });
+
+/** Per-day Daily Progress states for a calendar range (at most 42 days). */
+export const getDailyProgressRange = async (
+  startDate: string,
+  endDate: string
+) =>
+  (await apiFetch<DailyProgressDay[] | null>({
+    endpoint: `${BASE}/daily-progress?start_date=${startDate}&end_date=${endDate}`,
+    serviceName: SERVICE_NAME,
+    operation: 'get daily progress range',
+  })) ?? [];

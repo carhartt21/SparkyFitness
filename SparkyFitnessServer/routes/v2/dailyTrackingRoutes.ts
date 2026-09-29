@@ -42,7 +42,9 @@ import {
   upsertMeasurementReminder,
 } from '../../models/dailyTrackingRepository.js';
 import {
+  DAILY_PROGRESS_RANGE_MAX_DAYS,
   getDailyProgress,
+  getDailyProgressRange,
   getMealTrackingStatus,
   getSupplementDoses,
 } from '../../services/dailyProgressService.js';
@@ -359,6 +361,25 @@ supplementRouter.get(
   handle(async (req, res) => {
     const date = daySchema.parse(req.params.date);
     res.json(await getSupplementDoses(req.userId, date));
+  })
+);
+
+ownerRouter.get(
+  '/daily-progress',
+  handle(async (req, res) => {
+    const range = rangeSchema.parse(req.query);
+    const days =
+      (Date.parse(range.end_date) - Date.parse(range.start_date)) / 86_400_000 +
+      1;
+    if (days > DAILY_PROGRESS_RANGE_MAX_DAYS) {
+      res.status(400).json({
+        error: `Calendar ranges cover at most ${DAILY_PROGRESS_RANGE_MAX_DAYS} days.`,
+      });
+      return;
+    }
+    res.json(
+      await getDailyProgressRange(req.userId, range.start_date, range.end_date)
+    );
   })
 );
 

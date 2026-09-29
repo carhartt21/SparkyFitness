@@ -6094,5 +6094,17 @@
     "attention": "Sync needs attention. Open sync details",
     "syncing": "Syncing",
     "hint": "Opens sync details"
+  },
+  "calendarProgress": {
+    "complete": "tracking complete",
+    "partial": "tracking partly done",
+    "notStarted": "tracking not started",
+    "none": "no tracking tasks",
+    "unknown": "progress unavailable",
+    "legendComplete": "Complete",
+    "legendPartial": "Partly done",
+    "legendNotStarted": "Not started",
+    "note": "Tracking tasks only, not nutrition completeness. Blank days have no tasks or cannot be reconstructed.",
+    "openDay": "Progress for the selected day"
   }
 }

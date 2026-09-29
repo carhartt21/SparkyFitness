@@ -36,6 +36,16 @@ let mockMountedInitialView: string | undefined;
 let mockMountCount = 0;
 let mockAppLocale = 'en';
 
+const mockProgressDays: {
+  date: string;
+  state: string;
+  completed: number;
+  applicable: number;
+}[] = [];
+jest.mock('../../src/hooks/useDailyTracking', () => ({
+  useDailyProgressRange: jest.fn(() => ({ data: mockProgressDays })),
+}));
+
 jest.mock('@gorhom/bottom-sheet', () => {
   const React = require('react');
   const { View } = require('react-native');
@@ -552,5 +562,50 @@ describe('CalendarSheet', () => {
       );
       expect(pickerProps.components?.Day).toBeUndefined();
     });
+  });
+});
+
+describe('CalendarSheet daily progress marks', () => {
+  beforeEach(() => {
+    mockProgressDays.length = 0;
+    mockProgressDays.push(
+      { date: '2026-09-10', state: 'complete', completed: 3, applicable: 3 },
+      { date: '2026-09-11', state: 'partial', completed: 1, applicable: 3 },
+      { date: '2026-09-12', state: 'not_started', completed: 0, applicable: 2 },
+      { date: '2026-09-13', state: 'unknown', completed: 0, applicable: 0 }
+    );
+  });
+
+  it('shows the progress legend when asked', () => {
+    const { getByTestId } = render(
+      <CalendarSheet
+        selectedDate="2026-09-15"
+        onSelectDate={jest.fn()}
+        showDailyProgress
+      />
+    );
+    expect(getByTestId('calendar-progress-legend')).toBeTruthy();
+  });
+
+  it('shows no progress marks unless asked', () => {
+    const { queryByTestId } = render(
+      <CalendarSheet selectedDate="2026-09-15" onSelectDate={jest.fn()} />
+    );
+    expect(queryByTestId('calendar-day-progress-complete')).toBeNull();
+    expect(queryByTestId('calendar-progress-legend')).toBeNull();
+  });
+
+  it('opens the selected day progress breakdown', () => {
+    const onOpenProgress = jest.fn();
+    const { getByTestId } = render(
+      <CalendarSheet
+        selectedDate="2026-09-15"
+        onSelectDate={jest.fn()}
+        showDailyProgress
+        onOpenProgress={onOpenProgress}
+      />
+    );
+    fireEvent.press(getByTestId('calendar-open-progress'));
+    expect(onOpenProgress).toHaveBeenCalledWith('2026-09-15');
   });
 });

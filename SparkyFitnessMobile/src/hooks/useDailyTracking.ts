@@ -23,6 +23,7 @@ import {
   getDailyCheckin,
   listDailyCheckins,
   getDailyProgress,
+  getDailyProgressRange,
   getDailyTrackingPreferences,
   getMealTrackingStatus,
   listHabitLogs,
@@ -43,6 +44,7 @@ import {
   dailyCheckinsRangeQueryKey,
   dailyCheckinsRangeRootQueryKey,
   dailyProgressQueryKey,
+  dailyProgressRangeQueryKey,
   dailyProgressRootQueryKey,
   dailyTrackingPreferencesQueryKey,
   habitLogsQueryKey,
@@ -352,4 +354,18 @@ export function useDailyProgress(date: string, options?: QueryOptions) {
   });
   useRefetchOnFocus(query.refetch, enabled);
   return query;
+}
+
+/** One bounded read for a calendar month; never one request per day. */
+export function useDailyProgressRange(
+  startDate: string,
+  endDate: string,
+  options?: QueryOptions
+) {
+  return useQuery({
+    queryKey: dailyProgressRangeQueryKey(startDate, endDate),
+    queryFn: () => getDailyProgressRange(startDate, endDate),
+    enabled: options?.enabled ?? true,
+    staleTime: DERIVED_STALE_MS,
+  });
 }
