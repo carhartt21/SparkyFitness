@@ -71,17 +71,13 @@ export function metricWeightOf(
   const size = toNumber(servingSize);
   const unit = servingUnit?.trim().toLowerCase() ?? "";
   if (size === null || size <= 0) return null;
-  if (unit in GRAMS_PER_UNIT) {
-    return {
-      metric_amount: roundNutrient(size * GRAMS_PER_UNIT[unit]),
-      metric_unit: "g",
-    };
+  const grams = GRAMS_PER_UNIT[unit];
+  if (grams !== undefined) {
+    return { metric_amount: roundNutrient(size * grams), metric_unit: "g" };
   }
-  if (unit in ML_PER_UNIT) {
-    return {
-      metric_amount: roundNutrient(size * ML_PER_UNIT[unit]),
-      metric_unit: "ml",
-    };
+  const ml = ML_PER_UNIT[unit];
+  if (ml !== undefined) {
+    return { metric_amount: roundNutrient(size * ml), metric_unit: "ml" };
   }
   return null;
 }
