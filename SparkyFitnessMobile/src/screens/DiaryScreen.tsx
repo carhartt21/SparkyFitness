@@ -756,6 +756,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           contentContainerStyle={{ padding: 16 }}
         >
           <NutritionQuickActions
+            defaultExpanded={false}
             onTakePhoto={
               selectedDate === getTodayDate()
                 ? () => navigation.navigate('QuickMealPhoto')
@@ -840,6 +841,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               storageError={nutritionStorageError}
             />
             <NutritionQuickActions
+              defaultExpanded={false}
               onTakePhoto={
                 selectedDate === getTodayDate()
                   ? () => navigation.navigate('QuickMealPhoto')
@@ -938,6 +940,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           storageError={nutritionStorageError}
         />
         <NutritionQuickActions
+          defaultExpanded={false}
           onTakePhoto={
             selectedDate === getTodayDate()
               ? () => navigation.navigate('QuickMealPhoto')

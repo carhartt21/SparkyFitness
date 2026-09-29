@@ -48,6 +48,36 @@ describe('NutritionQuickActions', () => {
     await waitFor(() => expect(logFavoriteFood).toHaveBeenCalledWith('food-1'));
   });
 
+  test('keeps Add Food available while collapsed and reveals secondary shortcuts', () => {
+    const onSearchFood = jest.fn();
+    const onTakePhoto = jest.fn();
+    const screen = render(
+      <NutritionQuickActions
+        defaultExpanded={false}
+        onSearchFood={onSearchFood}
+        onTakePhoto={onTakePhoto}
+      />
+    );
+    const toggle = screen.getByLabelText('Quick nutrition');
+
+    expect(toggle.props.accessibilityState).toMatchObject({ expanded: false });
+    expect(screen.getByText('Add Food')).toBeTruthy();
+    expect(screen.queryByLabelText('Log Synthetic bar')).toBeNull();
+    expect(screen.queryByText('📷 Meal photo')).toBeNull();
+    fireEvent.press(screen.getByText('Add Food'));
+    expect(onSearchFood).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(toggle);
+    expect(toggle.props.accessibilityState).toMatchObject({ expanded: true });
+    expect(screen.getByLabelText('Log Synthetic bar')).toBeTruthy();
+    fireEvent.press(screen.getByText('📷 Meal photo'));
+    expect(onTakePhoto).toHaveBeenCalledTimes(1);
+
+    fireEvent.press(toggle);
+    expect(screen.queryByLabelText('Log Synthetic bar')).toBeNull();
+    expect(screen.getByText('Add Food')).toBeTruthy();
+  });
+
   test('manual calories leave absent macros unspecified', async () => {
     const screen = render(<NutritionQuickActions />);
     fireEvent.press(screen.getByText('+ Calories and macros'));
