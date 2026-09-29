@@ -1313,7 +1313,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
   const renderHeaderBar = () => (
     <>
-      <View className="flex-row items-center px-4 py-2 gap-3">
+      <View className="min-h-12 flex-row items-center px-4 pt-2 pb-1 gap-3">
         {!usesNativeHeader && (
           <Button
             variant="ghost"
@@ -1390,7 +1390,9 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           </View>
         )}
       </View>
-      <View className="px-4 pb-3">
+      {/* Breathing room between the title row and the field, without pushing
+          results below the fold on small phones. */}
+      <View className="px-4 pt-2 pb-3" testID="food-search-field-container">
         <View
           className="min-h-14 flex-row items-center bg-surface rounded-2xl px-4 py-2.5"
           style={{

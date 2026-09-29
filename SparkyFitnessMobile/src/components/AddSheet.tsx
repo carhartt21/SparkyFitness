@@ -11,7 +11,8 @@ import { useCSSVariable } from 'uniwind';
 import { useTranslation } from 'react-i18next';
 
 import Icon, { type IconName } from './Icon';
-import Button from './ui/Button';
+import IconBadge from './ui/IconBadge';
+import { useNeonScale } from './tracking/useNeonScale';
 import { useSheetBackdrop } from './ui/sheetChrome';
 
 export interface AddSheetRef {
@@ -41,6 +42,8 @@ interface AddSheetProps {
 interface ActionCard {
   label: string;
   icon: IconName;
+  /** Restrained domain accent for the icon badge. */
+  tint: string;
   onPress?: () => void;
 }
 
@@ -75,14 +78,15 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
     const presentFrameRef = useRef<number | null>(null);
     const [showExerciseMenu, setShowExerciseMenu] = useState(false);
 
-    const [surfaceBg, textMuted, accentPrimary, raisedBg, textSecondary] =
-      useCSSVariable([
+    const [surfaceBg, textMuted, accentPrimary, textSecondary] = useCSSVariable(
+      [
         '--color-surface',
         '--color-text-muted',
         '--color-accent-primary',
-        '--color-raised',
         '--color-text-secondary',
-      ]) as [string, string, string, string, string];
+      ]
+    ) as [string, string, string, string];
+    const neon = useNeonScale();
 
     const clearScheduledPresent = useCallback(() => {
       if (presentFrameRef.current != null) {
@@ -203,30 +207,39 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
       {
         label: t('addSheet.food', { defaultValue: 'Food' }),
         icon: 'food',
+        tint: neon.green,
         onPress: onAddFood,
       },
       {
         label: t('addSheet.exercise', { defaultValue: 'Exercise' }),
         icon: 'exercise-weights',
+        tint: neon.orange,
       },
       {
         label: t('addSheet.measurements', { defaultValue: 'Measurements' }),
         icon: 'measurements',
+        tint: neon.cyan,
         onPress: onAddMeasurements,
       },
       {
         label: t('addSheet.scanFood', { defaultValue: 'Scan Food' }),
         icon: 'scan',
+        tint: neon.mint,
         onPress: onBarcodeScan,
       },
     ];
 
+    // Compact tiles: a raised surface with a hairline border reads apart
+    // from the sheet; 12-pt corners and no glow keep the sheet quiet.
+    const tileClass =
+      'flex-1 mx-1 min-h-[76px] items-center justify-center rounded-xl border border-border-subtle bg-raised px-2 py-3 active:opacity-70';
+
     const renderCard = (card: ActionCard) => (
-      <Button
+      <Pressable
         key={card.label}
-        variant="primary"
-        className="flex-1 py-5 mx-1.5"
-        style={{ backgroundColor: raisedBg }}
+        accessibilityRole="button"
+        accessibilityLabel={card.label}
+        className={tileClass}
         onPress={() => {
           if (card.onPress) {
             handleAction(card.onPress);
@@ -238,29 +251,37 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
           }
         }}
       >
-        <Icon name={card.icon} size={32} color={accentPrimary} />
-        <Text className="text-text-primary text-sm font-medium mt-2">
+        <IconBadge icon={card.icon} color={card.tint} size={36} />
+        <Text
+          className="text-text-primary text-sm font-medium mt-1.5 text-center"
+          numberOfLines={2}
+        >
           {card.label}
         </Text>
-      </Button>
+      </Pressable>
     );
 
     const renderSecondaryRow = (
       label: string,
       icon: IconName,
-      onPress: () => void
+      onPress: () => void,
+      last = false
     ) => (
-      <Button
-        variant="primary"
-        className="flex-row items-center justify-center py-3 mx-1.5 mt-3"
-        style={{ backgroundColor: raisedBg }}
+      <Pressable
+        key={label}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        className={`min-h-12 flex-row items-center gap-3 px-3 py-2 active:opacity-70 ${
+          last ? '' : 'border-b border-border-subtle'
+        }`}
         onPress={() => handleAction(onPress)}
       >
         <Icon name={icon} size={20} color={accentPrimary} />
-        <Text className="text-text-primary text-sm font-medium ml-2">
+        <Text className="flex-1 text-text-primary text-sm font-medium">
           {label}
         </Text>
-      </Button>
+        <Icon name="chevron-forward" size={14} color={textMuted} />
+      </Pressable>
     );
 
     const renderExerciseOption = (
@@ -269,33 +290,64 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
       icon: IconName,
       onPress: () => void
     ) => (
-      <Button
+      <Pressable
         key={label}
-        variant="primary"
-        className="flex-1 py-5 mx-1.5"
-        style={{ backgroundColor: raisedBg }}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}, ${subtitle}`}
+        className={tileClass}
         onPress={() => handleAction(onPress)}
       >
-        <View className="h-10 items-center justify-center">
-          <Icon name={icon} size={32} color={accentPrimary} />
-        </View>
+        <IconBadge icon={icon} color={neon.orange} size={36} />
         <Text
-          className="text-text-primary text-sm font-medium mt-2 text-center"
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.8}
+          className="text-text-primary text-sm font-medium mt-1.5 text-center"
+          numberOfLines={2}
         >
           {label}
         </Text>
         <Text
-          className="text-xs mt-1 text-center"
+          className="text-xs mt-0.5 text-center"
           numberOfLines={2}
-          style={{ color: textSecondary, minHeight: 32 }}
+          style={{ color: textSecondary }}
         >
           {subtitle}
         </Text>
-      </Button>
+      </Pressable>
     );
+
+    const secondaryRows: {
+      label: string;
+      icon: IconName;
+      onPress: () => void;
+    }[] = [
+      {
+        label: t('addSheet.progressPhotos', {
+          defaultValue: 'Progress Photos',
+        }),
+        icon: 'camera',
+        onPress: onAddProgressPhotos,
+      },
+      ...(showCycleCard && onOpenCycle
+        ? [
+            {
+              label:
+                cycleLabel ??
+                t('addSheet.wellness', { defaultValue: 'Wellness' }),
+              icon: cycleIcon ?? ('wellness-filled' as IconName),
+              onPress: onOpenCycle,
+            },
+          ]
+        : []),
+      {
+        label: t('addSheet.askSparky', { defaultValue: 'Ask Trackbot' }),
+        icon: 'sparkles',
+        onPress: onAskSparky,
+      },
+      {
+        label: t('addSheet.syncHealth', { defaultValue: 'Sync Health Data' }),
+        icon: 'sync',
+        onPress: onSyncHealthData,
+      },
+    ];
 
     return (
       <BottomSheetModal
@@ -307,7 +359,7 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
         onAnimate={handleAnimate}
         onDismiss={handleDismiss}
       >
-        <BottomSheetView className="pb-safe-or-5 px-2.5">
+        <BottomSheetView className="pb-safe-or-4 px-3 pt-1">
           {showExerciseMenu ? (
             <>
               <Pressable
@@ -354,39 +406,24 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
             </>
           ) : (
             <>
-              <View className="flex-row mb-3">
+              <View className="flex-row mb-2">
                 {renderCard(cards[0])}
                 {renderCard(cards[1])}
               </View>
-              <View className="flex-row">
+              <View className="flex-row mb-3">
                 {renderCard(cards[2])}
                 {renderCard(cards[3])}
               </View>
-              {renderSecondaryRow(
-                t('addSheet.progressPhotos', {
-                  defaultValue: 'Progress Photos',
-                }),
-                'camera',
-                onAddProgressPhotos
-              )}
-              {showCycleCard && onOpenCycle
-                ? renderSecondaryRow(
-                    cycleLabel ??
-                      t('addSheet.wellness', { defaultValue: 'Wellness' }),
-                    cycleIcon ?? 'wellness-filled',
-                    onOpenCycle
+              <View className="mx-1 overflow-hidden rounded-xl border border-border-subtle bg-raised">
+                {secondaryRows.map((row, index) =>
+                  renderSecondaryRow(
+                    row.label,
+                    row.icon,
+                    row.onPress,
+                    index === secondaryRows.length - 1
                   )
-                : null}
-              {renderSecondaryRow(
-                t('addSheet.askSparky', { defaultValue: 'Ask Trackbot' }),
-                'sparkles',
-                onAskSparky
-              )}
-              {renderSecondaryRow(
-                t('addSheet.syncHealth', { defaultValue: 'Sync Health Data' }),
-                'sync',
-                onSyncHealthData
-              )}
+                )}
+              </View>
             </>
           )}
         </BottomSheetView>

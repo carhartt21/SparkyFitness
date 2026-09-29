@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
-import { Text, View } from 'react-native';
-import SettingsHeaderButton from './SettingsHeaderButton';
+import { View } from 'react-native';
+import AppHeaderRow from './AppHeaderRow';
 
 interface TabScreenHeaderProps {
   title: string;
@@ -11,9 +11,9 @@ interface TabScreenHeaderProps {
 }
 
 /**
- * Title block for content tabs on the screen-owned header path: Settings in
- * the upper-left corner, a large title with a short subtitle, and an optional
- * trailing action, matching the references' page headers.
+ * Title block for content tabs on the screen-owned header path, using the
+ * shared logo / title / Settings row so every top-level tab lines up with
+ * the Dashboard.
  */
 export default function TabScreenHeader({
   title,
@@ -22,26 +22,13 @@ export default function TabScreenHeader({
   right,
 }: TabScreenHeaderProps) {
   return (
-    <View className="flex-row items-center gap-3 pb-3">
-      <SettingsHeaderButton onPress={onSettings} />
-      <View className="flex-1">
-        <Text
-          className="text-[28px] font-bold text-text-primary"
-          accessibilityRole="header"
-          maxFontSizeMultiplier={1.4}
-        >
-          {title}
-        </Text>
-        {subtitle ? (
-          <Text
-            className="text-sm text-text-secondary"
-            maxFontSizeMultiplier={1.6}
-          >
-            {subtitle}
-          </Text>
-        ) : null}
-      </View>
-      {right}
+    <View className="pb-3">
+      <AppHeaderRow
+        title={title}
+        subtitle={subtitle}
+        onSettings={onSettings}
+        right={right}
+      />
     </View>
   );
 }
