@@ -32,7 +32,6 @@ import MarkdownNotesField from '../components/MarkdownNotesField';
 import { useKeepNoteVisible } from '../hooks/useKeepNoteVisible';
 import { NoteMarkdown } from '../components/NoteMarkdown';
 import SafeImage from '../components/SafeImage';
-import FoodThumbnail from '../components/FoodThumbnail';
 import { Image } from 'expo-image';
 import { foodFallbackImage } from '../utils/foodFallbackImages';
 import type { ExternalFoodItem } from '../types/externalFoods';
@@ -40,7 +39,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import { useFoodImageSourceContext } from '../components/FoodImageSourceProvider';
 import { externalFoodImage, usableFoodImages } from '../utils/foodImages';
 import BottomSheetPicker from '../components/BottomSheetPicker';
-import AmountWheel from '../components/AmountWheel';
+import AmountWheel, { AMOUNT_WHEEL_HEIGHT } from '../components/AmountWheel';
 import { buildEditFoodParams } from '../utils/editFoodRoute';
 import { FoodNutrientBreakdown } from '../components/FoodNutritionSummary';
 import { localizeNutrientKey } from '../utils/nutrientLocalization';
@@ -1869,6 +1868,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
 
   // Outlined inputs of the reference: accent hairline over the card surface.
   const outlinedFieldStyle = {
+    minHeight: AMOUNT_WHEEL_HEIGHT,
     borderColor: withAlpha(accentColor, 0.7),
     backgroundColor: withAlpha(accentColor, 0.05),
   };
@@ -2012,7 +2012,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         scrollEventThrottle={16}
         onContentSizeChange={noteVisibility.onContentSizeChange}
         className="flex-1"
-        contentContainerClassName={foodImagePath ? '' : 'pt-4'}
+        contentContainerClassName=""
         contentContainerStyle={{
           paddingBottom: Math.max(insets.bottom, 12) + 96,
         }}
@@ -2045,12 +2045,31 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               }
             />
           </View>
-        ) : null}
+        ) : (
+          // No photo: the food group's artwork fills the hero, display-only
+          // (never saved as the food's image), as in the reference layout.
+          <View
+            testID="food-entry-category-hero"
+            className="items-center justify-center overflow-hidden"
+            style={{
+              height: 240,
+              experimental_backgroundImage: `radial-gradient(circle at 50% 45%, ${withAlpha(accentColor, 0.18)} 0%, #00000000 70%)`,
+            }}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
+            <Image
+              source={fallbackArtwork}
+              style={{ width: 190, height: 190 }}
+              contentFit="contain"
+            />
+          </View>
+        )}
 
         <View
           className="mx-4 rounded-2xl border border-border-subtle bg-surface px-4 py-5 gap-5"
           style={[
-            foodImagePath ? { marginTop: -32 } : null,
+            { marginTop: -32 },
             glowing
               ? {
                   experimental_backgroundImage:
@@ -2061,18 +2080,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         >
           <View>
             <View className="flex-row items-start gap-2">
-              {foodImagePath ? null : (
-                <FoodThumbnail
-                  image={null}
-                  name={activeItem.name}
-                  foodGroupTags={foodGroupTags}
-                  variant={activeItem.source === 'meal' ? 'meal' : 'food'}
-                  getImageSource={getFoodImageSource}
-                  size={56}
-                  testID="food-entry-category-thumbnail"
-                />
-              )}
-              <Text className="flex-1 text-3xl font-bold text-text-primary">
+              <Text className="flex-1 text-2xl font-bold text-text-primary">
                 {adjustedValues?.name || activeItem.name}
               </Text>
               {activeItem.provider_verified ? (
@@ -2605,7 +2613,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               <Icon name="bolt" size={20} color={accentColor} />
               <Text className="flex-1 text-xl font-semibold text-text-primary">
                 {t('foodEntryAdd.quickAdd.title', {
-                  defaultValue: 'Quick add',
+                  defaultValue: 'Quick Add',
                 })}
               </Text>
               <Text className="text-xs font-medium uppercase tracking-widest text-text-secondary">

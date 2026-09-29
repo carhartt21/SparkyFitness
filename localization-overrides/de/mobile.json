@@ -1522,7 +1522,8 @@
     "additionalInfo": {
       "title": "Weitere Angaben",
       "subtitle": "Nährwerte, Notizen und mehr bearbeiten"
-    }
+    },
+    "name": "Name"
   },
   "foodFormPersistence": {
     "discardMessage": "Sie haben nicht gespeicherte äquivalente Größen. Sie verwerfen, um fortzufahren?",

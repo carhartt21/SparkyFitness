@@ -2806,7 +2806,8 @@
     "additionalInfo": {
       "title": "Weitere Angaben",
       "subtitle": "Nährwerte, Notizen und mehr bearbeiten"
-    }
+    },
+    "name": "Name"
   },
   "exerciseHistory": {
     "noSetData": "Nein set data",

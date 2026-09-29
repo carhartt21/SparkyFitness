@@ -964,7 +964,7 @@ const FoodForm: React.FC<FoodFormProps> = ({
             {identityAside}
             <View className="min-w-0 flex-1 gap-3">
               {renderTextField(
-                t('foodForm.foodName', { defaultValue: 'Food Name' }),
+                t('foodForm.name', { defaultValue: 'Name' }),
                 'name',
                 t('foodForm.foodNamePlaceholder', {
                   defaultValue: 'e.g. Chicken Breast',

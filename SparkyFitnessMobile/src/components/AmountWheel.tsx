@@ -11,13 +11,15 @@ import {
   type NativeSyntheticEvent,
 } from 'react-native';
 import { useCSSVariable } from 'uniwind';
+import Icon from './Icon';
 import { withAlpha } from './ui/glow';
 import { formatLocalizedNumber } from '../localization';
 import { DECIMAL_INPUT_REGEX, parseDecimalInput } from '../utils/numericInput';
 import { formatServingSizeDisplay } from '../utils/foodDetails';
 
-export const AMOUNT_WHEEL_ROW_HEIGHT = 44;
-const VISIBLE_ROWS = 3;
+/** One value fills the field, like a text field; swiping spins the value. */
+export const AMOUNT_WHEEL_HEIGHT = 56;
+export const AMOUNT_WHEEL_ROW_HEIGHT = AMOUNT_WHEEL_HEIGHT;
 
 /** Wheel values: a regular grid, plus the current value when it is off-grid. */
 export function buildAmountSteps(
@@ -151,9 +153,10 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
         accessibilityLabel={t('foodEntryAdd.labels.amount', {
           defaultValue: 'Amount',
         })}
-        className="w-28 rounded-xl border bg-surface px-3 text-center text-2xl font-bold text-text-primary"
+        className="rounded-xl border bg-surface px-4 text-2xl text-text-primary"
         style={{
-          height: AMOUNT_WHEEL_ROW_HEIGHT * VISIBLE_ROWS,
+          flex: 0.66,
+          height: AMOUNT_WHEEL_HEIGHT,
           borderColor: accent,
         }}
       />
@@ -184,25 +187,15 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
         },
       ]}
       onAccessibilityAction={onAccessibilityAction}
-      className="w-28 overflow-hidden rounded-xl border"
+      className="overflow-hidden rounded-xl border"
       style={{
-        height: AMOUNT_WHEEL_ROW_HEIGHT * VISIBLE_ROWS,
+        flex: 0.66,
+        height: AMOUNT_WHEEL_HEIGHT,
         borderColor: withAlpha(accent, 0.7),
         backgroundColor: withAlpha(accent, 0.05),
       }}
       pointerEvents={disabled ? 'none' : 'auto'}
     >
-      {/* Selection band behind the centre row. */}
-      <View
-        pointerEvents="none"
-        className="absolute left-1 right-1 rounded-lg border"
-        style={{
-          top: AMOUNT_WHEEL_ROW_HEIGHT,
-          height: AMOUNT_WHEEL_ROW_HEIGHT,
-          borderColor: withAlpha(accent, 0.6),
-          backgroundColor: withAlpha(accent, 0.12),
-        }}
-      />
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
@@ -214,7 +207,6 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
           // A drag released without momentum still has to settle.
           if (!event.nativeEvent.velocity?.y) settle(event);
         }}
-        contentContainerStyle={{ paddingVertical: AMOUNT_WHEEL_ROW_HEIGHT }}
       >
         {steps.map((n, rowIndex) => {
           const selected = rowIndex === index;
@@ -225,14 +217,13 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
               onLongPress={startEditing}
               delayLongPress={350}
               style={{ height: AMOUNT_WHEEL_ROW_HEIGHT }}
-              className="items-center justify-center"
+              className="justify-center pl-4 pr-8"
               importantForAccessibility="no"
             >
               <Text
-                className={
-                  selected ? 'text-2xl font-bold text-text-primary' : 'text-lg'
-                }
+                className="text-2xl text-text-primary"
                 style={selected ? undefined : { color: textMuted }}
+                numberOfLines={1}
               >
                 {formatLocalizedNumber(n, { maximumFractionDigits: 2 })}
               </Text>
@@ -240,6 +231,14 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
           );
         })}
       </ScrollView>
+      {/* Spinner hint: swipe up or down to change the amount. */}
+      <View
+        pointerEvents="none"
+        className="absolute bottom-0 right-2 top-0 justify-center"
+      >
+        <Icon name="chevron-up" size={12} color={textMuted} />
+        <Icon name="chevron-down" size={12} color={textMuted} />
+      </View>
     </View>
   );
 };

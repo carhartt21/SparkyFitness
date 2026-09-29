@@ -2944,7 +2944,8 @@
     "additionalInfo": {
       "title": "Additional information",
       "subtitle": "Edit nutrition values, notes and more"
-    }
+    },
+    "name": "Name"
   },
   "exerciseHistory": {
     "noSetData": "No set data",
@@ -3671,7 +3672,7 @@
       "tapToUndo": "Tap to undo",
       "undone": "Entry removed",
       "undoFailed": "Could not remove the entry",
-      "title": "Quick add",
+      "title": "Quick Add",
       "subtitle": "Saved portions",
       "lastUsed": "Last used",
       "nutrition": "{{calories}} kcal – {{fat}} g F, {{carbs}} g C, {{protein}} g P",

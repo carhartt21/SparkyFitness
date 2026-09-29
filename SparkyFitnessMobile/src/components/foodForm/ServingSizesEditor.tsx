@@ -110,7 +110,8 @@ const CellInput: React.FC<{
       keyboardType={numeric ? 'decimal-pad' : 'default'}
       returnKeyType="done"
       maxLength={numeric ? 10 : 40}
-      className="min-w-0 flex-1 text-base text-text-primary"
+      className="min-w-0 flex-1 text-[15px] text-text-primary"
+      style={{ paddingVertical: 0, textAlignVertical: 'center' }}
     />
     {suffix ? (
       <Text className="ml-0.5 text-sm text-text-secondary">{suffix}</Text>
@@ -315,7 +316,7 @@ const ServingRow: React.FC<{
                   }
                 >
                   <Text
-                    className="min-w-0 flex-1 text-base text-text-primary"
+                    className="min-w-0 flex-1 text-[15px] text-text-primary"
                     numberOfLines={1}
                   >
                     {selectedOption?.label ?? localizeFoodUnit(draft.unit, t)}
@@ -825,7 +826,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                 return (
                   <View
                     key={tile.key}
-                    className="min-w-0 flex-1 gap-1 rounded-xl border px-2 py-2.5"
+                    className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-xl border px-2 py-3"
                     style={{
                       borderColor: withAlpha(color, 0.6),
                       backgroundColor: withAlpha(color, 0.18),
@@ -833,20 +834,25 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                     accessible
                     accessibilityLabel={`${label}: ${value}`}
                   >
-                    <Icon name={tile.icon} size={18} color={color} />
-                    <Text
-                      className="text-lg font-bold text-text-primary"
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                    >
-                      {value}
-                    </Text>
-                    <Text
-                      className="text-xs text-text-secondary"
-                      numberOfLines={1}
-                    >
-                      {label}
-                    </Text>
+                    <Icon name={tile.icon} size={20} color={color} />
+                    <View className="min-w-0 flex-1">
+                      <Text
+                        className="text-base font-bold text-text-primary"
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}
+                      >
+                        {value}
+                      </Text>
+                      <Text
+                        className="text-[11px] text-text-secondary"
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.8}
+                      >
+                        {label}
+                      </Text>
+                    </View>
                   </View>
                 );
               })}

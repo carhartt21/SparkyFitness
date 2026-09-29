@@ -68,6 +68,15 @@ Captures, synthetic fixture, English, dark, 430 pt, are in `x-on-track-design/re
 
 - **Details hero:** no hero photo and no "Whole food"/"Natural choice" labels. The food has no stored category, and the "Good Food / Brighter You" copy is illustrative.
 - **Food details header:** it keeps the pencil next to the favourite star.
-- **Spinner size:** the spinner is taller than the reference's single-line field.
 - **Edit Food identity row:** it shows Brand instead of Food Group.
 - **Not captured:** light theme, German, narrower widths and large text. Physical-device checks are still open.
+
+## Second pass against the details reference
+
+- **Photo area:** foods without a photo show their category artwork as a hero banner. It is display-only, as before, and replaces the small thumbnail. The title uses the reference size.
+- **Amount spinner:** it is now a single-value field the same height as the unit field, with an up/down hint. Swiping spins the value; a long press types it.
+- **Edit Food:**
+  - The preview tiles put the icon beside the value, as in the reference.
+  - The row field text is vertically centred.
+  - The name field is labelled "Name".
+- **Captures:** side-by-side comparisons are `compare-food-details.png` and `compare-edit-food.png` in the review folder.

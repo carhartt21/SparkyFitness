@@ -546,7 +546,11 @@ describe('FoodEntryAddScreen', () => {
 
   it('shows category artwork, not a stored image, when a food has no photo', () => {
     const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
-    expect(screen.getByTestId('food-entry-category-thumbnail')).toBeTruthy();
+    expect(
+      screen.getByTestId('food-entry-category-hero', {
+        includeHiddenElements: true,
+      })
+    ).toBeTruthy();
   });
 
   const yogurtVariants = [
