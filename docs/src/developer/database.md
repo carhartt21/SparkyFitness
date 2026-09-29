@@ -88,8 +88,9 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | -------------------------------- | ------------------------------------------------------------------------------------- |
 | `foods`                          | Custom food items created by user                                                     |
 | `bls4_foods`                     | Imported, read-only Max Rubner-Institut BLS 4.0 reference foods and source provenance |
-| `food_variants`                  | Serving size options for foods                                                        |
+| `food_variants`                  | Serving size options for foods, including saved portions with label, weight and order |
 | `food_entries`                   | Logged meals/calories for the day                                                     |
+| `food_last_servings`             | Last hand-logged amount and unit per user and food (quick add)                        |
 | `food_entry_meals`               | Meal details associated with logged entries                                           |
 | `meals`                          | Custom meal templates                                                                 |
 | `meal_foods`                     | Ingredients assigned to meals                                                         |
@@ -114,10 +115,11 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | `workout_presets`                   | Custom workout/preset templates                                                                                                                    |
 | `workout_preset_exercises`          | Exercises assigned to presets                                                                                                                      |
 | `workout_preset_exercise_sets`      | Reps/sets configured in presets                                                                                                                    |
-| `workout_plan_templates`            | Templates for weekly and sequential workout schedules                                                                                                             |
+| `workout_plan_templates`            | Templates for weekly and sequential workout schedules                                                                                              |
 | `workout_plan_template_versions`    | Dated snapshots of workout schedules for historical plan reviews                                                                                   |
-| `workout_plan_template_assignments` | Scheduled workout templates (weekday or ordered sequence)                                                                                                            |
+| `workout_plan_template_assignments` | Scheduled workout templates (weekday or ordered sequence)                                                                                          |
 | `workout_plan_assignment_sets`      | Sets within assigned workout plans                                                                                                                 |
+
 ### Measurements & Health (Tier 1/3: Owner-Only or Delegate-Write)
 
 | Table                     | Purpose                                                                                                                                                                                |

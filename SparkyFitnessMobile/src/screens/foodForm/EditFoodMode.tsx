@@ -1,12 +1,19 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Platform } from 'react-native';
+import { Alert, View, Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+  isMetricInputUnit,
+  type MetricUnit,
+  type SaveFoodServingsBody,
+} from '@workspace/shared';
 import FoodForm, { type FoodFormData } from '../../components/FoodForm';
 import FoodImagePicker from '../../components/FoodImagePicker';
+import ServingSizesEditor from '../../components/foodForm/ServingSizesEditor';
+import i18n from '../../localization/i18n';
 import { usableFoodImages } from '../../utils/foodImages';
 import {
   pickerImagesDiffer,
@@ -14,39 +21,33 @@ import {
   toSavedImages,
   type PickerImage,
 } from '../../utils/pickerImages';
-import {
-  useCreateFoodVariant,
-  useFoodVariants,
-} from '../../hooks/useFoodVariants';
+import { useFoodVariants } from '../../hooks/useFoodVariants';
 import { parseOptional } from '../../types/foodInfo';
 import {
-  createFoodVariant,
-  deleteFoodVariant,
+  saveFoodServings,
   updateFoodVariant,
   updateFood,
   updateFoodEntriesSnapshot,
-  type CreateFoodVariantPayload,
-  type UpdateFoodVariantPayload,
   type UpdateFoodPayload,
 } from '../../services/api/foodsApi';
+import { ApiError } from '../../services/api/errors';
 import type { FoodFormScreenProps } from '../FoodFormScreen';
 import type { FoodInfoItem } from '../../types/foodInfo';
-import type { FoodVariantDetail } from '../../types/foods';
-import type {
-  EquivalentUnit,
-  FoodUnitSelectionResult,
-} from '../../types/foodUnitVariants';
 import {
-  buildLocalUnitVariants,
-  buildCreateFoodVariantPayload,
-  diffSiblingRows,
-  formatServingSizeForDisplay,
-  groupEquivalentVariants,
-  toEquivalentUnit,
+  formatServingSizeDisplay,
+  localVariantToUnitVariant,
 } from '../../utils/foodDetails';
-import { formatLocalizedNumber } from '../../localization';
-import { localizeFoodUnit } from '../../utils/foodUnitLocalization';
 import { parseDecimalInput } from '../../utils/numericInput';
+import { findNutritionBasis } from '../../utils/servingOptions';
+import {
+  buildSaveServingsBody,
+  draftDerives,
+  draftsDiffer,
+  draftsFromVariants,
+  validateServingDrafts,
+  type ServingBasis,
+  type ServingDraft,
+} from '../../utils/servingDrafts';
 import { useNativeIOSHeadersActive } from '../../services/nativeTabBarPreference';
 import {
   useScreenHeader,
@@ -56,15 +57,9 @@ import {
 import {
   FOOD_VARIANT_FIELDS,
   buildFormValuesFromVariant,
-  buildVariantFromFormData,
-  buildVariantFromInitialValues,
-  confirmDiscardEquivalents,
   confirmSyncPastEntries,
-  confirmVariantOverwrite,
-  equivalentsDiffer,
   hasFoodFormChanges,
   invalidateFoodCaches,
-  isBlankEquivalent,
   validateFoodForm,
 } from './persistence';
 
@@ -106,6 +101,78 @@ function buildUpdatedFoodInfo(
   };
 }
 
+function formNutrition(data: Partial<FoodFormData>) {
+  return {
+    calories: parseDecimalInput(data.calories ?? '') || 0,
+    protein: parseDecimalInput(data.protein ?? '') || 0,
+    carbs: parseDecimalInput(data.carbs ?? '') || 0,
+    fat: parseDecimalInput(data.fat ?? '') || 0,
+    dietary_fiber: parseOptional(data.fiber ?? ''),
+    saturated_fat: parseOptional(data.saturatedFat ?? ''),
+    sodium: parseOptional(data.sodium ?? ''),
+    sugars: parseOptional(data.sugars ?? ''),
+    trans_fat: parseOptional(data.transFat ?? ''),
+    potassium: parseOptional(data.potassium ?? ''),
+    calcium: parseOptional(data.calcium ?? ''),
+    iron: parseOptional(data.iron ?? ''),
+    cholesterol: parseOptional(data.cholesterol ?? ''),
+    vitamin_a: parseOptional(data.vitaminA ?? ''),
+    vitamin_c: parseOptional(data.vitaminC ?? ''),
+    caffeine_mg: parseOptional(data.caffeineMg ?? ''),
+    water_ml: parseOptional(data.waterMl ?? ''),
+    alcohol_g: parseOptional(data.alcoholG ?? ''),
+  };
+}
+
+function confirmDialog(
+  title: string,
+  message: string,
+  confirmLabel: string
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    Alert.alert(
+      title,
+      message,
+      [
+        {
+          text: i18n.t('common.cancel', { defaultValue: 'Cancel' }),
+          style: 'cancel',
+          onPress: () => resolve(false),
+        },
+        {
+          text: confirmLabel,
+          style: 'destructive',
+          onPress: () => resolve(true),
+        },
+      ],
+      { onDismiss: () => resolve(false) }
+    );
+  });
+}
+
+function confirmDiscardServings(): Promise<boolean> {
+  return confirmDialog(
+    i18n.t('foodForm.servings.discardTitle', {
+      defaultValue: 'Discard serving size changes?',
+    }),
+    i18n.t('foodForm.servings.discardMessage', {
+      defaultValue: 'Your changes to the serving sizes are not saved.',
+    }),
+    i18n.t('foodFormPersistence.discard', { defaultValue: 'Discard' })
+  );
+}
+
+function templateAssignmentsIn(error: ApiError): number {
+  try {
+    const body = JSON.parse(error.body ?? '{}') as {
+      template_assignments?: number;
+    };
+    return Number(body.template_assignments ?? 0);
+  } catch {
+    return 0;
+  }
+}
+
 export function EditFoodMode({
   params,
   navigation,
@@ -136,193 +203,145 @@ export function EditFoodMode({
     [pickerImages]
   );
   const imagesChanged = pickerImagesDiffer(pickerImages, item?.images);
-  const { createVariant } = useCreateFoodVariant();
   const { variants } = useFoodVariants(foodId, { enabled: true });
-  const savedUnitVariants = useMemo(
-    () => buildLocalUnitVariants(variants),
-    [variants]
-  );
-  const fallbackVariant = useMemo(
-    () => buildVariantFromInitialValues(initialValues, variantId),
-    [initialValues, variantId]
-  );
-  const availableUnitVariants = useMemo(
-    () =>
-      savedUnitVariants.length > 0
-        ? savedUnitVariants
-        : fallbackVariant
-          ? [fallbackVariant]
-          : [],
-    [fallbackVariant, savedUnitVariants]
-  );
-  const [pendingUnitSelection, setPendingUnitSelection] =
-    useState<FoodUnitSelectionResult | null>(() =>
-      fallbackVariant
-        ? {
-            kind: 'existing',
-            variant: fallbackVariant,
-          }
-        : null
-    );
-  // initialValues (from FoodFormData) doesn't carry source/ai_confidence, so
-  // the fallback selection lands without AI provenance. When the server-backed
-  // variants resolve, swap in the matching saved variant so the inline AI
-  // badge surfaces on first render (not only after switching units and back).
-  useEffect(() => {
-    if (savedUnitVariants.length === 0) return;
-    setPendingUnitSelection((prev) => {
-      if (!prev || prev.kind !== 'existing' || !prev.variant.id) return prev;
-      const match = savedUnitVariants.find((v) => v.id === prev.variant.id);
-      if (!match || match === prev.variant) return prev;
-      return { ...prev, variant: match };
-    });
-  }, [savedUnitVariants]);
-  const [currentVariantId, setCurrentVariantId] = useState(variantId);
-  const [variantBaselineValues, setVariantBaselineValues] = useState<
-    Partial<FoodFormData>
-  >(() => {
-    if (fallbackVariant) {
-      return buildFormValuesFromVariant(fallbackVariant);
-    }
 
-    return initialValues;
-  });
+  // The form edits the food's nutrition basis. It is usually the row the
+  // screen was opened with; when a portion was open, switch to the basis once
+  // the variants are known so its values are what the user edits.
+  const basis = useMemo(() => findNutritionBasis(variants), [variants]);
+  const basisId = basis?.id ?? variantId;
+  const formInitialValues = useMemo<Partial<FoodFormData>>(
+    () =>
+      basis && basis.id !== variantId
+        ? {
+            ...initialValues,
+            ...buildFormValuesFromVariant(localVariantToUnitVariant(basis)),
+          }
+        : initialValues,
+    [basis, initialValues, variantId]
+  );
+  const initialCustomNutrients =
+    basis && basis.id !== variantId
+      ? (basis.custom_nutrients ?? null)
+      : customNutrients;
   const [currentCustomNutrients, setCurrentCustomNutrients] = useState<
     Record<string, string | number> | null | undefined
   >(customNutrients);
+  const [liveForm, setLiveForm] =
+    useState<Partial<FoodFormData>>(formInitialValues);
 
-  const groups = useMemo(() => groupEquivalentVariants(variants), [variants]);
-  const activeGroup = useMemo(
-    () =>
-      groups.find(
-        (g) =>
-          g.base.id === currentVariantId ||
-          g.equivalents.some((eq) => eq.id === currentVariantId)
-      ),
-    [groups, currentVariantId]
-  );
-  const otherSiblings = useMemo<EquivalentUnit[]>(() => {
-    if (!activeGroup) return [];
-    const all: EquivalentUnit[] = [
-      toEquivalentUnit(activeGroup.base),
-      ...activeGroup.equivalents,
-    ];
-    return all.filter((eq) => eq.id !== currentVariantId);
-  }, [activeGroup, currentVariantId]);
-
-  const [equivalentDraft, setEquivalentDraft] = useState<EquivalentUnit[]>([]);
-  const [equivalentBaseline, setEquivalentBaseline] = useState<
-    EquivalentUnit[]
-  >([]);
-
-  // Seed the editable equivalents from the current variant's siblings whenever
-  // the source signature changes. Done during render (instead of in an effect)
-  // so the draft matches the active variant on the first render after a switch.
-  const seedKey = `${currentVariantId}|${otherSiblings
-    .map((eq) => `${eq.id ?? ''}:${eq.serving_size}:${eq.serving_unit}`)
-    .join(',')}`;
+  // Saved portions, seeded during render whenever the stored list changes.
+  const [drafts, setDrafts] = useState<ServingDraft[]>([]);
+  const [baseline, setBaseline] = useState<ServingDraft[]>([]);
+  const [basisWeightText, setBasisWeightText] = useState('');
+  const [savedBasisWeightText, setSavedBasisWeightText] = useState('');
+  const [basisWeightUnit, setBasisWeightUnit] = useState<MetricUnit>('g');
+  const [showErrors, setShowErrors] = useState(false);
+  const seedKey = variants
+    ? variants
+        .map(
+          (v) =>
+            `${v.id}:${v.serving_size}:${v.serving_unit}:${v.serving_label ?? ''}:${v.metric_amount ?? ''}:${v.sort_order ?? 0}:${v.calories}`
+        )
+        .join(',')
+    : null;
   const [seededKey, setSeededKey] = useState<string | null>(null);
-  if (seededKey !== seedKey) {
+  if (seedKey !== null && seededKey !== seedKey) {
     setSeededKey(seedKey);
-    setEquivalentDraft(otherSiblings);
-    setEquivalentBaseline(otherSiblings);
+    const seeded = draftsFromVariants(variants, basis?.id);
+    setDrafts(seeded);
+    setBaseline(seeded);
+    const weight =
+      basis && !isMetricInputUnit(basis.serving_unit) && basis.metric_amount
+        ? formatServingSizeDisplay(Number(basis.metric_amount))
+        : '';
+    setBasisWeightText(weight);
+    setSavedBasisWeightText(weight);
+    setBasisWeightUnit(basis?.metric_unit === 'ml' ? 'ml' : 'g');
+    if (basis && basis.id !== variantId) {
+      setCurrentCustomNutrients(initialCustomNutrients);
+      setLiveForm(formInitialValues);
+    }
   }
 
-  const isSavingRef = useRef(false);
+  const servingBasis = useMemo<ServingBasis | null>(() => {
+    const size = parseDecimalInput(liveForm.servingSize ?? '');
+    const unit = liveForm.servingUnit?.trim();
+    if (!(size > 0) || !unit) return null;
+    const statedWeight = parseDecimalInput(basisWeightText);
+    const weighed = !isMetricInputUnit(unit) && statedWeight > 0;
+    return {
+      serving_size: size,
+      serving_unit: unit,
+      metric_amount: weighed ? statedWeight : null,
+      metric_unit: weighed ? basisWeightUnit : null,
+      ...formNutrition(liveForm),
+      custom_nutrients: currentCustomNutrients ?? basis?.custom_nutrients,
+    };
+  }, [
+    liveForm,
+    basisWeightText,
+    basisWeightUnit,
+    currentCustomNutrients,
+    basis?.custom_nutrients,
+  ]);
 
+  const errors = useMemo(
+    () => validateServingDrafts(drafts, servingBasis),
+    [drafts, servingBasis]
+  );
+  const basisWeightChanged =
+    basisWeightText.trim() !== savedBasisWeightText.trim() &&
+    parseDecimalInput(basisWeightText) !==
+      parseDecimalInput(savedBasisWeightText);
+  const hasServingChanges =
+    draftsDiffer(drafts, baseline) || basisWeightChanged;
+
+  const isSavingRef = useRef(false);
   useEffect(() => {
     const unsub = navigation.addListener('beforeRemove', (e) => {
-      if (isSavingRef.current) return;
-      if (!equivalentsDiffer(equivalentDraft, equivalentBaseline)) return;
+      if (isSavingRef.current || !hasServingChanges) return;
       e.preventDefault();
-      void confirmDiscardEquivalents().then((ok) => {
+      void confirmDiscardServings().then((ok) => {
         if (ok) navigation.dispatch(e.data.action);
       });
     });
     return unsub;
-  }, [navigation, equivalentDraft, equivalentBaseline]);
+  }, [navigation, hasServingChanges]);
 
-  const handleUnitSelectionChange = useCallback(
-    async (
-      selection: FoodUnitSelectionResult
-    ): Promise<FoodUnitSelectionResult> => {
-      const isSwappingActive =
-        selection.kind === 'existing' &&
-        selection.variant.id !== currentVariantId;
-
-      if (
-        isSwappingActive &&
-        equivalentsDiffer(equivalentDraft, equivalentBaseline)
-      ) {
-        const confirmed = await confirmDiscardEquivalents();
-        if (!confirmed) {
-          return pendingUnitSelection ?? selection;
+  /** Saves the portions; false when the user keeps a portion plans still use. */
+  const saveServings = useCallback(
+    async (body: SaveFoodServingsBody): Promise<boolean> => {
+      try {
+        await saveFoodServings(foodId, body);
+        return true;
+      } catch (error) {
+        if (!(error instanceof ApiError) || error.statusCode !== 409) {
+          throw error;
         }
+        const confirmed = await confirmDialog(
+          t('foodForm.servings.inUseTitle', {
+            defaultValue: 'Remove from meal plans?',
+          }),
+          t('foodForm.servings.inUseMessage', {
+            defaultValue:
+              'Meal plan templates use a serving you removed ({{entries}} entries). Removing it also removes those entries. Your diary is not affected.',
+            entries: templateAssignmentsIn(error),
+          }),
+          t('foodForm.servings.inUseConfirm', { defaultValue: 'Remove' })
+        );
+        if (!confirmed) return false;
+        await saveFoodServings(foodId, { ...body, confirm_cascade: true });
+        return true;
       }
-
-      if (selection.kind === 'existing') {
-        setPendingUnitSelection(selection);
-        setCurrentVariantId(selection.variant.id ?? variantId);
-        setVariantBaselineValues(buildFormValuesFromVariant(selection.variant));
-        setCurrentCustomNutrients(selection.variant.custom_nutrients ?? null);
-        return selection;
-      }
-      setPendingUnitSelection(selection);
-      return selection;
     },
-    [
-      variantId,
-      currentVariantId,
-      equivalentDraft,
-      equivalentBaseline,
-      pendingUnitSelection,
-    ]
-  );
-
-  const isDraftSelection = pendingUnitSelection?.kind === 'draft';
-
-  const buildGroupNutrition = useCallback(
-    (
-      data: FoodFormData,
-      snapshot: FoodVariantDetail | undefined
-    ): Partial<FoodVariantDetail> => ({
-      calories: parseDecimalInput(data.calories) || 0,
-      protein: parseDecimalInput(data.protein) || 0,
-      carbs: parseDecimalInput(data.carbs) || 0,
-      fat: parseDecimalInput(data.fat) || 0,
-      dietary_fiber: parseOptional(data.fiber),
-      saturated_fat: parseOptional(data.saturatedFat),
-      sodium: parseOptional(data.sodium),
-      sugars: parseOptional(data.sugars),
-      trans_fat: parseOptional(data.transFat),
-      potassium: parseOptional(data.potassium),
-      calcium: parseOptional(data.calcium),
-      iron: parseOptional(data.iron),
-      cholesterol: parseOptional(data.cholesterol),
-      vitamin_a: parseOptional(data.vitaminA),
-      vitamin_c: parseOptional(data.vitaminC),
-      caffeine_mg: parseOptional(data.caffeineMg),
-      water_ml: parseOptional(data.waterMl),
-      alcohol_g: parseOptional(data.alcoholG),
-      polyunsaturated_fat: snapshot?.polyunsaturated_fat,
-      monounsaturated_fat: snapshot?.monounsaturated_fat,
-      glycemic_index: snapshot?.glycemic_index,
-      custom_nutrients:
-        currentCustomNutrients ?? snapshot?.custom_nutrients ?? undefined,
-    }),
-    [currentCustomNutrients]
+    [foodId, t]
   );
 
   const handleSubmit = async (data: FoodFormData) => {
-    if (!validateFoodForm(data)) {
-      return;
-    }
-
-    const draftSelection =
-      pendingUnitSelection?.kind === 'draft' ? pendingUnitSelection : null;
-    if (!draftSelection && !variants) {
-      // Without the current variant list we can't diff sibling rows: the active
-      // row would be misclassified as a create and duplicate the existing variant.
+    if (!validateFoodForm(data)) return;
+    if (!variants || !basis) {
+      // Without the stored rows the portions and the basis cannot be told apart.
       Toast.show({
         type: 'error',
         text1: t('foodForm.loadingDetails', {
@@ -331,13 +350,19 @@ export function EditFoodMode({
       });
       return;
     }
+    if (Object.keys(errors).length > 0) {
+      setShowErrors(true);
+      Toast.show({
+        type: 'error',
+        text1: t('foodForm.servings.errors.fixRows', {
+          defaultValue: 'Check the highlighted servings.',
+        }),
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      let nextVariantId = currentVariantId;
-      let nextVariantBaselineValues = variantBaselineValues;
-      let nextCustomNutrients = currentCustomNutrients;
-
       const foodPayload: UpdateFoodPayload = {};
       if (data.name !== initialValues.name) foodPayload.name = data.name;
       if (data.brand !== initialValues.brand)
@@ -347,226 +372,62 @@ export function EditFoodMode({
       if ((data.notes ?? '') !== (initialValues.notes ?? ''))
         foodPayload.notes = (data.notes ?? '').trim() || null;
       // Only send images when they actually changed: the server treats a
-      // supplied `images` array as authoritative and deletes anything omitted,
-      // so an unchanged round-trip is wasted work at best.
+      // supplied `images` array as authoritative and deletes anything omitted.
       const imageArgs = imagesChanged
         ? splitPickerImages(pickerImages)
         : undefined;
-      const hasFoodMetadataChange =
-        Object.keys(foodPayload).length > 0 || imagesChanged;
+      if (Object.keys(foodPayload).length > 0 || imagesChanged) {
+        await updateFood(foodId, foodPayload, imageArgs);
+      }
 
-      let equivalentChangedCount = 0;
-
-      if (draftSelection) {
-        const createdVariant = await createVariant(
-          buildCreateFoodVariantPayload(
-            foodId,
-            buildVariantFromFormData(data, draftSelection)
-          )
-        );
-        nextVariantId = createdVariant.id;
-        setCurrentVariantId(createdVariant.id);
-        setPendingUnitSelection({
-          kind: 'existing',
-          variant: createdVariant,
-        });
-        nextVariantBaselineValues = buildFormValuesFromVariant(createdVariant);
-        nextCustomNutrients = createdVariant.custom_nutrients ?? null;
-        setVariantBaselineValues(nextVariantBaselineValues);
-        setCurrentCustomNutrients(nextCustomNutrients);
-
-        if (hasFoodMetadataChange) {
-          await updateFood(foodId, foodPayload, imageArgs);
-        }
-        invalidateFoodCaches(queryClient, foodId);
-      } else {
-        const activeSnapshot = variants?.find((v) => v.id === currentVariantId);
-        const groupNutrition = buildGroupNutrition(data, activeSnapshot);
-
-        const activeRow: Partial<FoodVariantDetail> & { id?: string } = {
-          id: currentVariantId,
+      const basisChanged =
+        hasFoodFormChanges(
+          buildFormValuesFromVariant(localVariantToUnitVariant(basis)),
+          data,
+          FOOD_VARIANT_FIELDS
+        ) || currentCustomNutrients !== initialCustomNutrients;
+      if (basisChanged) {
+        await updateFoodVariant(basis.id, {
           food_id: foodId,
           serving_size: parseDecimalInput(data.servingSize) || 0,
           serving_unit: data.servingUnit || 'serving',
-          ...groupNutrition,
-        };
-
-        const cleanEquivalents = equivalentDraft.filter(
-          (eq) => !isBlankEquivalent(eq)
-        );
-        const siblingRows = cleanEquivalents.map((eq) => ({
-          id: eq.id,
-          food_id: foodId,
-          serving_size: eq.serving_size,
-          serving_unit: eq.serving_unit,
-          ...groupNutrition,
-        }));
-        const desired = [activeRow, ...siblingRows];
-
-        const activeGroupIds = new Set<string>();
-        if (activeGroup) {
-          activeGroupIds.add(activeGroup.base.id);
-          activeGroup.equivalents.forEach((eq) => {
-            if (eq.id) activeGroupIds.add(eq.id);
-          });
-        }
-        const currentRows: FoodVariantDetail[] = (variants ?? []).filter((v) =>
-          activeGroupIds.has(v.id)
-        );
-
-        // If the active variant's nutrition changed, ask whether to overwrite
-        // the existing variant or save as a new one.
-        const nutritionChanged = hasFoodFormChanges(
-          variantBaselineValues,
-          data,
-          FOOD_VARIANT_FIELDS
-        );
-        if (nutritionChanged && currentVariantId) {
-          const activeVariant = variants?.find(
-            (v) => v.id === currentVariantId
-          );
-          const unitLabel = activeVariant
-            ? `${formatServingSizeForDisplay(activeVariant.serving_size)} ${localizeFoodUnit(activeVariant.serving_unit, t)}`
-            : data.servingUnit;
-          const choice = await confirmVariantOverwrite(unitLabel);
-          if (choice === 'cancel') {
-            setIsSubmitting(false);
-            return;
-          }
-          if (choice === 'new') {
-            const pendingSelection =
-              pendingUnitSelection?.kind === 'existing'
-                ? pendingUnitSelection
-                : null;
-            const createdVariant = await createVariant(
-              buildCreateFoodVariantPayload(
-                foodId,
-                buildVariantFromFormData(data, pendingSelection)
-              )
-            );
-            nextVariantId = createdVariant.id;
-            setCurrentVariantId(createdVariant.id);
-            setPendingUnitSelection({
-              kind: 'existing',
-              variant: createdVariant,
-            });
-            nextVariantBaselineValues =
-              buildFormValuesFromVariant(createdVariant);
-            nextCustomNutrients = createdVariant.custom_nutrients ?? null;
-            setVariantBaselineValues(nextVariantBaselineValues);
-            setCurrentCustomNutrients(nextCustomNutrients);
-            if (hasFoodMetadataChange) {
-              await updateFood(foodId, foodPayload, imageArgs);
-            }
-            invalidateFoodCaches(queryClient, foodId);
-            // Skip the diff/overwrite path — new variant is already saved.
-            setEquivalentBaseline(equivalentDraft);
-            Toast.show({
-              type: 'success',
-              text1: t('foodForm.savedNewVariant', {
-                defaultValue: 'Saved as new variant',
-              }),
-            });
-
-            // Same prompt as the main path: one rule — every save of a food
-            // you own asks before touching diary history.
-            const syncChoice = await confirmSyncPastEntries(imagesChanged);
-            if (syncChoice !== 'none') {
-              try {
-                await updateFoodEntriesSnapshot(
-                  foodId,
-                  undefined,
-                  syncChoice === 'nutrition-and-photos'
-                );
-                invalidateFoodCaches(queryClient, foodId);
-                Toast.show({
-                  type: 'success',
-                  text1: t('foodForm.pastEntriesUpdated', {
-                    defaultValue: 'Past entries updated',
-                  }),
-                });
-              } catch {
-                Toast.show({
-                  type: 'error',
-                  text1: t('foodForm.pastEntriesFailed', {
-                    defaultValue: 'Could not update past entries',
-                  }),
-                  text2: t('foodForm.foodSaved', {
-                    defaultValue: 'Your food was saved.',
-                  }),
-                });
-              }
-            }
-
-            isSavingRef.current = true;
-            navigation.dispatch({
-              ...CommonActions.setParams({
-                updatedItem: buildUpdatedFoodInfo(item, data, nextVariantId),
-                updatedSelectedVariantId: nextVariantId,
-              }),
-              source: returnKey,
-            });
-            navigation.goBack();
-            return;
-          }
-          // choice === 'overwrite': fall through to normal diff/update path
-        }
-
-        const diff = diffSiblingRows(currentRows, desired);
-        equivalentChangedCount =
-          diff.creates.length +
-          diff.updates.filter((u) => u.id !== currentVariantId).length +
-          diff.deletes.length;
-
-        const writes: Promise<unknown>[] = [];
-
-        if (hasFoodMetadataChange) {
-          writes.push(updateFood(foodId, foodPayload, imageArgs));
-        }
-
-        for (const row of diff.creates) {
-          writes.push(createFoodVariant(row as CreateFoodVariantPayload));
-        }
-        for (const row of diff.updates) {
-          const { id, ...payload } = row;
-          writes.push(
-            updateFoodVariant(id, payload as UpdateFoodVariantPayload)
-          );
-        }
-        for (const delId of diff.deletes) {
-          writes.push(deleteFoodVariant(delId));
-        }
-
-        if (writes.length > 0) {
-          await Promise.all(writes);
-          invalidateFoodCaches(queryClient, foodId);
-        }
+          ...formNutrition(data),
+          polyunsaturated_fat: basis.polyunsaturated_fat,
+          monounsaturated_fat: basis.monounsaturated_fat,
+          glycemic_index: basis.glycemic_index,
+          custom_nutrients:
+            currentCustomNutrients ?? basis.custom_nutrients ?? undefined,
+        });
       }
 
-      setEquivalentBaseline(equivalentDraft);
+      // Portions derived from the basis follow its new values.
+      if (hasServingChanges || (basisChanged && drafts.some(draftDerives))) {
+        const saved = await saveServings(
+          buildSaveServingsBody({
+            drafts,
+            baseline,
+            basis: servingBasis,
+            basisWeightText,
+            basisWeightUnit,
+            basisWeightChanged,
+          })
+        );
+        if (!saved) {
+          invalidateFoodCaches(queryClient, foodId);
+          return;
+        }
+      }
+      invalidateFoodCaches(queryClient, foodId);
+      setBaseline(drafts);
+      setSavedBasisWeightText(basisWeightText);
 
       Toast.show({
         type: 'success',
-        text1:
-          equivalentChangedCount > 0
-            ? t('foodForm.equivalentUnitsUpdated', {
-                count: equivalentChangedCount,
-                formattedCount: formatLocalizedNumber(equivalentChangedCount),
-                defaultValue:
-                  'Saved · {{formattedCount}} equivalent units updated',
-                defaultValue_one:
-                  'Saved · {{formattedCount}} equivalent unit updated',
-                defaultValue_other:
-                  'Saved · {{formattedCount}} equivalent units updated',
-              })
-            : t('foodForm.saved', { defaultValue: 'Saved' }),
+        text1: t('foodForm.saved', { defaultValue: 'Saved' }),
       });
 
       // Past diary entries keep the nutrition snapshot they were logged with.
-      // Ask before rewriting that history. Prompted on every save, matching
-      // web: one form saves nutrition, name, brand and photo together, so
-      // gating on "did nutrition change" would make the prompt appear and
-      // disappear for what looks to the user like the same action.
+      // Ask before rewriting that history.
       const syncChoice = await confirmSyncPastEntries(imagesChanged);
       if (syncChoice !== 'none') {
         try {
@@ -583,8 +444,7 @@ export function EditFoodMode({
             }),
           });
         } catch {
-          // The food itself saved fine; only the optional sync failed, so say
-          // so rather than implying the edit was lost.
+          // The food itself saved fine; only the optional sync failed.
           Toast.show({
             type: 'error',
             text1: t('foodForm.pastEntriesFailed', {
@@ -597,15 +457,19 @@ export function EditFoodMode({
         }
       }
 
+      const keptIds = new Set(drafts.map((draft) => draft.id));
       isSavingRef.current = true;
       navigation.dispatch({
         ...CommonActions.setParams({
-          updatedItem: buildUpdatedFoodInfo(item, data, nextVariantId),
-          updatedSelectedVariantId: nextVariantId,
+          updatedItem: buildUpdatedFoodInfo(item, data, basis.id),
+          // Keep the serving the user had open unless it was removed.
+          updatedSelectedVariantId:
+            variantId === basis.id || keptIds.has(variantId)
+              ? variantId
+              : basis.id,
         }),
         source: returnKey,
       });
-
       navigation.goBack();
     } catch {
       Toast.show({
@@ -649,16 +513,18 @@ export function EditFoodMode({
       {header}
 
       <FoodForm
+        key={basisId}
         onSubmit={(data) => {
           void handleSubmit(data);
         }}
         submitRequestRef={submitRequestRef}
-        initialValues={initialValues}
+        initialValues={formInitialValues}
         submitLabel={SAVE_LABEL}
         showNotes
         noteImages={savedNoteImages}
         isSubmitting={isSubmitting}
         hideSubmitButton={usesNativeHeader}
+        onFormChange={setLiveForm}
         headerChildren={
           <View className="mb-4">
             <FoodImagePicker
@@ -668,20 +534,21 @@ export function EditFoodMode({
             />
           </View>
         }
-        unitSelector={
-          availableUnitVariants.length > 0
-            ? {
-                variants: availableUnitVariants,
-                selectedSelection: pendingUnitSelection,
-                onUnitSelectionChange: handleUnitSelectionChange,
-              }
-            : undefined
+        servingsSection={
+          <View className="mt-4">
+            <ServingSizesEditor
+              basis={servingBasis}
+              drafts={drafts}
+              onChange={setDrafts}
+              storedVariants={variants}
+              basisWeightText={basisWeightText}
+              basisWeightUnit={basisWeightUnit}
+              onBasisWeightChange={setBasisWeightText}
+              errors={showErrors ? errors : {}}
+              disabled={isSubmitting || !variants}
+            />
+          </View>
         }
-        equivalents={{
-          items: equivalentDraft,
-          onChange: setEquivalentDraft,
-          disabled: isDraftSelection,
-        }}
         customNutrients={currentCustomNutrients}
         onCustomNutrientsChange={setCurrentCustomNutrients}
       />

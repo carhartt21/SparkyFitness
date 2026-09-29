@@ -134,4 +134,11 @@ export interface FoodVariantDetail {
   // units when it shouldn't).
   source?: 'manual' | 'ai_estimate' | 'imported';
   ai_confidence?: 'high' | 'medium' | 'low' | null;
+  /** Display name of a saved portion ("Medium"). */
+  serving_label?: string | null;
+  /** Weight (g) or volume (ml) of one serving_size; null when unknown. */
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
+  /** The user's order of saved portions. */
+  sort_order?: number;
 }

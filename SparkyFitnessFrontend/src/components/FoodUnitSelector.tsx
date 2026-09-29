@@ -297,6 +297,11 @@ const FoodUnitSelector = ({
           serving_size: variant.serving_size,
           serving_unit: variant.serving_unit,
           serving_description: variant.serving_description,
+          // Saved portion name and weight, shown as "Medium (130 g)".
+          serving_label: variant.serving_label,
+          metric_amount: variant.metric_amount,
+          metric_unit: variant.metric_unit,
+          sort_order: variant.sort_order,
           calories: variant.calories || 0,
           protein: variant.protein || 0,
           carbs: variant.carbs || 0,

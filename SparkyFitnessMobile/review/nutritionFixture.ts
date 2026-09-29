@@ -29,6 +29,49 @@ export const reviewFood: FoodItem = {
   },
 };
 
+// Saved portions of the review food (synthetic; values derived from 100 g).
+export const reviewVariants = [
+  {
+    ...reviewFood.default_variant,
+    food_id: reviewFood.id,
+    metric_amount: 100,
+    metric_unit: 'g' as const,
+    is_default: true,
+    sort_order: 0,
+  },
+  {
+    id: 'review-variant-medium',
+    food_id: reviewFood.id,
+    serving_label: 'Medium pot',
+    serving_size: 1,
+    serving_unit: 'piece',
+    metric_amount: 130,
+    metric_unit: 'g' as const,
+    calories: 195,
+    protein: 13,
+    carbs: 19.5,
+    fat: 6.5,
+    dietary_fiber: 2.6,
+    is_default: false,
+    sort_order: 1,
+  },
+  {
+    id: 'review-variant-cup',
+    food_id: reviewFood.id,
+    serving_size: 1,
+    serving_unit: 'cup',
+    metric_amount: 245,
+    metric_unit: 'g' as const,
+    calories: 367.5,
+    protein: 24.5,
+    carbs: 36.75,
+    fat: 12.25,
+    dietary_fiber: 4.9,
+    is_default: false,
+    sort_order: 2,
+  },
+];
+
 const clone = (entries: FoodEntry[]): FoodEntry[] =>
   JSON.parse(JSON.stringify(entries));
 
@@ -236,8 +279,36 @@ export function createNutritionFixture(scenario: string) {
           path === '/api/foods/food-variants' &&
           url.searchParams.get('food_id') === reviewFood.id
         )
-          return [{ ...reviewFood.default_variant, food_id: reviewFood.id }];
+          return reviewVariants;
+        if (path === `/api/foods/${reviewFood.id}/last-serving`)
+          return scenario === 'populated'
+            ? {
+                food_id: reviewFood.id,
+                variant_id: 'review-variant',
+                quantity: 150,
+                unit: 'g',
+                serving_size: 100,
+                serving_label: null,
+                metric_amount: 100,
+                metric_unit: 'g',
+                used_at: `${reviewDate}T07:30:00Z`,
+              }
+            : null;
         if (path === '/api/foods/review-food') return reviewFood;
+        // Edit Food asks whether AI unit estimates are available; they are off.
+        if (path === '/api/global-settings/allow-user-ai-config')
+          return { allow_user_ai_config: false };
+        if (path === `/api/foods/${reviewFood.id}/deletion-impact`)
+          return {
+            foodEntriesCount: entries.filter(
+              (entry) => entry.food_id === reviewFood.id
+            ).length,
+            mealFoodsCount: 0,
+            mealPlansCount: 0,
+            mealPlanTemplateAssignmentsCount: 0,
+            totalReferences: 0,
+            otherUserReferences: 0,
+          };
         // Launch-icon measurements opens an empty synthetic editor. Unknown
         // history is absent, not a zero-valued body measurement.
         if (path === '/api/measurements/check-in/latest-on-or-before-date')
@@ -260,6 +331,8 @@ export function createNutritionFixture(scenario: string) {
           return [];
         return reviewResponse(path, scenario);
       }
+      if (method === 'PUT' && path === `/api/foods/${reviewFood.id}/servings`)
+        return reviewVariants;
       if (method === 'POST' && path === '/api/food-entries') {
         const data = JSON.parse(body ?? '{}') as CreateFoodEntryPayload;
         if (
@@ -274,8 +347,12 @@ export function createNutritionFixture(scenario: string) {
             (entry) => entry.client_operation_id === data.client_operation_id
           );
         if (previous) return previous;
+        const variant =
+          reviewVariants.find((row) => row.id === data.variant_id) ??
+          reviewVariants[0];
         const entry: FoodEntry = {
           ...reviewFood.default_variant,
+          ...variant,
           ...data,
           id: `review-created-${nextId++}`,
           user_id: 'review-user',
@@ -285,8 +362,9 @@ export function createNutritionFixture(scenario: string) {
             `http://127.0.0.1:43991/fixture-thumbnail.png?run=${Date.now()}`,
           ],
           meal_type: 'breakfast',
-          serving_size: reviewFood.default_variant.serving_size,
-          calories: reviewFood.default_variant.calories,
+          serving_size: data.serving_size ?? variant.serving_size,
+          serving_unit: data.serving_unit ?? variant.serving_unit,
+          calories: variant.calories,
           custom_nutrients: data.custom_nutrients ?? undefined,
         };
         entries.push(entry);

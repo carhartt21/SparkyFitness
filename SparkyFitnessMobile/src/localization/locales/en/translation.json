@@ -2888,7 +2888,52 @@
     "equivalentUnitsUpdated_one": "Saved · {{formattedCount}} equivalent unit updated",
     "equivalentUnitsUpdated_other": "Saved · {{formattedCount}} equivalent units updated",
     "notes": "Notes",
-    "notesPlaceholder": "e.g. White rice, double chicken, no beans (supports markdown)"
+    "notesPlaceholder": "e.g. White rice, double chicken, no beans (supports markdown)",
+    "servings": {
+      "reorder": "Reorder {{name}}",
+      "position": "Serving {{position}} of {{total}}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "editHint": "Edit this serving",
+      "delete": "Delete {{name}}",
+      "untitled": "New serving",
+      "kcal": "{{value}} kcal",
+      "ownNutrition": "Own nutrition",
+      "errors": {
+        "amount": "Enter an amount greater than zero.",
+        "unit": "Choose a unit.",
+        "duplicate": "Another serving has the same amount, unit and name.",
+        "weight": "Enter what this serving weighs.",
+        "basisWeight": "Enter the weight of the food’s nutrition serving first, or use its own unit.",
+        "fixRows": "Check the highlighted servings."
+      },
+      "title": "Serving sizes",
+      "add": "Add serving size",
+      "basisWeight": "Weight of {{serving}}",
+      "weightUnknown": "Unknown",
+      "basisWeightHint": "With a weight, you can log this food in grams and add portions by weight.",
+      "empty": "No saved portions. Add one to log it with one tap.",
+      "orderHint": "Drag to reorder. Portions appear in this order when you log the food.",
+      "label": "Label",
+      "labelPlaceholder": "e.g. Medium",
+      "amount": "Amount",
+      "unit": "Unit",
+      "unitA11y": "Unit, {{unit}}",
+      "recalculated": "This serving had its own nutrition. Saving recalculates it from {{basis}}.",
+      "preview": "Serving preview",
+      "calories": "Calories",
+      "protein": "Protein",
+      "carbs": "Carbs",
+      "fat": "Fat",
+      "previewUnknown": "Add a weight to see this serving’s nutrition.",
+      "basisNote": "Nutrition values are per {{basis}}. Portions are calculated from them.",
+      "discardTitle": "Discard serving size changes?",
+      "discardMessage": "Your changes to the serving sizes are not saved.",
+      "inUseTitle": "Remove from meal plans?",
+      "inUseMessage": "Meal plan templates use a serving you removed ({{entries}} entries). Removing it also removes those entries. Your diary is not affected.",
+      "inUseConfirm": "Remove",
+      "weight": "Weight ({{unit}})"
+    }
   },
   "exerciseHistory": {
     "noSetData": "No set data",
@@ -3607,6 +3652,29 @@
     "pickers": {
       "selectServing": "Select Serving",
       "selectMeal": "Select Meal"
+    },
+    "quickAdd": {
+      "added": "Added {{portion}}",
+      "tapToUndo": "Tap to undo",
+      "undone": "Entry removed",
+      "undoFailed": "Could not remove the entry",
+      "title": "Quick add",
+      "subtitle": "Saved portions",
+      "lastUsed": "Last used",
+      "nutrition": "{{calories}} kcal · {{fat}} g F · {{carbs}} g C · {{protein}} g P",
+      "addLastA11y": "Add last used, {{portion}}, {{calories}} kilocalories",
+      "addA11y": "Add {{portion}}, {{calories}} kilocalories",
+      "multiplePortions": "{{amount}} × {{portion}}"
+    },
+    "servings": {
+      "title": "Serving size",
+      "milliliters": "Milliliters",
+      "grams": "Grams",
+      "totalWeight": "{{weight}} in total"
+    },
+    "moreOptions": {
+      "title": "More options",
+      "subtitle": "Nutrition facts and all nutrients"
     }
   },
   "foodEntryMultiAdd": {

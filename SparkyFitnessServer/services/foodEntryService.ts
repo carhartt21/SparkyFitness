@@ -28,6 +28,7 @@ import {
   foodVolumeToMl,
 } from '@workspace/shared';
 import customNutrientService from './customNutrientService.js';
+import foodServingService from './foodServingService.js';
 import { removeOrphanedImages } from '../middleware/imageUpload.js';
 import express from 'express';
 // Helper functions (already defined)
@@ -747,6 +748,8 @@ async function createFoodEntry(
       entryWithUser,
       actingUserId
     );
+    // A hand-logged food becomes its first quick-add suggestion next time.
+    await foodServingService.recordLastServing(actingUserId, newEntry);
     return newEntry;
   } catch (error) {
     log(
@@ -1043,6 +1046,15 @@ async function updateFoodEntry(
       );
     }
 
+    if (
+      (entryData.quantity !== undefined &&
+        Number(entryData.quantity) !== Number(existingEntry.quantity)) ||
+      (entryData.unit !== undefined && entryData.unit !== existingEntry.unit) ||
+      (entryData.variant_id !== undefined &&
+        entryData.variant_id !== existingEntry.variant_id)
+    ) {
+      await foodServingService.recordLastServing(actingUserId, updatedEntry);
+    }
     return updatedEntry;
   } catch (error) {
     log(

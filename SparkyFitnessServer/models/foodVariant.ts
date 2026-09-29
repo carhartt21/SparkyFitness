@@ -13,8 +13,13 @@ async function createFoodVariant(variantData: any, userId: any) {
         saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat,
         cholesterol, sodium, potassium, dietary_fiber, sugars,
         vitamin_a, vitamin_c, calcium, iron, is_default, glycemic_index, custom_nutrients,
-        source, ai_confidence, allergens, traces, caffeine_mg, water_ml, alcohol_g, abv_percent, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, now(), now()) RETURNING *`,
+        source, ai_confidence, allergens, traces, caffeine_mg, water_ml, alcohol_g, abv_percent,
+        serving_label, metric_amount, metric_unit, sort_order, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31,
+        $32, $33, $34,
+        -- A new serving goes to the end of the food's list unless placed.
+        COALESCE($35, (SELECT COALESCE(MAX(sort_order) + 1, 0) FROM food_variants WHERE food_id = $1)),
+        now(), now()) RETURNING *`,
       [
         variantData.food_id,
         variantData.serving_size,
@@ -47,6 +52,13 @@ async function createFoodVariant(variantData: any, userId: any) {
         variantData.water_ml,
         variantData.alcohol_g,
         variantData.abv_percent,
+        variantData.serving_label?.trim() || null,
+        variantData.metric_amount ?? null,
+        variantData.metric_amount === null ||
+        variantData.metric_amount === undefined
+          ? null
+          : (variantData.metric_unit ?? null),
+        variantData.sort_order ?? null,
       ]
     );
     return result.rows[0];
@@ -93,7 +105,8 @@ async function getFoodVariantsByFoodId(foodId: any, userId: any) {
   const client = await getClient(userId); // User-specific operation (RLS will handle access)
   try {
     const result = await client.query(
-      'SELECT * FROM food_variants WHERE food_id = $1',
+      // Saved portions follow the user's order; ties keep creation order.
+      'SELECT * FROM food_variants WHERE food_id = $1 ORDER BY sort_order, created_at, id',
       [foodId]
     );
     return result.rows;
@@ -140,6 +153,10 @@ async function updateFoodVariant(id: any, variantData: any, userId: any) {
         water_ml = COALESCE($31, water_ml),
         alcohol_g = COALESCE($32, alcohol_g),
         abv_percent = COALESCE($33, abv_percent),
+        serving_label = CASE WHEN $34 THEN $35 ELSE serving_label END,
+        metric_amount = CASE WHEN $36 THEN $37 ELSE metric_amount END,
+        metric_unit = CASE WHEN $36 THEN $38 ELSE metric_unit END,
+        sort_order = COALESCE($39, sort_order),
         updated_at = now()
       WHERE id = $27
       RETURNING *`,
@@ -179,6 +196,15 @@ async function updateFoodVariant(id: any, variantData: any, userId: any) {
         variantData.water_ml,
         variantData.alcohol_g,
         variantData.abv_percent,
+        variantData.serving_label !== undefined,
+        variantData.serving_label?.trim() || null,
+        variantData.metric_amount !== undefined,
+        variantData.metric_amount ?? null,
+        variantData.metric_amount === null ||
+        variantData.metric_amount === undefined
+          ? null
+          : (variantData.metric_unit ?? null),
+        variantData.sort_order ?? null,
       ]
     );
     // If this variant is being set as default, ensure all other variants for this food_id are not default

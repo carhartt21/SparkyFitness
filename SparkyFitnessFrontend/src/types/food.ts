@@ -8,6 +8,13 @@ export interface FoodVariant {
   serving_size: number;
   serving_unit: string;
   serving_description?: string;
+  /** Saved portion name ("Medium"). */
+  serving_label?: string | null;
+  /** Weight (g) or volume (ml) of one serving; null when unknown. */
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
+  /** The user's order of saved portions. */
+  sort_order?: number;
   calories: number;
   protein: number;
   carbs: number;
@@ -275,6 +282,11 @@ export type NumericFoodVariantKeys = Exclude<
   | 'ai_confidence'
   | 'allergens'
   | 'traces'
+  // Saved-portion metadata: a name, a weight kept as-is and an order.
+  | 'serving_label'
+  | 'metric_amount'
+  | 'metric_unit'
+  | 'sort_order'
 >;
 export interface EquivalentUnit {
   id?: string;

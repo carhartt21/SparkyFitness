@@ -521,30 +521,131 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.getByTestId('food-entry-category-thumbnail')).toBeTruthy();
   });
 
-  it('offers one-tap serving amounts that set the logged quantity', () => {
-    // Amounts are multiples of the selected stored serving (1 cup here).
-    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+  const yogurtVariants = [
+    {
+      id: 'variant-basis',
+      food_id: 'food-1',
+      serving_size: 100,
+      serving_unit: 'g',
+      metric_amount: 100,
+      metric_unit: 'g',
+      calories: 60,
+      protein: 10,
+      carbs: 4,
+      fat: 0.4,
+      is_default: true,
+      sort_order: 0,
+    },
+    {
+      id: 'variant-medium',
+      food_id: 'food-1',
+      serving_label: 'Medium',
+      serving_size: 1,
+      serving_unit: 'piece',
+      metric_amount: 130,
+      metric_unit: 'g',
+      calories: 78,
+      protein: 13,
+      carbs: 5.2,
+      fat: 0.52,
+      is_default: false,
+      sort_order: 1,
+    },
+  ];
+  const yogurtItem = {
+    ...baseLocalItem,
+    servingSize: 100,
+    servingUnit: 'g',
+    calories: 60,
+    protein: 10,
+    carbs: 4,
+    fat: 0.4,
+    variantId: 'variant-basis',
+  };
 
-    expect(screen.getByTestId('food-entry-quick-amounts')).toBeTruthy();
-    fireEvent.press(screen.getByTestId('food-entry-quick-amount-1.5'));
+  it('logs a saved portion with one tap and offers to undo it', async () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: yogurtVariants,
+      isLoading: false,
+      isError: false,
+    } as any);
+    const screen = renderScreen({ item: yogurtItem, date: '2026-04-23' });
+
+    expect(screen.getByTestId('food-entry-quick-add')).toBeTruthy();
     expect(
-      screen.getByTestId('food-entry-quick-amount-1.5').props.accessibilityState
-    ).toEqual(expect.objectContaining({ selected: true }));
+      screen.getByText('78 kcal · 0.5 g F · 5.2 g C · 13 g P')
+    ).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('food-entry-quick-add-button-variant-medium')
+      );
+    });
 
-    fireEvent.press(screen.getAllByText('Add Food')[0]);
-    expect(mockAddEntry).toHaveBeenCalledWith(
+    expect(mockAddEntryAsync).toHaveBeenCalledWith({
+      createEntryPayload: expect.objectContaining({
+        food_id: 'food-1',
+        variant_id: 'variant-medium',
+        quantity: 1,
+        unit: 'piece',
+        entry_date: '2026-04-23',
+      }),
+    });
+    expect(mockToast.show).toHaveBeenCalledWith(
       expect.objectContaining({
-        createEntryPayload: expect.objectContaining({
-          quantity: 1.5,
-          unit: 'cup',
-        }),
+        type: 'success',
+        text1: 'Added Medium (130 g)',
+        text2: 'Tap to undo',
+        props: { onPress: expect.any(Function) },
       })
     );
   });
 
+  it('offers the last serving first and logs exactly that amount', async () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: yogurtVariants,
+      isLoading: false,
+      isError: false,
+    } as any);
+    useQuery.mockImplementation(({ queryKey }: any) =>
+      queryKey[0] === 'foodLastServing'
+        ? {
+            data: {
+              food_id: 'food-1',
+              variant_id: 'variant-medium',
+              quantity: 2,
+              unit: 'piece',
+              serving_size: 1,
+              serving_label: 'Medium',
+              metric_amount: 130,
+              metric_unit: 'g',
+              used_at: '2026-04-22T08:00:00Z',
+            },
+          }
+        : { data: undefined, isLoading: false }
+    );
+    const screen = renderScreen({ item: yogurtItem, date: '2026-04-23' });
+
+    expect(screen.getByText('Last used')).toBeTruthy();
+    expect(screen.getByText('2 × Medium (130 g)')).toBeTruthy();
+    // The single Medium portion is still offered separately.
+    expect(
+      screen.getByTestId('food-entry-quick-add-button-variant-medium')
+    ).toBeTruthy();
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('food-entry-quick-add-button-last'));
+    });
+    expect(mockAddEntryAsync).toHaveBeenCalledWith({
+      createEntryPayload: expect.objectContaining({
+        variant_id: 'variant-medium',
+        quantity: 2,
+        unit: 'piece',
+      }),
+    });
+  });
+
   it('does not offer serving amounts for a saved meal', () => {
     const screen = renderScreen({ item: baseMealItem, date: '2026-04-23' });
-    expect(screen.queryByTestId('food-entry-quick-amounts')).toBeNull();
+    expect(screen.queryByTestId('food-entry-quick-add')).toBeNull();
   });
 
   it('keeps an Add Food action reachable above the keyboard', () => {
@@ -1150,7 +1251,9 @@ describe('FoodEntryAddScreen', () => {
     fireEvent.press(screen.getByLabelText('Edit log destination'));
     expect(screen.getByText('Date')).toBeTruthy();
     expect(screen.getByText('Meal')).toBeTruthy();
-    expect(screen.getByText(/· 1 cup per serving/)).toBeTruthy();
+    expect(
+      screen.getByText('A gram weight was not provided for this serving.')
+    ).toBeTruthy();
 
     fireEvent.press(screen.getByText('Add Food'));
 
@@ -1176,7 +1279,7 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
-    const quantityInput = screen.getByTestId('quantity-input');
+    const quantityInput = screen.getByTestId('food-entry-amount-input');
     fireEvent(quantityInput, 'focus');
     fireEvent.changeText(quantityInput, '2');
     fireEvent.press(screen.getByText('Add Food'));
@@ -1245,24 +1348,29 @@ describe('FoodEntryAddScreen', () => {
     expect(mockPopToTop).not.toHaveBeenCalled();
   });
 
-  it('shows grams for a grouped local portion instead of only the named unit', () => {
-    mockUseFoodVariants.mockReturnValueOnce({
+  it('starts in grams and lists a weighed portion by name', () => {
+    mockUseFoodVariants.mockReturnValue({
       variants: [
         {
           id: 'variant-piece',
           food_id: 'food-1',
           serving_size: 1,
           serving_unit: 'piece',
+          metric_amount: 15,
+          metric_unit: 'g',
           calories: 100,
           protein: 15,
           carbs: 6,
           fat: 0,
+          is_default: true,
         },
         {
           id: 'variant-grams',
           food_id: 'food-1',
           serving_size: 15,
           serving_unit: 'g',
+          metric_amount: 15,
+          metric_unit: 'g',
           calories: 100,
           protein: 15,
           carbs: 6,
@@ -1282,45 +1390,56 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
-    expect(screen.getByText('piece (15 g)')).toBeTruthy();
-    expect(screen.getByText(/piece \(15 g\) per serving/)).toBeTruthy();
+    expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
+    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
+      '15'
+    );
+    expect(screen.getAllByText('1 piece (15 g)').length).toBeGreaterThan(0);
   });
 
-  it('keeps a 100 g reference available and applies a quick portion before logging', () => {
+  it('starts a chosen portion at one and converts back to grams exactly', () => {
     mockUseFoodVariants.mockReturnValue({
       variants: [
-        {
-          id: 'variant-portion',
-          food_id: 'food-1',
-          serving_size: 1,
-          serving_unit: 'portion',
-          serving_description: 'portion (150 g)',
-          calories: 180,
-          protein: 15,
-          carbs: 6,
-          fat: 0,
-        },
         {
           id: 'variant-reference',
           food_id: 'food-1',
           serving_size: 100,
           serving_unit: 'g',
-          serving_description: '100 g',
+          metric_amount: 100,
+          metric_unit: 'g',
           calories: 120,
           protein: 10,
           carbs: 4,
           fat: 0,
+          is_default: true,
+          sort_order: 0,
         },
         {
-          id: 'variant-portion-grams',
+          id: 'variant-portion',
           food_id: 'food-1',
-          serving_size: 150,
-          serving_unit: 'g',
-          serving_description: '150 g',
+          serving_size: 1,
+          serving_unit: 'portion',
+          metric_amount: 150,
+          metric_unit: 'g',
           calories: 180,
           protein: 15,
           carbs: 6,
           fat: 0,
+          sort_order: 1,
+        },
+        {
+          // A plain gram row restating the basis folds into Grams.
+          id: 'variant-portion-grams',
+          food_id: 'food-1',
+          serving_size: 150,
+          serving_unit: 'g',
+          metric_amount: 150,
+          metric_unit: 'g',
+          calories: 180,
+          protein: 15,
+          carbs: 6,
+          fat: 0,
+          sort_order: 2,
         },
       ],
       isLoading: false,
@@ -1332,7 +1451,6 @@ describe('FoodEntryAddScreen', () => {
         ...baseLocalItem,
         servingSize: 100,
         servingUnit: 'g',
-        servingDescription: '100 g',
         calories: 120,
         protein: 10,
         carbs: 4,
@@ -1342,50 +1460,50 @@ describe('FoodEntryAddScreen', () => {
       date: '2026-04-23',
     });
 
-    expect(screen.getByText('1 portion (150 g) (180 cal)')).toBeTruthy();
-    expect(screen.getByText('100 g (120 cal)')).toBeTruthy();
-    expect(screen.getByLabelText(/^Change unit:/)).toBeTruthy();
-    expect(screen.getByText('Available portions')).toBeTruthy();
+    expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
+    expect(screen.queryByText('150 g')).toBeNull();
     expect(screen.getByText('Log to')).toBeTruthy();
-    fireEvent.press(
-      screen.getByLabelText('Choose 1 portion (150 g) (180 cal)')
-    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '300');
+    fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
     expect(screen.getByLabelText(/Change unit:.*portion/)).toBeTruthy();
+    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe('1');
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '150 g in total'
+    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
+    fireEvent.press(screen.getAllByText('Grams')[0]);
+    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
+      '300'
+    );
+    fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
     fireEvent.press(screen.getByText('Add Food'));
     expect(mockAddEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         createEntryPayload: expect.objectContaining({
           variant_id: 'variant-portion',
-          quantity: 1,
+          quantity: 2,
           unit: 'portion',
         }),
       })
     );
   });
 
-  it('offers gram entry alongside a named serving and logs the chosen gram amount', () => {
+  it('logs a weighed serving in grams when the food has no gram row', () => {
     mockUseFoodVariants.mockReturnValue({
       variants: [
         {
-          id: 'variant-piece',
+          id: 'variant-bar',
           food_id: 'food-1',
           serving_size: 1,
-          serving_unit: 'piece',
-          calories: 100,
-          protein: 15,
-          carbs: 6,
-          fat: 0,
-        },
-        {
-          id: 'variant-grams',
-          food_id: 'food-1',
-          serving_size: 15,
-          serving_unit: 'g',
-          serving_description: '15 g',
-          calories: 100,
-          protein: 15,
-          carbs: 6,
-          fat: 0,
+          serving_unit: 'bar',
+          metric_amount: 45,
+          metric_unit: 'g',
+          calories: 200,
+          protein: 20,
+          carbs: 22,
+          fat: 7,
+          is_default: true,
         },
       ],
       isLoading: false,
@@ -1395,22 +1513,26 @@ describe('FoodEntryAddScreen', () => {
     const screen = renderScreen({
       item: {
         ...baseLocalItem,
-        servingUnit: 'piece',
-        variantId: 'variant-piece',
+        servingUnit: 'bar',
+        calories: 200,
+        variantId: 'variant-bar',
       },
       date: '2026-04-23',
     });
-    fireEvent.press(screen.getByLabelText('Enter amount in grams'));
-    expect(screen.getByTestId('quantity-input').props.value).toBe('15');
-    expect(screen.getByLabelText('Change unit: g')).toBeTruthy();
-    fireEvent.changeText(screen.getByTestId('quantity-input'), '30');
+    expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
+    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
+      '45'
+    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '30');
     fireEvent.press(screen.getByText('Add Food'));
     expect(mockAddEntry).toHaveBeenCalledWith(
       expect.objectContaining({
         createEntryPayload: expect.objectContaining({
-          variant_id: 'variant-grams',
+          variant_id: 'variant-bar',
           quantity: 30,
           unit: 'g',
+          serving_size: 45,
+          serving_unit: 'g',
         }),
       })
     );

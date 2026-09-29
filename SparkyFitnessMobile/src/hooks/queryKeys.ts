@@ -112,6 +112,9 @@ export const goalsQueryKey = (date: string) => ['goals', date] as const;
 export const foodVariantsQueryKey = (foodId: string) =>
   ['foodVariants', foodId] as const;
 
+export const foodLastServingQueryKey = (foodId: string) =>
+  ['foodLastServing', foodId] as const;
+
 export const measurementsRangeQueryKey = (startDate: string, endDate: string) =>
   ['measurementsRange', startDate, endDate] as const;
 

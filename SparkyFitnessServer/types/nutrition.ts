@@ -80,6 +80,12 @@ export interface FoodVariantInput extends NutrientFields {
   ai_confidence?: string | null;
   allergens?: string[] | null;
   traces?: string[] | null;
+  /** Display name of a saved portion ("Medium"). */
+  serving_label?: string | null;
+  /** Weight (g) or volume (ml) of one serving; set by the database for g/ml rows. */
+  metric_amount?: NutrientValue;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number | null;
 }
 
 /**

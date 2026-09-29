@@ -8,6 +8,7 @@ import {
   FoodVariantDetail,
   PaginatedFoodsResponse,
 } from '../../types/foods';
+import type { FoodLastServing, SaveFoodServingsBody } from '@workspace/shared';
 
 /**
  * Fetches the list of recent and top foods.
@@ -85,6 +86,34 @@ export const fetchFoodVariants = async (
     endpoint: `/api/foods/food-variants?food_id=${foodId}`,
     serviceName: 'Foods API',
     operation: 'fetch food variants',
+  });
+};
+
+/**
+ * Saves a food's portion list (labels, amounts, weights and order) in one
+ * request. The server derives weighed portions from the food's nutrition.
+ */
+export const saveFoodServings = async (
+  foodId: string,
+  body: SaveFoodServingsBody
+): Promise<FoodVariantDetail[]> => {
+  return apiFetch<FoodVariantDetail[]>({
+    endpoint: `/api/foods/${foodId}/servings`,
+    serviceName: 'Foods API',
+    operation: 'save food servings',
+    method: 'PUT',
+    body,
+  });
+};
+
+/** The amount and unit last logged by hand for a food, or null. */
+export const fetchFoodLastServing = async (
+  foodId: string
+): Promise<FoodLastServing | null> => {
+  return apiFetch<FoodLastServing | null>({
+    endpoint: `/api/foods/${foodId}/last-serving`,
+    serviceName: 'Foods API',
+    operation: 'fetch last serving',
   });
 };
 

@@ -2750,7 +2750,52 @@
     "equivalentUnitsUpdated_one": "Gespeichert · {{formattedCount}} equivalent unit updated",
     "equivalentUnitsUpdated_other": "Gespeichert · {{formattedCount}} equivalent units updated",
     "notes": "Neintes",
-    "notesPlaceholder": "e.g. White rice, double chicken, Keine beans (supports markdown)"
+    "notesPlaceholder": "e.g. White rice, double chicken, Keine beans (supports markdown)",
+    "servings": {
+      "reorder": "{{name}} verschieben",
+      "position": "Portion {{position}} von {{total}}",
+      "moveUp": "Nach oben",
+      "moveDown": "Nach unten",
+      "editHint": "Diese Portion bearbeiten",
+      "delete": "{{name}} löschen",
+      "untitled": "Neue Portion",
+      "kcal": "{{value}} kcal",
+      "ownNutrition": "Eigene Nährwerte",
+      "errors": {
+        "amount": "Geben Sie eine Menge größer als null ein.",
+        "unit": "Wählen Sie eine Einheit.",
+        "duplicate": "Eine andere Portion hat bereits dieselbe Menge, Einheit und Bezeichnung.",
+        "weight": "Geben Sie das Gewicht dieser Portion an.",
+        "basisWeight": "Geben Sie zuerst das Gewicht der Nährwertportion an oder verwenden Sie deren Einheit.",
+        "fixRows": "Prüfen Sie die markierten Portionen."
+      },
+      "title": "Portionsgrößen",
+      "add": "Portionsgröße hinzufügen",
+      "basisWeight": "Gewicht von {{serving}}",
+      "weightUnknown": "Unbekannt",
+      "basisWeightHint": "Mit einem Gewicht können Sie dieses Lebensmittel in Gramm erfassen und Portionen nach Gewicht anlegen.",
+      "empty": "Keine gespeicherten Portionen. Fügen Sie eine hinzu, um sie künftig mit einem Tippen zu erfassen.",
+      "orderHint": "Zum Sortieren ziehen. In dieser Reihenfolge erscheinen die Portionen beim Erfassen.",
+      "label": "Bezeichnung",
+      "labelPlaceholder": "z. B. Mittel",
+      "amount": "Menge",
+      "unit": "Einheit",
+      "unitA11y": "Einheit, {{unit}}",
+      "recalculated": "Diese Portion hatte eigene Nährwerte. Beim Speichern werden sie aus {{basis}} neu berechnet.",
+      "preview": "Portionsvorschau",
+      "calories": "Kalorien",
+      "protein": "Eiweiß",
+      "carbs": "Kohlenhydrate",
+      "fat": "Fett",
+      "previewUnknown": "Geben Sie ein Gewicht an, um die Nährwerte dieser Portion zu sehen.",
+      "basisNote": "Die Nährwerte gelten für {{basis}}. Portionen werden daraus berechnet.",
+      "discardTitle": "Änderungen an den Portionsgrößen verwerfen?",
+      "discardMessage": "Ihre Änderungen an den Portionsgrößen sind nicht gespeichert.",
+      "inUseTitle": "Aus Essensplänen entfernen?",
+      "inUseMessage": "Essensplan-Vorlagen verwenden eine entfernte Portion ({{entries}} Einträge). Beim Entfernen werden diese Einträge ebenfalls entfernt. Ihr Tagebuch bleibt unverändert.",
+      "inUseConfirm": "Entfernen",
+      "weight": "Gewicht ({{unit}})"
+    }
   },
   "exerciseHistory": {
     "noSetData": "Nein set data",
@@ -3420,6 +3465,29 @@
     "pickers": {
       "selectServing": "Portion auswählen",
       "selectMeal": "Mahlzeit auswählen"
+    },
+    "quickAdd": {
+      "added": "{{portion}} hinzugefügt",
+      "tapToUndo": "Zum Rückgängigmachen tippen",
+      "undone": "Eintrag entfernt",
+      "undoFailed": "Der Eintrag konnte nicht entfernt werden",
+      "title": "Schnell hinzufügen",
+      "subtitle": "Gespeicherte Portionen",
+      "lastUsed": "Zuletzt verwendet",
+      "nutrition": "{{calories}} kcal · {{fat}} g F · {{carbs}} g KH · {{protein}} g E",
+      "addLastA11y": "Zuletzt verwendet hinzufügen, {{portion}}, {{calories}} Kilokalorien",
+      "addA11y": "{{portion}} hinzufügen, {{calories}} Kilokalorien",
+      "multiplePortions": "{{amount}} × {{portion}}"
+    },
+    "servings": {
+      "title": "Portionsgröße",
+      "milliliters": "Milliliter",
+      "grams": "Gramm",
+      "totalWeight": "insgesamt {{weight}}"
+    },
+    "moreOptions": {
+      "title": "Weitere Optionen",
+      "subtitle": "Nährwertangaben und alle Nährstoffe"
     }
   },
   "exerciseSearch": {

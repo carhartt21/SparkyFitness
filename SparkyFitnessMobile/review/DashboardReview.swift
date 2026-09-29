@@ -113,9 +113,72 @@ final class DashboardReview: XCTestCase {
     app.buttons["quick-add-more"].tap()
     sleep(3)
     capture("tour-food-details", app)
+    // Serving size: grams first, saved portions after; picking one converts the amount.
+    let unitPicker = app.buttons["food-entry-unit-picker"]
+    XCTAssertTrue(unitPicker.waitForExistence(timeout: 10))
+    unitPicker.tap()
+    sleep(2)
+    capture("tour-food-unit-menu", app)
+    // The quick-add row carries the same name; pick the visible sheet option.
+    let portions = app.staticTexts.matching(NSPredicate(format: "label == %@", "Medium pot (130 g)"))
+    XCTAssertTrue(portions.firstMatch.waitForExistence(timeout: 5))
+    // The sheet sits at the bottom, below the quick-add row with the same name.
+    let screen = app.windows.firstMatch.frame
+    let portion = portions.allElementsBoundByIndex
+      .filter { screen.contains($0.frame) }
+      .max(by: { $0.frame.minY < $1.frame.minY })
+    XCTAssertNotNil(portion)
+    portion?.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    sleep(2)
+    capture("tour-food-details-portion", app)
     app.swipeUp()
     sleep(1)
     capture("tour-food-details-lower", app)
+    app.swipeUp()
+    sleep(1)
+    capture("tour-food-details-bottom", app)
+    // Edit Food from the library: the saved portions editor.
+    // Close the food details and then the search (both modal, X at top left).
+    for _ in 0..<2 {
+      let close = app.buttons.matching(NSPredicate(format: "label == %@", "Close")).firstMatch
+      if close.waitForExistence(timeout: 3) && close.isHittable {
+        close.tap()
+      } else {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.09, dy: 0.1)).tap()
+      }
+      sleep(2)
+    }
+    sleep(1)
+    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More"])).firstMatch
+    XCTAssertTrue(more.waitForExistence(timeout: 10))
+    more.tap()
+    sleep(2)
+    app.swipeUp()
+    sleep(1)
+    let foods = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Foods")).firstMatch
+    XCTAssertTrue(foods.waitForExistence(timeout: 10))
+    foods.tap()
+    sleep(2)
+    capture("tour-foods-library", app)
+    let reviewFood = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt")).firstMatch
+    XCTAssertTrue(reviewFood.waitForExistence(timeout: 15))
+    reviewFood.tap()
+    sleep(2)
+    capture("tour-food-library-detail", app)
+    let edit = app.descendants(matching: .any).matching(NSPredicate(format: "label IN %@", ["Edit food", "Edit"])).firstMatch
+    XCTAssertTrue(edit.waitForExistence(timeout: 10))
+    edit.tap()
+    let editor = app.descendants(matching: .any)["serving-sizes-editor"]
+    XCTAssertTrue(editor.waitForExistence(timeout: 15))
+    app.swipeUp()
+    sleep(1)
+    capture("tour-edit-food-servings", app)
+    app.descendants(matching: .any)["serving-row-select-0"].tap()
+    sleep(1)
+    capture("tour-edit-food-serving-open", app)
+    app.swipeUp()
+    sleep(1)
+    capture("tour-edit-food-preview", app)
   }
   /// Opens each daily tracking screen from More and captures top and lower
   /// halves for comparison with the check-in, habits and supplements references.

@@ -44,6 +44,10 @@ export const foodVariantsSchema = z.object({
   ai_confidence: z.enum(["high", "medium", "low"]).nullable(),
   allergens: z.array(z.string()).nullable(),
   traces: z.array(z.string()).nullable(),
+  serving_label: z.string().nullable(),
+  metric_amount: z.number().nullable(),
+  metric_unit: z.enum(["g", "ml"]).nullable(),
+  sort_order: z.number(),
 });
 
 export const foodVariantsInitializerSchema = z.object({
@@ -81,6 +85,10 @@ export const foodVariantsInitializerSchema = z.object({
   ai_confidence: z.enum(["high", "medium", "low"]).optional().nullable(),
   allergens: z.array(z.string()).optional().nullable(),
   traces: z.array(z.string()).optional().nullable(),
+  serving_label: z.string().optional().nullable(),
+  metric_amount: z.number().optional().nullable(),
+  metric_unit: z.enum(["g", "ml"]).optional().nullable(),
+  sort_order: z.number().optional(),
 });
 
 export const foodVariantsMutatorSchema = z.object({
@@ -118,6 +126,10 @@ export const foodVariantsMutatorSchema = z.object({
   ai_confidence: z.enum(["high", "medium", "low"]).optional().nullable(),
   allergens: z.array(z.string()).optional().nullable(),
   traces: z.array(z.string()).optional().nullable(),
+  serving_label: z.string().optional().nullable(),
+  metric_amount: z.number().optional().nullable(),
+  metric_unit: z.enum(["g", "ml"]).optional().nullable(),
+  sort_order: z.number().optional(),
 });
 
 export type FoodVariants = z.infer<typeof foodVariantsSchema>;
