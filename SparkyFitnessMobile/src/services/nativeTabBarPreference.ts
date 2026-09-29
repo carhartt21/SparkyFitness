@@ -1,27 +1,21 @@
 import { Platform } from 'react-native';
-import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import { canUseLiquidGlass } from '../utils/liquidGlass';
 
 /**
- * Reactive "effective" flag for the native iOS tab bar: true only when the
- * device supports the iOS 26 glass APIs AND the user has enabled the toggle.
- * The preference hook must run every render, so it is hoisted out of the `&&`
- * to satisfy `react-hooks/rules-of-hooks`.
+ * X on Track always uses its own tab bar. The former Liquid Glass tab-bar
+ * option was removed; a previously saved choice is ignored, so every device
+ * gets the same navigation. Kept as a hook so call sites stay unchanged.
  */
 export function useNativeIOSTabsActive(): boolean {
-  const enabled = useAppPreferencesStore((s) => s.liquidGlassTabBarEnabled);
-  return canUseLiquidGlass() && enabled;
+  return false;
 }
 
 /**
- * Reactive "effective" flag for the native iOS stack headers. Unlike the tab
- * bar, native headers are not glass-only: iOS releases without the glass APIs
- * keep the classic native header, so the Liquid Glass toggle only matters on
- * iOS 26+, where turning it off swaps in the screen-owned fallback headers
- * (the same ones Android renders).
+ * Native iOS stack headers are used only where the glass APIs do not exist
+ * (classic iOS headers). On iOS 26+ the screen-owned headers render, matching
+ * Android and the X on Track header design.
  */
 export function useNativeIOSHeadersActive(): boolean {
-  const enabled = useAppPreferencesStore((s) => s.liquidGlassTabBarEnabled);
   if (Platform.OS !== 'ios') return false;
-  return !canUseLiquidGlass() || enabled;
+  return !canUseLiquidGlass();
 }

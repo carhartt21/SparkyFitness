@@ -299,7 +299,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
           <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-2 items-center py-6">
             {emptyContent}
           </View>
-        )}{' '}
+        )}
       </View>
     );
   }
@@ -324,7 +324,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
             weightUnit={weightUnit}
             distanceUnit={distanceUnit}
           />
-        ))}{' '}
+        ))}
       </View>
     </View>
   );

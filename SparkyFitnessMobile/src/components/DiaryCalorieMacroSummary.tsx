@@ -11,7 +11,7 @@ import { useCSSVariable } from 'uniwind';
 import Icon from './Icon';
 import NutrientPill from './NutrientPill';
 import ProgressRing from './ProgressRing';
-import { useGlowTheme, withAlpha } from './ui/glow';
+import { glowSurfaceStyle, useGlowTheme } from './ui/glow';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import { getNetCarbsValue } from '../utils/nutrientUtils';
 import { NUTRIENT_META, getNutrientLabel } from '../constants/nutrients';
@@ -140,10 +140,7 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
     '--color-macro-fat',
   ]) as string[];
   const glowing = useGlowTheme();
-  const [neonRed, neonGreen] = useCSSVariable([
-    '--color-neon-red',
-    '--color-neon-green',
-  ]) as [string, string];
+  const cardGlow = useCSSVariable('--color-card-glow') as string;
   const macroColors = {
     protein: proteinColor,
     carbs: carbsColor,
@@ -209,15 +206,7 @@ const DiaryCalorieMacroSummary: React.FC<DiaryCalorieMacroSummaryProps> = ({
   return (
     <View
       className="mb-4 rounded-2xl border border-border-subtle bg-surface p-3"
-      style={
-        glowing
-          ? {
-              borderLeftColor: withAlpha(neonRed, 0.55),
-              borderRightColor: withAlpha(neonGreen, 0.55),
-              boxShadow: `-6px 0px 18px -6px ${withAlpha(neonRed, 0.45)}, 6px 0px 18px -6px ${withAlpha(neonGreen, 0.45)}`,
-            }
-          : undefined
-      }
+      style={glowSurfaceStyle(cardGlow, glowing)}
     >
       <TouchableOpacity
         onPress={handleToggleExpanded}

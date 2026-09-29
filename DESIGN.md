@@ -24,18 +24,20 @@ colors:
   card-web-dark: "hsl(200 16% 16%)"
   accent-web-dark: "hsl(153 22% 20%)"
   foreground-web-dark: "hsl(41 51% 93%)"
-  dashboard-energy-light: "#087257"
-  dashboard-energy-dark: "#08dfb4"
+  dashboard-energy-light: "#526473"
+  dashboard-energy-dark: "#b4c8d2"
   dashboard-energy-track-light: "#d6e5df"
   dashboard-energy-track-dark: "#154b47"
-  dashboard-protein-light: "#95590f"
-  dashboard-protein-dark: "#f4bd4c"
-  dashboard-carbs-light: "#0e7746"
-  dashboard-carbs-dark: "#65d99a"
-  dashboard-fat-light: "#116f8d"
-  dashboard-fat-dark: "#4ec6e8"
-  dashboard-fiber-light: "#a3394b"
-  dashboard-fiber-dark: "#ff7c83"
+  dashboard-protein-light: "#21649e"
+  dashboard-protein-dark: "#57b9f8"
+  dashboard-carbs-light: "#6945a5"
+  dashboard-carbs-dark: "#b59cff"
+  dashboard-fat-light: "#8a5813"
+  dashboard-fat-dark: "#f5b647"
+  dashboard-fiber-light: "#a23d69"
+  dashboard-fiber-dark: "#e98aae"
+  card-glow-light: "#7c8a94"
+  card-glow-dark: "#8497a3"
   supporting-text-mobile-dark: "#b4c8d2"
   raised-mobile-dark: "#1d343e"
   divider-mobile-dark: "#30474f"
@@ -45,7 +47,7 @@ colors:
   dashboard-exercise-dark: "#21ddb0"
   dashboard-activity-energy-light: "#b54821"
   dashboard-activity-energy-dark: "#ff8052"
-  dashboard-energy-amoled: "#1bd8ad"
+  dashboard-energy-amoled: "#b4c8d2"
   dashboard-energy-track-amoled: "#24524a"
 typography:
   page-title:
@@ -175,7 +177,7 @@ The mobile Dashboard is also an **Operate** surface: a daily summary connects th
 
 ### Mobile Dashboard
 
-The Dashboard reuses the mobile canvas, surface, and text roles above. Its dark theme layers navy-teal canvas, card, and raised surfaces with cool light text, brighter mint controls, and visible muted borders. Dedicated energy green distinguishes the energy ring from its quiet track; cyan marks hydration, mint marks exercise, and orange marks activity-energy icons. Protein ochre, carbohydrate green, fat blue, and fiber rose retain the nutrient roles; labels and numeric amounts carry the meaning. Nutrient percentages use their semantic colors only in dark themes; light-theme percentages retain secondary text color. Light remains a warm cream choice. AMOLED retains its black canvas, existing green surfaces, and separate energy/track values from `SparkyFitnessMobile/global.css`; it is not an alias of the dark palette. These are native mobile roles, not new web palette rules. Selected water-container labels retain the primary text color on the muted accent fill.
+The Dashboard reuses the mobile canvas, surface, and text roles above. Its dark theme layers navy-teal canvas, card, and raised surfaces with cool light text, brighter mint controls, and visible muted borders. Energy uses a neutral slate category color; cyan marks hydration, mint marks exercise, and orange marks activity-energy icons. Protein blue, carbohydrate violet, fat amber, and fiber rose identify nutrient categories without rating intake as good or bad; labels and numeric amounts carry the meaning. Nutrient percentages use their category colors only in dark themes; light-theme percentages retain secondary text color. Light remains a warm cream choice. AMOLED retains its black canvas and its own surface values from `SparkyFitnessMobile/global.css`; it is not an alias of the dark palette. Selected water-container labels retain the primary text color on the muted accent fill.
 
 ## Typography
 
@@ -233,7 +235,7 @@ Tabs have text labels and decorative icons, with a visible active fill and keybo
 
 ### Mobile Dashboard energy and quick actions
 
-`DashboardHeader` starts with the approved logo (44 points in a 56-point bordered Home target that resets the day), the product name and tagline, and the `SettingsHeaderButton` in the upper-right corner. `DateBar` (shared with the Diary) holds previous-day, the calendar date that opens the picker, a Today pill on other days, and next-day. `CalorieRingCard` keeps the “Daily energy” accessibility label and shows the remaining balance (or over target / consumed without a goal) inside a red→yellow→green `EnergyGauge`; its gradient describes distance along the arc, not health quality. Consumed, activity burned (or total expenditure) and base target rows open the Diary, the exercise review and Calorie settings; Edit goal opens Calorie settings. Any allowance adjustment is stated separately.
+`DashboardHeader` starts with the approved logo in a bordered Home target that resets the day, the product name and tagline, and the Settings action in the upper-right corner. `DateBar` (shared with the Diary) holds previous-day, the calendar date that opens the picker, a Today control on other days, and next-day. `CalorieRingCard` keeps the “Daily energy” accessibility label and shows the remaining balance (or over target / consumed without a goal) inside a red→yellow→green `EnergyGauge`; its gradient describes distance along the arc, not health quality. The card border and glow are neutral. Consumed, activity burned (or total expenditure) and base target rows open the Diary, the exercise review and Calorie settings; Edit goal opens Calorie settings. Any allowance adjustment is stated separately.
 
 The four labelled quick actions preserve their real destinations. Food opens dated food search, Exercise opens exercise logging, Water adds the configured amount or opens container setup, and Scan opens dated food scanning. They do not imply unimplemented profile, notification, or photo actions from the reference.
 
@@ -265,11 +267,13 @@ Both cards use `DashboardSectionHeader` with a section-specific accessible name.
 
 Food search gives its input a full-width row below the header controls, followed by visible All, Recent, and Favorites tabs. Close, selection, overflow, and scanning retain their existing actions. Search starts across configured providers and keeps manual provider narrowing available. Labels and empty states follow the app language.
 
+On the selected food's logging screen, the four nutrient tiles read in the same order: category name, amount and unit, then percentage of the daily goal. When no valid goal is available, the final line says “No goal” instead of implying 0%. The tiles use the same categorical colors as the dashboard, diary and web charts; the accessible label states the full amount and goal relationship.
+
 Diary food rows reserve a consistent thumbnail area (48 points) for an actual entry or food image, with an icon fallback when an image is missing or fails to load. Text keeps the same alignment in either state; available photos retain their lightbox action. Decorative food photography does not stand in for missing entry data.
 
 ### Mobile neon component system
 
-Shared primitives live in `SparkyFitnessMobile/src/components/ui/`: `glow.ts` (`useGlowTheme`, `withAlpha`, `glowSurfaceStyle`), `GlowCard`, `NeonButton` (primary / outline / subtle capsules), `ActionTile`, `IconBadge` and `ScreenBackground`. Dark and AMOLED themes render colored borders, `boxShadow` glows, a soft inner wash and ambient red/green edge light; the light theme keeps the same shapes with tinted borders and soft shadows. Hex theme tokens drive every tint: `--color-neon-{red,orange,yellow,green,mint,cyan,violet}` plus the semantic macro, hydration, exercise and action tokens (protein red, carbs yellow, fat green, fiber violet, water cyan). `ui/Button` primary adopts the capsule and glow; `SegmentedControl` renders glowing filter pills; `SettingsRowGroup`, `CreateTile` and the Dashboard/Diary cards share the 16-point bordered card. New UI should compose these instead of restating classes.
+Shared primitives live in `SparkyFitnessMobile/src/components/ui/`: `glow.ts` (`useGlowTheme`, `withAlpha`, `glowSurfaceStyle`), `GlowCard`, `NeonButton`, `ActionTile`, `IconBadge` and `ScreenBackground`. Dark and AMOLED themes use restrained card glows and a neutral ambient edge light; light uses a soft shadow. The semantic nutrient palette is categorical and stable across percentages: calories slate, protein blue, carbs violet, fat amber and fiber rose. It is separate from the warm-to-green X progress path, which describes distance along the path. `--color-card-glow` governs neutral card light; nutrient, hydration, exercise and action tokens have their own roles. `SettingsRowGroup`, `CreateTile` and Dashboard/Diary cards share the 16-point bordered card.
 
 `TabScreenHeader` gives Diary, Insights and More a Settings button, large title and subtitle; the Dashboard is the exception with Settings on the right. Food search rows offer a quick-add button that opens `QuickAddFoodSheet` (serving, 0.5/1/1.5/2× amount presets, meal, live nutrition) and logs without leaving search; food details offer the same amount presets under the stepper.
 

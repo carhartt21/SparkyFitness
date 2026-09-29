@@ -422,7 +422,18 @@ export function formatVariantServingLabel(
   equivalents?: EquivalentUnit[]
 ): string {
   if (hasMeaningfulDescription(values.servingDescription)) {
-    return formatServingDescription(values.servingDescription ?? '');
+    const description = formatServingDescription(
+      values.servingDescription ?? ''
+    );
+    // A named portion shows its weight or volume when that is known and the
+    // description does not already state it ("1 slice (30 g)").
+    if (/\d\s*(g|ml|kg|l)\b/i.test(description)) return description;
+    const metric = isMetricUnit(values.servingUnit)
+      ? { serving_size: values.servingSize, serving_unit: values.servingUnit }
+      : findMetricEquivalent(equivalents);
+    return metric && metric.serving_size > 0
+      ? `${description} (${formatLocalizedUnitQuantity(metric.serving_size, metric.serving_unit, i18n.t)})`
+      : description;
   }
 
   const servingLabel = formatLocalizedUnitQuantity(
@@ -476,7 +487,12 @@ export function formatVariantLabel(
   equivalents?: EquivalentUnit[]
 ): string {
   const servingLabel = formatVariantServingLabel(values, equivalents);
-  return `${servingLabel} (${formatCaloriesForDisplay(values.calories)} cal)`;
+  // The energy suffix is localized so German picker rows read "kcal".
+  const calories = i18n.t('foodDetails.caloriesAbbreviation', {
+    defaultValue: '{{value}} cal',
+    value: formatCaloriesForDisplay(values.calories),
+  });
+  return `${servingLabel} (${calories})`;
 }
 
 function getVisibleLocalVariantGroups(groups: VariantGroup[]) {

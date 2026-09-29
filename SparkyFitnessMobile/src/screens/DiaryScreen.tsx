@@ -1141,6 +1141,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           selectedDate={selectedDate}
           onSelectDate={handleCalendarSelect}
           markedDates={photoDates}
+          showDailyProgress={isConnected}
+          onOpenProgress={(date) =>
+            navigation.navigate('DailyProgress', { date })
+          }
         />
         <ServingAdjustSheet
           ref={servingSheetRef}
@@ -1210,6 +1214,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         selectedDate={selectedDate}
         onSelectDate={handleCalendarSelect}
         markedDates={photoDates}
+        showDailyProgress={isConnected}
+        onOpenProgress={(date) =>
+          navigation.navigate('DailyProgress', { date })
+        }
       />
       <ServingAdjustSheet
         ref={servingSheetRef}

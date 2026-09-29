@@ -214,7 +214,7 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
 
   return (
     <Pressable
-      className="py-2 px-1 flex-row items-center bg-surface"
+      className="py-2 px-1 flex-row items-center bg-transparent"
       onPress={onPress}
       disabled={onPress == null}
     >

@@ -55,6 +55,8 @@ vi.mock('../models/dailyTrackingRepository.js', () => {
 
 vi.mock('../services/dailyProgressService.js', () => ({
   getDailyProgress: vi.fn(),
+  getDailyProgressRange: vi.fn(async () => []),
+  DAILY_PROGRESS_RANGE_MAX_DAYS: 42,
   getMealTrackingStatus: vi.fn(),
   getSupplementDoses: vi.fn(),
 }));
@@ -223,9 +225,21 @@ describe('daily tracking routes', () => {
     '/api/v2/tracking/measurement-reminders',
     '/api/v2/tracking/preferences',
     '/api/v2/tracking/daily-progress/2026-09-28',
+    '/api/v2/tracking/daily-progress?start_date=2026-09-01&end_date=2026-09-28',
   ])('keeps %s owner-only in a delegated context', async (path) => {
     const res = await request(delegate).get(path);
     expect(res.status).toBe(403);
+  });
+
+  it('bounds calendar ranges to one month grid', async () => {
+    const ok = await request(self).get(
+      '/api/v2/tracking/daily-progress?start_date=2026-08-31&end_date=2026-10-11'
+    );
+    expect(ok.status).toBe(200);
+    const tooLong = await request(self).get(
+      '/api/v2/tracking/daily-progress?start_date=2026-08-01&end_date=2026-10-11'
+    );
+    expect(tooLong.status).toBe(400);
   });
 
   it('lets a delegate with check-in access read check-ins', async () => {

@@ -1,5 +1,6 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
 import Toast from 'react-native-toast-message';
+import { useSyncActivityStore } from '../../src/services/syncActivity';
 import { useSyncHealthData } from '../../src/hooks/useSyncHealthData';
 import { syncHealthData as healthConnectSyncData } from '../../src/services/healthConnectService';
 import { isSyncInFlight } from '../../src/services/autoSyncCoordinator';
@@ -150,7 +151,7 @@ describe('useSyncHealthData', () => {
       expect(onSuccess).not.toHaveBeenCalled();
     });
 
-    test('shows info toast on mutate and success toast on completion', async () => {
+    test('reports routine progress through the sync indicator, not toasts', async () => {
       mockHealthConnectSyncData.mockResolvedValue({
         success: true,
         syncErrors: [],
@@ -169,11 +170,25 @@ describe('useSyncHealthData', () => {
         expect(result.current.isSuccess).toBe(true);
       });
 
+      expect(mockToastShow).not.toHaveBeenCalled();
+      expect(useSyncActivityStore.getState().health.status).toBe('synced');
+    });
+
+    test('marks the Health job for attention when some records fail', async () => {
+      mockHealthConnectSyncData.mockResolvedValue({
+        success: true,
+        syncErrors: [{ metric: 'steps' }],
+      });
+      const { result } = renderHook(() => useSyncHealthData(), {
+        wrapper: createQueryWrapper(queryClient),
+      });
+      await act(async () => {
+        result.current.mutate(testParams);
+      });
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      expect(useSyncActivityStore.getState().health.status).toBe('attention');
       expect(mockToastShow).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'info', text1: 'Syncing health data…' })
-      );
-      expect(mockToastShow).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'success', text1: 'Sync complete' })
+        expect.objectContaining({ text1: 'Sync incomplete' })
       );
     });
 

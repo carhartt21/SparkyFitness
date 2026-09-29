@@ -187,6 +187,9 @@ export function reviewResponse(path: string, scenario: string): unknown {
   if (path.startsWith('/api/measurements/check-in-measurements-range/'))
     return syntheticWeightRange();
   if (path.startsWith('/api/measurements/water-intake-range/')) return [];
+  // Calendar photo markers and active workout plans: none in the fixture.
+  if (path === '/api/measurements/check-in-photos/dates') return [];
+  if (path.startsWith('/api/workout-plan-templates/active/')) return [];
   throw new Error(`Unconfigured review endpoint: ${path}`);
 }
 

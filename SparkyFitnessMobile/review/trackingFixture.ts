@@ -297,3 +297,32 @@ export function trackingReviewResponse(
   }
   return undefined;
 }
+
+/** Synthetic calendar states: a mix of complete, partial and not-started
+ * days, blank days before tracking began, and unknown future days. */
+export function trackingProgressRange(
+  startDate: string,
+  endDate: string,
+  today: string
+) {
+  const days = [];
+  for (let day = startDate; day <= endDate; day = dayOffset(day, 1)) {
+    const n = Number(day.slice(8, 10));
+    const state =
+      day > today
+        ? 'unknown'
+        : n < 6
+          ? 'unknown'
+          : n % 5 === 0
+            ? 'not_started'
+            : n % 3 === 0
+              ? 'partial'
+              : n % 7 === 0
+                ? 'none'
+                : 'complete';
+    const applicable = state === 'none' || state === 'unknown' ? 0 : 4;
+    const completed = state === 'complete' ? 4 : state === 'partial' ? 2 : 0;
+    days.push({ date: day, state, completed, applicable });
+  }
+  return days;
+}

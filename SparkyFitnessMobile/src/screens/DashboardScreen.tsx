@@ -390,6 +390,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     '--color-accent-primary',
     '--color-text-secondary',
   ]) as [string, string];
+  const cardGlow = useCSSVariable('--color-card-glow') as string;
   const [
     foodActionColor,
     trainingActionColor,
@@ -659,7 +660,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             if (dashboardNutrients.length === 0) return null;
             return (
               <GlowCard
-                glowColor={proteinColor}
+                glowColor={cardGlow}
                 className={pairSummaries ? 'p-3 flex-1' : 'p-3 mb-3'}
                 testID="dashboard-macros"
               >
@@ -1128,6 +1129,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           selectedDate={selectedDate}
           onSelectDate={handleCalendarSelect}
           markedDates={photoDates}
+          showDailyProgress={isConnected}
+          onOpenProgress={(date) =>
+            navigation.navigate('DailyProgress', { date })
+          }
         />
       </View>
     );
@@ -1142,6 +1147,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         selectedDate={selectedDate}
         onSelectDate={handleCalendarSelect}
         markedDates={photoDates}
+        showDailyProgress={isConnected}
+        onOpenProgress={(date) =>
+          navigation.navigate('DailyProgress', { date })
+        }
       />
     </View>
   );

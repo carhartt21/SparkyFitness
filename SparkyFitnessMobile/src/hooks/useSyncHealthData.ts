@@ -8,6 +8,7 @@ import { addLog } from '../services/LogService';
 import type { TimeRange } from '../services/storage';
 import { serverConnectionQueryKey } from './queryKeys';
 import { refreshHealthSyncCache } from './refreshHealthSyncCache';
+import { useSyncActivityStore } from '../services/syncActivity';
 
 interface SyncHealthDataParams {
   timeRange: TimeRange;
@@ -63,22 +64,21 @@ export function useSyncHealthData(options?: {
         syncDone();
       }
     },
+    // Routine progress and success show in the header's sync indicator
+    // instead of toasts; incomplete and failed syncs still explain themselves.
     onMutate: () => {
-      if (showToasts) {
-        Toast.show({
-          type: 'info',
-          text1: t('syncHealth.syncing', {
-            defaultValue: 'Syncing health data…',
-          }),
-          visibilityTime: 2000,
-        });
-      }
+      useSyncActivityStore.getState().setHealth({ status: 'syncing' });
     },
     onSuccess: (data) => {
       refreshHealthSyncCache(queryClient);
       queryClient.invalidateQueries({ queryKey: serverConnectionQueryKey });
+      const incomplete =
+        data.syncErrors.length > 0 || data.uploadErrors.length > 0;
+      useSyncActivityStore.getState().setHealth({
+        status: incomplete ? 'attention' : 'synced',
+      });
       if (showToasts) {
-        if (data.syncErrors.length > 0 || data.uploadErrors.length > 0) {
+        if (incomplete) {
           const details = [
             data.syncErrors.length > 0
               ? t('syncHealth.readErrors', {
@@ -113,15 +113,6 @@ export function useSyncHealthData(options?: {
             text2: details,
             visibilityTime: 4000,
           });
-        } else {
-          Toast.show({
-            type: 'success',
-            text1: t('syncHealth.complete', { defaultValue: 'Sync complete' }),
-            text2: t('syncHealth.success', {
-              defaultValue: 'Health data synced successfully.',
-            }),
-            visibilityTime: 3000,
-          });
         }
       }
       if (data.lastSyncedTime !== null) {
@@ -130,6 +121,9 @@ export function useSyncHealthData(options?: {
     },
     onError: (error: Error) => {
       addLog(`Sync Error: ${error.message}`, 'ERROR');
+      useSyncActivityStore
+        .getState()
+        .setHealth({ status: 'attention', message: error.message });
       if (showToasts) {
         Toast.show({
           type: 'error',

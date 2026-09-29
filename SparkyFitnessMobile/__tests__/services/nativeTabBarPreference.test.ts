@@ -18,69 +18,47 @@ const mockCanUseLiquidGlass = canUseLiquidGlass as jest.MockedFunction<
   typeof canUseLiquidGlass
 >;
 
+beforeEach(async () => {
+  await AsyncStorage.clear();
+  __resetAppPreferencesStoreForTests();
+  mockCanUseLiquidGlass.mockReset();
+});
+
 describe('useNativeIOSTabsActive', () => {
-  beforeEach(async () => {
-    await AsyncStorage.clear();
-    __resetAppPreferencesStoreForTests();
-    mockCanUseLiquidGlass.mockReset();
+  it('always uses the X on Track tab bar', () => {
+    for (const available of [false, true]) {
+      mockCanUseLiquidGlass.mockReturnValue(available);
+      const { result } = renderHook(() => useNativeIOSTabsActive());
+      expect(result.current).toBe(false);
+    }
   });
 
-  it('is false when liquid glass is unavailable, even if enabled', () => {
-    mockCanUseLiquidGlass.mockReturnValue(false);
-    useAppPreferencesStore.getState().setLiquidGlassTabBarEnabled(true);
-
-    const { result } = renderHook(() => useNativeIOSTabsActive());
-
-    expect(result.current).toBe(false);
-  });
-
-  it('is false when liquid glass is available but the toggle is disabled', () => {
+  it('ignores a Liquid Glass choice saved by an older build', async () => {
     mockCanUseLiquidGlass.mockReturnValue(true);
-
-    const { result } = renderHook(() => useNativeIOSTabsActive());
-
-    expect(result.current).toBe(false);
-  });
-
-  it('is true only when liquid glass is available and the toggle is enabled', () => {
-    mockCanUseLiquidGlass.mockReturnValue(true);
-    useAppPreferencesStore.getState().setLiquidGlassTabBarEnabled(true);
-
-    const { result } = renderHook(() => useNativeIOSTabsActive());
-
-    expect(result.current).toBe(true);
+    await AsyncStorage.setItem(
+      '@HealthConnect:liquidGlassTabBarEnabled',
+      'true'
+    );
+    await useAppPreferencesStore.persist.rehydrate();
+    expect(renderHook(() => useNativeIOSTabsActive()).result.current).toBe(
+      false
+    );
+    expect(renderHook(() => useNativeIOSHeadersActive()).result.current).toBe(
+      false
+    );
   });
 });
 
 describe('useNativeIOSHeadersActive', () => {
-  beforeEach(async () => {
-    await AsyncStorage.clear();
-    __resetAppPreferencesStoreForTests();
-    mockCanUseLiquidGlass.mockReset();
-  });
-
-  it('is true when liquid glass is unavailable (classic native header)', () => {
+  it('keeps the classic native header where glass APIs are unavailable', () => {
     mockCanUseLiquidGlass.mockReturnValue(false);
-
     const { result } = renderHook(() => useNativeIOSHeadersActive());
-
     expect(result.current).toBe(true);
   });
 
-  it('is false when liquid glass is available but the toggle is disabled', () => {
+  it('uses the screen-owned X on Track header on iOS 26+', () => {
     mockCanUseLiquidGlass.mockReturnValue(true);
-
     const { result } = renderHook(() => useNativeIOSHeadersActive());
-
     expect(result.current).toBe(false);
-  });
-
-  it('is true when liquid glass is available and the toggle is enabled', () => {
-    mockCanUseLiquidGlass.mockReturnValue(true);
-    useAppPreferencesStore.getState().setLiquidGlassTabBarEnabled(true);
-
-    const { result } = renderHook(() => useNativeIOSHeadersActive());
-
-    expect(result.current).toBe(true);
   });
 });

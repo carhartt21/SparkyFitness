@@ -3284,6 +3284,7 @@
       "nutritionForAmount": "Nährwerte für die gewählte Menge",
       "logTo": "Eintragen für",
       "ofGoal": "{{percent}} % des Ziels",
+      "goalNotSet": "Kein Ziel",
       "quickPortions": "Verfügbare Portionen",
       "unknownGramSize": "Für diese Portion wurde kein Gewicht in Gramm angegeben.",
       "quickPortionNutrition": "{{calories}} kcal · {{fat}} g Fett · {{carbs}} g KH · {{protein}} g Protein",

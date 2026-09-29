@@ -276,10 +276,6 @@
       "amoled": "AMOLED",
       "system": "System"
     },
-    "liquidGlass": {
-      "title": "Liquid Glass navigation",
-      "subtitle": "Use the iOS 26 glass tab bar and screen headers."
-    },
     "notifications": {
       "title": "Notifications",
       "subtitle": "Rest timers, fasting goals, and medication reminders."
@@ -3080,12 +3076,6 @@
         "headline": "Revamped workout workflows",
         "body": "Streamlined exercise logging, updated exercise library management, and improved multi-set performance tracking."
       },
-      "ios": {
-        "eyebrow": "iOS 26",
-        "headline": "A Liquid Glass look",
-        "body": "Turn on Liquid Glass navigation for translucent tabs and headers that pick up the color behind them. Toggle it anytime in App settings.",
-        "cta": "Open settings"
-      },
       "chat": {
         "eyebrow": "TRACKBOT",
         "headline": "Chat with Trackbot",
@@ -3590,6 +3580,7 @@
       "nutritionForAmount": "Nutrition for selected amount",
       "logTo": "Log to",
       "ofGoal": "{{percent}}% of goal",
+      "goalNotSet": "No goal",
       "quickPortions": "Available portions",
       "unknownGramSize": "A gram weight was not provided for this serving.",
       "quickPortionNutrition": "{{calories}} kcal · {{fat}} g fat · {{carbs}} g carbs · {{protein}} g protein",
@@ -3606,7 +3597,9 @@
       "entryNotesPlaceholder": "Anything specific about this time you ate it",
       "carbsShort": "Carbs",
       "netCarbsShort": "Net carbs",
-      "quickAmounts": "Quick amounts"
+      "quickAmounts": "Quick amounts",
+      "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
+      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal"
     },
     "pickers": {
       "selectServing": "Select Serving",
@@ -6094,5 +6087,28 @@
   },
   "tracking": {
     "chooseDate": "Choose date"
+  },
+  "syncStatus": {
+    "synced": "Health data synced",
+    "savedLocally": "Saved on this phone, not yet uploaded",
+    "waiting": "Offline. Saved changes will upload when connected",
+    "attention": "Sync needs attention. Open sync details",
+    "syncing": "Syncing",
+    "hint": "Opens sync details"
+  },
+  "calendarProgress": {
+    "complete": "tracking complete",
+    "partial": "tracking partly done",
+    "notStarted": "tracking not started",
+    "none": "no tracking tasks",
+    "unknown": "progress unavailable",
+    "legendComplete": "Complete",
+    "legendPartial": "Partly done",
+    "legendNotStarted": "Not started",
+    "note": "Tracking tasks only, not nutrition completeness. Blank days have no tasks or cannot be reconstructed.",
+    "openDay": "Progress for the selected day"
+  },
+  "foodDetails": {
+    "caloriesAbbreviation": "{{value}} cal"
   }
 }

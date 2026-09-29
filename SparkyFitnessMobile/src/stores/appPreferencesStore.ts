@@ -24,7 +24,6 @@ const LEGACY_KEYS = {
   caffeineCardVisible: '@HealthConnect:caffeineCardVisible',
   fastingCardVisible: '@HealthConnect:fastingCardVisible',
   askSparkyVisible: '@HealthConnect:askSparkyVisible',
-  liquidGlassTabBarEnabled: '@HealthConnect:liquidGlassTabBarEnabled',
 } as const;
 
 type LegacyKey = keyof typeof LEGACY_KEYS;
@@ -70,7 +69,6 @@ export const PREFERENCE_DEFAULTS = {
   mealPhotoReviewTime: '20:00' as string,
   movementBreakReminderEnabled: false,
   movementBreakReminderTime: '15:00' as string,
-  liquidGlassTabBarEnabled: false,
   activeWorkoutMetricColumn: 'rpe' as ActiveWorkoutMetricColumn,
   // The reference Diary leads with the calorie/macro rings; users can hide it.
   diarySummaryVisible: true,
@@ -121,7 +119,6 @@ export type AppPreferencesData = {
   mealPhotoReviewTime: string;
   movementBreakReminderEnabled: boolean;
   movementBreakReminderTime: string;
-  liquidGlassTabBarEnabled: boolean;
   activeWorkoutMetricColumn: ActiveWorkoutMetricColumn;
   diarySummaryVisible: boolean;
   diarySummaryExpanded: boolean;
@@ -168,7 +165,6 @@ export interface AppPreferencesState extends AppPreferencesData {
   setMealPhotoReviewTime: (value: string) => void;
   setMovementBreakReminderEnabled: (value: boolean) => void;
   setMovementBreakReminderTime: (value: string) => void;
-  setLiquidGlassTabBarEnabled: (value: boolean) => void;
   setActiveWorkoutMetricColumn: (value: ActiveWorkoutMetricColumn) => void;
   setDiarySummaryVisible: (value: boolean) => void;
   setDiarySummaryExpanded: (value: boolean) => void;
@@ -278,8 +274,6 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         set({ movementBreakReminderEnabled: value }),
       setMovementBreakReminderTime: (value) =>
         set({ movementBreakReminderTime: value }),
-      setLiquidGlassTabBarEnabled: (value) =>
-        set({ liquidGlassTabBarEnabled: value }),
       setActiveWorkoutMetricColumn: (value) =>
         set({ activeWorkoutMetricColumn: value }),
       setDiarySummaryVisible: (value) => set({ diarySummaryVisible: value }),
@@ -343,7 +337,6 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         mealPhotoReviewTime: state.mealPhotoReviewTime,
         movementBreakReminderEnabled: state.movementBreakReminderEnabled,
         movementBreakReminderTime: state.movementBreakReminderTime,
-        liquidGlassTabBarEnabled: state.liquidGlassTabBarEnabled,
         // Older persisted blobs without these keys backfill via the default
         // shallow merge — no version bump needed.
         activeWorkoutMetricColumn: state.activeWorkoutMetricColumn,

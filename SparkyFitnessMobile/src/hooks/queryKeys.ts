@@ -329,3 +329,8 @@ export const dailyTrackingPreferencesQueryKey = [
 export const dailyProgressRootQueryKey = ['dailyProgress'] as const;
 export const dailyProgressQueryKey = (date: string) =>
   ['dailyProgress', date] as const;
+/** Under the same root, so every progress invalidation refreshes calendars. */
+export const dailyProgressRangeQueryKey = (
+  startDate: string,
+  endDate: string
+) => ['dailyProgress', 'range', startDate, endDate] as const;

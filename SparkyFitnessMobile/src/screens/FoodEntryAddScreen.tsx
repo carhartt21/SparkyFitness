@@ -34,6 +34,10 @@ import MarkdownNotesField from '../components/MarkdownNotesField';
 import { useKeepNoteVisible } from '../hooks/useKeepNoteVisible';
 import { NoteMarkdown } from '../components/NoteMarkdown';
 import SafeImage from '../components/SafeImage';
+import FoodThumbnail from '../components/FoodThumbnail';
+import { Image } from 'expo-image';
+import { foodFallbackImage } from '../utils/foodFallbackImages';
+import type { ExternalFoodItem } from '../types/externalFoods';
 import VerifiedBadge from '../components/VerifiedBadge';
 import { useFoodImageSourceContext } from '../components/FoodImageSourceProvider';
 import { externalFoodImage, usableFoodImages } from '../utils/foodImages';
@@ -334,6 +338,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const foodImageSource = foodImagePath
     ? getFoodImageSource(foodImagePath)
     : null;
+  // Category artwork is display-only; it is never saved as the food's image.
+  const foodGroupTags =
+    activeItem.source === 'external'
+      ? (activeItem.originalItem as ExternalFoodItem).food_group_tags
+      : undefined;
+  const fallbackArtwork = foodFallbackImage(
+    activeItem.name,
+    activeItem.source === 'meal',
+    foodGroupTags
+  );
   const effectiveMealId = selectedMealId ?? defaultMealTypeId;
   const selectedMealType = mealTypes.find((mt) => mt.id === effectiveMealId);
 
@@ -1869,8 +1883,15 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               style={{ width: '100%', height: 284 }}
               contentFit="cover"
               fallback={
-                <View className="h-full items-center justify-center bg-surface">
-                  <Icon name="food" size={40} color={textPrimary} />
+                <View
+                  testID="food-entry-fallback-artwork"
+                  className="h-full items-center justify-center bg-surface"
+                >
+                  <Image
+                    source={fallbackArtwork}
+                    style={{ width: 160, height: 160 }}
+                    contentFit="contain"
+                  />
                 </View>
               }
             />
@@ -1878,7 +1899,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         ) : null}
 
         <View
-          className="mx-4 rounded-2xl border border-border-subtle bg-surface px-5 py-6 gap-6"
+          className="mx-4 rounded-2xl border border-border-subtle bg-surface px-4 py-5 gap-5"
           style={[
             foodImagePath ? { marginTop: -32 } : null,
             glowing
@@ -1891,6 +1912,17 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         >
           <View>
             <View className="flex-row items-start gap-2">
+              {foodImagePath ? null : (
+                <FoodThumbnail
+                  image={null}
+                  name={activeItem.name}
+                  foodGroupTags={foodGroupTags}
+                  variant={activeItem.source === 'meal' ? 'meal' : 'food'}
+                  getImageSource={getFoodImageSource}
+                  size={56}
+                  testID="food-entry-category-thumbnail"
+                />
+              )}
               <Text className="flex-1 text-3xl font-bold text-text-primary">
                 {adjustedValues?.name || activeItem.name}
               </Text>
@@ -1910,46 +1942,83 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </Text>
           </View>
 
-          <View className="flex-row justify-between gap-2">
-            {nutritionHighlights.map((nutrient) => (
-              <View
-                key={nutrient.key}
-                testID={`food-entry-highlight-${nutrient.key}`}
-                className="min-w-0 flex-1 items-center gap-1 rounded-xl border px-1 py-3"
-                style={{
-                  borderColor: highlightColors[nutrient.key],
-                  backgroundColor: withAlpha(
-                    highlightColors[nutrient.key],
-                    0.15
-                  ),
-                }}
-              >
-                <Text
-                  className="text-center text-xl font-bold text-text-primary"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
+          {/* Category, amount and goal share each have a stable line. */}
+          <View
+            className="flex-row flex-wrap justify-between gap-2"
+            testID="food-entry-highlights"
+          >
+            {nutritionHighlights.map((nutrient) => {
+              const amount = formatLocalizedNumber(nutrient.value, {
+                maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
+              });
+              const percent =
+                nutrient.goalPercent != null && !isGoalsLoading
+                  ? formatLocalizedNumber(nutrient.goalPercent, {
+                      maximumFractionDigits: 0,
+                    })
+                  : null;
+              return (
+                <View
+                  key={nutrient.key}
+                  testID={`food-entry-highlight-${nutrient.key}`}
+                  accessible
+                  accessibilityLabel={
+                    percent === null
+                      ? t('foodEntryAdd.labels.nutrientAmountA11y', {
+                          defaultValue: '{{label}}: {{amount}} {{unit}}',
+                          label: nutrient.label,
+                          amount,
+                          unit: nutrient.unit,
+                        })
+                      : t('foodEntryAdd.labels.nutrientGoalA11y', {
+                          defaultValue:
+                            '{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal',
+                          label: nutrient.label,
+                          amount,
+                          unit: nutrient.unit,
+                          percent,
+                        })
+                  }
+                  className="min-w-[22%] flex-1 items-center rounded-xl border px-1 py-2"
+                  style={{
+                    borderColor: highlightColors[nutrient.key],
+                    backgroundColor: withAlpha(
+                      highlightColors[nutrient.key],
+                      0.15
+                    ),
+                  }}
                 >
-                  {formatLocalizedNumber(nutrient.value, {
-                    maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
-                  })}{' '}
-                  <Text className="text-xs font-medium">{nutrient.unit}</Text>
-                </Text>
-                <Text
-                  className="text-center text-sm text-text-secondary"
-                  numberOfLines={2}
-                >
-                  {nutrient.label}
-                </Text>
-                {nutrient.goalPercent != null && !isGoalsLoading ? (
-                  <Text className="mt-1 text-center text-xs text-text-secondary">
-                    {t('foodEntryAdd.labels.ofGoal', {
-                      defaultValue: '{{percent}}% of goal',
-                      percent: nutrient.goalPercent,
-                    })}
+                  <Text
+                    className="text-center text-xs font-semibold text-text-secondary"
+                    testID={`food-entry-highlight-${nutrient.key}-label`}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}
+                  >
+                    {nutrient.label}
                   </Text>
-                ) : null}
-              </View>
-            ))}
+                  <Text
+                    className="text-center text-lg font-bold text-text-primary my-1"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                  >
+                    {amount}{' '}
+                    <Text className="text-xs font-medium">{nutrient.unit}</Text>
+                  </Text>
+                  <Text
+                    className="text-center text-xs text-text-secondary"
+                    testID={`food-entry-highlight-${nutrient.key}-caption`}
+                    numberOfLines={1}
+                  >
+                    {percent === null
+                      ? t('foodEntryAdd.labels.goalNotSet', {
+                          defaultValue: 'No goal',
+                        })
+                      : `${percent}%`}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
 
           <View>

@@ -326,6 +326,42 @@ describe('formatVariantLabel', () => {
       })
     ).toBe('1 piece (15 g) (50 cal)');
   });
+
+  test('adds the gram weight to a named portion that does not state it', () => {
+    expect(
+      formatVariantLabel({
+        servingSize: 30,
+        servingUnit: 'g',
+        servingDescription: '1 slice',
+        calories: 75,
+      })
+    ).toBe('1 slice (30 g) (75 cal)');
+  });
+
+  test('uses a metric equivalent for a non-metric named portion', () => {
+    expect(
+      formatVariantLabel(
+        {
+          servingSize: 1,
+          servingUnit: 'piece',
+          servingDescription: '1 medium',
+          calories: 90,
+        },
+        [{ serving_size: 118, serving_unit: 'g' } as never]
+      )
+    ).toBe('1 medium (118 g) (90 cal)');
+  });
+
+  test('keeps a portion without a known weight as described', () => {
+    expect(
+      formatVariantLabel({
+        servingSize: 1,
+        servingUnit: 'piece',
+        servingDescription: '1 medium',
+        calories: 90,
+      })
+    ).toBe('1 medium (90 cal)');
+  });
 });
 
 describe('buildLocalVariantOptions', () => {

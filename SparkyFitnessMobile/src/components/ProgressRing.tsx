@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import Svg, { Circle } from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -31,29 +31,17 @@ const ProgressRing: React.FC<ProgressRingProps> = ({
   const center = size / 2;
   const progressCapped = Math.min(Math.max(progress, 0), 1);
 
-  const animatedProgress = useSharedValue(0);
+  // Starts at the current value, so returning to a screen does not replay
+  // the ring; only a real change in progress animates, from what is shown.
+  const animatedProgress = useSharedValue(progressCapped);
 
-  // Replay the 0 -> current entrance animation each time the screen regains
-  // focus, then smoothly follow later progress changes (e.g. a per-second timer
-  // tick) without resetting to zero. Both writes to `animatedProgress` live in
-  // a single effect (React's compiler can't optimize a shared value mutated
-  // across two effects); `wasFocused` distinguishes a fresh focus — which resets
-  // to zero first — from an in-place value change.
+  // Skip animating while blurred so a mounted-but-hidden ring (e.g. the
+  // fasting ring on the Dashboard while another screen is on top) doesn't
+  // schedule frames for a per-second tick no one can see; on refocus it
+  // eases from its last shown value to the current one.
   const isFocused = useIsFocused();
-  const wasFocused = useRef(false);
   useEffect(() => {
-    // Skip animating while blurred so a mounted-but-hidden ring (e.g. the
-    // fasting/calorie ring on the Dashboard while another screen is on top)
-    // doesn't schedule frames for a per-second progress tick no one can see.
-    if (!isFocused) {
-      wasFocused.current = false;
-      return;
-    }
-    const justFocused = !wasFocused.current;
-    wasFocused.current = true;
-    if (justFocused) {
-      animatedProgress.value = 0;
-    }
+    if (!isFocused) return;
     animatedProgress.value = withTiming(progressCapped, {
       duration: reducedMotion ? 0 : 500,
       easing: Easing.out(Easing.cubic),

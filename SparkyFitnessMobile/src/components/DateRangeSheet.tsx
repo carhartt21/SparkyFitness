@@ -65,6 +65,7 @@ const DateRangeSheet = React.forwardRef<DateRangeSheetRef, DateRangeSheetProps>(
       textPrimary,
       textMuted,
       accentPrimary,
+      accentText,
     });
 
     useImperativeHandle(ref, () => ({

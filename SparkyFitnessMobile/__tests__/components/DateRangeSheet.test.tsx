@@ -140,8 +140,9 @@ describe('DateRangeSheet markedDates', () => {
         calendarDay(2026, 9, 2, { [end]: true })
       );
 
+      // The shared theme mock resolves --color-accent-text to #888888.
       expect(queryByTestId('calendar-day-marked')?.props.style).toEqual(
-        expect.objectContaining({ backgroundColor: '#FFFFFF' })
+        expect.objectContaining({ backgroundColor: '#888888' })
       );
     }
   });

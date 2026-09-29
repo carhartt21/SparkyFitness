@@ -7,7 +7,6 @@ import Icon, { type IconName } from './Icon';
 import GlowCard from './ui/GlowCard';
 import IconBadge from './ui/IconBadge';
 import NeonButton from './ui/NeonButton';
-import { useGlowTheme, withAlpha } from './ui/glow';
 import { formatLocalizedNumber } from '../localization';
 
 interface StatRowProps {
@@ -113,15 +112,13 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { fontScale, width } = useWindowDimensions();
-  const glowing = useGlowTheme();
   const expanded = fontScale > 1.3;
-  const [flame, food, burn, neutral, red, green] = useCSSVariable([
+  const [flame, food, burn, neutral, cardGlow] = useCSSVariable([
     '--color-activity-energy',
     '--color-action-food',
     '--color-neon-green',
     '--color-text-secondary',
-    '--color-neon-red',
-    '--color-neon-green',
+    '--color-card-glow',
   ]) as string[];
 
   const hasGoal = calorieGoal > 0;
@@ -139,19 +136,11 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
 
   return (
     <GlowCard
+      glowColor={cardGlow}
       accessibilityLabel={t('dashboard.dailyEnergy', {
         defaultValue: 'Daily energy',
       })}
       className="p-4 mb-3"
-      style={
-        glowing
-          ? {
-              borderLeftColor: withAlpha(red, 0.55),
-              borderRightColor: withAlpha(green, 0.55),
-              boxShadow: `-6px 0px 18px -6px ${withAlpha(red, 0.45)}, 6px 0px 18px -6px ${withAlpha(green, 0.45)}`,
-            }
-          : undefined
-      }
     >
       <View className="mb-2 flex-row items-start gap-3">
         <Icon name="flame" size={24} color={flame} />

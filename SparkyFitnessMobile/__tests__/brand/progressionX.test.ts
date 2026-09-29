@@ -56,3 +56,35 @@ describe('one-value progression X', () => {
     ).toHaveProperty('taperPath');
   });
 });
+
+describe('canonical colour route', () => {
+  const segments = progressionXGeometry.segments;
+  const numbers = (guide: string) => guide.match(/-?\d+(?:\.\d+)?/g) ?? [];
+  const endOf = (guide: string) => numbers(guide).slice(-2).join(' ');
+  const startOf = (guide: string) => numbers(guide).slice(0, 2).join(' ');
+
+  it('begins warm and ends green at the pointed tip of the sweep', () => {
+    expect(segments[0]?.gradient.from.toUpperCase()).toBe('#FF123C');
+    const last = segments[segments.length - 1];
+    expect(last?.id).toBe('sweep');
+    expect(endOf(last?.guide ?? '')).toBe('214 103');
+    expect(last?.gradient).toMatchObject({ x2: 214, y2: 103, to: '#22F978' });
+  });
+
+  it('hands each colour on to the next segment', () => {
+    for (let index = 1; index < segments.length; index += 1) {
+      expect(segments[index]?.gradient.from).toBe(
+        segments[index - 1]?.gradient.to
+      );
+    }
+  });
+
+  it('continues the reveal where the previous stroke ends', () => {
+    expect(startOf(segments[1]?.guide ?? '')).toBe(
+      endOf(segments[0]?.guide ?? '')
+    );
+    expect(startOf(segments[4]?.guide ?? '')).toBe(
+      endOf(segments[3]?.guide ?? '')
+    );
+  });
+});

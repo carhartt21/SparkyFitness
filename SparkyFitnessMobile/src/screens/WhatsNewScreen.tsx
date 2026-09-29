@@ -4,12 +4,11 @@ import { View, Text, ScrollView, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 
-import Icon, { type IconName } from '../components/Icon';
+import Icon from '../components/Icon';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { getTodayDate } from '../utils/dateUtils';
-import { canUseLiquidGlass } from '../utils/liquidGlass';
 import type { RootStackScreenProps } from '../types/navigation';
 
 type WhatsNewScreenProps = RootStackScreenProps<'WhatsNew'>;
@@ -185,86 +184,6 @@ const ChatMockup: React.FC = () => {
                 'Grilled salmon with a side salad keeps you right around 480 kcal.',
             })}
           </Text>
-        </View>
-      </View>
-    </View>
-  );
-};
-
-const LiquidGlassMockup: React.FC = () => {
-  const { t } = useTranslation();
-  const [textPrimary, accentPrimary, background] = useCSSVariable([
-    '--color-text-primary',
-    '--color-accent-primary',
-    '--color-background',
-  ]) as [string, string, string];
-
-  const tabs: { name: IconName; label: string; active?: boolean }[] = [
-    {
-      name: 'tab-home',
-      label: t('navigation.home', { defaultValue: 'Home' }),
-    },
-    {
-      name: 'book',
-      label: t('navigation.diary', { defaultValue: 'Diary' }),
-    },
-    {
-      name: 'tab-insights',
-      label: t('navigation.insights', { defaultValue: 'Insights' }),
-    },
-    {
-      name: 'tab-more',
-      label: t('navigation.more', { defaultValue: 'More' }),
-    },
-  ];
-
-  const glassStyle = {
-    backgroundColor: `${textPrimary}1F`,
-    borderWidth: 1,
-    borderColor: `${textPrimary}1F`,
-  };
-
-  return (
-    <View
-      className="h-44 justify-end overflow-hidden"
-      style={{
-        experimental_backgroundImage: `linear-gradient(0deg, ${background}, ${accentPrimary}20)`,
-      }}
-    >
-      <View className="flex-row items-center mx-4 mb-6">
-        <View
-          className="flex-1 flex-row items-center justify-around py-2 rounded-3xl"
-          style={glassStyle}
-        >
-          {tabs.map((tab) => (
-            <View
-              key={tab.label}
-              className="items-center px-2 py-1 rounded-2xl"
-              style={
-                tab.active ? { backgroundColor: `${textPrimary}26` } : undefined
-              }
-            >
-              <Icon
-                name={tab.name}
-                size={20}
-                color={tab.active ? accentPrimary : textPrimary}
-                weight={tab.active ? 'semibold' : 'regular'}
-              />
-              <Text
-                className="text-xs mt-0.5"
-                style={{ color: tab.active ? accentPrimary : textPrimary }}
-              >
-                {tab.label}
-              </Text>
-            </View>
-          ))}
-        </View>
-
-        <View
-          className="ml-2 rounded-full items-center justify-center"
-          style={{ width: 52, height: 52, ...glassStyle }}
-        >
-          <Icon name="add" size={24} color={textPrimary} />
         </View>
       </View>
     </View>
@@ -564,10 +483,6 @@ const WhatsNewScreen: React.FC<WhatsNewScreenProps> = ({ navigation }) => {
   const usesNativeHeader = useNativeIOSHeadersActive();
   const accentColor = useCSSVariable('--color-accent-primary') as string;
 
-  // The Liquid Glass toggle only exists on iOS 26+ devices with the glass APIs,
-  // so its card is gated on the same capability check the setting uses.
-  const showLiquidGlassCard = canUseLiquidGlass();
-
   // Added or changed a card below? Bump WHATS_NEW_CONTENT_VERSION in
   // services/whatsNewBanner.ts so the banner re-appears for existing users.
   const features: Feature[] = [
@@ -616,29 +531,6 @@ const WhatsNewScreen: React.FC<WhatsNewScreenProps> = ({ navigation }) => {
       }),
       hero: <WorkoutMockup />,
     },
-    ...(showLiquidGlassCard
-      ? [
-          {
-            eyebrow: t('whatsNewPage.features.ios.eyebrow', {
-              defaultValue: 'iOS 26',
-            }),
-            headline: t('whatsNewPage.features.ios.headline', {
-              defaultValue: 'A Liquid Glass look',
-            }),
-            body: t('whatsNewPage.features.ios.body', {
-              defaultValue:
-                'Turn on Liquid Glass navigation for translucent tabs and headers that pick up the color behind them. Toggle it anytime in App settings.',
-            }),
-            hero: <LiquidGlassMockup />,
-            cta: {
-              label: t('whatsNewPage.features.ios.cta', {
-                defaultValue: 'Open settings',
-              }),
-              onPress: () => navigation.navigate('AppSettings'),
-            },
-          } satisfies Feature,
-        ]
-      : []),
     {
       eyebrow: t('whatsNewPage.features.chat.eyebrow', {
         defaultValue: 'TRACKBOT',

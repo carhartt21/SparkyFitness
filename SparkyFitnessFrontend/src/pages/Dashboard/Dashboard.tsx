@@ -161,28 +161,24 @@ function Dashboard() {
       label: t('nutrition.protein', 'Protein'),
       consumed: dayTotals.protein,
       goal: effectiveGoals?.protein ?? 0,
-      tone: 'red',
     },
     {
       key: 'carbs',
       label: t('nutrition.carbs', 'Carbs'),
       consumed: dayTotals.carbs,
       goal: effectiveGoals?.carbs ?? 0,
-      tone: 'yellow',
     },
     {
       key: 'fat',
       label: t('nutrition.fat', 'Fat'),
       consumed: dayTotals.fat,
       goal: effectiveGoals?.fat ?? 0,
-      tone: 'green',
     },
     {
       key: 'fiber',
       label: t('nutrition.fiber', 'Fiber'),
       consumed: dayTotals.dietary_fiber,
       goal: effectiveGoals?.dietary_fiber ?? 0,
-      tone: 'violet',
     },
   ];
 
