@@ -196,7 +196,7 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
       <TabScreenHeader
         title={t('navigation.insights', { defaultValue: 'Insights' })}
         subtitle={t('insights.subtitle', {
-          defaultValue: 'Trends from your logged data.',
+          defaultValue: 'Trends from your data.',
         })}
         onSettings={() => navigation.navigate('Settings')}
       />

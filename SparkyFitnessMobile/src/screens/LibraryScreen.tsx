@@ -272,7 +272,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             <TabScreenHeader
               title={t('navigation.more', { defaultValue: 'More' })}
               subtitle={t('screens.library.subtitle', {
-                defaultValue: 'Your foods, meals, exercises and plans.',
+                defaultValue: 'Your entries and plans.',
               })}
               onSettings={() => navigation.navigate('Settings')}
             />

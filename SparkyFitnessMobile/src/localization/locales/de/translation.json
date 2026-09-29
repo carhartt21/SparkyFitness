@@ -962,7 +962,7 @@
       "failedRecentItems": "Letzte Einträge konnten nicht geladen werden.",
       "noRecentItems": "Noch keine aktuellen Einträge",
       "recentItemsHint": "Eingetragene Lebensmittel, Mahlzeiten und Übungen erscheinen hier für schnellen Zugriff.",
-      "subtitle": "Ihre Lebensmittel, Mahlzeiten, Übungen und Pläne.",
+      "subtitle": "Ihre Einträge und Pläne.",
       "dailyTracking": "Tägliche Nachverfolgung",
       "checkinSubtitle": "Reflektieren Sie Ihren Tag",
       "habitsSubtitle": "Routinen und Wiederholungen",
@@ -1542,7 +1542,7 @@
       "failed": "Die ausgewählten Lebensmittel konnten nicht aktualisiert werden",
       "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen."
     },
-    "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten."
+    "subtitle": "Essen und Aktivität erfassen."
   },
   "scheduleSummary": {
     "daily": "Täglich",
@@ -5776,7 +5776,7 @@
     "roundsCompleted": "{{rounds}} Runden abgeschlossen"
   },
   "insights": {
-    "subtitle": "Trends aus Ihren protokollierten Daten.",
+    "subtitle": "Trends Ihrer Einträge.",
     "unavailableTitle": "Erkenntnisse nicht verfügbar",
     "unavailableSubtitle": "Stellen Sie in den Einstellungen eine Verbindung zu Ihrem Server her, um Trends aus Ihren protokollierten Daten anzuzeigen.",
     "viewDetails": "Details anzeigen",

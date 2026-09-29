@@ -77,7 +77,8 @@ export default function AppHeaderRow({
           <Text
             className="text-sm text-text-secondary"
             maxFontSizeMultiplier={1.6}
-            numberOfLines={2}
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {subtitle}
           </Text>

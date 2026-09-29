@@ -676,7 +676,7 @@
       "failedRecentItems": "Failed to load recent items.",
       "noRecentItems": "No recent items yet",
       "recentItemsHint": "Foods, meals, and exercises you log will appear here for quick access.",
-      "subtitle": "Your foods, meals, exercises and plans.",
+      "subtitle": "Your entries and plans.",
       "dailyTracking": "Daily tracking",
       "checkinSubtitle": "Reflect on your day",
       "habitsSubtitle": "Routines and reps",
@@ -5765,7 +5765,7 @@
     "unitMg": "mg"
   },
   "insights": {
-    "subtitle": "Trends from your logged data.",
+    "subtitle": "Trends from your data.",
     "unavailableTitle": "Insights unavailable",
     "unavailableSubtitle": "Connect to your server in Settings to see trends from your logged data.",
     "viewDetails": "View details",
