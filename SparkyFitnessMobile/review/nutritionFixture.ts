@@ -187,8 +187,7 @@ export function createNutritionFixture(scenario: string) {
         }
 
         if (path === '/api/goals/for-date') return summaryFixture.goals;
-        if (path === '/api/workout-presets')
-          return { presets: [], totalCount: 0 };
+        if (path === '/api/workout-presets') return { presets: [], total: 0 };
         if (path === '/api/daily-summary') {
           const foodEntries = entries.filter(
             (entry) =>

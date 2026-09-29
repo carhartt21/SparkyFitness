@@ -182,6 +182,22 @@ const ICON_MAP = {
   'sleep-score': { sf: 'star.fill', ion: 'star' },
   spo2: { sf: 'lungs.fill', ion: 'pulse' },
   'heart-rate': { sf: 'heart.fill', ion: 'heart' },
+
+  // Daily tracking
+  heart: { sf: 'heart', ion: 'heart-outline' },
+  bolt: { sf: 'bolt.fill', ion: 'flash' },
+  brain: { sf: 'brain.head.profile', ion: 'bulb-outline' },
+  moon: { sf: 'moon.fill', ion: 'moon' },
+  sun: { sf: 'sun.max.fill', ion: 'sunny' },
+  sunrise: { sf: 'sunrise.fill', ion: 'partly-sunny' },
+  bell: { sf: 'bell', ion: 'notifications-outline' },
+  'bell-filled': { sf: 'bell.fill', ion: 'notifications' },
+  bandage: { sf: 'bandage', ion: 'bandage-outline' },
+  airplane: { sf: 'airplane', ion: 'airplane-outline' },
+  thermometer: { sf: 'thermometer.medium', ion: 'thermometer-outline' },
+  'fork-knife': { sf: 'fork.knife', ion: 'restaurant-outline' },
+  habit: { sf: 'checklist', ion: 'checkbox-outline' },
+  'daily-checkin': { sf: 'face.smiling', ion: 'happy-outline' },
 } as const;
 
 export type IconName = keyof typeof ICON_MAP;

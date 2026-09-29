@@ -62,6 +62,19 @@ Set targets and get consolidated performance reviews.
 - **Weekly Reports** (`sparky_get_report`): "Give me a weekly performance summary."
 - **Profile Settings** (`sparky_manage_profile`): "Change my energy unit to kJ."
 
+### 📅 Daily tracking (read-only)
+
+These tools only read. Logging habits, completing check-ins, changing health context, recording measurements or supplement intake, and marking meals are done in the apps.
+
+- **Daily check-in** (`sparky_get_daily_checkin`, `sparky_list_daily_checkins`): answers with their versioned meanings; a missing day is not recorded, never low.
+- **Health context** (`sparky_list_health_context_periods`): user-declared injury, illness and vacation periods. They are declarations, not diagnoses.
+- **Habits** (`sparky_list_habits`, `sparky_get_habit_history`): an explicit 0 is a record; days without a record are omitted.
+- **Measurement reminders** (`sparky_get_measurement_reminder_status`), **meal status** (`sparky_get_meal_tracking_status`).
+- **Daily Progress** (`sparky_get_daily_progress`, `sparky_get_daily_status_context`): completed and applicable explicit tasks with each item's reason and a version. It is not a health score.
+- **Supplements** (`sparky_list_supplements`, `sparky_get_supplement`, `sparky_list_supplement_entries`): only items marked as supplements; medications are never returned.
+
+Ranges are limited to 92 days, or 31 days for a read-only MCP key.
+
 ---
 
 ## 🕵️ AI Personalization (The "Health Detective")

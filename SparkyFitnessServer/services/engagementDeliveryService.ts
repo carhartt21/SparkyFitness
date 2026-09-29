@@ -135,6 +135,7 @@ export async function planEngagementOccurrences(
           waterCount: number;
           exerciseCount: number;
           pendingPhotoCount: number;
+          remindersPaused: boolean;
         };
         try {
           const result = await client.query(
@@ -143,7 +144,10 @@ export async function planEngagementOccurrences(
             (SELECT COUNT(*) FROM water_intake_entries WHERE user_id = $1 AND entry_date = $2) AS water_count,
             (SELECT COUNT(*) FROM exercise_entries WHERE user_id = $1 AND entry_date = $2) AS exercise_count,
             (SELECT COUNT(*) FROM nutrition_captures WHERE user_id = $1 AND entry_date = $2
-              AND completion_state = 'incomplete') AS pending_photo_count`,
+              AND completion_state = 'incomplete') AS pending_photo_count,
+            EXISTS (SELECT 1 FROM health_context_periods WHERE user_id = $1
+              AND pause_discretionary_reminders AND start_date <= $2
+              AND (end_date IS NULL OR end_date >= $2)) AS reminders_paused`,
             [userId, localDay]
           );
           const row = result.rows[0];
@@ -152,6 +156,7 @@ export async function planEngagementOccurrences(
             waterCount: Number(row.water_count),
             exerciseCount: Number(row.exercise_count),
             pendingPhotoCount: Number(row.pending_photo_count),
+            remindersPaused: row.reminders_paused === true,
           };
         } finally {
           client.release();

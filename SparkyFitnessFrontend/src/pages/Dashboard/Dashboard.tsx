@@ -37,6 +37,8 @@ import {
   LoggingStreakBadge,
   TodaysFocusCard,
 } from '@/pages/Diary/TodaysFocusCard';
+import { DailyProgressCard } from '@/pages/Dashboard/DailyProgressCard';
+import { useDailyTrackingProgress } from '@/hooks/Tracking/useTracking';
 import {
   ActivityCard,
   EnergyCard,
@@ -73,7 +75,7 @@ export default function DashboardRoute() {
 }
 
 function Dashboard() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { timezone, energyUnit, convertEnergy } = usePreferences();
   const [selectedDate, setSelectedDate] = useState(() => todayInZone(timezone));
@@ -86,6 +88,7 @@ function Dashboard() {
   const { data: foodEntryMeals } = useFoodEntryMeals(selectedDate);
   const { data: mealTypes } = useMealTypes();
   const water = useWaterControls(selectedDate);
+  const { data: trackingProgress } = useDailyTrackingProgress(selectedDate);
 
   const unit = getEnergyUnitString(energyUnit);
   const format = (kcal: number) =>
@@ -359,20 +362,37 @@ function Dashboard() {
                 },
               ]}
             />
-            {effectiveGoals ? (
-              <TodaysFocusCard
-                caloriesEaten={balance?.eaten ?? dayTotals.calories}
-                calorieGoal={effectiveGoals.calories}
-                proteinConsumed={dayTotals.protein}
-                proteinGoal={effectiveGoals.protein}
-                waterMl={summary ? summary.waterIntake : null}
-                waterGoalMl={effectiveGoals.water_goal_ml ?? 0}
-                foodEntryCount={
-                  (fetchedEntries?.length ?? 0) + (foodEntryMeals?.length ?? 0)
-                }
-                onEditGoals={() => navigate('/goals')}
-              />
-            ) : null}
+            <div className="flex flex-col gap-4">
+              {trackingProgress ? (
+                <DailyProgressCard
+                  progress={trackingProgress}
+                  dayLabel={
+                    isToday
+                      ? t('dashboardWeb.today', 'Today')
+                      : // Noon keeps the calendar day stable in every zone.
+                        new Date(`${selectedDate}T12:00:00`).toLocaleDateString(
+                          i18n.language,
+                          { weekday: 'short', month: 'short', day: 'numeric' }
+                        )
+                  }
+                />
+              ) : null}
+              {effectiveGoals ? (
+                <TodaysFocusCard
+                  caloriesEaten={balance?.eaten ?? dayTotals.calories}
+                  calorieGoal={effectiveGoals.calories}
+                  proteinConsumed={dayTotals.protein}
+                  proteinGoal={effectiveGoals.protein}
+                  waterMl={summary ? summary.waterIntake : null}
+                  waterGoalMl={effectiveGoals.water_goal_ml ?? 0}
+                  foodEntryCount={
+                    (fetchedEntries?.length ?? 0) +
+                    (foodEntryMeals?.length ?? 0)
+                  }
+                  onEditGoals={() => navigate('/goals')}
+                />
+              ) : null}
+            </div>
           </div>
         </>
       )}

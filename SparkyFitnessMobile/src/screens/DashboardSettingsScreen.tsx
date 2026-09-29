@@ -88,6 +88,12 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
   const setMedicationsCardVisible = useAppPreferencesStore(
     (s) => s.setMedicationsCardVisible
   );
+  const dailyProgressCardVisible = useAppPreferencesStore(
+    (s) => s.dailyProgressCardVisible
+  );
+  const setDailyProgressCardVisible = useAppPreferencesStore(
+    (s) => s.setDailyProgressCardVisible
+  );
 
   const queryClient = useQueryClient();
   const { isConnected } = useServerConnection();
@@ -329,6 +335,23 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
                 })}
                 value={cycleCardVisible}
                 onValueChange={setCycleCardVisible}
+              />
+            }
+          />
+          <SettingsRow
+            title={t('dashboardSettings.dailyProgress', {
+              defaultValue: 'Daily Progress',
+            })}
+            subtitle={t('dashboardSettings.dailyProgressSubtitle', {
+              defaultValue: 'Show Daily Progress and the check-in shortcut',
+            })}
+            rightAccessory={
+              <Switch
+                accessibilityLabel={t('dashboardSettings.dailyProgress', {
+                  defaultValue: 'Daily Progress',
+                })}
+                value={dailyProgressCardVisible}
+                onValueChange={setDailyProgressCardVisible}
               />
             }
           />

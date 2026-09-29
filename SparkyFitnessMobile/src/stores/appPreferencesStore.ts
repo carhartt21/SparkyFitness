@@ -53,6 +53,7 @@ export const PREFERENCE_DEFAULTS = {
   cycleCardVisible: true,
   askSparkyVisible: true,
   medicationsCardVisible: true,
+  dailyProgressCardVisible: true,
   progressPhotosCardVisible: true,
   medicationRemindersEnabled: true,
   medicationReminderRepeats: true,
@@ -103,6 +104,7 @@ export type AppPreferencesData = {
   cycleCardVisible: boolean;
   askSparkyVisible: boolean;
   medicationsCardVisible: boolean;
+  dailyProgressCardVisible: boolean;
   progressPhotosCardVisible: boolean;
   medicationRemindersEnabled: boolean;
   medicationReminderRepeats: boolean;
@@ -152,6 +154,7 @@ export interface AppPreferencesState extends AppPreferencesData {
   setCycleCardVisible: (value: boolean) => void;
   setAskSparkyVisible: (value: boolean) => void;
   setMedicationsCardVisible: (value: boolean) => void;
+  setDailyProgressCardVisible: (value: boolean) => void;
   setProgressPhotosCardVisible: (value: boolean) => void;
   setMedicationRemindersEnabled: (value: boolean) => void;
   setMedicationReminderRepeats: (value: boolean) => void;
@@ -245,6 +248,8 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
       setAskSparkyVisible: (value) => set({ askSparkyVisible: value }),
       setMedicationsCardVisible: (value) =>
         set({ medicationsCardVisible: value }),
+      setDailyProgressCardVisible: (value) =>
+        set({ dailyProgressCardVisible: value }),
       setProgressPhotosCardVisible: (value) =>
         set({ progressPhotosCardVisible: value }),
       setMedicationRemindersEnabled: (value) =>
@@ -321,6 +326,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         cycleCardVisible: state.cycleCardVisible,
         askSparkyVisible: state.askSparkyVisible,
         medicationsCardVisible: state.medicationsCardVisible,
+        dailyProgressCardVisible: state.dailyProgressCardVisible,
         progressPhotosCardVisible: state.progressPhotosCardVisible,
         medicationRemindersEnabled: state.medicationRemindersEnabled,
         medicationReminderRepeats: state.medicationReminderRepeats,

@@ -70,6 +70,24 @@ const NATIVE_TABS_ROUTE_EXCLUSIONS = {
     'Root-stack main cycle and wellness dashboard presented above the tab host.',
   PregnancySetup:
     'Root-stack setup wizard for pregnancy parameters presented above the tab host.',
+  DailyCheckIn:
+    'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  Habits:
+    'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  HabitsManage:
+    'Root-stack habit list editor with its own back button, presented above the tab host.',
+  HabitForm:
+    'Root-stack habit create/edit form with its own back button, presented above the tab host.',
+  Supplements:
+    'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  HealthContext:
+    'Root-stack context period list with its own back button, presented above the tab host.',
+  HealthContextForm:
+    'Root-stack context period form with its own back button, presented above the tab host.',
+  DailyProgress:
+    'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  TrackingSettings:
+    'Root-stack tracking settings with its own back button, presented above the tab host.',
 } satisfies Record<string, string>;
 
 function readMobileFile(relativePath: string): string {

@@ -83,3 +83,25 @@ References: `web/06-dashboard.png` and `web/07-nutrition-reports.png` from `x-on
 - **Reports:** page title and date range first, glowing category pills below; a headline tile row (logged intake vs target, average variance, days logged, average per logged day); full-width trend; all tracked nutrients as small charts by default (one-chart focus kept).
 - **Not yet aligned:** the combined Calories & Macros trend with legend, the cumulative chart's side summary, the reference's Meals/Workouts/Drinks tiles (their data is not loaded on the nutrients tab), the date control format ("Fri, Sep 25, 2026" + Today), the Diary's light-only widget boxes in dark mode, and removal of the Diary's now-duplicated quick actions / Today's focus.
 - **Verification:** frontend `tsc -b`, ESLint, Prettier, Knip pass; Jest 158 suites / 1,404 tests pass (new: `dashboardSummary`, `DashboardRoute`). Visual review: 18 captures (Dashboard, Diary, Reports × dark/light × 1586/1280/390), no horizontal overflow, no console errors; comparison sheets and selected captures in `review/web-2026-09-28-*`. Demo data covers only two days, so report trends look sparse. The dev-only TanStack Query Devtools button (palm-tree logo) is hidden in captures; it is not product UI.
+
+## Daily tracking batch (2026-09-29)
+
+References: `references/progress_x_check_in.jpg`, `progress_x_habits.jpg`, `progress_x_supp.jpg`. Captures: `review/tracking-2026-09-29/` (430 English dark and 430 German accessibility-extra-large), produced with `node scripts/review-ios.mjs --interactions --tracking-tour`.
+
+Data model decisions:
+
+- Daily check-ins are a new `daily_checkins` table rather than `mood_entries`. Mood stores a 0–100 intensity and tags; the check-in is a versioned set of 1–5 answers with draft/completed/skipped states.
+- Habits reuse the existing chatbot habit model: `custom_categories` gains habit columns; logs stay in `custom_measurements`. The chatbot `log_habit` action writes only completion (boolean) habits.
+- Supplements have no new backend: the screen filters medications by `is_supplement` and reuses due-dose, logging and offline planned-action code.
+- Health context periods, measurement reminders and tracking preferences are owner-only (Tier 1).
+- Explicit meal status is a diary-permission table; no row means pending.
+
+Deliberate deviations from the references:
+
+- Check-in 1–5 chips sit under each question on phones instead of beside it, so every chip keeps a 44-pt target and labels don't break mid-word; colors follow each question's polarity (high stress is red).
+- The "Under 30 seconds" pill, "Keep going!" message and snooze tile are omitted: timing claims and pressure copy are out of scope, and snooze lives on the reminder itself.
+- Streaks appear only when above zero and never as the main figure.
+- Mockup names, amounts, dates and times are illustrations; the review fixture uses synthetic stand-ins.
+- Pushed tracking screens show a back button where the reference shows the logo.
+
+Known limits: tracking reminders are local only (with remote delivery enabled they are not scheduled); the web has Daily Progress and meal status but no check-in, habit or supplement screens yet; new German strings fall back to English until the translation sync runs.

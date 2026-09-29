@@ -30,9 +30,15 @@ import WeightLineChart from '../components/WeightLineChart';
 import MacroCompositionRing from '../components/MacroCompositionRing';
 import Icon, { type IconName } from '../components/Icon';
 import { formatLocalizedNumber } from '../localization';
-import { getTodayDate } from '../utils/dateUtils';
+import { addDays, getTodayDate } from '../utils/dateUtils';
 import { weightFromKg } from '../utils/unitConversions';
-import { summarizeNutritionTrends, summarizeWeight } from '../utils/insights';
+import {
+  summarizeCheckins,
+  summarizeNutritionTrends,
+  summarizeWeight,
+} from '../utils/insights';
+import { useDailyCheckinsRange } from '../hooks/useDailyTracking';
+import { checkinQuestionText } from '../components/tracking/trackingLabels';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 
 type InsightsScreenProps = CompositeScreenProps<
@@ -117,6 +123,16 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
   const { summary } = useDailySummary({ date: today, enabled: isConnected });
   const nutrition = useNutritionTrends({ range, enabled: isConnected });
   const measurements = useMeasurementsRange({ range, enabled: isConnected });
+  const rangeDays = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+  const checkinsQuery = useDailyCheckinsRange(
+    addDays(today, -(rangeDays - 1)),
+    today,
+    { enabled: isConnected }
+  );
+  const checkins = useMemo(
+    () => summarizeCheckins(checkinsQuery.data ?? [], rangeDays),
+    [checkinsQuery.data, rangeDays]
+  );
 
   const [
     accent,
@@ -427,6 +443,68 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
             range={range}
             unit={weightUnit}
           />
+        </InsightCard>
+
+        <InsightCard
+          testID="insights-checkins"
+          icon="daily-checkin"
+          iconColor={accent}
+          title={t('insights.checkinsTitle', {
+            defaultValue: 'Daily check-ins',
+          })}
+          action={{
+            label: t('insights.checkinAction', { defaultValue: 'Check in' }),
+            onPress: () => navigation.navigate('DailyCheckIn'),
+          }}
+        >
+          <Text
+            className="mb-2 text-sm text-text-primary"
+            testID="insights-checkin-days"
+          >
+            {t('insights.checkinDays', {
+              defaultValue:
+                '{{completed}} of {{total}} days completed · {{skipped}} skipped',
+              completed: checkins.completedDays,
+              total: checkins.totalDays,
+              skipped: checkins.skippedDays,
+            })}
+          </Text>
+          {checkins.completedDays > 0 ? (
+            <View className="gap-1">
+              {checkins.overallAverage !== null ? (
+                <Text className="text-sm text-text-secondary">
+                  {t('insights.checkinOverall', {
+                    defaultValue:
+                      'Overall day: {{value}} of 5 on average ({{answered}} answers)',
+                    value: formatOneDecimal(checkins.overallAverage),
+                    answered: checkins.overallAnswered,
+                  })}
+                </Text>
+              ) : null}
+              {checkins.answers
+                .filter((answer) => answer.average !== null)
+                .map((answer) => (
+                  <Text
+                    key={answer.key}
+                    className="text-sm text-text-secondary"
+                  >
+                    {t('insights.checkinAnswer', {
+                      defaultValue:
+                        '{{question}}: {{value}} of 5 on average ({{answered}} answers)',
+                      question: checkinQuestionText(t, answer.key).title,
+                      value: formatOneDecimal(answer.average ?? 0),
+                      answered: answer.answered,
+                    })}
+                  </Text>
+                ))}
+              <Text className="mt-1 text-xs text-text-secondary">
+                {t('insights.checkinNote', {
+                  defaultValue:
+                    'Averages use answered questions only; days without a check-in are not counted as low.',
+                })}
+              </Text>
+            </View>
+          ) : null}
         </InsightCard>
 
         <InsightCard

@@ -15,6 +15,9 @@ const DATE_RANGE_TOOLS = new Set([
   'sparky_get_food_diary',
   'sparky_get_nutrition_summary',
   'sparky_get_food_usage',
+  'sparky_list_daily_checkins',
+  'sparky_get_habit_history',
+  'sparky_list_supplement_entries',
 ]);
 
 const DIARY_TOOLS = new Set([

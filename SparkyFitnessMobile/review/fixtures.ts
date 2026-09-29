@@ -1,4 +1,5 @@
 import type { DailySummaryApiResponse } from '../src/services/api/dailySummaryApi';
+import { trackingReviewResponse } from './trackingFixture';
 
 export const reviewDate = '2026-09-26';
 export const summaryFixture: DailySummaryApiResponse = {
@@ -173,13 +174,10 @@ export function reviewResponse(path: string, scenario: string): unknown {
     ].includes(path)
   )
     return [];
+  const tracking = trackingReviewResponse(path, scenario, localToday());
+  if (tracking !== undefined) return tracking;
   // Library (More tab) reads for the screen tour: an empty synthetic library.
-  if (
-    ['/api/meals', '/api/meal-plan-templates', '/api/v2/medications'].includes(
-      path
-    )
-  )
-    return [];
+  if (['/api/meals', '/api/meal-plan-templates'].includes(path)) return [];
   if (path === '/api/exercises/' || path === '/api/exercises')
     return { exercises: [], totalCount: 0 };
   if (path === '/api/exercises/suggested')
@@ -190,6 +188,12 @@ export function reviewResponse(path: string, scenario: string): unknown {
     return syntheticWeightRange();
   if (path.startsWith('/api/measurements/water-intake-range/')) return [];
   throw new Error(`Unconfigured review endpoint: ${path}`);
+}
+
+/** The simulator's calendar day; tracking screens open on the real today. */
+function localToday(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
 function reviewDayOffset(offset: number): string {

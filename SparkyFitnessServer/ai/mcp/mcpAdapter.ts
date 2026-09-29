@@ -2,6 +2,10 @@ import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import type { ToolExecutionOptions } from 'ai';
 import { buildChatbotTools } from '../tools/index.js';
 import { buildDevTools } from '../tools/devTools.js';
+import {
+  DAILY_TRACKING_READ_TOOL_NAMES,
+  SUPPLEMENT_READ_TOOL_NAMES,
+} from '../tools/dailyTrackingTools.js';
 import { isToolErrorText } from '../tools/errors.js';
 import { readOnlyEvidenceContext } from './readOnlyEvidenceContext.js';
 import { checkReadOnlyScope } from './readOnlyScope.js';
@@ -49,6 +53,11 @@ export const READ_ONLY_MCP_TOOL_NAMES = new Set([
   'sparky_get_goal_snapshot',
   'sparky_get_synced_data',
   'sparky_get_integrations',
+  // Daily tracking and supplement reads: dedicated query-only tools. Their
+  // write counterparts (habit logging, check-in and context edits, meal
+  // resolution, intake) exist only in the apps and are never listed here.
+  ...DAILY_TRACKING_READ_TOOL_NAMES,
+  ...SUPPLEMENT_READ_TOOL_NAMES,
 ]);
 
 function readOnlyArgs(toolName: string, rawArgs: unknown): unknown {

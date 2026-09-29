@@ -19,6 +19,23 @@ const settings: EngagementSettings = {
 };
 
 describe('remote engagement policy', () => {
+  it('sends no optional reminder while a context period pauses them', () => {
+    expect(
+      dueEngagementCandidates({
+        now: new Date('2026-09-27T09:05:00Z'),
+        timezone: 'Europe/Berlin',
+        settings,
+        context: {
+          foodCount: 0,
+          waterCount: 0,
+          exerciseCount: 0,
+          pendingPhotoCount: 0,
+          remindersPaused: true,
+        },
+      })
+    ).toEqual([]);
+  });
+
   it('uses the account local day across a UTC offset and only acts on known gaps', () => {
     const candidates = dueEngagementCandidates({
       now: new Date('2026-09-27T09:05:00Z'),

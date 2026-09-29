@@ -109,6 +109,8 @@ export default function NeonButton({
             className={`${size === 'sm' ? 'text-sm' : 'text-base'} font-semibold`}
             style={{ color: labelColor }}
             numberOfLines={1}
+            adjustsFontSizeToFit
+            maxFontSizeMultiplier={1.6}
           >
             {label}
           </Text>

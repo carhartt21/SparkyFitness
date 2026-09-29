@@ -57,6 +57,7 @@ import GlowCard from '../components/ui/GlowCard';
 import ScreenBackground from '../components/ui/ScreenBackground';
 import MacroCard from '../components/MacroCard';
 import MedicationsCard from '../components/MedicationsCard';
+import DailyProgressCard from '../components/DailyProgressCard';
 import ProgressPhotosCard from '../components/ProgressPhotosCard';
 import SegmentedControl, { type Segment } from '../components/SegmentedControl';
 import StatusView from '../components/StatusView';
@@ -425,6 +426,9 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const askSparkyVisible = useAppPreferencesStore((s) => s.askSparkyVisible);
   const medicationsCardVisible = useAppPreferencesStore(
     (s) => s.medicationsCardVisible
+  );
+  const dailyProgressCardVisible = useAppPreferencesStore(
+    (s) => s.dailyProgressCardVisible
   );
   const progressPhotosCardVisible = useAppPreferencesStore(
     (s) => s.progressPhotosCardVisible
@@ -862,6 +866,18 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           }
         />
         {quickActions}
+        {dailyProgressCardVisible && (
+          <DailyProgressCard
+            date={selectedDate}
+            enabled={!showingSaved}
+            onOpenProgress={() =>
+              navigation.navigate('DailyProgress', { date: selectedDate })
+            }
+            onOpenCheckin={() =>
+              navigation.navigate('DailyCheckIn', { date: selectedDate })
+            }
+          />
+        )}
         {/* Macros Section — driven by nutrient display preferences (summary/mobile).
             Only the 4 core macros (with goals) and user-defined custom nutrients are
             shown here. Other enabled nutrients (sodium, sugars, etc.) belong in a

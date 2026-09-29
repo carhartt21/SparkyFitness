@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import {
+  dailyProgressRootQueryKey,
   exerciseHistoryResetQueryKey,
   sleepDayQueryKeyRoot,
   sleepRangeQueryKeyRoot,
@@ -21,6 +22,8 @@ export function refreshHealthSyncCache(queryClient: QueryClient) {
   // restart (reload) refetches /api/sleep.
   void queryClient.invalidateQueries({ queryKey: sleepDayQueryKeyRoot });
   void queryClient.invalidateQueries({ queryKey: sleepRangeQueryKeyRoot });
+  // A saved weight or custom measurement can resolve a weigh-in progress item.
+  void queryClient.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
   void queryClient.invalidateQueries({
     queryKey: exerciseHistoryQueryFamily,
     refetchType: 'none',

@@ -1,4 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { MealDayStatusValue, MealTrackingState } from '@workspace/shared';
+import { MealStatusSelect } from '@/pages/Diary/MealStatusSelect';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -109,6 +111,9 @@ interface MealCardProps {
   /** With shouldOpenFoodSearch: open the barcode scanner right away. */
   startWithScanner?: boolean;
   onFoodSearchClose?: () => void;
+  /** Explicit meal resolution; omit to hide the control. */
+  mealStatus?: MealTrackingState;
+  onMealStatusChange?: (status: MealDayStatusValue | null) => void;
 }
 
 function EntryArtwork({
@@ -169,6 +174,8 @@ const MealCard = ({
   onFoodSearchClose,
   selectedDate,
   customNutrients = [], // Default to empty array
+  mealStatus,
+  onMealStatusChange,
 }: MealCardProps) => {
   const { t } = useTranslation();
   const {
@@ -298,6 +305,13 @@ const MealCard = ({
                   )}`}
                 {getEnergyUnitString(energyUnit)}
               </span>
+              {mealStatus && onMealStatusChange ? (
+                <MealStatusSelect
+                  mealName={meal.name}
+                  state={mealStatus}
+                  onChange={onMealStatusChange}
+                />
+              ) : null}
             </div>
             <div className="flex flex-wrap gap-2 sm:gap-4 justify-end">
               <Dialog

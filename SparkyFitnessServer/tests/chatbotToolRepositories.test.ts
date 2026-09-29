@@ -215,6 +215,7 @@ describe('habitRepository', () => {
 
   it('upsertHabitLog updates the existing row when one exists', async () => {
     mockClient.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }] })
       .mockResolvedValueOnce({ rows: [{ id: 'cm-1' }] })
       .mockResolvedValueOnce({ rows: [] });
 
@@ -225,14 +226,15 @@ describe('habitRepository', () => {
       'true'
     );
 
-    expect(mockClient.query).toHaveBeenCalledTimes(2);
-    const [updateSql, updateParams] = mockClient.query.mock.calls[1];
+    expect(mockClient.query).toHaveBeenCalledTimes(3);
+    const [updateSql, updateParams] = mockClient.query.mock.calls[2];
     expect(updateSql).toContain('UPDATE custom_measurements');
     expect(updateParams).toEqual(['true', 'cm-1']);
   });
 
   it('upsertHabitLog inserts when no row exists', async () => {
     mockClient.query
+      .mockResolvedValueOnce({ rows: [{ '?column?': 1 }] })
       .mockResolvedValueOnce({ rows: [] })
       .mockResolvedValueOnce({ rows: [] });
 
@@ -243,9 +245,17 @@ describe('habitRepository', () => {
       'false'
     );
 
-    const [insertSql, insertParams] = mockClient.query.mock.calls[1];
+    const [insertSql, insertParams] = mockClient.query.mock.calls[2];
     expect(insertSql).toContain('INSERT INTO custom_measurements');
     expect(insertParams).toEqual(['user-1', 'habit-1', 'false', '2026-06-11']);
+  });
+
+  it('upsertHabitLog refuses count habits', async () => {
+    mockClient.query.mockResolvedValueOnce({ rows: [] });
+    await expect(
+      habitRepository.upsertHabitLog('user-1', 'habit-1', '2026-06-11', 'true')
+    ).rejects.toThrow('not a completion habit');
+    expect(mockClient.query).toHaveBeenCalledTimes(1);
   });
 
   it('getHabitHistory adds range clauses only for provided bounds', async () => {

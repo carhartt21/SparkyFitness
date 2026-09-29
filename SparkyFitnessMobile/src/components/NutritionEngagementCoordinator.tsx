@@ -12,7 +12,26 @@ import {
   movementBreakReminderCandidate,
   mobilityReminderCandidates,
   nutritionReminderCandidates,
+  trackingReminderCandidates,
 } from '../services/healthEngagementPolicy';
+import { reconcileTrackingEngagementReminders } from '../services/trackingEngagementReminders';
+import {
+  discretionaryRemindersPaused,
+  habitDayState,
+  isHabitDue,
+  isMeasurementReminderDue,
+} from '@workspace/shared';
+import {
+  useDailyCheckin,
+  useDailyTrackingPreferences,
+  useHabitLogs,
+  useHabits,
+  useHealthContextPeriods,
+  useMealTrackingStatus,
+  useMeasurementReminders,
+} from '../hooks/useDailyTracking';
+import { useMealTypes } from '../hooks/useMealTypes';
+import { useMeasurements } from '../hooks/useMeasurements';
 import { reconcileNutritionEngagementReminders } from '../services/nutritionEngagementReminders';
 import { reconcileMovementEngagementReminders } from '../services/movementEngagementReminders';
 import { reconcileMobilityEngagementReminders } from '../services/mobilityEngagementReminders';
@@ -89,6 +108,36 @@ export default function NutritionEngagementCoordinator() {
     remoteEnabled ? (summary?.foodEntries ?? []) : [],
     activeScope
   );
+  // Tracking reminders resolve from the same cached records the screens
+  // update, so a check-in, habit value or weight saved in the app cancels its
+  // reminder before any sync round-trip.
+  const trackingEnabled = remoteEnabled;
+  const trackingPreferences = useDailyTrackingPreferences({
+    enabled: trackingEnabled,
+  });
+  const todaysCheckin = useDailyCheckin(day, { enabled: trackingEnabled });
+  const habitsQuery = useHabits({ enabled: trackingEnabled });
+  const habitLogsQuery = useHabitLogs(day, day, { enabled: trackingEnabled });
+  const measurementRemindersQuery = useMeasurementReminders({
+    enabled: trackingEnabled,
+  });
+  const { measurements: todaysMeasurements, isLoading: measurementsLoading } =
+    useMeasurements({ date: day, enabled: trackingEnabled });
+  const contextQuery = useHealthContextPeriods({ enabled: trackingEnabled });
+  const mealStatusQuery = useMealTrackingStatus(day, {
+    enabled: trackingEnabled,
+  });
+  const { mealTypes } = useMealTypes({ enabled: trackingEnabled });
+  const resolvedMealTimes = useMemo(() => {
+    const resolved = new Set(
+      (mealStatusQuery.data?.meals ?? [])
+        .filter((meal) => meal.state === 'complete' || meal.state === 'skipped')
+        .map((meal) => meal.meal_type_id)
+    );
+    return (mealTypes ?? [])
+      .filter((type) => resolved.has(type.id) && type.default_time)
+      .map((type) => type.default_time as string);
+  }, [mealStatusQuery.data, mealTypes]);
   const serverConfigId = identity?.serverConfigId ?? null;
   const userId = identity?.userId ?? null;
   const identityKey = JSON.stringify([serverConfigId, userId]);
@@ -341,7 +390,91 @@ export default function NutritionEngagementCoordinator() {
     ]
   );
 
+  const remindersPaused =
+    contextQuery.isSuccess &&
+    discretionaryRemindersPaused(contextQuery.data, day);
+
+  const tracking = useMemo(() => {
+    const preferences = trackingPreferences.data;
+    const names = new Map<string, string>();
+    if (!preferences || !trackingEnabled) return { candidates: [], names };
+    const habits = habitsQuery.isSuccess ? habitsQuery.data : null;
+    const logs = habitLogsQuery.isSuccess ? habitLogsQuery.data : null;
+    const habitInputs =
+      preferences.habit_reminders_enabled && habits && logs
+        ? habits
+            .filter((habit) => habit.reminder_time && isHabitDue(habit, day))
+            .map((habit) => {
+              names.set(`tracking:habit:${day}:${habit.id}`, habit.name);
+              return {
+                id: habit.id,
+                time: habit.reminder_time!,
+                resolved:
+                  habitDayState(
+                    habit,
+                    logs.find((log) => log.habit_id === habit.id)
+                  ) !== 'not_recorded',
+              };
+            })
+        : [];
+    const measurementInputs =
+      measurementRemindersQuery.isSuccess && !measurementsLoading
+        ? measurementRemindersQuery.data
+            .filter(
+              (reminder) =>
+                reminder.measurement_key === 'weight' &&
+                isMeasurementReminderDue(reminder, day)
+            )
+            .map((reminder) => ({
+              key: reminder.measurement_key,
+              time: reminder.reminder_time,
+              resolved:
+                todaysMeasurements?.weight !== null &&
+                todaysMeasurements?.weight !== undefined,
+            }))
+        : [];
+    const checkinState = todaysCheckin.isSuccess
+      ? (todaysCheckin.data?.state ?? null)
+      : undefined;
+    return {
+      names,
+      candidates: trackingReminderCandidates({
+        day,
+        now: clockMs,
+        checkin:
+          checkinState === undefined
+            ? null
+            : {
+                enabled: preferences.checkin_reminder_enabled,
+                time: preferences.checkin_reminder_time,
+                resolved:
+                  checkinState === 'completed' || checkinState === 'skipped',
+              },
+        habits: habitInputs,
+        measurements: measurementInputs,
+      }),
+    };
+  }, [
+    trackingPreferences.data,
+    trackingEnabled,
+    habitsQuery.isSuccess,
+    habitsQuery.data,
+    habitLogsQuery.isSuccess,
+    habitLogsQuery.data,
+    measurementRemindersQuery.isSuccess,
+    measurementRemindersQuery.data,
+    measurementsLoading,
+    todaysMeasurements,
+    todaysCheckin.isSuccess,
+    todaysCheckin.data,
+    day,
+    clockMs,
+  ]);
+
   const plan = useMemo(() => {
+    // A context period that pauses optional reminders removes every
+    // discretionary candidate; scheduled intakes are never in this plan.
+    if (remindersPaused) return [];
     const nutritionCandidates =
       identityReady &&
       !storageError &&
@@ -352,6 +485,7 @@ export default function NutritionEngagementCoordinator() {
             windows: [{ id: 'selected', start, end, prompt, enabled }],
             reviewTime: reviewEnabled ? reviewTime : null,
             now: clockMs,
+            resolvedMealTimes,
           })
         : [];
     const scopedSession =
@@ -396,9 +530,12 @@ export default function NutritionEngagementCoordinator() {
         ...nutritionCandidates,
         ...(movementCandidate ? [movementCandidate] : []),
         ...mobilityCandidates,
+        ...(identityReady && notificationsEnabled && localRemindersAllowed
+          ? tracking.candidates
+          : []),
       ],
       dailyCap: Math.max(0, 3 - (spentByDay?.[day] ?? 0)),
-      domainCaps: { nutrition: 2, movement: 1 },
+      domainCaps: { nutrition: 2, movement: 1, tracking: 2 },
       collisionMinutes: 20,
       reservedTimes: medicationReservedTimes ?? [],
       now: clockMs,
@@ -426,10 +563,23 @@ export default function NutritionEngagementCoordinator() {
     state,
     medicationReservedTimes,
     spentByDay,
+    remindersPaused,
+    tracking,
+    resolvedMealTimes,
   ]);
 
   useEffect(() => {
     if (notificationsEnabled && !coordinationReady) return;
+    void reconcileTrackingEngagementReminders({
+      identity,
+      enabled:
+        identityReady &&
+        notificationsEnabled &&
+        localRemindersAllowed &&
+        trackingPreferences.isSuccess,
+      candidates: plan,
+      habitNames: tracking.names,
+    }).catch(() => undefined);
     void reconcileNutritionEngagementReminders({
       identity,
       enabled:
@@ -474,6 +624,8 @@ export default function NutritionEngagementCoordinator() {
     plan,
     medicationReservedTimes,
     coordinationReady,
+    trackingPreferences.isSuccess,
+    tracking.names,
   ]);
 
   useEffect(() => {
@@ -537,7 +689,7 @@ export default function NutritionEngagementCoordinator() {
       nowMs={clockMs}
       medicationReservedTimes={medicationReservedTimes}
       spentByDay={spentByDay}
-      localRemindersAllowed={localRemindersAllowed}
+      localRemindersAllowed={localRemindersAllowed && !remindersPaused}
     />
   );
 }

@@ -37,6 +37,10 @@ Runner error detection has its own tests:
 node --test review/runtime-check.test.mjs
 ```
 
+## Daily tracking tour
+
+`--interactions --tracking-tour` opens Daily Check-In, Habits, Supplements and Daily Progress from More and captures top, lower and bottom views. It also runs on `430-de-large` for Dynamic Type. `review/trackingFixture.ts` supplies synthetic habits, habit logs, supplements and check-ins for the populated scenario; the names are illustrations only.
+
 ## Launch-icon shortcuts
 
 After building a simulator app that includes `expo-quick-actions`, run:

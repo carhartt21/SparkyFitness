@@ -43,6 +43,7 @@ import type { Meal } from '../types/meals';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 import TabScreenHeader from '../components/TabScreenHeader';
 import ScreenBackground from '../components/ui/ScreenBackground';
+import { useNeonScale } from '../components/tracking/useNeonScale';
 
 type LibraryScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'More'>,
@@ -62,6 +63,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
   const usesNativeTabs = useNativeIOSTabsActive();
   const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const neon = useNeonScale();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { isNavigationLocked, runNavigationAction } =
     useNavigationActionGuard(navigation);
@@ -276,6 +278,105 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             />
           </View>
         )}
+
+        <View className="mb-3">
+          <Text className="text-lg font-semibold text-text-primary">
+            {t('screens.library.dailyTracking', {
+              defaultValue: 'Daily tracking',
+            })}
+          </Text>
+        </View>
+
+        <View
+          className="flex-row flex-wrap justify-between mb-6"
+          testID="more-daily-tracking"
+        >
+          <CreateTile
+            testID="more-daily-checkin"
+            icon="daily-checkin"
+            color={neon.red}
+            title={t('checkin.title', { defaultValue: 'Daily Check-In' })}
+            subtitle={t('screens.library.checkinSubtitle', {
+              defaultValue: 'Reflect on your day',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('DailyCheckIn'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-habits"
+            icon="habit"
+            color={neon.green}
+            title={t('habits.title', { defaultValue: 'Habits' })}
+            subtitle={t('screens.library.habitsSubtitle', {
+              defaultValue: 'Routines and reps',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('Habits'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-supplements"
+            icon="medication"
+            color={neon.yellow}
+            title={t('supplements.title', { defaultValue: 'Supplements' })}
+            subtitle={t('screens.library.supplementsSubtitle', {
+              defaultValue: 'Today’s routine',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('Supplements'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-daily-progress"
+            icon="chart-bar"
+            color={neon.mint}
+            title={t('progress.title', { defaultValue: 'Daily Progress' })}
+            subtitle={t('screens.library.progressSubtitle', {
+              defaultValue: 'Tasks done today',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('DailyProgress'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-health-context"
+            icon="bandage"
+            color={neon.cyan}
+            title={t('context.title', { defaultValue: 'Health context' })}
+            subtitle={t('screens.library.contextSubtitle', {
+              defaultValue: 'Injury, illness, vacation',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('HealthContext'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            icon="bell"
+            color={neon.violet}
+            title={t('trackingSettings.title', {
+              defaultValue: 'Tracking settings',
+            })}
+            subtitle={t('screens.library.trackingSettingsSubtitle', {
+              defaultValue: 'Progress and reminders',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('TrackingSettings'))
+            }
+            className="w-[48%] mb-3"
+          />
+        </View>
 
         <View className="mb-3">
           <Text className="text-lg font-semibold text-text-primary">

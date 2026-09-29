@@ -51,6 +51,10 @@ import type { PresetExercise } from '@/types/workout';
 import { useCustomNutrients } from '@/hooks/Foods/useCustomNutrients';
 import { useMealTypes } from '@/hooks/Diary/useMealTypes';
 import {
+  useMealTrackingStatus,
+  useSetMealDayStatus,
+} from '@/hooks/Tracking/useTracking';
+import {
   useCopyFoodEntriesMutation,
   useCreateFoodEntryMutation,
   useDeleteFoodEntryMealMutation,
@@ -78,6 +82,18 @@ const Diary = () => {
     searchParams.get('date') ?? todayInZone(timezone)
   );
   const isToday = selectedDate === todayInZone(timezone);
+  const { data: mealTrackingStatus } = useMealTrackingStatus(selectedDate);
+  const setMealStatus = useSetMealDayStatus(selectedDate);
+  const mealStatusByType = useMemo(
+    () =>
+      new Map(
+        (mealTrackingStatus?.meals ?? []).map((meal) => [
+          meal.meal_type_id,
+          meal.state,
+        ])
+      ),
+    [mealTrackingStatus]
+  );
   debug(loggingLevel, 'FoodDiary component rendered for date:', selectedDate);
   const [exercisesToLogFromPreset, setExercisesToLogFromPreset] = useState<
     PresetExercise[] | undefined
@@ -487,6 +503,14 @@ const Diary = () => {
               setOpenFoodSearchForMealType(null);
               setOpenScannerForMeal(false);
             }}
+            mealStatus={mealStatusByType.get(mealTypeObj.id)}
+            onMealStatusChange={(status) =>
+              setMealStatus.mutate({
+                entry_date: selectedDate,
+                meal_type_id: mealTypeObj.id,
+                status,
+              })
+            }
           />
         ),
       });

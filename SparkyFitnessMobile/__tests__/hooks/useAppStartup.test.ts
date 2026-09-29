@@ -71,6 +71,9 @@ jest.mock('../../src/services/nutritionEngagementReminders', () => ({
   initNutritionEngagementResponses: jest.fn(),
 }));
 
+jest.mock('../../src/services/trackingEngagementReminders', () => ({
+  initTrackingEngagementResponses: jest.fn(),
+}));
 jest.mock('../../src/services/movementEngagementReminders', () => ({
   initMovementEngagementResponses: jest.fn(),
 }));

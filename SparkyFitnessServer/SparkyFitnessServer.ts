@@ -129,6 +129,7 @@ import { downloadImage } from './utils/imageDownloader.js';
 import authRoutes from './routes/authRoutes.js';
 import mcpRoutes from './routes/mcpRoutes.js';
 import engagementRoutesV2 from './routes/v2/engagementRoutes.js';
+import dailyTrackingRoutesV2 from './routes/v2/dailyTrackingRoutes.js';
 import mcpConnectionsRoutesV2 from './routes/v2/mcpConnectionsRoutes.js';
 import chatgptMcpRoutes from './routes/chatgptMcpRoutes.js';
 import {
@@ -766,6 +767,7 @@ app.use('/api/admin/auth', (req, res, next) => adminAuthRoutes(req, res, next));
 app.use('/api/water-containers', waterContainerRoutes);
 app.use('/api/v2/measurements', waterIntakeRoutesV2);
 app.use('/api/v2/engagement', engagementRoutesV2);
+app.use('/api/v2/tracking', dailyTrackingRoutesV2);
 app.use('/api/v2/mcp/connections', mcpConnectionsRoutesV2);
 app.use('/api/v2/medications', medicationRoutesV2);
 app.use('/api/v2/symptoms', symptomRoutesV2);

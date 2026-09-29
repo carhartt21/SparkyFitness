@@ -7,7 +7,9 @@ import {
   isCardioModality,
   resolveExerciseModality,
   type PresetSessionExerciseRequest,
+  type MealDayStatusValue,
 } from '@workspace/shared';
+import Toast from 'react-native-toast-message';
 import React, {
   useCallback,
   useEffect,
@@ -112,6 +114,11 @@ import {
   projectPendingNutritionSummary,
 } from '../utils/nutritionPendingTotals';
 import { projectPhotoCompletions } from '../utils/projectPhotoCompletions';
+import {
+  useMealTrackingStatus,
+  useSetMealStatus,
+} from '../hooks/useDailyTracking';
+import MealCoverageLine from '../components/tracking/MealCoverageLine';
 
 type DiaryScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Diary'>,
@@ -129,6 +136,36 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const { data: familyUsers = [] } = useFamilyUsers({ enabled: isConnected });
   const hasFamilyDiaries = isConnected && familyUsers.length > 0;
   const selectedDate = useDiaryDateStore((s) => s.selectedDate);
+  const mealStatusQuery = useMealTrackingStatus(selectedDate, {
+    enabled: isConnected,
+  });
+  const setMealStatus = useSetMealStatus(selectedDate);
+  const mealStates = useMemo(
+    () =>
+      new Map(
+        (mealStatusQuery.data?.meals ?? []).map((meal) => [
+          meal.meal_type_id,
+          meal.state,
+        ])
+      ),
+    [mealStatusQuery.data]
+  );
+  const onSetMealStatus = useCallback(
+    (mealTypeId: string, status: MealDayStatusValue | null) =>
+      setMealStatus.mutate(
+        { entry_date: selectedDate, meal_type_id: mealTypeId, status },
+        {
+          onError: () =>
+            Toast.show({
+              type: 'error',
+              text1: t('mealStatus.saveFailed', {
+                defaultValue: 'Could not save the meal status.',
+              }),
+            }),
+        }
+      ),
+    [selectedDate, setMealStatus, t]
+  );
   const setSelectedDate = useDiaryDateStore((s) => s.setSelectedDate);
   const goToPreviousDay = useDiaryDateStore((s) => s.goToPreviousDay);
   const goToNextDay = useDiaryDateStore((s) => s.goToNextDay);
@@ -989,6 +1026,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
                 })
               }
               onPressMealType={openMealTypeDetail}
+              mealStates={isConnected ? mealStates : undefined}
+              onSetMealStatus={isConnected ? onSetMealStatus : undefined}
               selectionMode={editingFoods}
               selectedEntryIds={selectedFoodIds}
               onSelectEntry={toggleFoodSelection}
@@ -1002,6 +1041,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               day={selectedDate}
               navigation={navigation}
             />
+            <MealCoverageLine coverage={mealStatusQuery.data?.coverage} />
             <FoodSummary
               foodEntries={[
                 ...summary.foodEntries,
@@ -1021,6 +1061,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
                 servingSheetRef.current?.present(entry)
               }
               onPressMealType={openMealTypeDetail}
+              mealStates={isConnected ? mealStates : undefined}
+              onSetMealStatus={isConnected ? onSetMealStatus : undefined}
               selectionMode={editingFoods}
               selectedEntryIds={selectedFoodIds}
               onSelectEntry={toggleFoodSelection}

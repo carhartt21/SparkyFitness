@@ -30,11 +30,10 @@ export function requireSelfActor(
   if (req.userId !== actorUserId) {
     log(
       'warn',
-      `Forbidden: user ${actorUserId} attempted an account-linking action for ${req.userId}.`
+      `Forbidden: user ${actorUserId} attempted an owner-only action for ${req.userId}.`
     );
     res.status(403).json({
-      error:
-        'Forbidden: account linking is only available for your own account.',
+      error: 'Forbidden: this action is only available for your own account.',
     });
     return;
   }

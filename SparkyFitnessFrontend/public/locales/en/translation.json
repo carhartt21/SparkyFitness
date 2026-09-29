@@ -4262,7 +4262,6 @@
     "nutritionTitle": "Nutrition reports",
     "sectionTitle": "{{section}} reports",
     "subtitle": "Track patterns across your logged days. Missing days stay unknown.",
-    "categories": "Report categories",
     "title": "Reports"
   },
   "sleepHealth": {
@@ -6348,7 +6347,8 @@
       "drinks": "Drinks",
       "net": "Net {{unit}}",
       "goal": "Daily goal"
-    }
+    },
+    "today": "Today"
   },
   "interval": {
     "countdown": "Get Ready",
@@ -6367,5 +6367,36 @@
     "timeCapLabel": "Cap: {{cap}}",
     "wodScoring": "WOD Scoring",
     "work": "Work"
+  },
+  "dailyTracking": {
+    "domain": {
+      "checkin": "Check-in",
+      "habit": "Habit",
+      "measurement": "Measurement",
+      "supplement": "Supplement",
+      "meal": "Meal"
+    },
+    "state": {
+      "complete": "Complete",
+      "started": "Started",
+      "excluded": "Skipped, not counted",
+      "pending": "Not recorded yet"
+    },
+    "checkinItem": "Daily check-in",
+    "weighIn": "Weigh-in",
+    "title": "Daily Progress",
+    "nothingApplies": "No tasks today",
+    "countLine": "{{day}} · {{completed}} of {{applicable}} complete",
+    "nothingAppliesLine": "{{day}} · no tracking tasks",
+    "explanation": "Each task counts equally; this is not a health score.",
+    "emptyExplanation": "Nothing is scheduled or selected for this day.",
+    "more": "+{{count}} more"
+  },
+  "mealStatus": {
+    "label": "{{meal}} status",
+    "pending": "Not resolved",
+    "complete": "Complete",
+    "skipped": "No meal",
+    "incomplete": "Incomplete"
   }
 }

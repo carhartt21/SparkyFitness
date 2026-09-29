@@ -125,7 +125,7 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | `check_in_measurements`   | Weight, body composition, BMR, and circumference measurements                                                                                                                          |
 | `check_in_photos`         | Progress photos                                                                                                                                                                        |
 | `custom_measurements`     | User-defined custom measurement types                                                                                                                                                  |
-| `custom_categories`       | User-defined measurement categories                                                                                                                                                    |
+| `custom_categories`       | User-defined measurement categories; rows with `habit_type` are habits                                                                                                                 |
 | `water_intake`            | Total water logged for the day                                                                                                                                                         |
 | `water_intake_entries`    | Individual logged water cups                                                                                                                                                           |
 | `water_container_actions` | Immutable retry receipts for container water and linked food logs                                                                                                                      |
@@ -140,20 +140,25 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 
 ### Fasting, Mood, Medications, & Symptoms (Tier 1/3: Owner-Only or Delegate-Write)
 
-| Table                        | Purpose                                                        |
-| ---------------------------- | -------------------------------------------------------------- |
-| `fasting_logs`               | Fasting timeline logs (start/end fast)                         |
-| `mood_entries`               | Logged mood and energy levels                                  |
-| `user_custom_moods`          | User-defined mood tags (icon/color)                            |
-| `medications`                | Custom medication inventory lists                              |
-| `medication_schedules`       | Reminders and schedules for medications                        |
-| `medication_entries`         | Logs of medications taken                                      |
-| `planned_supplement_actions` | Retry and occurrence identity for planned supplement responses |
-| `medication_pens`            | Trackers for medication delivery pens                          |
-| `medication_titration_steps` | Automated titration dosage plans                               |
-| `injection_entries`          | Injection logs (site, time, etc.)                              |
-| `user_custom_symptoms`       | Custom tracked health symptoms                                 |
-| `symptom_entries`            | Logs of daily tracked symptom severity                         |
+| Table                        | Purpose                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `fasting_logs`               | Fasting timeline logs (start/end fast)                                                                   |
+| `daily_checkins`             | Daily check-in: overall day, versioned 1–5 answers, note, tags and draft/completed/skipped state         |
+| `health_context_periods`     | User-declared injury, illness and vacation periods (owner-only)                                          |
+| `measurement_reminders`      | Optional weigh-in and custom measurement reminders (owner-only)                                          |
+| `daily_tracking_preferences` | Which explicit tasks count toward Daily Progress, plus check-in and habit reminder settings (owner-only) |
+| `mood_entries`               | Logged mood and energy levels                                                                            |
+| `user_custom_moods`          | User-defined mood tags (icon/color)                                                                      |
+| `medications`                | Custom medication inventory lists                                                                        |
+| `medication_schedules`       | Reminders and schedules for medications                                                                  |
+| `medication_entries`         | Logs of medications taken                                                                                |
+| `meal_day_statuses`          | Explicit complete / skipped / incomplete meal resolution per day                                         |
+| `planned_supplement_actions` | Retry and occurrence identity for planned supplement responses                                           |
+| `medication_pens`            | Trackers for medication delivery pens                                                                    |
+| `medication_titration_steps` | Automated titration dosage plans                                                                         |
+| `injection_entries`          | Injection logs (site, time, etc.)                                                                        |
+| `user_custom_symptoms`       | Custom tracked health symptoms                                                                           |
+| `symptom_entries`            | Logs of daily tracked symptom severity                                                                   |
 
 ### Cycle & Pregnancy (Tier 1: Owner-Only)
 

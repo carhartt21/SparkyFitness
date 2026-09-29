@@ -28,6 +28,9 @@ jest.mock('../../src/hooks/useNutritionTrends', () => ({
 jest.mock('../../src/hooks/useMeasurementsRange', () => ({
   useMeasurementsRange: jest.fn(),
 }));
+jest.mock('../../src/hooks/useDailyTracking', () => ({
+  useDailyCheckinsRange: () => ({ data: [] }),
+}));
 jest.mock('../../src/components/ActiveWorkoutBar', () => ({
   useActiveWorkoutBarPadding: () => 0,
 }));
