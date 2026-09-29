@@ -27,6 +27,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import { useGlowTheme, withAlpha } from '../components/ui/glow';
 import { useQuery } from '@tanstack/react-query';
+import { formatLocalizedUnitQuantity } from '../utils/foodUnitLocalization';
 import Icon from '../components/Icon';
 import MarkdownNotesField from '../components/MarkdownNotesField';
 import { useKeepNoteVisible } from '../hooks/useKeepNoteVisible';
@@ -926,16 +927,18 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         (variant) => variant.id === variantId
       );
       if (localVariant) {
-        // 130 g becomes 1 Medium when both weights are known.
+        // A portion starts at one portion; grams take the exact weight of
+        // what was selected (1 Medium becomes 130 g), never a rounded fraction.
         const from = localVariantOptions.find(
           (option) => option.id === selectedVariantId
         );
-        const converted = from
-          ? convertServingQuantity(quantity, from, localVariant)
-          : undefined;
+        const converted =
+          from && localVariant.kind === 'metric'
+            ? convertServingQuantity(quantity, from, localVariant)
+            : undefined;
         setQuantityText(
           converted !== undefined
-            ? formatServingSizeDisplay(Math.round(converted * 100) / 100)
+            ? formatServingSizeDisplay(Math.round(converted * 10) / 10)
             : String(localVariant.servingSize)
         );
         return;
@@ -2205,56 +2208,86 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 </View>
               )}
             </View>
-            <View className="flex-row flex-wrap items-center mt-2">
-              <Text className="text-text-secondary text-sm">
-                {formatLocalizedNumber(servings, { maximumFractionDigits: 1 })}{' '}
-                {t('foodEntryAdd.labels.serving', {
-                  defaultValue: 'servings',
-                  defaultValue_one: 'serving',
-                  defaultValue_other: 'servings',
-                  count: servings,
-                })}
-              </Text>
-              {/* Suppress the redundant "X serving per serving" suffix when the
+            {selectedServingOption ? (
+              selectedServingOption.kind === 'portion' &&
+              selectedServingOption.weight &&
+              quantity > 0 ? (
+                <Text
+                  className="mt-2 text-sm text-text-secondary"
+                  testID="food-entry-amount-weight"
+                >
+                  {t('foodEntryAdd.servings.totalWeight', {
+                    defaultValue: '{{weight}} in total',
+                    weight: formatLocalizedUnitQuantity(
+                      (quantity / selectedServingOption.servingSize) *
+                        selectedServingOption.weight.metric_amount,
+                      selectedServingOption.weight.metric_unit,
+                      t
+                    ),
+                  })}
+                </Text>
+              ) : null
+            ) : (
+              <View className="flex-row flex-wrap items-center mt-2">
+                <Text className="text-text-secondary text-sm">
+                  {formatLocalizedNumber(servings, {
+                    maximumFractionDigits: 1,
+                  })}{' '}
+                  {t('foodEntryAdd.labels.serving', {
+                    defaultValue: 'servings',
+                    defaultValue_one: 'serving',
+                    defaultValue_other: 'servings',
+                    count: servings,
+                  })}
+                </Text>
+                {/* Suppress the redundant "X serving per serving" suffix when the
                 unit is already 'serving' \u2014 that would just say e.g.
                 "1 serving \u00b7 1 serving per serving". Keep it for ml/g/etc.
                 where "X ml per serving" is meaningful info. */}
-              {displayValues.servingUnit !== 'serving' &&
-                !displayValues.servingDescription
-                  ?.toLowerCase()
-                  .includes('serving') && (
-                  <Text className="text-text-secondary text-sm">
-                    {' · '}
-                    {perServingLabel}{' '}
-                    {t('foodEntryAdd.labels.perServing', {
-                      defaultValue: 'per serving',
-                    })}
-                  </Text>
-                )}
-              {/* Serving-unit meals: surface the meal's yield count as a
+                {displayValues.servingUnit !== 'serving' &&
+                  !displayValues.servingDescription
+                    ?.toLowerCase()
+                    .includes('serving') && (
+                    <Text className="text-text-secondary text-sm">
+                      {' · '}
+                      {perServingLabel}{' '}
+                      {t('foodEntryAdd.labels.perServing', {
+                        defaultValue: 'per serving',
+                      })}
+                    </Text>
+                  )}
+                {/* Serving-unit meals: surface the meal's yield count as a
                 substitute for the suppressed "per serving" suffix above.
                 Singular meals (total_servings <= 1) don't need this \u2014 there's
                 no yield context to convey. */}
-              {displayValues.servingUnit === 'serving' &&
-                item.source === 'meal' &&
-                (item.mealTotalServings ?? 1) > 1 && (
-                  <Text className="text-text-secondary text-sm">
-                    {' \u00b7 '}
-                    {t('foodEntryAdd.labels.mealMakes', {
-                      defaultValue: 'meal makes {{formattedCount}} servings',
-                      defaultValue_one: 'meal makes {{formattedCount}} serving',
-                      defaultValue_other:
-                        'meal makes {{formattedCount}} servings',
-                      count: item.mealTotalServings ?? 1,
-                      formattedCount: formatLocalizedNumber(
-                        item.mealTotalServings ?? 1,
-                        { maximumFractionDigits: 1 }
-                      ),
-                    })}
-                  </Text>
-                )}
-            </View>
-            {!gramVariantId && displayValues.servingUnit === 'serving' ? (
+                {displayValues.servingUnit === 'serving' &&
+                  item.source === 'meal' &&
+                  (item.mealTotalServings ?? 1) > 1 && (
+                    <Text className="text-text-secondary text-sm">
+                      {' \u00b7 '}
+                      {t('foodEntryAdd.labels.mealMakes', {
+                        defaultValue: 'meal makes {{formattedCount}} servings',
+                        defaultValue_one:
+                          'meal makes {{formattedCount}} serving',
+                        defaultValue_other:
+                          'meal makes {{formattedCount}} servings',
+                        count: item.mealTotalServings ?? 1,
+                        formattedCount: formatLocalizedNumber(
+                          item.mealTotalServings ?? 1,
+                          { maximumFractionDigits: 1 }
+                        ),
+                      })}
+                    </Text>
+                  )}
+              </View>
+            )}
+            {(
+              isLocalFood && localVariantOptions.length > 0
+                ? !localVariantOptions.some(
+                    (option) => option.kind === 'metric'
+                  )
+                : !gramVariantId && displayValues.servingUnit === 'serving'
+            ) ? (
               <Text className="mt-2 text-sm text-text-secondary">
                 {t('foodEntryAdd.labels.unknownGramSize', {
                   defaultValue:

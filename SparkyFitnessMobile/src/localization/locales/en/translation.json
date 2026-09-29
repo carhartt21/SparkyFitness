@@ -3666,7 +3666,8 @@
     "servings": {
       "title": "Serving size",
       "milliliters": "Milliliters",
-      "grams": "Grams"
+      "grams": "Grams",
+      "totalWeight": "{{weight}} in total"
     },
     "moreOptions": {
       "title": "More options",

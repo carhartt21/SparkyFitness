@@ -381,7 +381,8 @@
     "servings": {
       "title": "Portionsgröße",
       "milliliters": "Milliliter",
-      "grams": "Gramm"
+      "grams": "Gramm",
+      "totalWeight": "insgesamt {{weight}}"
     },
     "moreOptions": {
       "title": "Weitere Optionen",

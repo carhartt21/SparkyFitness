@@ -1251,7 +1251,9 @@ describe('FoodEntryAddScreen', () => {
     fireEvent.press(screen.getByLabelText('Edit log destination'));
     expect(screen.getByText('Date')).toBeTruthy();
     expect(screen.getByText('Meal')).toBeTruthy();
-    expect(screen.getByText(/· 1 cup per serving/)).toBeTruthy();
+    expect(
+      screen.getByText('A gram weight was not provided for this serving.')
+    ).toBeTruthy();
 
     fireEvent.press(screen.getByText('Add Food'));
 
@@ -1395,7 +1397,7 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.getAllByText('1 piece (15 g)').length).toBeGreaterThan(0);
   });
 
-  it('converts the amount when switching from grams to a portion', () => {
+  it('starts a chosen portion at one and converts back to grams exactly', () => {
     mockUseFoodVariants.mockReturnValue({
       variants: [
         {
@@ -1464,7 +1466,17 @@ describe('FoodEntryAddScreen', () => {
     fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '300');
     fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
     expect(screen.getByLabelText(/Change unit:.*portion/)).toBeTruthy();
-    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe('2');
+    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe('1');
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '150 g in total'
+    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
+    fireEvent.press(screen.getAllByText('Grams')[0]);
+    expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
+      '300'
+    );
+    fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
     fireEvent.press(screen.getByText('Add Food'));
     expect(mockAddEntry).toHaveBeenCalledWith(
       expect.objectContaining({
