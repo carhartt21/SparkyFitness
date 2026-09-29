@@ -302,6 +302,57 @@ export function buildSessionSubtitle(
     }
 
     const parts: string[] = [];
+
+    const wodScoreDetail = session.activity_details?.find(
+      (d) => d.detail_type === 'wod_score'
+    );
+    if (wodScoreDetail?.detail_data) {
+      let data: Record<string, unknown> | null = null;
+      if (typeof wodScoreDetail.detail_data === 'string') {
+        try {
+          data = JSON.parse(wodScoreDetail.detail_data) as Record<
+            string,
+            unknown
+          >;
+        } catch {
+          data = null;
+        }
+      } else if (
+        typeof wodScoreDetail.detail_data === 'object' &&
+        wodScoreDetail.detail_data !== null
+      ) {
+        data = wodScoreDetail.detail_data as Record<string, unknown>;
+      }
+      if (data) {
+        const formatStr =
+          typeof data.format === 'string'
+            ? data.format.toUpperCase().replace('_', ' ')
+            : 'WOD';
+        const rounds =
+          typeof data.rounds_completed === 'number' ? data.rounds_completed : 0;
+        const reps =
+          typeof data.reps_completed === 'number' ? data.reps_completed : 0;
+        const status =
+          typeof data.status === 'string' ? data.status.toUpperCase() : null;
+
+        let scoreStr = '';
+        if (data.format === 'amrap') {
+          scoreStr = `${rounds} + ${reps}`;
+        } else if (data.format === 'for_time') {
+          scoreStr =
+            typeof data.elapsed_seconds === 'number'
+              ? formatDurationSeconds(data.elapsed_seconds)
+              : 'Completed';
+        } else {
+          scoreStr = `${rounds} rds`;
+        }
+        if (status) {
+          scoreStr += ` (${status})`;
+        }
+        parts.push(`${formatStr}: ${scoreStr}`);
+      }
+    }
+
     parts.push(
       t('workout.exerciseCount', {
         count: exerciseCount,
@@ -831,7 +882,10 @@ type AssumableSet = Pick<
  * in a live workout. Each field resolves independently, first match wins:
  *
  *   1. The same-position set from the exercise's most recent prior session
- *      (what the PREVIOUS column shows).
+ *      (what the PREVIOUS column shows), bumped by the progression increment
+ *      when weight-progression overload is active — each set is bumped from
+ *      its own prior weight, not flattened to one suggested weight, so
+ *      pyramid/ascending-weight sets keep their relative spread.
  *   2. The planned value captured at live start (the preset's programmed set).
  *   3. The preceding row's effective value — its entered value, else its
  *      resolved placeholder.
@@ -840,7 +894,7 @@ export function resolveAssumedSetValues(
   sets: readonly AssumableSet[],
   previousSets: readonly ExerciseRecentSessionSet[] | undefined,
   plannedBySetId?: Record<string, AssumedSetValues>,
-  suggestedProgressionWeightKg?: number | null
+  progressionIncrementKg?: number | null
 ): AssumedSetValues[] {
   const lastEffective = {
     warmup: {
@@ -863,9 +917,11 @@ export function resolveAssumedSetValues(
 
     const effectivePreviousWeight =
       tier === 'working' &&
-      suggestedProgressionWeightKg != null &&
-      suggestedProgressionWeightKg > 0
-        ? suggestedProgressionWeightKg
+      progressionIncrementKg != null &&
+      progressionIncrementKg > 0 &&
+      previous?.weight != null &&
+      previous.weight > 0
+        ? previous.weight + progressionIncrementKg
         : previous?.weight;
 
     const assumed: AssumedSetValues = {
@@ -1401,7 +1457,7 @@ export function buildWorkoutCompletionSummary(
 
 // --- Live-start payload builders ---
 
-function makeDefaultStartSet(
+export function makeDefaultStartSet(
   setNumber: number,
   modality: ExerciseModality
 ): ExerciseEntrySetRequest {

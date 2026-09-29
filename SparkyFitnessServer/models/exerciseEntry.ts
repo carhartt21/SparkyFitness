@@ -1033,10 +1033,9 @@ async function updateExerciseEntriesDateByPresetEntryIdWithClient(
   );
 }
 /**
- * The single non-null workout plan assignment id shared by the child
+ * The non-null workout plan assignment id associated with the child
  * exercise_entries of a grouped session, or null when the session is not
- * linked to a workout plan. Throws if the children carry more than one
- * distinct non-null assignment id.
+ * linked to a workout plan.
  */
 async function getWorkoutPlanAssignmentIdByPresetEntryIdWithClient(
   client: PoolClient,
@@ -1054,12 +1053,6 @@ async function getWorkoutPlanAssignmentIdByPresetEntryIdWithClient(
         AND workout_plan_assignment_id IS NOT NULL`,
     [userId, presetEntryId]
   );
-
-  if (result.rows.length > 1) {
-    throw new Error(
-      'Grouped workout contains multiple workout plan assignment ids.'
-    );
-  }
 
   return result.rows[0]?.workout_plan_assignment_id ?? null;
 }
@@ -1521,10 +1514,14 @@ async function getBestSetForExercise(
       `SELECT ee.entry_date::TEXT AS entry_date, ees.weight, ees.reps, ees.set_number
          FROM exercise_entries ee
          JOIN exercise_entry_sets ees ON ees.exercise_entry_id = ee.id
+         -- LEFT JOIN: ad-hoc and imported entries have no session and count
+         -- as standard work.
+         LEFT JOIN exercise_preset_entries epe ON epe.id = ee.exercise_preset_entry_id
         WHERE ee.user_id = $1
           AND ee.exercise_id = $2
           AND ees.weight IS NOT NULL
           AND (ees.set_type IS NULL OR regexp_replace(LOWER(ees.set_type), '[^a-z0-9]', '', 'g') NOT LIKE 'warmup%')
+          AND COALESCE(epe.workout_format, 'standard') = 'standard'
           AND ($3::uuid IS NULL OR ee.exercise_preset_entry_id IS DISTINCT FROM $3)
         ORDER BY ees.weight DESC,
                  ees.reps DESC NULLS LAST,

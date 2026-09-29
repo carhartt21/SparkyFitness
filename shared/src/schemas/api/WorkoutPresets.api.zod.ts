@@ -47,12 +47,23 @@ export const workoutPresetExerciseResponseSchema = z.object({
   sets: z.array(workoutPresetSetResponseSchema),
 });
 
+export const workoutFormatSchema = z.enum([
+  "standard",
+  "interval",
+  "tabata",
+  "amrap",
+  "emom",
+  "for_time",
+]);
+
 export const workoutPresetResponseSchema = z.object({
   id: z.number(),
   user_id: z.string(),
   name: z.string(),
   description: z.string().nullable(),
   is_public: z.boolean().nullable(),
+  workout_format: workoutFormatSchema.default("standard"),
+  time_cap_seconds: z.number().int().nullable().optional(),
   /** Absent from search results, present on list/detail responses. */
   created_at: z.string().optional(),
   updated_at: z.string().optional(),
@@ -123,6 +134,8 @@ export const workoutPresetCreateRequestSchema = z.object({
   name: z.string().min(1),
   description: z.string().nullable().optional(),
   is_public: z.boolean().optional(),
+  workout_format: workoutFormatSchema.optional().default("standard"),
+  time_cap_seconds: z.number().int().positive().nullable().optional(),
   exercises: z.array(workoutPresetExerciseRequestSchema).default([]),
 });
 
@@ -131,11 +144,14 @@ export const workoutPresetUpdateRequestSchema = z.object({
   name: z.string().min(1).optional(),
   description: z.string().nullable().optional(),
   is_public: z.boolean().optional(),
+  workout_format: workoutFormatSchema.optional(),
+  time_cap_seconds: z.number().int().positive().nullable().optional(),
   exercises: z.array(workoutPresetExerciseRequestSchema).optional(),
 });
 
 // --- Types ---
 
+export type WorkoutFormat = z.infer<typeof workoutFormatSchema>;
 export type WorkoutPresetSetResponse = z.infer<
   typeof workoutPresetSetResponseSchema
 >;

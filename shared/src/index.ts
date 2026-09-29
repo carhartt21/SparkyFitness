@@ -197,3 +197,4 @@ export * from "./foodSearch/relevance.ts";
 export * from "./foodImages/fallbackGroup.ts";
 export * from "./utils/progressionEngine.ts";
 export * from "./brand/progressionX.ts";
+export * from "./utils/intervalEngine.ts";
