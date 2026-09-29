@@ -28,6 +28,7 @@ COPY shared/ ./shared/
 # The German catalog check runs as part of the frontend build. Include its
 # shared override data and the English/German native reference catalogs.
 COPY scripts/apply-german-overrides.mjs ./scripts/
+COPY scripts/audit-german-copy.mjs ./scripts/
 COPY localization-overrides/ ./localization-overrides/
 COPY SparkyFitnessMobile/src/localization/locales/en/ ./SparkyFitnessMobile/src/localization/locales/en/
 COPY SparkyFitnessMobile/src/localization/locales/de/ ./SparkyFitnessMobile/src/localization/locales/de/
