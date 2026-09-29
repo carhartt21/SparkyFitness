@@ -3816,7 +3816,9 @@
       "amount": "Amount",
       "meal": "Meal",
       "moreOptions": "More options",
-      "add": "Add to diary"
+      "moreOptionsShort": "Options",
+      "add": "Add to diary",
+      "addShort": "Add"
     }
   },
   "editBarcode": {

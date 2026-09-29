@@ -316,10 +316,13 @@ const QuickAddFoodSheet = forwardRef<
               <NeonButton
                 testID="quick-add-more"
                 variant="outline"
-                label={t('foodSearch.quickAdd.moreOptions', {
+                label={t('foodSearch.quickAdd.moreOptionsShort', {
+                  defaultValue: 'Options',
+                })}
+                accessibilityLabel={t('foodSearch.quickAdd.moreOptions', {
                   defaultValue: 'More options',
                 })}
-                className="flex-1"
+                className="min-w-0 flex-1"
                 onPress={() => {
                   sheetRef.current?.dismiss();
                   onMoreOptions(food);
@@ -327,10 +330,13 @@ const QuickAddFoodSheet = forwardRef<
               />
               <NeonButton
                 testID="quick-add-confirm"
-                label={t('foodSearch.quickAdd.add', {
+                label={t('foodSearch.quickAdd.addShort', {
+                  defaultValue: 'Add',
+                })}
+                accessibilityLabel={t('foodSearch.quickAdd.add', {
                   defaultValue: 'Add to diary',
                 })}
-                className="flex-1"
+                className="min-w-0 flex-1"
                 loading={isPending}
                 disabled={!mealId}
                 onPress={() => void handleAdd()}

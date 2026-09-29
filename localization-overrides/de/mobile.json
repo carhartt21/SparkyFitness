@@ -420,7 +420,9 @@
       "amount": "Menge",
       "meal": "Mahlzeit",
       "moreOptions": "Weitere Optionen",
-      "add": "Zum Tagebuch hinzufügen"
+      "moreOptionsShort": "Optionen",
+      "add": "Zum Tagebuch hinzufügen",
+      "addShort": "Hinzufügen"
     }
   },
   "workoutPresetForm": {

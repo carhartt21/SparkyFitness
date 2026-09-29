@@ -193,6 +193,15 @@ describe('QuickAddFoodSheet', () => {
   it('opens the full entry screen for more options', () => {
     const { screen, onMoreOptions } = renderSheet();
 
+    expect(screen.getByText('Options')).toBeTruthy();
+    expect(screen.getByText('Add')).toBeTruthy();
+    expect(screen.getByTestId('quick-add-more').props.accessibilityLabel).toBe(
+      'More options'
+    );
+    expect(
+      screen.getByTestId('quick-add-confirm').props.accessibilityLabel
+    ).toBe('Add to diary');
+
     fireEvent.press(screen.getByTestId('quick-add-more'));
 
     expect(onMoreOptions).toHaveBeenCalledWith(food);
