@@ -406,7 +406,8 @@
       "quickAmounts": "Schnelle Mengen",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
-      "entryNotesPlaceholder": "Was möchten Sie zu diesem Eintrag festhalten?"
+      "entryNotesPlaceholder": "Was möchten Sie zu diesem Eintrag festhalten?",
+      "goalShareTip": "Anteil am Tagesziel"
     },
     "errors": {
       "savedFoodUnitFailedDetails": "Sie können das Lebensmittel trotzdem hinzufügen und die Einheit später erneut speichern.",

@@ -3661,7 +3661,8 @@
       "netCarbsShort": "Net carbs",
       "quickAmounts": "Quick amounts",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
-      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal"
+      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal",
+      "goalShareTip": "Percent of your daily goal"
     },
     "pickers": {
       "selectServing": "Select Serving",

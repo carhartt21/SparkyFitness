@@ -15,6 +15,7 @@ import {
   Keyboard,
   Platform,
   Animated,
+  Pressable,
 } from 'react-native';
 import {
   KeyboardAwareScrollView,
@@ -982,6 +983,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     proteinHighlight,
     carbsHighlight,
     fatHighlight,
+    textMuted,
   ] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-primary',
@@ -990,6 +992,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     '--color-macro-protein',
     '--color-macro-carbs',
     '--color-macro-fat',
+    '--color-text-muted',
   ]) as string[];
   const highlightColors: Record<string, string> = {
     calories: caloriesHighlight,
@@ -1886,6 +1889,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     }
   };
   const [moreOptionsExpanded, setMoreOptionsExpanded] = useState(false);
+  // "Percent of your daily goal" hint under the macro row; hides itself.
+  const [goalTipVisible, setGoalTipVisible] = useState(false);
+  useEffect(() => {
+    if (!goalTipVisible) return;
+    const timer = setTimeout(() => setGoalTipVisible(false), 3500);
+    return () => clearTimeout(timer);
+  }, [goalTipVisible]);
   // Drives the pinned hero: it shrinks and fades as the cards cover it.
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -2162,79 +2172,114 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             {/* Energy and macros for the chosen amount, as in the reference:
               value over label, separated by hairlines, in the app's macro
               colours with the share of today's goal. */}
-            <View className="flex-row" testID="food-entry-highlights">
-              {nutritionHighlights.map((nutrient, index) => {
-                const amount = formatLocalizedNumber(nutrient.value, {
-                  maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
-                });
-                const percent =
-                  nutrient.goalPercent != null && !isGoalsLoading
-                    ? formatLocalizedNumber(nutrient.goalPercent, {
-                        maximumFractionDigits: 0,
-                      })
-                    : null;
-                return (
+            <View>
+              <View className="flex-row" testID="food-entry-highlights">
+                {nutritionHighlights.map((nutrient, index) => {
+                  const amount = formatLocalizedNumber(nutrient.value, {
+                    maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
+                  });
+                  const percent =
+                    nutrient.goalPercent != null && !isGoalsLoading
+                      ? formatLocalizedNumber(nutrient.goalPercent, {
+                          maximumFractionDigits: 0,
+                        })
+                      : null;
+                  return (
+                    <View
+                      key={nutrient.key}
+                      testID={`food-entry-highlight-${nutrient.key}`}
+                      accessible
+                      accessibilityLabel={
+                        percent === null
+                          ? t('foodEntryAdd.labels.nutrientAmountA11y', {
+                              defaultValue: '{{label}}: {{amount}} {{unit}}',
+                              label: nutrient.label,
+                              amount,
+                              unit: nutrient.unit,
+                            })
+                          : t('foodEntryAdd.labels.nutrientGoalA11y', {
+                              defaultValue:
+                                '{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal',
+                              label: nutrient.label,
+                              amount,
+                              unit: nutrient.unit,
+                              percent,
+                            })
+                      }
+                      className={`min-w-0 flex-1 items-center py-1 ${
+                        index > 0 ? 'border-l border-border-subtle' : ''
+                      }`}
+                    >
+                      <Text
+                        className="text-xl font-bold"
+                        style={{ color: highlightColors[nutrient.key] }}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.7}
+                      >
+                        {nutrient.key === 'calories'
+                          ? amount
+                          : `${amount} ${nutrient.unit}`}
+                      </Text>
+                      <Text
+                        className="text-sm text-text-secondary"
+                        testID={`food-entry-highlight-${nutrient.key}-label`}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.75}
+                      >
+                        {nutrient.key === 'calories'
+                          ? nutrient.unit
+                          : nutrient.label}
+                      </Text>
+                      {/* The target marks the share of the daily goal; a tap
+                        explains it. */}
+                      <Pressable
+                        testID={`food-entry-highlight-${nutrient.key}-goal`}
+                        onPress={() => setGoalTipVisible((visible) => !visible)}
+                        hitSlop={8}
+                        className="mt-0.5 flex-row items-center gap-1"
+                      >
+                        <Icon name="target" size={11} color={textMuted} />
+                        <Text
+                          className="text-xs text-text-muted"
+                          testID={`food-entry-highlight-${nutrient.key}-caption`}
+                          numberOfLines={1}
+                        >
+                          {percent === null
+                            ? t('foodEntryAdd.labels.goalNotSet', {
+                                defaultValue: 'No goal',
+                              })
+                            : `${percent}%`}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  );
+                })}
+              </View>
+              {goalTipVisible ? (
+                <Pressable
+                  testID="food-entry-goal-tooltip"
+                  onPress={() => setGoalTipVisible(false)}
+                  accessibilityRole="text"
+                  accessibilityLiveRegion="polite"
+                  className="absolute left-0 right-0 z-10 items-center"
+                  style={{ top: '100%' }}
+                >
                   <View
-                    key={nutrient.key}
-                    testID={`food-entry-highlight-${nutrient.key}`}
-                    accessible
-                    accessibilityLabel={
-                      percent === null
-                        ? t('foodEntryAdd.labels.nutrientAmountA11y', {
-                            defaultValue: '{{label}}: {{amount}} {{unit}}',
-                            label: nutrient.label,
-                            amount,
-                            unit: nutrient.unit,
-                          })
-                        : t('foodEntryAdd.labels.nutrientGoalA11y', {
-                            defaultValue:
-                              '{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal',
-                            label: nutrient.label,
-                            amount,
-                            unit: nutrient.unit,
-                            percent,
-                          })
-                    }
-                    className={`min-w-0 flex-1 items-center py-1 ${
-                      index > 0 ? 'border-l border-border-subtle' : ''
-                    }`}
-                  >
-                    <Text
-                      className="text-xl font-bold"
-                      style={{ color: highlightColors[nutrient.key] }}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
-                    >
-                      {nutrient.key === 'calories'
-                        ? amount
-                        : `${amount} ${nutrient.unit}`}
-                    </Text>
-                    <Text
-                      className="text-sm text-text-secondary"
-                      testID={`food-entry-highlight-${nutrient.key}-label`}
-                      numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.75}
-                    >
-                      {nutrient.key === 'calories'
-                        ? nutrient.unit
-                        : nutrient.label}
-                    </Text>
-                    <Text
-                      className="mt-0.5 text-xs text-text-muted"
-                      testID={`food-entry-highlight-${nutrient.key}-caption`}
-                      numberOfLines={1}
-                    >
-                      {percent === null
-                        ? t('foodEntryAdd.labels.goalNotSet', {
-                            defaultValue: 'No goal',
-                          })
-                        : `${percent}%`}
+                    className="h-2.5 w-2.5 rotate-45 bg-raised"
+                    style={{ marginBottom: -5 }}
+                  />
+                  <View className="flex-row items-center gap-1.5 rounded-lg border border-border-subtle bg-raised px-3 py-2">
+                    <Icon name="target" size={12} color={accentColor} />
+                    <Text className="text-xs text-text-primary">
+                      {t('foodEntryAdd.labels.goalShareTip', {
+                        defaultValue: 'Percent of your daily goal',
+                      })}
                     </Text>
                   </View>
-                );
-              })}
+                </Pressable>
+              ) : null}
             </View>
 
             <View>

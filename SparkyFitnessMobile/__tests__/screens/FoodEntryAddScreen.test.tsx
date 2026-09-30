@@ -585,6 +585,22 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.queryByText(/of goal/)).toBeNull();
   });
 
+  it('marks goal shares with a target that explains them on tap', () => {
+    jest.useFakeTimers();
+    try {
+      const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+      expect(screen.queryByTestId('food-entry-goal-tooltip')).toBeNull();
+      fireEvent.press(screen.getByTestId('food-entry-highlight-fat-goal'));
+      expect(screen.getByText('Percent of your daily goal')).toBeTruthy();
+      act(() => {
+        jest.advanceTimersByTime(3600);
+      });
+      expect(screen.queryByTestId('food-entry-goal-tooltip')).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('speaks only the amount without a valid target', () => {
     const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
     expect(

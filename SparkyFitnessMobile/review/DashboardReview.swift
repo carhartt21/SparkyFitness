@@ -113,6 +113,15 @@ final class DashboardReview: XCTestCase {
     app.buttons["quick-add-more"].tap()
     sleep(3)
     capture("tour-food-details", app)
+    // The target beside a goal share explains it.
+    let goal = app.descendants(matching: .any)["food-entry-highlight-fat-goal"]
+    if goal.waitForExistence(timeout: 5) {
+      goal.tap()
+      sleep(1)
+      capture("tour-food-goal-tooltip", app)
+      goal.tap()
+      sleep(1)
+    }
     // Serving size: grams first, saved portions after; picking one converts the amount.
     let unitPicker = app.buttons["food-entry-unit-picker"]
     XCTAssertTrue(unitPicker.waitForExistence(timeout: 10))

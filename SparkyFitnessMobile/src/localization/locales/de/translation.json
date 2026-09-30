@@ -3474,7 +3474,8 @@
       "netCarbsShort": "Netto-KH",
       "quickAmounts": "Schnelle Mengen",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
-      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels"
+      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
+      "goalShareTip": "Anteil am Tagesziel"
     },
     "pickers": {
       "selectServing": "Portion auswählen",
