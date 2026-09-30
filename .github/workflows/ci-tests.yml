@@ -107,7 +107,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify repository layout
-        run: pnpm run repository:check
+        run: pnpm -w run repository:check
 
       - name: Run validation (Type Check, Lint, Format)
         working-directory: XoTFrontend
@@ -155,7 +155,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify repository layout
-        run: pnpm run repository:check
+        run: pnpm -w run repository:check
 
       - name: Run validation (Type Check, Lint)
         run: pnpm run validate
@@ -200,7 +200,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify repository layout
-        run: pnpm run repository:check
+        run: pnpm -w run repository:check
 
       - name: Run validation (Type Check, Lint, Format)
         run: pnpm run validate
@@ -269,7 +269,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify repository layout
-        run: pnpm run repository:check
+        run: pnpm -w run repository:check
 
       # One runner initializes the empty database; the other reapplies after the lock is released.
       - name: Initialize an empty database from two processes
@@ -365,7 +365,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Verify repository layout
-        run: pnpm run repository:check
+        run: pnpm -w run repository:check
 
       # Apply base migrations, then this PR's migrations on top of the same DB.
       # The schema_migrations table persists between runs, so phase 2 applies
