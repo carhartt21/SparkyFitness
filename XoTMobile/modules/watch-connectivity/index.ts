@@ -246,6 +246,15 @@ export interface WatchContextPayload {
   foodShortcuts?: WatchFoodShortcutPayload[] | null;
   mealTypes?: WatchMealTypePayload[] | null;
   defaultMealTypeId?: string | null;
+  /**
+   * Today's Daily Progress — the completed/applicable task counts behind the
+   * Dashboard's Progress X — for the watch's Progress X complication. The
+   * percent is null when no task applies, which the watch draws as a neutral
+   * X; both counts absent means "not synced yet".
+   */
+  dailyProgressCompleted?: number | null;
+  dailyProgressApplicable?: number | null;
+  dailyProgressPercent?: number | null;
   /** Today's water totals in ml, for the same page's bottle fill. */
   waterConsumedMl?: number | null;
   waterGoalMl?: number | null;

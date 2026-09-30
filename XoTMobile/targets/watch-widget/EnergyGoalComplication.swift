@@ -1,32 +1,6 @@
 import WidgetKit
 import SwiftUI
 
-// This target can't import targets/watch's Swift files (each `expo-target`
-// is its own compiled module), so the small pieces it needs — date helpers,
-// the app group lookup — are duplicated here rather than shared. Mirrors the
-// same convention targets/widget already uses for its own SharedHelpers.swift.
-
-private let snapshotDateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.calendar = Calendar(identifier: .gregorian)
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter
-}()
-
-private func todayDateString() -> String {
-    snapshotDateFormatter.string(from: Date())
-}
-
-private func isToday(_ dateString: String?) -> Bool {
-    guard let dateString else { return false }
-    return dateString == todayDateString()
-}
-
-private func appGroupIdentifier() -> String? {
-    Bundle.main.object(forInfoDictionaryKey: "APP_GROUP_IDENTIFIER") as? String
-}
-
 /// Mirrors the `EnergySnapshot` type `ComplicationPublisher` (targets/watch) encodes —
 /// four fractions, each already clamped to 0...1 by the phone.
 struct EnergyGoalSnapshot {
@@ -43,7 +17,7 @@ struct EnergyGoalSnapshot {
     )
 }
 
-private struct EnergyGoalSnapshotPayload: Decodable {
+private struct EnergyGoalSnapshotPayload: ScopedDaySnapshot {
     let scope: String?
     let date: String?
     let calorieGoalProgress: Double?
@@ -54,18 +28,11 @@ private struct EnergyGoalSnapshotPayload: Decodable {
 
 private func loadEnergyGoalSnapshot() -> EnergyGoalSnapshot {
     guard
-        let appGroup = appGroupIdentifier(),
-        !appGroup.isEmpty,
-        let defaults = UserDefaults(suiteName: appGroup),
-        let scope = defaults.string(forKey: "watchComplicationScope"),
-        let data = defaults.data(forKey: "energyGoalSnapshot"),
-        let payload = try? JSONDecoder().decode(EnergyGoalSnapshotPayload.self, from: data),
-        !scope.isEmpty,
-        payload.scope == scope,
-        isToday(payload.date)
-    else {
-        return .empty
-    }
+        let payload = ComplicationSnapshotStore.load(
+            EnergyGoalSnapshotPayload.self,
+            key: "energyGoalSnapshot"
+        )
+    else { return .empty }
     return EnergyGoalSnapshot(
         calorieGoalProgress: payload.calorieGoalProgress ?? 0,
         proteinGoalProgress: payload.proteinGoalProgress ?? 0,
@@ -99,16 +66,8 @@ struct EnergyGoalProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<EnergyGoalEntry>) -> Void) {
         let now = Date()
         let entry = EnergyGoalEntry(date: now, snapshot: loadEnergyGoalSnapshot())
-        // Same refresh cadence as the iOS calorie/macro widgets: whichever
-        // comes first, a 15-minute check-in or the goals resetting at
-        // midnight.
-        let in15Minutes = Calendar.current.date(byAdding: .minute, value: 15, to: now) ?? now
-        let nextMidnight = Calendar.current.nextDate(
-            after: now,
-            matching: DateComponents(hour: 0, minute: 0, second: 0),
-            matchingPolicy: .nextTime
-        ) ?? in15Minutes
-        let refreshAt = min(in15Minutes, nextMidnight)
+        // Same refresh cadence as the iOS calorie/macro widgets.
+        let refreshAt = ComplicationSnapshotStore.nextRefresh(after: now)
         completion(Timeline(entries: [entry], policy: .after(refreshAt)))
     }
 }

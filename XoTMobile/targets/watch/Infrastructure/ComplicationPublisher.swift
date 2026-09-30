@@ -41,6 +41,11 @@ enum ComplicationPublisher {
         static let kind = "waterGoalComplication"
     }
 
+    private enum Progress {
+        static let key = "dailyProgressSnapshot"
+        static let kind = "progressXComplication"
+    }
+
     /// Field names here are decoded by `EnergyGoalComplication`.
     private struct EnergySnapshot: Codable, Equatable {
         let scope: String
@@ -58,6 +63,15 @@ enum ComplicationPublisher {
         let progress: Double
     }
 
+    /// Field names here are decoded by `ProgressXComplication`.
+    private struct ProgressSnapshotPayload: Codable, Equatable {
+        let scope: String
+        let date: String
+        let completed: Int
+        let applicable: Int
+        let percent: Double?
+    }
+
     // MARK: - Publishing
 
     /// Removes the previous account's rings before any new snapshot arrives.
@@ -73,8 +87,10 @@ enum ComplicationPublisher {
         }
         defaults.removeObject(forKey: Energy.key)
         defaults.removeObject(forKey: Water.key)
+        defaults.removeObject(forKey: Progress.key)
         WidgetCenter.shared.reloadTimelines(ofKind: Energy.kind)
         WidgetCenter.shared.reloadTimelines(ofKind: Water.kind)
+        WidgetCenter.shared.reloadTimelines(ofKind: Progress.kind)
     }
 
     /// Publishes nutrition progress for the Daily Energy Goal complication.
@@ -112,6 +128,24 @@ enum ComplicationPublisher {
             ),
             forKey: Water.key,
             reloading: Water.kind
+        )
+    }
+
+    /// Publishes Daily Progress for the Progress X complication.
+    static func publish(dailyProgress: DailyProgressSnapshot) {
+        guard isPublishable(dailyProgress.day),
+              let scope = sharedDefaults()?.string(forKey: scopeKey),
+              !scope.isEmpty else { return }
+        write(
+            ProgressSnapshotPayload(
+                scope: scope,
+                date: dailyProgress.day,
+                completed: dailyProgress.completed,
+                applicable: dailyProgress.applicable,
+                percent: dailyProgress.percent
+            ),
+            forKey: Progress.key,
+            reloading: Progress.kind
         )
     }
 

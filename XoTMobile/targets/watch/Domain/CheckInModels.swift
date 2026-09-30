@@ -175,6 +175,21 @@ struct WaterSnapshot: Codable, Equatable {
     var isToday: Bool { day == CheckInDate.today() }
 }
 
+/// Today's Daily Progress: the completed/applicable task count the phone's
+/// dashboard X is drawn from. Only relayed to the Progress X complication.
+///
+/// `applicable == 0` is a real state — nothing applies today, drawn as a
+/// neutral X — distinct from the whole snapshot being nil ("not synced yet").
+struct DailyProgressSnapshot: Codable, Equatable {
+    let day: String
+    let completed: Int
+    let applicable: Int
+    /// 0...100, nil when no task applies.
+    let percent: Double?
+
+    var isToday: Bool { day == CheckInDate.today() }
+}
+
 /// A container tap the wearer has made but the phone hasn't confirmed.
 ///
 /// Lives in `CheckInStore` rather than the Water page's own `@State` so it
@@ -387,6 +402,8 @@ struct WatchContext: Codable, Equatable {
     /// a genuinely fresh push from `adoptReceivedContext()` replaying a cached
     /// one — the two are indistinguishable by arrival time.
     var generatedAt: Date?
+    /// Today's Daily Progress; nil until a phone build that sends it syncs.
+    var dailyProgress: DailyProgressSnapshot? = nil
 
     static let empty = WatchContext(
         today: nil,
