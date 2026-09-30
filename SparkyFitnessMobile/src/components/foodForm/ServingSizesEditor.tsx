@@ -634,10 +634,10 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
       >
         <View className="flex-row items-start justify-between gap-3">
           <View className="min-w-0 flex-1">
-            <Text className="text-xl font-semibold text-text-primary">
+            <Text className="text-lg font-semibold text-text-primary">
               {t('foodForm.servings.title', { defaultValue: 'Serving sizes' })}
             </Text>
-            <Text className="mt-0.5 text-sm text-text-secondary">
+            <Text className="mt-0.5 text-xs text-text-secondary">
               {t('foodForm.servings.subtitle', {
                 defaultValue: 'Define the serving sizes for this food.',
               })}
@@ -773,12 +773,12 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
         >
           <View className="flex-row items-start justify-between gap-3">
             <View className="min-w-0 flex-1">
-              <Text className="text-xl font-semibold text-text-primary">
+              <Text className="text-lg font-semibold text-text-primary">
                 {t('foodForm.servings.preview', {
                   defaultValue: 'Serving preview',
                 })}
               </Text>
-              <Text className="mt-0.5 text-sm text-text-secondary">
+              <Text className="mt-0.5 text-xs text-text-secondary">
                 {t('foodForm.servings.previewSubtitle', {
                   defaultValue: 'Nutrition for the selected serving size.',
                 })}
@@ -804,7 +804,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                   className="max-w-[45%] flex-row items-center gap-1 rounded-xl border border-border-subtle bg-raised px-3 py-2"
                 >
                   <Text
-                    className="text-base font-medium text-text-primary"
+                    className="text-sm font-medium text-text-primary"
                     numberOfLines={1}
                   >
                     {previewLabel}
@@ -837,7 +837,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                     <Icon name={tile.icon} size={20} color={color} />
                     <View className="min-w-0 flex-1">
                       <Text
-                        className="text-base font-bold text-text-primary"
+                        className="text-sm font-bold text-text-primary"
                         numberOfLines={1}
                         adjustsFontSizeToFit
                         minimumFontScale={0.7}

@@ -998,12 +998,12 @@ const FoodForm: React.FC<FoodFormProps> = ({
               <Icon name="document-text" size={20} color={textMuted} />
             </View>
             <View className="min-w-0 flex-1">
-              <Text className="text-lg font-semibold text-text-primary">
+              <Text className="text-base font-semibold text-text-primary">
                 {t('foodForm.additionalInfo.title', {
                   defaultValue: 'Additional information',
                 })}
               </Text>
-              <Text className="text-sm text-text-secondary" numberOfLines={2}>
+              <Text className="text-xs text-text-secondary" numberOfLines={2}>
                 {t('foodForm.additionalInfo.subtitle', {
                   defaultValue: 'Edit nutrition values, notes and more',
                 })}

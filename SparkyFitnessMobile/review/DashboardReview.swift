@@ -119,9 +119,12 @@ final class DashboardReview: XCTestCase {
     unitPicker.tap()
     sleep(2)
     capture("tour-food-unit-menu", app)
-    // Second option of the serving sheet (the first saved portion). The
-    // sheet's rows are not reliably exposed as elements, so tap its row.
-    app.coordinate(withNormalizedOffset: CGVector(dx: 0.3, dy: 0.88)).tap()
+    // The unit dropdown opens as a popover over the field; its second row
+    // (the first saved portion) sits about one and a half fields lower.
+    let field = unitPicker.frame
+    app.coordinate(withNormalizedOffset: .zero)
+      .withOffset(CGVector(dx: field.midX, dy: field.minY + field.height * 1.45))
+      .tap()
     sleep(2)
     capture("tour-food-details-portion", app)
     app.swipeUp()

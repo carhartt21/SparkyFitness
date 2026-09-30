@@ -1,5 +1,11 @@
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { Keyboard } from 'react-native';
 import {
   findHeaderItemByAccessibilityLabel,
@@ -184,6 +190,34 @@ jest.mock('../../src/components/BottomSheetPicker', () => {
   };
 });
 
+// The unit dropdown's popover: rows render while it is open.
+jest.mock('../../src/components/AnchoredMenu', () => {
+  const React = require('react');
+  const { View, Pressable, Text } = require('react-native');
+  return {
+    __esModule: true,
+    measureAnchoredMenuTrigger: (_node: any, cb: any) =>
+      cb({ x: 0, y: 0, width: 0, height: 0 }),
+    default: ({ visible, items, onClose }: any) =>
+      visible ? (
+        <View>
+          {items.map((item: any) => (
+            <Pressable
+              key={item.key}
+              testID={`menu-item-${item.key}`}
+              onPress={() => {
+                onClose();
+                item.onPress();
+              }}
+            >
+              <Text>{item.label}</Text>
+            </Pressable>
+          ))}
+        </View>
+      ) : null,
+  };
+});
+
 jest.mock('../../src/components/FoodUnitSelectorSheet', () => {
   const React = require('react');
   const { Pressable, Text, View } = require('react-native');
@@ -318,6 +352,21 @@ function amountValue(screen: { getByTestId: (id: string) => any }): number {
   const text = screen.getByTestId('food-entry-amount-wheel').props
     .accessibilityValue.text as string;
   return Number(text.split(' ')[0].replace(',', '.'));
+}
+
+/** Opens the unit dropdown and picks the menu row with this label. */
+function chooseUnit(
+  screen: {
+    getByTestId: (id: string) => any;
+    getAllByTestId: (id: RegExp) => any[];
+  },
+  label: string
+) {
+  fireEvent.press(screen.getByTestId('food-entry-unit-picker'));
+  const row = screen
+    .getAllByTestId(/^menu-item-/)
+    .find((item) => within(item).queryByText(label));
+  fireEvent.press(row);
 }
 
 /** Long press opens the number field; submitting commits the amount. */
@@ -1549,16 +1598,16 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.queryByText('150 g')).toBeNull();
     expect(screen.getByTestId('food-entry-log-destination')).toBeTruthy();
     typeAmount(screen, '300');
-    fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
+    chooseUnit(screen, '1 portion (150 g)');
     expect(screen.getByLabelText(/Change unit:.*portion/)).toBeTruthy();
     expect(amountValue(screen)).toBe(1);
     expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
       '150 g in total'
     );
     typeAmount(screen, '2');
-    fireEvent.press(screen.getAllByText('Grams')[0]);
+    chooseUnit(screen, 'Grams');
     expect(amountValue(screen)).toBe(300);
-    fireEvent.press(screen.getAllByText('1 portion (150 g)')[0]);
+    chooseUnit(screen, '1 portion (150 g)');
     typeAmount(screen, '2');
     fireEvent.press(screen.getByText(ADD_LABEL));
     expect(mockAddEntry).toHaveBeenCalledWith(

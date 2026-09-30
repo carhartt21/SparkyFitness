@@ -86,3 +86,19 @@ Captures, synthetic fixture, English, dark, 430 pt, are in `x-on-track-design/re
 - **Photo tile:** without a photo, the tile shows the food's category artwork dimmed, with "+ Add photo". It is display-only and never saved.
 - **Serving rows:** trash icons use the danger icon red, and rows are more compact (88 pt, 14 pt field text).
 - **Cancel:** it keeps the header's standard text colour. The shared header enforces one accent and neutral navigation actions on every screen, so the reference's muted Cancel is not copied.
+
+## Fourth pass (owner feedback)
+
+- **Macros:** the values use the app's macro colours again, with the share of today's goal under each ("No goal" without a target).
+- **Pinned photo:** the photo, or the category artwork, stays pinned behind the cards. As the cards scroll over it, it shrinks (to 86 %), moves up slightly and fades. Pulling down past the top enlarges it.
+- **Top card:** the glow is stronger (accent border and outer glow), and the text sizes are one step smaller.
+- **Unit picker:** it is now a dropdown (`UnitDropdown`, built on `AnchoredMenu`) that opens right over the field instead of a bottom sheet.
+- **Amount spinner:** you now drag it directly (`PanResponder`).
+  - Dragging up or down moves one step per 14 pt, showing the neighbouring values and firing a selection haptic.
+  - It blocks page scrolling while dragging.
+  - A long press still opens the number field.
+- **Add to Diary:** it uses the app's primary `Button` (filled accent pill with the plus icon) and glows in the glow theme.
+- **Edit Food:**
+  - The photo tile stretches from the Name label to the bottom of the Brand field.
+  - Section titles, subtitles, tile values and the preview pill are one step smaller.
+- **Serving rows:** they keep the bottom-sheet unit list, because the full unit catalogue is too long for a popover.

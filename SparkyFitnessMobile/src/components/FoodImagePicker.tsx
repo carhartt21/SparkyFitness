@@ -262,7 +262,9 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
         className="items-center justify-center overflow-hidden bg-raised"
         style={({ pressed }) => ({
           width: coverSize,
-          height: coverSize,
+          // Stretches to the height of the fields beside it (Edit Food).
+          alignSelf: 'stretch',
+          minHeight: coverSize * 0.8,
           borderRadius: 16,
           borderWidth: 1,
           borderStyle: main ? 'solid' : 'dashed',
@@ -277,7 +279,13 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
                 ? getImageSource(main.path)
                 : { uri: main.uri, headers: {} }
             }
-            style={{ width: coverSize, height: coverSize }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            }}
             contentFit="cover"
           />
         ) : coverPlaceholder !== undefined ? (

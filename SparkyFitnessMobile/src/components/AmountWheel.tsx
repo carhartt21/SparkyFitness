@@ -1,14 +1,11 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Pressable,
-  ScrollView,
+  PanResponder,
   Text,
   TextInput,
   View,
   type AccessibilityActionEvent,
-  type NativeScrollEvent,
-  type NativeSyntheticEvent,
 } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import Icon from './Icon';
@@ -16,10 +13,16 @@ import { withAlpha } from './ui/glow';
 import { formatLocalizedNumber } from '../localization';
 import { DECIMAL_INPUT_REGEX, parseDecimalInput } from '../utils/numericInput';
 import { formatServingSizeDisplay } from '../utils/foodDetails';
+import { fireSelectionHaptic } from '../services/haptics';
 
-/** One value fills the field, like a text field; swiping spins the value. */
+/** One value fills the field, like a text field. */
 export const AMOUNT_WHEEL_HEIGHT = 56;
-export const AMOUNT_WHEEL_ROW_HEIGHT = AMOUNT_WHEEL_HEIGHT;
+/** Vertical drag distance per step while spinning. */
+const STEP_PX = 14;
+/** Spacing of the neighbouring values shown while dragging. */
+const ROW_PX = 30;
+const LONG_PRESS_MS = 400;
+const MOVE_SLOP = 6;
 
 /** Wheel values: a regular grid, plus the current value when it is off-grid. */
 export function buildAmountSteps(
@@ -57,9 +60,10 @@ export interface AmountWheelProps {
 }
 
 /**
- * A vertical spinner for the logged amount. Scrolling snaps to the grid;
- * a long press (or the VoiceOver "Enter amount" action) switches to a
- * number field for an exact amount.
+ * A draggable spinner for the logged amount: drag up to increase and down to
+ * decrease, one grid step per few points, with the neighbouring values
+ * shown while dragging. A long press (or the VoiceOver "Enter amount"
+ * action) switches to a number field for an exact amount.
  */
 const AmountWheel: React.FC<AmountWheelProps> = ({
   value,
@@ -74,10 +78,11 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
     '--color-accent-primary',
     '--color-text-muted',
   ]) as [string, string];
-  const scrollRef = useRef<ScrollView>(null);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
-  // The grid changes with the unit and when the value leaves it.
+  const [dragging, setDragging] = useState(false);
+  const [dragRemainder, setDragRemainder] = useState(0);
+
   const steps = useMemo(
     () => buildAmountSteps(value, amountWheelScale(metric)),
     [value, metric]
@@ -86,31 +91,6 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
     0,
     steps.findIndex((n) => Math.abs(n - value) < 1e-6)
   );
-
-  // Keep the wheel on the value when it changes from outside (unit switch,
-  // quick amount), without animating the first placement.
-  const placedRef = useRef(false);
-  useEffect(() => {
-    if (editing) return;
-    scrollRef.current?.scrollTo({
-      y: index * AMOUNT_WHEEL_ROW_HEIGHT,
-      animated: placedRef.current,
-    });
-    placedRef.current = true;
-  }, [index, editing]);
-
-  const settle = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const next = Math.min(
-      steps.length - 1,
-      Math.max(
-        0,
-        Math.round(event.nativeEvent.contentOffset.y / AMOUNT_WHEEL_ROW_HEIGHT)
-      )
-    );
-    if (steps[next] !== undefined && Math.abs(steps[next] - value) > 1e-6) {
-      onChange(steps[next]);
-    }
-  };
 
   const startEditing = () => {
     if (disabled) return;
@@ -123,6 +103,83 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
     setEditing(false);
   };
 
+  // The latest props for the gesture handlers, which are created once so a
+  // drag is never cut off by a re-render. Updated after each render.
+  const latest = useRef({ steps, index, onChange, startEditing, disabled });
+  useEffect(() => {
+    latest.current = { steps, index, onChange, startEditing, disabled };
+  });
+  const gesture = useRef({
+    startIndex: 0,
+    appliedIndex: 0,
+    moved: false,
+    timer: null as ReturnType<typeof setTimeout> | null,
+  });
+
+  // The handlers read the refs only while a gesture runs, never during
+  // render; the compiler cannot see that through PanResponder.create.
+  /* eslint-disable react-hooks/refs */
+  const panResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onStartShouldSetPanResponder: () => !latest.current.disabled,
+        onMoveShouldSetPanResponder: (_, g) =>
+          !latest.current.disabled && Math.abs(g.dy) > Math.abs(g.dx),
+        // Keep the page from scrolling while the amount is being spun.
+        onPanResponderTerminationRequest: () => false,
+        onShouldBlockNativeResponder: () => true,
+        onPanResponderGrant: () => {
+          const state = gesture.current;
+          state.startIndex = latest.current.index;
+          state.appliedIndex = latest.current.index;
+          state.moved = false;
+          state.timer = setTimeout(() => {
+            state.timer = null;
+            if (!state.moved) latest.current.startEditing();
+          }, LONG_PRESS_MS);
+        },
+        onPanResponderMove: (_, g) => {
+          const state = gesture.current;
+          if (!state.moved && Math.abs(g.dy) < MOVE_SLOP) return;
+          if (!state.moved) {
+            state.moved = true;
+            if (state.timer) clearTimeout(state.timer);
+            state.timer = null;
+            setDragging(true);
+          }
+          const { steps: grid, onChange: change } = latest.current;
+          // Dragging up (negative dy) increases the amount.
+          const delta = Math.trunc(-g.dy / STEP_PX);
+          const next = Math.min(
+            grid.length - 1,
+            Math.max(0, state.startIndex + delta)
+          );
+          setDragRemainder((-g.dy / STEP_PX - delta) * ROW_PX);
+          if (next !== state.appliedIndex && grid[next] !== undefined) {
+            state.appliedIndex = next;
+            fireSelectionHaptic();
+            change(grid[next]);
+          }
+        },
+        onPanResponderRelease: () => {
+          const state = gesture.current;
+          if (state.timer) clearTimeout(state.timer);
+          state.timer = null;
+          setDragging(false);
+          setDragRemainder(0);
+        },
+        onPanResponderTerminate: () => {
+          const state = gesture.current;
+          if (state.timer) clearTimeout(state.timer);
+          state.timer = null;
+          setDragging(false);
+          setDragRemainder(0);
+        },
+      }),
+    []
+  );
+  /* eslint-enable react-hooks/refs */
+
   const onAccessibilityAction = (event: AccessibilityActionEvent) => {
     const name = event.nativeEvent.actionName;
     if (name === 'increment' && index < steps.length - 1) {
@@ -134,7 +191,12 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
     }
   };
 
-  const formatted = formatLocalizedNumber(value, { maximumFractionDigits: 2 });
+  const fieldStyle = {
+    flex: 0.66,
+    height: AMOUNT_WHEEL_HEIGHT,
+    borderColor: withAlpha(accent, dragging ? 1 : 0.7),
+    backgroundColor: withAlpha(accent, dragging ? 0.1 : 0.05),
+  };
 
   if (editing) {
     return (
@@ -153,15 +215,17 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
         accessibilityLabel={t('foodEntryAdd.labels.amount', {
           defaultValue: 'Amount',
         })}
-        className="rounded-xl border bg-surface px-4 text-2xl text-text-primary"
-        style={{
-          flex: 0.66,
-          height: AMOUNT_WHEEL_HEIGHT,
-          borderColor: accent,
-        }}
+        className="rounded-xl border bg-surface px-4 text-xl text-text-primary"
+        style={{ ...fieldStyle, borderColor: accent }}
       />
     );
   }
+
+  const formatted = formatLocalizedNumber(value, { maximumFractionDigits: 2 });
+  const neighbours = [-1, 0, 1].map((offset) => ({
+    offset,
+    value: steps[index + offset],
+  }));
 
   return (
     <View
@@ -188,50 +252,37 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
       ]}
       onAccessibilityAction={onAccessibilityAction}
       className="overflow-hidden rounded-xl border"
-      style={{
-        flex: 0.66,
-        height: AMOUNT_WHEEL_HEIGHT,
-        borderColor: withAlpha(accent, 0.7),
-        backgroundColor: withAlpha(accent, 0.05),
-      }}
-      pointerEvents={disabled ? 'none' : 'auto'}
+      style={fieldStyle}
+      {...panResponder.panHandlers}
     >
-      <ScrollView
-        ref={scrollRef}
-        showsVerticalScrollIndicator={false}
-        snapToInterval={AMOUNT_WHEEL_ROW_HEIGHT}
-        decelerationRate="fast"
-        nestedScrollEnabled
-        onMomentumScrollEnd={settle}
-        onScrollEndDrag={(event) => {
-          // A drag released without momentum still has to settle.
-          if (!event.nativeEvent.velocity?.y) settle(event);
-        }}
-      >
-        {steps.map((n, rowIndex) => {
-          const selected = rowIndex === index;
-          return (
-            <Pressable
-              key={n}
-              onPress={() => onChange(n)}
-              onLongPress={startEditing}
-              delayLongPress={350}
-              style={{ height: AMOUNT_WHEEL_ROW_HEIGHT }}
-              className="justify-center pl-4 pr-8"
-              importantForAccessibility="no"
+      {neighbours.map(({ offset, value: n }) =>
+        n === undefined || (!dragging && offset !== 0) ? null : (
+          <View
+            key={offset}
+            pointerEvents="none"
+            className="absolute left-0 right-8 justify-center pl-4"
+            style={{
+              top: 0,
+              bottom: 0,
+              transform: [{ translateY: offset * -ROW_PX + dragRemainder }],
+              opacity: offset === 0 ? 1 : 0.35,
+            }}
+          >
+            <Text
+              className={
+                offset === 0
+                  ? 'text-xl font-semibold text-text-primary'
+                  : 'text-base'
+              }
+              style={offset === 0 ? undefined : { color: textMuted }}
+              numberOfLines={1}
             >
-              <Text
-                className="text-2xl text-text-primary"
-                style={selected ? undefined : { color: textMuted }}
-                numberOfLines={1}
-              >
-                {formatLocalizedNumber(n, { maximumFractionDigits: 2 })}
-              </Text>
-            </Pressable>
-          );
-        })}
-      </ScrollView>
-      {/* Spinner hint: swipe up or down to change the amount. */}
+              {formatLocalizedNumber(n, { maximumFractionDigits: 2 })}
+            </Text>
+          </View>
+        )
+      )}
+      {/* Spinner hint: drag up or down to change the amount. */}
       <View
         pointerEvents="none"
         className="absolute bottom-0 right-2 top-0 justify-center"
