@@ -320,6 +320,47 @@ final class CheckInStore: ObservableObject {
         return operation
     }
 
+    /// Weight and/or reps changed on the Watch, optionally completing the set
+    /// in the same action. Values equal to the set's are left out, and an
+    /// edit that changes nothing captures nothing.
+    func captureWorkoutEdit(
+        workout: WatchWorkoutSnapshot,
+        set: WatchWorkoutSnapshot.Exercise.SetRow,
+        weightKg: Double?,
+        reps: Int?,
+        complete: Bool
+    ) -> WorkoutSetOperation? {
+        guard let scope = context.actionScope, !scope.isEmpty else { return nil }
+        guard operation(for: set.key, sessionId: workout.sessionId) == nil else { return nil }
+        let newWeight = weightKg.flatMap { value -> Double? in
+            guard value.isFinite, value >= 0, value <= 1000 else { return nil }
+            if let current = set.weightKg, abs(current - value) < 0.0005 { return nil }
+            return (value * 1000).rounded() / 1000
+        }
+        let newReps = reps.flatMap { value -> Int? in
+            guard value >= 0, value <= 1000, value != set.reps else { return nil }
+            return value
+        }
+        let completed = complete || set.completed
+        guard newWeight != nil || newReps != nil || completed != set.completed else { return nil }
+        let operation = WorkoutSetOperation(
+            id: UUID().uuidString,
+            sessionId: workout.sessionId,
+            setKey: set.key,
+            setSignature: set.signature,
+            expectedCompleted: set.completed,
+            completed: completed,
+            createdAt: Date(),
+            scope: scope,
+            state: .queued,
+            weightKg: newWeight,
+            reps: newReps
+        )
+        pendingWorkoutOperations.append(operation)
+        persist()
+        return operation
+    }
+
     func markWorkoutOperation(_ clientId: String, _ state: SyncState) {
         guard let index = pendingWorkoutOperations.firstIndex(where: { $0.id == clientId }) else {
             return

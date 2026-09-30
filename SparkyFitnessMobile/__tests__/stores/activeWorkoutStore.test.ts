@@ -3651,6 +3651,67 @@ describe('activeWorkoutStore', () => {
       expect(store().completedSetIds['102']).toBeUndefined();
     });
 
+    it('applies weight and reps from the Watch before completing the set', () => {
+      store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
+      const edit = {
+        ...operationFor(1, true, 'watch-edit'),
+        weightKg: 80,
+        reps: 6,
+      };
+      expect(store().applyWatchSetOperation(edit, 'config-1')).toBe('applied');
+      const set = store().session!.exercises[0].sets[1];
+      expect(set.weight).toBe(80);
+      expect(set.reps).toBe(6);
+      expect(store().completedSetIds['102']).toBe(FIXED_NOW);
+      expect(store().applyWatchSetOperation(edit, 'config-1')).toBe(
+        'duplicate'
+      );
+    });
+
+    it('edits a completed set without changing its completion', () => {
+      store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
+      expect(
+        store().applyWatchSetOperation(
+          operationFor(0, true, 'watch-done'),
+          'config-1'
+        )
+      ).toBe('applied');
+      const edit = { ...operationFor(0, true, 'watch-fix'), reps: 12 };
+      expect(edit.expectedCompleted).toBe(true);
+      expect(store().applyWatchSetOperation(edit, 'config-1')).toBe('applied');
+      expect(store().session!.exercises[0].sets[0].reps).toBe(12);
+      expect(store().completedSetIds['101']).toBe(FIXED_NOW);
+      expect(store().processedWatchOperationIds).toContain('watch-fix');
+      // A retry the phone already applied (e.g. its id was lost in a crash)
+      // is recognised by its values rather than rejected as stale.
+      expect(
+        store().applyWatchSetOperation(
+          { ...edit, clientId: 'watch-fix-retry' },
+          'config-1'
+        )
+      ).toBe('duplicate');
+    });
+
+    it('rejects out-of-range values and actions that change nothing', () => {
+      store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
+      const base = operationFor(1, true, 'watch-bad');
+      const weightBefore = store().session!.exercises[0].sets[1].weight;
+      expect(
+        store().applyWatchSetOperation({ ...base, reps: 2.5 }, 'config-1')
+      ).toBe('conflict');
+      expect(
+        store().applyWatchSetOperation({ ...base, weightKg: -5 }, 'config-1')
+      ).toBe('conflict');
+      expect(
+        store().applyWatchSetOperation(
+          { ...base, clientId: 'watch-noop', completed: false },
+          'config-1'
+        )
+      ).toBe('conflict');
+      expect(store().completedSetIds['102']).toBeUndefined();
+      expect(store().session!.exercises[0].sets[1].weight).toBe(weightBefore);
+    });
+
     it('keeps the queued set key and dedupe record through server id churn and restart', async () => {
       store().startWorkout(makeSession(), { sourceServerConfigId: 'config-1' });
       const queued = operationFor(1, true, 'watch-queued');

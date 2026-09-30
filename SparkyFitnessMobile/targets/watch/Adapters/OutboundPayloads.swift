@@ -81,8 +81,10 @@ enum OutboundPayloads {
         ]
     }
 
+    /// Weight and reps are OMITTED when unchanged, for the same reason as a
+    /// check-in's body fat: the phone applies only the values that are present.
     static func workoutSetOperation(_ operation: WorkoutSetOperation) -> [String: Any] {
-        [
+        var payload: [String: Any] = [
             "type": Kind.workoutSetOperation,
             "clientId": operation.id,
             "sessionId": operation.sessionId,
@@ -92,6 +94,9 @@ enum OutboundPayloads {
             "completed": operation.completed,
             "scope": operation.scope ?? "",
         ]
+        if let weightKg = operation.weightKg { payload["weightKg"] = weightKg }
+        if let reps = operation.reps { payload["reps"] = reps }
+        return payload
     }
 
     static func foodLog(_ action: PendingFoodLogAction) -> [String: Any] {
