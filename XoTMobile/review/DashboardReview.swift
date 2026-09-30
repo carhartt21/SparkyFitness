@@ -17,7 +17,11 @@ final class DashboardReview: XCTestCase {
     result.tap()
     let wheel = app.descendants(matching: .any)["food-entry-amount-wheel"]
     XCTAssertTrue(wheel.waitForExistence(timeout: 15))
-    // Existence alone can precede presentation settling; keep the capture stable.
+    // Enlarged text may legitimately move quantity below the first viewport.
+    for _ in 0..<5 {
+      if wheel.isHittable { break }
+      app.swipeUp()
+    }
     XCTAssertTrue(wheel.isHittable)
     XCTAssertGreaterThanOrEqual(wheel.frame.height, 44)
     capture("food-details-top", app)
