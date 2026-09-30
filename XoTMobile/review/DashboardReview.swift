@@ -5,7 +5,7 @@ final class DashboardReview: XCTestCase {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
-    let food = app.buttons["dashboard-add-food"]
+    let food = app.buttons["dashboard-food"]
     XCTAssertTrue(food.waitForExistence(timeout: 30))
     food.tap()
     let search = app.textFields.firstMatch
