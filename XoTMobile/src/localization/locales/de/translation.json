@@ -506,7 +506,7 @@
     "totalServings": "Gesamtportionen",
     "unit": "Einheit",
     "selectUnit": "Unit auswählen",
-    "servingSize": "Portion größe ({{unit}}) *",
+    "servingSize": "Portionsgröße ({{unit}}) *",
     "foodsInMeal": "Ernährungs in Mahlzeit",
     "ingredient": "Zutat",
     "removeIngredient": "{{name}} entfernen",
@@ -517,7 +517,7 @@
     "errors": {
       "missingNameTitle": "Missing meal Name",
       "missingNameMessage": "Bitte geben Sie einen Namen für Ihre Mahlzeit ein.",
-      "invalidServingSizeTitle": "Ungültig Portion größe",
+      "invalidServingSizeTitle": "Ungültige Portionsgröße",
       "invalidServingSizeMessage": "Die Standardportionsgröße muss größer als Null sein.",
       "invalidTotalServingsTitle": "Invalid gesamt servings",
       "invalidTotalServingsMessage": "Die Gesamtportionen müssen größer als Null sein.",
@@ -2759,25 +2759,25 @@
   },
   "foodForm": {
     "equivalentSizes": "Äquivalente Größen",
-    "selectUnit": "Unit auswählen",
+    "selectUnit": "Einheit wählen",
     "unit": "Einheit",
-    "removeEquivalent": "equivalent entfernen",
-    "addEquivalent": "+ Hinzufügen equivalent",
-    "foodName": "Ernährung Name",
+    "removeEquivalent": "Gleichwertige Größe entfernen",
+    "addEquivalent": "+ Gleichwertige Größe hinzufügen",
+    "foodName": "Name des Lebensmittels",
     "foodNamePlaceholder": "z.B. Hähnchenbrust",
     "brand": "Marke",
-    "optional": "optional",
-    "servingSize": "Portion größe",
-    "servingUnit": "Portion Einheit",
-    "autoScaleNutrition": "Auto Scale Ernährung",
+    "optional": "Optional",
+    "servingSize": "Portionsgröße",
+    "servingUnit": "Einheit",
+    "autoScaleNutrition": "Nährwerte automatisch umrechnen",
     "caloriesRequired": "Kalorien (kcal) *",
     "ai": {
-      "couldNotEstimate": "estimate konnte nicht ausgeführt werden.",
+      "couldNotEstimate": "Schätzung nicht möglich",
       "noTrustedDefault": "Das Essen hat keinen vertrauenswürdigen Standard, von dem aus man skalieren kann.",
-      "servingSizeRequired": "a serving size first festlegen",
+      "servingSizeRequired": "Lege zuerst eine Portionsgröße fest",
       "estimating": "Schätzung…",
-      "convertWithAI": "Convert mit AI",
-      "estimateFailed": "AI estimate fehlgeschlagen.",
+      "convertWithAI": "Mit KI umrechnen",
+      "estimateFailed": "Die KI-Schätzung ist fehlgeschlagen.",
       "estimateQuality": {
         "high": "Gute Schätzung",
         "medium": "Mittlere Schätzqualität",
@@ -2785,9 +2785,9 @@
       }
     },
     "manualUpdate": {
-      "title": "Manual Nutrition Aktualisieren",
+      "title": "Nährwerte manuell anpassen",
       "message": "Eine Umrechnung zwischen Einheiten ist nicht möglich. Aktualisieren Sie die Nährwerte vor dem Speichern manuell.",
-      "saveAnyway": "Speichern Anyway",
+      "saveAnyway": "Trotzdem speichern",
       "banner": "Eine Umrechnung zwischen Einheiten ist nicht möglich. Nährwerte manuell aktualisieren."
     },
     "loadingDetails": "Es werden immer noch Lebensmitteldetails geladen. Versuchen Sie es gleich noch einmal.",
@@ -2795,18 +2795,18 @@
     "equivalentUnitsFailed": "Einige entsprechende Einheiten konnten nicht gespeichert werden",
     "saveNewVariantFailed": "Neue Variante konnte nicht gespeichert werden.",
     "saveNutritionFailed": "Die Nährstoffe konnten nicht für die zukünftige Verwendung gespeichert werden",
-    "savedNewVariant": "Gespeichert as neu variant",
+    "savedNewVariant": "Als neue Portion gespeichert",
     "pastEntriesUpdated": "Vergangene Einträge aktualisiert",
     "pastEntriesFailed": "Vergangene Einträge konnten nicht aktualisiert werden.",
     "foodSaved": "Lebensmittel gespeichert.",
     "updateFailed": "Lebensmittel konnte nicht aktualisiert werden.",
-    "editTitle": "Bearbeiten Ernährung",
+    "editTitle": "Lebensmittel bearbeiten",
     "addFood": "Lebensmittel hinzufügen",
     "saved": "Gespeichert",
-    "equivalentUnitsUpdated_one": "Gespeichert · {{formattedCount}} equivalent unit updated",
-    "equivalentUnitsUpdated_other": "Gespeichert · {{formattedCount}} equivalent units updated",
-    "notes": "Neintes",
-    "notesPlaceholder": "e.g. White rice, double chicken, Keine beans (supports markdown)",
+    "equivalentUnitsUpdated_one": "Gespeichert · {{formattedCount}} gleichwertige Einheit aktualisiert",
+    "equivalentUnitsUpdated_other": "Gespeichert · {{formattedCount}} gleichwertige Einheiten aktualisiert",
+    "notes": "Notizen",
+    "notesPlaceholder": "z. B. weißer Reis, doppelt Hähnchen, ohne Bohnen (Markdown möglich)",
     "servings": {
       "reorder": "{{name}} verschieben",
       "position": "Portion {{position}} von {{total}}",
@@ -2850,8 +2850,20 @@
       "inUseTitle": "Aus Essensplänen entfernen?",
       "inUseMessage": "Essensplan-Vorlagen verwenden eine entfernte Portion ({{entries}} Einträge). Beim Entfernen werden diese Einträge ebenfalls entfernt. Ihr Tagebuch bleibt unverändert.",
       "inUseConfirm": "Entfernen",
-      "weight": "Gewicht ({{unit}})"
-    }
+      "weight": "Gewicht ({{unit}})",
+      "subtitle": "Lege die Portionsgrößen für dieses Lebensmittel fest.",
+      "grams": "Gramm",
+      "labelA11y": "Bezeichnung von {{name}}",
+      "amountA11y": "Menge von {{name}}",
+      "weightA11y": "Gewicht von {{name}} in {{unit}}",
+      "previewSubtitle": "Nährwerte der gewählten Portionsgröße.",
+      "previewPick": "Vorschau-Portion, {{serving}}"
+    },
+    "additionalInfo": {
+      "title": "Weitere Angaben",
+      "subtitle": "Nährwerte, Notizen und mehr bearbeiten"
+    },
+    "name": "Name"
   },
   "exerciseHistory": {
     "noSetData": "Nein set data",
@@ -2859,26 +2871,26 @@
     "empty": "Noch keine sessions logged."
   },
   "foodFormPersistence": {
-    "discardTitle": "Verwerfen unsaved equivalents?",
+    "discardTitle": "Nicht gespeicherte Größen verwerfen?",
     "discardMessage": "Sie haben nicht gespeicherte äquivalente Größen. Sie verwerfen, um fortzufahren?",
     "discard": "Verwerfen",
     "updateTitle": "Vergangene Einträge aktualisieren?",
     "updateMessage": "Ihre Bibliotheksnahrung ist gerettet. Möchten Sie auch frühere Tagebucheinträge zu diesem Lebensmittel mit der neuen Ernährung aktualisieren? Einträge, die Sie nicht aktualisieren, behalten ihre ursprünglichen Werte.",
-    "dontUpdate": "Don't Aktualisieren",
+    "dontUpdate": "Nicht aktualisieren",
     "update": "Aktualisieren",
     "updatePhotosMessage": "Ihre Bibliotheksnahrung ist gerettet. Was sollten frühere Tagebucheinträge für dieses Lebensmittel verwenden?",
     "updateNutrition": "Aktualisieren Sie nur die Ernährung",
-    "updateNutritionPhotos": "Aktualisieren nutrition & Fotos",
-    "saveNutritionTitle": "Speichern nutrition",
+    "updateNutritionPhotos": "Nährwerte und Fotos aktualisieren",
+    "saveNutritionTitle": "Nährwerte speichern",
     "overwriteMessage": "„{{unitLabel}}“ ist bereits eine gespeicherte Variante. Möchten Sie es mit diesen Werten aktualisieren oder als neue Variante speichern?",
-    "saveAsNew": "Speichern as neu",
-    "updateExisting": "Aktualisieren existing",
-    "missingName": "Missing Name",
+    "saveAsNew": "Als neu speichern",
+    "updateExisting": "Bestehende aktualisieren",
+    "missingName": "Name fehlt",
     "nameRequired": "Geben Sie einen Lebensmittelnamen ein.",
-    "invalidServingSize": "Ungültig Portion größe",
+    "invalidServingSize": "Ungültige Portionsgröße",
     "servingSizeRequired": "Die Portionsgröße muss größer als Null sein.",
     "loadingDetails": "Es werden immer noch Lebensmitteldetails geladen. Versuchen Sie es gleich noch einmal.",
-    "savedNewVariant": "Gespeichert as neu variant",
+    "savedNewVariant": "Als neue Portion gespeichert",
     "pastUpdated": "Vergangene Einträge aktualisiert",
     "pastUpdateFailed": "Vergangene Einträge konnten nicht aktualisiert werden.",
     "foodSaved": "Lebensmittel gespeichert.",
@@ -2887,9 +2899,9 @@
     "equivalentsFailed": "Einige entsprechende Einheiten konnten nicht gespeichert werden",
     "saveVariantFailed": "Neue Variante konnte nicht gespeichert werden.",
     "saveNutritionFailed": "Die Nährstoffe konnten nicht für die zukünftige Verwendung gespeichert werden",
-    "editFoodTitle": "Bearbeiten Ernährung",
-    "adjustNutritionTitle": "Anpassen Ernährung",
-    "saveNutritionFuture": "Speichern nutrition für future use"
+    "editFoodTitle": "Lebensmittel bearbeiten",
+    "adjustNutritionTitle": "Nährwerte für diesen Eintrag",
+    "saveNutritionFuture": "Für künftige Einträge speichern"
   },
   "foodPhotoImprove": {
     "grams": "Gramm",
@@ -3489,7 +3501,9 @@
       "addFood": "Hinzufügen",
       "addMeal": "Mahlzeit hinzufügen",
       "removeFavorite": "Aus Favoriten entfernen",
-      "addFavorite": "Zu Favoriten hinzufügen"
+      "addFavorite": "Zu Favoriten hinzufügen",
+      "addToDiary": "Zum Tagebuch hinzufügen",
+      "editFood": "Lebensmittel und Portionsgrößen bearbeiten"
     },
     "labels": {
       "foodPhoto": "Foto von {{name}}",
@@ -3516,7 +3530,8 @@
       "netCarbsShort": "Netto-KH",
       "quickAmounts": "Schnelle Mengen",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
-      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels"
+      "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
+      "goalShareTip": "Anteil am Tagesziel"
     },
     "pickers": {
       "selectServing": "Portion auswählen",
@@ -3530,7 +3545,7 @@
       "title": "Schnell hinzufügen",
       "subtitle": "Gespeicherte Portionen",
       "lastUsed": "Zuletzt verwendet",
-      "nutrition": "{{calories}} kcal · {{fat}} g F · {{carbs}} g KH · {{protein}} g E",
+      "nutrition": "{{calories}} kcal – {{fat}} g F, {{carbs}} g KH, {{protein}} g E",
       "addLastA11y": "Zuletzt verwendet hinzufügen, {{portion}}, {{calories}} Kilokalorien",
       "addA11y": "{{portion}} hinzufügen, {{calories}} Kilokalorien",
       "multiplePortions": "{{amount}} × {{portion}}"
@@ -3539,11 +3554,22 @@
       "title": "Portionsgröße",
       "milliliters": "Milliliter",
       "grams": "Gramm",
-      "totalWeight": "insgesamt {{weight}}"
+      "totalWeight": "insgesamt {{weight}}",
+      "amountPerServing": "Menge pro Portion"
     },
     "moreOptions": {
       "title": "Weitere Optionen",
-      "subtitle": "Nährwertangaben und alle Nährstoffe"
+      "subtitle": "Nährwertangaben & mehr",
+      "editFood": "Lebensmittel bearbeiten",
+      "adjustEntry": "Nur diesen Eintrag anpassen"
+    },
+    "editServings": {
+      "title": "Portionsgrößen hinzufügen",
+      "subtitle": "Speichere Portionen wie „1 Scheibe“, um sie mit einem Tipp einzutragen."
+    },
+    "wheel": {
+      "hint": "Nach oben oder unten wischen, um die Menge zu ändern. Lange drücken, um sie einzugeben.",
+      "enterAmount": "Menge eingeben"
     }
   },
   "exerciseSearch": {
@@ -3922,7 +3948,7 @@
     "errors": {
       "missingName": "Missing Name",
       "nameRequired": "Geben Sie einen Lebensmittelnamen ein.",
-      "invalidServingSize": "Ungültig Portion größe",
+      "invalidServingSize": "Ungültige Portionsgröße",
       "servingSizeRequired": "Die Portionsgröße muss größer als Null sein.",
       "invalidBarcode": "Ungültig barcode",
       "barcodeRequired": "Der Barcode muss 8–14 Ziffern lang sein.",
@@ -4143,10 +4169,12 @@
       "chooseFromLibrary": "Aus Mediathek auswählen",
       "setAsMain": "as main festlegen",
       "remove": "Entfernen",
-      "photo": "Foto"
+      "photo": "Foto",
+      "nextAsMain": "Nächstes Foto zuerst zeigen"
     },
     "labels": {
-      "main": "Hauptbild"
+      "main": "Hauptbild",
+      "count": "{{total}} Fotos"
     },
     "accessibility": {
       "mainPhotoEdit": "Main Foto, bearbeiten",
@@ -4247,7 +4275,7 @@
       "invalidNutrition": "Ungültig Ernährung",
       "invalidRequiredNutrition": "Kalorien, Protein, Kohlenhydrate und Fett dürfen nicht negative Zahlen sein.",
       "invalidOptionalNutrition": "Alle Nährwerte müssen nicht negative Zahlen sein.",
-      "invalidServingSize": "Ungültig Portion größe",
+      "invalidServingSize": "Ungültige Portionsgröße",
       "invalidServingSizeMessage": "Die Portionsgröße muss eine positive Zahl sein.",
       "noIngredients": "Behalten Sie mindestens eine Zutat oder wechseln Sie zu einem Lebensmittel.",
       "invalidServings": "Ungültig Portions",

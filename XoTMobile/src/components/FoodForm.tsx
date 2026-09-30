@@ -114,6 +114,12 @@ export interface FoodFormProps {
   headerChildren?: React.ReactNode;
   /** Rendered between the nutrition card and the notes (Edit Food portions). */
   servingsSection?: React.ReactNode;
+  /**
+   * Edit Food layout: this node (the photo) sits beside name and brand, the
+   * serving sizes follow, and the nutrition values and notes fold into an
+   * "Additional information" row.
+   */
+  identityAside?: React.ReactNode;
   /** Called with the current values whenever the user edits the form. */
   onFormChange?: (form: FoodFormData) => void;
   children?: React.ReactNode;
@@ -148,6 +154,7 @@ const FoodForm: React.FC<FoodFormProps> = ({
   noteImages,
   headerChildren,
   servingsSection,
+  identityAside,
   onFormChange,
   children,
   customNutrients: customNutrientsProp,
@@ -166,6 +173,9 @@ const FoodForm: React.FC<FoodFormProps> = ({
     buildDisplayFormState(initialValues)
   );
   const [showMoreNutrients, setShowMoreNutrients] = useState(false);
+  const [additionalExpanded, setAdditionalExpanded] = useState(false);
+  const editLayout = !!identityAside;
+  const showDetails = !editLayout || additionalExpanded;
 
   const { isConnected } = useServerConnection();
   const { customNutrients: customNutrientDefs } = useCustomNutrients({
@@ -949,476 +959,538 @@ const FoodForm: React.FC<FoodFormProps> = ({
         contentContainerClassName="px-4 pt-4 pb-20 gap-4"
         keyboardShouldPersistTaps="handled"
       >
-        {headerChildren}
-        <View className="bg-surface rounded-xl p-4 gap-4 shadow-sm">
-          {/* Food info */}
-          {renderTextField(
-            t('foodForm.foodName', { defaultValue: 'Food Name' }),
-            'name',
-            t('foodForm.foodNamePlaceholder', {
-              defaultValue: 'e.g. Chicken Breast',
-            }),
-            true,
-            'brand'
-          )}
-          {renderTextField(
-            t('foodForm.brand', { defaultValue: 'Brand' }),
-            'brand',
-            t('foodForm.optional', { defaultValue: 'Optional' }),
-            false,
-            'servingSize'
-          )}
-          {/* Serving */}
-          <View className="flex-row gap-3">
-            {renderNumericField(
-              t('foodForm.servingSize', { defaultValue: 'Serving Size' }),
-              'servingSize',
-              undefined,
-              false,
-              'calories'
-            )}
-            <View className="gap-1.5 flex-1">
-              <Text className="text-text-secondary text-sm font-medium">
-                {t('foodForm.servingUnit', { defaultValue: 'Serving Unit' })}
-              </Text>
-              {unitSelector ? (
-                <FoodUnitSelectorSheet
-                  variants={unitSelector.variants}
-                  selectedVariantId={selectedSavedVariantId}
-                  selectedSelection={selectedUnitSelection}
-                  title={t('foodForm.selectUnit', {
-                    defaultValue: 'Select Unit',
-                  })}
-                  onSelect={handleUnitSelectorSelection}
-                  renderTrigger={({ onPress }) => (
-                    <TouchableOpacity
-                      onPress={onPress}
-                      activeOpacity={0.7}
-                      className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
-                      style={{ height: 44 }}
-                    >
-                      <Text
-                        className="text-text-primary flex-1 pr-2"
-                        style={{ fontSize: 16 }}
-                        numberOfLines={1}
-                      >
-                        {form.servingUnit
-                          ? localizeFoodUnit(form.servingUnit, t)
-                          : t('foodForm.unit', { defaultValue: 'unit' })}
-                      </Text>
-                      <Icon
-                        name="chevron-down"
-                        size={12}
-                        color={textMuted}
-                        weight="medium"
-                      />
-                    </TouchableOpacity>
-                  )}
-                />
-              ) : (
-                <BottomSheetPicker
-                  value={form.servingUnit}
-                  sections={makeServingUnitSections(t)}
-                  onSelect={(v) => update('servingUnit', v)}
-                  title={t('foodForm.selectUnit', {
-                    defaultValue: 'Select Unit',
-                  })}
-                  placeholder={t('foodForm.unit', { defaultValue: 'unit' })}
-                  renderTrigger={({ onPress, selectedOption }) => (
-                    <TouchableOpacity
-                      onPress={onPress}
-                      activeOpacity={0.7}
-                      className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
-                      style={{ height: 44 }}
-                    >
-                      <Text
-                        className={
-                          selectedOption
-                            ? 'text-text-primary'
-                            : 'text-text-muted'
-                        }
-                        style={{ fontSize: 16 }}
-                      >
-                        {selectedOption?.label ??
-                          t('foodForm.unit', { defaultValue: 'unit' })}
-                      </Text>
-                      <Icon
-                        name="chevron-down"
-                        size={12}
-                        color={textMuted}
-                        weight="medium"
-                      />
-                    </TouchableOpacity>
-                  )}
-                />
+        {editLayout ? (
+          <View className="flex-row gap-4" testID="food-form-identity">
+            {identityAside}
+            <View className="min-w-0 flex-1 gap-3">
+              {renderTextField(
+                t('foodForm.name', { defaultValue: 'Name' }),
+                'name',
+                t('foodForm.foodNamePlaceholder', {
+                  defaultValue: 'e.g. Chicken Breast',
+                }),
+                true,
+                'brand'
+              )}
+              {renderTextField(
+                t('foodForm.brand', { defaultValue: 'Brand' }),
+                'brand',
+                t('foodForm.optional', { defaultValue: 'Optional' }),
+                false,
+                'servingSize'
               )}
             </View>
           </View>
-
-          {equivalents ? (
-            <EquivalentsSection
-              items={equivalents.items}
-              onChange={equivalents.onChange}
-              disabled={equivalents.disabled}
-              textMuted={textMuted}
-              accentColor={accentColor}
-            />
-          ) : null}
-
-          {showAutoScaleNutrition ? (
-            <View className="flex-row items-center justify-between mt-1.5">
-              <Text className="text-text-secondary text-base">
-                {t('foodForm.autoScaleNutrition', {
-                  defaultValue: 'Auto Scale Nutrition',
+        ) : (
+          headerChildren
+        )}
+        {editLayout ? servingsSection : null}
+        {editLayout ? (
+          <TouchableOpacity
+            testID="food-form-additional-info"
+            onPress={() => setAdditionalExpanded((expanded) => !expanded)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: additionalExpanded }}
+            className="min-h-20 flex-row items-center gap-3 rounded-2xl border border-border-subtle bg-surface px-4"
+          >
+            <View className="h-11 w-11 items-center justify-center rounded-full bg-raised">
+              <Icon name="document-text" size={20} color={textMuted} />
+            </View>
+            <View className="min-w-0 flex-1">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('foodForm.additionalInfo.title', {
+                  defaultValue: 'Additional information',
                 })}
               </Text>
-              <Switch
-                accessibilityLabel={t('foodForm.autoScaleNutrition', {
-                  defaultValue: 'Auto Scale Nutrition',
+              <Text className="text-xs text-text-secondary" numberOfLines={2}>
+                {t('foodForm.additionalInfo.subtitle', {
+                  defaultValue: 'Edit nutrition values, notes and more',
                 })}
-                value={autoScaleNutrition}
-                onValueChange={(value) => {
-                  hasTouchedAutoScaleRef.current = true;
-                  setAutoScaleNutrition(value);
+              </Text>
+            </View>
+            <Icon
+              name={additionalExpanded ? 'chevron-down' : 'chevron-forward'}
+              size={16}
+              color={textMuted}
+            />
+          </TouchableOpacity>
+        ) : null}
+        {showDetails ? (
+          <View className="bg-surface rounded-xl p-4 gap-4 shadow-sm">
+            {editLayout ? null : (
+              <>
+                {renderTextField(
+                  t('foodForm.foodName', { defaultValue: 'Food Name' }),
+                  'name',
+                  t('foodForm.foodNamePlaceholder', {
+                    defaultValue: 'e.g. Chicken Breast',
+                  }),
+                  true,
+                  'brand'
+                )}
+                {renderTextField(
+                  t('foodForm.brand', { defaultValue: 'Brand' }),
+                  'brand',
+                  t('foodForm.optional', { defaultValue: 'Optional' }),
+                  false,
+                  'servingSize'
+                )}
+              </>
+            )}
+            {/* Serving */}
+            <View className="flex-row gap-3">
+              {renderNumericField(
+                t('foodForm.servingSize', { defaultValue: 'Serving Size' }),
+                'servingSize',
+                undefined,
+                false,
+                'calories'
+              )}
+              <View className="gap-1.5 flex-1">
+                <Text className="text-text-secondary text-sm font-medium">
+                  {t('foodForm.servingUnit', { defaultValue: 'Serving Unit' })}
+                </Text>
+                {unitSelector ? (
+                  <FoodUnitSelectorSheet
+                    variants={unitSelector.variants}
+                    selectedVariantId={selectedSavedVariantId}
+                    selectedSelection={selectedUnitSelection}
+                    title={t('foodForm.selectUnit', {
+                      defaultValue: 'Select Unit',
+                    })}
+                    onSelect={handleUnitSelectorSelection}
+                    renderTrigger={({ onPress }) => (
+                      <TouchableOpacity
+                        onPress={onPress}
+                        activeOpacity={0.7}
+                        className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+                        style={{ height: 44 }}
+                      >
+                        <Text
+                          className="text-text-primary flex-1 pr-2"
+                          style={{ fontSize: 16 }}
+                          numberOfLines={1}
+                        >
+                          {form.servingUnit
+                            ? localizeFoodUnit(form.servingUnit, t)
+                            : t('foodForm.unit', { defaultValue: 'unit' })}
+                        </Text>
+                        <Icon
+                          name="chevron-down"
+                          size={12}
+                          color={textMuted}
+                          weight="medium"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  />
+                ) : (
+                  <BottomSheetPicker
+                    value={form.servingUnit}
+                    sections={makeServingUnitSections(t)}
+                    onSelect={(v) => update('servingUnit', v)}
+                    title={t('foodForm.selectUnit', {
+                      defaultValue: 'Select Unit',
+                    })}
+                    placeholder={t('foodForm.unit', { defaultValue: 'unit' })}
+                    renderTrigger={({ onPress, selectedOption }) => (
+                      <TouchableOpacity
+                        onPress={onPress}
+                        activeOpacity={0.7}
+                        className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+                        style={{ height: 44 }}
+                      >
+                        <Text
+                          className={
+                            selectedOption
+                              ? 'text-text-primary'
+                              : 'text-text-muted'
+                          }
+                          style={{ fontSize: 16 }}
+                        >
+                          {selectedOption?.label ??
+                            t('foodForm.unit', { defaultValue: 'unit' })}
+                        </Text>
+                        <Icon
+                          name="chevron-down"
+                          size={12}
+                          color={textMuted}
+                          weight="medium"
+                        />
+                      </TouchableOpacity>
+                    )}
+                  />
+                )}
+              </View>
+            </View>
+
+            {equivalents ? (
+              <EquivalentsSection
+                items={equivalents.items}
+                onChange={equivalents.onChange}
+                disabled={equivalents.disabled}
+                textMuted={textMuted}
+                accentColor={accentColor}
+              />
+            ) : null}
+
+            {showAutoScaleNutrition ? (
+              <View className="flex-row items-center justify-between mt-1.5">
+                <Text className="text-text-secondary text-base">
+                  {t('foodForm.autoScaleNutrition', {
+                    defaultValue: 'Auto Scale Nutrition',
+                  })}
+                </Text>
+                <Switch
+                  accessibilityLabel={t('foodForm.autoScaleNutrition', {
+                    defaultValue: 'Auto Scale Nutrition',
+                  })}
+                  value={autoScaleNutrition}
+                  onValueChange={(value) => {
+                    hasTouchedAutoScaleRef.current = true;
+                    setAutoScaleNutrition(value);
+                  }}
+                />
+              </View>
+            ) : null}
+
+            {showManualUpdateBanner
+              ? (() => {
+                  // AI eligibility for this swap. When true, the Convert with AI
+                  // button appears below the banner. The banner text itself is
+                  // unconditional now — the button is the affordance.
+                  const canAiConvert =
+                    aiEstimatesAvailable &&
+                    swapContextRef.current != null &&
+                    trustedAnchorRef.current != null &&
+                    shouldOfferAiConversion(
+                      trustedAnchorRef.current.serving_unit,
+                      form.servingUnit
+                    );
+                  return (
+                    <View className="mt-1.5 gap-2">
+                      <View
+                        className="rounded-lg px-3 py-3 flex-row items-center gap-2.5"
+                        style={{ backgroundColor: infoBg }}
+                      >
+                        <Icon name="info-circle" size={18} color={infoText} />
+                        <Text
+                          className="text-sm font-medium flex-1"
+                          style={{ color: infoText }}
+                        >
+                          {t('foodForm.manualUpdate.banner', {
+                            defaultValue:
+                              "Can't convert between units. Update nutrition values manually.",
+                          })}
+                        </Text>
+                      </View>
+                      {canAiConvert ? (
+                        <TouchableOpacity
+                          onPress={handleAiEstimate}
+                          disabled={isEstimatingAi}
+                          activeOpacity={0.7}
+                          className={`bg-raised rounded-xl py-3 items-center justify-center ${isEstimatingAi ? 'opacity-50' : ''}`}
+                        >
+                          {isEstimatingAi ? (
+                            <View className="flex-row items-center gap-2">
+                              <ActivityIndicator
+                                size="small"
+                                color={textPrimary}
+                              />
+                              <Text className="text-text-primary font-semibold">
+                                {t('foodForm.ai.estimating', {
+                                  defaultValue: 'Estimating…',
+                                })}
+                              </Text>
+                            </View>
+                          ) : (
+                            <View className="flex-row items-center gap-2">
+                              <Icon
+                                name="sparkles"
+                                size={16}
+                                color={textPrimary}
+                                style={androidSparkleStyle}
+                              />
+                              <Text className="text-text-primary font-semibold">
+                                {t('foodForm.ai.convertWithAI', {
+                                  defaultValue: 'Convert with AI',
+                                })}
+                              </Text>
+                            </View>
+                          )}
+                        </TouchableOpacity>
+                      ) : null}
+                    </View>
+                  );
+                })()
+              : null}
+
+            {selectedUnitSelection?.variant.source === 'ai_estimate' &&
+            selectedUnitSelection.variant.ai_confidence ? (
+              <View
+                className={`mt-1.5 rounded-lg p-3 ${
+                  aiBadgeBgClassByTone[
+                    CONFIDENCE_TONES[
+                      selectedUnitSelection.variant
+                        .ai_confidence as AiConfidence
+                    ]
+                  ]
+                }`}
+              >
+                <Text
+                  className="text-sm font-semibold"
+                  style={{
+                    color:
+                      aiTextColorByTone[
+                        CONFIDENCE_TONES[
+                          selectedUnitSelection.variant
+                            .ai_confidence as AiConfidence
+                        ]
+                      ],
+                  }}
+                >
+                  {localizeAiEstimateQuality(
+                    t,
+                    selectedUnitSelection.variant.ai_confidence as AiConfidence
+                  )}
+                </Text>
+              </View>
+            ) : null}
+
+            <View className="gap-1.5 mt-1.5">
+              <Text className="text-text-primary text-sm font-bold">
+                {t('foodForm.caloriesRequired', {
+                  defaultValue: 'Calories (kcal) *',
+                })}
+              </Text>
+              <FormInput
+                ref={fieldRefs.calories}
+                placeholder="0"
+                value={form.calories}
+                onChangeText={(v) => {
+                  if (DECIMAL_INPUT_REGEX.test(v)) update('calories', v);
                 }}
+                keyboardType="decimal-pad"
               />
             </View>
-          ) : null}
-
-          {showManualUpdateBanner
-            ? (() => {
-                // AI eligibility for this swap. When true, the Convert with AI
-                // button appears below the banner. The banner text itself is
-                // unconditional now — the button is the affordance.
-                const canAiConvert =
-                  aiEstimatesAvailable &&
-                  swapContextRef.current != null &&
-                  trustedAnchorRef.current != null &&
-                  shouldOfferAiConversion(
-                    trustedAnchorRef.current.serving_unit,
-                    form.servingUnit
-                  );
-                return (
-                  <View className="mt-1.5 gap-2">
-                    <View
-                      className="rounded-lg px-3 py-3 flex-row items-center gap-2.5"
-                      style={{ backgroundColor: infoBg }}
-                    >
-                      <Icon name="info-circle" size={18} color={infoText} />
-                      <Text
-                        className="text-sm font-medium flex-1"
-                        style={{ color: infoText }}
-                      >
-                        {t('foodForm.manualUpdate.banner', {
-                          defaultValue:
-                            "Can't convert between units. Update nutrition values manually.",
-                        })}
-                      </Text>
-                    </View>
-                    {canAiConvert ? (
-                      <TouchableOpacity
-                        onPress={handleAiEstimate}
-                        disabled={isEstimatingAi}
-                        activeOpacity={0.7}
-                        className={`bg-raised rounded-xl py-3 items-center justify-center ${isEstimatingAi ? 'opacity-50' : ''}`}
-                      >
-                        {isEstimatingAi ? (
-                          <View className="flex-row items-center gap-2">
-                            <ActivityIndicator
-                              size="small"
-                              color={textPrimary}
-                            />
-                            <Text className="text-text-primary font-semibold">
-                              {t('foodForm.ai.estimating', {
-                                defaultValue: 'Estimating…',
-                              })}
-                            </Text>
-                          </View>
-                        ) : (
-                          <View className="flex-row items-center gap-2">
-                            <Icon
-                              name="sparkles"
-                              size={16}
-                              color={textPrimary}
-                              style={androidSparkleStyle}
-                            />
-                            <Text className="text-text-primary font-semibold">
-                              {t('foodForm.ai.convertWithAI', {
-                                defaultValue: 'Convert with AI',
-                              })}
-                            </Text>
-                          </View>
-                        )}
-                      </TouchableOpacity>
-                    ) : null}
-                  </View>
-                );
-              })()
-            : null}
-
-          {selectedUnitSelection?.variant.source === 'ai_estimate' &&
-          selectedUnitSelection.variant.ai_confidence ? (
-            <View
-              className={`mt-1.5 rounded-lg p-3 ${
-                aiBadgeBgClassByTone[
-                  CONFIDENCE_TONES[
-                    selectedUnitSelection.variant.ai_confidence as AiConfidence
-                  ]
-                ]
-              }`}
+            <View className="flex-row gap-3">
+              {renderNumericField(
+                t('nutrients.fat', { defaultValue: 'Fat' }),
+                'fat',
+                'g',
+                false,
+                'carbs'
+              )}
+              {renderNumericField(
+                t('nutrients.carbs', { defaultValue: 'Carbs' }),
+                'carbs',
+                'g',
+                false,
+                'protein'
+              )}
+            </View>
+            <View className="flex-row gap-3">
+              {renderNumericField(
+                t('nutrients.protein', { defaultValue: 'Protein' }),
+                'protein',
+                'g',
+                false,
+                'fiber'
+              )}
+              {renderNumericField(
+                t('nutrients.fiber', { defaultValue: 'Fiber' }),
+                'fiber',
+                'g',
+                false,
+                showMoreNutrients ? 'saturatedFat' : undefined
+              )}
+            </View>
+            <Button
+              variant="ghost"
+              onPress={() => setShowMoreNutrients((prev) => !prev)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              className="self-start py-0 px-0"
+              textClassName="text-sm"
             >
               <Text
-                className="text-sm font-semibold"
-                style={{
-                  color:
-                    aiTextColorByTone[
-                      CONFIDENCE_TONES[
-                        selectedUnitSelection.variant
-                          .ai_confidence as AiConfidence
-                      ]
-                    ],
-                }}
+                style={{ color: accentColor }}
+                className="text-sm font-medium"
               >
-                {localizeAiEstimateQuality(
-                  t,
-                  selectedUnitSelection.variant.ai_confidence as AiConfidence
-                )}
+                {showMoreNutrients
+                  ? t('foodNutrition.hideExtra', {
+                      defaultValue: 'Hide extra nutrients ▴',
+                    })
+                  : t('foodNutrition.showMore', {
+                      defaultValue: 'Show more nutrients ▾',
+                    })}
               </Text>
-            </View>
-          ) : null}
+            </Button>
 
-          <View className="gap-1.5 mt-1.5">
-            <Text className="text-text-primary text-sm font-bold">
-              {t('foodForm.caloriesRequired', {
-                defaultValue: 'Calories (kcal) *',
-              })}
-            </Text>
-            <FormInput
-              ref={fieldRefs.calories}
-              placeholder="0"
-              value={form.calories}
-              onChangeText={(v) => {
-                if (DECIMAL_INPUT_REGEX.test(v)) update('calories', v);
-              }}
-              keyboardType="decimal-pad"
-            />
-          </View>
-          <View className="flex-row gap-3">
-            {renderNumericField(
-              t('nutrients.fat', { defaultValue: 'Fat' }),
-              'fat',
-              'g',
-              false,
-              'carbs'
-            )}
-            {renderNumericField(
-              t('nutrients.carbs', { defaultValue: 'Carbs' }),
-              'carbs',
-              'g',
-              false,
-              'protein'
-            )}
-          </View>
-          <View className="flex-row gap-3">
-            {renderNumericField(
-              t('nutrients.protein', { defaultValue: 'Protein' }),
-              'protein',
-              'g',
-              false,
-              'fiber'
-            )}
-            {renderNumericField(
-              t('nutrients.fiber', { defaultValue: 'Fiber' }),
-              'fiber',
-              'g',
-              false,
-              showMoreNutrients ? 'saturatedFat' : undefined
-            )}
-          </View>
-          <Button
-            variant="ghost"
-            onPress={() => setShowMoreNutrients((prev) => !prev)}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            className="self-start py-0 px-0"
-            textClassName="text-sm"
-          >
-            <Text
-              style={{ color: accentColor }}
-              className="text-sm font-medium"
-            >
-              {showMoreNutrients
-                ? t('foodNutrition.hideExtra', {
-                    defaultValue: 'Hide extra nutrients ▴',
-                  })
-                : t('foodNutrition.showMore', {
-                    defaultValue: 'Show more nutrients ▾',
-                  })}
-            </Text>
-          </Button>
-
-          {showMoreNutrients && (
-            <>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.saturatedFatLabel', {
-                    defaultValue: 'Saturated Fat',
-                  }),
-                  'saturatedFat',
-                  'g',
-                  false,
-                  'transFat'
-                )}
-                {renderNumericField(
-                  t('nutrients.transFat', { defaultValue: 'Trans Fat' }),
-                  'transFat',
-                  'g',
-                  false,
-                  'cholesterol'
-                )}
-              </View>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.cholesterol', { defaultValue: 'Cholesterol' }),
-                  'cholesterol',
-                  'mg',
-                  false,
-                  'sodium'
-                )}
-                {renderNumericField(
-                  t('nutrients.sodium', { defaultValue: 'Sodium' }),
-                  'sodium',
-                  'mg',
-                  false,
-                  'sugars'
-                )}
-              </View>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.sugars', { defaultValue: 'Sugars' }),
-                  'sugars',
-                  'g',
-                  false,
-                  'calcium'
-                )}
-                {renderNumericField(
-                  t('nutrients.calcium', { defaultValue: 'Calcium' }),
-                  'calcium',
-                  'mg',
-                  false,
-                  'iron'
-                )}
-              </View>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.iron', { defaultValue: 'Iron' }),
-                  'iron',
-                  'mg',
-                  false,
-                  'vitaminA'
-                )}
-                {renderNumericField(
-                  t('nutrients.vitaminA', { defaultValue: 'Vitamin A' }),
-                  'vitaminA',
-                  'mcg',
-                  false,
-                  'vitaminC'
-                )}
-              </View>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.vitaminC', { defaultValue: 'Vitamin C' }),
-                  'vitaminC',
-                  'mg',
-                  false,
-                  'potassium'
-                )}
-                {renderNumericField(
-                  t('nutrients.potassium', { defaultValue: 'Potassium' }),
-                  'potassium',
-                  'mg',
-                  false,
-                  'caffeineMg'
-                )}
-              </View>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.caffeine', { defaultValue: 'Caffeine' }),
-                  'caffeineMg',
-                  'mg',
-                  false,
-                  'waterMl'
-                )}
-                {renderNumericField(
-                  t('nutrients.waterContent', {
-                    defaultValue: 'Water Content',
-                  }),
-                  'waterMl',
-                  'ml',
-                  false,
-                  'alcoholG'
-                )}
-              </View>
-              <View className="flex-row gap-3">
-                {renderNumericField(
-                  t('nutrients.alcohol', { defaultValue: 'Alcohol' }),
-                  'alcoholG',
-                  'g'
-                )}
-              </View>
-              {Array.from(
-                { length: Math.ceil(customNutrientDefs.length / 2) },
-                (_, rowIndex) => {
-                  const first = customNutrientDefs[rowIndex * 2];
-                  const second = customNutrientDefs[rowIndex * 2 + 1];
-                  return (
-                    <View key={first.name} className="flex-row gap-3">
-                      <View className="gap-1.5 flex-1">
-                        <Text className="text-text-secondary text-sm font-medium">
-                          {first.name}
-                          {first.unit ? ` (${first.unit})` : ''}
-                        </Text>
-                        <FormInput
-                          placeholder="0"
-                          value={customNutrientForm[first.name] ?? ''}
-                          onChangeText={(v) =>
-                            updateCustomNutrient(first.name, v)
-                          }
-                          keyboardType="decimal-pad"
-                        />
-                      </View>
-                      {second ? (
+            {showMoreNutrients && (
+              <>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.saturatedFatLabel', {
+                      defaultValue: 'Saturated Fat',
+                    }),
+                    'saturatedFat',
+                    'g',
+                    false,
+                    'transFat'
+                  )}
+                  {renderNumericField(
+                    t('nutrients.transFat', { defaultValue: 'Trans Fat' }),
+                    'transFat',
+                    'g',
+                    false,
+                    'cholesterol'
+                  )}
+                </View>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.cholesterol', { defaultValue: 'Cholesterol' }),
+                    'cholesterol',
+                    'mg',
+                    false,
+                    'sodium'
+                  )}
+                  {renderNumericField(
+                    t('nutrients.sodium', { defaultValue: 'Sodium' }),
+                    'sodium',
+                    'mg',
+                    false,
+                    'sugars'
+                  )}
+                </View>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.sugars', { defaultValue: 'Sugars' }),
+                    'sugars',
+                    'g',
+                    false,
+                    'calcium'
+                  )}
+                  {renderNumericField(
+                    t('nutrients.calcium', { defaultValue: 'Calcium' }),
+                    'calcium',
+                    'mg',
+                    false,
+                    'iron'
+                  )}
+                </View>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.iron', { defaultValue: 'Iron' }),
+                    'iron',
+                    'mg',
+                    false,
+                    'vitaminA'
+                  )}
+                  {renderNumericField(
+                    t('nutrients.vitaminA', { defaultValue: 'Vitamin A' }),
+                    'vitaminA',
+                    'mcg',
+                    false,
+                    'vitaminC'
+                  )}
+                </View>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.vitaminC', { defaultValue: 'Vitamin C' }),
+                    'vitaminC',
+                    'mg',
+                    false,
+                    'potassium'
+                  )}
+                  {renderNumericField(
+                    t('nutrients.potassium', { defaultValue: 'Potassium' }),
+                    'potassium',
+                    'mg',
+                    false,
+                    'caffeineMg'
+                  )}
+                </View>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.caffeine', { defaultValue: 'Caffeine' }),
+                    'caffeineMg',
+                    'mg',
+                    false,
+                    'waterMl'
+                  )}
+                  {renderNumericField(
+                    t('nutrients.waterContent', {
+                      defaultValue: 'Water Content',
+                    }),
+                    'waterMl',
+                    'ml',
+                    false,
+                    'alcoholG'
+                  )}
+                </View>
+                <View className="flex-row gap-3">
+                  {renderNumericField(
+                    t('nutrients.alcohol', { defaultValue: 'Alcohol' }),
+                    'alcoholG',
+                    'g'
+                  )}
+                </View>
+                {Array.from(
+                  { length: Math.ceil(customNutrientDefs.length / 2) },
+                  (_, rowIndex) => {
+                    const first = customNutrientDefs[rowIndex * 2];
+                    const second = customNutrientDefs[rowIndex * 2 + 1];
+                    return (
+                      <View key={first.name} className="flex-row gap-3">
                         <View className="gap-1.5 flex-1">
                           <Text className="text-text-secondary text-sm font-medium">
-                            {second.name}
-                            {second.unit ? ` (${second.unit})` : ''}
+                            {first.name}
+                            {first.unit ? ` (${first.unit})` : ''}
                           </Text>
                           <FormInput
                             placeholder="0"
-                            value={customNutrientForm[second.name] ?? ''}
+                            value={customNutrientForm[first.name] ?? ''}
                             onChangeText={(v) =>
-                              updateCustomNutrient(second.name, v)
+                              updateCustomNutrient(first.name, v)
                             }
                             keyboardType="decimal-pad"
                           />
                         </View>
-                      ) : (
-                        <View className="flex-1" />
-                      )}
-                    </View>
-                  );
-                }
-              )}
-            </>
-          )}
-        </View>
+                        {second ? (
+                          <View className="gap-1.5 flex-1">
+                            <Text className="text-text-secondary text-sm font-medium">
+                              {second.name}
+                              {second.unit ? ` (${second.unit})` : ''}
+                            </Text>
+                            <FormInput
+                              placeholder="0"
+                              value={customNutrientForm[second.name] ?? ''}
+                              onChangeText={(v) =>
+                                updateCustomNutrient(second.name, v)
+                              }
+                              keyboardType="decimal-pad"
+                            />
+                          </View>
+                        ) : (
+                          <View className="flex-1" />
+                        )}
+                      </View>
+                    );
+                  }
+                )}
+              </>
+            )}
+          </View>
+        ) : null}
 
-        {servingsSection}
+        {editLayout ? null : servingsSection}
 
         {/*
           After the nutrition fields, not before them: those are the point of
           this form, and a long recipe ahead of them would push them off-screen.
         */}
-        {showNotes ? (
+        {showNotes && showDetails ? (
           <View className="mt-4">
             <MarkdownNotesField
               images={noteImages}

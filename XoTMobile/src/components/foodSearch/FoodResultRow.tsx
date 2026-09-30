@@ -156,8 +156,9 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
             name: item.name,
           })}
           onPress={() => onQuickAdd(item)}
-          hitSlop={6}
-          className="mr-4 w-11 h-11 rounded-full border-2 items-center justify-center active:opacity-70"
+          // Smaller circle; the hit area stays 44 pt.
+          hitSlop={11}
+          className="mr-4 w-[34px] h-[34px] rounded-full border-2 items-center justify-center active:opacity-70"
           style={{
             borderColor: addColor,
             boxShadow: glowing
@@ -165,7 +166,7 @@ const FoodResultRow: React.FC<FoodResultRowProps> = ({
               : undefined,
           }}
         >
-          <Icon name="add" size={20} color={addColor} weight="bold" />
+          <Icon name="add" size={16} color={addColor} weight="bold" />
         </Pressable>
       ) : null}
     </View>

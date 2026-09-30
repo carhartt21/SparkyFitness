@@ -15,6 +15,7 @@ import FoodImagePicker from '../../components/FoodImagePicker';
 import ServingSizesEditor from '../../components/foodForm/ServingSizesEditor';
 import i18n from '../../localization/i18n';
 import { usableFoodImages } from '../../utils/foodImages';
+import { foodFallbackImage } from '../../utils/foodFallbackImages';
 import {
   pickerImagesDiffer,
   splitPickerImages,
@@ -48,7 +49,6 @@ import {
   type ServingBasis,
   type ServingDraft,
 } from '../../utils/servingDrafts';
-import { useNativeIOSHeadersActive } from '../../services/nativeTabBarPreference';
 import {
   useScreenHeader,
   SAVE_LABEL,
@@ -184,7 +184,6 @@ export function EditFoodMode({
     params;
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const usesNativeHeader = useNativeIOSHeadersActive();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pickerImages, setPickerImages] = useState<PickerImage[]>(() =>
@@ -488,7 +487,8 @@ export function EditFoodMode({
   const header = useScreenHeader({
     title: t('foodForm.editTitle', { defaultValue: 'Edit Food' }),
     left: {
-      kind: 'dismiss',
+      kind: 'text',
+      label: t('common.cancel', { defaultValue: 'Cancel' }),
       onPress: () => navigation.goBack(),
       disabled: isSubmitting,
       identifier: 'food-edit-cancel',
@@ -499,7 +499,7 @@ export function EditFoodMode({
       busyLabel: SAVING_LABEL,
       busy: isSubmitting,
       disabled: isSubmitting,
-      placement: 'native-only',
+      pill: true,
       onPress: () => submitRequestRef.current?.(),
       identifier: 'food-edit-save',
     },
@@ -523,31 +523,30 @@ export function EditFoodMode({
         showNotes
         noteImages={savedNoteImages}
         isSubmitting={isSubmitting}
-        hideSubmitButton={usesNativeHeader}
+        // Save lives in the header on both header paths (reference layout).
+        hideSubmitButton
         onFormChange={setLiveForm}
-        headerChildren={
-          <View className="mb-4">
-            <FoodImagePicker
-              items={pickerImages}
-              onItemsChange={setPickerImages}
-              disabled={isSubmitting}
-            />
-          </View>
+        identityAside={
+          <FoodImagePicker
+            variant="cover"
+            coverPlaceholder={foodFallbackImage(item?.name)}
+            items={pickerImages}
+            onItemsChange={setPickerImages}
+            disabled={isSubmitting}
+          />
         }
         servingsSection={
-          <View className="mt-4">
-            <ServingSizesEditor
-              basis={servingBasis}
-              drafts={drafts}
-              onChange={setDrafts}
-              storedVariants={variants}
-              basisWeightText={basisWeightText}
-              basisWeightUnit={basisWeightUnit}
-              onBasisWeightChange={setBasisWeightText}
-              errors={showErrors ? errors : {}}
-              disabled={isSubmitting || !variants}
-            />
-          </View>
+          <ServingSizesEditor
+            basis={servingBasis}
+            drafts={drafts}
+            onChange={setDrafts}
+            storedVariants={variants}
+            basisWeightText={basisWeightText}
+            basisWeightUnit={basisWeightUnit}
+            onBasisWeightChange={setBasisWeightText}
+            errors={showErrors ? errors : {}}
+            disabled={isSubmitting || !variants}
+          />
         }
         customNutrients={currentCustomNutrients}
         onCustomNutrientsChange={setCurrentCustomNutrients}

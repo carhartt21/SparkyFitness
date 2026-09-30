@@ -1,3 +1,4 @@
+import { Image } from 'expo-image';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, Pressable, Alert } from 'react-native';
@@ -27,6 +28,18 @@ interface FoodImagePickerProps {
   helpText?: string;
   maxImages?: number;
   disabled?: boolean;
+  /**
+   * `cover` shows one large main-photo tile with an edit badge (Edit Food);
+   * further photos are added and managed from its action menu.
+   */
+  variant?: 'strip' | 'cover';
+  /** Edge length of the cover tile. */
+  coverSize?: number;
+  /**
+   * Cover tile without a photo: category artwork shown dimmed behind an
+   * "Add photo" hint. Display-only; it is never saved as the food's image.
+   */
+  coverPlaceholder?: number;
 }
 
 /**
@@ -44,6 +57,9 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
   helpText,
   maxImages = MAX_IMAGES,
   disabled = false,
+  variant = 'strip',
+  coverSize = 132,
+  coverPlaceholder,
 }) => {
   const { t } = useTranslation();
   const getImageSource = useFoodImageSourceContext();
@@ -177,6 +193,149 @@ const FoodImagePicker: React.FC<FoodImagePickerProps> = ({
       buttons
     );
   };
+
+  if (variant === 'cover') {
+    const main = items[0];
+    const promptCover = () => {
+      if (disabled || busy) return;
+      if (!main) {
+        promptAdd();
+        return;
+      }
+      const buttons: {
+        text: string;
+        style?: 'cancel' | 'destructive';
+        onPress?: () => void;
+      }[] = [];
+      if (canAdd) {
+        buttons.push({
+          text: t('foodImagePicker.actions.takePhoto', {
+            defaultValue: 'Take Photo',
+          }),
+          onPress: () => void addFromCamera(),
+        });
+        buttons.push({
+          text: t('foodImagePicker.actions.chooseFromLibrary', {
+            defaultValue: 'Choose from Library',
+          }),
+          onPress: () => void addFromLibrary(),
+        });
+      }
+      if (items.length > 1) {
+        buttons.push({
+          text: t('foodImagePicker.actions.nextAsMain', {
+            defaultValue: 'Show next photo first',
+          }),
+          onPress: () => onItemsChange(setAsMain(items, 1)),
+        });
+      }
+      buttons.push({
+        text: t('foodImagePicker.actions.remove', { defaultValue: 'Remove' }),
+        style: 'destructive',
+        onPress: () => onItemsChange(removeImageAt(items, 0)),
+      });
+      buttons.push({
+        text: t('common.cancel', { defaultValue: 'Cancel' }),
+        style: 'cancel',
+      });
+      Alert.alert(
+        t('foodImagePicker.actions.photo', { defaultValue: 'Photo' }),
+        undefined,
+        buttons
+      );
+    };
+    return (
+      <Pressable
+        onPress={promptCover}
+        disabled={disabled || busy}
+        testID="food-image-cover"
+        accessibilityRole="button"
+        accessibilityLabel={
+          main
+            ? t('foodImagePicker.accessibility.mainPhotoEdit', {
+                defaultValue: 'Main photo, edit',
+              })
+            : t('foodImagePicker.accessibility.addPhoto', {
+                defaultValue: 'Add photo',
+              })
+        }
+        className="items-center justify-center overflow-hidden bg-raised"
+        style={({ pressed }) => ({
+          width: coverSize,
+          // Stretches to the height of the fields beside it (Edit Food).
+          alignSelf: 'stretch',
+          minHeight: coverSize * 0.8,
+          borderRadius: 16,
+          borderWidth: 1,
+          borderStyle: main ? 'solid' : 'dashed',
+          borderColor: borderSubtle,
+          opacity: pressed || busy ? 0.7 : 1,
+        })}
+      >
+        {main ? (
+          <SafeImage
+            source={
+              main.kind === 'saved'
+                ? getImageSource(main.path)
+                : { uri: main.uri, headers: {} }
+            }
+            style={{
+              position: 'absolute',
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            }}
+            contentFit="cover"
+          />
+        ) : coverPlaceholder !== undefined ? (
+          <>
+            <Image
+              source={coverPlaceholder}
+              style={{
+                width: coverSize * 0.8,
+                height: coverSize * 0.8,
+                opacity: 0.55,
+              }}
+              contentFit="contain"
+            />
+            <View
+              className="absolute bottom-2 flex-row items-center gap-1 rounded-full bg-black/60 px-2 py-0.5"
+              pointerEvents="none"
+            >
+              <Icon name="add" size={12} color="#ffffff" />
+              <Text className="text-[11px] font-medium text-white">
+                {t('foodImagePicker.actions.addPhoto', {
+                  defaultValue: 'Add photo',
+                })}
+              </Text>
+            </View>
+          </>
+        ) : (
+          <Icon name="add" size={28} color={textMuted} />
+        )}
+        <View
+          className="absolute right-2 top-2 h-8 w-8 items-center justify-center rounded-full bg-black/60"
+          pointerEvents="none"
+        >
+          <Icon name="pencil" size={14} color="#ffffff" />
+        </View>
+        {items.length > 1 ? (
+          <View
+            className="absolute bottom-2 left-2 rounded-full bg-black/60 px-2 py-0.5"
+            pointerEvents="none"
+          >
+            <Text className="text-[11px] font-medium text-white">
+              {t('foodImagePicker.labels.count', {
+                defaultValue: '{{total}} photos',
+                total: items.length,
+              })}
+            </Text>
+          </View>
+        ) : null}
+      </Pressable>
+    );
+  }
 
   return (
     <View>
