@@ -11,6 +11,8 @@ node scripts/review-ios.mjs \
 
 Prerequisites: Xcode with iOS 26.2 runtime (override with `--runtime`), an existing compatible Expo development **simulator** app with bundle ID `com.cg.phi`, installed project dependencies, Swift/Vision, and Ruby's `xcodeproj` gem. Use a fresh output directory. Ports 43990 and 43991 must be free. `--single` runs the German 390-point baseline case only. The app no longer offers the Liquid Glass tab bar, so `--native-tabs` has no effect. The package shortcut is `pnpm ui:review:ios --app ...`.
 
+Use normal Xcode simulator signing for the runnable app. A build with `CODE_SIGNING_ALLOWED=NO` is only a compilation check: the current HealthKit native source lookup can abort at startup without Xcode-generated simulator entitlements. The verified local build uses `CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=-`; it does not sign or publish a physical-device archive.
+
 The runner creates/reuses only simulators named `XOT UI Review …`; it does not erase the user's simulator or launch a physical phone. It installs the supplied native app into those disposable review devices and serves current JavaScript through a dedicated Metro process. It uses iOS launch arguments for the actual date locale, theme preferences for the app, and system Dynamic Type for the large-text case.
 
 ## Gates and artifacts
@@ -59,3 +61,7 @@ the process. Scan may land on the existing camera permission screen. Camera
 capture, saved entries and Android launcher behavior are outside this gate.
 Shortcuts register after the first launch and follow the app language; system
 menu rows follow the device language. Old native binaries need rebuilding.
+
+## Food detail layout matrix
+
+`--interactions --food-details-review` opens a synthetic search result and captures its amount controls, saved portions and expanded nutrition details. It also runs the light 390-point and German enlarged-text 430-point cases. Controls may scroll into view; the test checks quantity and options have 44-point heights. It does not save in this mode. Use the default interaction flow separately for portion/save/edit/delete and keyboard-note acknowledgements.

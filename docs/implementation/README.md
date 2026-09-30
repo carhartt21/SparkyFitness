@@ -4,6 +4,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current runbooks and reviews
 
+- [Feature merge strategy](feature-branch-merge-strategy-2026-09-30.md) and [combined integration evidence](feature-batch-integration-2026-09-30.md): branch order, blocker corrections and release/device gates.
 - [TestFlight release](../../XoTMobile/docs/testflight-release.md): signing, local/cloud build and submission. Confirm the actual submission state independently of a successful archive.
 - [Repository cleanup](repository-cleanup-2026-09-29.md): current package layout, compatibility boundaries and cleanup verification.
 - [Serving sizes](serving-sizes-2026-09-29.md) and [German localization](german-localization-review-2026-09-29.md): latest food-entry and localization review.
