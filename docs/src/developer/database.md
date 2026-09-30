@@ -446,3 +446,9 @@ WHERE tablename = 'table_name';
 - **ANALYZE**: Update table statistics
 - **Index maintenance**: Rebuild indexes if needed
 - **Log rotation**: Rotate and archive database logs
+
+### Mobility planning and notification v2
+
+`mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, and `mobility_operations` are Tier 1 owner-only records. Routines retain ordered step snapshots; recurring schedules materialize account-local dated plans. Session history stores explicit outcomes and provenance; missing outcomes remain unknown. Operation receipts provide replay protection and revisions protect concurrent phone/web/MCP edits. `/api/v2/mobility` does not create exercise diary entries or Apple Health workouts. Explicit history queries use the requested account-local date range and include active sessions. The default phone snapshot includes the latest 100 historical records regardless of age, preserving the existing local history window.
+
+`engagement_subject_states` stores owner-only idempotent movement-timer start hints, not health/activity records. Engagement v2 adds nullable reminder limits, schedule settings, device capability/language/ownership, and stable occurrence slots. Version 1 settings remain available to installed clients. Quiet hours, completion checks, cadence, deduplication and spacing still apply when the daily cap is unlimited.

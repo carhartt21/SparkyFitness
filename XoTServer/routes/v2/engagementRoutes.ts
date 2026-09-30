@@ -1,6 +1,8 @@
 import express from 'express';
 import { z } from 'zod';
 import {
+  engagementSettingsPatchV2Schema,
+  engagementDeviceV2Schema,
   engagementActionSchema,
   engagementDeviceSchema,
   engagementSettingsPatchSchema,
@@ -13,8 +15,11 @@ import {
   EngagementNotFoundError,
   getEngagementChanges,
   getEngagementSettings,
+  getEngagementSettingsV2,
+  getEngagementStatus,
   patchEngagementSettings,
   upsertEngagementDevice,
+  recordMovementTimerStart,
 } from '../../services/engagementService.js';
 
 const router = express.Router();
@@ -22,21 +27,37 @@ router.use(requireSelfActor);
 
 router.get('/settings', async (req, res, next) => {
   try {
-    res.json(await getEngagementSettings(req.authenticatedUserId));
+    res.json(
+      await (
+        req.query.version === '2'
+          ? getEngagementSettingsV2
+          : getEngagementSettings
+      )(req.authenticatedUserId)
+    );
   } catch (error) {
     next(error);
   }
 });
 
 router.patch('/settings', async (req, res, next) => {
-  const parsed = engagementSettingsPatchSchema.safeParse(req.body);
+  const parsed = (
+    req.query.version === '2'
+      ? engagementSettingsPatchV2Schema
+      : engagementSettingsPatchSchema
+  ).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Invalid notification settings.' });
     return;
   }
   try {
+    const legacy = await patchEngagementSettings(
+      req.authenticatedUserId,
+      parsed.data
+    );
     res.json(
-      await patchEngagementSettings(req.authenticatedUserId, parsed.data)
+      req.query.version === '2'
+        ? await getEngagementSettingsV2(req.authenticatedUserId)
+        : legacy
     );
   } catch (error) {
     if (error instanceof EngagementConflictError) {
@@ -48,7 +69,11 @@ router.patch('/settings', async (req, res, next) => {
 });
 
 router.put('/devices', async (req, res, next) => {
-  const parsed = engagementDeviceSchema.safeParse(req.body);
+  const parsed = (
+    req.body?.protocol_version === 2
+      ? engagementDeviceV2Schema
+      : engagementDeviceSchema
+  ).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Invalid notification device.' });
     return;
@@ -70,6 +95,37 @@ router.delete('/devices/:installationId', async (req, res, next) => {
   try {
     await disableEngagementDevice(req.authenticatedUserId, id.data);
     res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.put('/movement-starts/:id', async (req, res, next) => {
+  const parsed = z
+    .strictObject({ id: z.uuid(), startedAt: z.iso.datetime({ offset: true }) })
+    .safeParse({ id: req.params.id, startedAt: req.body?.startedAt });
+  if (
+    !parsed.success ||
+    Date.parse(parsed.data.startedAt) > Date.now() + 300_000
+  ) {
+    res.status(400).json({ error: 'Invalid timer start.' });
+    return;
+  }
+  try {
+    await recordMovementTimerStart(
+      req.authenticatedUserId,
+      parsed.data.id,
+      parsed.data.startedAt
+    );
+    res.status(204).end();
+  } catch (error) {
+    next(error);
+  }
+});
+
+router.get('/status', async (req, res, next) => {
+  try {
+    res.json(await getEngagementStatus(req.authenticatedUserId));
   } catch (error) {
     next(error);
   }

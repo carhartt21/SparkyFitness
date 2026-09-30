@@ -5,8 +5,12 @@ import type {
   EngagementDevice,
   EngagementSettings,
   EngagementSettingsPatch,
+  EngagementSettingsV2,
+  EngagementSettingsPatchV2,
+  EngagementDeviceV2,
+  EngagementStatus,
 } from '@workspace/shared';
-import { instantToDay } from '@workspace/shared';
+import { engagementSettingsV2Schema, instantToDay } from '@workspace/shared';
 import { getClient, getSystemClient } from '../db/poolManager.js';
 import { encrypt, ENCRYPTION_KEY } from '../security/encryption.js';
 import { loadUserTimezone } from '../utils/timezoneLoader.js';
@@ -99,7 +103,7 @@ export async function getEngagementSettings(
 /** Compare-and-swap updates prevent an old phone state replacing a newer web/MCP edit. */
 export async function patchEngagementSettings(
   userId: string,
-  patch: EngagementSettingsPatch
+  patch: EngagementSettingsPatch | EngagementSettingsPatchV2
 ): Promise<EngagementSettings> {
   return withUserClient(userId, async (client) => {
     await client.query('BEGIN');
@@ -144,6 +148,35 @@ export async function patchEngagementSettings(
         }
       }
       updated.revision += 1;
+      const extended = mapSettingsV2(before.rows[0]);
+      const config = Object.fromEntries(
+        SCHEDULE_COLUMNS.map((column) => [
+          column,
+          column in patch
+            ? (patch[column as keyof typeof patch] ?? extended[column])
+            : extended[column],
+        ])
+      );
+      const dailyLimit =
+        'daily_limit' in patch && patch.daily_limit !== undefined
+          ? patch.daily_limit
+          : extended.daily_limit;
+      const merged = engagementSettingsV2Schema.parse({
+        ...extended,
+        ...updated,
+        ...config,
+        daily_limit: dailyLimit,
+      });
+      if (
+        merged.hydration_start >= merged.hydration_end ||
+        merged.meal_capture_start >= merged.meal_capture_end ||
+        merged.meal_capture_time < merged.meal_capture_start ||
+        merged.meal_capture_time >= merged.meal_capture_end
+      ) {
+        throw new EngagementConflictError(
+          'Reminder time must be inside its window; windows cannot cross midnight.'
+        );
+      }
       const values = SETTINGS_COLUMNS.map((column) => updated[column]);
       const setSql = SETTINGS_COLUMNS.map(
         (column, index) => `${column} = $${index + 2}`
@@ -152,6 +185,20 @@ export async function patchEngagementSettings(
         `UPDATE engagement_settings SET ${setSql}, revision = revision + 1,
          updated_at = NOW() WHERE user_id = $1`,
         [userId, ...values]
+      );
+      await client.query(
+        'UPDATE engagement_settings SET daily_limit=$2, schedule_config=$3, schedule_initialized=schedule_initialized OR $4 WHERE user_id=$1',
+        [
+          userId,
+          dailyLimit,
+          config,
+          SCHEDULE_COLUMNS.some((column) => column in patch),
+        ]
+      );
+      // A settings edit invalidates future reservations, never accepted or uncertain sends.
+      await client.query(
+        "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND status='pending'",
+        [userId]
       );
       if (!updated.remote_enabled) {
         await client.query(
@@ -172,7 +219,7 @@ export async function patchEngagementSettings(
 
 export async function upsertEngagementDevice(
   userId: string,
-  device: EngagementDevice
+  device: EngagementDevice | EngagementDeviceV2
 ): Promise<void> {
   const sealed = await encrypt(device.expo_push_token, ENCRYPTION_KEY);
   if (!sealed.encryptedText || !sealed.iv || !sealed.tag) {
@@ -215,6 +262,28 @@ export async function upsertEngagementDevice(
         sealed.iv,
         sealed.tag,
         tokenHash,
+      ]
+    );
+    await client.query(
+      `UPDATE engagement_devices SET protocol_version=$3,reminder_kinds=$4,delivery_owner=$5,language=$6
+      WHERE user_id=$1 AND installation_id=$2`,
+      [
+        userId,
+        device.installation_id,
+        'protocol_version' in device ? 2 : 1,
+        JSON.stringify(
+          'reminder_kinds' in device
+            ? device.reminder_kinds
+            : [
+                'hydration',
+                'meal_capture',
+                'meal_review',
+                'movement_break',
+                'mobility',
+              ]
+        ),
+        'delivery_owner' in device ? device.delivery_owner : 'remote',
+        'language' in device ? device.language : null,
       ]
     );
     await client.query('COMMIT');
@@ -310,7 +379,7 @@ export async function applyEngagementAction(
         };
       }
       const current = await client.query(
-        `SELECT id, kind, local_day, scheduled_at, status
+        `SELECT id, kind, subject_id, slot_key, local_day, scheduled_at, status
          FROM engagement_occurrences WHERE id = $1 AND user_id = $2 FOR UPDATE`,
         [action.occurrence_id, userId]
       );
@@ -318,6 +387,8 @@ export async function applyEngagementAction(
         | {
             id: string;
             kind: string;
+            subject_id: string;
+            slot_key: string;
             local_day: string;
             scheduled_at: Date;
             status: string;
@@ -351,7 +422,7 @@ export async function applyEngagementAction(
           'SELECT * FROM engagement_settings WHERE user_id = $1 FOR UPDATE',
           [userId]
         );
-        const settings = mapSettings(settingRow.rows[0]);
+        const settings = mapSettingsV2(settingRow.rows[0]);
         if (settings.remote_enabled) {
           const at = nextAllowedEngagementTime(
             new Date(Date.now() + (action.snooze_minutes ?? 0) * 60_000),
@@ -360,7 +431,7 @@ export async function applyEngagementAction(
           );
           const localDay = instantToDay(at, timezone);
           const existing = await client.query(
-            `SELECT scheduled_at, status FROM engagement_occurrences
+            `SELECT scheduled_at, CASE WHEN attempt_count>0 THEN 'sent' ELSE status END AS status FROM engagement_occurrences
              WHERE user_id = $1 AND local_day = $2`,
             [userId, localDay]
           );
@@ -377,16 +448,25 @@ export async function applyEngagementAction(
                   scheduledAt: row.scheduled_at,
                   status: row.status,
                 })
-              )
+              ),
+              settings.daily_limit
             )
           ) {
             const inserted = await client.query(
               `INSERT INTO engagement_occurrences
-                 (user_id, kind, local_day, scheduled_at, delivery_owner)
-               VALUES ($1, $2, $3, $4, 'remote')
-               ON CONFLICT (user_id, kind, local_day, scheduled_at) DO NOTHING
+                 (user_id, kind, local_day, scheduled_at, subject_id,slot_key,settings_revision,delivery_owner)
+               VALUES ($1, $2, $3, $4, $5,$6,$7,'remote')
+               ON CONFLICT (user_id,slot_key) DO NOTHING
                RETURNING id`,
-              [userId, occurrence.kind, localDay, at]
+              [
+                userId,
+                occurrence.kind,
+                localDay,
+                at,
+                occurrence.subject_id,
+                `${occurrence.slot_key}:snooze:${action.operation_id}`,
+                settings.revision,
+              ]
             );
             if (inserted.rows[0])
               result = {
@@ -416,5 +496,221 @@ export async function applyEngagementAction(
       await client.query('ROLLBACK');
       throw error;
     }
+  });
+}
+
+const SCHEDULE_COLUMNS = [
+  'hydration_interval_hours',
+  'hydration_start',
+  'hydration_end',
+  'meal_capture_start',
+  'meal_capture_end',
+  'meal_capture_time',
+  'meal_review_time',
+  'movement_break_time',
+] as const;
+const DEFAULT_SCHEDULE = {
+  hydration_interval_hours: 2,
+  hydration_start: '08:00',
+  hydration_end: '22:00',
+  meal_capture_start: '12:00',
+  meal_capture_end: '14:00',
+  meal_capture_time: '13:00',
+  meal_review_time: '20:00',
+  movement_break_time: '15:00',
+};
+function mapSettingsV2(
+  row: Record<string, unknown> | undefined
+): EngagementSettingsV2 {
+  return engagementSettingsV2Schema.parse({
+    ...mapSettings(row),
+    schema_version: 2,
+    schedule_initialized: row?.schedule_initialized === true,
+    daily_limit: row
+      ? row.daily_limit === null
+        ? null
+        : Number(row.daily_limit ?? 3)
+      : 3,
+    ...DEFAULT_SCHEDULE,
+    ...((row?.schedule_config as Record<string, unknown>) ?? {}),
+  });
+}
+export async function getEngagementSettingsV2(
+  userId: string
+): Promise<EngagementSettingsV2> {
+  return withUserClient(userId, async (client) => {
+    const { rows } = await client.query(
+      'SELECT * FROM engagement_settings WHERE user_id=$1',
+      [userId]
+    );
+    return mapSettingsV2(rows[0]);
+  });
+}
+export async function getEngagementStatus(
+  userId: string
+): Promise<EngagementStatus> {
+  const settings = await getEngagementSettingsV2(userId);
+  const timezone = await loadUserTimezone(userId);
+  const day = instantToDay(new Date(), timezone);
+  return withUserClient(userId, async (client) => {
+    const devices = await client.query(
+      'SELECT installation_id,enabled,delivery_owner,protocol_version,last_seen_at,reminder_kinds FROM engagement_devices WHERE user_id=$1',
+      [userId]
+    );
+    const occurrences = await client.query(
+      `SELECT o.id,o.kind,o.subject_id,o.scheduled_at,o.status,o.delivery_owner,
+      COALESCE((SELECT jsonb_agg(jsonb_build_object('installation_id',d.installation_id,'status',d.status,'error_code',d.error_code)) FROM engagement_deliveries d WHERE d.occurrence_id=o.id AND d.user_id=$1),'[]'::jsonb) AS deliveries
+      FROM engagement_occurrences o WHERE o.user_id=$1 AND o.scheduled_at >= now()-interval '7 days' ORDER BY o.scheduled_at DESC LIMIT 200`,
+      [userId]
+    );
+    const count = await client.query(
+      "SELECT count(*) AS n FROM engagement_occurrences WHERE user_id=$1 AND local_day=$2 AND (status='pending' OR attempt_count>0)",
+      [userId, day]
+    );
+    let diagnostics: EngagementStatus['diagnostics'];
+    try {
+      const { engagementPlanForUser } =
+        await import('./engagementPlanningService.js');
+      const plan = await engagementPlanForUser(userId);
+      const { selectOptionalReminderSlots, engagementQuietAt } =
+        await import('@workspace/shared');
+      const spentRows = await client.query<{ scheduled_at: Date }>(
+        'SELECT scheduled_at FROM engagement_occurrences WHERE user_id=$1 AND local_day=$2 AND attempt_count>0',
+        [userId, day]
+      );
+      const common = {
+        now: Date.now(),
+        timezone: plan.timezone,
+        quietStart: settings.quiet_start,
+        quietEnd: settings.quiet_end,
+      };
+      const remaining =
+        settings.daily_limit === null
+          ? null
+          : Math.max(0, settings.daily_limit - spentRows.rows.length);
+      const occupied = spentRows.rows.map((row) => row.scheduled_at.getTime());
+      const explicit = selectOptionalReminderSlots({
+        ...common,
+        candidates: plan.candidates.filter((slot) => slot.kind !== 'hydration'),
+        dailyLimit: remaining,
+        occupied,
+      });
+      const water = selectOptionalReminderSlots({
+        ...common,
+        candidates: plan.candidates.filter((slot) => slot.kind === 'hydration'),
+        dailyLimit:
+          remaining === null ? null : Math.max(0, remaining - explicit.length),
+        occupied: [...occupied, ...explicit.map((slot) => slot.preferredAt)],
+      });
+      const slots = [...explicit, ...water];
+      const grouped = new Map<
+        EngagementStatus['diagnostics'][number]['kind'],
+        EngagementStatus['diagnostics'][number]
+      >();
+      for (const item of plan.diagnostics) {
+        const existing = grouped.get(item.kind);
+        if (
+          !existing ||
+          (item.reason === 'scheduled' &&
+            (existing.reason !== 'scheduled' ||
+              (item.next_at ?? '') < (existing.next_at ?? '')))
+        )
+          grouped.set(item.kind, item);
+      }
+      diagnostics = [...grouped.values()].map((item) => {
+        if (item.reason !== 'scheduled') return item;
+        const next = slots
+          .filter((slot) => slot.kind === item.kind)
+          .sort((a, b) => a.preferredAt - b.preferredAt)[0];
+        const capable = devices.rows.some(
+          (device: {
+            enabled: boolean;
+            delivery_owner: string;
+            reminder_kinds: string[];
+          }) =>
+            device.enabled &&
+            device.delivery_owner === 'remote' &&
+            device.reminder_kinds.includes(item.kind)
+        );
+        const reason = !settings.remote_enabled
+          ? 'local_delivery'
+          : !capable
+            ? 'no_device'
+            : next
+              ? 'scheduled'
+              : remaining === 0 ||
+                  (remaining !== null && slots.length >= remaining)
+                ? 'daily_limit'
+                : item.next_at &&
+                    engagementQuietAt(
+                      Date.parse(item.next_at),
+                      plan.timezone,
+                      settings.quiet_start,
+                      settings.quiet_end
+                    )
+                  ? 'quiet_hours'
+                  : 'spacing';
+        return {
+          kind: item.kind,
+          reason,
+          next_at:
+            reason === 'scheduled' && next
+              ? new Date(next.preferredAt).toISOString()
+              : null,
+        };
+      });
+    } catch {
+      diagnostics = [
+        { kind: 'check_in', reason: 'data_unavailable', next_at: null },
+      ];
+    }
+    return {
+      daily_used: Number(count.rows[0].n),
+      revision: settings.revision,
+      remote_enabled: settings.remote_enabled,
+      daily_limit: settings.daily_limit,
+      devices: devices.rows.map(
+        (row: {
+          installation_id: string;
+          enabled: boolean;
+          delivery_owner: 'local' | 'remote';
+          protocol_version: number;
+          last_seen_at: Date;
+        }) => ({
+          installation_id: row.installation_id,
+          enabled: row.enabled,
+          delivery_owner: row.delivery_owner,
+          protocol_version: row.protocol_version,
+          last_seen_at: row.last_seen_at.toISOString(),
+        })
+      ),
+      occurrences: occurrences.rows.map(
+        (row: {
+          id: string;
+          kind: EngagementStatus['occurrences'][number]['kind'];
+          subject_id: string;
+          scheduled_at: Date;
+          status: string;
+          delivery_owner: 'local' | 'remote';
+          deliveries: EngagementStatus['occurrences'][number]['deliveries'];
+        }) => ({ ...row, scheduled_at: row.scheduled_at.toISOString() })
+      ),
+      diagnostics,
+    };
+  });
+}
+
+/** Idempotent timer-start hint. This creates no exercise, calories or health record. */
+export async function recordMovementTimerStart(
+  userId: string,
+  id: string,
+  startedAt: string
+): Promise<void> {
+  await withUserClient(userId, async (client) => {
+    await client.query(
+      `INSERT INTO engagement_subject_states(user_id,kind,subject_id,started_at)
+    VALUES($1,'movement_break',$2,$3) ON CONFLICT DO NOTHING`,
+      [userId, id, startedAt]
+    );
   });
 }

@@ -781,6 +781,7 @@ export async function recordedMeasurementsOn(
 // --- Meal status --------------------------------------------------------------
 
 export interface MealTypeWithStatus {
+  default_time: string | null;
   meal_type_id: string;
   name: string;
   status: MealDayStatusValue | null;
@@ -796,12 +797,13 @@ export async function listMealStatuses(
   return withClient(userId, undefined, async (client) => {
     const result = await client.query<{
       meal_type_id: string;
+      default_time: string | null;
       name: string;
       status: MealDayStatusValue | null;
       updated_at: Date | null;
       logged_item_count: string;
     }>(
-      `SELECT mt.id AS meal_type_id,
+      `SELECT mt.id AS meal_type_id, mt.default_time,
          COALESCE(umv.name_override, mt.name) AS name,
          mds.status, mds.updated_at,
          (SELECT COUNT(*) FROM food_entries fe
@@ -823,6 +825,7 @@ export async function listMealStatuses(
     );
     return result.rows.map((row) => ({
       meal_type_id: row.meal_type_id,
+      default_time: row.default_time,
       name: row.name,
       status: row.status,
       updated_at: iso(row.updated_at),

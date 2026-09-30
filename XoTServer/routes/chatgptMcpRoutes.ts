@@ -11,12 +11,12 @@ import { checkReadOnlyScope } from '../ai/mcp/readOnlyScope.js';
 import { isToolErrorText } from '../ai/tools/errors.js';
 import { loadUserTimezone } from '../utils/timezoneLoader.js';
 import {
-  getEngagementSettings,
+  getEngagementSettingsV2,
   patchEngagementSettings,
   applyEngagementAction,
 } from '../services/engagementService.js';
 import {
-  engagementSettingsPatchSchema,
+  engagementSettingsPatchV2Schema,
   engagementActionSchema,
 } from '@workspace/shared';
 import versionService from '../services/versionService.js';
@@ -24,6 +24,7 @@ import { hasActiveMcpConsent } from '../services/mcpConnectionService.js';
 
 const router = express.Router();
 const WRITE_TOOLS = new Set([
+  'xot_update_mobility',
   'sparky_manage_food',
   'sparky_manage_exercise',
   'sparky_manage_water_containers',
@@ -109,7 +110,7 @@ function registerTools(
       content: [
         {
           type: 'text',
-          text: JSON.stringify(await getEngagementSettings(userId)),
+          text: JSON.stringify(await getEngagementSettingsV2(userId)),
         },
       ],
     })
@@ -120,14 +121,17 @@ function registerTools(
     {
       description:
         'Update account notification settings using the revision from xot_get_notification_settings.',
-      inputSchema: engagementSettingsPatchSchema,
+      inputSchema: engagementSettingsPatchV2Schema,
       annotations: { readOnlyHint: false, idempotentHint: true },
     },
     async (patch) => ({
       content: [
         {
           type: 'text',
-          text: JSON.stringify(await patchEngagementSettings(userId, patch)),
+          text: JSON.stringify(
+            (await patchEngagementSettings(userId, patch),
+            await getEngagementSettingsV2(userId))
+          ),
         },
       ],
     })

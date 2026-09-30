@@ -1,16 +1,18 @@
-import { instantToDay } from '@workspace/shared';
+import {
+  selectOptionalReminderSlots,
+  engagementQuietAt,
+  type EngagementReminderKindV2,
+} from '@workspace/shared';
+import {
+  engagementPlanForUser,
+  sameEngagementSlot,
+  occurrenceEligible,
+} from './engagementPlanningService.js';
 import type { PoolClient } from 'pg';
 import { getClient, getSystemClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
 import { decrypt, ENCRYPTION_KEY } from '../security/encryption.js';
-import { loadUserTimezone } from '../utils/timezoneLoader.js';
-import { getEngagementSettings } from './engagementService.js';
-import {
-  dueEngagementCandidates,
-  mayReserveEngagementCandidate,
-  type ReminderCandidate,
-  type ReminderKind,
-} from './engagementPolicy.js';
+type ReminderKind = EngagementReminderKindV2;
 
 type PushTicket = {
   status: 'ok' | 'error';
@@ -23,25 +25,37 @@ type PushReceipt = { status: 'ok' | 'error'; details?: { error?: string } };
 const PUSH_SEND_URL = 'https://exp.host/--/api/v2/push/send';
 const PUSH_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
 const MESSAGE: Record<ReminderKind, { en: string; de: string }> = {
+  check_in: {
+    en: 'Your daily check-in is still open.',
+    de: 'Ihr täglicher Check-in ist noch offen.',
+  },
+  habit: {
+    en: 'A scheduled habit is not recorded yet.',
+    de: 'Eine geplante Gewohnheit ist noch nicht erfasst.',
+  },
+  weigh_in: {
+    en: 'Your scheduled weigh-in is still open.',
+    de: 'Ihre geplante Gewichtserfassung ist noch offen.',
+  },
   hydration: {
-    en: 'No drink is logged yet today. Add one if you have had some.',
-    de: 'Heute ist noch kein Getränk erfasst. Trage eines ein, falls du etwas getrunken hast.',
+    en: 'Time to log a drink if you have had one.',
+    de: 'Zeit, ein Getränk zu erfassen, falls Sie etwas getrunken haben.',
   },
   meal_capture: {
-    en: 'No food is logged yet today. Add a meal when you are ready.',
-    de: 'Heute ist noch kein Essen erfasst. Trage eine Mahlzeit ein, wenn du möchtest.',
+    en: 'No meal is captured in the selected time window.',
+    de: 'Für das gewählte Zeitfenster ist noch keine Mahlzeit erfasst.',
   },
   meal_review: {
     en: 'A food photo is waiting for review.',
-    de: 'Ein Essensfoto wartet auf deine Prüfung.',
+    de: 'Ein Essensfoto wartet auf Prüfung.',
   },
   movement_break: {
     en: 'A short movement break is available when it fits your day.',
-    de: 'Eine kurze Bewegungspause passt vielleicht in deinen Tag.',
+    de: 'Eine kurze Bewegungspause steht bereit, wenn es gerade passt.',
   },
   mobility: {
     en: 'Your mobility session is ready when you are.',
-    de: 'Deine Mobilitätseinheit ist bereit, wenn du Zeit hast.',
+    de: 'Ihre geplante Mobilitätseinheit steht bereit.',
   },
 };
 
@@ -58,38 +72,109 @@ async function fetchExpo(url: string, body: unknown): Promise<Response> {
   });
 }
 
-async function reserveForUser(
-  userId: string,
-  candidate: ReminderCandidate
-): Promise<void> {
+/** One account lock reserves logical occurrences, not receiving-device copies. */
+async function reserveForUser(userId: string, now: Date): Promise<void> {
+  const plan = await engagementPlanForUser(userId, now);
+  if (!plan.settings.remote_enabled) return;
   const client: PoolClient = await getClient(userId, userId);
   try {
     await client.query('BEGIN');
-    await client.query(
-      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
-      [`engagement:${userId}:${candidate.localDay}`]
+    await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
+      `engagement:${userId}:${plan.day}`,
+    ]);
+    const existing = await client.query<{
+      id: string;
+      kind: string;
+      subject_id: string;
+      scheduled_at: Date;
+      status: string;
+      settings_revision: number;
+      slot_key: string;
+      attempt_count: number;
+    }>(
+      'SELECT id,kind,subject_id,scheduled_at,status,settings_revision,slot_key,attempt_count FROM engagement_occurrences WHERE user_id=$1 AND local_day=$2 FOR UPDATE',
+      [userId, plan.day]
     );
-    const existing = await client.query(
-      `SELECT scheduled_at, status FROM engagement_occurrences
-       WHERE user_id = $1 AND local_day = $2`,
-      [userId, candidate.localDay]
-    );
-    if (
-      mayReserveEngagementCandidate(
-        candidate,
-        (existing.rows as Array<{ scheduled_at: Date; status: string }>).map(
-          (row) => ({ scheduledAt: row.scheduled_at, status: row.status })
-        )
+    for (const row of existing.rows)
+      if (
+        row.status === 'pending' &&
+        (row.settings_revision !== plan.settings.revision ||
+          !occurrenceEligible(plan, row))
       )
-    ) {
+        await client.query(
+          "UPDATE engagement_occurrences SET status='cancelled' WHERE id=$1",
+          [row.id]
+        );
+    const spent = existing.rows.filter((row) => row.attempt_count > 0);
+    const snoozes = existing.rows.filter(
+      (row) =>
+        row.status === 'pending' &&
+        row.slot_key.includes(':snooze:') &&
+        occurrenceEligible(plan, row)
+    );
+    const occupied = [...spent, ...snoozes].map((row) =>
+      row.scheduled_at.getTime()
+    );
+    const available = plan.candidates.filter(
+      (slot) =>
+        !existing.rows.some(
+          (row) =>
+            sameEngagementSlot(slot, row) &&
+            !['pending', 'cancelled'].includes(row.status)
+        )
+    );
+    const remaining =
+      plan.settings.daily_limit === null
+        ? null
+        : Math.max(
+            0,
+            plan.settings.daily_limit - spent.length - snoozes.length
+          );
+    const common = {
+      now: now.getTime(),
+      timezone: plan.timezone,
+      quietStart: plan.settings.quiet_start,
+      quietEnd: plan.settings.quiet_end,
+    };
+    const explicit = selectOptionalReminderSlots({
+      ...common,
+      candidates: available.filter((slot) => slot.kind !== 'hydration'),
+      dailyLimit: remaining,
+      occupied,
+    });
+    const water = selectOptionalReminderSlots({
+      ...common,
+      candidates: available.filter((slot) => slot.kind === 'hydration'),
+      dailyLimit:
+        remaining === null ? null : Math.max(0, remaining - explicit.length),
+      occupied: [...occupied, ...explicit.map((slot) => slot.preferredAt)],
+    });
+    const selected = [...explicit, ...water];
+    for (const row of existing.rows)
+      if (
+        row.status === 'pending' &&
+        !snoozes.some((item) => item.id === row.id) &&
+        !selected.some((slot) => sameEngagementSlot(slot, row))
+      )
+        await client.query(
+          "UPDATE engagement_occurrences SET status='cancelled' WHERE id=$1",
+          [row.id]
+        );
+    for (const slot of selected)
       await client.query(
-        `INSERT INTO engagement_occurrences
-           (user_id, kind, local_day, scheduled_at, delivery_owner)
-         VALUES ($1, $2, $3, $4, 'remote')
-         ON CONFLICT (user_id, kind, local_day, scheduled_at) DO NOTHING`,
-        [userId, candidate.kind, candidate.localDay, candidate.scheduledAt]
+        `INSERT INTO engagement_occurrences(user_id,kind,subject_id,local_day,scheduled_at,settings_revision,slot_key,delivery_owner)
+      VALUES($1,$2,$3,$4,$5,$6,$7,'remote') ON CONFLICT(user_id,slot_key)
+      DO UPDATE SET status='pending',settings_revision=EXCLUDED.settings_revision WHERE engagement_occurrences.status='cancelled' AND engagement_occurrences.attempt_count=0`,
+        [
+          userId,
+          slot.kind,
+          slot.subjectId,
+          slot.localDay,
+          new Date(slot.preferredAt),
+          plan.settings.revision,
+          slot.id,
+        ]
       );
-    }
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -98,86 +183,31 @@ async function reserveForUser(
     client.release();
   }
 }
-
-/** Reads a bounded set of opted-in accounts; every diary lookup stays user-scoped. */
 export async function planEngagementOccurrences(
   now = new Date()
 ): Promise<void> {
-  let lastUserId: string | null = null;
+  let last: string | null = null;
   for (;;) {
-    const systemClient: PoolClient = await getSystemClient();
-    let userIds: string[];
+    const client: PoolClient = await getSystemClient();
+    let ids: string[];
     try {
-      const result = await systemClient.query(
-        `SELECT s.user_id FROM engagement_settings s
-         WHERE ($1::uuid IS NULL OR s.user_id > $1::uuid)
-           AND s.remote_enabled = TRUE AND EXISTS (
-           SELECT 1 FROM engagement_devices d
-           WHERE d.user_id = s.user_id AND d.enabled = TRUE
-         ) ORDER BY s.user_id LIMIT 250`,
-        [lastUserId]
+      const result = await client.query<{ user_id: string }>(
+        `SELECT user_id FROM engagement_settings s WHERE remote_enabled AND ($1::uuid IS NULL OR user_id>$1::uuid)
+      AND EXISTS(SELECT 1 FROM engagement_devices d WHERE d.user_id=s.user_id AND enabled AND delivery_owner='remote') ORDER BY user_id LIMIT 250`,
+        [last]
       );
-      userIds = result.rows.map((row: { user_id: string }) => row.user_id);
+      ids = result.rows.map((row) => row.user_id);
     } finally {
-      systemClient.release();
+      client.release();
     }
-    if (userIds.length === 0) break;
-    for (const userId of userIds) {
+    if (!ids.length) break;
+    for (const userId of ids)
       try {
-        const [timezone, settings] = await Promise.all([
-          loadUserTimezone(userId),
-          getEngagementSettings(userId),
-        ]);
-        const localDay = instantToDay(now, timezone);
-        const client: PoolClient = await getClient(userId, userId);
-        let context: {
-          foodCount: number;
-          waterCount: number;
-          exerciseCount: number;
-          pendingPhotoCount: number;
-          remindersPaused: boolean;
-        };
-        try {
-          const result = await client.query(
-            `SELECT
-            (SELECT COUNT(*) FROM food_entries WHERE user_id = $1 AND entry_date = $2) AS food_count,
-            (SELECT COUNT(*) FROM water_intake_entries WHERE user_id = $1 AND entry_date = $2) AS water_count,
-            (SELECT COUNT(*) FROM exercise_entries WHERE user_id = $1 AND entry_date = $2) AS exercise_count,
-            (SELECT COUNT(*) FROM nutrition_captures WHERE user_id = $1 AND entry_date = $2
-              AND completion_state = 'incomplete') AS pending_photo_count,
-            EXISTS (SELECT 1 FROM health_context_periods WHERE user_id = $1
-              AND pause_discretionary_reminders AND start_date <= $2
-              AND (end_date IS NULL OR end_date >= $2)) AS reminders_paused`,
-            [userId, localDay]
-          );
-          const row = result.rows[0];
-          context = {
-            foodCount: Number(row.food_count),
-            waterCount: Number(row.water_count),
-            exerciseCount: Number(row.exercise_count),
-            pendingPhotoCount: Number(row.pending_photo_count),
-            remindersPaused: row.reminders_paused === true,
-          };
-        } finally {
-          client.release();
-        }
-        for (const candidate of dueEngagementCandidates({
-          now,
-          timezone,
-          settings,
-          context,
-        })) {
-          await reserveForUser(userId, candidate);
-        }
+        await reserveForUser(userId, now);
       } catch (error) {
-        log(
-          'warn',
-          '[Engagement] Could not plan reminders for an account',
-          error
-        );
+        log('warn', '[Engagement] Planning data unavailable', error);
       }
-    }
-    lastUserId = userIds[userIds.length - 1];
+    last = ids[ids.length - 1];
   }
 }
 
@@ -186,8 +216,14 @@ interface ClaimedOccurrence {
   userId: string;
   kind: ReminderKind;
   language: 'en' | 'de';
+  subjectId: string;
+  scheduledAt: Date;
+  settingsRevision: number;
+  slotKey: string;
   devices: Array<{
     installationId: string;
+    protocolVersion: number;
+    language: 'en' | 'de';
     ciphertext: string;
     iv: string;
     tag: string;
@@ -200,11 +236,12 @@ async function claimNextOccurrence(): Promise<ClaimedOccurrence | null> {
   try {
     await client.query('BEGIN');
     const result = await client.query(
-      `SELECT o.id, o.user_id, o.kind, p.language
+      `SELECT o.id, o.user_id, o.kind, o.subject_id, o.scheduled_at, o.settings_revision, o.slot_key, p.language
        FROM engagement_occurrences o
-       JOIN engagement_settings s ON s.user_id = o.user_id AND s.remote_enabled
+       JOIN engagement_settings s ON s.user_id = o.user_id AND s.remote_enabled AND s.revision=o.settings_revision
        LEFT JOIN user_preferences p ON p.user_id = o.user_id
        WHERE o.status = 'pending' AND o.delivery_owner = 'remote'
+         AND EXISTS (SELECT 1 FROM engagement_devices d WHERE d.user_id=o.user_id AND d.enabled AND d.delivery_owner='remote' AND d.reminder_kinds ? o.kind)
          AND o.scheduled_at <= NOW() AND o.scheduled_at >= NOW() - INTERVAL '30 minutes'
        ORDER BY o.scheduled_at, o.id
        FOR UPDATE OF o SKIP LOCKED LIMIT 1`
@@ -215,6 +252,10 @@ async function claimNextOccurrence(): Promise<ClaimedOccurrence | null> {
           user_id: string;
           kind: ReminderKind;
           language: string | null;
+          subject_id: string;
+          scheduled_at: Date;
+          settings_revision: number;
+          slot_key: string;
         }
       | undefined;
     if (!row) {
@@ -222,10 +263,18 @@ async function claimNextOccurrence(): Promise<ClaimedOccurrence | null> {
       return null;
     }
     const devices = await client.query(
-      `SELECT installation_id, token_ciphertext, token_iv, token_tag
-       FROM engagement_devices WHERE user_id = $1 AND enabled = TRUE`,
-      [row.user_id]
+      `SELECT installation_id, token_ciphertext, token_iv, token_tag,protocol_version,language
+       FROM engagement_devices WHERE user_id = $1 AND enabled = TRUE AND delivery_owner='remote' AND reminder_kinds ? $2`,
+      [row.user_id, row.kind]
     );
+    if (!devices.rows.length) {
+      await client.query(
+        "UPDATE engagement_occurrences SET status='cancelled' WHERE id=$1",
+        [row.id]
+      );
+      await client.query('COMMIT');
+      return null;
+    }
     await client.query(
       `UPDATE engagement_occurrences SET status = 'sending',
          lease_until = NOW() + INTERVAL '2 minutes', attempt_count = attempt_count + 1
@@ -244,15 +293,25 @@ async function claimNextOccurrence(): Promise<ClaimedOccurrence | null> {
       id: row.id,
       userId: row.user_id,
       kind: row.kind,
+      subjectId: row.subject_id,
+      scheduledAt: row.scheduled_at,
+      settingsRevision: row.settings_revision,
+      slotKey: row.slot_key,
       language: row.language?.startsWith('de') ? 'de' : 'en',
       devices: devices.rows.map(
         (device: {
           installation_id: string;
+          protocol_version: number;
+          language: string | null;
           token_ciphertext: string;
           token_iv: string;
           token_tag: string;
         }) => ({
           installationId: device.installation_id,
+          protocolVersion: device.protocol_version,
+          language: (device.language ?? row.language)?.startsWith('de')
+            ? 'de'
+            : 'en',
           ciphertext: device.token_ciphertext,
           iv: device.token_iv,
           tag: device.token_tag,
@@ -271,7 +330,59 @@ export async function deliverEngagementOccurrences(): Promise<void> {
   for (let i = 0; i < 25; i += 1) {
     const occurrence = await claimNextOccurrence();
     if (!occurrence) break;
+    // Re-read completion and schedule state immediately before contacting Expo.
+    let eligible: boolean;
+    try {
+      const plan = await engagementPlanForUser(occurrence.userId);
+      eligible =
+        plan.settings.remote_enabled &&
+        plan.settings.revision === occurrence.settingsRevision &&
+        !engagementQuietAt(
+          Date.now(),
+          plan.timezone,
+          plan.settings.quiet_start,
+          plan.settings.quiet_end
+        ) &&
+        occurrenceEligible(plan, {
+          kind: occurrence.kind,
+          subject_id: occurrence.subjectId,
+          scheduled_at: occurrence.scheduledAt,
+          slot_key: occurrence.slotKey,
+        });
+    } catch {
+      eligible = false;
+    }
+    if (!eligible) {
+      const client: PoolClient = await getSystemClient();
+      try {
+        await client.query(
+          "UPDATE engagement_occurrences SET status='cancelled',lease_until=NULL WHERE id=$1",
+          [occurrence.id]
+        );
+      } finally {
+        client.release();
+      }
+      continue;
+    }
     for (const device of occurrence.devices) {
+      const guard: PoolClient = await getSystemClient();
+      let enabled: boolean;
+      try {
+        const check = await guard.query(
+          `SELECT 1 FROM engagement_devices d JOIN engagement_settings s ON s.user_id=d.user_id
+        WHERE d.user_id=$1 AND d.installation_id=$2 AND d.enabled AND d.delivery_owner='remote' AND d.reminder_kinds ? $3 AND s.remote_enabled AND s.revision=$4`,
+          [
+            occurrence.userId,
+            device.installationId,
+            occurrence.kind,
+            occurrence.settingsRevision,
+          ]
+        );
+        enabled = check.rows.length > 0;
+      } finally {
+        guard.release();
+      }
+      if (!enabled) continue;
       let ticket: PushTicket | undefined;
       try {
         const token = await decrypt(
@@ -285,10 +396,11 @@ export async function deliverEngagementOccurrences(): Promise<void> {
         const response = await fetchExpo(PUSH_SEND_URL, {
           to: token,
           title: 'X on Track',
-          body: MESSAGE[occurrence.kind][occurrence.language],
+          body: MESSAGE[occurrence.kind][device.language],
           categoryId: 'engagement-remote',
           data: {
-            remoteEngagementVersion: 1,
+            remoteEngagementVersion: device.protocolVersion,
+            subjectId: occurrence.subjectId,
             occurrenceId: occurrence.id,
             kind: occurrence.kind,
             userId: occurrence.userId,
