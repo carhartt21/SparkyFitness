@@ -5,6 +5,7 @@ import WatchKit
 /// pick a food, then pick how much. The phone remains responsible for the
 /// authenticated write and its nutrition snapshot.
 struct FoodQuickLogView: View {
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @EnvironmentObject private var store: CheckInStore
     @EnvironmentObject private var session: WatchSessionManager
     @State private var selectedMealTypeId = ""
@@ -16,7 +17,7 @@ struct FoodQuickLogView: View {
     private var shortcuts: [WatchFoodShortcut] { store.context.foodShortcuts ?? [] }
     private var mealTypes: [WatchMealType] { store.context.mealTypes ?? [] }
     private var selectedMealName: String {
-        mealTypes.first(where: { $0.id == selectedMealTypeId })?.name ?? "Meal"
+        mealTypes.first(where: { $0.id == selectedMealTypeId })?.name ?? WatchCopy.text("food.meal")
     }
     private var canAdd: Bool { store.canCaptureActions && !selectedMealTypeId.isEmpty }
 
@@ -53,17 +54,17 @@ struct FoodQuickLogView: View {
     private var list: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
-                Text("Add food")
+                Text(WatchCopy.text("food.add"))
                     .font(.system(.headline, design: .rounded))
                 if mealTypes.isEmpty || shortcuts.isEmpty {
-                    Text("Open X on Track on your phone to sync favorite and recent foods.")
+                    Text(WatchCopy.text("food.syncHint"))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Button("Retry sync") { session.requestContext() }
+                    Button(WatchCopy.text("food.retrySync")) { session.requestContext() }
                 } else {
                     mealChips
-                    foodSection("Favorites", systemImage: "star.fill", group: "favorite")
-                    foodSection("Recently used", systemImage: "clock", group: "recent")
+                    foodSection(WatchCopy.text("food.favorites"), systemImage: "star.fill", group: "favorite")
+                    foodSection(WatchCopy.text("food.recent"), systemImage: "clock", group: "recent")
                 }
                 pendingSection
             }
@@ -83,10 +84,10 @@ struct FoodQuickLogView: View {
         WKInterfaceDevice.current().play(.success)
         session.sendFoodLog(action)
         path.removeAll()
-        withAnimation { justAddedId = food.id }
+        withAnimation(reducedMotion ? nil : .default) { justAddedId = food.id }
         Task { @MainActor in
             try? await Task.sleep(for: .seconds(1.8))
-            if justAddedId == food.id { withAnimation { justAddedId = nil } }
+            if justAddedId == food.id { withAnimation(reducedMotion ? nil : .default) { justAddedId = nil } }
         }
     }
 
@@ -104,13 +105,14 @@ struct FoodQuickLogView: View {
                             guard !selected else { return }
                             WKInterfaceDevice.current().play(.click)
                             selectedMealTypeId = meal.id
-                            withAnimation { proxy.scrollTo(meal.id, anchor: .center) }
+                            withAnimation(reducedMotion ? nil : .default) { proxy.scrollTo(meal.id, anchor: .center) }
                         } label: {
                             Text(meal.name)
-                                .font(.system(size: 13, weight: selected ? .semibold : .regular))
+                                .font(.caption.weight(selected ? .semibold : .regular))
                                 .lineLimit(1)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 6)
+                                .frame(minHeight: 44)
                                 .foregroundStyle(selected ? Neon.accentText : Color.primary)
                                 .background(
                                     Capsule().fill(selected ? Neon.accent : Color.white.opacity(0.12))
@@ -128,7 +130,7 @@ struct FoodQuickLogView: View {
             .onAppear { proxy.scrollTo(selectedMealTypeId, anchor: .center) }
         }
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("Meal")
+        .accessibilityLabel(WatchCopy.text("food.meal"))
     }
 
     // MARK: - Foods
@@ -167,12 +169,12 @@ struct FoodQuickLogView: View {
                     }
                 VStack(alignment: .leading, spacing: 2) {
                     Text(food.name)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.headline)
                         .lineLimit(2)
                         .multilineTextAlignment(.leading)
                     if let top {
                         Text("\(top.title) · \(Int(top.calories.rounded())) kcal")
-                            .font(.system(size: 12))
+                            .font(.caption)
                             .monospacedDigit()
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
@@ -194,7 +196,7 @@ struct FoodQuickLogView: View {
         .disabled(!canAdd)
         .opacity(canAdd ? 1 : 0.5)
         .accessibilityLabel(food.name)
-        .accessibilityHint("Choose how much to add to \(selectedMealName)")
+        .accessibilityHint(WatchCopy.text("food.chooseHint", selectedMealName))
     }
 
     // MARK: - Pending
@@ -205,7 +207,7 @@ struct FoodQuickLogView: View {
             $0.scope == store.context.actionScope && $0.state != .saved
         }
         if !outstanding.isEmpty {
-            Text("Awaiting sync")
+            Text(WatchCopy.text("food.pending"))
                 .font(.caption2.weight(.semibold))
                 .foregroundStyle(.secondary)
                 .textCase(.uppercase)
@@ -214,13 +216,13 @@ struct FoodQuickLogView: View {
                 HStack {
                     Text(action.name).lineLimit(1)
                     Spacer()
-                    Text(action.state == .failed ? "Failed" : "Queued")
+                    Text(action.state == .failed ? WatchCopy.text("food.failed") : WatchCopy.text("food.queued"))
                         .foregroundStyle(action.state == .failed ? Color.orange : Color.secondary)
                 }
                 .font(.caption2)
             }
             if !store.failedFoodActions.isEmpty {
-                Button("Retry failed") { session.retryFailedFoodActions() }
+                Button(WatchCopy.text("food.retryFailed")) { session.retryFailedFoodActions() }
             }
         }
     }
@@ -276,7 +278,7 @@ struct FoodServingView: View {
     let onLog: (WatchFoodServing) -> Void
     let onCustom: (WatchFoodServing) -> Void
 
-    /// The grams (or ml) serving an "Other amount" is typed against.
+    /// The grams (or ml) serving an WatchCopy.text("food.otherAmount") is typed against.
     private var metricBase: WatchFoodServing? {
         choices.first { $0.kind == "default" && ($0.unit == "g" || $0.unit == "ml") }
             ?? choices.first { $0.unit == "g" || $0.unit == "ml" }
@@ -289,10 +291,10 @@ struct FoodServingView: View {
                     FoodThumbnailView(food: food, size: 32)
                     VStack(alignment: .leading, spacing: 1) {
                         Text(food.name)
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(.headline)
                             .lineLimit(2)
-                        Text("to \(mealName)")
-                            .font(.system(size: 11))
+                        Text(WatchCopy.text("food.toMeal", mealName))
+                            .font(.caption2)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
                     }
@@ -305,9 +307,9 @@ struct FoodServingView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityLabel(
-                        "\(serving.kind == "last" ? "Last used, " : "")\(serving.title), \(Int(serving.calories.rounded())) kilocalories"
+                        WatchCopy.text(serving.kind == "last" ? "food.lastServingAccessibility" : "food.servingAccessibility", serving.title, Int(serving.calories.rounded()))
                     )
-                    .accessibilityHint("Adds it to \(mealName)")
+                    .accessibilityHint(WatchCopy.text("food.addHint", mealName))
                 }
 
                 if let base = metricBase {
@@ -315,7 +317,7 @@ struct FoodServingView: View {
                         HStack {
                             Image(systemName: "dial.low")
                                 .foregroundStyle(Neon.accent)
-                            Text("Other amount")
+                            Text(WatchCopy.text("food.otherAmount"))
                                 .font(.system(size: 14, weight: .medium))
                             Spacer()
                             Image(systemName: "chevron.right")
@@ -324,6 +326,7 @@ struct FoodServingView: View {
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 9)
+        .frame(minHeight: 44)
                         .background(
                             Color.white.opacity(0.08),
                             in: RoundedRectangle(cornerRadius: 14, style: .continuous)
@@ -335,7 +338,7 @@ struct FoodServingView: View {
             .padding(.horizontal, 4)
             .padding(.bottom, 12)
         }
-        .navigationTitle("Amount")
+        .navigationTitle(WatchCopy.text("food.amount"))
         .navigationBarTitleDisplayMode(.inline)
     }
 
@@ -344,13 +347,13 @@ struct FoodServingView: View {
         return HStack(spacing: 8) {
             VStack(alignment: .leading, spacing: 2) {
                 if isLast {
-                    Label("Last used", systemImage: "clock.arrow.circlepath")
+                    Label(WatchCopy.text("food.lastUsed"), systemImage: "clock.arrow.circlepath")
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(Neon.accent)
                         .textCase(.uppercase)
                 }
                 Text(serving.title)
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.headline)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
             }
@@ -366,6 +369,7 @@ struct FoodServingView: View {
         }
         .padding(.horizontal, 10)
         .padding(.vertical, 9)
+        .frame(minHeight: 44)
         .neonSurface(isLast ? Neon.accent : Neon.food, intensity: isLast ? .soft : .edge, cornerRadius: 14)
         .contentShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
     }
@@ -378,6 +382,7 @@ struct FoodCustomAmountView: View {
     let mealName: String
     let onLog: (WatchFoodServing) -> Void
 
+    @Environment(\.accessibilityReduceMotion) private var reducedMotion
     @State private var amount: Double
 
     init(
@@ -407,7 +412,7 @@ struct FoodCustomAmountView: View {
                 Text(amount.formatted())
                     .font(.system(size: 40, weight: .bold, design: .rounded))
                     .monospacedDigit()
-                    .contentTransition(.numericText())
+                    .contentTransition(reducedMotion ? .identity : .numericText())
                 Text(base.unit)
                     .font(.system(size: 18, weight: .semibold, design: .rounded))
                     .foregroundStyle(.secondary)
@@ -418,7 +423,7 @@ struct FoodCustomAmountView: View {
                 $amount, from: 5, through: 2000, by: 5,
                 sensitivity: .medium, isContinuous: false, isHapticFeedbackEnabled: true
             )
-            .accessibilityLabel("Amount")
+            .accessibilityLabel(WatchCopy.text("food.amount"))
             .accessibilityValue("\(amount.formatted()) \(base.unit)")
             .accessibilityAdjustableAction { direction in
                 switch direction {
@@ -428,7 +433,7 @@ struct FoodCustomAmountView: View {
                 }
             }
             Text("\(Int(calories.rounded())) kcal")
-                .font(.system(size: 13))
+                .font(.caption)
                 .monospacedDigit()
                 .foregroundStyle(.secondary)
             Button {
@@ -442,8 +447,8 @@ struct FoodCustomAmountView: View {
                     )
                 )
             } label: {
-                Label("Add to \(mealName)", systemImage: "plus")
-                    .font(.system(size: 14, weight: .semibold))
+                Label(WatchCopy.text("food.addToMeal", mealName), systemImage: "plus")
+                    .font(.headline)
                     .foregroundStyle(Neon.accentText)
                     .frame(maxWidth: .infinity)
             }
@@ -451,7 +456,7 @@ struct FoodCustomAmountView: View {
             .tint(Neon.accent)
         }
         .padding(.horizontal, 4)
-        .navigationTitle("Amount")
+        .navigationTitle(WatchCopy.text("food.amount"))
         .navigationBarTitleDisplayMode(.inline)
     }
 }

@@ -21,7 +21,7 @@ if (process.argv.includes('--check')) {
   const current = fs.existsSync(target) ? fs.readFileSync(target, 'utf8') : '';
   if (current !== expected) {
     console.error(
-      'targets/watch-widget/ProgressXGeometry.swift is out of date. Run: node scripts/generate-watch-progress-x.mjs'
+      'targets/watch-widget/ProgressXGeometry.swift is out of date. Run: pnpm exec tsx scripts/generate-watch-progress-x.mjs'
     );
     process.exit(1);
   }

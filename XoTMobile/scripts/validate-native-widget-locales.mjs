@@ -179,6 +179,55 @@ export function validateNativeWidgetLocales({ root, registry }) {
     androidDirForLocale,
   };
 }
+/** Both separately compiled Watch targets require complete reviewed German copy. */
+export function validateWatchLocales(root) {
+  const errors = [];
+  const coverage = {};
+  for (const target of ['watch', 'watch-widget']) {
+    const directory = path.join(root, 'targets', target);
+    const maps = new Map();
+    for (const locale of ['en', 'de']) {
+      const file = path.join(directory, `${locale}.lproj/Localizable.strings`);
+      if (!fs.existsSync(file)) {
+        errors.push(`${target}: missing ${locale} resource catalog`);
+      } else {
+        maps.set(locale, parseIosStrings(fs.readFileSync(file, 'utf8')));
+      }
+    }
+    if (!maps.has('en')) continue;
+    const result = validateSurface({
+      maps,
+      source: 'en',
+      surface: target,
+      formatRegex: IOS_FORMAT,
+      isShipped: () => true,
+    });
+    errors.push(...result.errors);
+    coverage[target] = result.coverage;
+    for (const key of maps.get('en').keys()) {
+      if (!maps.get('de')?.get(key)?.trim())
+        errors.push(`${target}: missing German ${key}`);
+    }
+    function inspect(directory) {
+      for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+        const file = path.join(directory, entry.name);
+        if (entry.isDirectory()) inspect(file);
+        else if (entry.name.endsWith('.swift')) {
+          const source = fs.readFileSync(file, 'utf8');
+          for (const match of source.matchAll(
+            /"((?:food|progress)\.[A-Za-z]+)"/g
+          )) {
+            if (!maps.get('en').has(match[1]))
+              errors.push(`${target}: missing English ${match[1]}`);
+          }
+        }
+      }
+    }
+    inspect(directory);
+  }
+  return { errors, coverage };
+}
+
 function argumentValue(name, fallback) {
   const index = process.argv.indexOf(name);
   return index === -1 ? fallback : path.resolve(process.argv[index + 1]);
@@ -206,7 +255,10 @@ function main() {
     for (const finding of result.unregisteredFindings)
       console.log(`  ${finding}`);
   }
-  if (result.errors.length) throw new Error(result.errors.join('\n'));
+  const watch = validateWatchLocales(root);
+  console.log('Watch translation coverage:', JSON.stringify(watch.coverage));
+  const errors = [...result.errors, ...watch.errors];
+  if (errors.length) throw new Error(errors.join('\n'));
 }
 if (
   process.argv[1] &&

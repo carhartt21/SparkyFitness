@@ -1,0 +1,12 @@
+{
+  "progress.notSynced": "Noch nicht synchronisiert",
+  "progress.noTasks": "Heute keine Aufgaben",
+  "progress.tasks": "%d von %d Aufgaben",
+  "progress.accessibilityNotSynced": "Tagesfortschritt: noch nicht synchronisiert",
+  "progress.accessibilityNoTasks": "Tagesfortschritt: heute keine Aufgaben",
+  "progress.accessibilityTasks": "Tagesfortschritt: %d von %d Aufgaben abgeschlossen",
+  "progress.title": "Tagesfortschritt",
+  "progress.inline": "Tagesfortschritt %@",
+  "progress.configuration": "Tagesfortschritt X",
+  "progress.description": "Das X zeigt den Fortschritt Ihrer heutigen Aufgaben wie auf der Übersicht."
+}

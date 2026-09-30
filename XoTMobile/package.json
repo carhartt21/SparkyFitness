@@ -35,7 +35,7 @@
     "i18n:generate": "node scripts/generate-locale-resources.mjs",
     "i18n:generate:check": "node scripts/generate-locale-resources.mjs --check",
     "native-locales:check": "node scripts/validate-native-widget-locales.mjs",
-    "watch-geometry:check": "node scripts/generate-watch-progress-x.mjs --check",
+    "watch-geometry:check": "tsx scripts/generate-watch-progress-x.mjs --check",
     "ui:review:ios": "node scripts/review-ios.mjs"
   },
   "dependencies": {

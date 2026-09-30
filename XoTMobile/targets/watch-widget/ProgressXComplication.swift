@@ -263,11 +263,11 @@ struct ProgressXMark: View {
 private func progressXSummary(_ state: ProgressXState) -> String {
     switch state {
     case .notSynced:
-        return "Not synced yet"
+        return ProgressCopy.text("progress.notSynced")
     case .noTasks:
-        return "No tasks today"
+        return ProgressCopy.text("progress.noTasks")
     case let .progress(completed, applicable, _):
-        return "\(completed) of \(applicable) tasks"
+        return ProgressCopy.text("progress.tasks", completed, applicable)
     }
 }
 
@@ -278,11 +278,11 @@ private func progressXPercentText(_ state: ProgressXState) -> String? {
 private func progressXAccessibilityLabel(_ state: ProgressXState) -> String {
     switch state {
     case .notSynced:
-        return "Daily Progress: not synced yet"
+        return ProgressCopy.text("progress.accessibilityNotSynced")
     case .noTasks:
-        return "Daily Progress: no tasks today"
+        return ProgressCopy.text("progress.accessibilityNoTasks")
     case let .progress(completed, applicable, _):
-        return "Daily Progress: \(completed) of \(applicable) tasks complete"
+        return ProgressCopy.text("progress.accessibilityTasks", completed, applicable)
     }
 }
 
@@ -309,7 +309,7 @@ struct ProgressXComplicationEntryView: View {
                 ProgressXMark(state: entry.state, lineScale: 1.4)
                     .aspectRatio(1, contentMode: .fit)
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("Daily Progress")
+                    Text(ProgressCopy.text("progress.title"))
                         .font(.headline)
                         .widgetAccentable()
                     Text(progressXSummary(entry.state))
@@ -330,7 +330,7 @@ struct ProgressXComplicationEntryView: View {
                 .widgetLabel {
                     if let percent = entry.state.percent {
                         Gauge(value: percent, in: 0...100) {
-                            Text("Daily Progress")
+                            Text(ProgressCopy.text("progress.title"))
                         } currentValueLabel: {
                             Text(progressXPercentText(entry.state) ?? "")
                         }
@@ -340,7 +340,7 @@ struct ProgressXComplicationEntryView: View {
                 }
         case .accessoryInline:
             Text(
-                progressXPercentText(entry.state).map { "Daily Progress \($0)" }
+                progressXPercentText(entry.state).map { ProgressCopy.text("progress.inline", $0) }
                     ?? progressXSummary(entry.state)
             )
         default:
@@ -362,8 +362,8 @@ struct ProgressXComplication: Widget {
             ProgressXComplicationEntryView(entry: entry)
                 .containerBackground(.clear, for: .widget)
         }
-        .configurationDisplayName("Daily Progress X")
-        .description("The X fills as you complete today's tasks, like on the dashboard.")
+        .configurationDisplayName(ProgressCopy.text("progress.configuration"))
+        .description(ProgressCopy.text("progress.description"))
         .supportedFamilies([
             .accessoryCircular,
             .accessoryRectangular,

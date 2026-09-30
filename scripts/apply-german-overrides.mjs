@@ -25,11 +25,18 @@ export const catalogs = [
   },
 ];
 
-const widget = {
-  english: "XoTMobile/targets/widget/en.lproj/Localizable.strings",
-  german: "XoTMobile/targets/widget/de.lproj/Localizable.strings",
-  overrides: "localization-overrides/de/widget.json",
-};
+const nativeCatalogs = [
+  {
+    english: "XoTMobile/targets/widget/en.lproj/Localizable.strings",
+    german: "XoTMobile/targets/widget/de.lproj/Localizable.strings",
+    overrides: "localization-overrides/de/widget.json",
+  },
+  ...["watch", "watch-widget"].map((target) => ({
+    english: `XoTMobile/targets/${target}/en.lproj/Localizable.strings`,
+    german: `XoTMobile/targets/${target}/de.lproj/Localizable.strings`,
+    overrides: `localization-overrides/de/${target}.json`,
+  })),
+];
 
 const placeholders = (text) =>
   [...text.matchAll(/\{\{\s*([^{}]+?)\s*\}\}/g)]
@@ -184,16 +191,18 @@ if (
       `${catalog.name}: ${check ? "checked" : "applied"} ${changes} German translations`,
     );
   }
-  const widgetPath = path.join(root, widget.german);
-  const widgetResult = applyWidgetOverrides(
-    fs.readFileSync(path.join(root, widget.english), "utf8"),
-    fs.readFileSync(widgetPath, "utf8"),
-    JSON.parse(fs.readFileSync(path.join(root, widget.overrides), "utf8")),
-    check,
-  );
-  if (!check && widgetResult.changes)
-    fs.writeFileSync(widgetPath, widgetResult.text);
-  console.log(
-    `widget: ${check ? "checked" : "applied"} ${widgetResult.changes} German translations`,
-  );
+  for (const widget of nativeCatalogs) {
+    const widgetPath = path.join(root, widget.german);
+    const widgetResult = applyWidgetOverrides(
+      fs.readFileSync(path.join(root, widget.english), "utf8"),
+      fs.readFileSync(widgetPath, "utf8"),
+      JSON.parse(fs.readFileSync(path.join(root, widget.overrides), "utf8")),
+      check,
+    );
+    if (!check && widgetResult.changes)
+      fs.writeFileSync(widgetPath, widgetResult.text);
+    console.log(
+      `${widget.german}: ${check ? "checked" : "applied"} ${widgetResult.changes} German translations`,
+    );
+  }
 }
