@@ -1,0 +1,42 @@
+[
+  {
+    "route": "settings",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "file": "settings-1280-de.png",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "route": "mobility",
+    "viewport": {
+      "width": 1280,
+      "height": 800
+    },
+    "file": "mobility-1280-de.png",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "route": "settings",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "file": "settings-390-de.png",
+    "overflow": false,
+    "errors": []
+  },
+  {
+    "route": "mobility",
+    "viewport": {
+      "width": 390,
+      "height": 844
+    },
+    "file": "mobility-390-de.png",
+    "overflow": false,
+    "errors": []
+  }
+]

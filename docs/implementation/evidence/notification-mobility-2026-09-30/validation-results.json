@@ -1,0 +1,53 @@
+{
+  "date": "2026-09-30",
+  "branch": "feat/notification-mobility-corrective-20260930",
+  "source": "working tree based on 10286a29a",
+  "tests": {
+    "mobile": {
+      "suites": 16,
+      "passed": 197
+    },
+    "web": {
+      "suites": 6,
+      "passed": 47
+    },
+    "server": {
+      "suites": 7,
+      "passed": 87
+    },
+    "isolated_postgresql": {
+      "suites": 1,
+      "passed": 10
+    }
+  },
+  "checks": {
+    "typecheck": ["server", "web", "mobile"],
+    "lint_zero_warnings": ["server", "web", "mobile"],
+    "prettier": ["server", "web", "mobile"],
+    "knip": ["web", "mobile"],
+    "german_overlay": true,
+    "german_copy_scan": true,
+    "mobile_i18n": true,
+    "generated_mobile_resources": true,
+    "native_widget_locales": true,
+    "repository_layout": true
+  },
+  "builds": {
+    "ios_simulator_debug": "passed",
+    "web_vite_pwa": "passed",
+    "docs_vitepress": "passed"
+  },
+  "unverified": [
+    "Physical push receipt and OS scheduling",
+    "Physical widget placement and Dynamic Island lifecycle",
+    "Watch hardware regression",
+    "Android hardware permissions/exact alarms",
+    "Light-theme device review",
+    "Production migrations and TestFlight upgrade"
+  ],
+  "release": {
+    "merged": false,
+    "deployed": false,
+    "published": false
+  }
+}
