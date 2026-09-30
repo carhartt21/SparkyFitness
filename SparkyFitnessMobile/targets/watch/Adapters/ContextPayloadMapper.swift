@@ -75,7 +75,8 @@ enum ContextPayloadMapper {
             // the one we can't reason about, so it stays nil.
             generatedAt: (payload["pushedAt"] as? Double).map {
                 Date(timeIntervalSince1970: $0 / 1000)
-            }
+            },
+            dailyProgress: dailyProgress(from: payload)
         )
     }
 
@@ -306,6 +307,29 @@ enum ContextPayloadMapper {
         else { return nil }
 
         return GoalProgress(calories: calories, protein: protein, carbs: carbs, fat: fat)
+    }
+
+    /// Today's Daily Progress for the Progress X complication. Nil unless the
+    /// phone sent both counts: like the goal fractions, an absent value is
+    /// "not synced", never a confident zero. The percent is optional because
+    /// the phone omits it when no task applies.
+    static func dailyProgress(from payload: [String: Any]) -> DailyProgressSnapshot? {
+        guard
+            let completed = payload["dailyProgressCompleted"] as? Int,
+            let applicable = payload["dailyProgressApplicable"] as? Int,
+            completed >= 0,
+            applicable >= 0
+        else { return nil }
+        let percent = applicable > 0
+            ? (payload["dailyProgressPercent"] as? Double).map { max(0, min(100, $0)) }
+                ?? Double(min(completed, applicable)) / Double(applicable) * 100
+            : nil
+        return DailyProgressSnapshot(
+            day: day(from: payload),
+            completed: min(completed, applicable),
+            applicable: applicable,
+            percent: percent
+        )
     }
 
     // MARK: - Acks

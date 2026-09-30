@@ -55,6 +55,7 @@ import {
 import { queryClient } from './queryClient';
 import { usePreferences } from './usePreferences';
 import { useDailySummary } from './useDailySummary';
+import { useDailyProgress } from './useDailyTracking';
 import type { CheckInMeasurement } from '../types/measurements';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { buildWatchWorkoutSnapshot } from '../utils/watchWorkoutSnapshot';
@@ -105,6 +106,9 @@ const NO_FIGURES_FOR_TODAY = {
   fatGoal: null,
   waterConsumedMl: null,
   waterLog: [] as WatchWaterLogPayload[],
+  dailyProgressCompleted: null,
+  dailyProgressApplicable: null,
+  dailyProgressPercent: null,
 } as const;
 
 function emptyWatchContext(): WatchContextPayload {
@@ -331,6 +335,14 @@ export function useWatchCheckInBridge(enabled: boolean): void {
   // `dailySummary` object as the phone's own hydration gauge reads, so the
   // two never disagree.
   const waterConsumedMl = dailySummary?.waterConsumed ?? null;
+
+  // Today's Daily Progress for the Progress X complication — the same query
+  // (and cache) the Dashboard's X reads, so the watch face and the card
+  // agree. Null while loading, which the watch shows as "not synced".
+  const { data: dailyProgress } = useDailyProgress(summaryDate, { enabled });
+  const dailyProgressCompleted = dailyProgress?.completed ?? null;
+  const dailyProgressApplicable = dailyProgress?.applicable ?? null;
+  const dailyProgressPercent = dailyProgress?.percent ?? null;
   const waterGoalMl = dailySummary?.waterGoal ?? null;
   // The app's globally configured display unit (independent of any one
   // container's own unit) — same source and fallback as the phone's own
@@ -433,6 +445,9 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       fatGoal,
       waterConsumedMl,
       waterLog: watchWaterLog,
+      dailyProgressCompleted,
+      dailyProgressApplicable,
+      dailyProgressPercent,
     }),
     [
       calorieGoalProgress,
@@ -450,6 +465,9 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       fatGoal,
       waterConsumedMl,
       watchWaterLog,
+      dailyProgressCompleted,
+      dailyProgressApplicable,
+      dailyProgressPercent,
     ]
   );
 

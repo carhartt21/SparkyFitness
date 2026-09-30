@@ -1,33 +1,6 @@
 import WidgetKit
 import SwiftUI
 
-// Like EnergyGoalComplication.swift, this target can't import targets/watch's
-// Swift files (each `expo-target` is its own compiled module), so the small
-// shared pieces — date helpers, the app group lookup — are duplicated rather
-// than shared. Kept file-private here so the two complications' copies don't
-// collide at link time.
-
-private let waterDateFormatter: DateFormatter = {
-    let formatter = DateFormatter()
-    formatter.calendar = Calendar(identifier: .gregorian)
-    formatter.locale = Locale(identifier: "en_US_POSIX")
-    formatter.dateFormat = "yyyy-MM-dd"
-    return formatter
-}()
-
-private func waterTodayString() -> String {
-    waterDateFormatter.string(from: Date())
-}
-
-private func waterIsToday(_ dateString: String?) -> Bool {
-    guard let dateString else { return false }
-    return dateString == waterTodayString()
-}
-
-private func waterAppGroupIdentifier() -> String? {
-    Bundle.main.object(forInfoDictionaryKey: "APP_GROUP_IDENTIFIER") as? String
-}
-
 /// Mirrors the `WaterSnapshotPayload` type `ComplicationPublisher` encodes — one
 /// fraction, already clamped to 0...1 by the watch app.
 struct WaterGoalSnapshot {
@@ -36,7 +9,7 @@ struct WaterGoalSnapshot {
     static let empty = WaterGoalSnapshot(progress: 0)
 }
 
-private struct WaterGoalSnapshotPayload: Decodable {
+private struct WaterGoalSnapshotPayload: ScopedDaySnapshot {
     let scope: String?
     let date: String?
     let progress: Double?
@@ -44,18 +17,11 @@ private struct WaterGoalSnapshotPayload: Decodable {
 
 private func loadWaterGoalSnapshot() -> WaterGoalSnapshot {
     guard
-        let appGroup = waterAppGroupIdentifier(),
-        !appGroup.isEmpty,
-        let defaults = UserDefaults(suiteName: appGroup),
-        let scope = defaults.string(forKey: "watchComplicationScope"),
-        let data = defaults.data(forKey: "waterGoalSnapshot"),
-        let payload = try? JSONDecoder().decode(WaterGoalSnapshotPayload.self, from: data),
-        !scope.isEmpty,
-        payload.scope == scope,
-        waterIsToday(payload.date)
-    else {
-        return .empty
-    }
+        let payload = ComplicationSnapshotStore.load(
+            WaterGoalSnapshotPayload.self,
+            key: "waterGoalSnapshot"
+        )
+    else { return .empty }
     return WaterGoalSnapshot(progress: payload.progress ?? 0)
 }
 
@@ -76,15 +42,8 @@ struct WaterGoalProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<WaterGoalEntry>) -> Void) {
         let now = Date()
         let entry = WaterGoalEntry(date: now, snapshot: loadWaterGoalSnapshot())
-        // Same cadence as the Daily Energy Goal complication: whichever comes
-        // first, a 15-minute check-in or the goal resetting at midnight.
-        let in15Minutes = Calendar.current.date(byAdding: .minute, value: 15, to: now) ?? now
-        let nextMidnight = Calendar.current.nextDate(
-            after: now,
-            matching: DateComponents(hour: 0, minute: 0, second: 0),
-            matchingPolicy: .nextTime
-        ) ?? in15Minutes
-        let refreshAt = min(in15Minutes, nextMidnight)
+        // Same cadence as the Daily Energy Goal complication.
+        let refreshAt = ComplicationSnapshotStore.nextRefresh(after: now)
         completion(Timeline(entries: [entry], policy: .after(refreshAt)))
     }
 }

@@ -256,6 +256,10 @@ final class WatchSessionManager: NSObject, ObservableObject {
                 for: water.day
             )
         }
+
+        if let progress = context.dailyProgress, progress.isToday {
+            ComplicationPublisher.publish(dailyProgress: progress)
+        }
     }
 
     /// Adopts the application context WatchConnectivity is already holding.
@@ -357,6 +361,11 @@ final class WatchSessionManager: NSObject, ObservableObject {
                 waterProgress: incoming.waterProgress(ml: water.consumedMl) ?? 0,
                 for: day
             )
+        }
+        // The snapshot carries the payload's day, so a replayed overnight
+        // context is refused by the publisher like the other two.
+        if let progress = incoming.dailyProgress {
+            ComplicationPublisher.publish(dailyProgress: progress)
         }
     }
 
