@@ -3,6 +3,7 @@ import {
   searchBarcodeV2,
   getFoodDetailsV2,
 } from '@/api/Foods/foodService';
+import i18n from '@/i18n';
 
 export const v2FoodKeys = {
   all: ['v2', 'foods'] as const,
@@ -12,7 +13,8 @@ export const v2FoodKeys = {
     providerId?: string,
     pageSize?: number,
     autoScale?: boolean,
-    page?: number
+    page?: number,
+    language?: string
   ) =>
     [
       ...v2FoodKeys.all,
@@ -23,16 +25,25 @@ export const v2FoodKeys = {
       pageSize,
       autoScale,
       page,
+      language,
+      'provider-language-v1',
     ] as const,
   barcode: (barcode: string, providerId?: string) =>
     [...v2FoodKeys.all, 'barcode', barcode, providerId] as const,
-  details: (providerType: string, externalId: string, providerId?: string) =>
+  details: (
+    providerType: string,
+    externalId: string,
+    providerId?: string,
+    language?: string
+  ) =>
     [
       ...v2FoodKeys.all,
       'details',
       providerType,
       externalId,
       providerId,
+      language,
+      'provider-language-v1',
     ] as const,
 };
 
@@ -42,7 +53,8 @@ export const searchFoodsV2Options = (
   providerId?: string,
   pageSize?: number,
   autoScale?: boolean,
-  page?: number
+  page?: number,
+  language = i18n.resolvedLanguage ?? i18n.language
 ) => ({
   queryKey: v2FoodKeys.search(
     providerType,
@@ -50,10 +62,19 @@ export const searchFoodsV2Options = (
     providerId,
     pageSize,
     autoScale,
-    page
+    page,
+    language
   ),
   queryFn: () =>
-    searchFoodsV2(providerType, query, providerId, page, pageSize, autoScale),
+    searchFoodsV2(
+      providerType,
+      query,
+      providerId,
+      page,
+      pageSize,
+      autoScale,
+      language
+    ),
   staleTime: 1000 * 60 * 5,
   enabled: !!query,
   meta: {
@@ -76,10 +97,12 @@ export const searchBarcodeV2Options = (
 export const foodDetailsV2Options = (
   providerType: string,
   externalId: string,
-  providerId?: string
+  providerId?: string,
+  language = i18n.resolvedLanguage ?? i18n.language
 ) => ({
-  queryKey: v2FoodKeys.details(providerType, externalId, providerId),
-  queryFn: () => getFoodDetailsV2(providerType, externalId, providerId),
+  queryKey: v2FoodKeys.details(providerType, externalId, providerId, language),
+  queryFn: () =>
+    getFoodDetailsV2(providerType, externalId, providerId, language),
   staleTime: 1000 * 60 * 5,
   enabled: !!externalId,
   meta: {

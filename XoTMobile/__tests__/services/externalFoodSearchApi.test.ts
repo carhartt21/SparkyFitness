@@ -2093,6 +2093,56 @@ describe('externalFoodSearchApi', () => {
     });
 
     describe('searchExternalFoods', () => {
+      test('sends the app locale without changing the bilingual BLS result or nutrients', async () => {
+        mockGetActiveServerConfig.mockResolvedValue(testConfig);
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            foods: [
+              {
+                name: 'Hafer, roh',
+                brand: null,
+                is_custom: false,
+                provider_type: 'bls4',
+                provider_external_id: 'fixture-oats',
+                default_variant: {
+                  serving_size: 100,
+                  serving_unit: 'g',
+                  calories: 343,
+                  protein: 11.375,
+                  carbs: 53.7,
+                  fat: 7.09,
+                  is_default: true,
+                },
+              },
+            ],
+            pagination: {
+              page: 1,
+              pageSize: 100,
+              totalCount: 1,
+              hasMore: false,
+            },
+          }),
+        });
+        const result = await searchExternalFoods(
+          'bls4',
+          'hafer',
+          1,
+          undefined,
+          undefined,
+          100,
+          'de-DE'
+        );
+        const url = new URL(mockFetch.mock.calls[0][0] as string);
+        expect(url.searchParams.get('language')).toBe('de-DE');
+        expect(result.items[0]).toMatchObject({
+          name: 'Hafer, roh',
+          calories: 343,
+          serving_size: 100,
+          serving_unit: 'g',
+        });
+      });
+
       test('calls correct v2 endpoint with providerType and query params', async () => {
         mockGetActiveServerConfig.mockResolvedValue(testConfig);
         mockFetch.mockResolvedValue({
@@ -2210,6 +2260,39 @@ describe('externalFoodSearchApi', () => {
     });
 
     describe('fetchExternalFoodDetails', () => {
+      test('sends the same app locale for provider detail hydration', async () => {
+        mockGetActiveServerConfig.mockResolvedValue(testConfig);
+        mockFetch.mockResolvedValue({
+          ok: true,
+          json: async () => ({
+            name: 'Hafer, roh',
+            brand: null,
+            is_custom: false,
+            provider_type: 'bls4',
+            provider_external_id: 'fixture-oats',
+            default_variant: {
+              serving_size: 100,
+              serving_unit: 'g',
+              calories: 343,
+              protein: 11.375,
+              carbs: 53.7,
+              fat: 7.09,
+              is_default: true,
+            },
+          }),
+        });
+        const result = await fetchExternalFoodDetails(
+          'bls4',
+          'fixture-oats',
+          undefined,
+          undefined,
+          'de'
+        );
+        const url = new URL(mockFetch.mock.calls[0][0] as string);
+        expect(url.searchParams.get('language')).toBe('de');
+        expect(result.name).toBe('Hafer, roh');
+      });
+
       test('calls correct v2 endpoint', async () => {
         mockGetActiveServerConfig.mockResolvedValue(testConfig);
         mockFetch.mockResolvedValue({

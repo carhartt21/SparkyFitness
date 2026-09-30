@@ -81,6 +81,7 @@ export const externalFoodSearchQueryKey = (
     autoScale,
     locale,
     'relevance-v2',
+    'provider-language-v1',
   ] as const;
 
 // First-page-only key for the "All Providers" fan-out. Kept distinct from
@@ -103,6 +104,7 @@ export const allProvidersFoodSearchQueryKey = (
     pageSize,
     locale,
     'relevance-v2',
+    'provider-language-v1',
   ] as const;
 
 export const mealTypesQueryKey = ['mealTypes'] as const;

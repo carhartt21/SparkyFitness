@@ -201,7 +201,9 @@ describe('useExternalFoodSearch', () => {
         'chicken',
         1,
         undefined,
-        undefined
+        undefined,
+        undefined,
+        i18n.resolvedLanguage ?? i18n.language
       );
       expect(result.current.searchResults).toHaveLength(1);
     });
@@ -281,7 +283,9 @@ describe('useExternalFoodSearch', () => {
         'chicken',
         1,
         'provider-1',
-        undefined
+        undefined,
+        undefined,
+        i18n.resolvedLanguage ?? i18n.language
       );
       expect(result.current.searchResults).toHaveLength(1);
       expect(result.current.searchResults[0].source).toBe('usda');
@@ -413,7 +417,9 @@ describe('useExternalFoodSearch', () => {
         'chicken',
         1,
         'provider-fs',
-        undefined
+        undefined,
+        undefined,
+        i18n.resolvedLanguage ?? i18n.language
       );
       expect(result.current.searchResults).toHaveLength(1);
       expect(result.current.searchResults[0].source).toBe('fatsecret');
@@ -452,7 +458,9 @@ describe('useExternalFoodSearch', () => {
         'chicken',
         1,
         'provider-mealie',
-        undefined
+        undefined,
+        undefined,
+        i18n.resolvedLanguage ?? i18n.language
       );
       expect(result.current.searchResults).toHaveLength(1);
       expect(result.current.searchResults[0].source).toBe('mealie');
@@ -585,7 +593,9 @@ describe('useExternalFoodSearch', () => {
         'cheese',
         1,
         undefined,
-        undefined
+        undefined,
+        undefined,
+        i18n.resolvedLanguage ?? i18n.language
       );
       expect(result.current.searchResults).toHaveLength(1);
       expect(result.current.searchResults[0].source).toBe('swissfood');
@@ -602,6 +612,7 @@ describe('useExternalFoodSearch', () => {
         undefined,
         undefined,
         'relevance-v2',
+        'provider-language-v1',
       ]);
     });
 
@@ -616,6 +627,7 @@ describe('useExternalFoodSearch', () => {
         undefined,
         undefined,
         'relevance-v2',
+        'provider-language-v1',
       ]);
     });
   });

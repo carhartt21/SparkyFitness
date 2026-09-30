@@ -797,7 +797,8 @@ describe('FoodSearchScreen', () => {
         'fatsecret',
         'ext-1',
         'p1',
-        expect.objectContaining({ serving_size: 100, serving_unit: 'g' })
+        expect.objectContaining({ serving_size: 100, serving_unit: 'g' }),
+        'en'
       );
     });
   });

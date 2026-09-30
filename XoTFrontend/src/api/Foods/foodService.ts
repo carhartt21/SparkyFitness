@@ -1,4 +1,5 @@
 import { apiCall } from '../api';
+import i18n from '@/i18n';
 
 import type {
   Food,
@@ -189,13 +190,15 @@ export const searchFoodsV2 = async (
   providerId?: string,
   page?: number,
   pageSize?: number,
-  autoScale?: boolean
+  autoScale?: boolean,
+  language = i18n.resolvedLanguage ?? i18n.language
 ): Promise<V2SearchResponse> => {
   const params: Record<string, string> = { query };
   if (providerId) params['providerId'] = providerId;
   if (page) params['page'] = String(page);
   if (pageSize) params['pageSize'] = String(pageSize);
   if (autoScale !== undefined) params['autoScale'] = String(autoScale);
+  if (language) params['language'] = language;
 
   return apiCall(`/v2/foods/search/${providerType}`, {
     method: 'GET',
@@ -224,10 +227,12 @@ export const searchBarcodeV2 = async (
 export const getFoodDetailsV2 = async (
   providerType: string,
   externalId: string,
-  providerId?: string
+  providerId?: string,
+  language = i18n.resolvedLanguage ?? i18n.language
 ): Promise<Food> => {
   const params: Record<string, string> = {};
   if (providerId) params['providerId'] = providerId;
+  if (language) params['language'] = language;
 
   return apiCall(`/v2/foods/details/${providerType}/${externalId}`, {
     method: 'GET',

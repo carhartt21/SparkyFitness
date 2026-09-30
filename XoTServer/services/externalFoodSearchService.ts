@@ -1,6 +1,7 @@
 import { log } from '../config/logging.js';
 import externalProviderService from './externalProviderService.js';
 import preferenceService from './preferenceService.js';
+import { ProviderLanguageSchema } from '../schemas/foodSchemas.js';
 import {
   searchOpenFoodFacts,
   mapOpenFoodFactsProduct,
@@ -162,6 +163,26 @@ export interface ProviderSearchOptions {
   pageSize?: number;
   providerId?: string;
   autoScale?: boolean;
+  language?: string;
+}
+
+export async function resolveFoodProviderLanguage(
+  userId: string,
+  requestedLanguage?: string
+): Promise<string> {
+  if (requestedLanguage !== undefined) {
+    return ProviderLanguageSchema.parse(requestedLanguage);
+  }
+  // Older clients do not send a locale. Keep their account preference fallback
+  // without changing that preference or any stored food/diary snapshots.
+  const preferences = await preferenceService.getUserPreferences(
+    userId,
+    userId
+  );
+  const storedLanguage = ProviderLanguageSchema.safeParse(
+    preferences?.language
+  );
+  return storedLanguage.success ? storedLanguage.data : 'en';
 }
 
 const EMPTY_PAGINATION = (
@@ -289,8 +310,7 @@ export async function searchProviderFoods(
     providerId,
     providerType
   );
-  const userPrefs = await preferenceService.getUserPreferences(userId, userId);
-  const language = userPrefs?.language || 'en';
+  const language = await resolveFoodProviderLanguage(userId, opts.language);
 
   let foods: unknown[] = [];
   let pagination = EMPTY_PAGINATION(page, pageSize);
