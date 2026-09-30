@@ -170,7 +170,8 @@ const EnhancedFoodSearch = ({
   mealType = undefined,
   startWithScanner = false,
 }: EnhancedFoodSearchProps) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const providerLanguage = i18n.resolvedLanguage ?? i18n.language;
   const { user } = useAuth();
   const [ownershipFilter, setOwnershipFilter] = useState<
     'all' | 'mine' | 'family' | 'public'
@@ -615,7 +616,8 @@ const EnhancedFoodSearch = ({
             undefined,
             undefined,
             autoScaleOpenFoodFactsImports,
-            page
+            page,
+            providerLanguage
           )
         );
         return {
@@ -649,7 +651,8 @@ const EnhancedFoodSearch = ({
             id,
             undefined,
             undefined,
-            page
+            page,
+            providerLanguage
           )
         );
         return {
@@ -668,7 +671,8 @@ const EnhancedFoodSearch = ({
             id,
             itemDisplayLimit,
             undefined,
-            page
+            page,
+            providerLanguage
           )
         );
         return {
@@ -681,7 +685,15 @@ const EnhancedFoodSearch = ({
       },
       mealie: async (term, id, _provider, page) => {
         const data = await queryClient.fetchQuery(
-          searchFoodsV2Options('mealie', term, id, undefined, undefined, page)
+          searchFoodsV2Options(
+            'mealie',
+            term,
+            id,
+            undefined,
+            undefined,
+            page,
+            providerLanguage
+          )
         );
         return {
           items: data.foods.map((food: Food) => ({
@@ -693,7 +705,15 @@ const EnhancedFoodSearch = ({
       },
       tandoor: async (term, id, _provider, page) => {
         const data = await queryClient.fetchQuery(
-          searchFoodsV2Options('tandoor', term, id, undefined, undefined, page)
+          searchFoodsV2Options(
+            'tandoor',
+            term,
+            id,
+            undefined,
+            undefined,
+            page,
+            providerLanguage
+          )
         );
         return {
           items: data.foods.map((food: Food) => ({
@@ -711,7 +731,8 @@ const EnhancedFoodSearch = ({
             id,
             itemDisplayLimit,
             undefined,
-            page
+            page,
+            providerLanguage
           )
         );
         return {
@@ -724,7 +745,15 @@ const EnhancedFoodSearch = ({
       },
       norish: async (term, id, _provider, page) => {
         const data = await queryClient.fetchQuery(
-          searchFoodsV2Options('norish', term, id, undefined, undefined, page)
+          searchFoodsV2Options(
+            'norish',
+            term,
+            id,
+            undefined,
+            undefined,
+            page,
+            providerLanguage
+          )
         );
         return {
           items: data.foods.map((food: Food) => ({
@@ -742,7 +771,8 @@ const EnhancedFoodSearch = ({
             id,
             undefined,
             undefined,
-            page
+            page,
+            providerLanguage
           )
         );
         return {
@@ -755,7 +785,15 @@ const EnhancedFoodSearch = ({
       },
       bls4: async (term, id, _provider, page) => {
         const data = await queryClient.fetchQuery(
-          searchFoodsV2Options('bls4', term, id, undefined, undefined, page)
+          searchFoodsV2Options(
+            'bls4',
+            term,
+            id,
+            undefined,
+            undefined,
+            page,
+            providerLanguage
+          )
         );
         return {
           items: data.foods.map((food: Food) => ({
@@ -766,7 +804,12 @@ const EnhancedFoodSearch = ({
         };
       },
     }),
-    [queryClient, autoScaleOpenFoodFactsImports, itemDisplayLimit]
+    [
+      queryClient,
+      autoScaleOpenFoodFactsImports,
+      itemDisplayLimit,
+      providerLanguage,
+    ]
   );
 
   // Online results stream in alongside local results, using the default
@@ -1071,7 +1114,8 @@ const EnhancedFoodSearch = ({
           foodDetailsV2Options(
             food.provider_type!,
             food.provider_external_id!,
-            providerId
+            providerId,
+            providerLanguage
           )
         );
         // Keep the serving the search card displayed as the default so the

@@ -7,6 +7,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 - [TestFlight release](../../XoTMobile/docs/testflight-release.md): signing, local/cloud build and submission. Confirm the actual submission state independently of a successful archive.
 - [Repository cleanup](repository-cleanup-2026-09-29.md): current package layout, compatibility boundaries and cleanup verification.
 - [Serving sizes](serving-sizes-2026-09-29.md) and [German localization](german-localization-review-2026-09-29.md): latest food-entry and localization review.
+- [BLS display language](bls-display-language-2026-09-30.md): provider request language, cache correction and regression results.
 - [Optional upstream features](upstream-v1.7.3-stage3-evaluation-2026-09-29.md): evaluation only; optional features are not approved by this document.
 - [Design specification](../../DESIGN.md), [product requirements](../../PRODUCT.md), and [current mark specification](../../x-on-track-design/implementation.md).
 

@@ -35,6 +35,7 @@ export function useAllProvidersSearch(
   options?: { enabled?: boolean; autoScale?: boolean }
 ) {
   const { i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
   const { enabled = true, autoScale } = options ?? {};
   const debouncedSearch = useDebounce(searchText.trim(), 600);
   // Both the raw and debounced terms must clear the threshold: debounced so
@@ -90,7 +91,7 @@ export function useAllProvidersSearch(
         p.provider_type === 'bls4' || p.provider_type === 'openfoodfacts'
           ? 100
           : undefined,
-        i18n.resolvedLanguage ?? i18n.language
+        language
       ),
       queryFn: async ({ signal }: { signal: AbortSignal }) => {
         if (p.provider_type === 'openfoodfacts') {
@@ -104,7 +105,8 @@ export function useAllProvidersSearch(
           autoScale,
           p.provider_type === 'bls4' || p.provider_type === 'openfoodfacts'
             ? 100
-            : undefined
+            : undefined,
+          language
         );
       },
       enabled: isSearchActive && enabled,

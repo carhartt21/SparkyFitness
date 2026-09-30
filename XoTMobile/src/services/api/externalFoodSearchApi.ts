@@ -607,12 +607,14 @@ export async function searchExternalFoods(
   page: number,
   providerId?: string,
   autoScale?: boolean,
-  pageSize?: number
+  pageSize?: number,
+  language?: string
 ): Promise<PaginatedExternalFoodSearchResult> {
   const params = new URLSearchParams({ query, page: String(page) });
   if (providerId) params.set('providerId', providerId);
   if (autoScale !== undefined) params.set('autoScale', String(autoScale));
   if (pageSize !== undefined) params.set('pageSize', String(pageSize));
+  if (language) params.set('language', language);
 
   const response = await apiFetch<V2SearchResponse>({
     endpoint: `/api/v2/foods/search/${providerType}?${params.toString()}`,
@@ -630,10 +632,12 @@ export async function fetchExternalFoodDetails(
   providerType: string,
   externalId: string,
   providerId?: string,
-  preferredServing?: ServingIdentity
+  preferredServing?: ServingIdentity,
+  language?: string
 ): Promise<ExternalFoodItem> {
   const params = new URLSearchParams();
   if (providerId) params.set('providerId', providerId);
+  if (language) params.set('language', language);
   const qs = params.toString();
 
   const response = await apiFetch<NormalizedFood>({

@@ -108,6 +108,7 @@ const allProvidersFoodSearchKey = (
     itemDisplayLimit,
     locale,
     'relevance-v2',
+    'provider-language-v1',
   ] as const;
 
 // Providers whose single-provider search caps results at the food display
@@ -117,7 +118,7 @@ const PAGE_SIZE_PROVIDERS = ['usda', 'yazio'];
 async function fetchProviderResults(
   provider: DataProvider,
   query: string,
-  options: { autoScale?: boolean; itemDisplayLimit?: number }
+  options: { autoScale?: boolean; itemDisplayLimit?: number; language: string }
 ): Promise<NormalisedProviderResult> {
   if (provider.provider_type === 'nutritionix') {
     const data: NutritionixItem[] = await searchNutritionixFoods(
@@ -148,7 +149,8 @@ async function fetchProviderResults(
     provider.id,
     undefined,
     pageSize,
-    provider.provider_type === 'openfoodfacts' ? options.autoScale : undefined
+    provider.provider_type === 'openfoodfacts' ? options.autoScale : undefined,
+    options.language
   );
   // Fall back to an empty list if a provider returns a malformed payload
   // (foods missing, null, or a non-array), so .map() can't crash the query.
@@ -188,6 +190,7 @@ export function useAllProvidersFoodSearch(
   debouncedSearch: string;
 } {
   const { i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
   const { enabled = true, autoScale, itemDisplayLimit } = options ?? {};
   const debouncedSearch = useDebounce(searchTerm.trim(), DEBOUNCE_MS);
   // Require both the live and the debounced term to clear the threshold. The
@@ -237,12 +240,13 @@ export function useAllProvidersFoodSearch(
         provider.id,
         autoScale,
         itemDisplayLimit,
-        i18n.resolvedLanguage ?? i18n.language
+        language
       ),
       queryFn: () =>
         fetchProviderResults(provider, debouncedSearch, {
           autoScale,
           itemDisplayLimit,
+          language,
         }),
       enabled: isSearchActive && enabled,
       staleTime: STALE_TIME,

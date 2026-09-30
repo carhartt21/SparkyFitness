@@ -1,5 +1,20 @@
 # Food API
 
+## External provider search and details
+
+`GET /api/v2/foods/search/:providerType?query=...&language=de`
+and `GET /api/v2/foods/details/:providerType/:externalId?language=de`
+accept the effective app language. Regional locale tags such as `de-DE` are
+normalized to `de` for providers. The explicit request language overrides the
+server account preference without modifying it; older clients that omit it use
+the stored preference, then English. Invalid language values return HTTP 400.
+
+Both provider search hooks include that same language in the request and cache
+key. The cache version changed to discard pre-fix payloads that could contain
+English names under a German key. Detail hydration sends the same language and
+retains the selected serving. Provider responses and saved diary snapshots are
+not translated or rewritten on the client.
+
 ## GET /api/foods
 
 Gets recent and top foods. This endpoint is used for the "Recent" tab in the Add Food Entry screen.

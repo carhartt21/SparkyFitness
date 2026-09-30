@@ -115,7 +115,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const date = route.params?.date;
   const pickerMode = route.params?.pickerMode ?? 'log-entry';
   const mealTypeId = route.params?.mealTypeId;
@@ -708,7 +708,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
               serving_size: item.serving_size,
               serving_unit: item.serving_unit,
               serving_description: item.serving_description,
-            }
+            },
+            i18n.resolvedLanguage ?? i18n.language
           );
           // The details endpoint does not always echo the photo the search
           // result carried, so re-attach it rather than losing the image the
@@ -742,7 +743,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       }
       showFoodInfo(externalFoodItemToFoodInfo(item));
     },
-    [selectedProvider, providers, showFoodInfo, t]
+    [
+      selectedProvider,
+      providers,
+      showFoodInfo,
+      t,
+      i18n.resolvedLanguage,
+      i18n.language,
+    ]
   );
 
   // --- Derived state ---

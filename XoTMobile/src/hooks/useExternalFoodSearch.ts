@@ -13,6 +13,7 @@ export function useExternalFoodSearch(
   options?: { enabled?: boolean; providerId?: string; autoScale?: boolean }
 ) {
   const { i18n } = useTranslation();
+  const language = i18n.resolvedLanguage ?? i18n.language;
   const { enabled = true, providerId, autoScale } = options ?? {};
   const debouncedSearch = useDebounce(searchText.trim(), 600);
   // Both the raw and debounced terms must clear the threshold: debounced so
@@ -30,7 +31,7 @@ export function useExternalFoodSearch(
       debouncedSearch,
       providerId,
       autoScale,
-      i18n.resolvedLanguage ?? i18n.language
+      language
     ),
     queryFn: async ({ signal, pageParam }) => {
       if (
@@ -52,7 +53,9 @@ export function useExternalFoodSearch(
         debouncedSearch,
         pageParam,
         providerId,
-        autoScale
+        autoScale,
+        undefined,
+        language
       );
     },
     initialPageParam: 1,

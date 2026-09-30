@@ -4,6 +4,7 @@ import {
   BarcodeResponseSchema,
   NormalizedFoodSchema,
   SearchResponseSchema,
+  ProviderLanguageSchema,
 } from '../../schemas/foodSchemas.js';
 
 import { log } from '../../config/logging.js';
@@ -15,12 +16,12 @@ import {
   applyCustomNutrientMatches,
   FoodWithProviderNutrients,
 } from '../../utils/foodUtils.js';
-import preferenceService from '../../services/preferenceService.js';
 import {
   isValidProviderType,
   resolveOpenFoodFactsProviderId,
   resolveProviderCredentials,
   searchProviderFoods,
+  resolveFoodProviderLanguage,
 } from '../../services/externalFoodSearchService.js';
 import {
   searchOpenFoodFactsByBarcodeFields,
@@ -212,6 +213,42 @@ const barcodeHandler: RequestHandler<{ barcode: string }> = async (
 
 // --- Search endpoint ---
 
+/**
+ * @swagger
+ * /v2/foods/search/{providerType}:
+ *   get:
+ *     summary: Search an external food provider
+ *     parameters:
+ *       - in: path
+ *         name: providerType
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: query
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: providerId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: page
+ *         schema: { type: integer, minimum: 1, default: 1 }
+ *       - in: query
+ *         name: pageSize
+ *         schema: { type: integer, minimum: 1, maximum: 100, default: 20 }
+ *       - in: query
+ *         name: autoScale
+ *         schema: { type: boolean, default: true }
+ *       - in: query
+ *         name: language
+ *         description: Effective app locale (for example de or de-DE), normalized to its primary language. Overrides the account preference for this request only; omission uses the account preference then English.
+ *         schema: { type: string, maxLength: 64, example: de-DE }
+ *     responses:
+ *       '200':
+ *         description: Normalized foods and pagination metadata
+ *       '400':
+ *         description: Invalid provider, query, pagination or language
+ */
 const searchHandler: RequestHandler<{ providerType: string }> = async (
   req,
   res,
@@ -248,13 +285,26 @@ const searchHandler: RequestHandler<{ providerType: string }> = async (
   }
   const providerId = req.query.providerId as string | undefined;
   const autoScale = ((req.query.autoScale as string) ?? 'true') !== 'false';
+  const requestedLanguage = ProviderLanguageSchema.optional().safeParse(
+    req.query.language
+  );
+  if (!requestedLanguage.success) {
+    res.status(400).json({ error: 'Invalid language parameter' });
+    return;
+  }
 
   try {
     const { foods, pagination } = await searchProviderFoods(
       req.userId,
       providerType,
       query,
-      { page, pageSize, providerId, autoScale },
+      {
+        page,
+        pageSize,
+        providerId,
+        autoScale,
+        ...(requestedLanguage.data ? { language: requestedLanguage.data } : {}),
+      },
       req.authenticatedUserId
     );
 
@@ -294,6 +344,35 @@ const searchHandler: RequestHandler<{ providerType: string }> = async (
 
 // --- Detail endpoint ---
 
+/**
+ * @swagger
+ * /v2/foods/details/{providerType}/{externalId}:
+ *   get:
+ *     summary: Get an external food with its servings and nutrients
+ *     parameters:
+ *       - in: path
+ *         name: providerType
+ *         required: true
+ *         schema: { type: string }
+ *       - in: path
+ *         name: externalId
+ *         required: true
+ *         schema: { type: string }
+ *       - in: query
+ *         name: providerId
+ *         schema: { type: string }
+ *       - in: query
+ *         name: language
+ *         description: Effective app locale, with the same normalization and fallback as food search. Does not update saved food names or account preferences.
+ *         schema: { type: string, maxLength: 64, example: de-DE }
+ *     responses:
+ *       '200':
+ *         description: Normalized food with default and available serving variants
+ *       '400':
+ *         description: Invalid provider or language
+ *       '404':
+ *         description: Food not found
+ */
 const detailHandler: RequestHandler<{
   providerType: string;
   externalId: string;
@@ -306,6 +385,13 @@ const detailHandler: RequestHandler<{
   }
 
   const providerId = req.query.providerId as string | undefined;
+  const requestedLanguage = ProviderLanguageSchema.optional().safeParse(
+    req.query.language
+  );
+  if (!requestedLanguage.success) {
+    res.status(400).json({ error: 'Invalid language parameter' });
+    return;
+  }
 
   try {
     const credentials = await resolveProviderCredentials(
@@ -313,12 +399,10 @@ const detailHandler: RequestHandler<{
       providerId,
       providerType
     );
-    const userPrefs = await preferenceService.getUserPreferences(
+    const language = await resolveFoodProviderLanguage(
       req.userId,
-
-      req.userId
+      requestedLanguage.data
     );
-    const language = userPrefs?.language || 'en';
 
     let food: unknown = null;
 

@@ -1,5 +1,15 @@
 import { z } from 'zod/v4';
 
+// Providers use primary language codes (de, en, ...), not regional locales.
+// Accept a bounded locale tag from clients; never interpolate arbitrary input
+// into upstream language fields/URLs.
+export const ProviderLanguageSchema = z
+  .string()
+  .trim()
+  .max(64)
+  .regex(/^[a-z]{2,3}(?:-[a-z0-9]{2,8})*$/i)
+  .transform((locale) => locale.split('-')[0]!.toLowerCase());
+
 export const FoodVariantSchema = z.object({
   id: z.string().optional(),
   user_id: z.string().optional(),

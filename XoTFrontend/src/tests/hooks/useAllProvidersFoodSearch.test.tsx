@@ -17,6 +17,11 @@ jest.mock('@/hooks/useDebounce', () => ({
   useDebounce: (value: string) => value,
 }));
 
+const mockLocale = { resolvedLanguage: 'en', language: 'en' };
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({ i18n: mockLocale }),
+}));
+
 const mockSearch = searchFoodsV2 as jest.MockedFunction<typeof searchFoodsV2>;
 
 const usda = {
@@ -34,6 +39,7 @@ describe('useAllProvidersFoodSearch cache key', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLocale.resolvedLanguage = 'en';
     queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
     });
@@ -68,7 +74,8 @@ describe('useAllProvidersFoodSearch cache key', () => {
       'provider-usda',
       undefined,
       10,
-      undefined
+      undefined,
+      'en'
     );
 
     rerender({ limit: 25 });
@@ -81,7 +88,8 @@ describe('useAllProvidersFoodSearch cache key', () => {
       'provider-usda',
       undefined,
       25,
-      undefined
+      undefined,
+      'en'
     );
   });
 
@@ -99,5 +107,48 @@ describe('useAllProvidersFoodSearch cache key', () => {
     rerender({ limit: 10 });
     await new Promise((r) => setTimeout(r, 50));
     expect(mockSearch).toHaveBeenCalledTimes(1);
+  });
+
+  it('refetches BLS in the selected app language when the locale changes', async () => {
+    const bls = {
+      ...usda,
+      provider_type: 'bls4',
+      id: 'provider-bls',
+    } as DataProvider;
+    const { rerender } = renderHook(
+      () => useAllProvidersFoodSearch('hafer', [bls]),
+      { wrapper }
+    );
+    await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(1));
+    expect(mockSearch).toHaveBeenLastCalledWith(
+      'bls4',
+      'hafer',
+      'provider-bls',
+      undefined,
+      100,
+      undefined,
+      'en'
+    );
+    mockLocale.resolvedLanguage = 'de';
+    rerender();
+    await waitFor(() => expect(mockSearch).toHaveBeenCalledTimes(2));
+    expect(mockSearch).toHaveBeenLastCalledWith(
+      'bls4',
+      'hafer',
+      'provider-bls',
+      undefined,
+      100,
+      undefined,
+      'de'
+    );
+    expect(
+      queryClient
+        .getQueryCache()
+        .getAll()
+        .map((query) => query.queryKey)
+    ).toEqual([
+      expect.arrayContaining(['en', 'provider-language-v1']),
+      expect.arrayContaining(['de', 'provider-language-v1']),
+    ]);
   });
 });
