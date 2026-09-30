@@ -1779,7 +1779,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             defaultValue: 'Add to Diary',
           });
   const addButtonLabel =
-    !isSelectionMode && !isMeal
+    !isSelectionMode && !isMealItem && !photoCapture
       ? t('foodEntryAdd.actions.addShort', { defaultValue: 'Add' })
       : addLabel;
   const addDisabled =
