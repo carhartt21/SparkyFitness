@@ -210,7 +210,9 @@ struct CheckInEntryView: View {
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
-            .tint(looksWrong && active == .bodyFat ? .orange : .accentColor)
+            .tint(looksWrong && active == .bodyFat ? .orange : Neon.accent)
+            // Dark text on the mint and orange fills, as on the phone's buttons.
+            .foregroundStyle(Neon.accentText)
             .disabled(active == .bodyFat && !store.canCaptureActions)
 
             if active == .bodyFat && !store.canCaptureActions {
@@ -363,6 +365,7 @@ struct TypedValueEntryView: View {
                 dismiss()
             }
             .buttonStyle(.borderedProminent)
+            .foregroundStyle(Neon.accentText)
             .disabled(parsed == nil)
         }
         .padding()

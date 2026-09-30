@@ -221,15 +221,29 @@ final class CheckInStore: ObservableObject {
 
     // MARK: - Food shortcuts
 
-    func captureFoodLog(_ food: WatchFoodShortcut, mealTypeId: String) -> PendingFoodLogAction? {
+    /// Logs `serving` of `food`. The serving must be one the phone offered
+    /// for this food, or a custom amount on one of those servings' variants,
+    /// so the Watch never invents a unit the phone cannot log.
+    func captureFoodLog(
+        _ food: WatchFoodShortcut,
+        serving: WatchFoodServing,
+        mealTypeId: String
+    ) -> PendingFoodLogAction? {
         guard let scope = context.actionScope, !scope.isEmpty,
-              context.foodShortcuts?.contains(where: { $0.id == food.id }) == true,
+              let current = context.foodShortcuts?.first(where: { $0.id == food.id }),
+              current.servingChoices.contains(where: {
+                  $0.variantId == serving.variantId && $0.unit == serving.unit
+                      && $0.servingSize == serving.servingSize
+              }),
+              serving.quantity > 0, serving.quantity <= 10_000,
               context.mealTypes?.contains(where: { $0.id == mealTypeId }) == true else { return nil }
         let action = PendingFoodLogAction(
             id: UUID().uuidString, scope: scope, entryDate: CheckInDate.today(),
-            loggedAt: Date(), foodId: food.foodId, variantId: food.variantId,
-            mealTypeId: mealTypeId, quantity: food.servingSize,
-            unit: food.servingUnit, name: food.name, state: .queued
+            loggedAt: Date(), foodId: food.foodId, variantId: serving.variantId,
+            mealTypeId: mealTypeId, quantity: serving.quantity,
+            unit: serving.unit, name: food.name, state: .queued,
+            servingSize: serving.servingSize, servingUnit: serving.servingUnit,
+            servingTitle: serving.title, calories: serving.calories
         )
         pendingFoodActions.append(action)
         // Keep bounded local history while retaining every unresolved write.
@@ -244,6 +258,27 @@ final class CheckInStore: ObservableObject {
         if pendingFoodActions[index].state == .saved && state == .failed { return }
         pendingFoodActions[index].state = state
         persist()
+    }
+
+    /// Servings for the second step: a serving logged here that the phone has
+    /// not reflected yet goes on top, ahead of the phone's own list.
+    func servingChoices(for food: WatchFoodShortcut) -> [WatchFoodServing] {
+        let phone = food.servingChoices
+        guard let local = pendingFoodActions.last(where: {
+            $0.scope == context.actionScope && $0.foodId == food.foodId && $0.state != .failed
+        }), local.loggedAt > (context.generatedAt ?? .distantPast) else { return phone }
+        let serving = local.serving
+        return [serving] + phone.filter { !$0.sameAmount(as: serving) }.map { choice in
+            // The phone's own "last" is older than this one now.
+            choice.kind == "last"
+                ? WatchFoodServing(
+                    key: choice.key, kind: "portion", title: choice.title,
+                    quantity: choice.quantity, unit: choice.unit,
+                    variantId: choice.variantId, calories: choice.calories,
+                    servingSize: choice.servingSize, servingUnit: choice.servingUnit
+                )
+                : choice
+        }
     }
 
     var queuedFoodActions: [PendingFoodLogAction] {

@@ -93,7 +93,7 @@ struct WorkoutView: View {
                         }
                         .padding(7)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 9))
+                        .neonSurface(Neon.accent, intensity: .edge, cornerRadius: 9)
                     }
 
                     Text("Set taps sync through your iPhone")

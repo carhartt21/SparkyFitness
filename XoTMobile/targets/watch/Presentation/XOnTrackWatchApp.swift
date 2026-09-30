@@ -13,6 +13,8 @@ struct XOnTrackWatchApp: App {
             ContentView()
                 .environmentObject(session)
                 .environmentObject(store)
+                // The app's brand mint for controls, as on the phone.
+                .tint(Neon.accent)
         }
     }
 }

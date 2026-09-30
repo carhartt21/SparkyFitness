@@ -192,7 +192,33 @@ enum ContextPayloadMapper {
             return WatchFoodShortcut(
                 foodId: foodId, variantId: variantId, name: name,
                 brand: entry["brand"] as? String, servingSize: servingSize,
-                servingUnit: servingUnit, calories: calories, group: group
+                servingUnit: servingUnit, calories: calories, group: group,
+                servings: foodServings(from: entry["servings"]),
+                thumbnailKey: entry["thumbnailKey"] as? String
+            )
+        }
+    }
+
+    /// Servings with a usable amount only; a grams override must come with an
+    /// amount in the same unit, as the phone will insist when it logs.
+    static func foodServings(from raw: Any?) -> [WatchFoodServing]? {
+        guard let raw = raw as? [[String: Any]] else { return nil }
+        return raw.compactMap { entry in
+            guard let key = entry["key"] as? String,
+                  let kind = entry["kind"] as? String,
+                  let title = entry["title"] as? String,
+                  let quantity = entry["quantity"] as? Double,
+                  let unit = entry["unit"] as? String,
+                  let variantId = entry["variantId"] as? String,
+                  quantity > 0, quantity.isFinite else { return nil }
+            let servingSize = entry["servingSize"] as? Double
+            let servingUnit = entry["servingUnit"] as? String
+            if servingSize != nil, servingUnit != unit { return nil }
+            return WatchFoodServing(
+                key: key, kind: kind, title: title, quantity: quantity,
+                unit: unit, variantId: variantId,
+                calories: entry["calories"] as? Double ?? 0,
+                servingSize: servingSize, servingUnit: servingUnit
             )
         }
     }

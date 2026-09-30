@@ -337,6 +337,7 @@ final class WatchSessionManager: NSObject, ObservableObject {
         if store.nextQueuedWorkoutOperation?.id != previousHead {
             sendNextWorkoutOperation()
         }
+        syncFoodThumbnails()
 
         // The day this payload is ABOUT — not necessarily today. Anything
         // routed through here may be a replay of the cached context by
@@ -397,6 +398,18 @@ final class WatchSessionManager: NSObject, ObservableObject {
             return
         }
         store.markWaterTap(ack.clientId, ack.ok ? .saved : .failed)
+    }
+
+    /// Drops pictures of foods no longer offered and asks the phone for the
+    /// ones this Watch has not received yet.
+    func syncFoodThumbnails() {
+        let keys = (store.context.foodShortcuts ?? []).compactMap(\.thumbnailKey)
+        let thumbnails = FoodThumbnailStore.shared
+        thumbnails.prune(keeping: keys)
+        let missing = thumbnails.takeMissing(keys)
+        if !missing.isEmpty {
+            transfer(OutboundPayloads.thumbnailRequest(keys: missing))
+        }
     }
 
     /// The single entry point for everything inbound, whichever transport
@@ -466,5 +479,14 @@ extension WatchSessionManager: WCSessionDelegate {
         didReceiveApplicationContext applicationContext: [String: Any]
     ) {
         Task { @MainActor in self.route(applicationContext) }
+    }
+
+    /// A food picture from the phone. Moved into place here, synchronously:
+    /// the system deletes the received file once this method returns.
+    nonisolated func session(_ session: WCSession, didReceive file: WCSessionFile) {
+        guard file.metadata?["type"] as? String == "foodThumbnail",
+              let key = file.metadata?["key"] as? String,
+              FoodThumbnailStore.store(fileAt: file.fileURL, key: key) else { return }
+        Task { @MainActor in FoodThumbnailStore.shared.didStore(key: key) }
     }
 }

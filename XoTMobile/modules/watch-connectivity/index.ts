@@ -125,6 +125,24 @@ export interface WatchContainerPayload {
 }
 
 /** A phone-owned library shortcut. The Watch displays this cached catalogue. */
+/**
+ * One serving the Watch offers in its second logging step. `quantity` and
+ * `unit` are sent with the entry against `variantId`; `servingSize` and
+ * `servingUnit` are the grams override of a weighed portion ("1 bar = 45 g"),
+ * sent only for that case.
+ */
+export interface WatchFoodServingPayload {
+  key: string;
+  kind: 'last' | 'default' | 'portion';
+  title: string;
+  quantity: number;
+  unit: string;
+  variantId: string;
+  calories: number;
+  servingSize?: number;
+  servingUnit?: string;
+}
+
 export interface WatchFoodShortcutPayload {
   foodId: string;
   variantId: string;
@@ -134,6 +152,10 @@ export interface WatchFoodShortcutPayload {
   servingUnit: string;
   calories: number;
   group: 'favorite' | 'recent';
+  /** Last used first, then 100 g when weighable, then saved portions. */
+  servings: WatchFoodServingPayload[];
+  /** Names the thumbnail sent by `transferThumbnail`; null without a picture. */
+  thumbnailKey: string | null;
 }
 
 export interface WatchMealTypePayload {
@@ -162,6 +184,9 @@ export interface WatchFoodLogPayload {
   mealTypeId: string;
   quantity: number;
   unit: string;
+  /** Grams override of a weighed portion, from `WatchFoodServingPayload`. */
+  servingSize?: number;
+  servingUnit?: string;
 }
 
 /** Seed values, history and acknowledgements pushed to the watch. */
@@ -293,6 +318,8 @@ export type WatchConnectivityEvents = {
   onWaterDelete: (payload: WatchWaterDeletePayload) => void;
   onWorkoutSetOperation: (payload: WatchWorkoutSetOperationPayload) => void;
   onFoodLog: (payload: WatchFoodLogPayload) => void;
+  /** Thumbnail keys the watch has no picture for. */
+  onThumbnailRequest: (payload: { keys: string[] }) => void;
 };
 
 declare class WatchConnectivityModuleType extends NativeModule<WatchConnectivityEvents> {
@@ -301,6 +328,11 @@ declare class WatchConnectivityModuleType extends NativeModule<WatchConnectivity
   isPaired(): boolean;
   updateContext(context: WatchContextPayload): Promise<void>;
   sendAck(clientId: string, ok: boolean): Promise<void>;
+  /** Queues a local file (a `file://` URI) for background transfer to the watch. */
+  transferFile(
+    fileUri: string,
+    metadata: { type: 'foodThumbnail'; key: string }
+  ): Promise<void>;
 }
 
 // iOS-only: WatchConnectivity has no Android equivalent, so this resolves to

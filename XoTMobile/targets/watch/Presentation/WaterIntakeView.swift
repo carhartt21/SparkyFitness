@@ -197,7 +197,7 @@ struct WaterIntakeView: View {
                     .minimumScaleFactor(0.8)
             }
             .frame(width: side, height: side)
-            .background(GoalPalette.water.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
+            .neonSurface(GoalPalette.water)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Log 250 millilitres of water")
@@ -222,7 +222,7 @@ struct WaterIntakeView: View {
                     .lineLimit(1)
             }
             .frame(width: side, height: side)
-            .background(Color.secondary.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
+            .neonSurface(.secondary, intensity: .edge)
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Today's logged drinks")
@@ -247,7 +247,7 @@ struct WaterIntakeView: View {
             // Explicit width AND height, both equal to `side` — a true
             // square regardless of how little space the content itself needs.
             .frame(width: side, height: side)
-            .background(GoalPalette.water.opacity(0.16), in: RoundedRectangle(cornerRadius: 16))
+            .neonSurface(GoalPalette.water)
         }
         .buttonStyle(.plain)
         .disabled(!store.canCaptureActions)

@@ -1,4 +1,8 @@
-import { buildWatchFoodShortcuts } from '../../src/utils/watchFoodShortcuts';
+import {
+  buildWatchFoodShortcuts,
+  buildWatchServings,
+  watchThumbnailKey,
+} from '../../src/utils/watchFoodShortcuts';
 import type { FoodItem } from '../../src/types/foods';
 
 const food = (id: string, overrides: Partial<FoodItem> = {}): FoodItem => ({
@@ -46,5 +50,120 @@ describe('Watch food shortcuts', () => {
         []
       ).map(({ foodId }) => foodId)
     ).toEqual(['valid']);
+  });
+});
+
+describe('Watch food servings', () => {
+  it('offers 100 g for a food measured in grams', () => {
+    expect(buildWatchServings(food('oats'))).toEqual([
+      expect.objectContaining({
+        kind: 'default',
+        quantity: 100,
+        unit: 'g',
+        variantId: 'oats-variant',
+        calories: 120,
+      }),
+    ]);
+  });
+
+  it('puts the last logged amount first', () => {
+    const servings = buildWatchServings(food('oats'), {
+      lastServing: {
+        food_id: 'oats',
+        variant_id: 'oats-variant',
+        quantity: 150,
+        unit: 'g',
+        serving_size: 100,
+        serving_label: null,
+        metric_amount: null,
+        metric_unit: null,
+        used_at: '2026-09-29T08:00:00Z',
+      },
+    });
+    expect(servings.map(({ kind, quantity }) => [kind, quantity])).toEqual([
+      ['last', 150],
+      ['default', 100],
+    ]);
+    expect(servings[0].calories).toBe(180);
+  });
+
+  it('logs 100 g of a weighed portion against the portion with a grams override', () => {
+    const bar = food('bar', {
+      default_variant: {
+        id: 'bar-variant',
+        serving_size: 1,
+        serving_unit: 'bar',
+        calories: 172,
+        protein: 15,
+        carbs: 10,
+        fat: 7,
+      },
+    });
+    const servings = buildWatchServings(bar, {
+      variants: [
+        {
+          id: 'bar-variant',
+          food_id: 'bar',
+          serving_size: 1,
+          serving_unit: 'bar',
+          metric_amount: 45,
+          metric_unit: 'g',
+          calories: 172,
+          protein: 15,
+          carbs: 10,
+          fat: 7,
+          is_default: true,
+        },
+      ],
+    });
+    expect(servings[0]).toEqual(
+      expect.objectContaining({
+        kind: 'default',
+        quantity: 100,
+        unit: 'g',
+        variantId: 'bar-variant',
+        servingSize: 45,
+        servingUnit: 'g',
+        calories: 382,
+      })
+    );
+    expect(servings[1]).toEqual(
+      expect.objectContaining({ kind: 'portion', quantity: 1, unit: 'bar' })
+    );
+    expect(servings[1]).not.toHaveProperty('servingSize');
+  });
+
+  it('offers the saved portion when a food cannot be weighed', () => {
+    const cup = food('soup', {
+      default_variant: {
+        id: 'soup-variant',
+        serving_size: 1,
+        serving_unit: 'cup',
+        calories: 90,
+        protein: 3,
+        carbs: 12,
+        fat: 2,
+      },
+    });
+    expect(
+      buildWatchServings(cup).map(({ quantity, unit }) => [quantity, unit])
+    ).toEqual([[1, 'cup']]);
+  });
+
+  it('names a thumbnail by its image so a new picture gets a new key', () => {
+    const [withImage, withoutImage] = buildWatchFoodShortcuts(
+      [
+        food('pictured', { images: ['/uploads/foods/pictured/a.jpg'] }),
+        food('plain'),
+      ],
+      []
+    );
+    expect(withImage.thumbnailKey).toBe(
+      watchThumbnailKey('/uploads/foods/pictured/a.jpg')
+    );
+    expect(withImage.thumbnailKey).not.toBe(
+      watchThumbnailKey('/uploads/foods/pictured/b.jpg')
+    );
+    expect(withoutImage.thumbnailKey).toBeNull();
   });
 });

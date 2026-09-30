@@ -50,7 +50,7 @@ struct WaterGoalProvider: TimelineProvider {
 
 /// Matches `GoalPalette.water` in targets/watch — separate compiled targets
 /// can't share a constant, so if one changes, change both.
-private let waterTint = Color.cyan
+private let waterTint = Color(red: 0.133, green: 0.722, blue: 0.961)
 
 /// Open gauge: an arc broken at the bottom, where the droplet sits, with the
 /// percentage centred inside it. The break is what makes the complication

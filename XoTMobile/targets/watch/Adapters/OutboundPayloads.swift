@@ -24,6 +24,7 @@ enum OutboundPayloads {
         static let contextRequest = "requestContext"
         static let workoutSetOperation = "workoutSetOperation"
         static let foodLog = "foodLog"
+        static let thumbnailRequest = "thumbnailRequest"
     }
 
     /// A morning check-in awaiting a server write.
@@ -94,7 +95,7 @@ enum OutboundPayloads {
     }
 
     static func foodLog(_ action: PendingFoodLogAction) -> [String: Any] {
-        [
+        var payload: [String: Any] = [
             "type": Kind.foodLog,
             "clientId": action.id,
             "scope": action.scope,
@@ -106,6 +107,16 @@ enum OutboundPayloads {
             "quantity": action.quantity,
             "unit": action.unit,
         ]
+        if let servingSize = action.servingSize, let servingUnit = action.servingUnit {
+            payload["servingSize"] = servingSize
+            payload["servingUnit"] = servingUnit
+        }
+        return payload
+    }
+
+    /// Asks the phone for the food pictures this Watch has no file for.
+    static func thumbnailRequest(keys: [String]) -> [String: Any] {
+        ["type": Kind.thumbnailRequest, "keys": keys]
     }
 
     /// Asks the phone to push a fresh context. Carries no data of its own.
