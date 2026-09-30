@@ -69,6 +69,18 @@ interface FixtureRegistry {
 
 function createFixtureRoot(registry: FixtureRegistry): string {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'sparky-muf-'));
+  // The native CLI now validates both independently built Watch targets too.
+  for (const target of ['watch', 'watch-widget']) {
+    for (const locale of ['en', 'de']) {
+      const directory = path.join(root, 'targets', target, `${locale}.lproj`);
+      fs.mkdirSync(directory, { recursive: true });
+      fs.writeFileSync(
+        path.join(directory, 'Localizable.strings'),
+        '"fixture" = "Fixture";\n'
+      );
+    }
+  }
+
   fs.mkdirSync(path.join(root, 'src/localization'), { recursive: true });
   fs.writeFileSync(
     path.join(root, 'src/localization/localeRegistry.json'),

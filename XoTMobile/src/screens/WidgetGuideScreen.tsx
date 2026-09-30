@@ -133,17 +133,17 @@ export default function WidgetGuideScreen() {
                 })}
                 subtitle={t('widgetGuide.watchSteps', {
                   defaultValue:
-                    'Install the companion in the iPhone Watch app. Touch and hold the watch face → Edit → Complications. Select a circular slot and X on Track. Tap it to open the app.',
+                    'Install the companion in the iPhone Watch app. Touch and hold the watch face → Edit → Complications. Select a compatible slot and X on Track. Tap it to open the app.',
                 })}
                 subtitleNumberOfLines={0}
               />
               <SettingsRow
                 title={t('widgetGuide.watchAvailable', {
-                  defaultValue: 'Energy goals and water',
+                  defaultValue: 'Energy goals, water and Daily Progress X',
                 })}
                 subtitle={t('widgetGuide.watchLimits', {
                   defaultValue:
-                    'These are the two currently supported circular complications. Meal, habit and mobility widgets are not available on Watch. There is no dedicated Smart Stack layout yet.',
+                    'Energy goals and water use circular slots. Daily Progress X also supports rectangular, corner and inline slots where the face provides them. It reflects completed daily tasks, not an aggregate health score.',
                 })}
                 subtitleNumberOfLines={0}
               />
