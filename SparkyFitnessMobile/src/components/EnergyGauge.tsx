@@ -5,8 +5,20 @@ import { useTweenedValue } from '../hooks/useTweenedValue';
 
 const START_DEG = 135;
 const SWEEP_DEG = 270;
-const GLOW_EXTRA_STROKE = 10;
 const EDGE_CLEARANCE = 1;
+/** The fill sits inside the track instead of covering it edge to edge. */
+export const GAUGE_FILL_NARROWING = 4;
+/**
+ * Soft glow: a few thin halos around the fill, each wider and fainter than
+ * the last, so the light falls off gradually instead of ending in one
+ * hard-edged band. `extra` is added to the fill width.
+ */
+export const GAUGE_GLOW_LAYERS = [
+  { extra: 2, opacity: 0.16 },
+  { extra: 5, opacity: 0.08 },
+  { extra: 9, opacity: 0.035 },
+] as const;
+const GLOW_MAX_EXTRA = GAUGE_GLOW_LAYERS[GAUGE_GLOW_LAYERS.length - 1].extra;
 
 function polar(cx: number, cy: number, r: number, deg: number) {
   const rad = (deg * Math.PI) / 180;
@@ -57,9 +69,13 @@ export default function EnergyGauge({
     ? Math.min(Math.max(progress, 0), 1)
     : 0;
   const fill = useTweenedValue(target);
-  // Leave half of the halo's extra width plus a point for antialiasing;
+  const fillWidth = Math.max(4, strokeWidth - GAUGE_FILL_NARROWING);
+  // Keep the widest halo inside the viewport plus a point for antialiasing;
   // otherwise its outer edge is cut into a flat vertical line on iOS.
-  const inset = EDGE_CLEARANCE + (glowing ? GLOW_EXTRA_STROKE / 2 : 0);
+  const haloOverhang = glowing
+    ? Math.max(0, (fillWidth + GLOW_MAX_EXTRA - strokeWidth) / 2)
+    : 0;
+  const inset = EDGE_CLEARANCE + haloOverhang;
   const trackPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG, inset);
   const fillPath = gaugeArcPath(size, strokeWidth, SWEEP_DEG * fill, inset);
 
@@ -93,21 +109,28 @@ export default function EnergyGauge({
       />
       {fill > 0 ? (
         <>
-          {glowing ? (
-            <Path
-              d={fillPath}
-              stroke="url(#energyGauge)"
-              strokeOpacity={0.22}
-              strokeWidth={strokeWidth + GLOW_EXTRA_STROKE}
-              strokeLinecap="round"
-              fill="none"
-            />
-          ) : null}
+          {glowing
+            ? // Widest and faintest first, so the brightest halo sits on top.
+              [...GAUGE_GLOW_LAYERS]
+                .reverse()
+                .map((layer) => (
+                  <Path
+                    key={layer.extra}
+                    testID="energy-gauge-glow"
+                    d={fillPath}
+                    stroke="url(#energyGauge)"
+                    strokeOpacity={layer.opacity}
+                    strokeWidth={fillWidth + layer.extra}
+                    strokeLinecap="round"
+                    fill="none"
+                  />
+                ))
+            : null}
           <Path
             testID="energy-gauge-fill"
             d={fillPath}
             stroke="url(#energyGauge)"
-            strokeWidth={strokeWidth}
+            strokeWidth={fillWidth}
             strokeLinecap="round"
             fill="none"
           />
