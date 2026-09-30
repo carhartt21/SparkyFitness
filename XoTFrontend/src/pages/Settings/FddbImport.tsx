@@ -374,7 +374,7 @@ export default function FddbImport() {
                   <p className="text-muted-foreground">
                     {t(
                       'settings.dataImport.fddb.recipeWarning',
-                      'These drafts have no calculated nutrition until you link their ingredients.'
+                      'Open each draft in Foods → Meals to link its ingredients. Your food library is checked first; provider search is available for missing foods. Nutrition is calculated after review.'
                     )}
                   </p>
                 )}

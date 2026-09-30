@@ -2285,7 +2285,7 @@
         "favorites": "Favorites",
         "measurements": "Weight measurements",
         "activities": "Activity records",
-        "recipeWarning": "These drafts have no calculated nutrition until you link their ingredients.",
+        "recipeWarning": "Open each draft in Foods → Meals to link its ingredients. Your food library is checked first; provider search is available for missing foods. Nutrition is calculated after review.",
         "activityWarning": "Check your existing exercise and Health imports first to avoid overlapping activity totals.",
         "extraResult": "{{imported}} imported · {{existing}} already present · {{unmatched}} unmatched · {{errors}} errors",
         "reviewIssues": "Review unmatched items and errors",
@@ -3712,6 +3712,17 @@
     "removeFromFavorites": "Remove from favorites",
     "createMeal": "Create Meal",
     "notes": "Notes"
+  },
+  "fddbReview": {
+    "title": "Link imported ingredients",
+    "description": "Choose a food from your library first, or search your configured providers. Confirm each amount, then save the meal to calculate its nutrition.",
+    "checkAmount": "Choose the quantity and unit when linking this ingredient.",
+    "searching": "Checking your food library…",
+    "searchError": "Could not check your food library.",
+    "noMatch": "No match in your food library.",
+    "useFood": "Use {{name}}",
+    "searchFoods": "Search foods and providers",
+    "unresolved": "Link all imported ingredients before saving this meal."
   },
   "mealBuilder": {
     "errorTitle": "Error",

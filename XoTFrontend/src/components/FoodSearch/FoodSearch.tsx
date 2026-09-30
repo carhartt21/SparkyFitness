@@ -112,6 +112,7 @@ interface EnhancedFoodSearchProps {
   // meal cannot contain another meal).
   hideMealTab?: boolean;
   mealType?: string;
+  initialSearchTerm?: string;
   /** Opens the barcode scanner as soon as the search mounts (Dashboard Scan). */
   startWithScanner?: boolean;
 }
@@ -168,6 +169,7 @@ const EnhancedFoodSearch = ({
   hideDatabaseTab = false,
   hideMealTab = false,
   mealType = undefined,
+  initialSearchTerm = '',
   startWithScanner = false,
 }: EnhancedFoodSearchProps) => {
   const { t, i18n } = useTranslation();
@@ -195,10 +197,11 @@ const EnhancedFoodSearch = ({
   const showLocalFoods = !onlineOnly;
   const showMeals = !hideMealTab && !onlineOnly;
 
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(initialSearchTerm);
   // Debounced term for the local-food query so it does not refetch on every
   // keystroke (meals and online have their own debounced effects).
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] =
+    useState(initialSearchTerm);
   useEffect(() => {
     if (!searchTerm.trim()) {
       setDebouncedSearchTerm('');

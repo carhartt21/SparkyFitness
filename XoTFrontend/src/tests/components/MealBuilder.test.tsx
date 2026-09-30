@@ -1,6 +1,10 @@
 import { screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import MealBuilder from '@/components/MealBuilder';
+import type { ComponentProps } from 'react';
+import type FoodUnitSelector from '@/components/FoodUnitSelector';
+import type FoodSearchDialog from '@/components/FoodSearch/FoodSearchDialog';
+import type { Food } from '@/types/food';
 import { renderWithClient } from '../test-utils';
 
 // Mock react-i18next
@@ -13,7 +17,11 @@ jest.mock('react-i18next', () => ({
         typeof defaultValueOrOpts === 'object' &&
         'defaultValue' in defaultValueOrOpts
       ) {
-        return defaultValueOrOpts['defaultValue'] as string;
+        return String(defaultValueOrOpts['defaultValue']).replace(
+          /\{\{(\w+)\}\}/g,
+          (_match: string, name: string) =>
+            String(defaultValueOrOpts[name] ?? '')
+        );
       }
       return key;
     },
@@ -74,16 +82,84 @@ jest.mock('@/api/Diary/foodEntryService', () => ({
   getFoodEntryMealWithComponents: jest.fn(),
 }));
 
+const mockLoadFoods = jest.fn();
+jest.mock('@/api/Foods/foodService', () => ({
+  ...jest.requireActual('@/api/Foods/foodService'),
+  loadFoods: (...args: unknown[]) => mockLoadFoods(...args),
+}));
+
+const mockImportedFood: Food = {
+  id: 'saved-apple',
+  name: 'Apple',
+  brand: 'Example Brand',
+  is_custom: true,
+  default_variant: {
+    id: 'apple-g',
+    serving_size: 100,
+    serving_unit: 'g',
+    calories: 52,
+    protein: 0.3,
+    carbs: 14,
+    fat: 0.2,
+  },
+};
+
 // Mock complex sub-components as simple stubs
 jest.mock('@/components/FoodUnitSelector', () => {
-  return function MockFoodUnitSelector() {
-    return <div data-testid="food-unit-selector">FoodUnitSelector</div>;
+  return function MockFoodUnitSelector(
+    props: ComponentProps<typeof FoodUnitSelector>
+  ) {
+    if (!props.open) return null;
+    return (
+      <div data-testid="food-unit-selector">
+        <span>
+          {props.initialQuantity} {props.initialUnit}
+        </span>
+        <button
+          onClick={() =>
+            props.onSelect(
+              props.food,
+              props.initialQuantity || 1,
+              props.initialUnit || 'g',
+              props.food.default_variant!
+            )
+          }
+        >
+          Confirm imported food
+        </button>
+        <button onClick={() => props.onOpenChange(false)}>
+          Cancel imported food
+        </button>
+      </div>
+    );
   };
 });
 
 jest.mock('@/components/FoodSearch/FoodSearchDialog', () => {
-  return function MockFoodSearchDialog() {
-    return <div data-testid="food-search-dialog">FoodSearchDialog</div>;
+  return function MockFoodSearchDialog(
+    props: ComponentProps<typeof FoodSearchDialog>
+  ) {
+    if (!props.open) return null;
+    return (
+      <div data-testid="food-search-dialog">
+        <span>{props.initialSearchTerm}</span>
+        <button
+          onClick={() =>
+            props.onFoodSelect(
+              {
+                ...mockImportedFood,
+                id: 'provider-quark',
+                name: 'Quark',
+                brand: 'Low fat',
+              },
+              'food'
+            )
+          }
+        >
+          Choose provider food
+        </button>
+      </div>
+    );
   };
 });
 
@@ -106,6 +182,81 @@ const sampleFoods = [
 describe('MealBuilder', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockLoadFoods.mockResolvedValue({
+      foods: [mockImportedFood],
+      totalCount: 1,
+    });
+  });
+
+  it('reviews an existing FDDB draft in place, retaining amounts and its import marker', async () => {
+    const marker = `FDDB import fddb:${'a'.repeat(64)}`;
+    mockGetMealById.mockResolvedValue({
+      id: 'imported-meal',
+      name: 'Breakfast',
+      foods: [],
+      serving_size: 1,
+      serving_unit: 'serving',
+      total_servings: 2,
+      notes: `${marker}\nUnlinked ingredients: 200 g Apple, Example Brand, 250 g Quark, Low fat\nPreparation: 0 min; cooking: 0 min.`,
+    });
+    mockLoadFoods.mockImplementation((term: string) =>
+      Promise.resolve({
+        foods: term === 'Apple Example Brand' ? [mockImportedFood] : [],
+        totalCount: term === 'Apple Example Brand' ? 1 : 0,
+      })
+    );
+    mockUpdateMeal.mockResolvedValue({ id: 'imported-meal' });
+    renderWithClient(<MealBuilder mealId="imported-meal" />);
+    const apple = await screen.findByRole('button', {
+      name: 'Use Apple, Example Brand',
+    });
+    fireEvent.click(apple);
+    expect(screen.getByText('200 g')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Cancel imported food'));
+    expect(screen.getByText('200 g Apple, Example Brand')).toBeInTheDocument();
+    fireEvent.click(apple);
+    fireEvent.click(screen.getByText('Confirm imported food'));
+    fireEvent.click(screen.getByRole('button', { name: 'Save Meal' }));
+    expect(mockUpdateMeal).not.toHaveBeenCalled();
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        description: 'Link all imported ingredients before saving this meal.',
+      })
+    );
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Search foods and providers' })
+    );
+    expect(screen.getByText('Quark Low fat')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Choose provider food'));
+    expect(screen.getByText('250 g')).toBeInTheDocument();
+    fireEvent.click(screen.getByText('Confirm imported food'));
+    expect(
+      screen.queryByText('Link imported ingredients')
+    ).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Save Meal' }));
+    await waitFor(() =>
+      expect(mockUpdateMeal).toHaveBeenCalledWith(
+        'imported-meal',
+        expect.objectContaining({
+          notes: expect.stringContaining(marker),
+          total_servings: 2,
+          foods: expect.arrayContaining([
+            expect.objectContaining({
+              food_id: 'saved-apple',
+              quantity: 200,
+              unit: 'g',
+            }),
+            expect.objectContaining({
+              food_id: 'provider-quark',
+              quantity: 250,
+              unit: 'g',
+            }),
+          ]),
+        }),
+        []
+      )
+    );
+    expect(mockCreateMeal).not.toHaveBeenCalled();
   });
 
   it('gives a photo-built diary meal the full serving model', async () => {

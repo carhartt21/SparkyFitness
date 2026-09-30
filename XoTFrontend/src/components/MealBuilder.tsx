@@ -22,6 +22,13 @@ import type { Food, FoodVariant, GlycemicIndex } from '@/types/food';
 import type { Meal, MealFood, MealPayload } from '@/types/meal';
 import FoodUnitSelector from '@/components/FoodUnitSelector';
 import FoodSearchDialog from './FoodSearch/FoodSearchDialog';
+import { FddbIngredientReview } from './FddbIngredientReview';
+import {
+  getFddbIngredients,
+  resolveFddbIngredient,
+  fddbIngredientSearchTerm,
+  type FddbIngredient,
+} from '@/utils/fddbIngredients';
 import MealUnitSelector from '@/pages/Foods/MealUnitSelector';
 import LinkedMealPreviewDialog from './LinkedMealPreviewDialog';
 import { useQueryClient } from '@tanstack/react-query';
@@ -183,6 +190,14 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
     initialDescription || ''
   );
   const [mealNotes, setMealNotes] = useState(initialNotes || '');
+  const fddbIngredients = useMemo(
+    () => (source === 'meal-management' ? getFddbIngredients(mealNotes) : []),
+    [mealNotes, source]
+  );
+  const [pendingFddbIngredient, setPendingFddbIngredient] = useState<{
+    index: number;
+    ingredient: FddbIngredient;
+  } | null>(null);
   // The parent template's own note, shown read-only while logging it. Kept
   // apart from `mealNotes` on purpose: copying a recipe into every logged
   // occasion duplicates it and lets the two drift.
@@ -623,6 +638,7 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
   };
 
   const handleEditFoodInMeal = (index: number) => {
+    setPendingFddbIngredient(null);
     const mealFoodToEdit = mealFoods[index];
     if (mealFoodToEdit?.item_type === 'meal') {
       handleEditMealComponentInMeal(index);
@@ -725,6 +741,11 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
     } else {
       // Add new meal food
       setMealFoods((prev) => [...prev, updatedMealFood]);
+      if (pendingFddbIngredient) {
+        setMealNotes((notes) =>
+          resolveFddbIngredient(notes, pendingFddbIngredient.index)
+        );
+      }
       toast({
         title: t('mealBuilder.successTitle', 'Success'),
         description: t('mealBuilder.foodAddedToMeal', {
@@ -736,6 +757,7 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
 
     setIsFoodUnitSelectorOpen(false);
     setSelectedFoodForUnitSelection(null);
+    setPendingFddbIngredient(null);
     setEditingMealFood(null); // Clear editing state
   };
 
@@ -751,6 +773,17 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
   };
 
   const handleSaveMeal = async () => {
+    if (fddbIngredients.length > 0) {
+      toast({
+        title: t('mealBuilder.errorTitle', 'Error'),
+        description: t(
+          'fddbReview.unresolved',
+          'Link all imported ingredients before saving this meal.'
+        ),
+        variant: 'destructive',
+      });
+      return;
+    }
     // One normalization for every payload built below: an empty or
     // whitespace-only note is the absence of a note, not an empty string.
     const normalizedMealNotes = mealNotes.trim() || null;
@@ -1382,6 +1415,22 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
         </p>
       )}
 
+      <FddbIngredientReview
+        ingredients={fddbIngredients}
+        onChoose={(index, food) => {
+          const ingredient = fddbIngredients[index];
+          if (!ingredient) return;
+          setPendingFddbIngredient({ index, ingredient });
+          handleAddFoodToMeal(food);
+        }}
+        onSearch={(index) => {
+          const ingredient = fddbIngredients[index];
+          if (!ingredient) return;
+          setPendingFddbIngredient({ index, ingredient });
+          setShowFoodSearchDialog(true);
+        }}
+      />
+
       <div className="space-y-4">
         <h3 className="text-lg font-semibold">
           {source === 'food-diary'
@@ -1745,7 +1794,12 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
               )
             : t('mealBuilder.addFoodToMealTitle', 'Add Food to Meal')}
         </h3>
-        <Button onClick={() => setShowFoodSearchDialog(true)}>
+        <Button
+          onClick={() => {
+            setPendingFddbIngredient(null);
+            setShowFoodSearchDialog(true);
+          }}
+        >
           <Plus className="h-4 w-4 mr-2" />{' '}
           {t('mealBuilder.addFoodButton', 'Add Food')}
         </Button>
@@ -1758,23 +1812,33 @@ const MealBuilder: React.FC<MealBuilderProps> = ({
           open={isFoodUnitSelectorOpen}
           onOpenChange={setIsFoodUnitSelectorOpen}
           onSelect={handleFoodUnitSelected}
-          initialQuantity={editingMealFood?.mealFood.quantity}
+          isEditing={!!editingMealFood}
+          initialQuantity={
+            pendingFddbIngredient?.ingredient.quantity ??
+            editingMealFood?.mealFood.quantity
+          }
           initialUnit={
+            pendingFddbIngredient?.ingredient.unit ||
             editingMealFood?.mealFood.unit ||
-            editingMealFood?.mealFood.serving_unit ||
-            'g'
+            editingMealFood?.mealFood.serving_unit
           }
           initialVariantId={editingMealFood?.mealFood.variant_id}
         />
       )}
 
       <FoodSearchDialog
+        key={pendingFddbIngredient?.ingredient.label || 'manual'}
+        initialSearchTerm={
+          pendingFddbIngredient
+            ? fddbIngredientSearchTerm(pendingFddbIngredient.ingredient.name)
+            : undefined
+        }
         open={showFoodSearchDialog}
         onOpenChange={setShowFoodSearchDialog}
         // Linked sub-meals are a meal-template (recipe) concept: once a meal is
         // logged to the diary it is already flattened to leaf foods, so linking
         // another meal from the food-diary editor doesn't fit that model.
-        hideMealTab={source === 'food-diary'}
+        hideMealTab={source === 'food-diary' || !!pendingFddbIngredient}
         onFoodSelect={(item, type) => {
           setShowFoodSearchDialog(false);
           if (type === 'food') {

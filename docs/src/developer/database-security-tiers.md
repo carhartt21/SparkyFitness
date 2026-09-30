@@ -191,6 +191,10 @@ nutrients and references are public, never diary records or account data.
 | `medication_route_types`    | Medication administration route lookup (Subcutaneous, Oral) | Admin-Only                   | Authenticated Users              |
 | `medication_schedule_types` | Medication scheduling frequencies lookup (Daily, Weekly)    | Admin-Only                   | Authenticated Users              |
 
+### FDDB snapshot import exception (Tier 2 diary)
+
+`food_entries` retains its existing diary permissions. The additional INSERT policy permits the authenticated owner only to import unlinked FDDB snapshots with a validated source identity, positive portion, nonnegative required nutrients, and an owned meal type. It grants no delegate import rights or public access. The policy is reapplied from `rls_policies.sql` after migrations; on a fresh database the migration waits for that identity helper rather than assuming a previous server boot.
+
 ### Notification v2 and mobility (Tier 1)
 
 | Tables                                                                                                  | Purpose                                                                             | Read       | Write      |

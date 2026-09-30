@@ -1,4 +1,5 @@
 import Papa from 'papaparse';
+import { FDDB_PORTION_RE } from './fddbIngredients';
 import type {
   FddbActivityRow,
   FddbCustomFood,
@@ -35,7 +36,6 @@ const SECTION_NAMES = new Set([
   'transactions',
 ]);
 
-const PORTION_RE = /^\s*(\d+(?:[,.]\d+)?)\s*(g|kg|ml|l|Stk|Stück)\b\s*(.+)$/i;
 const DURATION_RE = /^\s*(\d+(?:[,.]\d+)?)\s+Minuten\b\s*(.+)$/i;
 const DATE_TIME_RE = /^(\d{2})\.(\d{2})\.(\d{4}) (\d{2}):(\d{2})$/;
 const DATE_RE = /^(\d{2})\.(\d{2})\.(\d{4})$/;
@@ -190,7 +190,7 @@ export const parseFddbExport = (text: string): FddbExport => {
       });
       continue;
     }
-    const portion = PORTION_RE.exec(label);
+    const portion = FDDB_PORTION_RE.exec(label);
     const quantity = portion ? Number((portion[1] ?? '').replace(',', '.')) : 1;
     const unit = portion ? (portion[2] ?? '').toLowerCase() : 'serving';
     if (!Number.isFinite(quantity) || quantity < 0) {

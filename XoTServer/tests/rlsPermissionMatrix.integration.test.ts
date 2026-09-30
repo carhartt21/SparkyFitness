@@ -36,6 +36,12 @@ import { randomUUID } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import exerciseDb from '../models/exercise.js';
 import exerciseEntryDb from '../models/exerciseEntry.js';
+import {
+  fddbSourceId,
+  importFddbActivities,
+  importFddbDiaryBatch,
+} from '../models/fddbImportRepository.js';
+import type { FddbDiaryRow } from '@workspace/shared';
 import { describe, it, expect, beforeAll, afterAll, beforeEach } from 'vitest';
 import { getClient, getSystemClient, endPool } from '../db/poolManager.js';
 
@@ -156,10 +162,31 @@ describe.runIf(RUN)('RLS permission matrix', () => {
   // rest are only required to *exist* (no unprotected table).
   // ---------------------------------------------------------------------------
   type Domain =
-    'owner' | 'diary' | 'checkin' | 'medication' | 'library' | 'custom';
+    | 'owner'
+    | 'diary'
+    | 'checkin'
+    | 'medication'
+    | 'library'
+    | 'custom'
+    | 'system';
 
   const DOMAIN: Record<string, Domain> = {
     // owner-only (no delegation)
+    daily_tracking_preferences: 'owner',
+    engagement_action_receipts: 'owner',
+    engagement_change_events: 'owner',
+    engagement_deliveries: 'owner',
+    engagement_devices: 'owner',
+    engagement_occurrences: 'owner',
+    engagement_settings: 'owner',
+    engagement_subject_states: 'owner',
+    health_context_periods: 'owner',
+    measurement_reminders: 'owner',
+    mobility_operations: 'owner',
+    mobility_plans: 'owner',
+    mobility_routines: 'owner',
+    mobility_schedules: 'owner',
+    mobility_sessions: 'owner',
     api_key: 'owner',
     sparky_chat_history: 'owner',
     user_ignored_updates: 'owner',
@@ -177,7 +204,19 @@ describe.runIf(RUN)('RLS permission matrix', () => {
     pregnancy_photos: 'owner',
     user_cycle_display_preferences: 'owner',
     user_mood_display_preferences: 'owner',
+    // Auth-owner infrastructure: application role is deliberately denied.
+    jwks: 'system',
+    oauthAccessToken: 'system',
+    oauthClient: 'system',
+    oauthClientAssertion: 'system',
+    oauthClientResource: 'system',
+    oauthConsent: 'system',
+    oauthRefreshToken: 'system',
+    oauthResource: 'system',
+    daily_checkins: 'checkin',
     // diary
+    food_last_servings: 'diary',
+    meal_day_statuses: 'diary',
     exercise_entries: 'diary',
     exercise_preset_entries: 'diary',
     food_entry_meals: 'diary',
@@ -231,6 +270,7 @@ describe.runIf(RUN)('RLS permission matrix', () => {
     // bespoke / custom policies
     admin_activity_logs: 'custom',
     ai_service_settings: 'custom',
+    bls4_foods: 'custom',
     exercise_entry_activity_details: 'custom',
     exercise_entry_gps_points: 'custom',
     exercise_entry_hr_zones: 'custom',
@@ -243,6 +283,8 @@ describe.runIf(RUN)('RLS permission matrix', () => {
     meal_foods: 'custom',
     meal_plan_template_assignments: 'custom',
     meal_types: 'custom',
+    nutrition_captures: 'custom',
+    nutrition_capture_images: 'custom',
     onboarding_data: 'custom',
     onboarding_status: 'custom',
     profiles: 'custom',
@@ -358,6 +400,13 @@ describe.runIf(RUN)('RLS permission matrix', () => {
         expect(all).not.toMatch(
           /family_access|has_\w+_access|has_family_access/
         );
+      }
+    );
+
+    it.each(tablesIn('system'))(
+      'auth-owner table "%s" grants no application-role policy',
+      async (table) => {
+        expect(await policies(table)).toEqual([]);
       }
     );
 
@@ -635,6 +684,167 @@ describe.runIf(RUN)('RLS permission matrix', () => {
   // WITH CHECK violation; UPDATE/DELETE just affect 0 rows when USING hides the
   // row. Every write runs inside a rolled-back transaction so nothing persists.
   // ---------------------------------------------------------------------------
+  describe('FDDB snapshot imports', () => {
+    let mealTypeId = '';
+    const diaryRow = (): FddbDiaryRow => ({
+      sourceKey: `rls-fddb:${randomUUID()}`,
+      date: '2026-09-26',
+      time: '08:30',
+      foodName: 'Synthetic FDDB food',
+      quantity: 200,
+      unit: 'g',
+      calories: 157.5,
+      protein: 6,
+      carbs: 23,
+      fat: 4,
+    });
+
+    beforeAll(async () => {
+      const sys = await getSystemClient();
+      try {
+        const result = await sys.query(
+          "INSERT INTO meal_types (user_id, name, sort_order) VALUES ($1, 'FDDB RLS test', 100) RETURNING id",
+          [OWNER]
+        );
+        mealTypeId = result.rows[0].id;
+      } finally {
+        sys.release();
+      }
+    });
+
+    afterAll(async () => {
+      const sys = await getSystemClient();
+      try {
+        await sys.query('DELETE FROM food_entries WHERE meal_type_id = $1', [
+          mealTypeId,
+        ]);
+        await sys.query('DELETE FROM meal_types WHERE id = $1', [mealTypeId]);
+      } finally {
+        sys.release();
+      }
+    });
+
+    it('imports owner diary snapshots without library links and skips repeats', async () => {
+      const row = diaryRow();
+      const repeated = { ...row, sourceKey: `${row.sourceKey}:second` };
+      const rows = [row, repeated];
+      expect(await importFddbDiaryBatch(OWNER, OWNER, mealTypeId, rows)).toBe(
+        2
+      );
+      expect(await importFddbDiaryBatch(OWNER, OWNER, mealTypeId, rows)).toBe(
+        0
+      );
+      const client = await getClient(OWNER, OWNER);
+      try {
+        const result = await client.query(
+          `SELECT food_id, meal_id, client_operation_id, entry_date,
+                  entry_time::text, quantity, serving_size, calories, protein, carbs, fat
+           FROM food_entries WHERE user_id = $1 AND source_id = ANY($2::text[])`,
+          [OWNER, rows.map((item) => fddbSourceId(item.sourceKey))]
+        );
+        expect(result.rows).toEqual(
+          rows.map(() => ({
+            food_id: null,
+            meal_id: null,
+            client_operation_id: null,
+            entry_date: row.date,
+            entry_time: '08:30:00',
+            quantity: 200,
+            serving_size: 200,
+            calories: 157.5,
+            protein: 6,
+            carbs: 23,
+            fat: 4,
+          }))
+        );
+      } finally {
+        client.release();
+      }
+    });
+
+    it.each(['diary', 'none'] as const)(
+      'rejects a %s delegate importing into the owner diary',
+      async (actor) => {
+        await expect(
+          importFddbDiaryBatch(OWNER, D[actor], mealTypeId, [diaryRow()])
+        ).rejects.toMatchObject({ code: '42501' });
+      }
+    );
+
+    it.each(['manual', 'fddb'])(
+      'rejects an unlinked %s snapshot without a valid FDDB source ID',
+      async (source) => {
+        const client = await getClient(OWNER, OWNER);
+        try {
+          await expect(
+            client.query(
+              `INSERT INTO food_entries (user_id, meal_type_id, quantity, unit,
+                 entry_date, food_name, serving_size, calories, protein, carbs, fat, source, source_id)
+               VALUES ($1, $2, 1, 'serving', '2026-09-26', 'Synthetic snapshot', 1, 100, 1, 1, 1, $3, 'unmarked')`,
+              [OWNER, mealTypeId, source]
+            )
+          ).rejects.toMatchObject({ code: '42501' });
+        } finally {
+          client.release();
+        }
+      }
+    );
+
+    it('rolls back the whole batch when one snapshot lacks a food name', async () => {
+      const row = diaryRow();
+      await expect(
+        importFddbDiaryBatch(OWNER, OWNER, mealTypeId, [
+          row,
+          { ...diaryRow(), foodName: '' },
+        ])
+      ).rejects.toMatchObject({ code: '42501' });
+      const client = await getClient(OWNER, OWNER);
+      try {
+        const result = await client.query(
+          'SELECT id FROM food_entries WHERE user_id = $1 AND source_id = $2',
+          [OWNER, fddbSourceId(row.sourceKey)]
+        );
+        expect(result.rows).toEqual([]);
+      } finally {
+        client.release();
+      }
+    });
+
+    it('imports activity snapshots and skips repeats with a varchar source ID', async () => {
+      const activity = {
+        sourceKey: `rls-fddb-activity:${randomUUID()}`,
+        date: '2026-09-26',
+        time: '10:00',
+        name: 'Synthetic FDDB walk',
+        durationMinutes: 30,
+        caloriesBurned: 120,
+      };
+      expect(await importFddbActivities(OWNER, OWNER, [activity])).toBe(1);
+      expect(await importFddbActivities(OWNER, OWNER, [activity])).toBe(0);
+      const client = await getClient(OWNER, OWNER);
+      try {
+        const result = await client.query(
+          `SELECT exercise_id, exercise_name, duration_minutes, calories_burned,
+                  entry_date, entry_time::text FROM exercise_entries
+           WHERE user_id = $1 AND source = 'fddb' AND source_id = $2`,
+          [OWNER, fddbSourceId(activity.sourceKey)]
+        );
+        expect(result.rows).toEqual([
+          {
+            exercise_id: null,
+            exercise_name: activity.name,
+            duration_minutes: 30,
+            calories_burned: 120,
+            entry_date: activity.date,
+            entry_time: '10:00:00',
+          },
+        ]);
+      } finally {
+        client.release();
+      }
+    });
+  });
+
   describe('behavioral access (real DML as delegate)', () => {
     const KEYS = Object.keys(D) as DelegateKey[];
     const RLS_DENIED = '42501';

@@ -41,6 +41,8 @@ and diary permissions; this catalogue adds no access to another person's logs.
 
 ---
 
+FDDB historical imports preserve nutrition snapshots without creating food-library items. Only the account owner may create these unlinked imported entries. After import, the existing diary and report permissions govern viewing and editing the preserved history.
+
 ## Security & Boundary Isolation
 
 ### 1. Tier 1: Strictly Private Data

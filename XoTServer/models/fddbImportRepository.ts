@@ -144,7 +144,7 @@ export async function importFddbActivities(
            user_id, exercise_name, duration_minutes, calories_burned,
            entry_date, entry_time, source, source_id,
            created_by_user_id, updated_by_user_id
-         ) SELECT $1, $2, $3, $4, $5, $6, 'fddb', $7, $8, $8
+         ) SELECT $1, $2, $3, $4, $5, $6, 'fddb', $7::text, $8, $8
          WHERE NOT EXISTS (
            SELECT 1 FROM exercise_entries
            WHERE user_id = $1 AND source = 'fddb' AND source_id = $7

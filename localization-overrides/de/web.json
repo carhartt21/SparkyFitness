@@ -243,7 +243,7 @@
         "favorites": "Favoriten",
         "measurements": "Gewichtsmessungen",
         "activities": "Aktivitätsaufzeichnungen",
-        "recipeWarning": "Diese Entwürfe haben keinen berechneten Nährwert, bis Sie ihre Zutaten verknüpfen.",
+        "recipeWarning": "Öffnen Sie jeden Entwurf unter Lebensmittel → Mahlzeiten, um die Zutaten zu verknüpfen. Ihre Lebensmittelsammlung wird zuerst geprüft; fehlende Lebensmittel können Sie bei Ihren Anbietern suchen. Die Nährwerte werden nach der Prüfung berechnet.",
         "activityWarning": "Überprüfen Sie zunächst Ihre vorhandenen Trainings- und Gesundheitsimporte, um überlappende Aktivitätssummen zu vermeiden.",
         "extraResult": "{{imported}} importiert · {{existing}} bereits vorhanden · {{unmatched}} ohne Zuordnung · {{errors}} Fehler",
         "reviewIssues": "Überprüfen Sie nicht übereinstimmende Elemente und Fehler",
@@ -1023,5 +1023,16 @@
     "exerciseFailed": "Die Übungssuche ist fehlgeschlagen. Eigene Schritte sind weiterhin möglich.",
     "noExercises": "Keine passende gespeicherte Übung. Sie können einen eigenen Schritt verwenden.",
     "ownerOnly": "Mobilitätsplanung steht nur für das eigene Konto zur Verfügung. Wechseln Sie zurück zu Ihrem Konto."
+  },
+  "fddbReview": {
+    "title": "Importierte Zutaten verknüpfen",
+    "description": "Wählen Sie zuerst ein Lebensmittel aus Ihrer Sammlung oder suchen Sie bei Ihren eingerichteten Anbietern. Prüfen Sie jede Menge und speichern Sie anschließend die Mahlzeit, um ihre Nährwerte zu berechnen.",
+    "checkAmount": "Wählen Sie beim Verknüpfen dieser Zutat die Menge und Einheit.",
+    "searching": "Ihre Lebensmittelsammlung wird geprüft…",
+    "searchError": "Ihre Lebensmittelsammlung konnte nicht geprüft werden.",
+    "noMatch": "Kein Treffer in Ihrer Lebensmittelsammlung.",
+    "useFood": "{{name}} verwenden",
+    "searchFoods": "Lebensmittel und Anbieter durchsuchen",
+    "unresolved": "Verknüpfen Sie alle importierten Zutaten, bevor Sie diese Mahlzeit speichern."
   }
 }

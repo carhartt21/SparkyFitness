@@ -181,6 +181,34 @@ describe('FoodUnitSelector', () => {
     jest.clearAllMocks();
   });
 
+  it('keeps the imported quantity and selects a variant in the requested unit', async () => {
+    const grams = createVariant({
+      id: 'grams',
+      serving_size: 100,
+      serving_unit: 'g',
+    });
+    const food = createFood(
+      createVariant({ id: 'piece', serving_size: 1, serving_unit: 'piece' })
+    );
+    mockFetchQuery.mockResolvedValue([grams]);
+    const onSelect = jest.fn();
+    await renderSelector(food, {
+      initialQuantity: 200,
+      initialUnit: 'g',
+      onSelect,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Update Food' }));
+    expect(onSelect).toHaveBeenCalledWith(
+      food,
+      200,
+      'g',
+      expect.objectContaining({ id: 'grams' }),
+      expect.any(String),
+      null,
+      null
+    );
+  });
+
   it('clears the entry note when reopened for another food', async () => {
     // Diary never clears `selectedFood`, so this dialog stays mounted between
     // foods. A note typed for one food must not be sitting there for the next.

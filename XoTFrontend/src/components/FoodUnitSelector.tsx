@@ -97,6 +97,7 @@ interface FoodUnitSelectorProps {
   initialQuantity?: number;
   initialUnit?: string;
   initialVariantId?: string;
+  isEditing?: boolean;
   showTimeInput?: boolean;
   initialTime?: string;
   defaultMealTime?: string | null;
@@ -117,6 +118,7 @@ const FoodUnitSelector = ({
   initialQuantity,
   initialUnit,
   initialVariantId,
+  isEditing,
   showTimeInput,
   initialTime,
   defaultMealTime,
@@ -157,6 +159,7 @@ const FoodUnitSelector = ({
   const [entryNotes, setEntryNotes] = useState('');
   const [mealType, setMealType] = useState('');
   const [loading, setLoading] = useState(false);
+  const editing = isEditing ?? initialQuantity !== undefined;
 
   const wasOpenRef = useRef(false);
 
@@ -251,6 +254,23 @@ const FoodUnitSelector = ({
     selectedVariant?.ai_confidence
   );
 
+  const selectInitialVariant = useCallback(
+    (available: FoodVariant[]) => {
+      const selected =
+        (initialVariantId &&
+          available.find((variant) => variant.id === initialVariantId)) ||
+        (initialUnit &&
+          available.find((variant) => variant.serving_unit === initialUnit)) ||
+        available[0] ||
+        null;
+      setSelectedVariant(selected);
+      if (selected && initialUnit && selected.serving_unit !== initialUnit) {
+        setPendingUnit(initialUnit);
+      }
+    },
+    [initialVariantId, initialUnit, setPendingUnit]
+  );
+
   const loadVariantsData = useCallback(async () => {
     debug(loggingLevel, 'Loading food variants for food ID:', food?.id);
     setLoading(true);
@@ -341,15 +361,7 @@ const FoodUnitSelector = ({
       }
 
       setVariants(combinedVariants);
-      const firstCombinedVariant = combinedVariants[0];
-      if (initialVariantId && firstCombinedVariant) {
-        const variantToSelect = combinedVariants.find(
-          (v) => v.id === initialVariantId
-        );
-        setSelectedVariant(variantToSelect || firstCombinedVariant);
-      } else if (firstCombinedVariant) {
-        setSelectedVariant(firstCombinedVariant);
-      }
+      selectInitialVariant(combinedVariants);
     } catch (err) {
       error(loggingLevel, 'Error loading variants:', err);
       const primaryUnit: FoodVariant = {
@@ -383,11 +395,11 @@ const FoodUnitSelector = ({
         ai_confidence: food.default_variant?.ai_confidence,
       };
       setVariants([primaryUnit]);
-      setSelectedVariant(primaryUnit);
+      selectInitialVariant([primaryUnit]);
     } finally {
       setLoading(false);
     }
-  }, [food, queryClient, loggingLevel, initialVariantId]);
+  }, [food, queryClient, loggingLevel, selectInitialVariant]);
 
   useEffect(() => {
     debug(loggingLevel, 'FoodUnitSelector open/food useEffect triggered.', {
@@ -398,6 +410,7 @@ const FoodUnitSelector = ({
       initialVariantId,
     });
     if (open && food) {
+      resetConversionState();
       if (food.id && !food.id.startsWith('temp-')) {
         loadVariantsData();
       } else {
@@ -436,19 +449,13 @@ const FoodUnitSelector = ({
             ? food.variants
             : [primaryUnit];
         setVariants(allVariants);
-        const selected =
-          (initialVariantId &&
-            allVariants.find((v) => v.id === initialVariantId)) ||
-          allVariants[0] ||
-          null;
-        setSelectedVariant(selected);
+        selectInitialVariant(allVariants);
       }
       setQuantity(
         initialQuantity !== undefined
           ? initialQuantity
           : food.default_variant?.serving_size || 1
       );
-      resetConversionState();
     }
   }, [
     open,
@@ -458,6 +465,7 @@ const FoodUnitSelector = ({
     initialVariantId,
     initialTime,
     loadVariantsData,
+    selectInitialVariant,
     loggingLevel,
     resetConversionState,
   ]);
@@ -588,7 +596,7 @@ const FoodUnitSelector = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <span>
-              {initialQuantity
+              {editing
                 ? t('foodUnitSelector.editTitle', {
                     name: food?.name,
                     defaultValue: `Edit ${food?.name}`,
@@ -606,7 +614,7 @@ const FoodUnitSelector = ({
             )}
           </DialogTitle>
           <DialogDescription>
-            {initialQuantity
+            {editing
               ? t('foodUnitSelector.editDescription', {
                   name: food?.name,
                   defaultValue: `Edit the quantity and unit for ${food?.name}.`,
@@ -1078,7 +1086,7 @@ const FoodUnitSelector = ({
                 >
                   {createFoodVariantMutation.isPending
                     ? t('common.saving', 'Saving...')
-                    : initialQuantity
+                    : editing
                       ? t('foodUnitSelector.updateFood', 'Update Food')
                       : t('foodUnitSelector.addToMeal', 'Add to Meal')}
                 </Button>

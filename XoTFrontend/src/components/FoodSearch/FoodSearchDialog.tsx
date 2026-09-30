@@ -19,6 +19,7 @@ interface FoodSearchDialogProps {
   hideDatabaseTab?: boolean;
   hideMealTab?: boolean;
   mealType?: string;
+  initialSearchTerm?: string;
 }
 
 const FoodSearchDialog = ({
@@ -30,6 +31,7 @@ const FoodSearchDialog = ({
   hideDatabaseTab = false,
   hideMealTab = false,
   mealType = undefined,
+  initialSearchTerm,
 }: FoodSearchDialogProps) => {
   const { t } = useTranslation();
   return (
@@ -46,6 +48,7 @@ const FoodSearchDialog = ({
           hideDatabaseTab={hideDatabaseTab}
           hideMealTab={hideMealTab}
           mealType={mealType}
+          initialSearchTerm={initialSearchTerm}
         />
       </DialogContent>
     </Dialog>
