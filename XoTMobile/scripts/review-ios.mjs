@@ -116,6 +116,9 @@ const filteredCases = selectedCase
   : allCases;
 const cases = filteredCases.map((item) => ({
   ...item,
+  ...(process.argv.includes('--notification-tour')
+    ? { scenario: 'notifications' }
+    : {}),
   nativeTabs: process.argv.includes('--native-tabs'),
 }));
 if (!cases.length) throw new Error('No review case matched --case');
@@ -372,7 +375,9 @@ try {
           ? /Server unavailable/.test(text)
           : item.scenario === 'saved'
             ? /Saved summary/.test(text) && /1[.,]400/.test(text)
-            : (['populated', 'hydration-options'].includes(item.scenario)
+            : (['populated', 'hydration-options', 'notifications'].includes(
+                item.scenario
+              )
                 ? /1[.,]400/.test(text)
                 : item.scenario === 'empty'
                   ? /2[.,]000/.test(text)
@@ -395,13 +400,15 @@ try {
       interactionScenario: process.argv.includes('--interactions')
         ? process.argv.includes('--launch-icon-actions')
           ? 'launch-icon-actions'
-          : process.argv.includes('--tracking-tour')
-            ? 'tracking-tour'
-            : process.argv.includes('--tour')
-              ? 'screen-tour'
-              : process.argv.includes('--dashboard-only')
-                ? 'dashboard-alignment'
-                : 'food-entry-flow'
+          : process.argv.includes('--notification-tour')
+            ? 'notification-tour'
+            : process.argv.includes('--tracking-tour')
+              ? 'tracking-tour'
+              : process.argv.includes('--tour')
+                ? 'screen-tour'
+                : process.argv.includes('--dashboard-only')
+                  ? 'dashboard-alignment'
+                  : 'food-entry-flow'
         : null,
       logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
     });
@@ -420,7 +427,10 @@ try {
         '390-de-hydration-options',
         '430-en-hydration-options',
         // Dynamic Type coverage for the daily tracking screens.
-        ...(process.argv.includes('--tracking-tour') ? ['430-de-large'] : []),
+        ...(process.argv.includes('--tracking-tour') ||
+        process.argv.includes('--notification-tour')
+          ? ['430-de-large']
+          : []),
       ].includes(item.name)
     ) {
       const resultBundle = path.join(output, `${item.name}.xcresult`);
@@ -429,7 +439,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

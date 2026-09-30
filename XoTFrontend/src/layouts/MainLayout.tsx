@@ -234,8 +234,16 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           label: t('nav.dashboard', 'Dashboard'),
           icon: LayoutDashboard,
         },
-        { value: '/diary', label: t('nav.diary'), icon: BookOpen },
-        { value: '/checkin', label: t('nav.checkin'), icon: Activity }
+        {
+          value: '/diary',
+          label: t('nav.diary', { defaultValue: 'Diary' }),
+          icon: BookOpen,
+        },
+        {
+          value: '/checkin',
+          label: t('nav.checkin', { defaultValue: 'Check-In' }),
+          icon: Activity,
+        }
       );
       if (cycleSettings?.enabled) {
         tabs.push({
@@ -254,15 +262,36 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           label: t('nav.medications', 'Medications'),
           icon: Pill,
         },
-        { value: '/reports', label: t('nav.reports'), icon: BarChart3 },
-        { value: '/foods', label: t('nav.foods'), icon: Utensils },
+        {
+          value: '/reports',
+          label: t('nav.reports', { defaultValue: 'Reports' }),
+          icon: BarChart3,
+        },
+        {
+          value: '/foods',
+          label: t('nav.foods', { defaultValue: 'Foods' }),
+          icon: Utensils,
+        },
         {
           value: '/exercises',
           label: t('exercise.title', 'Exercises'),
           icon: Dumbbell,
         },
-        { value: '/goals', label: t('nav.goals'), icon: Target },
-        { value: '/settings', label: t('nav.settings'), icon: SettingsIcon }
+        {
+          value: '/mobility',
+          label: t('mobilityWeb.title', { defaultValue: 'Mobility' }),
+          icon: Activity,
+        },
+        {
+          value: '/goals',
+          label: t('nav.goals', { defaultValue: 'Goals' }),
+          icon: Target,
+        },
+        {
+          value: '/settings',
+          label: t('nav.settings', { defaultValue: 'Settings' }),
+          icon: SettingsIcon,
+        }
       );
     } else {
       if (hasWritePermission('diary')) {
@@ -272,20 +301,24 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             label: t('nav.dashboard', 'Dashboard'),
             icon: LayoutDashboard,
           },
-          { value: '/diary', label: t('nav.diary'), icon: BookOpen }
+          {
+            value: '/diary',
+            label: t('nav.diary', { defaultValue: 'Diary' }),
+            icon: BookOpen,
+          }
         );
       }
       if (hasWritePermission('checkin')) {
         tabs.push({
           value: '/checkin',
-          label: t('nav.checkin'),
+          label: t('nav.checkin', { defaultValue: 'Check-In' }),
           icon: Activity,
         });
       }
       if (hasPermission('reports')) {
         tabs.push({
           value: '/reports',
-          label: t('nav.reports'),
+          label: t('nav.reports', { defaultValue: 'Reports' }),
           icon: BarChart3,
         });
       }
@@ -298,7 +331,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       }
     }
     if (user?.role === 'admin' && !isActingOnBehalf) {
-      tabs.push({ value: '/admin', label: t('nav.admin'), icon: Shield });
+      tabs.push({
+        value: '/admin',
+        label: t('nav.admin', { defaultValue: 'Admin' }),
+        icon: Shield,
+      });
     }
     return tabs;
   }, [
@@ -324,33 +361,49 @@ const MainLayout: React.FC<MainLayoutProps> = ({
     if (!isActingOnBehalf) {
       mobileTabs.push(
         { value: '/', label: t('nav.home', 'Home'), icon: Home },
-        { value: '/diary', label: t('nav.diary'), icon: BookOpen },
+        {
+          value: '/diary',
+          label: t('nav.diary', { defaultValue: 'Diary' }),
+          icon: BookOpen,
+        },
         {
           value: 'Add',
           label: t('common.add', 'Add'),
           icon: isAddCompOpen ? X : Plus,
         },
-        { value: '/reports', label: t('nav.reports'), icon: BarChart3 },
-        { value: '/settings', label: t('nav.settings'), icon: SettingsIcon }
+        {
+          value: '/reports',
+          label: t('nav.reports', { defaultValue: 'Reports' }),
+          icon: BarChart3,
+        },
+        {
+          value: '/settings',
+          label: t('nav.settings', { defaultValue: 'Settings' }),
+          icon: SettingsIcon,
+        }
       );
     } else {
       if (hasWritePermission('diary')) {
         mobileTabs.push(
           { value: '/', label: t('nav.home', 'Home'), icon: Home },
-          { value: '/diary', label: t('nav.diary'), icon: BookOpen }
+          {
+            value: '/diary',
+            label: t('nav.diary', { defaultValue: 'Diary' }),
+            icon: BookOpen,
+          }
         );
       }
       if (hasWritePermission('checkin')) {
         mobileTabs.push({
           value: '/checkin',
-          label: t('nav.checkin'),
+          label: t('nav.checkin', { defaultValue: 'Check-In' }),
           icon: Activity,
         });
       }
       if (hasPermission('reports')) {
         mobileTabs.push({
           value: '/reports',
-          label: t('nav.reports'),
+          label: t('nav.reports', { defaultValue: 'Reports' }),
           icon: BarChart3,
         });
       }
@@ -364,7 +417,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       }
     }
     if (user?.role === 'admin' && !isActingOnBehalf) {
-      mobileTabs.push({ value: '/admin', label: t('nav.admin'), icon: Shield });
+      mobileTabs.push({
+        value: '/admin',
+        label: t('nav.admin', { defaultValue: 'Admin' }),
+        icon: Shield,
+      });
     }
     return mobileTabs;
   }, [
@@ -597,7 +654,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                   size="sm"
                   onClick={onStartOnboarding}
                   className="flex items-center gap-2"
-                  title={t('onboarding.completeSetup', 'Complete your setup')}
+                  title={t('onboarding.completeSetup', 'Complete Setup')}
                 >
                   <span className="hidden sm:inline">
                     {t('onboarding.completeSetup', 'Complete Setup')}
@@ -670,7 +727,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
                         ? 'bg-background shadow-sm text-foreground'
                         : 'text-muted-foreground'
                     )}
-                    aria-label={t('nav.more', 'More sections')}
+                    aria-label={t('nav.more', 'More')}
                   >
                     <span>{t('nav.more', 'More')}</span>
                     <ChevronDown className="h-4 w-4" />
@@ -765,7 +822,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
             onClose={() => setIsMealTypeSelectOpen(false)}
             items={mealTypeItems}
             onNavigate={handleMealTypeSelect}
-            title={t('foodDiary.selectMealType', 'Select Meal Type')}
+            title={t('foodDiary.selectMealType', 'Select meal type')}
           />
 
           <footer className="text-center text-muted-foreground text-sm py-4">

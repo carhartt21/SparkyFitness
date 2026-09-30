@@ -1,3 +1,4 @@
+import Mobility from '@/pages/Exercises/Mobility';
 import type React from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { useState, useEffect, Suspense } from 'react';
@@ -404,6 +405,11 @@ const router = createBrowserRouter([
           {
             path: 'foods',
             Component: FoodDatabaseManager,
+            ErrorBoundary: RouteErrorBoundary,
+          },
+          {
+            path: 'mobility',
+            Component: Mobility,
             ErrorBoundary: RouteErrorBoundary,
           },
           {

@@ -1,13 +1,15 @@
-import type { EngagementSettingsPatch } from '@workspace/shared';
+import type { EngagementSettingsPatchV2 } from '@workspace/shared';
 
 export function fetchEngagementSettings(): Promise<Response> {
-  return fetch('/api/v2/engagement/settings', { credentials: 'include' });
+  return fetch('/api/v2/engagement/settings?version=2', {
+    credentials: 'include',
+  });
 }
 
 export function patchEngagementSettings(
-  patch: EngagementSettingsPatch
+  patch: EngagementSettingsPatchV2
 ): Promise<Response> {
-  return fetch('/api/v2/engagement/settings', {
+  return fetch('/api/v2/engagement/settings?version=2', {
     method: 'PATCH',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -24,4 +26,8 @@ export function revokeMcpConnection(id: string): Promise<Response> {
     method: 'DELETE',
     credentials: 'include',
   });
+}
+
+export function fetchEngagementStatus(): Promise<Response> {
+  return fetch('/api/v2/engagement/status', { credentials: 'include' });
 }

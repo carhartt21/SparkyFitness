@@ -121,8 +121,7 @@ export async function reconcileMedicationReminders(
     const today = getTodayDate();
     const tz = getDeviceTimezone();
     const hideNames = prefs.medicationReminderHideNames;
-    const reminderLocale =
-      i18n.resolvedLanguage?.split('-')[0] === 'pl' ? 'pl' : 'en';
+    const reminderLocale = i18n.resolvedLanguage ?? i18n.language ?? 'en';
     const identity = await getActiveNutritionIdentity().catch(() => null);
     let queuedSupplementOccurrences = new Set<string>();
     let supplementOutboxUnreadable = false;
@@ -229,6 +228,7 @@ export async function reconcileMedicationReminders(
           (n.content.data.hideNames === 'true') !== hideNames ||
           (n.content.data.locale ?? 'en') !== reminderLocale ||
           n.content.data.responseVersion !== '2' ||
+          n.content.data.copyRevision !== '20260930' ||
           n.content.data.serverConfigId !== (identity?.serverConfigId ?? '') ||
           n.content.data.accountUserId !==
             expectedDose.due.medication.user_id ||
@@ -282,6 +282,7 @@ export async function reconcileMedicationReminders(
         hideNames: String(hideNames),
         locale: reminderLocale,
         responseVersion: '2',
+        copyRevision: '20260930',
         accountUserId: due.medication.user_id,
         serverConfigId: identity?.serverConfigId ?? '',
         isSupplement: due.medication.is_supplement === true ? 'true' : 'false',

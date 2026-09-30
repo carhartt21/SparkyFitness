@@ -32,7 +32,9 @@ type LegacyKey = keyof typeof LEGACY_KEYS;
 export type ActiveWorkoutMetricColumn = 'rpe' | 'volume' | 'e1rm' | 'tenrm';
 
 /** Hours without a water log before a hydration reminder fires. */
-export const WATER_REMINDER_INTERVAL_OPTIONS = [1, 2, 3, 4] as const;
+export const WATER_REMINDER_INTERVAL_OPTIONS = [
+  1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+] as const;
 export type WaterReminderIntervalHours =
   (typeof WATER_REMINDER_INTERVAL_OPTIONS)[number];
 
@@ -58,6 +60,7 @@ export const PREFERENCE_DEFAULTS = {
   medicationReminderRepeats: true,
   medicationReminderHideNames: false,
   waterReminderEnabled: false,
+  optionalReminderDailyLimit: 3 as number | null,
   waterReminderIntervalHours: 2 as WaterReminderIntervalHours,
   waterReminderWindowStart: '08:00' as string,
   waterReminderWindowEnd: '22:00' as string,
@@ -108,6 +111,8 @@ export type AppPreferencesData = {
   medicationReminderRepeats: boolean;
   medicationReminderHideNames: boolean;
   waterReminderEnabled: boolean;
+  optionalReminderDailyLimit: number | null;
+  setOptionalReminderDailyLimit: (value: number | null) => void;
   waterReminderIntervalHours: WaterReminderIntervalHours;
   waterReminderWindowStart: string;
   waterReminderWindowEnd: string;
@@ -254,6 +259,13 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         set({ medicationReminderRepeats: value }),
       setMedicationReminderHideNames: (value) =>
         set({ medicationReminderHideNames: value }),
+      setOptionalReminderDailyLimit: (value) =>
+        set({
+          optionalReminderDailyLimit:
+            value === null
+              ? null
+              : Math.max(1, Math.min(50, Math.floor(value))),
+        }),
       setWaterReminderEnabled: (value) => set({ waterReminderEnabled: value }),
       setWaterReminderIntervalHours: (value) =>
         set({ waterReminderIntervalHours: value }),
@@ -325,6 +337,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         medicationRemindersEnabled: state.medicationRemindersEnabled,
         medicationReminderRepeats: state.medicationReminderRepeats,
         medicationReminderHideNames: state.medicationReminderHideNames,
+        optionalReminderDailyLimit: state.optionalReminderDailyLimit,
         waterReminderEnabled: state.waterReminderEnabled,
         waterReminderIntervalHours: state.waterReminderIntervalHours,
         waterReminderWindowStart: state.waterReminderWindowStart,

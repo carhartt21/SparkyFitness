@@ -16,7 +16,7 @@ const OSDeniedWarningCard: React.FC<Props> = ({ onPress, actionLabel }) => {
   const title = t('notificationSettings.permissionTitle', 'Grant permissions');
   const body = t(
     'notificationSettings.permissionBody',
-    "X on Track alerts (rest timers, fasting goals, medication and hydration reminders) won't fire."
+    'Without notification permission, this phone cannot display reminders or timer alerts. Enable permission here or in system settings.'
   );
 
   return (

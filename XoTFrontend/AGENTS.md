@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-29_
+_Last updated: 2026-09-30_
 
 X on Track Frontend is the React web app for the X on Track monorepo. Use this file as the primary guide for work inside `XoTFrontend/`.
 
@@ -116,3 +116,9 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 - For work inside `XoTFrontend/`, this file wins over repo-root guidance on package-specific details.
 - If a task spans packages, combine this guide with the other affected package guides.
 - If you add a new domain folder, route family, or cross-cutting convention, update the Domain list, Source Map, and Quick Routing sections of this file in the same change.
+
+## Notification delivery and mobility planning
+
+Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
+
+Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.

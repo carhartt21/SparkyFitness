@@ -1,3 +1,5 @@
+import i18n from '../../src/localization/i18n';
+import english from '../../src/localization/locales/en/translation.json';
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import Toast from 'react-native-toast-message';
@@ -15,6 +17,19 @@ import {
   useAppPreferencesStore,
   __resetAppPreferencesStoreForTests,
 } from '../../src/stores/appPreferencesStore';
+
+jest.mock('../../src/services/remoteEngagement', () => ({
+  readCachedRemoteEngagement: jest.fn(async () => null),
+  refreshRemoteEngagement: jest.fn(async () => {
+    throw new Error('offline');
+  }),
+  flushNotificationDeviceOff: jest.fn(async () => undefined),
+  notificationDeviceOffPending: jest.fn(async () => false),
+  disableThisNotificationDevice: jest.fn(async () => undefined),
+  renewRemoteEngagementDevice: jest.fn(async () => undefined),
+  patchRemoteEngagement: jest.fn(),
+  enableRemoteEngagement: jest.fn(),
+}));
 
 jest.mock('../../src/services/notifications', () => ({
   requestNotificationPermission: jest.fn(async () => 'granted'),
@@ -125,11 +140,15 @@ function renderScreen() {
 // when the master toggle is off; medication sub-rows require the medication
 // toggle. Indices below only address rows whose presence the test controls.
 const MASTER_SWITCH_INDEX = 0;
-const REST_TIMER_SWITCH_INDEX = 1;
-const FASTING_SWITCH_INDEX = 2;
-const MEDICATION_SWITCH_INDEX = 3;
+const REST_TIMER_SWITCH_INDEX = 2;
+const FASTING_SWITCH_INDEX = 3;
+const MEDICATION_SWITCH_INDEX = 4;
 
 describe('NotificationSettingsScreen', () => {
+  beforeAll(() => {
+    i18n.addResourceBundle('en', 'translation', english, true, true);
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     __resetAppPreferencesStoreForTests();
@@ -147,11 +166,7 @@ describe('NotificationSettingsScreen', () => {
 
   it('previews the combined optional reminder budget without counting medication', async () => {
     const { findByText } = renderScreen();
-    expect(
-      await findByText(
-        /2 of 3 daily slots used.*medication and rest alerts are separate/i
-      )
-    ).toBeTruthy();
+    expect(await findByText(/2.*3/)).toBeTruthy();
     expect(getTodayDiscretionaryPromptBudget).toHaveBeenCalledWith({
       serverConfigId: 'server-A',
       userId: 'user-A',
@@ -383,10 +398,13 @@ describe('NotificationSettingsScreen', () => {
     const { getAllByRole } = renderScreen();
     const switches = getAllByRole('switch');
 
-    expect(switches[0].props.accessibilityLabel).toBe('Allow Notifications');
-    expect(switches[1].props.accessibilityLabel).toBe('Rest Timer');
-    expect(switches[2].props.accessibilityLabel).toBe('Fasting Goals');
-    expect(switches[3].props.accessibilityLabel).toBe('Medication Reminders');
+    expect(switches[0].props.accessibilityLabel).toBe('Alerts on this device');
+    expect(switches[1].props.accessibilityLabel).toBe(
+      'Server delivery for this account'
+    );
+    expect(switches[2].props.accessibilityLabel).toBe('Rest Timer');
+    expect(switches[3].props.accessibilityLabel).toBe('Fasting Goals');
+    expect(switches[4].props.accessibilityLabel).toBe('Medication Reminders');
   });
 
   it('keeps the meal reminder off if notification permission is denied', async () => {

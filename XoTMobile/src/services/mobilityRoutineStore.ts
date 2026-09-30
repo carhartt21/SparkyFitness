@@ -1,73 +1,55 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
+import {
+  mobilityTimedStepSchema,
+  mobilityRepetitionsStepSchema,
+  mobilityStepSchema,
+  mobilityRoutineSchema,
+  mobilitySessionSchema,
+  mobilityOperationSchema,
+  mobilityPlanRecordSchema,
+  mobilitySnapshotSchema,
+  type MobilityOperation,
+} from '@workspace/shared';
+import { apiFetch } from './api/apiClient';
+import { ApiError } from './api/errors';
+import { getActiveNutritionIdentity } from './nutritionIdentity';
 import { newUuid } from '../utils/ids';
 import type { NutritionActionIdentity } from './nutritionActionOutbox';
 
 const PREFIX = '@SparkyFitness/mobility-routines/v1/';
-const timestamp = z.iso.datetime({ offset: true });
-const timedStep = z.strictObject({
-  id: z.uuid(),
-  name: z.string().trim().min(1).max(120),
-  instructions: z.string().trim().max(500),
-  side: z.enum(['both', 'left', 'right']),
-  kind: z.literal('timed'),
-  durationSeconds: z.number().int().min(5).max(3600),
-  transitionSeconds: z.number().int().min(0).max(600),
-});
-const repetitionsStep = z.strictObject({
-  id: z.uuid(),
-  name: z.string().trim().min(1).max(120),
-  instructions: z.string().trim().max(500),
-  side: z.enum(['both', 'left', 'right']),
-  kind: z.literal('repetitions'),
-  repetitions: z.number().int().min(1).max(1000),
-  transitionSeconds: z.number().int().min(0).max(600),
-});
-const stepSchema = z.discriminatedUnion('kind', [timedStep, repetitionsStep]);
-const routineSchema = z.strictObject({
-  id: z.uuid(),
-  name: z.string().trim().min(1).max(120),
-  steps: z.array(stepSchema).min(1).max(40),
-  cue: z.enum(['off', 'haptic', 'sound', 'both']),
-  reminderTime: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):[0-5]\d$/)
-    .nullable()
-    .default(null),
-  createdAt: timestamp,
-  updatedAt: timestamp,
-});
-const outcomeSchema = z.strictObject({
-  stepId: z.uuid(),
-  result: z.enum(['completed', 'skipped']),
-  recordedAt: timestamp,
-});
-const sessionSchema = z.strictObject({
-  id: z.uuid(),
-  routine: routineSchema,
-  state: z.enum(['running', 'paused', 'finished', 'cancelled']),
-  phase: z.enum(['step', 'transition']),
-  stepIndex: z.number().int().min(0),
-  phaseStartedAt: timestamp.nullable(),
-  elapsedSeconds: z.number().min(0),
-  outcomes: z.array(outcomeSchema),
-  startedAt: timestamp,
-  endedAt: timestamp.nullable(),
-});
+const routineSchema = mobilityRoutineSchema;
+const sessionSchema = mobilitySessionSchema;
 const stateSchema = z.strictObject({
   version: z.literal(1),
+  timezone: z.string().optional(),
   routines: z.array(routineSchema),
   activeSession: sessionSchema.nullable(),
   history: z.array(sessionSchema).max(100),
+  imported: z.boolean().default(false),
+  revisions: z.record(z.string(), z.number().int().nonnegative()).default({}),
+  pendingOperations: z.array(mobilityOperationSchema).default([]),
+  plans: z.array(mobilityPlanRecordSchema).default([]),
+  conflicts: z
+    .array(
+      z.strictObject({
+        operation: mobilityOperationSchema,
+        remote: z.unknown(),
+      })
+    )
+    .default([]),
+  syncError: z.enum(['offline', 'conflict']).nullable().default(null),
 });
 
-export type MobilityStep = z.infer<typeof stepSchema>;
+export type MobilityStep = z.infer<typeof mobilityStepSchema>;
 export type MobilityRoutine = z.infer<typeof routineSchema>;
 export type MobilitySession = z.infer<typeof sessionSchema>;
 export type MobilityState = z.infer<typeof stateSchema>;
 export type MobilityStepDraft =
-  | (Omit<z.infer<typeof timedStep>, 'id'> & { id?: string })
-  | (Omit<z.infer<typeof repetitionsStep>, 'id'> & { id?: string });
+  | (Omit<z.infer<typeof mobilityTimedStepSchema>, 'id'> & { id?: string })
+  | (Omit<z.infer<typeof mobilityRepetitionsStepSchema>, 'id'> & {
+      id?: string;
+    });
 
 const listeners = new Set<() => void>();
 let tail: Promise<void> = Promise.resolve();
@@ -89,7 +71,12 @@ function keyFor(identity: NutritionActionIdentity): string {
 }
 
 function emptyState(): MobilityState {
-  return { version: 1, routines: [], activeSession: null, history: [] };
+  return stateSchema.parse({
+    version: 1,
+    routines: [],
+    activeSession: null,
+    history: [],
+  });
 }
 
 async function read(identity: NutritionActionIdentity): Promise<MobilityState> {
@@ -104,9 +91,51 @@ async function read(identity: NutritionActionIdentity): Promise<MobilityState> {
 
 async function write(
   identity: NutritionActionIdentity,
-  value: MobilityState
+  value: MobilityState,
+  synchronize = false
 ): Promise<MobilityState> {
   const validated = stateSchema.parse(value);
+  if (!synchronize) {
+    const before = await read(identity);
+    const mutations: MobilityOperation['mutation'][] = [];
+    for (const routine of validated.routines)
+      if (
+        JSON.stringify(routine) !==
+        JSON.stringify(before.routines.find((item) => item.id === routine.id))
+      )
+        mutations.push({ kind: 'routine', data: routine, deleted: false });
+    for (const routine of before.routines)
+      if (!validated.routines.some((item) => item.id === routine.id))
+        mutations.push({ kind: 'routine', data: routine, deleted: true });
+    const previous = [
+      ...(before.activeSession ? [before.activeSession] : []),
+      ...before.history,
+    ];
+    const sessions = [
+      ...(validated.activeSession ? [validated.activeSession] : []),
+      ...validated.history,
+    ];
+    for (const session of sessions)
+      if (
+        JSON.stringify(session) !==
+        JSON.stringify(previous.find((item) => item.id === session.id))
+      )
+        mutations.push({ kind: 'session', data: session, deleted: false });
+    for (const session of previous)
+      if (!sessions.some((item) => item.id === session.id))
+        mutations.push({ kind: 'session', data: session, deleted: true });
+    for (const mutation of mutations) {
+      if (mutation.kind === 'result') continue;
+      const key = `${mutation.kind}:${mutation.data.id}`;
+      const expectedRevision = validated.revisions[key] ?? 0;
+      validated.pendingOperations.push({
+        operationId: newUuid(),
+        expectedRevision,
+        mutation,
+      });
+      validated.revisions[key] = expectedRevision + 1;
+    }
+  }
   await AsyncStorage.setItem(keyFor(identity), JSON.stringify(validated));
   listeners.forEach((listener) => listener());
   return validated;
@@ -194,7 +223,8 @@ export function deleteMobilitySessionHistory(
 export function startMobilitySession(
   identity: NutritionActionIdentity,
   routineId: string,
-  now = new Date()
+  now = new Date(),
+  planId?: string
 ): Promise<MobilitySession> {
   return serialize(async () => {
     const state = await read(identity);
@@ -207,11 +237,20 @@ export function startMobilitySession(
         return state.activeSession;
       throw new Error('Finish or cancel the current routine first.');
     }
-    const routine = state.routines.find((item) => item.id === routineId);
+    const plan = planId
+      ? state.plans.find(
+          (record) => record.data.id === planId && !record.deleted
+        )?.data
+      : null;
+    if (planId && (!plan || plan.state !== 'planned'))
+      throw new Error('Planned session is no longer available.');
+    const routine =
+      plan?.routine ?? state.routines.find((item) => item.id === routineId);
     if (!routine) throw new Error('Routine no longer exists.');
     const session = sessionSchema.parse({
       id: newUuid(),
       routine,
+      ...(planId ? { planId } : {}),
       state: 'running',
       phase: 'step',
       stepIndex: 0,
@@ -353,5 +392,198 @@ export function applyMobilitySessionAction(
         : state.history,
     });
     return validated;
+  });
+}
+
+/** Import and outbox live in the same serialized, account-scoped store as the runner. */
+export function synchronizeMobility(
+  identity: NutritionActionIdentity
+): Promise<void> {
+  return serialize(async () => {
+    const current = await getActiveNutritionIdentity();
+    if (
+      !current ||
+      current.serverConfigId !== identity.serverConfigId ||
+      current.userId !== identity.userId
+    )
+      return;
+    let state = await read(identity);
+    if (!state.imported) {
+      const mutations: MobilityOperation['mutation'][] = [
+        ...state.routines.map((data) => ({
+          kind: 'routine' as const,
+          data,
+          deleted: false,
+        })),
+        ...[
+          ...(state.activeSession ? [state.activeSession] : []),
+          ...state.history,
+        ].map((data) => ({ kind: 'session' as const, data, deleted: false })),
+      ];
+      for (const mutation of mutations) {
+        if (mutation.kind === 'result') continue;
+        const key = `${mutation.kind}:${mutation.data.id}`;
+        if (
+          state.pendingOperations.some(
+            (operation) =>
+              operation.mutation.kind !== 'result' &&
+              operation.mutation.kind === mutation.kind &&
+              operation.mutation.data.id === mutation.data.id
+          )
+        )
+          continue;
+        state.pendingOperations.push({
+          operationId: newUuid(),
+          expectedRevision: 0,
+          mutation,
+        });
+        state.revisions[key] = 1;
+      }
+      state.imported = true;
+      await write(identity, state, true);
+    }
+    const assertIdentity = async () => {
+      const current = await getActiveNutritionIdentity();
+      if (
+        current?.serverConfigId !== identity.serverConfigId ||
+        current.userId !== identity.userId
+      )
+        throw new Error('The active account changed.');
+    };
+    try {
+      for (const operation of [...state.pendingOperations]) {
+        try {
+          await assertIdentity();
+          await apiFetch({
+            endpoint: '/api/v2/mobility',
+            method: 'POST',
+            body: operation,
+            serviceName: 'Mobility',
+            operation: 'sync routine or session',
+          });
+        } catch (error) {
+          if (error instanceof ApiError && error.statusCode === 409) {
+            await assertIdentity();
+            const remote = mobilitySnapshotSchema.parse(
+              await apiFetch({
+                endpoint: '/api/v2/mobility',
+                serviceName: 'Mobility',
+                operation: 'load conflict',
+              })
+            );
+            state.conflicts.push({ operation, remote });
+            state.syncError = 'conflict';
+            await assertIdentity();
+            state.pendingOperations = state.pendingOperations.filter(
+              (item) => item.operationId !== operation.operationId
+            );
+            await write(identity, state, true);
+            return;
+          }
+          throw error;
+        }
+        await assertIdentity();
+        state.pendingOperations = state.pendingOperations.filter(
+          (item) => item.operationId !== operation.operationId
+        );
+        await write(identity, state, true);
+      }
+      await assertIdentity();
+      const snapshot = mobilitySnapshotSchema.parse(
+        await apiFetch({
+          endpoint: '/api/v2/mobility',
+          serviceName: 'Mobility',
+          operation: 'load planned sessions',
+        })
+      );
+      const active = await getActiveNutritionIdentity();
+      if (
+        active?.serverConfigId !== identity.serverConfigId ||
+        active.userId !== identity.userId
+      )
+        return;
+      if (!state.conflicts.length) {
+        state.routines = snapshot.routines
+          .filter((row) => !row.deleted)
+          .map((row) => row.data);
+        // An active offline timer remains local; only historical server sessions merge.
+        const remoteHistory = snapshot.sessions
+          .filter(
+            (row) =>
+              !row.deleted && ['finished', 'cancelled'].includes(row.data.state)
+          )
+          .map((row) => row.data);
+        state.history = remoteHistory
+          .sort((a, b) => b.startedAt.localeCompare(a.startedAt))
+          .slice(0, 100);
+        for (const [kind, rows] of [
+          ['routine', snapshot.routines],
+          ['session', snapshot.sessions],
+        ] as const)
+          for (const row of rows)
+            state.revisions[`${kind}:${row.data.id}`] = row.revision;
+      }
+      state.timezone = snapshot.timezone;
+      state.plans = snapshot.plans;
+      state.syncError = state.conflicts.length ? 'conflict' : null;
+      await write(identity, state, true);
+    } catch (error) {
+      state.syncError = state.conflicts.length ? 'conflict' : 'offline';
+      await write(identity, state, true);
+      throw error;
+    }
+  });
+}
+export function resolveMobilityConflict(
+  identity: NutritionActionIdentity,
+  operationId: string,
+  choice: 'server' | 'copy'
+): Promise<void> {
+  return serialize(async () => {
+    const state = await read(identity);
+    const conflict = state.conflicts.find(
+      (item) => item.operation.operationId === operationId
+    );
+    if (!conflict) return;
+    if (choice === 'copy' && conflict.operation.mutation.kind === 'routine') {
+      const routine = { ...conflict.operation.mutation.data, id: newUuid() };
+      state.routines.push(routine);
+      state.revisions[`routine:${routine.id}`] = 1;
+      state.pendingOperations.push({
+        operationId: newUuid(),
+        expectedRevision: 0,
+        mutation: { kind: 'routine', data: routine, deleted: false },
+      });
+    }
+    if (conflict.operation.mutation.kind === 'session') {
+      const session = conflict.operation.mutation.data;
+      if (choice === 'copy') {
+        const copy = { ...session, id: newUuid(), planId: null };
+        if (state.activeSession?.id === session.id) state.activeSession = copy;
+        state.history = state.history.map((item) =>
+          item.id === session.id ? copy : item
+        );
+        state.revisions[`session:${copy.id}`] = 1;
+        state.pendingOperations.push({
+          operationId: newUuid(),
+          expectedRevision: 0,
+          mutation: { kind: 'session', data: copy, deleted: false },
+        });
+      } else if (state.activeSession?.id === session.id)
+        state.activeSession = null;
+    }
+    // The rejected operation's dependent revisions cannot be replayed safely.
+    const mutation = conflict.operation.mutation;
+    state.pendingOperations = state.pendingOperations.filter(
+      (item) =>
+        item.mutation.kind !== mutation.kind ||
+        mutation.kind === 'result' ||
+        item.mutation.kind === 'result' ||
+        item.mutation.data.id !== mutation.data.id
+    );
+    state.conflicts = state.conflicts.filter(
+      (item) => item.operation.operationId !== operationId
+    );
+    await write(identity, state, true);
   });
 }

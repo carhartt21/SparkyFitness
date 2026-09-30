@@ -56,7 +56,9 @@ export function reconcileScheduledEngagementReminders(input: {
       const candidate = desired.get(item.identifier);
       if (
         !candidate ||
-        item.content.data?.scheduledAt !== candidate.preferredAt
+        item.content.data?.scheduledAt !== candidate.preferredAt ||
+        item.content.data?.contentSignature !==
+          JSON.stringify(input.contentFor(candidate))
       ) {
         await Notifications.cancelScheduledNotificationAsync(item.identifier);
         const data = item.content.data;
@@ -114,6 +116,7 @@ export function reconcileScheduledEngagementReminders(input: {
           ...input.contentFor(candidate),
           data: {
             version: 1,
+            contentSignature: JSON.stringify(input.contentFor(candidate)),
             serverConfigId: input.identity.serverConfigId,
             userId: input.identity.userId,
             candidateId: candidate.id,

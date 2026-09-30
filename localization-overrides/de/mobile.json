@@ -13,7 +13,8 @@
     "habitReminderBody": "Bereit für Ihren Gewohnheitseintrag? Öffnen Sie die Gewohnheiten.",
     "reviewReminderBody": "Prüfen Sie Ihre Mahlzeitenfotos, wenn es für Sie passt.",
     "breakExplanation": "Stehen Sie auf, gehen Sie ein Stück oder bewegen Sie sich auf eine für Sie passende Weise. Der Timer erfasst keine Bewegung; eine Aktivität können Sie separat speichern.",
-    "breakSettingSubtitle": "Starten Sie einen kurzen Timer. Das Beenden erfasst keine Bewegung."
+    "breakSettingSubtitle": "Starten Sie einen kurzen Timer. Das Beenden erfasst keine Bewegung.",
+    "captureReminderSettingSubtitle": "Erinnert nur bei offenem Mahlzeitfenster. Essen, ein Mahlzeitfoto oder ein gesetzter Mahlzeitstatus klärt es. Offline gespeicherte Einträge stoppen den lokalen Hinweis; der Server benötigt die Synchronisierung."
   },
   "mobility": {
     "title": "Geführte Mobilität",
@@ -94,7 +95,16 @@
     "historyUnrecorded_other": "{{count}} Schritte wurden nicht aufgezeichnet",
     "historyDelete": "Einheit löschen",
     "historyDeleteConfirm": "Diese gespeicherte Einheit löschen? Das kann nicht rückgängig gemacht werden.",
-    "historyOlder": "Ältere Einheiten anzeigen"
+    "historyOlder": "Ältere Einheiten anzeigen",
+    "reminderDescription": "Geplante Mobilität teilt das optionale Tageslimit. Ein Hinweis öffnet den Plan; er erfasst keine Aktivität.",
+    "syncConflict": "Mobilität wurde andernorts geändert",
+    "syncConflictDescription": "Die lokale Version bleibt erhalten. Behalten Sie eine getrennte Kopie oder nutzen Sie die Serverversion. Eine kopierte aktive Einheit läuft ohne Zuordnung zum ursprünglichen Plan.",
+    "syncOffline": "Auf dem Gerät gespeichert · Synchronisierung ausstehend",
+    "syncRetry": "Jetzt synchronisieren",
+    "syncKeepCopy": "Getrennte Kopie behalten",
+    "syncUseServer": "Serverversion verwenden",
+    "startPlanned": "Geplante Einheit starten",
+    "plannedOnPhone": "Einheiten im Web planen und hier ausführen."
   },
   "common": {
     "optionalParen": "(Optional)",
@@ -137,7 +147,10 @@
   },
   "notifications": {
     "channels": {
-      "hydration": "Trinkerinnerungen"
+      "hydration": "Trinkerinnerungen",
+      "fasting": "Fasten",
+      "medicationReminders": "Einnahmeerinnerungen",
+      "workoutTimer": "Trainingstimer"
     },
     "hydration": {
       "title": "Zeit, etwas zu trinken 💧",
@@ -148,10 +161,23 @@
       "timerInApp": "Der Timer alarmiert weiterhin in der App."
     },
     "exactAlarm": {
-      "message": "Android verzögert geplante Alarme, es sei denn, X on Track darf genaue Alarme festlegen. Aktivieren Sie „Alarme und Erinnerungen“, damit Ruhe-Timer und Medikamentenerinnerungen pünktlich klingeln."
+      "message": "Android verzögert geplante Alarme, es sei denn, X on Track darf genaue Alarme festlegen. Aktivieren Sie „Alarme und Erinnerungen“, damit Ruhe-Timer und Medikamentenerinnerungen pünktlich klingeln.",
+      "notNow": "Nicht jetzt",
+      "openSettings": "Einstellungen öffnen",
+      "title": "Pünktliche Hinweise"
     },
     "fasting": {
-      "body": "Ihr Fastenziel ist erreicht."
+      "body": "Ihr Fastenziel ist erreicht.",
+      "title": "Fastenziel erreicht"
+    },
+    "actions": {
+      "snooze15": "In 15 Min. erinnern",
+      "logAsTaken": "Als eingenommen erfassen",
+      "completeSet": "Satz abschließen"
+    },
+    "rest": {
+      "title": "Pause beendet",
+      "nextSetTitle": "Nächster Satz"
     }
   },
   "activeWorkout": {
@@ -268,7 +294,7 @@
   "notificationSettings": {
     "hydration": "Flüssigkeitszufuhr",
     "waterReminders": "Wassererinnerungen",
-    "waterRemindersSubtitle": "Wassererinnerungen folgen Ihrem Intervall und teilen verfügbare Erinnerungsplätze mit Essens- und Bewegungsaufforderungen.",
+    "waterRemindersSubtitle": "Nach dem gewählten Intervall seit dem letzten Getränk, innerhalb des Zeitfensters. Pausiert beim bekannten Wasserziel. Nutzt verbleibende optionale Plätze.",
     "waterReminderInterval": "Nachher erinnern",
     "waterReminderIntervalOption": "{{hours}}h",
     "waterReminderStart": "Startzeit",
@@ -278,9 +304,68 @@
     "waterReminderInvalidWindow": "Die Endzeit muss nach der Startzeit liegen.",
     "restTimerSubtitle": "Benachrichtigt Sie am Ende einer Pause, auch im Hintergrund.",
     "fastingGoalsSubtitle": "Benachrichtigt Sie, wenn Sie Ihr Fastenziel erreichen.",
-    "permissionBody": "Ohne Berechtigung erhalten Sie keine Benachrichtigungen zu Pausentimern, Fastenzielen oder Medikamenten.",
-    "remoteUpdateFailed": "Erinnerungen konnten nicht aktualisiert werden. Versuchen Sie es erneut.",
-    "remoteUnavailable": "Erinnerungen bei geschlossener App sind nicht verfügbar. Prüfen Sie die Benachrichtigungsberechtigung und die Push-Einrichtung."
+    "permissionBody": "Ohne Benachrichtigungsberechtigung zeigt dieses Telefon keine Erinnerungen oder Timerhinweise an. Aktivieren Sie die Berechtigung hier oder in den Systemeinstellungen.",
+    "remoteUpdateFailed": "Nicht gespeichert. Laden Sie die Einstellungen neu und versuchen Sie es erneut; sie wurden möglicherweise andernorts geändert.",
+    "remoteUnavailable": "Erinnerungen bei geschlossener App sind nicht verfügbar. Prüfen Sie die Benachrichtigungsberechtigung und die Push-Einrichtung.",
+    "allow": "Hinweise auf diesem Gerät",
+    "allowSubtitle": "Stoppt lokale Hinweise und Push-Zustellung auf diesem Gerät. Andere Geräte und Kontoeinstellungen bleiben aktiv.",
+    "remoteReminders": "Server-Zustellung für dieses Konto",
+    "remoteRemindersSubtitle": "Der Server nutzt gespeicherte Zeitpläne, Erfassungsstatus, Ruhezeiten und Tageslimit. Nach der Übergabe pausiert die lokale Zustellung. Einnahme- und Timerhinweise bleiben auf dem Gerät.",
+    "budgetState": "Heute {{used}} Plätze reserviert oder versucht · Limit: {{limit}}",
+    "noLimit": "Kein Limit",
+    "dailyLimit": "Tageslimit, 1 bis 50",
+    "capDescription": "Mahlzeit-, Wasser-, Bewegungs-, Mobilitäts-, Gewohnheits-, Check-in- und Wiegehinweise teilen dieses Limit. Ohne Limit gelten weiterhin Ruhezeiten, Intervalle und 20 Minuten Abstand. Einnahme-, Pausen- und Fastentimer sind getrennt.",
+    "capInvalid": "Geben Sie eine ganze Zahl von 1 bis 50 ein.",
+    "deviceOffPending": "Gerätehinweise aus · Serverbestätigung ausstehend",
+    "offline": "Gespeicherte Einstellungen · Verbindung nicht verfügbar",
+    "offlineDescription": "Lokale Änderungen bleiben auf diesem Gerät. Push kann bis zur Serverbestätigung weiterlaufen. Verbinden Sie sich erneut und tippen Sie hier zum Wiederholen.",
+    "setup": "Zeitpläne und Widgets",
+    "widgetHint": "Einrichtung und Verfügbarkeit von Live-Aktivitäten",
+    "trackingSchedules": "Check-in, Gewohnheiten und Gewicht",
+    "trackingHint": "Bestehende Zeitpläne bearbeiten. Erfasste oder übersprungene Einträge benötigen keinen Hinweis.",
+    "mobilityHint": "Geplante Routinen, Ausführung und Synchronisierungsstatus",
+    "statusTitle": "Zustellstatus · letzte 7 Tage",
+    "statusNote": "Zustellung bedeutet nicht gelesen",
+    "statusDescription": "Geplant: vom Server reserviert. Angenommen: Expo hat die Nachricht angenommen. Bestätigt: der Push-Dienst hat die Zustellung bestätigt. Unbekannt: ein unklarer Versand wird nicht automatisch wiederholt. Fokus und Mitteilungsübersichten können die Anzeige verzögern.",
+    "timeValue": "Hinweiszeit, {{time}}",
+    "kind": {
+      "hydration": "Wasser",
+      "meal_capture": "Mahlzeiterfassung",
+      "meal_review": "Mahlzeitfoto-Prüfung",
+      "movement_break": "Bewegungspause",
+      "mobility": "Mobilität",
+      "check_in": "Check-in",
+      "habit": "Gewohnheit",
+      "weigh_in": "Gewichtserfassung"
+    },
+    "deliveryState": {
+      "pending": "Geplant",
+      "claimed": "Versand übernommen",
+      "sending": "Versand ausstehend",
+      "sent": "Push angenommen",
+      "accepted": "Push angenommen",
+      "delivered": "Zustellung bestätigt",
+      "failed": "Fehlgeschlagen oder unklar",
+      "cancelled": "Abgebrochen",
+      "skipped": "Übersprungen"
+    },
+    "reason": {
+      "disabled": "Deaktiviert",
+      "paused": "Optionale Hinweise pausiert",
+      "resolved": "Bereits erfasst oder übersprungen",
+      "expired": "Heutiges Zeitfenster abgelaufen",
+      "scheduled": "Zur eingestellten Zeit möglich; Ruhezeiten, Abstand und Tageslimit gelten weiterhin",
+      "data_unavailable": "Erforderliche Daten nicht verfügbar; kein Hinweis abgeleitet",
+      "local_delivery": "Auf diesem Telefon geplant; Serverzustellung ist ausgeschaltet.",
+      "no_device": "Kein erreichbares Telefon für diese Erinnerung registriert. Öffnen Sie die App auf dem Telefon, um es erneut zu verbinden.",
+      "daily_limit": "Das Tageslimit für Erinnerungen ist erreicht.",
+      "quiet_hours": "Während der Ruhezeit pausiert.",
+      "spacing": "Mit Abstand zu einer anderen Erinnerung geplant."
+    },
+    "quietHours": "Ruhezeiten",
+    "quietHoursHint": "Optionale Erinnerungen pausieren in diesem Zeitraum, nach der Kontozeitzone. Medikamenten- und Pausenhinweise sind davon getrennt. Gleiche Uhrzeiten deaktivieren die Ruhezeit.",
+    "quietStart": "Beginn der Ruhezeit",
+    "quietEnd": "Ende der Ruhezeit"
   },
   "diary": {
     "bulk": {
@@ -930,7 +1015,9 @@
       "dayMessage": "Der Tag des Monats muss zwischen 1 und 31 liegen.",
       "limitMessage": "Das Maximum pro Tag muss mindestens 1 betragen.",
       "datesMessage": "Das Enddatum muss am oder nach dem Startdatum liegen.",
-      "selectDays": "Wählen Sie Wochentage aus"
+      "selectDays": "Wählen Sie Wochentage aus",
+      "doseMessage": "Geben Sie eine gültige Dosismenge ein.",
+      "noTimeReminder": "Ein Zeitplan ohne Uhrzeit erzeugt keine Erinnerung."
     },
     "viewAllMedications": "Alle Medikamente anzeigen",
     "detail": {
@@ -945,13 +1032,16 @@
     "loadFailed": "Medikamente konnten nicht geladen werden.",
     "dose": {
       "savedActionError": "Eine gespeicherte Reaktion auf die Nahrungsergänzungs-Erinnerung konnte nicht gelesen werden. Prüfen Sie das Protokoll, bevor Sie die Einnahme erneut eintragen.",
-      "discardRejectedMessage": "Der Server hat diese gespeicherte Reaktion nicht angenommen. Prüfen Sie den Einnahmeverlauf, bevor Sie sie erneut eintragen."
+      "discardRejectedMessage": "Der Server hat diese gespeicherte Reaktion nicht angenommen. Prüfen Sie den Einnahmeverlauf, bevor Sie sie erneut eintragen.",
+      "logTaken": "{{title}} als eingenommen erfassen"
     },
     "form": {
       "nameRequired": "Geben Sie einen Namen für das Medikament ein.",
       "invalidNumberMessage": "Geben Sie gültige Zahlen für Wirkstärke und Dosis ein.",
       "invalidNutrient": "Geben Sie für jeden Nährstoff eine nicht negative Zahl ein."
-    }
+    },
+    "notificationTitle": "Einnahmeerinnerung",
+    "notificationScheduledDoseNamed": "Geplante Einnahme: {{name}}{{dose}}"
   },
   "mealBuilder": {
     "linkedMealWebEdit": "Bearbeiten Sie diese Untermahlzeitzutat in der Web-App.",
@@ -966,7 +1056,8 @@
     },
     "notesPlaceholder": "z.B. das Rezept oder wie Sie es zubereiten",
     "loadErrorTitle": "Mahlzeit konnte nicht geladen werden.",
-    "addFood": "Lebensmittel hinzufügen"
+    "addFood": "Lebensmittel hinzufügen",
+    "totalServings": "Gesamtportionen"
   },
   "familyDiary": {
     "manageOnWeb": "Der Zugriff auf das Familientagebuch wird in der Web-App verwaltet.",
@@ -985,7 +1076,8 @@
     "nutritionSummary": "{{calories}} kcal · P {{protein}} g · KH {{carbs}} g · F {{fat}} g",
     "copyInvalidSelection": "Die ausgewählten Lebensmittel sind nicht mehr verfügbar.",
     "loadMembersFailed": "Familienmitglieder konnten nicht geladen werden.",
-    "copyTargetMealRequired": "Wählen Sie eine Mahlzeit aus, bevor Sie kopieren."
+    "copyTargetMealRequired": "Wählen Sie eine Mahlzeit aus, bevor Sie kopieren.",
+    "loadDiaryFailed": "Familientagebuch nicht verfügbar"
   },
   "healthSync": {
     "appleSummary": "Liest ausgewählte Daten von Apple Health und synchronisiert sie mit Ihrem selbst gehosteten Server.",
@@ -1196,7 +1288,8 @@
     "addExerciseBeforeSave": "Fügen Sie vor dem Speichern mindestens eine Übung mit einem Satz hinzu.",
     "presetAddBeforeSave": "Fügen Sie vor dem Speichern mindestens eine Übung mit einem Satz hinzu.",
     "pleaseTryAgain": "Versuchen Sie es erneut.",
-    "addExerciseOrDelete": "Fügen Sie mindestens eine Übung mit einem Satz hinzu oder löschen Sie das Training."
+    "addExerciseOrDelete": "Fügen Sie mindestens eine Übung mit einem Satz hinzu oder löschen Sie das Training.",
+    "exerciseUpdated": "Übung aktualisiert"
   },
   "cycleCard": {
     "setupA11y": "Richten Sie die Zyklus- und Schwangerschaftsverfolgung ein",
@@ -1216,7 +1309,8 @@
     "uploadErrors_other": "{{count}}-Datensätze wurden vom Server abgelehnt. Siehe Protokolle."
   },
   "fastingCard": {
-    "goalProgress": "{{remaining}} zu Ihrem {{goal}}h-Ziel"
+    "goalProgress": "{{remaining}} zu Ihrem {{goal}}h-Ziel",
+    "goalReached": "Ziel erreicht · {{goal}} h"
   },
   "fastingProtocol": {
     "presets": {
@@ -1604,7 +1698,8 @@
       "deepKetosis": {
         "name": "Tiefe Ketose"
       }
-    }
+    },
+    "goalReached": "Ziel erreicht"
   },
   "exerciseDetail": {
     "makePublicMessage": "Diese Übung wird für alle Benutzer auf diesem Server sichtbar.",
@@ -2493,7 +2588,7 @@
         },
         "acetaminophen": {
           "name": "Paracetamol (Tylenol)",
-          "note": "Bei Schmerzen oder Fieber gilt Paracetamol in der empfohlenen Dosierung häufig als erste Wahl. Besprich die Einnahme mit deiner medizinischen Fachperson."
+          "note": "Bei Schmerzen oder Fieber gilt Paracetamol in der empfohlenen Dosierung häufig als erste Wahl. Besprechen Sie die Einnahme mit Ihrer medizinischen Fachperson."
         },
         "antacids_tums": {
           "name": "Mittel gegen Sodbrennen (Tums)",
@@ -2732,5 +2827,35 @@
   "nutritionQuick": {
     "storageError": "Prüfen Sie den Gerätespeicher und versuchen Sie es erneut.",
     "caloriesRequired": "Geben Sie die Kalorien ein."
+  },
+  "widgetGuide": {
+    "title": "Widgets und Live-Aktivitäten",
+    "intro": "Widgets werden manuell hinzugefügt. Live-Aktivitäten erscheinen während einer aktiven Einheit oder eines Timers. Beide benötigen keine optionalen Serverhinweise.",
+    "liveTitle": "Live-Aktivitäten",
+    "status": {
+      "enabled": "Live-Aktivitäten erlaubt",
+      "disabled": "Live-Aktivitäten in iOS deaktiviert",
+      "unsupported": "Live-Aktivitäten auf diesem System nicht verfügbar",
+      "unknown": "Verfügbarkeit in diesem Build nicht geprüft"
+    },
+    "liveDescription": "Starten Sie ein Training, einen Fastentimer, eine Bewegungspause oder eine Mobilitätseinheit. Unterstützte iPhones zeigen den Status auf dem Sperrbildschirm und gegebenenfalls in der Dynamic Island. Timer funktionieren auch ohne diese Anzeige.",
+    "openSettings": "Systemeinstellungen öffnen",
+    "liveSettings": "Erlauben Sie unter iOS-Einstellungen → Apps → X on Track die Live-Aktivitäten. Mitteilungen und Live-Aktivitäten haben getrennte Berechtigungen.",
+    "lockTitle": "Sperrbildschirm-Widgets",
+    "lockAdd": "Mahlzeit- und Routinenkürzel hinzufügen",
+    "lockSteps": "Halten Sie den Sperrbildschirm gedrückt → Anpassen → Sperrbildschirm → Widgets hinzufügen → X on Track. Wählen Sie Mahlzeiterfassung oder Routinen. Energie- und Makro-Widgets sind für den Home-Bildschirm.",
+    "homeTitle": "Home-Bildschirm-Widgets",
+    "homeAdd": "Übersichts-Widget hinzufügen",
+    "homeSteps": "Halten Sie eine freie Stelle auf dem Home-Bildschirm gedrückt → Bearbeiten → Widget hinzufügen → X on Track. Wählen Sie Energie, Makros, Mahlzeiterfassung oder Routinen. Öffnen Sie die App nach einem Update einmal, um gemeinsame Daten zu aktualisieren.",
+    "watchTitle": "Apple-Watch-Komplikationen",
+    "watchAdd": "Zu einem passenden Zifferblatt hinzufügen",
+    "watchSteps": "Installieren Sie die Begleit-App in der Watch-App auf dem iPhone. Halten Sie das Zifferblatt gedrückt → Bearbeiten → Komplikationen. Wählen Sie einen runden Platz und X on Track. Antippen öffnet die App.",
+    "watchAvailable": "Energieziele und Wasser",
+    "watchLimits": "Dies sind die beiden derzeit unterstützten runden Komplikationen. Mahlzeit-, Gewohnheits- und Mobilitäts-Widgets sind auf der Watch nicht verfügbar. Ein eigenes Smart-Stapel-Layout ist noch nicht vorhanden.",
+    "androidAdd": "Kalorien-Widget hinzufügen",
+    "androidSteps": "Halten Sie eine freie Stelle auf dem Startbildschirm gedrückt → Widgets → X on Track. Die Schritte unterscheiden sich je nach Launcher.",
+    "androidLive": "Mitteilungen aktiver Timer",
+    "androidLiveDescription": "iOS-Live-Aktivitäten und Dynamic Island sind auf Android nicht verfügbar. Bestehende Timer- und Trainingshinweise bleiben verfügbar.",
+    "placementUnknown": "Die App kann nicht prüfen, ob ein Widget hinzugefügt oder eine Mitteilung gelesen wurde."
   }
 }

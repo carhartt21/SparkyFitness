@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { ExtensionStorage } from '@bacons/apple-targets';
+import { usePreferences } from '../hooks/usePreferences';
 import { useDailySummary } from '../hooks/useDailySummary';
 import { useNutritionCapturesByDate } from '../hooks/useNutritionCapturesByDate';
 import { useNutritionDiaryActions } from '../hooks/useNutritionDiaryActions';
@@ -17,6 +18,8 @@ import {
 import { reconcileTrackingEngagementReminders } from '../services/trackingEngagementReminders';
 import {
   discretionaryRemindersPaused,
+  instantToDay,
+  isValidTimeZone,
   habitDayState,
   isHabitDue,
   isMeasurementReminderDue,
@@ -37,6 +40,7 @@ import { reconcileMovementEngagementReminders } from '../services/movementEngage
 import { reconcileMobilityEngagementReminders } from '../services/mobilityEngagementReminders';
 import {
   getMobilityState,
+  synchronizeMobility,
   subscribeMobilityState,
   type MobilityState,
 } from '../services/mobilityRoutineStore';
@@ -58,8 +62,11 @@ import HydrationReminderReconciler from './HydrationReminderReconciler';
 import {
   readCachedRemoteEngagement,
   refreshRemoteEngagement,
-  registerRemoteEngagementDevice,
+  renewRemoteEngagementDevice,
+  syncMovementTimerStart,
   subscribeRemoteEngagement,
+  flushNotificationDeviceOff,
+  notificationDeviceOffPending,
 } from '../services/remoteEngagement';
 import { flushRemoteEngagementActions } from '../services/remoteEngagementActions';
 
@@ -72,6 +79,11 @@ const iosAppGroup = (
 
 /** App-scope owner: local action changes repair reminder and widget state. */
 export default function NutritionEngagementCoordinator() {
+  const { preferences } = usePreferences();
+  const timezone =
+    preferences?.timezone && isValidTimeZone(preferences.timezone)
+      ? preferences.timezone
+      : Intl.DateTimeFormat().resolvedOptions().timeZone;
   const [day, setDay] = useState(getTodayDate);
   const [clockMs, setClockMs] = useState(() => Date.now());
   const [wellbeingSession, setWellbeingSession] =
@@ -145,6 +157,8 @@ export default function NutritionEngagementCoordinator() {
   const [remoteOwnership, setRemoteOwnership] = useState<{
     scope: string;
     enabled: boolean;
+    quietStart: string;
+    quietEnd: string;
   } | null>(null);
   const localRemindersAllowed =
     identityReady &&
@@ -163,12 +177,23 @@ export default function NutritionEngagementCoordinator() {
       try {
         const cached = await readCachedRemoteEngagement(scopedIdentity);
         if (alive && cached) {
+          useAppPreferencesStore
+            .getState()
+            .setOptionalReminderDailyLimit(cached.daily_limit);
           setRemoteOwnership({
             scope: identityKey,
             enabled: cached.remote_enabled,
+            quietStart: cached.quiet_start,
+            quietEnd: cached.quiet_end,
           });
         }
+        await flushNotificationDeviceOff(scopedIdentity).catch(() => undefined);
         const current = await refreshRemoteEngagement(scopedIdentity);
+        useAppPreferencesStore
+          .getState()
+          .setOptionalReminderDailyLimit(current.daily_limit);
+        void syncMovementTimerStart(scopedIdentity).catch(() => undefined);
+        void synchronizeMobility(scopedIdentity).catch(() => undefined);
         void flushRemoteEngagementActions(scopedIdentity).catch(
           () => undefined
         );
@@ -176,9 +201,15 @@ export default function NutritionEngagementCoordinator() {
           setRemoteOwnership({
             scope: identityKey,
             enabled: current.remote_enabled,
+            quietStart: current.quiet_start,
+            quietEnd: current.quiet_end,
           });
-          if (current.remote_enabled) {
-            void registerRemoteEngagementDevice(scopedIdentity, false).catch(
+          if (
+            current.remote_enabled &&
+            useAppPreferencesStore.getState().notificationsEnabled &&
+            !(await notificationDeviceOffPending(scopedIdentity))
+          ) {
+            void renewRemoteEngagementDevice(scopedIdentity).catch(
               () => undefined
             );
           }
@@ -197,6 +228,8 @@ export default function NutritionEngagementCoordinator() {
           setRemoteOwnership({
             scope: identityKey,
             enabled: cached.remote_enabled,
+            quietStart: cached.quiet_start,
+            quietEnd: cached.quiet_end,
           });
       });
     });
@@ -271,6 +304,11 @@ export default function NutritionEngagementCoordinator() {
 
   useEffect(() => {
     const refresh = () => {
+      void getActiveNutritionIdentity()
+        .then((current) =>
+          current ? syncMovementTimerStart(current) : undefined
+        )
+        .catch(() => undefined);
       void getWellbeingSession()
         .then((session) => {
           setWellbeingSession(session);
@@ -314,18 +352,19 @@ export default function NutritionEngagementCoordinator() {
 
   useEffect(() => {
     const update = () => {
-      setDay(getTodayDate());
+      setDay(instantToDay(new Date(), timezone));
       setClockMs(Date.now());
     };
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') update();
     });
+    update();
     const interval = setInterval(update, 60_000);
     return () => {
       subscription.remove();
       clearInterval(interval);
     };
-  }, []);
+  }, [timezone]);
 
   useEffect(() => {
     if (!notificationsEnabled) return;
@@ -439,6 +478,7 @@ export default function NutritionEngagementCoordinator() {
     return {
       names,
       candidates: trackingReminderCandidates({
+        timezone,
         day,
         now: clockMs,
         checkin:
@@ -469,8 +509,12 @@ export default function NutritionEngagementCoordinator() {
     todaysCheckin.data,
     day,
     clockMs,
+    timezone,
   ]);
 
+  const dailyLimit = useAppPreferencesStore(
+    (s) => s.optionalReminderDailyLimit
+  );
   const plan = useMemo(() => {
     // A context period that pauses optional reminders removes every
     // discretionary candidate; scheduled intakes are never in this plan.
@@ -481,6 +525,7 @@ export default function NutritionEngagementCoordinator() {
       notificationsEnabled &&
       localRemindersAllowed
         ? nutritionReminderCandidates({
+            timezone,
             state,
             windows: [{ id: 'selected', start, end, prompt, enabled }],
             reviewTime: reviewEnabled ? reviewTime : null,
@@ -500,6 +545,7 @@ export default function NutritionEngagementCoordinator() {
       notificationsEnabled &&
       localRemindersAllowed
         ? movementBreakReminderCandidate({
+            timezone,
             day,
             time: movementTime,
             enabled: movementEnabled,
@@ -518,6 +564,10 @@ export default function NutritionEngagementCoordinator() {
       localRemindersAllowed &&
       mobilityData?.scope === identityKey
         ? mobilityReminderCandidates({
+            timezone,
+            plans: mobilityData.state.imported
+              ? mobilityData.state.plans
+              : undefined,
             day,
             routines: mobilityData.state.routines,
             activeSession: mobilityData.state.activeSession,
@@ -534,13 +584,22 @@ export default function NutritionEngagementCoordinator() {
           ? tracking.candidates
           : []),
       ],
-      dailyCap: Math.max(0, 3 - (spentByDay?.[day] ?? 0)),
-      domainCaps: { nutrition: 2, movement: 1, tracking: 2 },
+      dailyCap:
+        dailyLimit === null
+          ? null
+          : Math.max(0, dailyLimit - (spentByDay?.[day] ?? 0)),
+      domainCaps: {},
+      timezone,
+      quietStart: remoteOwnership?.quietStart,
+      quietEnd: remoteOwnership?.quietEnd,
       collisionMinutes: 20,
       reservedTimes: medicationReservedTimes ?? [],
       now: clockMs,
     });
   }, [
+    dailyLimit,
+    timezone,
+    remoteOwnership,
     day,
     clockMs,
     identity,
@@ -690,6 +749,9 @@ export default function NutritionEngagementCoordinator() {
       medicationReservedTimes={medicationReservedTimes}
       spentByDay={spentByDay}
       localRemindersAllowed={localRemindersAllowed && !remindersPaused}
+      timezone={timezone}
+      quietStart={remoteOwnership?.quietStart}
+      quietEnd={remoteOwnership?.quietEnd}
     />
   );
 }

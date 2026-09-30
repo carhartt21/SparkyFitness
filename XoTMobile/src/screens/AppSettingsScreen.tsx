@@ -247,6 +247,7 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
               'Rest timers, fasting goals, and medication reminders.',
           })}
           subtitleNumberOfLines={0}
+          testID="settings-notifications"
           onPress={() => navigation.navigate('NotificationSettings')}
         />
 

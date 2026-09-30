@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-29_
+_Last updated: 2026-09-30_
 
 This is the repo-root monorepo guide for X on Track. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -170,3 +170,9 @@ pnpm run build
 ```
 
 `validate` is a pnpm script in these packages; if pnpm is unavailable locally, install the pinned version or run its constituent checks from the package manifest and report which checks were run. Do not count an unrun wrapper as a pass.
+
+## Notification delivery and mobility planning
+
+Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
+
+Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.

@@ -93,8 +93,41 @@ export function createNutritionFixture(scenario: string) {
       if (url.origin !== 'https://ui-review.invalid')
         throw new Error('Review blocked network origin');
       const path = url.pathname.replace(/\/$/, '');
+      if (method === 'GET' && path === '/api/v2/mobility')
+        return {
+          routines: [],
+          schedules: [],
+          plans: [],
+          sessions: [],
+          timezone: 'Europe/Berlin',
+        };
+      if (method === 'GET' && path === '/api/v2/engagement/status')
+        return {
+          revision: 0,
+          remote_enabled: false,
+          daily_limit: 3,
+          daily_used: 0,
+          devices: [],
+          occurrences: [],
+          diagnostics: [],
+        };
       if (method === 'GET' && path === '/api/v2/engagement/settings')
         return {
+          ...(url.searchParams.get('version') === '2'
+            ? {
+                schema_version: 2,
+                schedule_initialized: true,
+                daily_limit: 3,
+                hydration_interval_hours: 2,
+                hydration_start: '08:00',
+                hydration_end: '22:00',
+                meal_capture_start: '11:00',
+                meal_capture_end: '14:00',
+                meal_capture_time: '12:30',
+                meal_review_time: '20:00',
+                movement_break_time: '15:00',
+              }
+            : {}),
           revision: 0,
           remote_enabled: false,
           quiet_start: '22:00',

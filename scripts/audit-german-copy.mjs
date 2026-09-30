@@ -17,8 +17,9 @@ const protectedNames = [
   "Body Battery",
 ];
 const englishFragments =
-  /\b(?:the|your|you|with|from|this|that|now|please|screen|settings|food|workout|today|loading|add|select|open|save|delete|search|apply|turn|into|past|for|and|or|all|new|more|reachable|seed|load|grant|manually)\b/i;
-const informalAddress = /\b(?:du|dir|dein|deine|deinen|deinem|dich)\b/i;
+  /\b(?:the|your|you|with|from|this|that|now|please|screen|settings|food|workout|today|loading|add|select|open|save|delete|search|apply|turn|into|past|for|and|or|all|new|more|reachable|seed|load|grant|manually|reminder|scheduled|taken|reached|completed|skipped)\b/i;
+const informalAddress =
+  /\b(?:du|dir|dein|deine|deinen|deinem|deiner|deines|dich)\b/i;
 const informalImperative =
   /\b(?:Wähle|Prüfe|Füge|Melde|Richte|Starte|Lass|Öffne|Zeige|Tippe|Gib|Klicke|Verwalte|Aktiviere|Verbinde|Erfasse|Notiere|Lade|Entdecke|Achte|Packe|Erstelle|Setze|Kontaktiere|Wende|Frag|Bist|Möchtest|Kannst|Hast|Nutze|Vergleiche|Hilf|Steh|Geh|Ruh)\b/;
 

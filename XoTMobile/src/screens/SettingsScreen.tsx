@@ -315,6 +315,7 @@ const SettingsScreen: React.FC<SettingsScreenProps> = ({ navigation }) => {
               <SettingsRow
                 icon="app-settings"
                 title={t('settings.rows.app', { defaultValue: 'App Settings' })}
+                testID="settings-app-preferences"
                 onPress={() => navigation.navigate('AppSettings')}
                 iconColor={exercise}
                 iconBackgroundColor={tint(exercise)}
