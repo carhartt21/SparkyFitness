@@ -2726,7 +2726,9 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                                 calories: kcal,
                               })
                         }
-                        className="h-11 w-11 items-center justify-center rounded-full border"
+                        // Smaller circle; the hit area stays 44 pt.
+                        hitSlop={5}
+                        className="h-[34px] w-[34px] items-center justify-center rounded-full border"
                         style={{
                           borderColor: accentColor,
                           backgroundColor: withAlpha(accentColor, 0.12),
@@ -2736,7 +2738,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                         {busy ? (
                           <ActivityIndicator size="small" color={accentColor} />
                         ) : (
-                          <Icon name="add" size={22} color={accentColor} />
+                          <Icon name="add" size={18} color={accentColor} />
                         )}
                       </TouchableOpacity>
                     </View>
