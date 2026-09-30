@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
 import WatchConnectivity, {
@@ -14,7 +14,11 @@ import WatchConnectivity, {
   type WatchTimerPayload,
   type WatchFoodLogPayload,
 } from '../../modules/watch-connectivity';
-import { fetchFoods } from '../services/api/foodsApi';
+import {
+  fetchFoodLastServing,
+  fetchFoodVariants,
+  fetchFoods,
+} from '../services/api/foodsApi';
 import { fetchFavorites } from '../services/api/favoritesApi';
 import { fetchMealTypes } from '../services/api/mealTypesApi';
 import { getDefaultMealTypeId } from '../constants/meals';
@@ -34,6 +38,8 @@ import {
   foodsQueryKey,
   favoritesQueryKey,
   mealTypesQueryKey,
+  foodVariantsQueryKey,
+  foodLastServingQueryKey,
 } from './queryKeys';
 import { refreshHealthSyncCache } from './refreshHealthSyncCache';
 import { getTodayDate, addDays } from '../utils/dateUtils';
@@ -58,7 +64,13 @@ import { useDailySummary } from './useDailySummary';
 import type { CheckInMeasurement } from '../types/measurements';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { buildWatchWorkoutSnapshot } from '../utils/watchWorkoutSnapshot';
-import { buildWatchFoodShortcuts } from '../utils/watchFoodShortcuts';
+import {
+  buildWatchFoodShortcuts,
+  watchFoodCandidates,
+  watchThumbnailPaths,
+  type WatchFoodDetails,
+} from '../utils/watchFoodShortcuts';
+import { sendWatchFoodThumbnails } from '../services/watchFoodThumbnails';
 import { saveActiveWorkoutSession } from './useActiveWorkoutAutosave';
 import { useCurrentFast } from './useFasting';
 import {
@@ -106,6 +118,15 @@ const NO_FIGURES_FOR_TODAY = {
   waterConsumedMl: null,
   waterLog: [] as WatchWaterLogPayload[],
 } as const;
+
+/**
+ * `combine` for the per-food queries: just the data, in order. Module-level so
+ * its identity is stable, which lets TanStack Query hand back the same array
+ * until a result actually changes.
+ */
+function queryData<T>(results: { data: T | undefined }[]): (T | null)[] {
+  return results.map((result) => result.data ?? null);
+}
 
 function emptyWatchContext(): WatchContextPayload {
   return {
@@ -232,13 +253,53 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         .sort((a, b) => a.sort_order - b.sort_order),
     [allMealTypes]
   );
+  // Each shortcut's saved portions and last logged amount, for the Watch's
+  // serving step. The same query keys as the food screen, so opening a food
+  // on the phone and syncing the Watch share one fetch.
+  const shortcutFoodIds = useMemo(
+    () =>
+      watchFoodCandidates(
+        favorites?.favoriteFoods ?? [],
+        foodLists?.recentFoods ?? []
+      ).map(({ food }) => food.id),
+    [favorites?.favoriteFoods, foodLists?.recentFoods]
+  );
+  const shortcutVariants = useQueries({
+    queries: shortcutFoodIds.map((foodId) => ({
+      queryKey: foodVariantsQueryKey(foodId),
+      queryFn: () => fetchFoodVariants(foodId),
+      enabled,
+      staleTime: 300_000,
+    })),
+    combine: queryData,
+  });
+  const shortcutLastServings = useQueries({
+    queries: shortcutFoodIds.map((foodId) => ({
+      queryKey: foodLastServingQueryKey(foodId),
+      queryFn: () => fetchFoodLastServing(foodId),
+      enabled,
+      staleTime: 300_000,
+    })),
+    combine: queryData,
+  });
+  const shortcutDetails = useMemo(() => {
+    const details: Record<string, WatchFoodDetails> = {};
+    shortcutFoodIds.forEach((foodId, index) => {
+      details[foodId] = {
+        variants: shortcutVariants[index] ?? null,
+        lastServing: shortcutLastServings[index] ?? null,
+      };
+    });
+    return details;
+  }, [shortcutFoodIds, shortcutVariants, shortcutLastServings]);
   const watchFoodShortcuts = useMemo(
     () =>
       buildWatchFoodShortcuts(
         favorites?.favoriteFoods ?? [],
-        foodLists?.recentFoods ?? []
+        foodLists?.recentFoods ?? [],
+        shortcutDetails
       ),
-    [favorites?.favoriteFoods, foodLists?.recentFoods]
+    [favorites?.favoriteFoods, foodLists?.recentFoods, shortcutDetails]
   );
   const weightUnit: 'kg' | 'lbs' =
     preferences?.default_weight_unit === 'lbs' ||
@@ -887,6 +948,13 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         payload.quantity <= 10000 &&
         payload.unit.length > 0 &&
         payload.unit.length <= 40 &&
+        // A grams override comes only with an amount in that same unit.
+        (payload.servingSize === undefined
+          ? payload.servingUnit === undefined
+          : Number.isFinite(payload.servingSize) &&
+            payload.servingSize > 0 &&
+            (payload.servingUnit === 'g' || payload.servingUnit === 'ml') &&
+            payload.unit === payload.servingUnit) &&
         !Number.isNaN(Date.parse(payload.loggedAt));
       if (!valid || !(await isCurrentWatchActionScope(payload.scope))) {
         await WatchConnectivity.sendAck(payload.clientId, false);
@@ -912,6 +980,12 @@ export function useWatchCheckInBridge(enabled: boolean): void {
             entry_time: localHourMinute(payload.loggedAt),
             food_id: payload.foodId,
             variant_id: payload.variantId,
+            ...(payload.servingSize !== undefined && payload.servingUnit
+              ? {
+                  serving_size: payload.servingSize,
+                  serving_unit: payload.servingUnit,
+                }
+              : {}),
           },
         });
         if (
@@ -930,6 +1004,12 @@ export function useWatchCheckInBridge(enabled: boolean): void {
             payload.clientId,
           ].slice(-20);
           await WatchConnectivity.sendAck(payload.clientId, success);
+          if (success) {
+            // The amount just logged is now this food's last serving.
+            await queryClient.invalidateQueries({
+              queryKey: foodLastServingQueryKey(payload.foodId),
+            });
+          }
           await pushContextRef.current();
         }
       } catch (error) {
@@ -1131,6 +1211,24 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     []
   );
 
+  // The Watch asks for pictures it lacks; only keys of foods it is currently
+  // offered resolve to a path, so it cannot pull arbitrary images.
+  const handleThumbnailRequest = useCallback(
+    async ({ keys }: { keys: string[] }): Promise<void> => {
+      const transport = WatchConnectivity;
+      if (!transport || !Array.isArray(keys) || keys.length === 0) return;
+      await sendWatchFoodThumbnails(
+        keys.filter((key) => typeof key === 'string').slice(0, 16),
+        watchThumbnailPaths(
+          favorites?.favoriteFoods ?? [],
+          foodLists?.recentFoods ?? []
+        ),
+        (fileUri, metadata) => transport.transferFile(fileUri, metadata)
+      );
+    },
+    [favorites?.favoriteFoods, foodLists?.recentFoods]
+  );
+
   // Latest handlers, read by the subscriptions below.
   //
   // Without this, the subscription effect had to list every handler as a dep,
@@ -1147,6 +1245,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     handleWaterDelete,
     handleWorkoutSetOperation,
     handleFoodLog,
+    handleThumbnailRequest,
     pushContext,
     catchUpToToday,
   });
@@ -1157,6 +1256,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       handleWaterDelete,
       handleWorkoutSetOperation,
       handleFoodLog,
+      handleThumbnailRequest,
       pushContext,
       catchUpToToday,
     };
@@ -1201,6 +1301,12 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     const foodLogSub = WatchConnectivity.addListener('onFoodLog', (payload) => {
       onEvent(handlersRef.current.handleFoodLog)(payload);
     });
+    const thumbnailRequestSub = WatchConnectivity.addListener(
+      'onThumbnailRequest',
+      (payload) => {
+        onEvent(handlersRef.current.handleThumbnailRequest)(payload);
+      }
+    );
     const contextRequestSub = WatchConnectivity.addListener(
       'onContextRequest',
       () => {
@@ -1230,6 +1336,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       waterIntakeSub.remove();
       waterDeleteSub.remove();
       workoutSetSub.remove();
+      thumbnailRequestSub.remove();
       foodLogSub.remove();
       contextRequestSub.remove();
       reachabilitySub.remove();

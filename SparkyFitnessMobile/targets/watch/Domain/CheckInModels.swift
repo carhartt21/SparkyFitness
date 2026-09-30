@@ -222,7 +222,34 @@ struct PendingQuickWaterAction: Codable, Equatable, Identifiable {
     var state: SyncState
 }
 
-struct WatchFoodShortcut: Codable, Equatable, Identifiable {
+/// One serving offered in the second logging step, computed by the phone:
+/// the amount last logged for the food, 100 g (or ml) when it can be weighed,
+/// then its saved portions.
+struct WatchFoodServing: Codable, Equatable, Hashable, Identifiable {
+    let key: String
+    /// "last", "default", "portion" or, for an amount set on the Watch, "custom".
+    let kind: String
+    let title: String
+    let quantity: Double
+    let unit: String
+    let variantId: String
+    let calories: Double
+    /// Grams override of a weighed portion ("1 bar = 45 g"), sent with the
+    /// entry so its nutrition covers the weight; nil for every other serving.
+    var servingSize: Double? = nil
+    var servingUnit: String? = nil
+
+    var id: String { key }
+
+    /// Same food, variant and amount — how a serving logged on the Watch is
+    /// matched against the phone's list.
+    func sameAmount(as other: WatchFoodServing) -> Bool {
+        variantId == other.variantId && unit == other.unit
+            && abs(quantity - other.quantity) < 0.001
+    }
+}
+
+struct WatchFoodShortcut: Codable, Equatable, Identifiable, Hashable {
     let foodId: String
     let variantId: String
     let name: String
@@ -231,8 +258,25 @@ struct WatchFoodShortcut: Codable, Equatable, Identifiable {
     let servingUnit: String
     let calories: Double
     let group: String
+    /// Optional so a context saved before servings existed still decodes.
+    var servings: [WatchFoodServing]? = nil
+    /// Names the thumbnail the phone transferred; nil without a picture.
+    var thumbnailKey: String? = nil
 
     var id: String { "\(foodId):\(variantId)" }
+
+    /// The phone's servings, or the food's own serving from an older phone.
+    var servingChoices: [WatchFoodServing] {
+        if let servings, !servings.isEmpty { return servings }
+        return [
+            WatchFoodServing(
+                key: "default", kind: "default",
+                title: "\(servingSize.formatted()) \(servingUnit)",
+                quantity: servingSize, unit: servingUnit,
+                variantId: variantId, calories: calories
+            )
+        ]
+    }
 }
 
 struct WatchMealType: Codable, Equatable, Identifiable {
@@ -253,6 +297,23 @@ struct PendingFoodLogAction: Codable, Equatable, Identifiable {
     let unit: String
     let name: String
     var state: SyncState
+    /// Grams override of a weighed portion; nil for every other serving.
+    var servingSize: Double? = nil
+    var servingUnit: String? = nil
+    /// How the serving read when it was chosen, e.g. "150 g".
+    var servingTitle: String? = nil
+    var calories: Double? = nil
+
+    /// The serving this action logged, for offering it again on top.
+    var serving: WatchFoodServing {
+        WatchFoodServing(
+            key: "local-last", kind: "last",
+            title: servingTitle ?? "\(quantity.formatted()) \(unit)",
+            quantity: quantity, unit: unit, variantId: variantId,
+            calories: calories ?? 0,
+            servingSize: servingSize, servingUnit: servingUnit
+        )
+    }
 }
 
 /// A request to delete one logged drink, sent to the phone (which owns the

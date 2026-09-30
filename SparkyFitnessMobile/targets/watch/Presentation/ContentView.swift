@@ -185,6 +185,7 @@ struct FirstRunEntryView: View {
                     onSave(weightKg, parsedBodyFat)
                 }
                 .buttonStyle(.borderedProminent)
+                .foregroundStyle(Neon.accentText)
                 .disabled(parsedWeightKg == nil || !bodyFatIsValid || !store.canCaptureActions)
             }
             .padding(.horizontal, 4)

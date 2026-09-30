@@ -18,6 +18,8 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
     var onWaterDelete: (([String: Any]) -> Void)?
     var onWorkoutSetOperation: (([String: Any]) -> Void)?
     var onFoodLog: (([String: Any]) -> Void)?
+    /// The watch asking for food pictures it has no file for.
+    var onThumbnailRequest: (([String]) -> Void)?
 
     func activate() {
         guard WCSession.isSupported() else { return }
@@ -42,6 +44,8 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
             onWorkoutSetOperation?(payload)
         case "foodLog":
             onFoodLog?(payload)
+        case "thumbnailRequest":
+            onThumbnailRequest?(payload["keys"] as? [String] ?? [])
         default:
             break
         }
@@ -106,7 +110,8 @@ public class WatchConnectivityModule: Module {
             "onManualWater",
             "onWaterDelete",
             "onWorkoutSetOperation",
-            "onFoodLog"
+            "onFoodLog",
+            "onThumbnailRequest"
         )
 
         OnCreate {
@@ -165,7 +170,7 @@ public class WatchConnectivityModule: Module {
                 ])
             }
             self.delegateHandler.onFoodLog = { [weak self] payload in
-                self?.sendEvent("onFoodLog", [
+                var event: [String: Any] = [
                     "clientId": payload["clientId"] as? String ?? "",
                     "scope": payload["scope"] as? String ?? "",
                     "entryDate": payload["entryDate"] as? String ?? "",
@@ -175,7 +180,18 @@ public class WatchConnectivityModule: Module {
                     "mealTypeId": payload["mealTypeId"] as? String ?? "",
                     "quantity": payload["quantity"] as? Double ?? 0,
                     "unit": payload["unit"] as? String ?? "",
-                ])
+                ]
+                // Only a weighed portion carries a grams override; absent
+                // keys stay absent so the bridge's validation can tell.
+                if let servingSize = payload["servingSize"] as? Double,
+                   let servingUnit = payload["servingUnit"] as? String {
+                    event["servingSize"] = servingSize
+                    event["servingUnit"] = servingUnit
+                }
+                self?.sendEvent("onFoodLog", event)
+            }
+            self.delegateHandler.onThumbnailRequest = { [weak self] keys in
+                self?.sendEvent("onThumbnailRequest", ["keys": keys])
             }
             self.delegateHandler.activate()
         }
@@ -203,6 +219,17 @@ public class WatchConnectivityModule: Module {
             var payload = context.compactMapValues(withoutNulls)
             payload["type"] = "context"
             try WCSession.default.updateApplicationContext(payload)
+        }
+
+        /// Sends a small file (a food thumbnail) to the watch. File transfers
+        /// queue in the background and survive the watch app being closed,
+        /// unlike messages; the watch moves the file into place on arrival.
+        AsyncFunction("transferFile") { (fileUri: String, metadata: [String: Any]) -> Void in
+            guard WCSession.isSupported(),
+                  WCSession.default.activationState == .activated,
+                  WCSession.default.isWatchAppInstalled,
+                  let url = URL(string: fileUri), url.isFileURL else { return }
+            WCSession.default.transferFile(url, metadata: metadata.compactMapValues(withoutNulls))
         }
 
         /// Immediate per-check-in acknowledgement for when the watch app is in

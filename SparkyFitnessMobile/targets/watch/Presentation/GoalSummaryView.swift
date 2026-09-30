@@ -82,6 +82,8 @@ struct GoalSummaryView: View {
                     style: StrokeStyle(lineWidth: 7, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
+                // The app's neon glow, kept faint on the Watch.
+                .shadow(color: GoalPalette.calories.opacity(0.45), radius: 4)
 
             VStack(spacing: -1) {
                 Text(calorieValueText)
@@ -201,6 +203,7 @@ struct GoalSummaryView: View {
                         )
                     )
                     .frame(width: geo.size.width * max(0, min(1, progress)))
+                    .shadow(color: color.opacity(progress > 0 ? 0.45 : 0), radius: 3)
             }
         }
         .frame(height: 6)
@@ -220,5 +223,6 @@ enum GoalPalette {
     static let carbs = Color(red: 0.592, green: 0.776, blue: 0.573)
     static let fat = Color(red: 0.541, green: 0.761, blue: 0.855)
     static let protein = Color(red: 0.859, green: 0.690, blue: 0.435)
-    static let water = Color.cyan
+    /// The app's hydration colour (`--color-hydration`, #22B8F5).
+    static let water = Neon.cyan
 }

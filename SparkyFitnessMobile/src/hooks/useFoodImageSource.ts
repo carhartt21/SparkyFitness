@@ -13,6 +13,30 @@ type ImageSource = { uri: string; headers: Record<string, string> };
 export type GetFoodImageSource = (imagePath: string) => ImageSource | null;
 
 /**
+ * Turns a stored food image path into a loadable URL for `config`'s server,
+ * or null while the server is unknown. Absolute provider URLs pass through.
+ * Shared by the hook below and by code outside React (the Watch thumbnails).
+ */
+export function resolveFoodImageSource(
+  imagePath: string,
+  config: ServerConfig | null
+): ImageSource | null {
+  if (!imagePath) return null;
+  // Absolute URLs (provider images that never localized) — use directly.
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return { uri: imagePath, headers: {} };
+  }
+  if (!config) return null;
+  const base = normalizeUrl(config.url);
+  // The server mounts uploads at both /uploads and /api/uploads; use the
+  // /api prefix so a single reverse-proxy rule covers every request.
+  const uri = imagePath.startsWith('/uploads/')
+    ? `${base}/api${imagePath}`
+    : `${base}/api/uploads/foods/${imagePath}`;
+  return { uri, headers: proxyHeadersToRecord(config.proxyHeaders) };
+}
+
+/**
  * Resolves stored food/meal image paths to loadable `<Image>` sources.
  *
  * Mirrors `useExerciseImageSource`, with one difference: exercises store bare
@@ -90,25 +114,9 @@ export function useFoodImageSource() {
       const cached = sourceCache.get(imagePath);
       if (cached) return cached;
 
-      let source: ImageSource;
-      // Absolute URLs (provider images that never localized) — use directly.
-      if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-        source = { uri: imagePath, headers: {} };
-      } else if (!config) {
-        // Don't cache until config resolves, so the path resolves once ready.
-        return null;
-      } else {
-        const base = normalizeUrl(config.url);
-        // The server mounts uploads at both /uploads and /api/uploads; use the
-        // /api prefix so a single reverse-proxy rule covers every request.
-        const uri = imagePath.startsWith('/uploads/')
-          ? `${base}/api${imagePath}`
-          : `${base}/api/uploads/foods/${imagePath}`;
-        source = {
-          uri,
-          headers: proxyHeadersToRecord(config.proxyHeaders),
-        };
-      }
+      const source = resolveFoodImageSource(imagePath, config);
+      // Don't cache until config resolves, so the path resolves once ready.
+      if (!source) return null;
 
       sourceCache.set(imagePath, source);
       return source;
