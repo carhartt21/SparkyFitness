@@ -48,7 +48,7 @@ The application follows a client-server model, with a clear separation of concer
 - **Routing**: React Router v6
 - **HTTP Client**: Fetch API (utilized by TanStack Query)
 
-### Backend (SparkyFitnessServer/)
+### Backend (XoTServer/)
 - **Runtime**: Node.js with Express.js framework
 - **Database**: PostgreSQL with Row Level Security (RLS)
 - **Authentication**: JWT-based authentication
@@ -75,7 +75,7 @@ SparkyFitness/
 │   ├── pages/                    # Page-level components
 │   ├── services/                 # API service layer
 │   └── utils/                    # Shared utilities
-├── SparkyFitnessServer/          # Backend Node.js application
+├── XoTServer/          # Backend Node.js application
 │   ├── models/                   # Repository pattern (database layer)
 │   ├── routes/                   # Express route handlers
 │   ├── integrations/             # External API integrations
@@ -100,7 +100,7 @@ The frontend follows a component-based architecture with clear separation of con
 - **`services/`**: API integration layer with type-safe interfaces
 - **`utils/`**: Shared utility functions and constants
 
-### `SparkyFitnessServer/` (Backend)
+### `XoTServer/` (Backend)
 
 The backend implements a layered architecture with repository pattern:
 

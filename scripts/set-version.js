@@ -38,9 +38,9 @@ async function writeJsonFormatted(fullPath, json) {
 }
 
 const targetFiles = [
-  "SparkyFitnessServer/package.json",
-  "SparkyFitnessFrontend/package.json",
-  "SparkyFitnessMobile/package.json",
+  "XoTServer/package.json",
+  "XoTFrontend/package.json",
+  "XoTMobile/package.json",
   "shared/package.json",
 ];
 
@@ -60,8 +60,8 @@ for (const relPath of targetFiles) {
   }
 }
 
-// Also update SparkyFitnessMobile/app.json (expo.version)
-const appJsonPath = path.join(rootDir, "SparkyFitnessMobile/app.json");
+// Also update XoTMobile/app.json (expo.version)
+const appJsonPath = path.join(rootDir, "XoTMobile/app.json");
 if (fs.existsSync(appJsonPath)) {
   const content = fs.readFileSync(appJsonPath, "utf8");
   const json = JSON.parse(content);
@@ -69,7 +69,7 @@ if (fs.existsSync(appJsonPath)) {
     json.expo.version = cleanVersion;
     await writeJsonFormatted(appJsonPath, json);
     console.log(
-      `✓ Updated SparkyFitnessMobile/app.json (expo.version) -> ${cleanVersion}`,
+      `✓ Updated XoTMobile/app.json (expo.version) -> ${cleanVersion}`,
     );
     updatedCount++;
   }

@@ -102,7 +102,7 @@ and configure `database.host`, `database.port`, `database.name`,
 ## Garmin Connect integration
 
 The Garmin integration needs a separate Python microservice
-(`SparkyFitnessGarmin`) that the backend calls over HTTP. Enable it with:
+(`XoTGarmin`) that the backend calls over HTTP. Enable it with:
 
 ```nix
 services.sparkyfitness.garmin.enable = true;

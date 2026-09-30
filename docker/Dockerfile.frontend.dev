@@ -9,22 +9,22 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Copy all workspace member package.json files for dependency graph resolution
-COPY SparkyFitnessServer/package.json SparkyFitnessServer/
-COPY SparkyFitnessFrontend/package.json SparkyFitnessFrontend/
-COPY SparkyFitnessMobile/package.json SparkyFitnessMobile/
+COPY XoTServer/package.json XoTServer/
+COPY XoTFrontend/package.json XoTFrontend/
+COPY XoTMobile/package.json XoTMobile/
 COPY shared/package.json shared/
 
 # Copy patch files referenced by pnpm.patchedDependencies in root package.json
 COPY patches/ patches/
 
 # Install workspace dependencies
-RUN pnpm install --filter sparkyfitnessfrontend...
+RUN pnpm install --filter xot-frontend...
 
 # Copy shared source (frontend imports @workspace/shared)
 COPY shared/ shared/
 
 # Set working directory to frontend for runtime
-WORKDIR /app/SparkyFitnessFrontend
+WORKDIR /app/XoTFrontend
 
 EXPOSE 8080
 

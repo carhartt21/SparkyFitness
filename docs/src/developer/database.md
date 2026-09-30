@@ -58,7 +58,7 @@ CREATE POLICY modify_policy ON public.food_entries FOR ALL TO PUBLIC
 - `authenticated_user_id()` — the true logged-in actor (never changes; from `app.authenticated_user_id`)
 - `can_access_user_data(target_user_id, permission_type, authenticated_user_id())` — resolves a logical permission (`diary`, `checkin`, `medications`, `reports`, plus `*_read` variants) against the `family_access` grant. Domain shortcuts wrap it: `has_diary_read_access`, `has_diary_access`, `has_checkin_read_access`, `has_medication_access`, `has_family_access`.
 
-Cycle and pregnancy tables are owner-only (no delegation). See `SparkyFitnessServer/db/rls_policies.sql` for the complete policy set and the `create_*_policy` generators.
+Cycle and pregnancy tables are owner-only (no delegation). See `XoTServer/db/rls_policies.sql` for the complete policy set and the `create_*_policy` generators.
 
 ---
 
@@ -321,7 +321,7 @@ The migration system:
 
 ### Migration Structure
 
-Migrations are stored in `SparkyFitnessServer/db/migrations/` with the naming pattern:
+Migrations are stored in `XoTServer/db/migrations/` with the naming pattern:
 
 ```
 YYYYMMDDHHMMSS_description.sql
@@ -334,7 +334,7 @@ Example: `20240315103000_add_exercise_tracking.sql`
 1. **Create the migration file** in the migrations directory:
 
    ```bash
-   cd SparkyFitnessServer/db/migrations/
+   cd XoTServer/db/migrations/
    touch 20240315142000_add_meal_planning.sql
    ```
 

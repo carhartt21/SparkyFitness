@@ -4,7 +4,8 @@
   "scripts": {
     "prepare": "husky",
     "set-version": "node scripts/set-version.js",
-    "reset-dev": "./scripts/reset-dev.sh"
+    "reset-dev": "./scripts/reset-dev.sh",
+    "repository:check": "node scripts/check-repository-layout.mjs"
   },
   "devDependencies": {
     "husky": "^9.1.7",
@@ -12,14 +13,14 @@
     "prettier": "3.9.6"
   },
   "lint-staged": {
-    "SparkyFitnessFrontend/**/*.{ts,tsx}": [
-      "npx prettier --write --ignore-path SparkyFitnessFrontend/.prettierignore"
+    "XoTFrontend/**/*.{ts,tsx}": [
+      "npx prettier --write --ignore-path XoTFrontend/.prettierignore"
     ],
-    "SparkyFitnessServer/**/*.{js,ts}": [
-      "npx prettier --write --ignore-path SparkyFitnessServer/.prettierignore"
+    "XoTServer/**/*.{js,ts}": [
+      "npx prettier --write --ignore-path XoTServer/.prettierignore"
     ],
-    "SparkyFitnessMobile/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
-      "npx prettier --write --ignore-path SparkyFitnessMobile/.prettierignore"
+    "XoTMobile/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
+      "npx prettier --write --ignore-path XoTMobile/.prettierignore"
     ]
   },
   "dependencies": {

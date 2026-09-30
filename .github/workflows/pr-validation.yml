@@ -2,7 +2,15 @@ name: PR Checks
 
 on:
   pull_request_target:
-    types: [opened, edited, synchronize, reopened, ready_for_review, converted_to_draft]
+    types:
+      [
+        opened,
+        edited,
+        synchronize,
+        reopened,
+        ready_for_review,
+        converted_to_draft,
+      ]
   pull_request_review:
     types: [submitted, dismissed]
   pull_request_review_comment:
@@ -70,18 +78,18 @@ jobs:
             const changedFiles = files.map(f => f.filename);
 
             // ---- Change detection ----
-            const hasFrontendChanges = changedFiles.some(f => f.startsWith('SparkyFitnessFrontend/'));
-            const hasBackendChanges  = changedFiles.some(f => f.startsWith('SparkyFitnessServer/'));
-            const hasMobileChanges   = changedFiles.some(f => f.startsWith('SparkyFitnessMobile/'));
+            const hasFrontendChanges = changedFiles.some(f => f.startsWith('XoTFrontend/'));
+            const hasBackendChanges  = changedFiles.some(f => f.startsWith('XoTServer/'));
+            const hasMobileChanges   = changedFiles.some(f => f.startsWith('XoTMobile/'));
 
             // Every non-English translation file is owned by Weblate and arrives
             // through the sync workflow.
-            const localesRoot = 'SparkyFitnessFrontend/public/locales/';
-            const mobileLocalesRoot = 'SparkyFitnessMobile/src/localization/locales/';
+            const localesRoot = 'XoTFrontend/public/locales/';
+            const mobileLocalesRoot = 'XoTMobile/src/localization/locales/';
             const mobileNativeSurfaces = [
-              /^SparkyFitnessMobile\/locales\/(?!en\.json$)[^/]+\.json$/,
-              /^SparkyFitnessMobile\/targets\/android-widget\/res\/values-[^/]+\/widget_strings\.xml$/,
-              /^SparkyFitnessMobile\/targets\/widget\/(?!en\.lproj\/)[^/]+\.lproj\/Localizable\.strings$/,
+              /^XoTMobile\/locales\/(?!en\.json$)[^/]+\.json$/,
+              /^XoTMobile\/targets\/android-widget\/res\/values-[^/]+\/widget_strings\.xml$/,
+              /^XoTMobile\/targets\/widget\/(?!en\.lproj\/)[^/]+\.lproj\/Localizable\.strings$/,
             ];
             const nonEnLocaleFiles = changedFiles.filter(f =>
               (f.startsWith(localesRoot) && !f.startsWith(`${localesRoot}en/`)) ||

@@ -19,4 +19,4 @@ The following are **SparkyFitness upstream builds** and must not be presented as
 - [Upstream Android releases](https://github.com/CodeWithCJ/SparkyFitness/releases)
 - [Upstream Google Play beta](https://play.google.com/store/apps/details?id=com.SparkyApps.SparkyFitnessMobile)
 
-The upstream APK filename `SparkyFitnessMobile.apk` and package ID are technical release identifiers. Use the upstream documentation for those builds; their screenshots and release schedule do not verify the X on Track app.
+The upstream APK filename `XoTMobile.apk` and package ID are technical release identifiers. Use the upstream documentation for those builds; their screenshots and release schedule do not verify the X on Track app.

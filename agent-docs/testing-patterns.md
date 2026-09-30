@@ -8,13 +8,13 @@ Concrete examples for testing each layer of the application. Use these patterns 
 
 | Layer | Framework | What | How | Location |
 |-------|-----------|------|-----|----------|
-| **Route** (endpoint) | Vitest + supertest | Request/response, status codes, validation errors | Mock service layer, test HTTP contract | `SparkyFitnessServer/tests/<domain>Routes.test.ts` |
-| **Service** (business logic) | Vitest | Logic, orchestration, error handling | Mock repository, test workflows | `SparkyFitnessServer/tests/<domain>Service.test.ts` |
-| **Repository** (database) | Vitest | SQL query shape, mapping | Mock `poolManager` (`getClient`) with a fake client, assert queries | `SparkyFitnessServer/tests/<domain>Repository.test.ts` |
-| **RLS Policy** (permissions) | Vitest + real test DB | Row filtering, permission inheritance, delegation | Connect via `getClient()` as the app role, seed delegated grants, query (gated on a live DB probe) | `SparkyFitnessServer/tests/rlsPermissionMatrix.integration.test.ts` |
-| **React Query** (frontend) | Jest + @testing-library | Hook state, cache invalidation, error handling | Mock API module with `jest.mock`, test query lifecycle | `SparkyFitnessFrontend/src/tests/hooks/*.test.tsx` (flat) |
-| **Component** (UI) | Jest + @testing-library | Rendering, user interactions, form submission | Mock API hooks, test user flows | `SparkyFitnessFrontend/src/tests/components/` |
-| **Integration** (mobile) | Jest (jest-expo) | API calls, state updates, permissions | Mock `apiFetch`, test with real auth context | `SparkyFitnessMobile/__tests__/services/` (organized by layer) |
+| **Route** (endpoint) | Vitest + supertest | Request/response, status codes, validation errors | Mock service layer, test HTTP contract | `XoTServer/tests/<domain>Routes.test.ts` |
+| **Service** (business logic) | Vitest | Logic, orchestration, error handling | Mock repository, test workflows | `XoTServer/tests/<domain>Service.test.ts` |
+| **Repository** (database) | Vitest | SQL query shape, mapping | Mock `poolManager` (`getClient`) with a fake client, assert queries | `XoTServer/tests/<domain>Repository.test.ts` |
+| **RLS Policy** (permissions) | Vitest + real test DB | Row filtering, permission inheritance, delegation | Connect via `getClient()` as the app role, seed delegated grants, query (gated on a live DB probe) | `XoTServer/tests/rlsPermissionMatrix.integration.test.ts` |
+| **React Query** (frontend) | Jest + @testing-library | Hook state, cache invalidation, error handling | Mock API module with `jest.mock`, test query lifecycle | `XoTFrontend/src/tests/hooks/*.test.tsx` (flat) |
+| **Component** (UI) | Jest + @testing-library | Rendering, user interactions, form submission | Mock API hooks, test user flows | `XoTFrontend/src/tests/components/` |
+| **Integration** (mobile) | Jest (jest-expo) | API calls, state updates, permissions | Mock `apiFetch`, test with real auth context | `XoTMobile/__tests__/services/` (organized by layer) |
 
 > Note: the server suite is **Vitest**; the frontend (`ts-jest`/jsdom) and mobile (`jest-expo`) suites are **Jest** — use `jest.mock`/`jest.fn`, not `vi.*`, in those. Most repository tests **mock** `poolManager`; the only real-database + RLS round-trip is `rlsPermissionMatrix.integration.test.ts`. The examples below are illustrative — open the referenced real test for the exact harness.
 
@@ -26,10 +26,10 @@ Concrete examples for testing each layer of the application. Use these patterns 
 
 **What to test:** HTTP request/response, status codes, error handling, validation.
 
-Real route tests do **not** boot the whole server or touch a database. They build a throwaway `express()` app that mounts only the router under test, then `vi.mock(...)` the repository/service layer and the auth/permission middleware so the test isolates the HTTP contract. (Real reference: `SparkyFitnessServer/tests/medicationRoutes.test.ts`.)
+Real route tests do **not** boot the whole server or touch a database. They build a throwaway `express()` app that mounts only the router under test, then `vi.mock(...)` the repository/service layer and the auth/permission middleware so the test isolates the HTTP contract. (Real reference: `XoTServer/tests/medicationRoutes.test.ts`.)
 
 ```typescript
-// SparkyFitnessServer/tests/medicationRoutes.test.ts (shape)
+// XoTServer/tests/medicationRoutes.test.ts (shape)
 import { vi, describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import express from 'express';
@@ -74,7 +74,7 @@ describe('Medication Routes', () => {
 ```
 
 **Key patterns:**
-- Mount only the router under test on a local `express()` app (don't import `SparkyFitnessServer.ts`)
+- Mount only the router under test on a local `express()` app (don't import `XoTServer.ts`)
 - `vi.mock` the repository/service layer and the auth/permission middleware — no real DB, no real tokens
 - v2 routes are mounted under `/api/v2/...`; auth is a `userId=` cookie in the real middleware (stubbed here)
 - Test both the success path and Zod validation (400) errors
@@ -86,7 +86,7 @@ describe('Medication Routes', () => {
 **What to test:** Logic, calculations, error handling, orchestration.
 
 ```typescript
-// SparkyFitnessServer/tests/medicationService.test.ts
+// XoTServer/tests/medicationService.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import medicationService from '../services/medicationService.js';
 import medicationRepository from '../models/medicationRepository.js';
@@ -170,7 +170,7 @@ There are **two** distinct kinds here:
 The RLS integration shape (note the real `family_access` column names and the quoted reserved `user` table):
 
 ```typescript
-// SparkyFitnessServer/tests/rlsPermissionMatrix.integration.test.ts (shape)
+// XoTServer/tests/rlsPermissionMatrix.integration.test.ts (shape)
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import medicationRepository from '../models/medicationRepository.js';
 import { getClient, getSystemClient } from '../db/poolManager.js';
@@ -270,7 +270,7 @@ describe('Medication Repository (with RLS)', () => {
 Frontend tests use **Jest** (`ts-jest`/jsdom), so use `jest.mock`/`jest.mocked` — not `vi.*`. Hook tests are flat files in `src/tests/hooks/` with a `.tsx` extension (JSX won't compile under ts-jest in a `.ts` file). Real reference: `src/tests/hooks/useOnboarding.test.tsx`.
 
 ```typescript
-// SparkyFitnessFrontend/src/tests/hooks/useMedications.test.tsx
+// XoTFrontend/src/tests/hooks/useMedications.test.tsx
 import { renderHook, waitFor } from '@testing-library/react';
 import { QueryClientProvider, QueryClient } from '@tanstack/react-query';
 import { useMedications } from '@/hooks/useMedications';
@@ -351,7 +351,7 @@ describe('useMedications hook', () => {
 **What to test:** Rendering, user interactions, form submission.
 
 ```typescript
-// SparkyFitnessFrontend/src/tests/components/MedicationForm.test.tsx
+// XoTFrontend/src/tests/components/MedicationForm.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import MedicationForm from '@/pages/Medications/MedicationForm';
@@ -437,7 +437,7 @@ describe('MedicationForm component', () => {
 Mobile tests use **Jest** (`jest-expo`) and **relative** imports (the `@/` alias is configured but unused in `src/`). The HTTP helper export is `apiFetch` (there is no `apiClient` export). Tests are organized by layer under `__tests__/services/`, `__tests__/hooks/`, etc. (This example uses the real `mealsApi`.)
 
 ```typescript
-// SparkyFitnessMobile/__tests__/services/mealsApi.test.ts
+// XoTMobile/__tests__/services/mealsApi.test.ts
 import { fetchMeals } from '../../src/services/api/mealsApi';
 import * as apiClient from '../../src/services/api/apiClient';
 
@@ -491,7 +491,7 @@ describe('meals API', () => {
 
 **Server:**
 ```bash
-cd SparkyFitnessServer
+cd XoTServer
 pnpm test                                    # Run all tests
 pnpm exec vitest run tests/medication*.test.ts  # Run specific tests
 pnpm run test:coverage                       # Coverage report
@@ -499,14 +499,14 @@ pnpm run test:coverage                       # Coverage report
 
 **Frontend (Jest):**
 ```bash
-cd SparkyFitnessFrontend
+cd XoTFrontend
 pnpm test                                    # Run all tests
 pnpm test -- useMedications                  # Filter by test name/path
 ```
 
 **Mobile (Jest / jest-expo):**
 ```bash
-cd SparkyFitnessMobile
+cd XoTMobile
 pnpm test:run -- --watchman=false --runInBand    # Run all tests
 pnpm exec jest --watchman=false __tests__/services  # A layer folder
 ```

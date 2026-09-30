@@ -4,18 +4,18 @@ Follow this checklist whenever you add or change a server database migration —
 
 ## 1. Create the migration
 
-- [ ] Create the migration in `SparkyFitnessServer/db/migrations/` named `YYYYMMDDHHMMSS_description.sql`.
+- [ ] Create the migration in `XoTServer/db/migrations/` named `YYYYMMDDHHMMSS_description.sql`.
 - [ ] Do not invent alternate migration mechanisms; server startup applies pending migrations and then reapplies RLS policies.
 
 ## 2. Update Row-Level Security (required for every new table)
 
-- [ ] Add or update policies in `SparkyFitnessServer/db/rls_policies.sql`.
+- [ ] Add or update policies in `XoTServer/db/rls_policies.sql`.
 - [ ] Decide who can read/write rows: owner only (like cycle/pregnancy), family-shared (which delegatable permission: `diary`, `checkin`, `medications`, or `reports`?), or system/admin. Prefer an existing `create_*_policy(...)` generator in `rls_policies.sql`.
 - [ ] Remember `getClient(userId, authenticatedUserId?)` sets the RLS context; `getSystemClient()` bypasses RLS and is only for admin/startup/migration work.
 
 ## 3. Boot server and let migration apply
 
-- [ ] **Restart the server** (`pnpm start` from `SparkyFitnessServer/`).
+- [ ] **Restart the server** (`pnpm start` from `XoTServer/`).
 - [ ] Confirm the migration applies cleanly and RLS policies reapply without errors.
 - [ ] Check server logs for any migration failures.
 
@@ -38,11 +38,11 @@ Follow this checklist whenever you add or change a server database migration —
 
 ## 7. Downstream contracts
 
-- [ ] If the table backs an API: create/update route (+ Zod route schema in `SparkyFitnessServer/schemas/` for v2 routes), service, repository, tests, and Swagger JSDoc.
-- [ ] Check whether web (`SparkyFitnessFrontend/`) and mobile (`SparkyFitnessMobile/`) consume the contract and update them too.
+- [ ] If the table backs an API: create/update route (+ Zod route schema in `XoTServer/schemas/` for v2 routes), service, repository, tests, and Swagger JSDoc.
+- [ ] Check whether web (`XoTFrontend/`) and mobile (`XoTMobile/`) consume the contract and update them too.
 
 ## 8. Validation
 
-- [ ] Run `pnpm run validate` in `SparkyFitnessServer/` — typecheck, lint, format.
+- [ ] Run `pnpm run validate` in `XoTServer/` — typecheck, lint, format.
 - [ ] Run tests nearest the touched surface: `pnpm exec vitest run tests/<domain>*.test.ts`.
 - [ ] If the API changed, validate from the consuming packages (frontend, mobile) too.

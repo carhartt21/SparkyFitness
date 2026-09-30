@@ -4,8 +4,8 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const catalogs = [
-  ["mobile", "SparkyFitnessMobile/src/localization/locales"],
-  ["web", "SparkyFitnessFrontend/public/locales"],
+  ["mobile", "XoTMobile/src/localization/locales"],
+  ["web", "XoTFrontend/public/locales"],
 ];
 
 const protectedNames = [

@@ -75,11 +75,11 @@ services:
       # --- Integrations ---
       GARMIN_MICROSERVICE_URL: ${GARMIN_MICROSERVICE_URL:-http://sparkyfitness-garmin:${GARMIN_SERVICE_PORT:-8000}} # Garmin microservice URL
     volumes:
-      - ../SparkyFitnessServer:/app/SparkyFitnessServer:z
-      - /app/SparkyFitnessServer/node_modules
+      - ../XoTServer:/app/XoTServer:z
+      - /app/XoTServer/node_modules
       #- ../node_modules:/app/node_modules:z # Uncomment to allow easily adjusting the node modules
-      - ./docker_volume/uploads:/app/SparkyFitnessServer/uploads:z
-      - ./docker_volume/backup:/app/SparkyFitnessServer/backup:z
+      - ./docker_volume/uploads:/app/XoTServer/uploads:z
+      - ./docker_volume/backup:/app/XoTServer/backup:z
     # Uncomment the below section to mount the file-based secrets
     #secrets:
     #  - sparkyfitness_db_password
@@ -107,8 +107,8 @@ services:
     ports:
       - "8080:8080" # Map host port 8080 to vite port 8080
     volumes:
-      - ../SparkyFitnessFrontend:/app/SparkyFitnessFrontend:z # mount directory for auto refresh
-      - /app/SparkyFitnessFrontend/node_modules # prevent node modules override in container
+      - ../XoTFrontend:/app/XoTFrontend:z # mount directory for auto refresh
+      - /app/XoTFrontend/node_modules # prevent node modules override in container
     networks:
       - sparkyfitness-network
     restart: always

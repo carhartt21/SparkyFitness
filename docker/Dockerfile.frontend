@@ -11,18 +11,18 @@ RUN corepack enable && corepack prepare pnpm@10.30.3 --activate
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Copy all workspace member package.json files for dependency graph resolution
-COPY SparkyFitnessServer/package.json ./SparkyFitnessServer/
-COPY SparkyFitnessFrontend/package.json ./SparkyFitnessFrontend/
-COPY SparkyFitnessMobile/package.json ./SparkyFitnessMobile/
+COPY XoTServer/package.json ./XoTServer/
+COPY XoTFrontend/package.json ./XoTFrontend/
+COPY XoTMobile/package.json ./XoTMobile/
 COPY shared/package.json ./shared/
 
 # Copy patch files referenced by pnpm.patchedDependencies in root package.json
 COPY patches/ ./patches/
 
-RUN pnpm install --frozen-lockfile --filter sparkyfitnessfrontend...
+RUN pnpm install --frozen-lockfile --filter xot-frontend...
 
 # Copy the frontend and shared source code
-COPY SparkyFitnessFrontend/ ./SparkyFitnessFrontend/
+COPY XoTFrontend/ ./XoTFrontend/
 COPY shared/ ./shared/
 
 # The German catalog check runs as part of the frontend build. Include its
@@ -30,14 +30,14 @@ COPY shared/ ./shared/
 COPY scripts/apply-german-overrides.mjs ./scripts/
 COPY scripts/audit-german-copy.mjs ./scripts/
 COPY localization-overrides/ ./localization-overrides/
-COPY SparkyFitnessMobile/src/localization/locales/en/ ./SparkyFitnessMobile/src/localization/locales/en/
-COPY SparkyFitnessMobile/src/localization/locales/de/ ./SparkyFitnessMobile/src/localization/locales/de/
-COPY SparkyFitnessMobile/locales/en.json SparkyFitnessMobile/locales/de.json ./SparkyFitnessMobile/locales/
-COPY SparkyFitnessMobile/targets/widget/en.lproj/Localizable.strings ./SparkyFitnessMobile/targets/widget/en.lproj/Localizable.strings
-COPY SparkyFitnessMobile/targets/widget/de.lproj/Localizable.strings ./SparkyFitnessMobile/targets/widget/de.lproj/Localizable.strings
+COPY XoTMobile/src/localization/locales/en/ ./XoTMobile/src/localization/locales/en/
+COPY XoTMobile/src/localization/locales/de/ ./XoTMobile/src/localization/locales/de/
+COPY XoTMobile/locales/en.json XoTMobile/locales/de.json ./XoTMobile/locales/
+COPY XoTMobile/targets/widget/en.lproj/Localizable.strings ./XoTMobile/targets/widget/en.lproj/Localizable.strings
+COPY XoTMobile/targets/widget/de.lproj/Localizable.strings ./XoTMobile/targets/widget/de.lproj/Localizable.strings
 
 # Build the application
-RUN pnpm --filter sparkyfitnessfrontend run build
+RUN pnpm --filter xot-frontend run build
 
 # Stage 2: Serve the application with Nginx
 FROM nginx:alpine3.22
@@ -46,7 +46,7 @@ FROM nginx:alpine3.22
 RUN apk add --no-cache bash gettext curl
 
 # Copy the build output from the builder stage
-COPY --from=builder /app/SparkyFitnessFrontend/dist /usr/share/nginx/html
+COPY --from=builder /app/XoTFrontend/dist /usr/share/nginx/html
 
 # Copy the nginx configuration template
 COPY docker/nginx.conf /etc/nginx/templates/default.conf.template

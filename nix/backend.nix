@@ -18,7 +18,7 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "sparkyfitness-server";
-  version = (lib.importJSON ../SparkyFitnessServer/package.json).version;
+  version = (lib.importJSON ../XoTServer/package.json).version;
 
   # The whole monorepo is the source: the server depends on the `@workspace/shared`
   # workspace package and resolves it through a relative symlink at runtime.
@@ -27,7 +27,7 @@ stdenv.mkDerivation (finalAttrs: {
   # Only fetch / install the dependency closure required by the server (and the
   # shared workspace package it depends on).
   pnpmWorkspaces = [
-    "sparkyfitnessserver"
+    "xot-server"
     "@workspace/shared"
   ];
 
@@ -53,8 +53,8 @@ stdenv.mkDerivation (finalAttrs: {
   doCheck = true;
   checkPhase = ''
     runHook preCheck
-    pnpm --filter sparkyfitnessserver run validate
-    pnpm --filter sparkyfitnessserver test
+    pnpm --filter xot-server run validate
+    pnpm --filter xot-server test
     runHook postCheck
   '';
 
@@ -67,8 +67,8 @@ stdenv.mkDerivation (finalAttrs: {
 
     # Run the server exactly like the Docker image does: tsx executes the
     # TypeScript entrypoint directly, no separate build step.
-    makeWrapper "$appDir/SparkyFitnessServer/node_modules/.bin/tsx" "$out/bin/sparkyfitness-server" \
-      --chdir "$appDir/SparkyFitnessServer" \
+    makeWrapper "$appDir/XoTServer/node_modules/.bin/tsx" "$out/bin/sparkyfitness-server" \
+      --chdir "$appDir/XoTServer" \
       --add-flags "index.ts" \
       --prefix PATH : ${
         lib.makeBinPath [

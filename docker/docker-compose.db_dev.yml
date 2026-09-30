@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 services:
   db:
@@ -15,13 +15,13 @@ services:
 
   # sparkyfitness-garmin:
   #   build:
-  #     context: ./SparkyFitnessGarmin
+  #     context: ./XoTGarmin
   #     dockerfile: Dockerfile.garmin_microservice
   #   ports:
   #     - "8000:8000"
   #   environment:
   #     GARMIN_MICROSERVICE_URL: http://sparkyfitness-garmin:8000
   #   volumes:
-  #     - ./SparkyFitnessGarmin:/app
+  #     - ./XoTGarmin:/app
   #   depends_on:
   #     - db

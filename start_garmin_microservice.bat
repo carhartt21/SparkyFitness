@@ -1,6 +1,6 @@
 @echo off
 setlocal enabledelayedexpansion
-cd SparkyFitnessGarmin
+cd XoTGarmin
 
 rem Initialize variables to empty strings
 set "GARMIN_SERVICE_PORT="

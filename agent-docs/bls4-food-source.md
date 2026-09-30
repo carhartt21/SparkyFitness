@@ -32,8 +32,8 @@ official ZIP from `https://www.blsdb.de/download` outside the repository.
 Run:
 
 ```bash
-python3 SparkyFitnessServer/scripts/import_bls4.py /path/to/BLS_4_0_2025_DE.zip --check
-python3 SparkyFitnessServer/scripts/import_bls4.py /path/to/BLS_4_0_2025_DE.zip --apply
+python3 XoTServer/scripts/import_bls4.py /path/to/BLS_4_0_2025_DE.zip --check
+python3 XoTServer/scripts/import_bls4.py /path/to/BLS_4_0_2025_DE.zip --apply
 ```
 
 The apply command needs `psql` and standard libpq `PGHOST`, `PGPORT`,

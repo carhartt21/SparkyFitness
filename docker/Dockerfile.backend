@@ -11,28 +11,28 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 
 # Copy all workspace member package.json files for dependency graph resolution
-COPY SparkyFitnessServer/package.json SparkyFitnessServer/
-COPY SparkyFitnessFrontend/package.json SparkyFitnessFrontend/
-COPY SparkyFitnessMobile/package.json SparkyFitnessMobile/
+COPY XoTServer/package.json XoTServer/
+COPY XoTFrontend/package.json XoTFrontend/
+COPY XoTMobile/package.json XoTMobile/
 COPY shared/package.json shared/
 
 # Copy patch files referenced by pnpm.patchedDependencies in root package.json
 COPY patches/ patches/
 
 # Install workspace dependencies
-RUN pnpm install --frozen-lockfile --filter sparkyfitnessserver...
+RUN pnpm install --frozen-lockfile --filter xot-server...
 
 # Copy server and shared source
-COPY SparkyFitnessServer/ SparkyFitnessServer/
+COPY XoTServer/ XoTServer/
 COPY shared/ shared/
 
 # Deploy server to standalone directory (flat node_modules, no workspace symlinks)
-RUN pnpm --filter=sparkyfitnessserver deploy /deploy
+RUN pnpm --filter=xot-server deploy /deploy
 
 # Stage 2: Runtime container for backend
 FROM node:24-alpine
 
-WORKDIR /app/SparkyFitnessServer
+WORKDIR /app/XoTServer
 
 RUN apk add --no-cache curl postgresql18-client tar gzip
 

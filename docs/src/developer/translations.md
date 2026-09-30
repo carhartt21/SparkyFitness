@@ -1,6 +1,6 @@
-# Internationalization (i18n) Setup in SparkyFitnessFrontend
+# Internationalization (i18n) Setup in XoTFrontend
 
-This document outlines the technical setup for internationalization (i18n) in the SparkyFitnessFrontend application using `i18next` and `react-i18next`.
+This document outlines the technical setup for internationalization (i18n) in the XoTFrontend application using `i18next` and `react-i18next`.
 
 ::: info
 **Only the English (`en`) files may be edited by hand.** Every other language is translated on [Weblate](https://weblate.sparkyfitness.com/engage/sparkyfitness) and synced from [SparkyFitnessTranslations](https://github.com/CodeWithCJ/SparkyFitnessTranslations).
@@ -21,7 +21,7 @@ The following npm packages are used for i18n:
 - `i18next-browser-languagedetector`: Detects the user's language from the browser.
 - `i18next-http-backend`: Loads translation files over HTTP.
 
-These dependencies are installed in the `SparkyFitnessFrontend` directory.
+These dependencies are installed in the `XoTFrontend` directory.
 
 ## 2. Translation File Structure
 
@@ -50,7 +50,7 @@ Example (`translation.json`):
 
 ## 3. i18next Configuration (`src/i18n.ts`)
 
-The `i18next` instance is configured in [`SparkyFitnessFrontend/src/i18n.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/i18n.ts).
+The `i18next` instance is configured in [`XoTFrontend/src/i18n.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/i18n.ts).
 
 ```typescript
 import i18n from "i18next";
@@ -90,7 +90,7 @@ export default i18n;
 
 **Key Configuration Details:**
 
-- `supportedLngs`: the languages the app offers, from `getSupportedLanguages()` in [`SparkyFitnessFrontend/src/utils/languageUtils.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/utils/languageUtils.ts). A locale directory that is not listed there cannot be selected.
+- `supportedLngs`: the languages the app offers, from `getSupportedLanguages()` in [`XoTFrontend/src/utils/languageUtils.ts`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/utils/languageUtils.ts). A locale directory that is not listed there cannot be selected.
 - `fallbackLng`: The language to use if a translation for the current language is missing.
 - `detection.order`: Specifies the order in which `i18next` tries to detect the user's language. `localStorage` is prioritized to use the user's saved preference.
 - `backend.loadPath`: The URL pattern to fetch translation files. `{{lng}}` is replaced by the current language code, and `{{ns}}` by the namespace (defaulting to `translation`).
@@ -98,7 +98,7 @@ export default i18n;
 
 ## 4. Integration into React Application (`src/main.tsx`)
 
-The `i18next` instance is initialized and provided to the React application in [`SparkyFitnessFrontend/src/main.tsx`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/main.tsx).
+The `i18next` instance is initialized and provided to the React application in [`XoTFrontend/src/main.tsx`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/main.tsx).
 
 ```tsx
 import { createRoot } from "react-dom/client";
@@ -121,7 +121,7 @@ createRoot(document.getElementById("root")!).render(
 
 ## 5. Language Handling Component (`src/components/LanguageHandler.tsx`)
 
-A dedicated component, [`SparkyFitnessFrontend/src/components/LanguageHandler.tsx`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/components/LanguageHandler.tsx), is used to synchronize the `i18next` language with the user's preference stored in the `PreferencesContext`.
+A dedicated component, [`XoTFrontend/src/components/LanguageHandler.tsx`](https://github.com/CodeWithCJ/SparkyFitness/blob/main/SparkyFitnessFrontend/src/components/LanguageHandler.tsx), is used to synchronize the `i18next` language with the user's preference stored in the `PreferencesContext`.
 
 ```typescript
 import { useEffect } from "react";

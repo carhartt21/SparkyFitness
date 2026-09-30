@@ -44,16 +44,16 @@ README.md
 WIP
 
 # Mobile App Exclusions
-SparkyFitnessMobile/node_modules
-SparkyFitnessMobile/android/build
-SparkyFitnessMobile/ios/build
-SparkyFitnessMobile/web-build
-SparkyFitnessMobile/.expo
+XoTMobile/node_modules
+XoTMobile/android/build
+XoTMobile/ios/build
+XoTMobile/web-build
+XoTMobile/.expo
 
 # Ignore uploaded exercise files
-SparkyFitnessServer/uploads/
-SparkyFitnessServer/backup/
-SparkyFitnessServer/temp_uploads/
+XoTServer/uploads/
+XoTServer/backup/
+XoTServer/temp_uploads/
 
 # Docker Volume
 docker/docker_volume/

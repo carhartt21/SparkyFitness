@@ -281,17 +281,17 @@ server:
       # -- StorageClass override for backups (falls back to global.storageClass)
       storageClass: ""
       # -- Mount path inside the container for backups
-      mountPath: /app/SparkyFitnessServer/backup
+      mountPath: /app/XoTServer/backup
     uploads:
       size: 10Gi
       accessMode: ReadWriteOnce
       # -- StorageClass override for uploads (falls back to global.storageClass)
       storageClass: ""
       # -- Mount path inside the container for uploads
-      mountPath: /app/SparkyFitnessServer/uploads
+      mountPath: /app/XoTServer/uploads
     tempUploads:
       # -- Mount path inside the container for temporary uploads
-      mountPath: /app/SparkyFitnessServer/temp_uploads
+      mountPath: /app/XoTServer/temp_uploads
   # -- Extra environment variables injected into the server container (key: value or standard Kubernetes env array)
   # extraEnv: {}
   # -- Extra envFrom sources (configMapRef, secretRef) for the server container
