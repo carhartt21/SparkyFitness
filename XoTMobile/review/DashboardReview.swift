@@ -1,6 +1,38 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  func testFoodDetailsLayout() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let food = app.buttons["dashboard-add-food"]
+    XCTAssertTrue(food.waitForExistence(timeout: 30))
+    food.tap()
+    let search = app.textFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 15))
+    search.tap()
+    search.typeText("Review yogurt")
+    let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt with berries and toasted pumpkin seeds")).firstMatch
+    XCTAssertTrue(result.waitForExistence(timeout: 20))
+    result.tap()
+    let wheel = app.descendants(matching: .any)["food-entry-amount-wheel"]
+    XCTAssertTrue(wheel.waitForExistence(timeout: 15))
+    // Existence alone can precede presentation settling; keep the capture stable.
+    XCTAssertTrue(wheel.isHittable)
+    XCTAssertGreaterThanOrEqual(wheel.frame.height, 44)
+    capture("food-details-top", app)
+    let options = app.buttons["food-entry-more-options"]
+    for _ in 0..<5 {
+      if options.exists && options.isHittable { break }
+      app.swipeUp()
+    }
+    XCTAssertTrue(options.isHittable)
+    XCTAssertGreaterThanOrEqual(options.frame.height, 44)
+    capture("food-details-sections", app)
+    options.tap()
+    capture("food-details-options", app)
+  }
+
   func testLaunchIconActions() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

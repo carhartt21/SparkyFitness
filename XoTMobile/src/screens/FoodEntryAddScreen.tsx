@@ -2178,7 +2178,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </View>
 
             {/* Energy and macros for the chosen amount, as in the reference:
-              value over label, separated by hairlines, in the app's macro
+              label over value, separated by hairlines, in the app's macro
               colours with the share of today's goal. */}
             <View>
               <View className="flex-row" testID="food-entry-highlights">
@@ -2219,26 +2219,22 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                       }`}
                     >
                       <Text
+                        className="mb-1 text-sm text-text-secondary"
+                        testID={`food-entry-highlight-${nutrient.key}-label`}
+                        numberOfLines={1}
+                        adjustsFontSizeToFit
+                        minimumFontScale={0.75}
+                      >
+                        {nutrient.label}
+                      </Text>
+                      <Text
                         className="text-xl font-bold"
                         style={{ color: highlightColors[nutrient.key] }}
                         numberOfLines={1}
                         adjustsFontSizeToFit
                         minimumFontScale={0.7}
                       >
-                        {nutrient.key === 'calories'
-                          ? amount
-                          : `${amount} ${nutrient.unit}`}
-                      </Text>
-                      <Text
-                        className="text-sm text-text-secondary"
-                        testID={`food-entry-highlight-${nutrient.key}-label`}
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.75}
-                      >
-                        {nutrient.key === 'calories'
-                          ? nutrient.unit
-                          : nutrient.label}
+                        {`${amount} ${nutrient.unit}`}
                       </Text>
                       {/* The target marks the share of the daily goal; a tap
                         explains it. */}
@@ -2700,16 +2696,18 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             >
               <View className="mb-3 flex-row items-center gap-2">
                 <Icon name="bolt" size={20} color={accentColor} />
-                <Text className="flex-1 text-lg font-semibold text-text-primary">
-                  {t('foodEntryAdd.quickAdd.title', {
-                    defaultValue: 'Quick Add',
-                  })}
-                </Text>
-                <Text className="text-xs font-medium uppercase tracking-widest text-text-secondary">
-                  {t('foodEntryAdd.quickAdd.subtitle', {
-                    defaultValue: 'Saved portions',
-                  })}
-                </Text>
+                <View className="min-w-0 flex-1 gap-1">
+                  <Text className="flex-1 text-lg font-semibold text-text-primary">
+                    {t('foodEntryAdd.quickAdd.title', {
+                      defaultValue: 'Quick Add',
+                    })}
+                  </Text>
+                  <Text className="text-xs font-medium uppercase tracking-widest text-text-secondary">
+                    {t('foodEntryAdd.quickAdd.subtitle', {
+                      defaultValue: 'Saved portions',
+                    })}
+                  </Text>
+                </View>
               </View>
               <View className="overflow-hidden rounded-xl border border-border-subtle bg-raised">
                 {quickAddServings.map((row, index) => {
@@ -2853,22 +2851,18 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   color={textPrimary}
                 />
               </View>
-              <Text
-                className="flex-1 text-base font-medium text-text-primary"
-                numberOfLines={1}
-              >
-                {t('foodEntryAdd.moreOptions.title', {
-                  defaultValue: 'More options',
-                })}
-              </Text>
-              <Text
-                className="max-w-[40%] text-right text-[10px] font-medium uppercase tracking-widest text-text-secondary"
-                numberOfLines={2}
-              >
-                {t('foodEntryAdd.moreOptions.subtitle', {
-                  defaultValue: 'Nutrition facts & more',
-                })}
-              </Text>
+              <View className="min-w-0 flex-1 gap-1 py-3">
+                <Text className="text-base font-medium text-text-primary">
+                  {t('foodEntryAdd.moreOptions.title', {
+                    defaultValue: 'More options',
+                  })}
+                </Text>
+                <Text className="text-xs text-text-secondary">
+                  {t('foodEntryAdd.moreOptions.subtitle', {
+                    defaultValue: 'Nutrition facts & more',
+                  })}
+                </Text>
+              </View>
               <Icon
                 name={moreOptionsExpanded ? 'chevron-down' : 'chevron-forward'}
                 size={16}
