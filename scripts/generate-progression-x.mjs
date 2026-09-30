@@ -77,7 +77,7 @@ write(markSvgFile, markSvg({ background: false }));
 
 const webBrand = resolve(
   root,
-  "SparkyFitnessFrontend/public/images/brand/progression-x.svg",
+  "XoTFrontend/public/images/brand/progression-x.svg",
 );
 copyFileSync(fullSvg, webBrand);
 
@@ -103,44 +103,24 @@ const exportPng = (source, target, size) => {
 
 if (process.platform === "darwin") {
   const targets = [
-    [fullSvg, "SparkyFitnessMobile/assets/icons/x-on-track-app-icon.png", 1024],
+    [fullSvg, "XoTMobile/assets/icons/x-on-track-app-icon.png", 1024],
     [
       fullSvg,
-      "SparkyFitnessMobile/assets/icons/appicon.icon/Assets/X on Track Dark.png",
+      "XoTMobile/assets/icons/appicon.icon/Assets/X on Track Dark.png",
       1024,
     ],
     [
       lightSvg,
-      "SparkyFitnessMobile/assets/icons/appicon.icon/Assets/X on Track Light.png",
+      "XoTMobile/assets/icons/appicon.icon/Assets/X on Track Light.png",
       1024,
     ],
-    [fullSvg, "SparkyFitnessMobile/assets/brand/progression-x.png", 1024],
-    [
-      lightSvg,
-      "SparkyFitnessMobile/assets/brand/progression-x-light.png",
-      1024,
-    ],
-    [markSvgFile, "SparkyFitnessMobile/assets/icons/adaptiveicon.png", 1024],
-    [
-      fullSvg,
-      "SparkyFitnessFrontend/public/images/brand/progression-x.png",
-      512,
-    ],
-    [
-      lightSvg,
-      "SparkyFitnessFrontend/public/images/brand/progression-x-light.png",
-      512,
-    ],
-    [
-      fullSvg,
-      "SparkyFitnessFrontend/public/images/icons/icon-512x512.png",
-      512,
-    ],
-    [
-      fullSvg,
-      "SparkyFitnessFrontend/public/images/icons/icon-192x192.png",
-      192,
-    ],
+    [fullSvg, "XoTMobile/assets/brand/progression-x.png", 1024],
+    [lightSvg, "XoTMobile/assets/brand/progression-x-light.png", 1024],
+    [markSvgFile, "XoTMobile/assets/icons/adaptiveicon.png", 1024],
+    [fullSvg, "XoTFrontend/public/images/brand/progression-x.png", 512],
+    [lightSvg, "XoTFrontend/public/images/brand/progression-x-light.png", 512],
+    [fullSvg, "XoTFrontend/public/images/icons/icon-512x512.png", 512],
+    [fullSvg, "XoTFrontend/public/images/icons/icon-192x192.png", 192],
   ];
   for (const [source, target, size] of targets)
     exportPng(source, resolve(root, target), size);

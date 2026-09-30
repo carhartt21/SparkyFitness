@@ -13,10 +13,10 @@ Every PR must include:
 - **Tests**: Automated tests for your changes if applicable.
 - **Screenshots**: Attach "Before" vs "After" screenshots for any UI changes.
 - **Quality Checks**: You must run these before submitting:
-  - **Frontend**: Run `pnpm format && pnpm test && pnpm validate` in `SparkyFitnessFrontend/`
-  - **Backend**: Run `pnpm format && pnpm test && pnpm validate` in `SparkyFitnessServer/`
-  - **Mobile**: Run `pnpm test && pnpm validate` in `SparkyFitnessMobile/`
-  - **Garmin Microservice**: Run `./venv/bin/python -m unittest discover tests` in `SparkyFitnessGarmin/`
+  - **Frontend**: Run `pnpm format && pnpm test && pnpm validate` in `XoTFrontend/`
+  - **Backend**: Run `pnpm format && pnpm test && pnpm validate` in `XoTServer/`
+  - **Mobile**: Run `pnpm test && pnpm validate` in `XoTMobile/`
+  - **Garmin Microservice**: Run `./venv/bin/python -m unittest discover tests` in `XoTGarmin/`
 - **Backend Code Standards** (if applicable):
   - **TypeScript Only**: New backend files must be written in TypeScript
   - **Zod Validation**: New endpoints must include Zod schemas for request/response validation
@@ -24,7 +24,7 @@ Every PR must include:
 - **Translations**: If applicable, only update the English (`en`) translation file. Translations should have hardcoded fall back directly in the code Non-English translation files are maintained in a separate repository linked with Webplate. https://github.com/CodeWithCJ/SparkyFitnessTranslations
   - This covers the mobile app too, which has four translated surfaces: the runtime catalog, the Expo permission metadata, and the Android and iOS widget resources. Each is a separate Weblate component; edit only its `en` source.
 - **Architecture**: Follow the existing project standards
-- **Database Security**: Any new user-specific tables must be added to Row Level Security (RLS) in `SparkyFitnessServer/db/rls_policies.sql`.
+- **Database Security**: Any new user-specific tables must be added to Row Level Security (RLS) in `XoTServer/db/rls_policies.sql`.
 - **Code Integrity**: You certify that your contribution contains no malicious code (phishing, malware, etc.)
 - **License**: By submitting, you agree to the [License terms](LICENSE).
 

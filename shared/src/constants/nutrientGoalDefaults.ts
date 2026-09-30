@@ -2,8 +2,8 @@
 // under the goal) rather than the general default of "minimum" (more is
 // better), when the user has no saved override in
 // user_nutrient_goal_preferences. Single source of truth for:
-// - SparkyFitnessServer/services/nutrientGoalPreferenceService.ts (builtinDefaultFor)
-// - SparkyFitnessFrontend/src/constants/nutrients.ts (CENTRAL_NUTRIENT_CONFIG.defaultGoalType)
+// - XoTServer/services/nutrientGoalPreferenceService.ts (builtinDefaultFor)
+// - XoTFrontend/src/constants/nutrients.ts (CENTRAL_NUTRIENT_CONFIG.defaultGoalType)
 export const BUILTIN_MAXIMUM_GOAL_NUTRIENTS = [
   "cholesterol",
   "sodium",
@@ -25,4 +25,3 @@ export type BuiltinMaximumGoalNutrient =
 export const NON_GOAL_NUTRIENT_KEYS = ["water_ml"] as const;
 
 export type NonGoalNutrientKey = (typeof NON_GOAL_NUTRIENT_KEYS)[number];
-

@@ -5,7 +5,7 @@
 **Full-stack fitness tracking application** - self-hosted alternative to MyFitnessPal with AI-powered nutrition assistance.
 
 - **Frontend**: React 18 + TypeScript + Vite (`src/`)
-- **Backend**: Node.js/Express (`SparkyFitnessServer/`)
+- **Backend**: Node.js/Express (`XoTServer/`)
 - **Database**: PostgreSQL with Row Level Security (RLS)
 - **UI**: Tailwind CSS + shadcn/ui components
 - **State**: React Context + TanStack Query
@@ -57,7 +57,7 @@ The `docker-helper.sh` script provides easy management:
 ## Critical Architecture Patterns
 
 ### Repository Pattern (Backend)
-All database operations use repository pattern in `SparkyFitnessServer/models/`:
+All database operations use repository pattern in `XoTServer/models/`:
 ```javascript
 // Example: userRepository.js
 const pool = require('../db/connection');
@@ -78,7 +78,7 @@ async function createUser(userId, email, hashedPassword, full_name) {
 ```
 
 ### External Provider Integration
-Modular integration system in `SparkyFitnessServer/integrations/`:
+Modular integration system in `XoTServer/integrations/`:
 - **Food providers**: OpenFoodFacts, Nutritionix, FatSecret
 - **Exercise data**: Wger integration
 - **Health data**: Apple Health integration
@@ -99,7 +99,7 @@ Key contexts in `src/contexts/`:
 
 ### Multi-Provider AI Support
 ```javascript
-// SparkyFitnessServer/ai/config.js
+// XoTServer/ai/config.js
 function getDefaultModel(serviceType) {
   switch (serviceType) {
     case 'openai': return 'gpt-4o-mini';
@@ -170,7 +170,7 @@ try {
 - **Database**: Connection pooling, transaction management
 
 ## Key Files for Understanding
-- **Server entry**: `SparkyFitnessServer/SparkyFitnessServer.js` (route registration, middleware setup)
+- **Server entry**: `XoTServer/XoTServer.js` (route registration, middleware setup)
 - **Frontend entry**: `src/App.tsx` (context providers, query client setup)
 - **Documentation site**: `docs/` - Comprehensive Nuxt Content documentation (https://codewithcj.github.io/SparkyFitness)
 

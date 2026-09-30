@@ -92,11 +92,11 @@ start_sample() {
   require_command openssl
   require_command curl
   require_command lsof
-  [[ -x "$repo_dir/SparkyFitnessServer/node_modules/.bin/tsx" ]] || {
+  [[ -x "$repo_dir/XoTServer/node_modules/.bin/tsx" ]] || {
     echo "Install workspace dependencies before starting the sample." >&2
     exit 1
   }
-  [[ -x "$repo_dir/SparkyFitnessFrontend/node_modules/.bin/vite" ]] || {
+  [[ -x "$repo_dir/XoTFrontend/node_modules/.bin/vite" ]] || {
     echo "Install workspace dependencies before starting the sample." >&2
     exit 1
   }
@@ -128,7 +128,7 @@ start_sample() {
   fi
 
   (
-    cd "$repo_dir/SparkyFitnessServer"
+    cd "$repo_dir/XoTServer"
     nohup ./node_modules/.bin/tsx index.ts \
       > "$state_dir/server.log" 2>&1 < /dev/null &
     echo "$!" > "$state_dir/server.pid"
@@ -137,7 +137,7 @@ start_sample() {
     "$state_dir/server.pid" "$state_dir/server.log"
 
   (
-    cd "$repo_dir/SparkyFitnessFrontend"
+    cd "$repo_dir/XoTFrontend"
     nohup ./node_modules/.bin/vite --host 127.0.0.1 \
       --port "$frontend_port" --strictPort \
       > "$state_dir/frontend.log" 2>&1 < /dev/null &

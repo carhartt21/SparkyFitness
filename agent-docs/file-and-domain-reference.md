@@ -9,17 +9,17 @@ Quick navigation guide for finding code by feature. Most feature areas span back
 A typical feature touches roughly these areas. Real names vary (`measurementService`, not `checkInService`; `mealRoutes.ts` at top level, not under `v2/`), and some domains have no service, no shared schema, or no mobile screen at all.
 
 ```
-Backend  (SparkyFitnessServer/)
+Backend  (XoTServer/)
   routes/<domain>Routes.ts  OR  routes/v2/<domain>Routes.ts   → endpoints (v2 is a subset)
   schemas/<domain>Schemas.ts                                  → Zod for v2 routes
   services/<domain>Service.ts                                 → business logic (NOT every domain has one)
   models/<domain>Repository.ts  OR  models/<domain>.ts        → DB queries (naming is mixed)
   tests/<domain>*.test.ts                                     → route/service/repo tests
 
-Frontend (SparkyFitnessFrontend/src/)
+Frontend (XoTFrontend/src/)
   pages/<Domain>/   api/<Domain>/   hooks/<Domain>/ (folder) or hooks/use<Domain>.ts (flat)
 
-Mobile   (SparkyFitnessMobile/src/)
+Mobile   (XoTMobile/src/)
   screens/<Domain>*.tsx (flat)   services/api/<domain>Api.ts   hooks/use<Domain>.ts (flat)
 
 Shared   (shared/src/)
@@ -94,7 +94,7 @@ Paths are relative to each package root. `—` means that layer does not exist f
 
 | Feature               | Backend                                                                                                                              | Frontend                                 | Mobile                                                                                                 | Shared                                     |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| **Chat** (Sparky)     | `routes/chatRoutes.ts` `routes/mcpRoutes.ts`, `services/chatService.ts`, `ai/tools/`                                                 | `pages/Chat/` `api/Chatbot/` `hooks/AI/` | `screens/ChatScreen.tsx` `services/api/chatApi.ts` `hooks/useChatHistory.ts`                           | — (no Chat API schema)                     |
+| **Chat** (Trackbot)     | `routes/chatRoutes.ts` `routes/mcpRoutes.ts`, `services/chatService.ts`, `ai/tools/`                                                 | `pages/Chat/` `api/Chatbot/` `hooks/AI/` | `screens/ChatScreen.tsx` `services/api/chatApi.ts` `hooks/useChatHistory.ts`                           | — (no Chat API schema)                     |
 | **AI Photo Estimate** | `routes/checkInPhotoRoutes.ts` + food-photo route, `services/foodPhotoEstimationService.ts` `services/checkInPhotoService.ts`, `ai/` | `pages/Foods/` (photo flow)              | `screens/FoodPhoto*Screen.tsx` `services/api/externalFoodSearchApi.ts` `hooks/useEstimateFoodPhoto.ts` | `schemas/api/FoodPhotoEstimate.api.zod.ts` |
 
 ---
@@ -117,15 +117,15 @@ Paths are relative to each package root. `—` means that layer does not exist f
 
 | System                     | Location                                                                                                            | Purpose                                                                                                         |
 | -------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Database & RLS**         | `SparkyFitnessServer/db/`                                                                                           | Migrations, `rls_policies.sql`, pool management                                                                 |
-| **Auth Framework**         | `SparkyFitnessServer/auth.ts` `SparkyFitnessServer/middleware/authMiddleware.ts`                                    | Better Auth config, session handling                                                                            |
-| **Permissions**            | `SparkyFitnessServer/middleware/checkPermissionMiddleware.ts` `SparkyFitnessServer/utils/permissionUtils.ts`        | Family access, delegation logic                                                                                 |
+| **Database & RLS**         | `XoTServer/db/`                                                                                           | Migrations, `rls_policies.sql`, pool management                                                                 |
+| **Auth Framework**         | `XoTServer/auth.ts` `XoTServer/middleware/authMiddleware.ts`                                    | Better Auth config, session handling                                                                            |
+| **Permissions**            | `XoTServer/middleware/checkPermissionMiddleware.ts` `XoTServer/utils/permissionUtils.ts`        | Family access, delegation logic                                                                                 |
 | **Shared Schemas**         | `shared/src/schemas/`                                                                                               | Database tables, API contracts (plus domain modules under `shared/src/medications/`, `shared/src/cycle/`, etc.) |
-| **Timezone Helpers**       | `shared/src/utils/` `SparkyFitnessServer/utils/timezoneLoader.ts`                                                   | Day strings, UTC conversions                                                                                    |
-| **UI Primitives**          | `SparkyFitnessFrontend/src/components/ui/`                                                                          | Buttons, forms, dialogs, etc.                                                                                   |
-| **React Query (frontend)** | client configured inline in `SparkyFitnessFrontend/src/main.tsx`; keys in `SparkyFitnessFrontend/src/api/keys/*.ts` | TanStack Query setup, cache keys                                                                                |
-| **React Query (mobile)**   | `SparkyFitnessMobile/src/hooks/queryClient.ts` `SparkyFitnessMobile/src/hooks/queryKeys.ts`                         | TanStack Query setup, cache keys                                                                                |
-| **Mobile Health Sync**     | `SparkyFitnessMobile/src/services/` (Health Connect / HealthKit modules)                                            | Apple Health, Health Connect integration                                                                        |
+| **Timezone Helpers**       | `shared/src/utils/` `XoTServer/utils/timezoneLoader.ts`                                                   | Day strings, UTC conversions                                                                                    |
+| **UI Primitives**          | `XoTFrontend/src/components/ui/`                                                                          | Buttons, forms, dialogs, etc.                                                                                   |
+| **React Query (frontend)** | client configured inline in `XoTFrontend/src/main.tsx`; keys in `XoTFrontend/src/api/keys/*.ts` | TanStack Query setup, cache keys                                                                                |
+| **React Query (mobile)**   | `XoTMobile/src/hooks/queryClient.ts` `XoTMobile/src/hooks/queryKeys.ts`                         | TanStack Query setup, cache keys                                                                                |
+| **Mobile Health Sync**     | `XoTMobile/src/services/` (Health Connect / HealthKit modules)                                            | Apple Health, Health Connect integration                                                                        |
 
 ---
 

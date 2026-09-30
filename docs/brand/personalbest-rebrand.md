@@ -1,3 +1,5 @@
+> Historical identity record. PersonalBest has been superseded by X on Track. Source directories and build target names were subsequently updated in the [repository cleanup](../implementation/repository-cleanup-2026-09-29.md); installed-app identifiers remain compatible.
+
 # PersonalBest identity and migration (superseded)
 
 This record describes the prior implementation. The current name, logo, and release checks are in [X on Track identity and migration](x-on-track-rebrand.md).
@@ -10,7 +12,7 @@ The following names are **compatibility identifiers**, not presentation copy: th
 
 | Retained identifier family                                                                                                                                        | Why it remains                                                                                 |
 | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `SparkyFitnessMobile`, `SparkyFitnessFrontend`, `SparkyFitnessServer`, Watch/widget target names, internal module/package names                                   | Source/build compatibility; their **display names** are PersonalBest.                          |
+| `XoTMobile`, `XoTFrontend`, `XoTServer`, Watch/widget target names, internal module/package names                                   | Source/build compatibility; their **display names** are PersonalBest.                          |
 | Production `com.SparkyApps.SparkyFitnessMobile` bundle ID, Widget/Watch bundle IDs, and App Group                                                                    | Installed-app, extension, HealthKit, keychain, and shared-container continuity.                |
 | `sparkyfitnessmobile://`, `sparkyfitness-watch://`, OAuth callback and notification deep links                                                                        | Existing shortcuts, callbacks, saved links, and native routing.                                |
 | `@SparkyFitness/*`, `sparkyfitness:*`, legacy health-data source tags and sync identifiers                                                                        | Offline actions, saved preferences, imported/written health records, and duplicate prevention. |
@@ -39,7 +41,7 @@ This identity change adds no database migration and keeps the production bundle 
 
 Semantic success, warning, destructive, information, and data-series colors remain separate. Platform-native typography supplies readable hierarchy; metric numerals use tabular figures where available. Primary actions are green. Orange is never a generic CTA or destructive color. A physical iPhone review found white text on the dark theme’s light green filled controls at only 2.42:1 contrast. Filled controls now use the semantic dark foreground at 7.66:1; muted text on the revised dark card surface measures 7.49:1. Dark and AMOLED cards use a clearer surface and border hierarchy.
 
-`docs/brand/archive/personalbest/SparkyFitnessMobile/assets/brand/source-logo.png` preserves the supplied raster baseline. The earlier `pb-mark-light.png` and `pb-mark-dark.png` were technical, transparent variants made from it; the PersonalBest icon was the white full-bleed icon without a second rounded-square mask. These assets are historical and are not used by X on Track.
+`docs/brand/archive/personalbest/XoTMobile/assets/brand/source-logo.png` preserves the supplied raster baseline. The earlier `pb-mark-light.png` and `pb-mark-dark.png` were technical, transparent variants made from it; the PersonalBest icon was the white full-bleed icon without a second rounded-square mask. These assets are historical and are not used by X on Track.
 
 ## Copy and surface rules
 

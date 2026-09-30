@@ -140,7 +140,7 @@ If you prefer to run the application locally without Docker:
 
 ```bash
 # Navigate to server directory
-cd SparkyFitnessServer
+cd XoTServer
 
 # Install dependencies
 npm install
@@ -237,8 +237,8 @@ The Docker setup includes several configuration files:
 
 To maintain code consistency and prevent errors, it's crucial to adhere to the project's code quality standards. Before committing any changes, ensure that your code passes the linting and formatting checks for the frontend.
 
-- **Linting**: Run `npm run lint` in the `SparkyFitnessFrontend` directory to check for potential errors and enforce coding style.
-- **Formatting**: Run `npx prettier . --check` in the `SparkyFitnessFrontend` directory to verify consistent code formatting. If you need to fix formatting issues, use `npm run format`.
+- **Linting**: Run `npm run lint` in the `XoTFrontend` directory to check for potential errors and enforce coding style.
+- **Formatting**: Run `npx prettier . --check` in the `XoTFrontend` directory to verify consistent code formatting. If you need to fix formatting issues, use `npm run format`.
 
 ## Next Steps
 

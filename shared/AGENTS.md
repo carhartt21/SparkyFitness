@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-27_
 
-`@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by SparkyFitnessServer, SparkyFitnessFrontend, and SparkyFitnessMobile.
+`@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
 
 ## Scope
 
@@ -29,9 +29,9 @@ _Last updated: 2026-09-27_
 ## Cross-Package Contract Rules
 
 - Changes to `src/schemas/api/` usually affect server routes and both frontend/mobile API clients.
-- Changes to `src/schemas/database/` require a matching migration in the server (`SparkyFitnessServer/db/migrations/`), RLS policies, and the schema backup.
+- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`), RLS policies, and the schema backup.
 - Timezone/day-string helpers prevent bugs; prefer them over `toISOString().split('T')[0]`.
-- Test any shared change from the consumer packages (`pnpm run validate` in SparkyFitnessServer, SparkyFitnessFrontend, and SparkyFitnessMobile after modifying shared).
+- Test any shared change from the consumer packages (`pnpm run validate` in XoTServer, XoTFrontend, and XoTMobile after modifying shared).
 
 ## Working Rules
 

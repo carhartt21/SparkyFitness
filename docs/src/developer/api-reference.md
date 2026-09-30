@@ -28,7 +28,7 @@ An OpenAPI specification for SparkyFitness would detail:
 
 ## Accessing the API Documentation
 
-While a live, interactive OpenAPI documentation (like Swagger UI) might be available in development environments, the core API is consumed by the SparkyFitness frontend and can be explored by examining the backend routes in `SparkyFitnessServer/routes/` and the service definitions in `SparkyFitnessServer/services/`.
+While a live, interactive OpenAPI documentation (like Swagger UI) might be available in development environments, the core API is consumed by the SparkyFitness frontend and can be explored by examining the backend routes in `XoTServer/routes/` and the service definitions in `XoTServer/services/`.
 
 ---
 

@@ -34,7 +34,7 @@ barcode lookup remain in control of camera access.
 
 ## Implementation map
 
-- `SparkyFitnessMobile/src/services/launchIconActions.ts`: allowlist, translated
+- `XoTMobile/src/services/launchIconActions.ts`: allowlist, translated
   titles and platform icons.
 - `src/hooks/useLaunchIconActions.ts`: registration, lifecycle and navigation gates.
 - `src/hooks/useAddSheetActions.ts`, `App.tsx`: reuse existing entry paths.

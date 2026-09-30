@@ -78,7 +78,7 @@ The `sparky_app` application user is created automatically by the server on firs
 ## 5. Start the backend server
 
 ```bash
-cd SparkyFitnessServer
+cd XoTServer
 pnpm start
 ```
 
@@ -89,7 +89,7 @@ The API server starts on port `3010` by default. On first run it applies all mig
 Open a second terminal from the repo root:
 
 ```bash
-cd SparkyFitnessFrontend
+cd XoTFrontend
 pnpm dev
 ```
 

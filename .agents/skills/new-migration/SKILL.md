@@ -11,8 +11,8 @@ Read and follow `agent-docs/new-migration-checklist.md` at the repo root, comple
 
 Work through the checklist in order:
 
-1. Migration file in `SparkyFitnessServer/db/migrations/` (`YYYYMMDDHHMMSS_description.sql`)
-2. RLS policies in `SparkyFitnessServer/db/rls_policies.sql`
+1. Migration file in `XoTServer/db/migrations/` (`YYYYMMDDHHMMSS_description.sql`)
+2. RLS policies in `XoTServer/db/rls_policies.sql`
 3. Schema mirror: `shared/src/schemas/database/<Table>.zod.ts` (exported from `shared/src/index.ts`); leave `db_schema_backup.sql` alone — CI regenerates it after merge via an automated sync PR
 4. Docs: `docs/content/2.features/9.family-friends-sharing.md` + `docs/content/8.developer/11.database-security-tiers.md` (assign Tier 1/2/3)
 5. Downstream API contracts (server route/schema/tests, web, mobile)

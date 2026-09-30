@@ -2,7 +2,7 @@
 
 _Last updated: 2026-09-29_
 
-This is the repo-root monorepo guide for SparkyFitness. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
+This is the repo-root monorepo guide for X on Track. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
 Start with `agent-docs/README.md` for the domain map and links to testing, permissions, data flow, migration, anti-pattern, planning, and PR review guides. Read the relevant guide before scanning a large package.
 
@@ -18,23 +18,23 @@ Package-level guides win. For work inside a package, follow that package's `AGEN
 ## Package Guides
 
 - Repo-root alias: `CLAUDE.md` points to this file.
-- Frontend: `SparkyFitnessFrontend/AGENTS.md`
-- Server: `SparkyFitnessServer/AGENTS.md`
-- Mobile: `SparkyFitnessMobile/AGENTS.md`
+- Frontend: `XoTFrontend/AGENTS.md`
+- Server: `XoTServer/AGENTS.md`
+- Mobile: `XoTMobile/AGENTS.md`
 - Shared: `shared/AGENTS.md`
 - Docs: `docs/CLAUDE.md` (there is no `docs/AGENTS.md`)
 
-`SparkyFitnessGarmin/` has no package guide. Inspect its `requirements.txt`, four Python source files, and `tests/` directly. For docs work, inspect `docs/package.json` and `docs/src/` after reading its short guide.
+`XoTGarmin/` has no package guide. Inspect its `requirements.txt`, four Python source files, and `tests/` directly. For docs work, inspect `docs/package.json` and `docs/src/` after reading its short guide.
 
 ## Monorepo Map
 
-- `SparkyFitnessFrontend/` - React 19 + Vite web app.
-- `SparkyFitnessServer/` - Express 5 + PostgreSQL backend API.
-- `SparkyFitnessMobile/` - Expo SDK 57 / React Native 0.86 app.
+- `XoTFrontend/` - React 19 + Vite web app.
+- `XoTServer/` - Express 5 + PostgreSQL backend API.
+- `XoTMobile/` - Expo SDK 57 / React Native 0.86 app.
 - `shared/` - source-first TypeScript workspace package for `@workspace/shared` schemas, constants, and timezone/day helpers.
-- Account notification delivery spans `SparkyFitnessServer/services/engagement*`, `/api/v2/engagement`, mobile `remoteEngagement*`, and web Settings. ChatGPT OAuth MCP uses `/mcp/chatgpt`, Better Auth, and the connected-assistants settings; the legacy `/mcp` API-key route remains separate.
+- Account notification delivery spans `XoTServer/services/engagement*`, `/api/v2/engagement`, mobile `remoteEngagement*`, and web Settings. ChatGPT OAuth MCP uses `/mcp/chatgpt`, Better Auth, and the connected-assistants settings; the legacy `/mcp` API-key route remains separate.
 - `docs/` - VitePress documentation site.
-- `SparkyFitnessGarmin/` - standalone Python integration service outside the current `pnpm` workspace.
+- `XoTGarmin/` - standalone Python integration service outside the current `pnpm` workspace.
 - `docker/`, `helm/`, `.github/` - infra, CI, translation, and deployment assets.
 - `scripts/`, `patches/` - root maintenance scripts and package patches.
 - `agent-docs/` - architecture and contribution runbooks; `docs/implementation/` holds dated implementation and review records.
@@ -43,21 +43,23 @@ Package-level guides win. For work inside a package, follow that package's `AGEN
 
 ## Workspace Notes
 
+- Run `pnpm run repository:check` after moving source files, changing workspace packages, or editing build/deployment paths. Tracked paths use XoT names; compatibility identifiers inside files are documented in `docs/implementation/repository-cleanup-2026-09-29.md`.
+
 - Root `package.json` pins `pnpm@10.33.4`; use `pnpm install --frozen-lockfile` for CI-equivalent installs. Package scripts run from their own directories.
-- `pnpm-workspace.yaml` lists `frontend`, `SparkyFitnessFrontend`, `shared`, `SparkyFitnessMobile`, `SparkyFitnessServer`, and `docs`. Of the two frontend entries, only `SparkyFitnessFrontend/` exists; `frontend` is a legacy entry.
+- `pnpm-workspace.yaml` lists `XoTFrontend`, `shared`, `XoTMobile`, `XoTServer`, and `docs`.
 - `shared/` is a library package, not an app. Validate shared changes from the consuming package(s), not in isolation.
-- `SparkyFitnessGarmin/` is outside the pnpm workspace. Use its Python requirements and tests.
+- `XoTGarmin/` is outside the pnpm workspace. Use its Python requirements and tests.
 
 ## Agent Efficiency (read this before searching)
 
 Avoid broad reads and searches of these paths:
 
 - `WIP/` - personal scratch area; contains zips and full copies of other repos, including a stale duplicate of this repo (`WIP/SparkyFitness-main/`). Never read or edit anything under it.
-- `SparkyFitnessMobile/ios/` and `SparkyFitnessMobile/android/` - generated native projects (`ios/` includes large Pods output). Edit `app.config.ts`, `plugins/`, or `targets/` as the source of truth, then prebuild when required. Inspect a specific generated file only for a native build or signing diagnosis.
+- `XoTMobile/ios/` and `XoTMobile/android/` - generated native projects (`ios/` includes large Pods output). Edit `app.config.ts`, `plugins/`, or `targets/` as the source of truth, then prebuild when required. Inspect a specific generated file only for a native build or signing diagnosis.
 - `pnpm-lock.yaml` (~1.3 MB) - never read; check `package.json` files instead.
 - `db_schema_backup.sql` - never read whole; search only for the specific table or column you need. Never hand-edit or regenerate it locally.
-- `SparkyFitnessFrontend/dist/` - build output.
-- `SparkyFitnessFrontend/public/locales/` except `en/` - 35 machine-synced translations. Hand-edit only `en/translation.json`, and search for the needed key instead of reading the whole catalog.
+- `XoTFrontend/dist/` - build output.
+- `XoTFrontend/public/locales/` except `en/` - 35 machine-synced translations. Hand-edit only `en/translation.json`, and search for the needed key instead of reading the whole catalog.
 
 Cheap ways to learn things:
 
@@ -65,18 +67,18 @@ Cheap ways to learn things:
 - Database security & permissions: `docs/src/developer/database-security-tiers.md` (security tier, permission type, and RLS rules for every table).
 - API request/response contract: `shared/src/schemas/api/<Name>.api.zod.ts`.
 - Find code by feature in `agent-docs/file-and-domain-reference.md` before a repository-wide search. Naming is not uniform across every domain.
-- CI (`.github/workflows/ci-tests.yml`) runs package `validate` and `test:ci` checks. Frontend/mobile jobs are path-gated; the server job runs whenever that workflow triggers. Garmin and fresh-install/upgrade migration jobs have their own gates. **Shared-only changes do not currently trigger this workflow**; validate the consuming packages yourself. Frontend/mobile `validate` include Knip; server `validate` does not. Docs PRs use `.github/workflows/docs-test.yml`.
+- CI (`.github/workflows/ci-tests.yml`) runs package `validate` and `test:ci` checks. Frontend/mobile jobs are path-gated; the server job runs whenever that workflow triggers. Garmin and fresh-install/upgrade migration jobs have their own gates. Shared/workspace changes trigger frontend and mobile checks as well; validate affected consumers locally. Frontend/mobile `validate` include Knip; server `validate` does not. Docs PRs use `.github/workflows/docs-test.yml`.
 
 ## Cross-Package Rules
 
 - **German UI copy is required for every new user-facing element.** Add the English source key and a reviewed German value in `localization-overrides/de/` in the same change, including visible labels, accessibility names, empty/loading/error states, notifications, native metadata, and widget copy where affected. Apply the overlay with `node scripts/apply-german-overrides.mjs` and run its `--check` mode. Do not rely on English fallback or a syntactically complete Weblate catalog as evidence of German copy quality. Use consistent German terminology and one form of address within a flow; review the rendered German screen at normal and enlarged text sizes. Preserve user-entered and provider-supplied names literally. Do not hand-edit synced German catalogs: the reviewed overlay is the source of product-specific corrections. Other languages remain on the Weblate path.
 
 - For any server migration or user-visible data access change, follow the full eight-step `agent-docs/new-migration-checklist.md` and the `new-migration` skill. Create the timestamped migration, update RLS, boot the server to apply it, add/export the shared Zod schema and API contract where applicable, update the sharing/security-tier docs, check downstream clients, and validate. CI creates a separate schema-backup sync PR after merge; never edit or commit a locally generated `db_schema_backup.sql`.
-- Prefer the shared timezone helpers from `@workspace/shared` and `SparkyFitnessServer/utils/timezoneLoader.ts` for day-string logic. Avoid `toISOString().split('T')[0]` for user-facing or business-logic dates.
+- Prefer the shared timezone helpers from `@workspace/shared` and `XoTServer/utils/timezoneLoader.ts` for day-string logic. Avoid `toISOString().split('T')[0]` for user-facing or business-logic dates.
 - Keep `YYYY-MM-DD` values as calendar-day strings until you reach a database or external API boundary that needs UTC instants.
 - Auth or API contract changes usually need a quick check in both web and mobile because they share the same backend.
 - Frontend local dev runs on `8080` and proxies `/api`, `/mcp`, and `/uploads` to the server on `3010`. Its `/health-data` proxy rewrites to `/api/health-data`; server APIs remain rooted at `/api`. `VITE_BACKEND_HOST` changes the backend host.
-- Server runtime secrets are usually sourced from repo-root `.env`, commonly created from `docker/.env.example`. The server can also load secret files via `SparkyFitnessServer/utils/secretLoader.ts`.
+- Server runtime secrets are usually sourced from repo-root `.env`, commonly created from `docker/.env.example`. The server can also load secret files via `XoTServer/utils/secretLoader.ts`.
 - Keep `.env`, `.localenv`, `private/`, signing credentials, and `.visual-sample/` out of git and deployment artifacts. Never copy a live secret into a test fixture or documentation.
 - Extract shared logic on the **second** duplication ("rule of two"), not the third - duplicated logic drifts as different sessions edit each copy. Extract _behavior_, not coincidental shape. See `agent-docs/anti-patterns.md`.
 - **Strict TypeScript Typing:** Never use `any` or `// eslint-disable-next-line @typescript-eslint/no-explicit-any` when creating new functions or editing existing code. Always define explicit TypeScript interfaces, types, or import schemas from `@workspace/shared`. Do NOT copy legacy `any` parameter signatures when refactoring or extending legacy service/repository files.
@@ -123,15 +125,15 @@ These docs answer: "How do I safely add a feature across the stack?" without sca
 
 ## Automated Visual Review
 
-- **Web:** `scripts/visual-sample.sh start` boots an isolated stack (PostgreSQL on 55432, server on 3010 in demo mode, Vite on 8080) with generated secrets under the git-ignored `.visual-sample/`. Then run `pnpm run visual:review` from `SparkyFitnessFrontend/` (optionally `-- --references <dir containing web/06-dashboard.png and web/07-nutrition-reports.png>`). It drives the installed Google Chrome through `playwright-core`, signs in with the public demo flow, suppresses the upstream-release and announcement overlays, and captures Dashboard and Reports in dark and light at 1586×992, 1280×800 and 390×844, plus side-by-side comparison sheets. Output goes to `.visual-sample/captures/<timestamp>/` with `results.json` (horizontal-overflow flags, console errors). Stop the stack with `scripts/visual-sample.sh stop`. Ports 3010, 8080 and 55432 must be free.
-- **Mobile:** `node scripts/review-ios.mjs --app <DevelopmentSimulator.app> --output <dir> [--interactions [--tour]]` from `SparkyFitnessMobile/` (see `SparkyFitnessMobile/review/README.md`).
+- **Web:** `scripts/visual-sample.sh start` boots an isolated stack (PostgreSQL on 55432, server on 3010 in demo mode, Vite on 8080) with generated secrets under the git-ignored `.visual-sample/`. Then run `pnpm run visual:review` from `XoTFrontend/` (optionally `-- --references <dir containing web/06-dashboard.png and web/07-nutrition-reports.png>`). It drives the installed Google Chrome through `playwright-core`, signs in with the public demo flow, suppresses the upstream-release and announcement overlays, and captures Dashboard and Reports in dark and light at 1586×992, 1280×800 and 390×844, plus side-by-side comparison sheets. Output goes to `.visual-sample/captures/<timestamp>/` with `results.json` (horizontal-overflow flags, console errors). Stop the stack with `scripts/visual-sample.sh stop`. Ports 3010, 8080 and 55432 must be free.
+- **Mobile:** `node scripts/review-ios.mjs --app <DevelopmentSimulator.app> --output <dir> [--interactions [--tour]]` from `XoTMobile/` (see `XoTMobile/review/README.md`).
 - Captures are render evidence, not visual approval; compare them with the references and record intentional differences in the dated implementation note.
 
 ## Common Commands
 
 Use the package guide for fuller validation and platform-specific workflows. These are the common entrypoints:
 
-### Frontend (`SparkyFitnessFrontend/`)
+### Frontend (`XoTFrontend/`)
 
 ```bash
 pnpm dev
@@ -140,7 +142,7 @@ pnpm run test:ci
 pnpm run build
 ```
 
-### Server (`SparkyFitnessServer/`)
+### Server (`XoTServer/`)
 
 ```bash
 pnpm start
@@ -148,7 +150,7 @@ pnpm run validate
 pnpm run test:ci
 ```
 
-### Mobile (`SparkyFitnessMobile/`)
+### Mobile (`XoTMobile/`)
 
 ```bash
 pnpm start

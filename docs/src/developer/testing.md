@@ -10,22 +10,22 @@ Each component has its own test scripts:
 
 ```bash
 # Frontend (Vite + React)
-cd SparkyFitnessFrontend
+cd XoTFrontend
 pnpm test          # Run tests in watch mode
 pnpm test:ci       # Run tests once with coverage (CI mode)
 
 # Backend (Node.js + Express)
-cd SparkyFitnessServer
+cd XoTServer
 pnpm test          # Run tests in watch mode
 pnpm test:ci       # Run tests once with coverage (CI mode)
 
 # Mobile (React Native + Expo)
-cd SparkyFitnessMobile
+cd XoTMobile
 npm run test:run   # Run tests once
 npm run test:ci    # Run tests once with coverage (CI mode)
 
 # Garmin Microservice (Python)
-cd SparkyFitnessGarmin
+cd XoTGarmin
 pytest --cov=. --cov-report=html
 ```
 
@@ -35,15 +35,15 @@ The CI pipeline (`.github/workflows/ci-tests.yml`) runs on pull requests and pus
 
 | Component | Trigger Path | Package Manager | Test Command |
 |-----------|-------------|-----------------|--------------|
-| Frontend  | `SparkyFitnessFrontend/**` | pnpm | `pnpm run test:ci` |
-| Mobile    | `SparkyFitnessMobile/**` | npm | `npm run test:ci` |
-| Server    | `SparkyFitnessServer/**` | pnpm | `pnpm run test:ci` |
-| Garmin    | `SparkyFitnessGarmin/**` | pip | `pytest` |
+| Frontend  | `XoTFrontend/**` | pnpm | `pnpm run test:ci` |
+| Mobile    | `XoTMobile/**` | npm | `npm run test:ci` |
+| Server    | `XoTServer/**` | pnpm | `pnpm run test:ci` |
+| Garmin    | `XoTGarmin/**` | pip | `pytest` |
 
 ## Test File Locations
 
 ```
-SparkyFitnessFrontend/
+XoTFrontend/
   src/tests/
     setupTests.ts              # Global test setup (jest-dom, polyfills)
     components/                # Component tests
@@ -51,10 +51,10 @@ SparkyFitnessFrontend/
       MealManagement.test.tsx
       MealPlanCalendar.test.tsx
 
-SparkyFitnessServer/
+XoTServer/
   __tests__/                   # Backend unit and integration tests
 
-SparkyFitnessMobile/
+XoTMobile/
   __tests__/                   # Mobile app tests
 ```
 

@@ -50,9 +50,9 @@ Review events from forks have read-only tokens. They still validate the checklis
 **Change Detection Logic**:
 
 ```javascript
-hasFrontendChanges = files in SparkyFitnessFrontend/ or src/
-hasBackendChanges = files in SparkyFitnessServer/
-hasMobileChanges = files in SparkyFitnessMobile/
+hasFrontendChanges = files in XoTFrontend/ or src/
+hasBackendChanges = files in XoTServer/
+hasMobileChanges = files in XoTMobile/
 hasUIChanges = .tsx/.jsx/.css files in components/screens/pages/
 ```
 
@@ -153,15 +153,15 @@ Five Weblate components. The mobile app has four because its surfaces use differ
 
 | Component | In the translations repo | In this repo |
 | --- | --- | --- |
-| Web | `locales/` | `SparkyFitnessFrontend/public/locales/` |
-| Mobile runtime | `mobile/src/localization/locales/` | `SparkyFitnessMobile/src/localization/locales/` |
-| Mobile Expo metadata | `mobile/locales/` | `SparkyFitnessMobile/locales/` |
-| Mobile Android widgets | `mobile/targets/android-widget/res/` | `SparkyFitnessMobile/targets/android-widget/res/` |
-| Mobile iOS widgets | `mobile/targets/widget/` | `SparkyFitnessMobile/targets/widget/` |
+| Web | `locales/` | `XoTFrontend/public/locales/` |
+| Mobile runtime | `mobile/src/localization/locales/` | `XoTMobile/src/localization/locales/` |
+| Mobile Expo metadata | `mobile/locales/` | `XoTMobile/locales/` |
+| Mobile Android widgets | `mobile/targets/android-widget/res/` | `XoTMobile/targets/android-widget/res/` |
+| Mobile iOS widgets | `mobile/targets/widget/` | `XoTMobile/targets/widget/` |
 
 A mobile surface missing from the translations repo is skipped with a notice, so the workflow is safe to run before all the components exist; the push side seeds each English source on the first run. `pr-validation.yml` rejects a human PR that edits any non-`en` translation file.
 
-Only locales listed in `SparkyFitnessMobile/src/localization/localeRegistry.json` are shipped on mobile. Others sync in as translation candidates, are reported by the i18n audit as non-blocking diagnostics, and are never bundled. The widget resources are the exception to "sync in": Android compiles every `values-*` directory and the iOS widget target ships every `.lproj` folder, so those two surfaces are pulled for registered locales only and a candidate's widget arrives on the sync after it is registered.
+Only locales listed in `XoTMobile/src/localization/localeRegistry.json` are shipped on mobile. Others sync in as translation candidates, are reported by the i18n audit as non-blocking diagnostics, and are never bundled. The widget resources are the exception to "sync in": Android compiles every `values-*` directory and the iOS widget target ships every `.lproj` folder, so those two surfaces are pulled for registered locales only and a candidate's widget arrives on the sync after it is registered.
 
 **Triggers**: Manual workflow dispatch only. Requires the `TRANSLATIONS_PAT` secret.
 

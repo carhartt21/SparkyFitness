@@ -4,19 +4,29 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "SparkyFitnessFrontend/**"
-      - "SparkyFitnessMobile/**"
-      - "SparkyFitnessServer/**"
-      - "SparkyFitnessGarmin/**"
+      - "XoTFrontend/**"
+      - "XoTMobile/**"
+      - "XoTServer/**"
+      - "XoTGarmin/**"
       - ".github/workflows/ci-tests.yml"
+      - "shared/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "scripts/check-repository-layout.mjs"
   push:
     branches: [main]
     paths:
-      - "SparkyFitnessFrontend/**"
-      - "SparkyFitnessMobile/**"
-      - "SparkyFitnessServer/**"
-      - "SparkyFitnessGarmin/**"
+      - "XoTFrontend/**"
+      - "XoTMobile/**"
+      - "XoTServer/**"
+      - "XoTGarmin/**"
       - ".github/workflows/ci-tests.yml"
+      - "shared/**"
+      - "pnpm-workspace.yaml"
+      - "pnpm-lock.yaml"
+      - "package.json"
+      - "scripts/check-repository-layout.mjs"
 
 jobs:
   # Detect which components changed
@@ -39,30 +49,38 @@ jobs:
         with:
           filters: |
             frontend:
-              - 'SparkyFitnessFrontend/**'
+              - 'XoTFrontend/**'
+              - 'shared/**'
+              - 'pnpm-workspace.yaml'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
             mobile:
-              - 'SparkyFitnessMobile/**'
+              - 'XoTMobile/**'
+              - 'shared/**'
+              - 'pnpm-workspace.yaml'
+              - 'pnpm-lock.yaml'
+              - 'package.json'
             server:
-              - 'SparkyFitnessServer/**'
+              - 'XoTServer/**'
             garmin:
-              - 'SparkyFitnessGarmin/**'
+              - 'XoTGarmin/**'
             # Files whose change can break a fresh-install migration run.
             # Includes the jobs' own execution path (workflow + script) so a
             # change there can't break migration CI while the jobs gate out.
             migrations:
-              - 'SparkyFitnessServer/db/migrations/**'
-              - 'SparkyFitnessServer/db/rls_policies.sql'
-              - 'SparkyFitnessServer/db/grantPermissions.ts'
-              - 'SparkyFitnessServer/utils/dbMigrations.ts'
-              - 'SparkyFitnessServer/utils/applyRlsPolicies.ts'
-              - 'SparkyFitnessServer/utils/initializeDatabase.ts'
-              - 'SparkyFitnessServer/tests/migrate.script.ts'
-              - 'SparkyFitnessServer/tests/initializeDatabase.integration.test.ts'
-              - 'SparkyFitnessServer/tests/rlsPermissionMatrix.integration.test.ts'
-              - 'SparkyFitnessServer/tests/stravaActivityDetailCleanup.integration.test.ts'
-              - 'SparkyFitnessServer/tests/oidcProviderRepository.integration.test.ts'
-              - 'SparkyFitnessServer/models/oidcProviderRepository.ts'
-              - 'SparkyFitnessServer/package.json'
+              - 'XoTServer/db/migrations/**'
+              - 'XoTServer/db/rls_policies.sql'
+              - 'XoTServer/db/grantPermissions.ts'
+              - 'XoTServer/utils/dbMigrations.ts'
+              - 'XoTServer/utils/applyRlsPolicies.ts'
+              - 'XoTServer/utils/initializeDatabase.ts'
+              - 'XoTServer/tests/migrate.script.ts'
+              - 'XoTServer/tests/initializeDatabase.integration.test.ts'
+              - 'XoTServer/tests/rlsPermissionMatrix.integration.test.ts'
+              - 'XoTServer/tests/stravaActivityDetailCleanup.integration.test.ts'
+              - 'XoTServer/tests/oidcProviderRepository.integration.test.ts'
+              - 'XoTServer/models/oidcProviderRepository.ts'
+              - 'XoTServer/package.json'
               - '.github/workflows/ci-tests.yml'
 
   frontend-tests:
@@ -88,12 +106,15 @@ jobs:
       - name: Install global dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify repository layout
+        run: pnpm run repository:check
+
       - name: Run validation (Type Check, Lint, Format)
-        working-directory: SparkyFitnessFrontend
+        working-directory: XoTFrontend
         run: pnpm run validate
 
       - name: Run tests with coverage
-        working-directory: SparkyFitnessFrontend
+        working-directory: XoTFrontend
         run: pnpm run test:ci
         env:
           NODE_ENV: test
@@ -103,7 +124,7 @@ jobs:
         if: always()
         with:
           name: frontend-coverage
-          path: SparkyFitnessFrontend/coverage/
+          path: XoTFrontend/coverage/
           retention-days: 7
 
   mobile-tests:
@@ -114,7 +135,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: SparkyFitnessMobile
+        working-directory: XoTMobile
 
     steps:
       - name: Checkout code
@@ -133,6 +154,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Verify repository layout
+        run: pnpm run repository:check
+
       - name: Run validation (Type Check, Lint)
         run: pnpm run validate
 
@@ -146,7 +170,7 @@ jobs:
         if: always()
         with:
           name: mobile-coverage
-          path: SparkyFitnessMobile/coverage/
+          path: XoTMobile/coverage/
           retention-days: 7
 
   server-tests:
@@ -156,7 +180,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: SparkyFitnessServer
+        working-directory: XoTServer
 
     steps:
       - name: Checkout code
@@ -174,6 +198,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify repository layout
+        run: pnpm run repository:check
 
       - name: Run validation (Type Check, Lint, Format)
         run: pnpm run validate
@@ -196,7 +223,7 @@ jobs:
         if: always()
         with:
           name: server-coverage
-          path: SparkyFitnessServer/coverage/
+          path: XoTServer/coverage/
           retention-days: 7
 
   migration-check:
@@ -207,7 +234,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: SparkyFitnessServer
+        working-directory: XoTServer
 
     services:
       postgres:
@@ -240,6 +267,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify repository layout
+        run: pnpm run repository:check
 
       # One runner initializes the empty database; the other reapplies after the lock is released.
       - name: Initialize an empty database from two processes
@@ -297,7 +327,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: SparkyFitnessServer
+        working-directory: XoTServer
 
     services:
       postgres:
@@ -333,6 +363,9 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Verify repository layout
+        run: pnpm run repository:check
 
       # Apply base migrations, then this PR's migrations on top of the same DB.
       # The schema_migrations table persists between runs, so phase 2 applies
@@ -380,7 +413,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: SparkyFitnessGarmin
+        working-directory: XoTGarmin
 
     steps:
       - name: Checkout code
@@ -413,5 +446,5 @@ jobs:
         if: always()
         with:
           name: garmin-coverage
-          path: SparkyFitnessGarmin/htmlcov/
+          path: XoTGarmin/htmlcov/
           retention-days: 7

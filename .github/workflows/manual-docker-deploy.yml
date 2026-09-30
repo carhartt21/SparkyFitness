@@ -132,7 +132,7 @@ jobs:
         if: ${{ inputs.service == 'all' || inputs.service == 'garmin' }}
         uses: docker/build-push-action@v6
         with:
-          context: SparkyFitnessGarmin
+          context: XoTGarmin
           file: docker/Dockerfile.garmin_microservice
           push: true
           tags: ${{ steps.meta-garmin.outputs.tags }}

@@ -1,9 +1,8 @@
 packages:
-  - "frontend"
-  - "SparkyFitnessFrontend"
+  - "XoTFrontend"
   - "shared"
-  - "SparkyFitnessMobile"
-  - "SparkyFitnessServer"
+  - "XoTMobile"
+  - "XoTServer"
   - "docs"
 
 # Required by `pnpm deploy` (docker/Dockerfile.backend, release-assets.yml).

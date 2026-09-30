@@ -7,27 +7,27 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 export const catalogs = [
   {
     name: "mobile",
-    english: "SparkyFitnessMobile/src/localization/locales/en/translation.json",
-    german: "SparkyFitnessMobile/src/localization/locales/de/translation.json",
+    english: "XoTMobile/src/localization/locales/en/translation.json",
+    german: "XoTMobile/src/localization/locales/de/translation.json",
     overrides: "localization-overrides/de/mobile.json",
   },
   {
     name: "web",
-    english: "SparkyFitnessFrontend/public/locales/en/translation.json",
-    german: "SparkyFitnessFrontend/public/locales/de/translation.json",
+    english: "XoTFrontend/public/locales/en/translation.json",
+    german: "XoTFrontend/public/locales/de/translation.json",
     overrides: "localization-overrides/de/web.json",
   },
   {
     name: "iOS metadata",
-    english: "SparkyFitnessMobile/locales/en.json",
-    german: "SparkyFitnessMobile/locales/de.json",
+    english: "XoTMobile/locales/en.json",
+    german: "XoTMobile/locales/de.json",
     overrides: "localization-overrides/de/metadata.json",
   },
 ];
 
 const widget = {
-  english: "SparkyFitnessMobile/targets/widget/en.lproj/Localizable.strings",
-  german: "SparkyFitnessMobile/targets/widget/de.lproj/Localizable.strings",
+  english: "XoTMobile/targets/widget/en.lproj/Localizable.strings",
+  german: "XoTMobile/targets/widget/de.lproj/Localizable.strings",
   overrides: "localization-overrides/de/widget.json",
 };
 

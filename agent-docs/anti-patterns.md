@@ -130,7 +130,7 @@ async function deleteMeal(mealId: string) {
 }
 ```
 
-**Pattern:** Query keys live in `SparkyFitnessMobile/src/hooks/queryKeys.ts` (mobile) and `SparkyFitnessFrontend/src/api/keys/*.ts` (frontend) — note some are plain const arrays and some are functions. The frontend also exposes invalidation hooks in `src/hooks/useInvalidateKeys.ts` (`useMealInvalidation`, `useDiaryInvalidation`, …).
+**Pattern:** Query keys live in `XoTMobile/src/hooks/queryKeys.ts` (mobile) and `XoTFrontend/src/api/keys/*.ts` (frontend) — note some are plain const arrays and some are functions. The frontend also exposes invalidation hooks in `src/hooks/useInvalidateKeys.ts` (`useMealInvalidation`, `useDiaryInvalidation`, …).
 
 ---
 
@@ -154,7 +154,7 @@ const userTz = 'America/Los_Angeles';
 const today = todayInZone(userTz); // "2026-07-07" (correct calendar day)
 ```
 
-**Pattern:** Boot timezone early, fetch user's IANA timezone from `GET /api/daily-summary` or `GET /api/preferences`, use shared helpers. See `SparkyFitnessServer/utils/timezoneLoader.ts` and `shared/src/utils/` for the full suite.
+**Pattern:** Boot timezone early, fetch user's IANA timezone from `GET /api/daily-summary` or `GET /api/preferences`, use shared helpers. See `XoTServer/utils/timezoneLoader.ts` and `shared/src/utils/` for the full suite.
 
 ---
 
@@ -186,7 +186,7 @@ app.post('/api/meals/:mealId/copy', async (req, res) => {
 });
 ```
 
-**Pattern:** Routes validate and route, services orchestrate, repositories persist. See any domain service/repository pair in `SparkyFitnessServer/services/` and `models/` for examples.
+**Pattern:** Routes validate and route, services orchestrate, repositories persist. See any domain service/repository pair in `XoTServer/services/` and `models/` for examples.
 
 ---
 
@@ -212,7 +212,7 @@ import { apiFetch } from '../services/api/apiClient';
 const meals = await apiFetch<Meal[]>({ url: '/api/meals' });
 ```
 
-**Pattern:** the helper handles base URL, auth headers, and errors. See `SparkyFitnessFrontend/src/api/api.ts` (`apiCall`) and `SparkyFitnessMobile/src/services/api/apiClient.ts` (`apiFetch`).
+**Pattern:** the helper handles base URL, auth headers, and errors. See `XoTFrontend/src/api/api.ts` (`apiCall`) and `XoTMobile/src/services/api/apiClient.ts` (`apiFetch`).
 
 ---
 
@@ -227,9 +227,9 @@ export const foodEntryResponseSchema = z.object({
   newField: z.string(), // ADDED
 });
 
-// SparkyFitnessServer/routes/foodEntryRoutes.ts updated ✓
-// SparkyFitnessFrontend — NOT UPDATED ✗
-// SparkyFitnessMobile — NOT UPDATED ✗
+// XoTServer/routes/foodEntryRoutes.ts updated ✓
+// XoTFrontend — NOT UPDATED ✗
+// XoTMobile — NOT UPDATED ✗
 ```
 
 **Result:** Type safety is broken, frontend request sends old contract, mobile gets unexpected field. CI doesn't catch it if packages are validated separately.
@@ -239,9 +239,9 @@ export const foodEntryResponseSchema = z.object({
 ```
 Commit: "Add foodEntry.newField: shared schema + server route + frontend + mobile"
 - shared/src/schemas/api/FoodEntries.api.zod.ts
-- SparkyFitnessServer/routes/foodEntryRoutes.ts + tests
-- SparkyFitnessFrontend/src/api/Diary/ + the consuming page/hook
-- SparkyFitnessMobile/src/services/api/foodEntriesApi.ts + the consuming screen
+- XoTServer/routes/foodEntryRoutes.ts + tests
+- XoTFrontend/src/api/Diary/ + the consuming page/hook
+- XoTMobile/src/services/api/foodEntriesApi.ts + the consuming screen
 - Run `pnpm run validate` in all three packages before pushing
 ```
 

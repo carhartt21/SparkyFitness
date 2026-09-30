@@ -9,7 +9,7 @@ While the application provides scheduled backups, you can manually trigger a bac
 **Important Note:** This backup functionality is new and should be used with caution. While it creates a backup, it's highly recommended to create additional backups independently of this application. Always follow the 3-2-1 backup strategy (3 copies of your data, on 2 different media, with 1 copy offsite) to ensure data safety. The functionality of restore may not work properly in all scenarios, so do not rely solely on this in-app backup.
 
 **Location of Backups:**
-All backup files are stored in a Docker volume mounted to the `SparkyFitnessServer` service. The default path within the container is `/app/SparkyFitnessServer/backup`. You will need to access this volume from your Docker host.
+All backup files are stored in a Docker volume mounted to the `XoTServer` service. The default path within the container is `/app/XoTServer/backup`. You will need to access this volume from your Docker host.
 
 ## 2. Manual Restore (Disaster Recovery)
 
@@ -35,7 +35,7 @@ This process is for situations where the SparkyFitness application or its Docker
     ```
 
 2.  **Identify and Access the Backup Volume:**
-    Find the Docker volume associated with the `SparkyFitnessServer`'s backup directory. You can inspect your `docker-compose.yml` for volume definitions or use `docker volume ls` and `docker volume inspect <volume_name>`.
+    Find the Docker volume associated with the `XoTServer`'s backup directory. You can inspect your `docker-compose.yml` for volume definitions or use `docker volume ls` and `docker volume inspect <volume_name>`.
     The volume will likely be mounted to a path like `/var/lib/docker/volumes/<volume_name>/_data` on Linux hosts.
 
     Let's assume your backup volume is named `sparkyfitness_server_backup_data` and it's mounted to `/var/lib/docker/volumes/sparkyfitness_server_backup_data/_data`.
@@ -69,7 +69,7 @@ This process is for situations where the SparkyFitness application or its Docker
     **This step is destructive.** Ensure you have stopped the services and are confident in your backup.
 
     *   **Clear `uploads` directory:**
-        Identify the Docker volume for your `SparkyFitnessServer`'s `uploads` directory (e.g., `sparkyfitness_server_uploads_data`).
+        Identify the Docker volume for your `XoTServer`'s `uploads` directory (e.g., `sparkyfitness_server_uploads_data`).
         ```bash
         # Example: Assuming uploads volume is sparkyfitness_server_uploads_data
         docker run --rm -v sparkyfitness_server_uploads_data:/uploads_volume ubuntu:latest rm -rf /uploads_volume/*
@@ -111,7 +111,7 @@ This process is for situations where the SparkyFitness application or its Docker
     ```
 
 7.  **Restore Uploads Directory:**
-    Extract the `uploads` tar archive into the `SparkyFitnessServer`'s `uploads` volume.
+    Extract the `uploads` tar archive into the `XoTServer`'s `uploads` volume.
 
     ```bash
     # Example: Assuming uploads volume is sparkyfitness_server_uploads_data

@@ -40,7 +40,7 @@ No P0 outage or proven account compromise was established. The register contains
 
 ### S1 — Bind every integration callback to the initiating account and browser flow
 
-**Evidence:** `SparkyFitnessServer/integrations/oura/ouraService.ts:130`, `integrations/fitbit/fitbitService.ts:34`, and `integrations/strava/stravaService.ts:32` use a user identifier as state. Their callback handlers in `routes/ouraRoutes.ts:60`, `routes/fitbitRoutes.ts:56`, and `routes/stravaRoutes.ts:45` consume the authorization code without validating state. No equivalent PKCE verifier was found in those flows. GET authorize routes require the self actor; callbacks do not apply the same explicit self-only gate.
+**Evidence:** `XoTServer/integrations/oura/ouraService.ts:130`, `integrations/fitbit/fitbitService.ts:34`, and `integrations/strava/stravaService.ts:32` use a user identifier as state. Their callback handlers in `routes/ouraRoutes.ts:60`, `routes/fitbitRoutes.ts:56`, and `routes/stravaRoutes.ts:45` consume the authorization code without validating state. No equivalent PKCE verifier was found in those flows. GET authorize routes require the self actor; callbacks do not apply the same explicit self-only gate.
 
 **Impact:** the callback lacks proof that this account initiated this authorization exchange. Existing authentication, permission middleware, provider behavior, and RLS still matter; this audit did not demonstrate account takeover or a successful delegated credential write.
 
@@ -50,7 +50,7 @@ No P0 outage or proven account compromise was established. The register contains
 
 ### S2 — Make private media authorization an application guarantee
 
-**Evidence:** `SparkyFitnessServer/SparkyFitnessServer.ts:414–490` mounts the upload tree publicly, excluding particular sensitive first-level directories. `routes/exerciseEntryRoutes.ts:35–54` and `:348–352` save workout images under `exercise_entries`, outside that denylist. Static media has a seven-day immutable cache policy. Avatar storage is another public subtree.
+**Evidence:** `XoTServer/XoTServer.ts:414–490` mounts the upload tree publicly, excluding particular sensitive first-level directories. `routes/exerciseEntryRoutes.ts:35–54` and `:348–352` save workout images under `exercise_entries`, outside that denylist. Static media has a seven-day immutable cache policy. Avatar storage is another public subtree.
 
 **Impact:** in a standard deployment, knowledge of a private workout-image URL can bypass per-user access checks. Random filenames are not authorization. Current private deployment documentation records an authenticated media gateway and anonymous-request rejection, so this is **not a finding of an exposed image on the current private site**.
 
@@ -60,7 +60,7 @@ No P0 outage or proven account compromise was established. The register contains
 
 ### S3 — Separate HTTPS session security from CORS convenience
 
-**Evidence:** `SparkyFitnessServer/auth.ts:406–413` disables Secure cookies when private-network CORS is enabled or an extra trusted origin contains `http://`, even if the primary frontend uses HTTPS. Forwarded host/protocol headers are trusted at `:419`.
+**Evidence:** `XoTServer/auth.ts:406–413` disables Secure cookies when private-network CORS is enabled or an extra trusted origin contains `http://`, even if the primary frontend uses HTTPS. Forwarded host/protocol headers are trusted at `:419`.
 
 **Impact:** enabling a development connectivity option can weaken cookie transport settings. The running environment values were not read; this is conditional, not a confirmed insecure production cookie.
 
@@ -93,7 +93,7 @@ Primary notices: [path-to-regexp](https://github.com/pillarjs/path-to-regexp/sec
 
 ### U1 — Propagate custom meal labels without changing identity
 
-**Evidence:** `SparkyFitnessServer/models/mealType.ts:46` exposes `display_name`. Web `pages/Settings/MealTypeManager.tsx:149` uses it, but `pages/Diary/Diary.tsx:420–451` passes canonical `name` to headings and meal presentation. `utils/nutritionCalculations.ts:586–622` translates the original name; `layouts/MainLayout.tsx` quick-log meal labels do the same.
+**Evidence:** `XoTServer/models/mealType.ts:46` exposes `display_name`. Web `pages/Settings/MealTypeManager.tsx:149` uses it, but `pages/Diary/Diary.tsx:420–451` passes canonical `name` to headings and meal presentation. `utils/nutritionCalculations.ts:586–622` translates the original name; `layouts/MainLayout.tsx` quick-log meal labels do the same.
 
 **Impact/correction:** a Breakfast→Morning meal rename appears successful in Settings but is not reflected where food is logged. Share a display-label helper taking the meal object, preserving canonical IDs/names for history matching and calculation.
 
@@ -101,7 +101,7 @@ Primary notices: [path-to-regexp](https://github.com/pillarjs/path-to-regexp/sec
 
 ### U2 — Distinguish unknown nutrient values from measured zero
 
-**Evidence:** `SparkyFitnessServer/models/reportRepository.ts:37–69` and `:184–200` coalesce nutrient fields to zero. Mobile `src/screens/DailyNutritionDetailsScreen.tsx:131–142` sums known numbers from an initial zero, then displays a numeric total. Consequently, entries without sodium information can look like a measured 0 mg sodium total.
+**Evidence:** `XoTServer/models/reportRepository.ts:37–69` and `:184–200` coalesce nutrient fields to zero. Mobile `src/screens/DailyNutritionDetailsScreen.tsx:131–142` sums known numbers from an initial zero, then displays a numeric total. Consequently, entries without sodium information can look like a measured 0 mg sodium total.
 
 **Correction:** return additive coverage information per nutrient, alongside existing sums. Show a known total with partial-coverage context or an unknown state when nothing was measured. Separate source completeness from whether the user considers the day's logging finished. Do not silently change goal formulas.
 
@@ -145,7 +145,7 @@ Primary notices: [path-to-regexp](https://github.com/pillarjs/path-to-regexp/sec
 
 ### P2 — Bound expensive work at the API and database
 
-**Evidence:** `SparkyFitnessServer.ts:250,266` installs 50 MB parsers before the relevant authentication boundary. `routes/reportRoutes.ts:31–65` and subsequent report handlers validate date presence without consistently enforcing a strict bounded range. `services/reportService.ts:135–204` loads 13 datasets and then performs serial custom-category queries. `db/poolManager.ts:22–49` caps pools at 10 with connection timeout but sets no runtime statement/lock timeout.
+**Evidence:** `XoTServer.ts:250,266` installs 50 MB parsers before the relevant authentication boundary. `routes/reportRoutes.ts:31–65` and subsequent report handlers validate date presence without consistently enforcing a strict bounded range. `services/reportService.ts:135–204` loads 13 datasets and then performs serial custom-category queries. `db/poolManager.ts:22–49` caps pools at 10 with connection timeout but sets no runtime statement/lock timeout.
 
 **Impact/correction:** ordinary large requests or long histories can monopolize memory/query capacity. Use smaller defaults and scoped large-body paths, reusable strict date-range contracts, selective report datasets, batched category queries, cancellation/timeouts and an appropriate export route for large ranges. Model the already bounded `dailySummaryRoutes` and batched `dailySummaryRangeService` rather than rewriting them.
 
@@ -234,7 +234,7 @@ The small U1/U3 corrections can ship alongside Stage 1 without waiting for all i
 | Bulk-button contrast calculation | **3.10:1 failing pair; 5.53:1 existing replacement token**     | Rendered interaction states still need checking                                                                                                 |
 | Repository status                | Existing untracked asset archive and critique folder preserved | Only audit documentation/evidence added                                                                                                         |
 
-Focused test command, from `SparkyFitnessServer`:
+Focused test command, from `XoTServer`:
 
 ```sh
 node_modules/.bin/vitest run tests/oauthState.test.ts tests/withingsOauthCallback.test.ts tests/polarOauthCallback.test.ts tests/uploadsStaticMount.test.ts tests/outboundUrlPolicy.test.ts tests/integrationRoutesPermissionGating.test.ts

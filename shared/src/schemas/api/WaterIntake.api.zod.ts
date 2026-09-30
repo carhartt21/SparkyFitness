@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 // Two clients (web, mobile) hand-roll these request/response shapes today
-// (SparkyFitnessFrontend/src/api/Diary/waterIntakteService.ts). Phase 4
+// (XoTFrontend/src/api/Diary/waterIntakteService.ts). Phase 4
 // (#1557, #1629) adds a third field both must read (food_ml), which is the
 // trigger to make this a real shared contract instead of a fourth copy.
 
