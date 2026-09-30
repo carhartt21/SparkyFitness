@@ -13,12 +13,12 @@
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "sparkyfitness-frontend";
-  version = (lib.importJSON ../SparkyFitnessFrontend/package.json).version;
+  version = (lib.importJSON ../XoTFrontend/package.json).version;
 
   src = lib.cleanSource ../.;
 
   pnpmWorkspaces = [
-    "sparkyfitnessfrontend"
+    "xot-frontend"
     "@workspace/shared"
   ];
 
@@ -43,7 +43,7 @@ stdenv.mkDerivation (finalAttrs: {
     runHook preBuild
     # Invoke vite directly instead of the package `build` script, which also runs
     # the validate checks (those run in checkPhase below instead).
-    pnpm --filter sparkyfitnessfrontend exec vite build
+    pnpm --filter xot-frontend exec vite build
     runHook postBuild
   '';
 
@@ -52,13 +52,13 @@ stdenv.mkDerivation (finalAttrs: {
   doCheck = true;
   checkPhase = ''
     runHook preCheck
-    pnpm --filter sparkyfitnessfrontend run validate
+    pnpm --filter xot-frontend run validate
     runHook postCheck
   '';
 
   installPhase = ''
     runHook preInstall
-    cp -r SparkyFitnessFrontend/dist "$out"
+    cp -r XoTFrontend/dist "$out"
     runHook postInstall
   '';
 

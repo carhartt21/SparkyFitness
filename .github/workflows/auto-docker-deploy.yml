@@ -134,7 +134,7 @@ jobs:
         id: push-garmin
         uses: docker/build-push-action@v6
         with:
-          context: SparkyFitnessGarmin
+          context: XoTGarmin
           file: docker/Dockerfile.garmin_microservice
           push: true
           tags: ${{ steps.meta-garmin.outputs.tags }}
@@ -149,6 +149,3 @@ jobs:
           subject-name: ghcr.io/${{ steps.repo.outputs.name }}-garmin
           subject-digest: ${{ steps.push-garmin.outputs.digest }}
           push-to-registry: true
-
-
-

@@ -12,7 +12,7 @@ This records the phone-side Stage 4 implementation against the [six-stage plan](
 - The routines screen now reviews older sessions, revealing recorded completed and skipped steps on demand. Unrecorded steps remain clearly separate, and a saved session can be deleted without affecting the active session or another account.
 - Each routine can opt into a daily local reminder time. The app-scope engagement coordinator arbitrates it with meal, movement-break, medication, and hydration notifications under the existing daily cap and collision spacing. A tap verifies the current account and routine, then opens the routine list without starting or recording movement.
 
-The entry point is the Guided mobility routines action on Movement Break. The domain code is `SparkyFitnessMobile/src/services/mobilityRoutineStore.ts`; the phone UI is `SparkyFitnessMobile/src/screens/GuidedMobilityScreen.tsx`.
+The entry point is the Guided mobility routines action on Movement Break. The domain code is `XoTMobile/src/services/mobilityRoutineStore.ts`; the phone UI is `XoTMobile/src/screens/GuidedMobilityScreen.tsx`.
 
 ## Remaining Stage 4 work
 

@@ -25,11 +25,11 @@ Mealie, Tandoor, and Norish are self-hosted, so their images are served from the
 A provider photo takes the same path regardless of provider:
 
 1. **Provider mapper** sets `image_url` (and optionally `image_source_url` for a full-size variant) on the mapped food — for example `integrations/openfoodfacts/openFoodFactsService.ts`.
-2. **Response schema** must declare the image keys. `NormalizedFoodSchema` in `SparkyFitnessServer/schemas/foodSchemas.ts` is a plain `z.object()`, so **any key it doesn't declare is silently stripped** from the search, barcode, and details responses.
+2. **Response schema** must declare the image keys. `NormalizedFoodSchema` in `XoTServer/schemas/foodSchemas.ts` is a plain `z.object()`, so **any key it doesn't declare is silently stripped** from the search, barcode, and details responses.
 3. **Search card** renders it — `FoodResultCard` resolves `images[]`, then the `imageUrl` prop, then `image_url`.
 4. **Edit form** seeds the image picker. A provider result has no `images` array yet, so `useFoodForm` falls back to `image_source_url || image_url`.
 5. **Save payload** sends the ordered `images` array. Both the create and update branches of `api/Foods/enhancedCustomFoodFormService.ts` must include it.
-6. **Persistence** — `resolveImageInput` in `SparkyFitnessServer/utils/imageLocalizer.ts` normalizes `images` / `image_url` / `image_source_url` into one array.
+6. **Persistence** — `resolveImageInput` in `XoTServer/utils/imageLocalizer.ts` normalizes `images` / `image_url` / `image_source_url` into one array.
 7. **Localization** — after commit, `localizeImages` downloads remote `http(s)` URLs into `/uploads/foods/<id>/` and rewrites the column. Failures are non-fatal and leave the remote URL hotlinked. Both `createFood` and `updateFood` in `models/food.ts` do this.
 
 Every hop must carry the field. A break at any one of them looks identical from the UI: no image.

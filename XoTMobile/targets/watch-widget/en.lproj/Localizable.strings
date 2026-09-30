@@ -1,0 +1,10 @@
+"progress.notSynced" = "Not synced yet";
+"progress.noTasks" = "No tasks today";
+"progress.tasks" = "%d of %d tasks";
+"progress.accessibilityNotSynced" = "Daily progress: not synced yet";
+"progress.accessibilityNoTasks" = "Daily progress: no tasks today";
+"progress.accessibilityTasks" = "Daily progress: %d of %d tasks complete";
+"progress.title" = "Daily Progress";
+"progress.inline" = "Daily progress %@";
+"progress.configuration" = "Daily Progress X";
+"progress.description" = "The X fills as you complete today's tasks, like on the dashboard.";

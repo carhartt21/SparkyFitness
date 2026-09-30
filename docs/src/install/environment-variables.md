@@ -201,7 +201,7 @@ The developer mock-data switches (formerly `SPARKY_FITNESS_SAVE_MOCK_DATA` and t
 
 ### Module 13: 📱 iOS Mobile App Development `[Mobile Build]`
 
-Configures code signing, bundle identifiers, and shared App Groups when building [`SparkyFitnessMobile`](/developer/getting-started):
+Configures code signing, bundle identifiers, and shared App Groups when building [`XoTMobile`](/developer/getting-started):
 
 - **`EXPO_DEV_APPLE_TEAM_ID`** / **`EXPO_PROD_APPLE_TEAM_ID`**: 10-character Apple Developer Team ID.
 - **`EXPO_DEV_BUNDLE_IDENTIFIER`**: Development bundle ID (`org.SparkyApps.SparkyFitnessMobile.dev`).

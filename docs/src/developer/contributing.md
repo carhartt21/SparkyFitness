@@ -252,9 +252,9 @@ const userRepository = {
   - [ ] New endpoints include Zod schemas for validation
   - [ ] New endpoints include automated tests
 - [ ] **Quality Checks Passed**:
-  - [ ] Frontend: `pnpm run validate` in `SparkyFitnessFrontend/`
-  - [ ] Backend: `pnpm run typecheck && pnpm run lint && pnpm run test` in `SparkyFitnessServer/`
-  - [ ] Mobile: `pnpm run lint && pnpm run test:run -- --watchman=false --runInBand` in `SparkyFitnessMobile/`
+  - [ ] Frontend: `pnpm run validate` in `XoTFrontend/`
+  - [ ] Backend: `pnpm run typecheck && pnpm run lint && pnpm run test` in `XoTServer/`
+  - [ ] Mobile: `pnpm run lint && pnpm run test:run -- --watchman=false --runInBand` in `XoTMobile/`
 
 ### Submitting Your PR
 

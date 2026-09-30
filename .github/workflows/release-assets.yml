@@ -34,11 +34,11 @@ jobs:
 
       # ---------- FRONTEND ----------
       - name: Build frontend
-        run: pnpm --filter sparkyfitnessfrontend run build
+        run: pnpm --filter xot-frontend run build
 
       # ---------- BACKEND ----------
       - name: Build backend
-        run: pnpm --filter sparkyfitnessserver deploy --prod ./deploy
+        run: pnpm --filter xot-server deploy --prod ./deploy
 
       # ---------- PACKAGE ----------
       - name: Prepare release folder
@@ -46,7 +46,7 @@ jobs:
           mkdir -p release/frontend
           mkdir -p release/backend
 
-          cp -r SparkyFitnessFrontend/dist/* release/frontend/
+          cp -r XoTFrontend/dist/* release/frontend/
           cp -r deploy/* release/backend/
 
       # ---------- COMPRESS ----------

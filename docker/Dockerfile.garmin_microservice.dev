@@ -10,19 +10,19 @@ RUN apt-get update \
 ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
 
 # Set the working directory in the container
-WORKDIR /app/SparkyFitnessGarmin
+WORKDIR /app/XoTGarmin
 
 # Copy the requirements file into the container at /app
-COPY SparkyFitnessGarmin/requirements.txt .
+COPY XoTGarmin/requirements.txt .
 
 # Install any needed packages specified in requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the application code
-COPY SparkyFitnessGarmin/ .
+COPY XoTGarmin/ .
 
 # Create the mock_data directory and set permissions for the 'daemon' user
-RUN mkdir -p /app/SparkyFitnessGarmin/mock_data && chown daemon:daemon /app/SparkyFitnessGarmin/mock_data
+RUN mkdir -p /app/XoTGarmin/mock_data && chown daemon:daemon /app/XoTGarmin/mock_data
 
 # Expose the port that FastAPI will run on
 EXPOSE 8000

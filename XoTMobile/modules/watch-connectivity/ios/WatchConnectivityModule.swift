@@ -1,0 +1,273 @@
+import ExpoModulesCore
+import WatchConnectivity
+
+/// `WCSessionDelegate` extends `NSObjectProtocol`, which Swift only allows an
+/// actual `NSObject` subclass to conform to — Expo's `Module` base class does
+/// not qualify. So the delegate lives here and forwards to the module through
+/// closures.
+private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
+    var onReachabilityChange: ((Bool) -> Void)?
+    /// A check-in captured on the watch, awaiting a server write.
+    var onCheckIn: (([String: Any]) -> Void)?
+    /// The watch asking for fresh seed values + history.
+    var onContextRequest: (() -> Void)?
+    /// A water container tap captured on the watch, awaiting a server write.
+    var onWaterIntake: (([String: Any]) -> Void)?
+    var onManualWater: (([String: Any]) -> Void)?
+    /// A request from the watch to delete one logged drink.
+    var onWaterDelete: (([String: Any]) -> Void)?
+    var onWorkoutSetOperation: (([String: Any]) -> Void)?
+    var onFoodLog: (([String: Any]) -> Void)?
+    /// The watch asking for food pictures it has no file for.
+    var onThumbnailRequest: (([String]) -> Void)?
+
+    func activate() {
+        guard WCSession.isSupported() else { return }
+        let session = WCSession.default
+        session.delegate = self
+        session.activate()
+    }
+
+    private func route(_ payload: [String: Any]) {
+        switch payload["type"] as? String {
+        case "checkIn":
+            onCheckIn?(payload)
+        case "requestContext":
+            onContextRequest?()
+        case "waterIntake":
+            onWaterIntake?(payload)
+        case "manualWater":
+            onManualWater?(payload)
+        case "waterDelete":
+            onWaterDelete?(payload)
+        case "workoutSetOperation":
+            onWorkoutSetOperation?(payload)
+        case "foodLog":
+            onFoodLog?(payload)
+        case "thumbnailRequest":
+            onThumbnailRequest?(payload["keys"] as? [String] ?? [])
+        default:
+            break
+        }
+    }
+
+    // MARK: - WCSessionDelegate
+
+    func session(
+        _ session: WCSession,
+        activationDidCompleteWith activationState: WCSessionActivationState,
+        error: Error?
+    ) {
+        onReachabilityChange?(session.isReachable)
+    }
+
+    func sessionDidBecomeInactive(_ session: WCSession) {}
+
+    func sessionDidDeactivate(_ session: WCSession) {
+        // Re-activate so switching between paired Watches keeps working.
+        session.activate()
+    }
+
+    func sessionReachabilityDidChange(_ session: WCSession) {
+        onReachabilityChange?(session.isReachable)
+    }
+
+    func session(_ session: WCSession, didReceiveMessage message: [String: Any]) {
+        route(message)
+    }
+
+    func session(
+        _ session: WCSession,
+        didReceiveMessage message: [String: Any],
+        replyHandler: @escaping ([String: Any]) -> Void
+    ) {
+        route(message)
+        replyHandler([:])
+    }
+
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String: Any] = [:]) {
+        route(userInfo)
+    }
+}
+
+/// Phone-side bridge exposed to JS as `WatchConnectivity`.
+///
+/// The watch cannot reach the SparkyFitness server itself — authentication lives
+/// here — so this module is the transport: it surfaces check-ins captured on the
+/// watch to JS, which writes them via the normal measurements API, then relays
+/// acknowledgements and fresh seed data back.
+public class WatchConnectivityModule: Module {
+    private let delegateHandler = WatchSessionDelegateHandler()
+
+    public func definition() -> ModuleDefinition {
+        Name("WatchConnectivity")
+
+        Events(
+            "onReachabilityChange",
+            "onCheckIn",
+            "onContextRequest",
+            "onWaterIntake",
+            "onManualWater",
+            "onWaterDelete",
+            "onWorkoutSetOperation",
+            "onFoodLog",
+            "onThumbnailRequest"
+        )
+
+        OnCreate {
+            self.delegateHandler.onReachabilityChange = { [weak self] isReachable in
+                self?.sendEvent("onReachabilityChange", ["isReachable": isReachable])
+            }
+            self.delegateHandler.onCheckIn = { [weak self] payload in
+                self?.sendEvent("onCheckIn", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "weightKg": payload["weightKg"] as? Double ?? 0,
+                    // Absent (rather than null) when the wearer skipped body fat,
+                    // so the JS side can omit it from the upsert instead of
+                    // erasing an existing value.
+                    "bodyFatPercentage": payload["bodyFatPercentage"] as? Double,
+                ])
+            }
+            self.delegateHandler.onContextRequest = { [weak self] in
+                self?.sendEvent("onContextRequest", [:])
+            }
+            self.delegateHandler.onWaterIntake = { [weak self] payload in
+                self?.sendEvent("onWaterIntake", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "containerId": payload["containerId"] as? Int ?? 0,
+                    "loggedAt": payload["loggedAt"] as? String ?? "",
+                ])
+            }
+            self.delegateHandler.onManualWater = { [weak self] payload in
+                self?.sendEvent("onManualWater", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "loggedAt": payload["loggedAt"] as? String ?? "",
+                    "waterMl": payload["waterMl"] as? Int ?? 0,
+                    "scope": payload["scope"] as? String ?? "",
+                ])
+            }
+            self.delegateHandler.onWaterDelete = { [weak self] payload in
+                self?.sendEvent("onWaterDelete", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "entryId": payload["entryId"] as? String ?? "",
+                ])
+            }
+            self.delegateHandler.onWorkoutSetOperation = { [weak self] payload in
+                self?.sendEvent("onWorkoutSetOperation", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "sessionId": payload["sessionId"] as? String ?? "",
+                    "setKey": payload["setKey"] as? String ?? "",
+                    "setSignature": payload["setSignature"] as? String ?? "",
+                    "expectedCompleted": payload["expectedCompleted"] as? Bool ?? false,
+                    "completed": payload["completed"] as? Bool ?? false,
+                ])
+            }
+            self.delegateHandler.onFoodLog = { [weak self] payload in
+                var event: [String: Any] = [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "loggedAt": payload["loggedAt"] as? String ?? "",
+                    "foodId": payload["foodId"] as? String ?? "",
+                    "variantId": payload["variantId"] as? String ?? "",
+                    "mealTypeId": payload["mealTypeId"] as? String ?? "",
+                    "quantity": payload["quantity"] as? Double ?? 0,
+                    "unit": payload["unit"] as? String ?? "",
+                ]
+                // Only a weighed portion carries a grams override; absent
+                // keys stay absent so the bridge's validation can tell.
+                if let servingSize = payload["servingSize"] as? Double,
+                   let servingUnit = payload["servingUnit"] as? String {
+                    event["servingSize"] = servingSize
+                    event["servingUnit"] = servingUnit
+                }
+                self?.sendEvent("onFoodLog", event)
+            }
+            self.delegateHandler.onThumbnailRequest = { [weak self] keys in
+                self?.sendEvent("onThumbnailRequest", ["keys": keys])
+            }
+            self.delegateHandler.activate()
+        }
+
+        Function("isSupported") { () -> Bool in
+            WCSession.isSupported()
+        }
+
+        Function("isReachable") { () -> Bool in
+            guard WCSession.isSupported() else { return false }
+            return WCSession.default.isReachable
+        }
+
+        Function("isPaired") { () -> Bool in
+            guard WCSession.isSupported() else { return false }
+            return WCSession.default.isPaired
+        }
+
+        /// Pushes seed values, recent history and acknowledged client ids to the
+        /// watch. Application context is latest-value-only and survives the watch
+        /// app being asleep, which is exactly the semantics wanted here — a
+        /// missed update is simply superseded by the next one.
+        AsyncFunction("updateContext") { (context: [String: Any]) -> Void in
+            guard WCSession.isSupported() else { return }
+            var payload = context.compactMapValues(withoutNulls)
+            payload["type"] = "context"
+            try WCSession.default.updateApplicationContext(payload)
+        }
+
+        /// Sends a small file (a food thumbnail) to the watch. File transfers
+        /// queue in the background and survive the watch app being closed,
+        /// unlike messages; the watch moves the file into place on arrival.
+        AsyncFunction("transferFile") { (fileUri: String, metadata: [String: Any]) -> Void in
+            guard WCSession.isSupported(),
+                  WCSession.default.activationState == .activated,
+                  WCSession.default.isWatchAppInstalled,
+                  let url = URL(string: fileUri), url.isFileURL else { return }
+            WCSession.default.transferFile(url, metadata: metadata.compactMapValues(withoutNulls))
+        }
+
+        /// Immediate per-check-in acknowledgement for when the watch app is in
+        /// the foreground. The authoritative ack still rides in the context, so
+        /// this failing is harmless.
+        AsyncFunction("sendAck") { (clientId: String, ok: Bool) -> Void in
+            guard WCSession.isSupported(), WCSession.default.isReachable else { return }
+            WCSession.default.sendMessage(
+                ["type": "ack", "clientId": clientId, "ok": ok],
+                replyHandler: nil,
+                errorHandler: nil
+            )
+        }
+    }
+}
+
+/// Strips JS `null`s out of a payload bound for `updateApplicationContext`.
+///
+/// That API accepts property-list types only — data, string, number, date,
+/// array, dictionary — and a single `NSNull` anywhere in the tree makes it
+/// throw `WCErrorCodeInvalidParameter`. It fails the WHOLE push, not the
+/// offending field, so one absent body-fat reading silently costs the watch
+/// every other value in the same dictionary.
+///
+/// Nulls are load-bearing in this payload rather than accidental: the bridge
+/// sends `null` for a figure it cannot vouch for, and `history[]` entries
+/// carry `bodyFatPercentage: null` whenever a day has a weight but no body
+/// fat. Dropping the key is lossless, because the watch reads every optional
+/// field as `payload["key"] as? Double`, which cannot tell an absent key from
+/// a null one. The carry-forward paths in `ContextPayloadMapper` rely on the
+/// same equivalence.
+private func withoutNulls(_ value: Any) -> Any? {
+    if value is NSNull { return nil }
+    if let dictionary = value as? [String: Any] {
+        return dictionary.compactMapValues(withoutNulls)
+    }
+    if let array = value as? [Any] {
+        return array.compactMap(withoutNulls)
+    }
+    return value
+}

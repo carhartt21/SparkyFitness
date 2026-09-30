@@ -186,7 +186,8 @@
         "yourSetting": "Ihre Einstellungen",
         "successOverriding": "Globale Einstellungen überschrieben. Sie können nun Ihre eigenen Einstellungen verwenden.",
         "revertConfirm": "Möchten Sie Ihre eigenen KI-Dienst-Einstellungen löschen und wieder die globalen Einstellungen verwenden?",
-        "successReverting": "Auf globale Einstellungen zurückgesetzt. Ihre persönlichen Einstellungen wurden gelöscht."
+        "successReverting": "Auf globale Einstellungen zurückgesetzt. Ihre persönlichen Einstellungen wurden gelöscht.",
+        "customModelNameDescription": "Geben Sie den genauen Namen Ihres benutzerdefinierten Modells ein."
       },
       "test": {
         "categories": {
@@ -284,7 +285,54 @@
     },
     "notificationDelivery": {
       "description": "Legen Sie Ruhezeiten und Erinnerungen fest, die Ihr Smartphone auch bei geschlossener App erreichen.",
-      "deviceNote": "Aktivieren Sie Erinnerungen bei geschlossener App zuerst auf dem iPhone. Die App entfernt dabei lokal geplante Hinweise, bevor der Server die Zustellung übernimmt. Danach können Sie die Erinnerungen hier auch bei geschlossener App verwalten."
+      "deviceNote": "Aktivieren Sie Erinnerungen bei geschlossener App zuerst auf dem iPhone. Die App entfernt dabei lokal geplante Hinweise, bevor der Server die Zustellung übernimmt. Danach können Sie die Erinnerungen hier auch bei geschlossener App verwalten.",
+      "saveFailed": "Nicht gespeichert. Laden Sie diesen Bereich neu und versuchen Sie es erneut; die Einstellungen wurden möglicherweise andernorts geändert.",
+      "dailyLimit": "Optionale Hinweise pro Tag (1–50)",
+      "capDescription": "Check-in, Gewohnheiten, Gewicht, Mahlzeiten, Bewegung, Mobilität und Wasser teilen dieses Limit. Auch ohne Limit gelten Ruhezeiten, Intervalle und 20 Minuten Abstand. Einnahme- und Timerhinweise bleiben auf jedem Gerät.",
+      "capInvalid": "Geben Sie eine ganze Zahl von 1 bis 50 ein.",
+      "apply": "Limit übernehmen",
+      "noLimit": "Kein Limit",
+      "currentLimit": "Aktuelles Limit: {{limit}}",
+      "schedules": "Optionale Zeitpläne",
+      "waterInterval": "Stunden nach dem letzten Getränk",
+      "trackingNote": "Bestehende Erfassungseinstellungen bestimmen weiterhin Check-in-, Gewohnheits- und Wiegehinweise.",
+      "trackingLink": "Check-in öffnen",
+      "mobilityLink": "Mobilität planen",
+      "status": "Zustellstatus · letzte 7 Tage",
+      "statusNote": "Geplant bedeutet reserviert. Angenommen bedeutet von Expo angenommen; eine Bestätigung zeigt das Ergebnis des Push-Dienstes, nicht ob der Hinweis gelesen wurde. Fehlgeschlagene oder unklare Versände werden nicht automatisch wiederholt.",
+      "remote": "Server-Zustellung für dieses Konto",
+      "time": {
+        "hydration_start": "Wasserzeitfenster beginnt",
+        "hydration_end": "Wasserzeitfenster endet",
+        "meal_capture_start": "Mahlzeitfenster beginnt",
+        "meal_capture_end": "Mahlzeitfenster endet",
+        "meal_capture_time": "Mahlzeithinweis",
+        "meal_review_time": "Fotoprüfung",
+        "movement_break_time": "Bewegungspause"
+      },
+      "state": {
+        "pending": "Geplant",
+        "claimed": "Versand übernommen",
+        "sending": "Versand ausstehend",
+        "sent": "Push angenommen",
+        "accepted": "Push angenommen",
+        "delivered": "Zustellung bestätigt",
+        "failed": "Fehlgeschlagen oder unklar",
+        "cancelled": "Abgebrochen",
+        "skipped": "Übersprungen"
+      },
+      "kind": {
+        "hydration": "Wasser",
+        "meal_capture": "Mahlzeiterfassung",
+        "meal_review": "Fotoprüfung",
+        "movement_break": "Bewegungspause",
+        "mobility": "Mobilität",
+        "check_in": "Check-in",
+        "habit": "Gewohnheit",
+        "weigh_in": "Gewichtserfassung"
+      },
+      "refreshStatus": "Zustellstatus aktualisieren",
+      "statusUnavailable": "Zustellstatus derzeit nicht verfügbar. Ihre gespeicherten Einstellungen bleiben erhalten; versuchen Sie es erneut."
     },
     "profileInformation": {
       "enterFullName": "Geben Sie Ihren vollständigen Namen ein",
@@ -297,7 +345,8 @@
     },
     "waterTracking": {
       "addFoodWaterHint": "Rechnet den Wassergehalt eines erfassten Lebensmittels in Ihre tägliche Wasseraufnahme ein, sofern dieser nicht bereits durch ein verknüpftes Trinkgefäß berücksichtigt wurde.",
-      "addExerciseWater": "Wasserverlust durch Training zum Tagesziel hinzufügen"
+      "addExerciseWater": "Wasserverlust durch Training zum Tagesziel hinzufügen",
+      "addFoodWater": "Wasser aus Lebensmitteln zur Flüssigkeitsaufnahme zählen"
     },
     "familyAccess": {
       "description": "Zugriff auf Ihre Daten für Familienmitglieder verwalten",
@@ -311,7 +360,10 @@
       "exportErrorDescription": "Das Tagebuch konnte nicht heruntergeladen werden. Versuchen Sie es später erneut."
     },
     "nutrientDisplay": {
-      "description": "Wählen Sie, welche Nährwerte für Lebensmittel und Mahlzeiten angezeigt werden sollen"
+      "description": "Wählen Sie, welche Nährwerte für Lebensmittel und Mahlzeiten angezeigt werden sollen",
+      "descriptions": {
+        "foodDatabase": "Legt fest, welche Nährstoffe beim Bearbeiten von Lebensmitteln in Ihrer Datenbank angezeigt werden."
+      }
     },
     "customCategories": {
       "description": "Erstellen und verwalten Sie eigene Messwertkategorien"
@@ -330,6 +382,9 @@
     },
     "accountSecurity": {
       "title": "Kontosicherheit"
+    },
+    "goalMode": {
+      "customPercentageUnreachable": "Das Ziel liegt unter der zulässigen Untergrenze von etwa {{percent}} % und wird auf diese Untergrenze angehoben."
     }
   },
   "admin": {
@@ -350,7 +405,8 @@
     "oidcSettings": {
       "deleteConfirm": "Möchten Sie diesen Anbieter löschen?",
       "description": "Verwalten Sie OIDC-Anbieter für die Anmeldung.",
-      "loadingProviders": "OIDC-Anbieter werden geladen …"
+      "loadingProviders": "OIDC-Anbieter werden geladen …",
+      "providerIdInfo": "Dies wird Teil Ihrer Weiterleitungsadresse: /api/auth/sso/callback/YOUR_ID"
     },
     "userManagement": {
       "confirmChangeFullName": "Möchten Sie {{currentFullName}} in {{newFullName}} ändern?",
@@ -446,7 +502,8 @@
     "formatAmrap": "AMRAP",
     "formatForTime": "Für die Zeit",
     "timeCapLabel": "Zeitlimit (Minuten)",
-    "createDescription": "Geben Sie einen Namen, eine Beschreibung und Übungen an, um eine neue Trainingsvorlage zu erstellen."
+    "createDescription": "Geben Sie einen Namen, eine Beschreibung und Übungen an, um eine neue Trainingsvorlage zu erstellen.",
+    "editDescription": "Bearbeiten Sie die Details Ihrer Trainingsvorlage."
   },
   "addWorkoutPlanDialog": {
     "planNamePlaceholder": "z.B. Summer Shred",
@@ -477,7 +534,8 @@
     "moveSessionDown": "Einheit nach unten verschieben",
     "sessionNamePlaceholder": "Benutzerdefinierter Name (z. B. Push Day, Legs)",
     "addDescription": "Geben Sie die Details Ihres neuen Trainingsplans ein und weisen Sie den Tagen Trainings zu.",
-    "addExerciseOrPresetDescription": "Wählen Sie eine Übung oder Vorlage aus, um sie dem ausgewählten Tag hinzuzufügen."
+    "addExerciseOrPresetDescription": "Wählen Sie eine Übung oder Vorlage aus, um sie dem ausgewählten Tag hinzuzufügen.",
+    "editDescription": "Bearbeiten Sie Ihren Trainingsplan und seine Zuordnungen."
   },
   "reports": {
     "nutritionPageTitle": "Ernährungsberichte",
@@ -709,7 +767,8 @@
     "textToSpeechNotSupportedDescription": "Ihr Browser unterstützt die Sprachausgabe nicht.",
     "searchButton": "Suchen",
     "loading": "Suche läuft …",
-    "enterSearchTerm": "Geben Sie einen Suchbegriff ein und tippen Sie auf „Suchen“, um Trainings zu finden."
+    "enterSearchTerm": "Geben Sie einen Suchbegriff ein und tippen Sie auf „Suchen“, um Trainings zu finden.",
+    "noExercisesFoundInDatabase": "Keine Übungen in Ihrer Datenbank gefunden."
   },
   "foodCsvImport": {
     "defaultVariantNote": "Für jedes Lebensmittel muss mindestens eine Variante als Standardeinheit markiert sein (CSV-Spalte „Is Default“ = True).",
@@ -750,7 +809,9 @@
     "searchOnlineToImport": "Suchen Sie Lebensmittel bei Ihrem Onlineanbieter.",
     "onlineSearchFailed": "Die Suche bei Ihrem Onlineanbieter ist fehlgeschlagen.",
     "searchingFoods": "Lebensmittel werden gesucht …",
-    "clickSearchIconOnline": "Tippen Sie auf das Suchsymbol, um online zu suchen."
+    "clickSearchIconOnline": "Tippen Sie auf das Suchsymbol, um online zu suchen.",
+    "editFoodDetailsDescription": "Passen Sie die Lebensmittelangaben an, bevor Sie das Lebensmittel in Ihrer Datenbank speichern.",
+    "scanBarcodeDescription": "Halten Sie den Produktbarcode vor Ihre Kamera."
   },
   "goals": {
     "goalsSettings": {
@@ -788,7 +849,11 @@
   "foodDatabaseManager": {
     "noFoodsCreatedByYouFound": "Keine von Ihnen erstellten Lebensmittel gefunden",
     "noFoodsNeedYourReview": "Keine Lebensmittel erfordern Ihre Prüfung",
-    "loadingFoods": "Lebensmittel werden geladen …"
+    "loadingFoods": "Lebensmittel werden geladen …",
+    "foodAddedSuccess": "{{foodName}} wurde Ihrer Datenbank hinzugefügt.",
+    "foodAddedToMealSuccess": "{{foodName}} wurde Ihrer Mahlzeit hinzugefügt.",
+    "failedToAddFoodToMeal": "{{foodName}} konnte der Mahlzeit nicht hinzugefügt werden.",
+    "noFamilyFoodsFound": "Keine Lebensmittel aus Ihrer Familie gefunden"
   },
   "mealManagement": {
     "createNewMealDialogDescription": "Erstellen Sie eine Mahlzeit, indem Sie Lebensmittel hinzufügen.",
@@ -796,7 +861,8 @@
     "usedByCurrentUserWarning": "Diese Mahlzeit wird in Ihren Speiseplänen verwendet. Wenn Sie sie hier löschen, wird sie auch aus den Plänen entfernt.",
     "confirmPermanentDelete": "Möchten Sie diese Mahlzeit dauerhaft löschen?",
     "searchMealsPlaceholder": "Mahlzeiten suchen …",
-    "noMealsFound": "Keine Mahlzeiten gefunden. Erstellen Sie eine."
+    "noMealsFound": "Keine Mahlzeiten gefunden. Erstellen Sie eine.",
+    "editMealDialogDescription": "Bearbeiten Sie die Details Ihrer Mahlzeit."
   },
   "mealPlanCalendar": {
     "deleteTemplateConfirmation": "Möchten Sie diese Vorlage löschen?",
@@ -889,5 +955,73 @@
     "dismiss": "Für diese Version nicht erneut anzeigen",
     "close": "Schließen",
     "breakingChangeLabel": "inkompatible Änderung"
+  },
+  "mobilityWeb": {
+    "title": "Mobilität",
+    "intro": "Planen Sie Mobilität hier oder über MCP und führen Sie Einheiten auf dem Smartphone aus. Routinenänderungen verändern keine aktiven oder historischen Momentaufnahmen.",
+    "invalid": "Prüfen Sie Namen, Schrittwerte, Zeiten und den Datumsbereich.",
+    "failed": "Nicht gespeichert oder nicht verfügbar. Laden Sie neu, um Änderungen von anderen Geräten zu prüfen; der Editor bleibt offen.",
+    "reload": "Neu laden",
+    "routines": "Routinen",
+    "new": "Neue Routine",
+    "empty": "Noch keine Mobilitätsroutinen. Fügen Sie einen eigenen Schritt hinzu oder verknüpfen Sie eine bestehende Übung.",
+    "steps": "{{count}} Schritte",
+    "edit": "Bearbeiten",
+    "deleteNamed": "{{name}} löschen",
+    "deleteConfirm": "Diese Routine löschen? Historische und aktive Einheiten bleiben erhalten.",
+    "plan": "Einheit planen",
+    "routine": "Routine",
+    "choose": "Routine wählen",
+    "startDay": "Datum / Beginn der Wiederholung",
+    "time": "Uhrzeit (24 Stunden)",
+    "oneOff": "Datumsplan hinzufügen",
+    "weekly": "Wöchentliche Wiederholung",
+    "endDay": "Enddatum (optional)",
+    "saveSchedule": "Wiederholung speichern",
+    "replaceSchedule": "Wiederholung bearbeiten",
+    "delete": "Löschen",
+    "editor": "Routineneditor",
+    "name": "Name",
+    "step": "Schritt {{index}}",
+    "exerciseId": "Gespeicherte Übung (optional)",
+    "instructions": "Anleitung",
+    "type": "Schritttyp",
+    "seconds": "Sekunden",
+    "repetitions": "Wiederholungen",
+    "side": "Seite",
+    "both": "Beide Seiten",
+    "left": "Links",
+    "right": "Rechts",
+    "transition": "Übergang (Sekunden)",
+    "moveUp": "Schritt nach oben",
+    "moveDown": "Schritt nach unten",
+    "deleteStep": "Schritt entfernen",
+    "addStep": "Schritt hinzufügen",
+    "save": "Routine speichern",
+    "close": "Editor schließen",
+    "plansHistory": "Pläne und Verlauf",
+    "from": "Von",
+    "to": "Bis",
+    "timezone": "Planzeiten gelten in {{timezone}}. Maximaler Datumsbereich: 93 Tage.",
+    "newTime": "Neue Uhrzeit (HH:mm)",
+    "changeTime": "Uhrzeit ändern",
+    "skip": "Einheit überspringen",
+    "sessions": "Erfasste Einheiten",
+    "confirmed": "{{count}} von {{total}} Schritten ausdrücklich erfasst",
+    "state": {
+      "planned": "Geplant",
+      "active": "Auf dem Smartphone aktiv",
+      "completed": "Abgeschlossen",
+      "skipped": "Übersprungen",
+      "cancelled": "Abgebrochen",
+      "running": "Läuft",
+      "paused": "Pausiert",
+      "finished": "Abgeschlossen"
+    },
+    "unlinkExercise": "Übung lösen",
+    "searchExercises": "Übungsbibliothek durchsuchen …",
+    "exerciseFailed": "Die Übungssuche ist fehlgeschlagen. Eigene Schritte sind weiterhin möglich.",
+    "noExercises": "Keine passende gespeicherte Übung. Sie können einen eigenen Schritt verwenden.",
+    "ownerOnly": "Mobilitätsplanung steht nur für das eigene Konto zur Verfügung. Wechseln Sie zurück zu Ihrem Konto."
   }
 }

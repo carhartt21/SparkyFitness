@@ -34,23 +34,23 @@ Use this skill whenever opening a pull request for the SparkyFitness repository.
 ### Step 1: Pre-Submission Validation
 Run the standard validation commands for all packages touched in the PR:
 
-- **Server (`SparkyFitnessServer/`)**:
+- **Server (`XoTServer/`)**:
   ```bash
-  cd SparkyFitnessServer && pnpm format && pnpm test && pnpm validate
+  cd XoTServer && pnpm format && pnpm test && pnpm validate
   # If database migrations were added or modified:
   pnpm run test:migrations
   ```
-- **Frontend (`SparkyFitnessFrontend/`)**:
+- **Frontend (`XoTFrontend/`)**:
   ```bash
-  cd SparkyFitnessFrontend && pnpm format && pnpm test && pnpm validate
+  cd XoTFrontend && pnpm format && pnpm test && pnpm validate
   ```
-- **Mobile (`SparkyFitnessMobile/`)**:
+- **Mobile (`XoTMobile/`)**:
   ```bash
-  cd SparkyFitnessMobile && pnpm test && pnpm validate
+  cd XoTMobile && pnpm test && pnpm validate
   ```
-- **Garmin Microservice (`SparkyFitnessGarmin/`)**:
+- **Garmin Microservice (`XoTGarmin/`)**:
   ```bash
-  cd SparkyFitnessGarmin && ./venv/bin/python -m unittest discover tests
+  cd XoTGarmin && ./venv/bin/python -m unittest discover tests
   ```
 
 Inspect `git status` and `git diff` to ensure no scratch files, debug logs, or unwanted changes are staged.

@@ -1,0 +1,724 @@
+import React, { useCallback, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+  View,
+  Text,
+  ScrollView,
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQuery } from '@tanstack/react-query';
+import { useCSSVariable } from 'uniwind';
+import type { CompositeScreenProps } from '@react-navigation/native';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
+import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
+import { useNavigationActionGuard } from '../hooks/useNavigationActionGuard';
+import Button from '../components/ui/Button';
+import CreateTile from '../components/CreateTile';
+import FoodLibraryRow from '../components/FoodLibraryRow';
+import Icon from '../components/Icon';
+import MealLibraryRow from '../components/MealLibraryRow';
+import StatusView from '../components/StatusView';
+import {
+  useFavorites,
+  useFoods,
+  useMeals,
+  useMedications,
+  useWaterContainersQuery,
+  useRecentMeals,
+  useServerConnection,
+  useSuggestedExercises,
+} from '../hooks';
+import { fetchExercisesCount } from '../services/api/exerciseApi';
+import { fetchFoodsPage } from '../services/api/foodsApi';
+import { fetchWorkoutPresetsPage } from '../services/api/workoutPresetsApi';
+import type { Exercise } from '../types/exercise';
+import { foodItemToFoodInfo } from '../types/foodInfo';
+import type { FoodItem } from '../types/foods';
+import type { Meal } from '../types/meals';
+import type { RootStackParamList, TabParamList } from '../types/navigation';
+import TabScreenHeader from '../components/TabScreenHeader';
+import ScreenBackground from '../components/ui/ScreenBackground';
+import { useNeonScale } from '../components/tracking/useNeonScale';
+
+type LibraryScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, 'More'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
+
+const RECENT_LIMIT = 4;
+
+type RecentItem =
+  | { type: 'meal'; data: Meal }
+  | { type: 'food'; data: FoodItem }
+  | { type: 'exercise'; data: Exercise };
+
+const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
+  const { t } = useTranslation();
+  const insets = useSafeAreaInsets();
+  const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
+  const usesNativeTabs = useNativeIOSTabsActive();
+  const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const neon = useNeonScale();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const { isNavigationLocked, runNavigationAction } =
+    useNavigationActionGuard(navigation);
+  const { isConnected, isLoading: isConnectionLoading } = useServerConnection();
+  const { favoriteFoods, favoriteMeals } = useFavorites({
+    enabled: isConnected,
+  });
+  const favoriteFoodIds = useMemo(
+    () => new Set(favoriteFoods.map((f) => f.id)),
+    [favoriteFoods]
+  );
+  const favoriteMealIds = useMemo(
+    () => new Set(favoriteMeals.map((m) => m.id)),
+    [favoriteMeals]
+  );
+  const {
+    recentFoods,
+    isLoading: isFoodsLoading,
+    isError: isFoodsError,
+    refetch: refetchFoods,
+  } = useFoods({ enabled: isConnected });
+  const {
+    recentMeals,
+    isLoading: isRecentMealsLoading,
+    isError: isRecentMealsError,
+    refetch: refetchRecentMeals,
+  } = useRecentMeals({ enabled: isConnected, limit: RECENT_LIMIT });
+  const { meals, refetch: refetchMeals } = useMeals({ enabled: isConnected });
+  const { data: medications, refetch: refetchMedications } = useMedications({
+    enabled: isConnected,
+  });
+  const { containers: waterContainers } = useWaterContainersQuery({
+    enabled: isConnected,
+  });
+  const {
+    recentExercises,
+    isLoading: isRecentExercisesLoading,
+    isError: isRecentExercisesError,
+    refetch: refetchRecentExercises,
+  } = useSuggestedExercises();
+  // Foods count uses the ['foods', ...] prefix so it is invalidated by the
+  // existing `foodsQueryKey` invalidations in useSaveFood / useDeleteFood.
+  const { data: foodsCount, refetch: refetchFoodsCount } = useQuery({
+    queryKey: ['foods', 'count'] as const,
+    queryFn: () =>
+      fetchFoodsPage({ page: 1, itemsPerPage: 1 }).then(
+        (r) => r.pagination.totalCount
+      ),
+    enabled: isConnected,
+    staleTime: 1000 * 60 * 5,
+  });
+  const { data: exercisesCount, refetch: refetchExercisesCount } = useQuery({
+    queryKey: ['exercises', 'count'] as const,
+    queryFn: fetchExercisesCount,
+    enabled: isConnected,
+    staleTime: 1000 * 60 * 5,
+  });
+  const { data: presetsCount, refetch: refetchPresetsCount } = useQuery({
+    queryKey: ['workoutPresets', 'count'] as const,
+    queryFn: () =>
+      fetchWorkoutPresetsPage({ page: 1, pageSize: 1 }).then(
+        (r) => r.pagination.totalCount
+      ),
+    enabled: isConnected,
+    staleTime: 1000 * 60 * 5,
+  });
+
+  const onRefresh = useCallback(async () => {
+    if (!isConnected) return;
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchFoods(),
+        refetchRecentMeals(),
+        refetchMeals(),
+        refetchFoodsCount(),
+        refetchExercisesCount(),
+        refetchPresetsCount(),
+        refetchRecentExercises(),
+        refetchMedications(),
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [
+    isConnected,
+    refetchFoods,
+    refetchRecentMeals,
+    refetchMeals,
+    refetchFoodsCount,
+    refetchExercisesCount,
+    refetchPresetsCount,
+    refetchRecentExercises,
+    refetchMedications,
+  ]);
+
+  const recentItems = useMemo<RecentItem[]>(() => {
+    const items: RecentItem[] = [];
+    let mi = 0;
+    let fi = 0;
+    let ei = 0;
+    while (items.length < RECENT_LIMIT) {
+      const hasMeal = mi < recentMeals.length;
+      const hasFood = fi < recentFoods.length;
+      const hasExercise = ei < recentExercises.length;
+      if (!hasMeal && !hasFood && !hasExercise) break;
+      if (hasMeal) {
+        items.push({ type: 'meal', data: recentMeals[mi++] });
+        if (items.length >= RECENT_LIMIT) break;
+      }
+      if (hasFood) {
+        items.push({ type: 'food', data: recentFoods[fi++] });
+        if (items.length >= RECENT_LIMIT) break;
+      }
+      if (hasExercise)
+        items.push({ type: 'exercise', data: recentExercises[ei++] });
+    }
+    return items;
+  }, [recentMeals, recentFoods, recentExercises]);
+
+  const isRecentLoading =
+    isFoodsLoading || isRecentMealsLoading || isRecentExercisesLoading;
+  const showRecentError =
+    !isRecentLoading &&
+    recentItems.length === 0 &&
+    (isFoodsError || isRecentMealsError || isRecentExercisesError);
+
+  const retryRecent = () => {
+    void refetchFoods();
+    void refetchRecentMeals();
+    void refetchRecentExercises();
+  };
+
+  if (!isConnectionLoading && !isConnected) {
+    return (
+      <View
+        className="flex-1 bg-background"
+        style={usesNativeTabs ? undefined : { paddingTop: insets.top }}
+      >
+        <StatusView
+          icon="cloud-offline"
+          iconTone="muted"
+          iconSize={64}
+          title={t('screens.library.noServerConfigured', {
+            defaultValue: 'No server configured',
+          })}
+          subtitle={t('screens.library.configureServer', {
+            defaultValue:
+              'Configure your server connection in Settings to view your library.',
+          })}
+          action={{
+            label: t('screens.library.goToSettings', {
+              defaultValue: 'Go to Settings',
+            }),
+            onPress: () => navigation.navigate('Settings'),
+            variant: 'primary',
+          }}
+        />
+      </View>
+    );
+  }
+
+  if (isConnectionLoading) {
+    return (
+      <View
+        className="flex-1 bg-background"
+        style={usesNativeTabs ? undefined : { paddingTop: insets.top }}
+      >
+        <StatusView
+          loading
+          title={t('screens.library.loading', {
+            defaultValue: 'Loading library...',
+          })}
+        />
+      </View>
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-background">
+      <ScreenBackground />
+      <ScrollView
+        className="flex-1"
+        style={[
+          { flex: 1 },
+          usesNativeTabs ? undefined : { paddingTop: insets.top },
+        ]}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          ...(!usesNativeTabs ? { paddingTop: 16 } : null),
+          paddingBottom: insets.bottom + activeWorkoutBarPadding + 16,
+        }}
+        scrollEventThrottle={16}
+        contentInsetAdjustmentBehavior={usesNativeTabs ? 'automatic' : 'never'}
+        automaticallyAdjustsScrollIndicatorInsets={usesNativeTabs}
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={onRefresh}
+            tintColor={accentColor}
+          />
+        }
+      >
+        {!usesNativeTabs && (
+          <View className="mb-3">
+            <TabScreenHeader
+              title={t('navigation.more', { defaultValue: 'More' })}
+              subtitle={t('screens.library.subtitle', {
+                defaultValue: 'Your entries and plans.',
+              })}
+              onSettings={() => navigation.navigate('Settings')}
+            />
+          </View>
+        )}
+
+        <View className="mb-3">
+          <Text className="text-lg font-semibold text-text-primary">
+            {t('screens.library.dailyTracking', {
+              defaultValue: 'Daily tracking',
+            })}
+          </Text>
+        </View>
+
+        <View
+          className="flex-row flex-wrap justify-between mb-6"
+          testID="more-daily-tracking"
+        >
+          <CreateTile
+            testID="more-daily-checkin"
+            icon="daily-checkin"
+            color={neon.red}
+            title={t('checkin.title', { defaultValue: 'Daily Check-In' })}
+            subtitle={t('screens.library.checkinSubtitle', {
+              defaultValue: 'Reflect on your day',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('DailyCheckIn'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-habits"
+            icon="habit"
+            color={neon.green}
+            title={t('habits.title', { defaultValue: 'Habits' })}
+            subtitle={t('screens.library.habitsSubtitle', {
+              defaultValue: 'Routines and reps',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('Habits'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-supplements"
+            icon="medication"
+            color={neon.yellow}
+            title={t('supplements.title', { defaultValue: 'Supplements' })}
+            subtitle={t('screens.library.supplementsSubtitle', {
+              defaultValue: 'Today’s routine',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('Supplements'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-daily-progress"
+            icon="chart-bar"
+            color={neon.mint}
+            title={t('progress.title', { defaultValue: 'Daily Progress' })}
+            subtitle={t('screens.library.progressSubtitle', {
+              defaultValue: 'Tasks done today',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('DailyProgress'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-health-context"
+            icon="bandage"
+            color={neon.cyan}
+            title={t('context.title', { defaultValue: 'Health context' })}
+            subtitle={t('screens.library.contextSubtitle', {
+              defaultValue: 'Injury, illness, vacation',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('HealthContext'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            icon="bell"
+            color={neon.violet}
+            title={t('trackingSettings.title', {
+              defaultValue: 'Tracking settings',
+            })}
+            subtitle={t('screens.library.trackingSettingsSubtitle', {
+              defaultValue: 'Progress and reminders',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('TrackingSettings'))
+            }
+            className="w-[48%] mb-3"
+          />
+        </View>
+
+        <View className="mb-3">
+          <Text className="text-lg font-semibold text-text-primary">
+            {t('screens.library.create', { defaultValue: 'Create' })}
+          </Text>
+        </View>
+
+        <View className="flex-row flex-wrap justify-between mb-6">
+          <CreateTile
+            icon="food"
+            title={t('screens.library.food', { defaultValue: 'Food' })}
+            subtitle={t('screens.library.manualEntry', {
+              defaultValue: 'Manual entry',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() =>
+                navigation.navigate('FoodForm', {
+                  mode: 'create-food',
+                  pickerMode: 'library',
+                })
+              )
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            icon="meal"
+            title={t('screens.library.meal', { defaultValue: 'Meal' })}
+            subtitle={t('screens.library.groupFoods', {
+              defaultValue: 'Group foods',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('MealAdd'))
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            icon="exercise-weights"
+            title={t('screens.library.exercise', { defaultValue: 'Exercise' })}
+            subtitle={t('screens.library.manualEntry', {
+              defaultValue: 'Manual entry',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() =>
+                navigation.navigate('ExerciseForm', { mode: 'create-exercise' })
+              )
+            }
+            className="w-[48%] mb-3"
+          />
+          <CreateTile
+            icon="bookmark-filled"
+            title={t('screens.library.workoutPreset', {
+              defaultValue: 'Workout preset',
+            })}
+            subtitle={t('screens.library.exerciseRoutine', {
+              defaultValue: 'Exercise routine',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() =>
+                navigation.navigate('WorkoutPresetForm', {
+                  mode: 'create-preset',
+                })
+              )
+            }
+            className="w-[48%] mb-3"
+          />
+        </View>
+
+        <View className="mb-3">
+          <Text className="text-lg font-semibold text-text-primary">
+            {t('screens.library.browse', { defaultValue: 'Browse' })}
+          </Text>
+        </View>
+
+        <View className="bg-surface rounded-2xl mb-6 border border-border-subtle overflow-hidden">
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('FoodsLibrary')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <Text className="text-base font-semibold text-text-primary">
+              {t('screens.library.foods', { defaultValue: 'Foods' })}
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-text-secondary text-base mr-2">
+                {foodsCount ?? '-'}
+              </Text>
+              <Icon name="chevron-forward" size={20} color="#999" />
+            </View>
+          </Pressable>
+
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('MealsLibrary')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <Text className="text-base font-semibold text-text-primary">
+              {t('screens.library.meals', { defaultValue: 'Meals' })}
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-text-secondary text-base mr-2">
+                {meals.length}
+              </Text>
+              <Icon name="chevron-forward" size={20} color="#999" />
+            </View>
+          </Pressable>
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('MealPlans')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <View className="flex-1 mr-3">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('screens.library.mealPlans', { defaultValue: 'Meal plans' })}
+              </Text>
+              <Text className="text-sm text-text-secondary mt-0.5">
+                {t('screens.library.mealPlansSubtitle', {
+                  defaultValue: 'Repeat meals on selected days',
+                })}
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color="#999" />
+          </Pressable>
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('ExercisesLibrary')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <Text className="text-base font-semibold text-text-primary">
+              {t('screens.library.exercises', { defaultValue: 'Exercises' })}
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-text-secondary text-base mr-2">
+                {exercisesCount ?? '-'}
+              </Text>
+              <Icon name="chevron-forward" size={20} color="#999" />
+            </View>
+          </Pressable>
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('WorkoutPresetsLibrary')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <Text className="text-base font-semibold text-text-primary">
+              {t('screens.library.workoutPresets', {
+                defaultValue: 'Workout presets',
+              })}
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-text-secondary text-base mr-2">
+                {presetsCount ?? '-'}
+              </Text>
+              <Icon name="chevron-forward" size={20} color="#999" />
+            </View>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('GuidedMobility')}
+          >
+            <View className="flex-1 mr-3">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('mobility.title', { defaultValue: 'Guided mobility' })}
+              </Text>
+              <Text className="text-sm text-text-secondary mt-0.5">
+                {t('mobility.plannedOnPhone', {
+                  defaultValue: 'Plan sessions on the web and run them here.',
+                })}
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color="#999" />
+          </Pressable>
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('ExerciseReview')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <View className="flex-1 mr-3">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('exerciseReview.title', { defaultValue: 'Exercise review' })}
+              </Text>
+              <Text className="text-sm text-text-secondary mt-0.5">
+                {t('exerciseReview.librarySubtitle', {
+                  defaultValue: 'Compare activity by day, week, month, or year',
+                })}
+              </Text>
+            </View>
+            <Icon name="chevron-forward" size={20} color="#999" />
+          </Pressable>
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+            onPress={() => navigation.navigate('WaterContainers')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <View className="flex-1 mr-3">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('screens.library.waterContainers', {
+                  defaultValue: 'Water containers',
+                })}
+              </Text>
+              <Text className="text-sm text-text-secondary mt-0.5">
+                {t('screens.library.waterContainersSubtitle', {
+                  defaultValue: 'Bottles, glasses, and drinks linked to foods',
+                })}
+              </Text>
+            </View>
+            <View className="flex-row items-center">
+              <Text className="text-text-secondary text-base mr-2">
+                {waterContainers.length}
+              </Text>
+              <Icon name="chevron-forward" size={20} color="#999" />
+            </View>
+          </Pressable>
+          <Pressable
+            className="px-4 py-4 flex-row items-center justify-between"
+            onPress={() => navigation.navigate('MedicationsList')}
+            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+          >
+            <Text className="text-base font-semibold text-text-primary">
+              {t('screens.library.medications', {
+                defaultValue: 'Medications',
+              })}
+            </Text>
+            <View className="flex-row items-center">
+              <Text className="text-text-secondary text-base mr-2">
+                {medications?.length ?? '-'}
+              </Text>
+              <Icon name="chevron-forward" size={20} color="#999" />
+            </View>
+          </Pressable>
+        </View>
+
+        <View className="mb-3">
+          <Text className="text-lg font-semibold text-text-primary">
+            {t('screens.library.recentlyLogged', {
+              defaultValue: 'Recently Logged',
+            })}
+          </Text>
+        </View>
+
+        <View className="bg-surface rounded-2xl overflow-hidden border border-border-subtle">
+          {isRecentLoading ? (
+            <View className="px-4 py-8 items-center">
+              <ActivityIndicator size="small" color="#6B7280" />
+              <Text className="text-text-secondary text-sm mt-3">
+                {t('screens.library.loadingRecentItems', {
+                  defaultValue: 'Loading recent items...',
+                })}
+              </Text>
+            </View>
+          ) : showRecentError ? (
+            <View className="px-4 py-6 items-start">
+              <Text className="text-text-secondary text-sm">
+                {t('screens.library.failedRecentItems', {
+                  defaultValue: 'Failed to load recent items.',
+                })}
+              </Text>
+              <Button
+                variant="link"
+                className="px-0 py-0 mt-3"
+                textClassName="text-sm"
+                onPress={retryRecent}
+              >
+                {t('common.retry', { defaultValue: 'Retry' })}
+              </Button>
+            </View>
+          ) : recentItems.length > 0 ? (
+            recentItems.map((item, index) => {
+              const showDivider = index < recentItems.length - 1;
+              if (item.type === 'meal') {
+                return (
+                  <MealLibraryRow
+                    key={`meal-${item.data.id}`}
+                    meal={item.data}
+                    isFavorite={favoriteMealIds.has(item.data.id)}
+                    showDivider={showDivider}
+                    onPress={() =>
+                      navigation.navigate('MealDetail', {
+                        mealId: item.data.id,
+                        initialMeal: item.data,
+                      })
+                    }
+                  />
+                );
+              }
+              if (item.type === 'food') {
+                return (
+                  <FoodLibraryRow
+                    key={`food-${item.data.id}`}
+                    food={item.data}
+                    isFavorite={favoriteFoodIds.has(item.data.id)}
+                    showDivider={showDivider}
+                    onPress={() =>
+                      navigation.navigate('FoodDetail', {
+                        item: foodItemToFoodInfo(item.data),
+                      })
+                    }
+                  />
+                );
+              }
+              return (
+                <Pressable
+                  key={`exercise-${item.data.id}`}
+                  className={`px-4 py-3 ${showDivider ? 'border-b border-border-subtle' : ''}`}
+                  onPress={() =>
+                    navigation.navigate('ExerciseDetail', { item: item.data })
+                  }
+                  style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
+                >
+                  <Text className="text-text-primary text-base font-medium">
+                    {item.data.name}
+                  </Text>
+                  {item.data.category ? (
+                    <Text className="text-text-secondary text-sm mt-0.5">
+                      {item.data.category}
+                    </Text>
+                  ) : null}
+                </Pressable>
+              );
+            })
+          ) : (
+            <View className="px-4 py-6">
+              <Text className="text-text-primary text-base font-medium">
+                {t('screens.library.noRecentItems', {
+                  defaultValue: 'No recent items yet',
+                })}
+              </Text>
+              <Text className="text-text-secondary text-sm mt-1">
+                {t('screens.library.recentItemsHint', {
+                  defaultValue:
+                    'Foods, meals, and exercises you log will appear here for quick access.',
+                })}
+              </Text>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
+
+export default LibraryScreen;

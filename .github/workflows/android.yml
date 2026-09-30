@@ -36,7 +36,7 @@ jobs:
       - name: Install dependencies
         run: |
           pnpm install --frozen-lockfile
-          cd SparkyFitnessMobile
+          cd XoTMobile
           APP_VARIANT=production npx expo prebuild --platform android
 
       - name: Cache Gradle packages
@@ -50,29 +50,29 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Make gradlew executable
-        run: chmod +x SparkyFitnessMobile/android/gradlew
+        run: chmod +x XoTMobile/android/gradlew
 
       - name: Create local.properties
         run: |
-          echo "sdk.dir=$ANDROID_HOME" > SparkyFitnessMobile/android/local.properties
+          echo "sdk.dir=$ANDROID_HOME" > XoTMobile/android/local.properties
 
       - name: Decode and setup keystore
         if: github.event_name != 'pull_request'
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > SparkyFitnessMobile/android/app/sparky-fitness-release-key.keystore
-          echo "Keystore created at: $(pwd)/SparkyFitnessMobile/android/app/sparky-fitness-release-key.keystore"
-          ls -la SparkyFitnessMobile/android/app/sparky-fitness-release-key.keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > XoTMobile/android/app/sparky-fitness-release-key.keystore
+          echo "Keystore created at: $(pwd)/XoTMobile/android/app/sparky-fitness-release-key.keystore"
+          ls -la XoTMobile/android/app/sparky-fitness-release-key.keystore
 
       - name: Run Gradle to generate codegen (will fail but generates files)
         run: |
-          cd SparkyFitnessMobile/android
+          cd XoTMobile/android
           ./gradlew :app:assembleDebug || true
 
       - name: Verify codegen was generated
         run: |
-          if [ -d "SparkyFitnessMobile/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/" ]; then
+          if [ -d "XoTMobile/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/" ]; then
             echo "✅ Codegen directory exists"
-            ls -la SparkyFitnessMobile/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/
+            ls -la XoTMobile/node_modules/@react-native-async-storage/async-storage/android/build/generated/source/codegen/jni/
           else
             echo "❌ Codegen directory NOT found"
           fi
@@ -80,9 +80,9 @@ jobs:
       - name: Build Release APK
         if: github.event_name != 'pull_request'
         run: |
-          cd SparkyFitnessMobile/android
+          cd XoTMobile/android
           ./gradlew :app:assembleRelease \
-            -PMYAPP_RELEASE_STORE_FILE=${{ github.workspace }}/SparkyFitnessMobile/android/app/sparky-fitness-release-key.keystore \
+            -PMYAPP_RELEASE_STORE_FILE=${{ github.workspace }}/XoTMobile/android/app/sparky-fitness-release-key.keystore \
             -PMYAPP_RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }} \
             -PMYAPP_RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }} \
             -PMYAPP_RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }} \
@@ -92,16 +92,16 @@ jobs:
         if: github.event_name != 'pull_request'
         id: apk
         run: |
-          APK_PATH=$(find SparkyFitnessMobile/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
+          APK_PATH=$(find XoTMobile/android/app/build/outputs/apk/release -name "*.apk" | head -n 1)
           echo "path=$APK_PATH" >> $GITHUB_OUTPUT
           echo "name=$(basename $APK_PATH)" >> $GITHUB_OUTPUT
 
       - name: Build Release AAB
         if: github.event_name != 'pull_request'
         run: |
-          cd SparkyFitnessMobile/android
+          cd XoTMobile/android
           ./gradlew :app:bundleRelease \
-            -PMYAPP_RELEASE_STORE_FILE=${{ github.workspace }}/SparkyFitnessMobile/android/app/sparky-fitness-release-key.keystore \
+            -PMYAPP_RELEASE_STORE_FILE=${{ github.workspace }}/XoTMobile/android/app/sparky-fitness-release-key.keystore \
             -PMYAPP_RELEASE_KEY_ALIAS=${{ secrets.RELEASE_KEY_ALIAS }} \
             -PMYAPP_RELEASE_STORE_PASSWORD=${{ secrets.RELEASE_STORE_PASSWORD }} \
             -PMYAPP_RELEASE_KEY_PASSWORD=${{ secrets.RELEASE_KEY_PASSWORD }} \
@@ -111,7 +111,7 @@ jobs:
         if: github.event_name != 'pull_request'
         id: aab
         run: |
-          AAB_PATH=$(find SparkyFitnessMobile/android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
+          AAB_PATH=$(find XoTMobile/android/app/build/outputs/bundle/release -name "*.aab" | head -n 1)
           echo "path=$AAB_PATH" >> $GITHUB_OUTPUT
           echo "name=$(basename $AAB_PATH)" >> $GITHUB_OUTPUT
 
@@ -119,7 +119,7 @@ jobs:
         if: github.event_name != 'pull_request'
         id: version
         run: |
-          VERSION=$(node -p "require('./SparkyFitnessMobile/package.json').version")
+          VERSION=$(node -p "require('./XoTMobile/package.json').version")
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Create Release

@@ -58,7 +58,7 @@ CREATE POLICY modify_policy ON public.food_entries FOR ALL TO PUBLIC
 - `authenticated_user_id()` — the true logged-in actor (never changes; from `app.authenticated_user_id`)
 - `can_access_user_data(target_user_id, permission_type, authenticated_user_id())` — resolves a logical permission (`diary`, `checkin`, `medications`, `reports`, plus `*_read` variants) against the `family_access` grant. Domain shortcuts wrap it: `has_diary_read_access`, `has_diary_access`, `has_checkin_read_access`, `has_medication_access`, `has_family_access`.
 
-Cycle and pregnancy tables are owner-only (no delegation). See `SparkyFitnessServer/db/rls_policies.sql` for the complete policy set and the `create_*_policy` generators.
+Cycle and pregnancy tables are owner-only (no delegation). See `XoTServer/db/rls_policies.sql` for the complete policy set and the `create_*_policy` generators.
 
 ---
 
@@ -321,7 +321,7 @@ The migration system:
 
 ### Migration Structure
 
-Migrations are stored in `SparkyFitnessServer/db/migrations/` with the naming pattern:
+Migrations are stored in `XoTServer/db/migrations/` with the naming pattern:
 
 ```
 YYYYMMDDHHMMSS_description.sql
@@ -334,7 +334,7 @@ Example: `20240315103000_add_exercise_tracking.sql`
 1. **Create the migration file** in the migrations directory:
 
    ```bash
-   cd SparkyFitnessServer/db/migrations/
+   cd XoTServer/db/migrations/
    touch 20240315142000_add_meal_planning.sql
    ```
 
@@ -446,3 +446,9 @@ WHERE tablename = 'table_name';
 - **ANALYZE**: Update table statistics
 - **Index maintenance**: Rebuild indexes if needed
 - **Log rotation**: Rotate and archive database logs
+
+### Mobility planning and notification v2
+
+`mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, and `mobility_operations` are Tier 1 owner-only records. Routines retain ordered step snapshots; recurring schedules materialize account-local dated plans. Session history stores explicit outcomes and provenance; missing outcomes remain unknown. Operation receipts provide replay protection and revisions protect concurrent phone/web/MCP edits. `/api/v2/mobility` does not create exercise diary entries or Apple Health workouts. Explicit history queries use the requested account-local date range and include active sessions. The default phone snapshot includes the latest 100 historical records regardless of age, preserving the existing local history window.
+
+`engagement_subject_states` stores owner-only idempotent movement-timer start hints, not health/activity records. Engagement v2 adds nullable reminder limits, schedule settings, device capability/language/ownership, and stable occurrence slots. Version 1 settings remain available to installed clients. Quiet hours, completion checks, cadence, deduplication and spacing still apply when the daily cap is unlimited.

@@ -1,0 +1,341 @@
+export const serverConnectionQueryKey = ['serverConnection'] as const;
+
+export const serverConfigsQueryKey = ['serverConfigs'] as const;
+
+export const dailySummaryQueryKey = (date: string) =>
+  ['dailySummary', date] as const;
+/** Prefix for every date, so a mutation that moves a day's totals can invalidate without knowing which day. */
+export const dailySummaryRootQueryKey = ['dailySummary'] as const;
+
+export const familyUsersQueryKey = ['familyDiaryUsers'] as const;
+export const familyDailySummaryQueryKey = (
+  familyUserId: string,
+  date: string
+) => ['familyDailySummary', familyUserId, date] as const;
+
+export const caffeineActiveRootQueryKey = ['caffeineActive'] as const;
+export const caffeineActiveQueryKey = (date: string) =>
+  ['caffeineActive', date] as const;
+
+export const measurementsQueryKey = (date: string) =>
+  ['measurements', date] as const;
+
+export const preferencesQueryKey = ['userPreferences'] as const;
+
+export const profileQueryKey = ['userProfile'] as const;
+
+export const waterContainersQueryKey = ['waterContainers'] as const;
+
+/** A day's individual logged drinks — the rows behind the day's water total. */
+export const waterIntakeLogQueryKey = (date: string) =>
+  ['waterIntakeLog', date] as const;
+
+export const foodsQueryKey = ['foods'] as const;
+
+export const favoritesQueryKey = ['favorites'] as const;
+
+export const foodSearchQueryKey = (searchTerm: string) =>
+  ['foodSearch', searchTerm] as const;
+
+export const foodsLibraryQueryKey = (searchTerm: string) =>
+  ['foodsLibrary', searchTerm] as const;
+
+export const mealsQueryKey = ['meals'] as const;
+
+export const mealPlansQueryKey = ['mealPlans'] as const;
+
+export const mealDetailQueryKey = (id: string) => ['mealDetail', id] as const;
+
+export const foodEntryMealDetailQueryKey = (id: string) =>
+  ['foodEntryMealDetail', id] as const;
+
+export const recentMealsQueryKeyRoot = ['recentMeals'] as const;
+
+export const recentMealsQueryKey = (limit: number) =>
+  [...recentMealsQueryKeyRoot, limit] as const;
+
+export const topMealsQueryKeyRoot = ['topMeals'] as const;
+
+export const topMealsQueryKey = (limit: number) =>
+  [...topMealsQueryKeyRoot, limit] as const;
+
+export const mealSearchQueryKeyRoot = ['mealSearch'] as const;
+
+export const mealSearchQueryKey = (searchTerm: string) =>
+  [...mealSearchQueryKeyRoot, searchTerm] as const;
+
+export const externalProvidersQueryKey = ['externalProviders'] as const;
+
+export const externalFoodSearchQueryKey = (
+  providerType: string,
+  searchTerm: string,
+  providerId?: string,
+  autoScale?: boolean,
+  locale?: string
+) =>
+  [
+    'externalFoodSearch',
+    providerType,
+    searchTerm,
+    providerId,
+    autoScale,
+    locale,
+    'relevance-v2',
+    'provider-language-v1',
+  ] as const;
+
+// First-page-only key for the "All Providers" fan-out. Kept distinct from
+// externalFoodSearchQueryKey (which backs an infinite query) so the two query
+// shapes do not collide in the cache.
+export const allProvidersFoodSearchQueryKey = (
+  providerType: string,
+  searchTerm: string,
+  providerId?: string,
+  autoScale?: boolean,
+  pageSize?: number,
+  locale?: string
+) =>
+  [
+    'allProvidersFoodSearch',
+    providerType,
+    searchTerm,
+    providerId,
+    autoScale,
+    pageSize,
+    locale,
+    'relevance-v2',
+    'provider-language-v1',
+  ] as const;
+
+export const mealTypesQueryKey = ['mealTypes'] as const;
+
+export const goalsQueryKey = (date: string) => ['goals', date] as const;
+
+export const foodVariantsQueryKey = (foodId: string) =>
+  ['foodVariants', foodId] as const;
+
+export const foodLastServingQueryKey = (foodId: string) =>
+  ['foodLastServing', foodId] as const;
+
+export const measurementsRangeQueryKey = (startDate: string, endDate: string) =>
+  ['measurementsRange', startDate, endDate] as const;
+
+export const waterIntakeRangeQueryKey = (startDate: string, endDate: string) =>
+  ['waterIntakeRange', startDate, endDate] as const;
+
+export const sleepRangeQueryKeyRoot = ['sleepRange'] as const;
+export const sleepRangeQueryKey = (startDate: string, endDate: string) =>
+  [...sleepRangeQueryKeyRoot, startDate, endDate] as const;
+
+export const sleepDayQueryKeyRoot = ['sleep'] as const;
+export const sleepDayQueryKey = (day: string) =>
+  [...sleepDayQueryKeyRoot, 'day', day] as const;
+
+// --- Check-in progress photos ---
+/** Root, so an upload/delete can invalidate the gallery and every per-day list. */
+export const checkInPhotosRootQueryKey = ['checkInPhotos'] as const;
+/** Flat gallery (all photos + the weight logged that day). */
+export const checkInPhotoGalleryQueryKey = [
+  ...checkInPhotosRootQueryKey,
+  'gallery',
+] as const;
+/** The photos taken on one calendar day. */
+export const checkInPhotosByDateQueryKey = (date: string) =>
+  [...checkInPhotosRootQueryKey, 'byDate', date] as const;
+
+export const checkInPhotoDatesQueryKey = [
+  ...checkInPhotosRootQueryKey,
+  'dates',
+] as const;
+
+export const customCategoriesQueryKey = ['customCategories'] as const;
+export const customMeasurementsByDateQueryKey = (date: string) =>
+  ['customMeasurements', date] as const;
+
+/**
+ * Per-field carry-forward lookup (newest value on or before the day). Separate
+ * from `measurementsQueryKey`, which is strictly the day's own recorded row:
+ * the editor needs both to tell an actual value from a suggestion.
+ */
+export const latestMeasurementsOnOrBeforeRootQueryKey = [
+  'measurementsLatestOnOrBefore',
+] as const;
+
+/**
+ * Per-field carry-forward lookup for one day. Date keys extend the root so
+ * invalidation can target the whole family: a value saved on one day can be the
+ * newest "on or before" value for every later cached day, so invalidating only
+ * the saved day would leave the others serving a stale suggestion.
+ */
+export const latestMeasurementsOnOrBeforeQueryKey = (date: string) =>
+  [...latestMeasurementsOnOrBeforeRootQueryKey, date] as const;
+
+/**
+ * Root for the per-category custom previous-value lookups. Extended by date for
+ * the same reason as the standard field family above.
+ */
+export const latestManualCustomEntriesRootQueryKey = [
+  'customMeasurementsLatestManualOnOrBefore',
+] as const;
+
+/** Latest manual value per custom category on or before the day. */
+export const latestManualCustomEntriesQueryKey = (date: string) =>
+  [...latestManualCustomEntriesRootQueryKey, date] as const;
+
+export const exerciseHistoryQueryKey = ['exerciseHistory'] as const;
+
+/** Per-exercise filtered history; extends the root so prefix invalidation covers it. */
+export const exerciseHistoryForExerciseQueryKey = (exerciseId: string) =>
+  [...exerciseHistoryQueryKey, exerciseId] as const;
+
+export const exerciseHistoryResetQueryKey = ['exerciseHistoryReset'] as const;
+
+export const exerciseStatsQueryKeyRoot = ['exerciseStats'] as const;
+
+export const exerciseStatsQueryKey = (
+  exerciseId: string,
+  excludePresetEntryId?: string,
+  presetId?: number
+) =>
+  [
+    ...exerciseStatsQueryKeyRoot,
+    exerciseId,
+    excludePresetEntryId ?? null,
+    presetId ?? null,
+  ] as const;
+
+export const exerciseDetailQueryKey = (exerciseId: string) =>
+  ['exerciseDetail', exerciseId] as const;
+
+export const foodDeletionImpactQueryKey = (foodId: string) =>
+  ['foodDeletionImpact', foodId] as const;
+
+export const exerciseDeletionImpactQueryKey = (exerciseId: string) =>
+  ['exerciseDeletionImpact', exerciseId] as const;
+
+export const suggestedExercisesQueryKey = ['suggestedExercises'] as const;
+
+export const exerciseSearchQueryKey = (searchTerm: string) =>
+  ['exerciseSearch', searchTerm] as const;
+
+export const exercisesLibraryQueryKey = (searchTerm: string) =>
+  ['exercisesLibrary', searchTerm] as const;
+
+export const externalExerciseSearchQueryKey = (
+  providerType: string,
+  searchTerm: string,
+  providerId?: string
+) => ['externalExerciseSearch', providerType, searchTerm, providerId] as const;
+
+export const workoutSessionQueryKey = (sessionId: string) =>
+  ['workoutSession', sessionId] as const;
+
+export const workoutPresetsQueryKey = ['workoutPresets'] as const;
+
+export const workoutPresetSearchQueryKey = (searchTerm: string) =>
+  ['workoutPresetSearch', searchTerm] as const;
+
+export const workoutPresetsLibraryQueryKey = (searchTerm: string) =>
+  ['workoutPresetsLibrary', searchTerm] as const;
+
+export const activeWorkoutPlanQueryKey = (date: string) =>
+  ['workoutPlanTemplates', 'active', date] as const;
+
+export const activeAiServiceSettingQueryKey = [
+  'ai-service-settings',
+  'active',
+] as const;
+export const userAiConfigAllowedQueryKey = [
+  'ai-service-settings',
+  'allow-user-ai-config',
+] as const;
+
+export const fastingRootQueryKey = ['fasting'] as const;
+export const fastingCurrentQueryKey = ['fasting', 'current'] as const;
+export const fastingStatsQueryKey = ['fasting', 'stats'] as const;
+export const fastingHistoryQueryKey = (limit: number, offset: number) =>
+  ['fasting', 'history', limit, offset] as const;
+
+export const customNutrientsQueryKey = ['customNutrients'] as const;
+export const nutrientDisplayPreferencesQueryKey = [
+  'nutrientDisplayPreferences',
+] as const;
+
+export const chatHistoryQueryKey = ['chatHistory'] as const;
+
+export const nutritionTrendsQueryKey = (startDate: string, endDate: string) =>
+  ['nutritionTrends', startDate, endDate] as const;
+
+// --- Cycle & Pregnancy ---
+export const cycleSettingsQueryKey = ['cycleSettings'] as const;
+export const cycleLogQueryKey = (date: string) => ['cycleLog', date] as const;
+export const cycleLogsRangeQueryKey = (start: string, end: string) =>
+  ['cycleLogsRange', start, end] as const;
+export const cyclesQueryKey = ['cycles'] as const;
+export const cycleOverviewQueryKey = ['cycleOverview'] as const;
+export const cycleInsightsQueryKey = ['cycleInsights'] as const;
+export const cycleFertilityQueryKey = ['cycleFertility'] as const;
+export const cycleTestsQueryKey = ['cycleTests'] as const;
+export const cycleCorrelationsQueryKey = ['cycleCorrelations'] as const;
+
+export const pregnancyCurrentQueryKey = ['pregnancyCurrent'] as const;
+export const pregnancyOverviewQueryKey = ['pregnancyOverview'] as const;
+export const pregnancyChecklistQueryKey = ['pregnancyChecklist'] as const;
+export const pregnancyPhotosQueryKey = ['pregnancyPhotos'] as const;
+
+export const symptomEntriesQueryKey = (fromDate: string, toDate: string) =>
+  ['symptomEntries', fromDate, toDate] as const;
+
+// --- Medications ---
+export const medicationsRootQueryKey = ['medications'] as const;
+export const medicationsListQueryKey = (opts?: { activeOnly?: boolean }) =>
+  ['medications', 'list', opts ?? {}] as const;
+export const medicationDetailQueryKey = (id: string) =>
+  ['medications', 'detail', id] as const;
+export const medicationEntriesQueryKey = (opts?: {
+  fromDate?: string;
+  toDate?: string;
+  medicationId?: string;
+}) => ['medications', 'entries', opts ?? {}] as const;
+
+// --- Daily tracking (check-in, habits, context, reminders, meal status) ---
+export const dailyCheckinQueryKey = (date: string) =>
+  ['dailyTracking', 'checkin', date] as const;
+export const dailyCheckinsRangeRootQueryKey = [
+  'dailyTracking',
+  'checkins',
+] as const;
+export const dailyCheckinsRangeQueryKey = (
+  startDate: string,
+  endDate: string
+) => ['dailyTracking', 'checkins', startDate, endDate] as const;
+export const habitsQueryKey = (includeInactive: boolean) =>
+  ['dailyTracking', 'habits', includeInactive] as const;
+export const habitsRootQueryKey = ['dailyTracking', 'habits'] as const;
+export const habitLogsQueryKey = (
+  startDate: string,
+  endDate: string,
+  habitId?: string
+) =>
+  ['dailyTracking', 'habitLogs', startDate, endDate, habitId ?? null] as const;
+export const habitLogsRootQueryKey = ['dailyTracking', 'habitLogs'] as const;
+export const healthContextQueryKey = ['dailyTracking', 'context'] as const;
+export const measurementRemindersQueryKey = [
+  'dailyTracking',
+  'measurementReminders',
+] as const;
+export const mealTrackingStatusQueryKey = (date: string) =>
+  ['dailyTracking', 'mealStatus', date] as const;
+export const dailyTrackingPreferencesQueryKey = [
+  'dailyTracking',
+  'preferences',
+] as const;
+/** Daily Progress projects every tracking domain; any record change moves it. */
+export const dailyProgressRootQueryKey = ['dailyProgress'] as const;
+export const dailyProgressQueryKey = (date: string) =>
+  ['dailyProgress', date] as const;
+/** Under the same root, so every progress invalidation refreshes calendars. */
+export const dailyProgressRangeQueryKey = (
+  startDate: string,
+  endDate: string
+) => ['dailyProgress', 'range', startDate, endDate] as const;

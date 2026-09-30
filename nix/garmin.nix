@@ -1,4 +1,4 @@
-# Garmin Connect microservice package (SparkyFitnessGarmin).
+# Garmin Connect microservice package (XoTGarmin).
 
 {
   lib,
@@ -7,7 +7,7 @@
   makeWrapper,
 }:
 let
-  # Mirrors SparkyFitnessGarmin/requirements.txt.
+  # Mirrors XoTGarmin/requirements.txt.
   pythonEnv = python3.withPackages (ps: [
     ps.fastapi
     ps.uvicorn
@@ -19,9 +19,9 @@ let
 in
 stdenvNoCC.mkDerivation {
   pname = "sparkyfitness-garmin";
-  version = (lib.importJSON ../SparkyFitnessServer/package.json).version;
+  version = (lib.importJSON ../XoTServer/package.json).version;
 
-  src = lib.cleanSource ../SparkyFitnessGarmin;
+  src = lib.cleanSource ../XoTGarmin;
 
   nativeBuildInputs = [
     makeWrapper

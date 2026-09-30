@@ -14,7 +14,7 @@ Use this checklist when adding a major feature area (e.g., symptom tracking, wor
 
 ## Phase 2: Server Infrastructure
 
-- [ ] Create migration in `SparkyFitnessServer/db/migrations/YYYYMMDDHHMMSS_<feature>.sql`
+- [ ] Create migration in `XoTServer/db/migrations/YYYYMMDDHHMMSS_<feature>.sql`
 - [ ] Add RLS policies to `db/rls_policies.sql` checking the permission type
 - [ ] Add/update security tier in `docs/src/developer/database-security-tiers.md` (Tier 1/2/3)
 - [ ] Create route file `routes/v2/<Domain>Routes.ts` or `routes/<domain>Routes.ts`

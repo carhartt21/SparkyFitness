@@ -16,14 +16,14 @@ on:
   push:
     branches: [main]
     paths:
-      - "SparkyFitnessServer/db/migrations/**"
-      - "SparkyFitnessServer/db/rls_policies.sql"
-      - "SparkyFitnessServer/db/grantPermissions.ts"
-      - "SparkyFitnessServer/utils/dbMigrations.ts"
-      - "SparkyFitnessServer/utils/applyRlsPolicies.ts"
-      - "SparkyFitnessServer/utils/initializeDatabase.ts"
-      - "SparkyFitnessServer/tests/migrate.script.ts"
-      - "SparkyFitnessServer/package.json"
+      - "XoTServer/db/migrations/**"
+      - "XoTServer/db/rls_policies.sql"
+      - "XoTServer/db/grantPermissions.ts"
+      - "XoTServer/utils/dbMigrations.ts"
+      - "XoTServer/utils/applyRlsPolicies.ts"
+      - "XoTServer/utils/initializeDatabase.ts"
+      - "XoTServer/tests/migrate.script.ts"
+      - "XoTServer/package.json"
       - ".github/workflows/schema-backup.yml"
   workflow_dispatch:
 
@@ -82,11 +82,11 @@ jobs:
           cache-dependency-path: pnpm-lock.yaml
 
       - name: Install dependencies
-        working-directory: SparkyFitnessServer
+        working-directory: XoTServer
         run: pnpm install --frozen-lockfile
 
       - name: Apply all migrations to an empty database
-        working-directory: SparkyFitnessServer
+        working-directory: XoTServer
         run: pnpm run test:migrations
         env:
           SPARKY_FITNESS_DB_HOST: localhost

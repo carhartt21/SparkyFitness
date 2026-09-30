@@ -32,6 +32,9 @@ coverage/
 
 # Local authorized import samples may contain personal workout history.
 hevy_workout_data.csv
+# Personal FDDB exports and original reference archives stay local.
+/complete_*.csv
+/x-on-track-ui-assets-*.zip
 
 # OS generated files
 Thumbs.db
@@ -60,15 +63,15 @@ private/
 __pycache__/
 
 # Server specific
-SparkyFitnessServer/uploads/
-SparkyFitnessServer/backup/
-SparkyFitnessServer/temp_uploads/
+XoTServer/uploads/
+XoTServer/backup/
+XoTServer/temp_uploads/
 
 # Garmin microservice specific
-SparkyFitnessGarmin/mock_data/
+XoTGarmin/mock_data/
 
 # Fitbit mock data (cached API responses)
-SparkyFitnessServer/mock_data/
+XoTServer/mock_data/
 
 WIP/
 

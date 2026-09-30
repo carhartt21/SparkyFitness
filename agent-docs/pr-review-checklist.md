@@ -182,11 +182,11 @@ Shape it like this:
 ```text
 Two things before this can go in:
 
-1. `SparkyFitnessServer/services/foo.ts:88` — this uses getSystemClient(), which
+1. `XoTServer/services/foo.ts:88` — this uses getSystemClient(), which
    bypasses RLS, so any user id reaching it can read another user's rows. Needs
    getClient(userId, authenticatedUserId).
 2. `shared/src/schemas/api/Foo.api.zod.ts` — the response shape changed but the
-   mobile client at `SparkyFitnessMobile/api/foo.ts:31` still expects the old
+   mobile client at `XoTMobile/api/foo.ts:31` still expects the old
    field. Old app builds will break against this.
 
 Non-blocking: the date handling in `utils/day.ts:12` works, but the shared

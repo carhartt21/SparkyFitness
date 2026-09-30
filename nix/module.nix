@@ -215,7 +215,7 @@ in
         type = lib.types.bool;
         default = false;
         description = ''
-          Run the Garmin Connect microservice (`SparkyFitnessGarmin`) as a local
+          Run the Garmin Connect microservice (`XoTGarmin`) as a local
           systemd service and point the backend at it via
           GARMIN_MICROSERVICE_URL.
         '';

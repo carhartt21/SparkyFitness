@@ -48,7 +48,7 @@ echo "Starting SparkyFitness Garmin Microservice..."
 echo "Port: $GARMIN_SERVICE_PORT"
 echo "Data Source: $SPARKY_FITNESS_GARMIN_DATA_SOURCE"
 
-cd SparkyFitnessGarmin || exit 1
+cd XoTGarmin || exit 1
 
 # Check if existing venv is using Python >= 3.10
 RECREATE_VENV=false

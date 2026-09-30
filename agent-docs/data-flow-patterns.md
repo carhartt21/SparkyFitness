@@ -74,4 +74,4 @@ Database returns rows
 2. **RLS-level**: boot the server with test data, create a delegated session, query, verify row filtering
 3. **Cross-package**: after shared schema changes, run `pnpm run validate` in server, frontend, and mobile
 
-See `SparkyFitnessServer/tests/` for patterns.
+See `XoTServer/tests/` for patterns.

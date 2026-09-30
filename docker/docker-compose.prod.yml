@@ -149,8 +149,8 @@ services:
         # exist -- startup migrations run before the server listens.
         condition: service_healthy
     volumes:
-      - ${SERVER_BACKUP_PATH:-./backup}:/app/SparkyFitnessServer/backup # Mount volume for backups
-      - ${SERVER_UPLOADS_PATH:-./uploads}:/app/SparkyFitnessServer/uploads # Mount volume for Profile pictures and excercise images
+      - ${SERVER_BACKUP_PATH:-./backup}:/app/XoTServer/backup # Mount volume for backups
+      - ${SERVER_UPLOADS_PATH:-./uploads}:/app/XoTServer/uploads # Mount volume for Profile pictures and excercise images
     # Uncomment the below section to mount the file-based secrets
     #secrets:
     #  - sparkyfitness_db_password

@@ -1,0 +1,21 @@
+{
+  "food.add": "Lebensmittel hinzufügen",
+  "food.meal": "Mahlzeit",
+  "food.syncHint": "Öffnen Sie X on Track auf dem iPhone, um Favoriten und zuletzt verwendete Lebensmittel zu synchronisieren.",
+  "food.retrySync": "Erneut synchronisieren",
+  "food.favorites": "Favoriten",
+  "food.recent": "Zuletzt verwendet",
+  "food.chooseHint": "Wählen Sie die Menge für %@.",
+  "food.pending": "Synchronisierung ausstehend",
+  "food.failed": "Fehlgeschlagen",
+  "food.queued": "Ausstehend",
+  "food.retryFailed": "Fehlgeschlagene erneut senden",
+  "food.toMeal": "Für %@",
+  "food.servingAccessibility": "%@, %d Kilokalorien",
+  "food.lastServingAccessibility": "Zuletzt verwendet: %@, %d Kilokalorien",
+  "food.addHint": "Zu %@ hinzufügen",
+  "food.otherAmount": "Andere Menge",
+  "food.amount": "Menge",
+  "food.lastUsed": "Zuletzt verwendet",
+  "food.addToMeal": "Zu %@ hinzufügen"
+}

@@ -38,12 +38,12 @@ Linked Issue: Closes #
 
 - [ ] **[MANDATORY for new feature] Alignment**: I have raised a GitHub issue and it was reviewed/approved by maintainers or it was approved on Discord.
 
-**Frontend changes (`SparkyFitnessFrontend/`):**
+**Frontend changes (`XoTFrontend/`):**
 
 - [ ] **[MANDATORY for Frontend changes] Quality**: I have run `pnpm run validate` and it passes.
 - [ ] **[MANDATORY for Frontend changes] Translations**: I have updated the English source and added reviewed German copy for every new or changed UI element in `localization-overrides/de/web.json`, without editing synced locale catalogs by hand.
 
-**Backend changes (`SparkyFitnessServer/`):**
+**Backend changes (`XoTServer/`):**
 
 - [ ] **[MANDATORY for Backend changes] Code Quality**: I have run typecheck, lint, and tests. New files use TypeScript, new endpoints have Zod schemas, and new endpoints include tests.
 - [ ] **[MANDATORY for Backend changes] Database Security**: I have updated `rls_policies.sql` for any new user-specific tables.
@@ -53,7 +53,7 @@ Linked Issue: Closes #
 - [ ] **[MANDATORY for UI changes] Screenshots**: I have attached Before/After screenshots below.
 - [ ] **[MANDATORY for UI changes] German review**: I checked the German UI, including actions, error/empty states, accessibility text, and realistic text expansion. New copy uses consistent terminology and form of address.
 
-**Mobile changes (`SparkyFitnessMobile/`):**
+**Mobile changes (`XoTMobile/`):**
 
 - [ ] **[MANDATORY for Mobile changes] Tested on device or emulator**: I have verified the changes work on iOS or Android.
 - [ ] **[MANDATORY for Mobile changes] Translations**: I have added reviewed German copy for all new/changed user-facing keys in `localization-overrides/de/mobile.json` and the native/widget overlay where applicable, then run `node scripts/apply-german-overrides.mjs --check` from the repo root.
