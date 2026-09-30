@@ -24,21 +24,29 @@ const ROW_PX = 30;
 const LONG_PRESS_MS = 400;
 const MOVE_SLOP = 6;
 
-/** Wheel values: a regular grid, plus the current value when it is off-grid. */
-export function buildAmountSteps(
+/**
+ * The amount `delta` grid steps away from `value`. An off-grid value moves
+ * to its neighbouring grid point first. The range runs from one step up to
+ * the maximum, or up to the value itself when it is larger. Computed rather
+ * than listed, so a very large amount costs nothing.
+ */
+export function stepAmount(
   value: number,
+  delta: number,
   { step, max }: { step: number; max: number }
-): number[] {
-  const limit = Math.max(max, Number.isFinite(value) ? value : 0);
-  const steps: number[] = [];
-  for (let n = step; n <= limit + 1e-9; n += step) {
-    steps.push(Math.round(n * 1000) / 1000);
-  }
-  if (value > 0 && !steps.some((n) => Math.abs(n - value) < 1e-6)) {
-    steps.push(value);
-    steps.sort((a, b) => a - b);
-  }
-  return steps;
+): number {
+  if (!Number.isFinite(value) || value <= 0) value = step;
+  if (delta === 0) return value;
+  const position = value / step;
+  const nearest = Math.round(position);
+  const onGrid = Math.abs(position - nearest) < 1e-6;
+  const base = onGrid
+    ? nearest
+    : delta > 0
+      ? Math.floor(position)
+      : Math.ceil(position);
+  const next = Math.round((base + delta) * step * 1000) / 1000;
+  return Math.min(Math.max(next, step), Math.max(max, value));
 }
 
 /** Grid of the wheel for a unit: 5 g/ml steps for weights, quarters otherwise. */
@@ -83,35 +91,32 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   const [dragging, setDragging] = useState(false);
   const [dragRemainder, setDragRemainder] = useState(0);
 
-  const steps = useMemo(
-    () => buildAmountSteps(value, amountWheelScale(metric)),
-    [value, metric]
-  );
-  const index = Math.max(
-    0,
-    steps.findIndex((n) => Math.abs(n - value) < 1e-6)
-  );
+  const scale = amountWheelScale(metric);
 
   const startEditing = () => {
     if (disabled) return;
     setDraft(formatServingSizeDisplay(value));
     setEditing(true);
   };
-  const finishEditing = () => {
-    const parsed = parseDecimalInput(draft);
+  // Each valid keystroke is committed at once, so Add logs what is typed
+  // even while the field still has focus.
+  const changeDraft = (text: string) => {
+    if (!DECIMAL_INPUT_REGEX.test(text)) return;
+    setDraft(text);
+    const parsed = parseDecimalInput(text);
     if (parsed > 0) onChange(Math.round(parsed * 100) / 100);
-    setEditing(false);
   };
+  const finishEditing = () => setEditing(false);
 
   // The latest props for the gesture handlers, which are created once so a
   // drag is never cut off by a re-render. Updated after each render.
-  const latest = useRef({ steps, index, onChange, startEditing, disabled });
+  const latest = useRef({ value, scale, onChange, startEditing, disabled });
   useEffect(() => {
-    latest.current = { steps, index, onChange, startEditing, disabled };
+    latest.current = { value, scale, onChange, startEditing, disabled };
   });
   const gesture = useRef({
-    startIndex: 0,
-    appliedIndex: 0,
+    startValue: 0,
+    appliedValue: 0,
     moved: false,
     timer: null as ReturnType<typeof setTimeout> | null,
   });
@@ -130,8 +135,8 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
         onShouldBlockNativeResponder: () => true,
         onPanResponderGrant: () => {
           const state = gesture.current;
-          state.startIndex = latest.current.index;
-          state.appliedIndex = latest.current.index;
+          state.startValue = latest.current.value;
+          state.appliedValue = latest.current.value;
           state.moved = false;
           state.timer = setTimeout(() => {
             state.timer = null;
@@ -147,18 +152,15 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
             state.timer = null;
             setDragging(true);
           }
-          const { steps: grid, onChange: change } = latest.current;
+          const { scale: grid, onChange: change } = latest.current;
           // Dragging up (negative dy) increases the amount.
           const delta = Math.trunc(-g.dy / STEP_PX);
-          const next = Math.min(
-            grid.length - 1,
-            Math.max(0, state.startIndex + delta)
-          );
+          const next = stepAmount(state.startValue, delta, grid);
           setDragRemainder((-g.dy / STEP_PX - delta) * ROW_PX);
-          if (next !== state.appliedIndex && grid[next] !== undefined) {
-            state.appliedIndex = next;
+          if (Math.abs(next - state.appliedValue) > 1e-9) {
+            state.appliedValue = next;
             fireSelectionHaptic();
-            change(grid[next]);
+            change(next);
           }
         },
         onPanResponderRelease: () => {
@@ -182,10 +184,9 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
 
   const onAccessibilityAction = (event: AccessibilityActionEvent) => {
     const name = event.nativeEvent.actionName;
-    if (name === 'increment' && index < steps.length - 1) {
-      onChange(steps[index + 1]);
-    } else if (name === 'decrement' && index > 0) {
-      onChange(steps[index - 1]);
+    if (name === 'increment' || name === 'decrement') {
+      const next = stepAmount(value, name === 'increment' ? 1 : -1, scale);
+      if (Math.abs(next - value) > 1e-9) onChange(next);
     } else if (name === 'longpress' || name === 'activate') {
       startEditing();
     }
@@ -204,9 +205,7 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
         testID="food-entry-amount-input"
         autoFocus
         value={draft}
-        onChangeText={(text) => {
-          if (DECIMAL_INPUT_REGEX.test(text)) setDraft(text);
-        }}
+        onChangeText={changeDraft}
         onBlur={finishEditing}
         onSubmitEditing={finishEditing}
         keyboardType="decimal-pad"
@@ -222,10 +221,14 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   }
 
   const formatted = formatLocalizedNumber(value, { maximumFractionDigits: 2 });
-  const neighbours = [-1, 0, 1].map((offset) => ({
-    offset,
-    value: steps[index + offset],
-  }));
+  // Neighbouring values while dragging; none past either end of the range.
+  const neighbours = [-1, 0, 1].map((offset) => {
+    const n = stepAmount(value, offset, scale);
+    return {
+      offset,
+      value: offset !== 0 && Math.abs(n - value) < 1e-9 ? undefined : n,
+    };
+  });
 
   return (
     <View

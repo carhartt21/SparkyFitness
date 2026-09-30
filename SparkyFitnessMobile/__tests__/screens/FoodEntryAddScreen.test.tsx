@@ -797,6 +797,22 @@ describe('FoodEntryAddScreen', () => {
     );
   });
 
+  it('logs a typed amount when Add is tapped before the field is submitted', () => {
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+    fireEvent(
+      screen.getByTestId('food-entry-amount-wheel'),
+      'accessibilityAction',
+      { nativeEvent: { actionName: 'longpress' } }
+    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '2');
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({ quantity: 2 }),
+      })
+    );
+  });
+
   it('does not offer serving amounts for a saved meal', () => {
     const screen = renderScreen({ item: baseMealItem, date: '2026-04-23' });
     expect(screen.queryByTestId('food-entry-quick-add')).toBeNull();
