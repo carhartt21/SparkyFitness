@@ -50,6 +50,7 @@ Certain tables contain private user data that is **never** accessible to any fam
 - API Keys (`api_key` table)
 - OIDC SSO Connections (`user_oidc_links` table)
 - Personal AI Assistant Chat History (`sparky_chat_history` table)
+- Mobility routines, schedules, dated plans, session history and operation receipts (`mobility_*`), and movement timer-start hints (`engagement_subject_states`). These remain owner-only even with exercise sharing.
 - Notification delivery settings, devices, and reminder response history (`engagement_*` tables). A family member cannot change the owner's reminder schedule or register a phone for the owner's notifications.
 - Connected assistant authorizations and tokens (`oauth*` and `jwks` tables). Only the account owner can approve an MCP connection; the authentication service stores and revokes its credentials.
 - Cycle & Pregnancy hub data (`cycle_settings`, `cycle_daily_entries`, `cycles`, `user_cycle_display_preferences`, `cycle_test_entries`, `pregnancies`, `pregnancy_kick_sessions`, `pregnancy_contractions`, `pregnancy_photos`, `pregnancy_checklist_state`, `health_appointments` tables) — this reproductive-health data is **never** shared or delegated, even with `can_view_reports`. It is strictly owner-only. Bump photo _files_ are owner-only too: they are excluded from the public uploads URLs and can only be fetched through an authenticated request by their owner.
@@ -97,3 +98,5 @@ If someone else still uses the item — they have logged it, or it sits in their
 ### 6. Meal-to-Meal Composition
 
 A meal's ingredient list can link another reusable meal (e.g. a sauce or side) instead of a plain food. Linking a sub-meal into a parent meal requires the same library access to the sub-meal that reading it directly would require — you cannot link a sub-meal you cannot otherwise view. This check applies independently of, and in addition to, owning the parent meal.
+
+Mobility history remains private to its owner. The phone retains the latest 100 sessions for local display; this retention does not delete older server history. Only explicit session deletion creates a server tombstone. Browsing mobility plans, including past dates, does not create new plans.

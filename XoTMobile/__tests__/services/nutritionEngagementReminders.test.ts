@@ -126,11 +126,18 @@ it('cancels an obsolete nutrition prompt but never a medication request', async 
 });
 
 it('does not reschedule an unchanged request on repeated reconciliation', async () => {
-  const identifier = `engagement:nutrition:server-A:user-A:${candidate.id}`;
+  await reconcileNutritionEngagementReminders({
+    identity,
+    enabled: true,
+    candidates: [candidate],
+  });
+  const request = jest.mocked(Notifications.scheduleNotificationAsync).mock
+    .calls[0][0];
+  jest.clearAllMocks();
   jest
     .mocked(Notifications.getAllScheduledNotificationsAsync)
     .mockResolvedValue([
-      { identifier, content: { data: { scheduledAt: candidate.preferredAt } } },
+      { identifier: request.identifier, content: request.content },
     ] as Awaited<
       ReturnType<typeof Notifications.getAllScheduledNotificationsAsync>
     >);

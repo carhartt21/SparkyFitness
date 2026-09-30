@@ -91,12 +91,13 @@ export function dueEngagementCandidates(input: {
 /** Shared cap and spacing for discretionary remote reminders. */
 export function mayReserveEngagementCandidate(
   candidate: ReminderCandidate,
-  existing: ReadonlyArray<{ scheduledAt: Date; status: string }>
+  existing: ReadonlyArray<{ scheduledAt: Date; status: string }>,
+  dailyLimit: number | null = 3
 ): boolean {
   const active = existing.filter(
     (item) => item.status !== 'skipped' && item.status !== 'cancelled'
   );
-  if (active.length >= 3) return false;
+  if (dailyLimit !== null && active.length >= dailyLimit) return false;
   return active.every(
     (item) =>
       Math.abs(item.scheduledAt.getTime() - candidate.scheduledAt.getTime()) >=

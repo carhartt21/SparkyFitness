@@ -1,5 +1,6 @@
 import {
   fetchEngagementSettings,
+  fetchEngagementStatus,
   fetchMcpConnections,
   patchEngagementSettings,
   revokeMcpConnection,
@@ -8,6 +9,7 @@ import {
 export function useEngagementApi() {
   return {
     fetchEngagementSettings,
+    fetchEngagementStatus,
     fetchMcpConnections,
     patchEngagementSettings,
     revokeMcpConnection,

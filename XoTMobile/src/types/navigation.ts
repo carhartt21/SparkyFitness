@@ -339,6 +339,7 @@ export type RootStackParamList = {
   PasskeySettings: undefined;
   AppSettings: undefined;
   NotificationSettings: undefined;
+  WidgetGuide: undefined;
   About: undefined;
   WhatsNew: undefined;
   MedicationsList: undefined;

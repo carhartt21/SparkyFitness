@@ -1,3 +1,4 @@
+import { instantToDay } from '@workspace/shared';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
 import i18n from '../localization/i18n';
@@ -53,9 +54,6 @@ export function initMobilityEngagementResponses(): void {
       typeof data.userId !== 'string'
     )
       return;
-    const prefix = `movement:mobility:${getTodayDate()}:`;
-    if (!data.candidateId.startsWith(prefix)) return;
-    const routineId = data.candidateId.slice(prefix.length);
     const identity = await getActiveNutritionIdentity();
     if (
       !identity ||
@@ -64,7 +62,19 @@ export function initMobilityEngagementResponses(): void {
     )
       return;
     const state = await getMobilityState(identity);
+    const day = state.timezone
+      ? instantToDay(new Date(), state.timezone)
+      : getTodayDate();
+    const prefix = `movement:mobility:${day}:`;
+    if (!data.candidateId.startsWith(prefix)) return;
+    const routineId = data.candidateId.slice(prefix.length);
     if (
+      !state.plans.some(
+        (row) =>
+          !row.deleted &&
+          row.data.id === routineId &&
+          row.data.state === 'planned'
+      ) &&
       !state.routines.some(
         (routine) => routine.id === routineId && routine.reminderTime !== null
       )

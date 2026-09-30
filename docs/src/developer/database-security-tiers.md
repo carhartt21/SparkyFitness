@@ -190,3 +190,14 @@ nutrients and references are public, never diary records or account data.
 | `medication_types`          | Medication categories lookup (GLP-1, Insulin, ADHD, etc.)   | Admin-Only                   | Authenticated Users              |
 | `medication_route_types`    | Medication administration route lookup (Subcutaneous, Oral) | Admin-Only                   | Authenticated Users              |
 | `medication_schedule_types` | Medication scheduling frequencies lookup (Daily, Weekly)    | Admin-Only                   | Authenticated Users              |
+
+### Notification v2 and mobility (Tier 1)
+
+| Tables                                                                                                  | Purpose                                                                             | Read       | Write      |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------- | ---------- |
+| `mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, `mobility_operations` | Private definitions, dated/session snapshots, CAS revisions and idempotent receipts | Owner-only | Owner-only |
+| `engagement_subject_states`                                                                             | Timer-start hints that suppress obsolete movement prompts; no health records        | Owner-only | Owner-only |
+
+No delegate sharing or global read policy applies. MCP access uses the authenticated owner; writes require the existing write scope and active consent. Scheduler system access is limited to notification processing.
+
+Mobility reads use a read-only transaction; only definition changes and the explicit background planner generate dated occurrences. Session provenance identifies the authenticated API or consent-gated MCP ingress, not a client-asserted device type. Operation receipts are owner-scoped retry metadata retained for 90 days (cleanup is bounded); record revisions and tombstones remain authoritative after receipt expiry. Indexed snapshot columns are kept consistent by checked writes and database constraints.

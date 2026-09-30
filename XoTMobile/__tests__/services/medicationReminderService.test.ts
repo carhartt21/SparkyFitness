@@ -1,3 +1,4 @@
+import i18n, { initializeI18n } from '../../src/localization/i18n';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
@@ -146,7 +147,7 @@ function pendingRequest(
 ): Notifications.NotificationRequest {
   return {
     identifier,
-    content: { data },
+    content: { data: data ? { copyRevision: '20260930', ...data } : data },
     trigger: null,
   } as unknown as Notifications.NotificationRequest;
 }
@@ -158,6 +159,9 @@ function scheduledKeys(): string[] {
 }
 
 describe('reconcileMedicationReminders', () => {
+  beforeAll(async () => {
+    await initializeI18n('en');
+  });
   beforeEach(() => {
     jest.useFakeTimers({ now: NOW });
     __resetAppPreferencesStoreForTests();
@@ -298,6 +302,7 @@ describe('reconcileMedicationReminders', () => {
             hideNames: 'false',
             locale: 'en',
             responseVersion: '2',
+            copyRevision: '20260930',
             accountUserId: 'user-1',
             serverConfigId: '',
             isSupplement: 'false',
@@ -494,6 +499,31 @@ describe('reconcileMedicationReminders', () => {
 
       expect(mockCancel).toHaveBeenCalledWith('english');
       expect(mockSchedule.mock.calls[0][0].content.data?.locale).toBe('en');
+    });
+
+    it('refreshes old English notifications with German content and locale', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      mockGetAllScheduled.mockResolvedValue([
+        pendingRequest('old-english', {
+          medicationId: 'med-1',
+          key: BASE_KEY,
+          hideNames: 'false',
+          locale: 'en',
+          copyRevision: 'old',
+        }),
+      ]);
+      await i18n.changeLanguage('de');
+      try {
+        await reconcileMedicationReminders([buildMedication()], []);
+        expect(mockCancel).toHaveBeenCalledWith('old-english');
+        const content = mockSchedule.mock.calls[0][0].content;
+        expect(content.data?.locale).toBe('de');
+        expect(content.title).not.toMatch(/reminder/i);
+        expect(content.body).not.toMatch(/scheduled/i);
+        expect(content.data?.copyRevision).toBe('20260930');
+      } finally {
+        await i18n.changeLanguage('en');
+      }
     });
 
     it('does not reschedule a dose whose base reminder is already pending', async () => {

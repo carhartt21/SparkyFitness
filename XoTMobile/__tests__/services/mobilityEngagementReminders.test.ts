@@ -59,6 +59,7 @@ beforeEach(async () => {
   jest.mocked(getActiveNutritionIdentity).mockResolvedValue(identity);
   jest.mocked(getMobilityState).mockResolvedValue({
     version: 1,
+    plans: [],
     routines: [{ id: routineId, reminderTime: '15:00' }],
     activeSession: null,
     history: [],

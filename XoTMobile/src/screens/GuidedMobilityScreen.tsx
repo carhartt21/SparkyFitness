@@ -23,6 +23,8 @@ import {
   saveMobilityRoutine,
   startMobilitySession,
   subscribeMobilityState,
+  synchronizeMobility,
+  resolveMobilityConflict,
   type MobilityRoutine,
   type MobilityState,
   type MobilityStepDraft,
@@ -165,6 +167,21 @@ export default function GuidedMobilityScreen() {
       });
   }, [t]);
 
+  useEffect(() => {
+    const sync = async () => {
+      const scope = await getActiveNutritionIdentity();
+      if (scope) await synchronizeMobility(scope).catch(() => undefined);
+    };
+    void sync();
+    const subscription = AppState.addEventListener('change', (value) => {
+      if (value === 'active') void sync();
+    });
+    const timer = setInterval(() => void sync(), 60_000);
+    return () => {
+      subscription.remove();
+      clearInterval(timer);
+    };
+  }, []);
   useEffect(() => {
     refresh();
     const stopState = subscribeMobilityState(refresh);
@@ -767,6 +784,114 @@ export default function GuidedMobilityScreen() {
             <Button onPress={() => setDraft(blankRoutine())}>
               {t('mobility.newRoutine', { defaultValue: 'New routine' })}
             </Button>
+            {state?.syncError && (
+              <View className="mb-4 gap-3 rounded-xl border border-border-subtle p-4">
+                <Text className="text-base text-text-primary">
+                  {state.syncError === 'conflict'
+                    ? t('mobility.syncConflict', {
+                        defaultValue: 'Mobility changed elsewhere',
+                      })
+                    : t('mobility.syncOffline', {
+                        defaultValue: 'Saved on device \u00b7 sync pending',
+                      })}
+                </Text>
+                <Button
+                  onPress={() => {
+                    if (identity)
+                      void synchronizeMobility(identity).catch(() => undefined);
+                  }}
+                >
+                  {t('mobility.syncRetry', { defaultValue: 'Sync now' })}
+                </Button>
+              </View>
+            )}
+            {state?.conflicts.map((conflict) => (
+              <View key={conflict.operation.operationId} className="mb-4 gap-3">
+                <Text className="text-base text-text-secondary">
+                  {t('mobility.syncConflictDescription', {
+                    defaultValue:
+                      'Your local version is preserved. Keep a separate copy or use the server version. An active session copy runs without claiming the original plan.',
+                  })}
+                </Text>
+                {['routine', 'session'].includes(
+                  conflict.operation.mutation.kind
+                ) && (
+                  <Button
+                    onPress={() => {
+                      if (identity)
+                        void resolveMobilityConflict(
+                          identity,
+                          conflict.operation.operationId,
+                          'copy'
+                        )
+                          .then(() => synchronizeMobility(identity))
+                          .catch(() => undefined);
+                    }}
+                  >
+                    {t('mobility.syncKeepCopy', {
+                      defaultValue: 'Keep a separate copy',
+                    })}
+                  </Button>
+                )}
+                <Button
+                  onPress={() => {
+                    if (identity)
+                      void resolveMobilityConflict(
+                        identity,
+                        conflict.operation.operationId,
+                        'server'
+                      )
+                        .then(() => synchronizeMobility(identity))
+                        .catch(() => undefined);
+                  }}
+                >
+                  {t('mobility.syncUseServer', {
+                    defaultValue: 'Use server version',
+                  })}
+                </Button>
+              </View>
+            ))}
+            {(state?.plans ?? [])
+              .filter(
+                (record) => !record.deleted && record.data.state === 'planned'
+              )
+              .map((record) => (
+                <View
+                  key={record.data.id}
+                  className="mb-3 gap-3 rounded-xl border border-border-subtle p-4"
+                >
+                  <Text className="text-lg font-semibold text-text-primary">
+                    {record.data.routine.name}
+                  </Text>
+                  <Text className="text-base text-text-secondary">
+                    {record.data.day} · {record.data.time}
+                  </Text>
+                  <Button
+                    disabled={busy}
+                    onPress={() => {
+                      if (identity)
+                        void startMobilitySession(
+                          identity,
+                          record.data.routine.id,
+                          new Date(),
+                          record.data.id
+                        )
+                          .then(() => synchronizeMobility(identity))
+                          .catch(() =>
+                            setError(
+                              t('mobility.syncConflict', {
+                                defaultValue: 'Mobility changed elsewhere',
+                              })
+                            )
+                          );
+                    }}
+                  >
+                    {t('mobility.startPlanned', {
+                      defaultValue: 'Start planned session',
+                    })}
+                  </Button>
+                </View>
+              ))}
             {state?.routines.map((routine) => (
               <View
                 key={routine.id}

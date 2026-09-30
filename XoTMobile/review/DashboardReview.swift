@@ -68,6 +68,31 @@ final class DashboardReview: XCTestCase {
   func testDashboardAlignment() throws {
     try reviewDashboard(logFood: false)
   }
+  func testNotificationTour() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let settings = app.buttons["open-settings"]
+    XCTAssertTrue(settings.waitForExistence(timeout: 10)); settings.tap()
+    let preferences = app.buttons["settings-app-preferences"]
+    for _ in 0..<6 { if preferences.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(preferences.isHittable); preferences.tap()
+    let notifications = app.buttons["settings-notifications"]
+    for _ in 0..<5 { if notifications.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(notifications.isHittable); notifications.tap()
+    sleep(2)
+    capture("notifications-top",app)
+    app.swipeUp(); sleep(1); capture("notifications-middle",app)
+    app.swipeUp(); sleep(1); capture("notifications-lower",app)
+    app.swipeUp(); sleep(1); capture("notifications-status",app)
+    let guide=app.buttons["notification-widget-guide"]
+    for _ in 0..<8 { if guide.isHittable {break}; app.swipeDown() }
+    XCTAssertTrue(guide.isHittable);guide.tap();sleep(1)
+    capture("widget-guide-top",app)
+    app.swipeUp();sleep(1);capture("widget-guide-bottom",app)
+  }
+
   /// Visual tour of the other primary surfaces for design review captures.
   func testScreenTour() throws {
     continueAfterFailure = false

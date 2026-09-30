@@ -1,3 +1,4 @@
+import { instantToDay, localDateTimeToUtc, addDays } from '@workspace/shared';
 const HOUR_MS = 60 * 60 * 1000;
 const TIME_PATTERN = /^([01]\d|2[0-3]):[0-5]\d$/;
 
@@ -16,6 +17,7 @@ export interface ReminderScheduleInput {
   goalMetToday: boolean;
   /** Policy may examine farther ahead than the 12 requests ultimately kept. */
   maxCount?: number;
+  timezone?: string;
 }
 
 function atTimeOnDay(day: Date, time: string): Date {
@@ -56,8 +58,41 @@ export function computeReminderSchedule({
   windowEnd,
   goalMetToday,
   maxCount = MAX_SCHEDULED_WATER_REMINDERS,
+  timezone,
 }: ReminderScheduleInput): Date[] {
   const intervalMs = intervalHours * HOUR_MS;
+  if (timezone) {
+    if (
+      !isValidReminderWindow(windowStart, windowEnd) ||
+      !Number.isFinite(intervalMs) ||
+      intervalMs <= 0
+    )
+      return [];
+    const at = (day: string, time: string) =>
+      localDateTimeToUtc(`${day}T${time}`, timezone).getTime();
+    const today = instantToDay(now, timezone);
+    let next = goalMetToday
+      ? at(addDays(today, 1), windowStart)
+      : Math.max(
+          Math.max(
+            lastLoggedAt?.getTime() ?? at(today, windowStart),
+            at(today, windowStart)
+          ) + intervalMs,
+          now.getTime() + MIN_REMINDER_LEAD_MS
+        );
+    const times: Date[] = [];
+    for (let i = 0; i < Math.min(128, Math.max(1, maxCount)); i++) {
+      let day = instantToDay(new Date(next), timezone);
+      if (next < at(day, windowStart)) next = at(day, windowStart);
+      if (next >= at(day, windowEnd)) {
+        day = addDays(day, 1);
+        next = at(day, windowStart);
+      }
+      times.push(new Date(next));
+      next += intervalMs;
+    }
+    return times;
+  }
 
   let next: Date;
   if (goalMetToday) {

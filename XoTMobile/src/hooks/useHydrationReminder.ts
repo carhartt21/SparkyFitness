@@ -54,7 +54,7 @@ function enqueue(task: () => Promise<void>): Promise<void> {
 
 function signatureOf(input: WaterReminderReconcileInput): string {
   return JSON.stringify([
-    2,
+    '20260930',
     input.identity?.serverConfigId ?? null,
     input.identity?.userId ?? null,
     input.today,

@@ -34,6 +34,7 @@ interface RegistryTool {
 // Reviewed tools whose entire execution surface is a query. Mixed-action
 // manage_* tools are deliberately absent even when they offer read actions.
 export const READ_ONLY_MCP_TOOL_NAMES = new Set([
+  'xot_get_mobility',
   'sparky_list_exercises',
   'sparky_get_exercise_details',
   'sparky_search_exercises',

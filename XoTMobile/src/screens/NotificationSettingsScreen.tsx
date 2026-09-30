@@ -1,3 +1,6 @@
+import { notificationStatusLabels } from '../localization/notificationStatusLabels';
+import Button from '../components/ui/Button';
+import { apiFetch } from '../services/api/apiClient';
 import React, {
   useCallback,
   useEffect,
@@ -6,7 +9,7 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AppState, View, ScrollView, Text } from 'react-native';
+import { AppState, View, ScrollView, Text, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 
@@ -15,7 +18,7 @@ import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
 import NotificationPermissionBanner, {
   type NotificationPermissionBannerHandle,
 } from '../components/NotificationPermissionBanner';
-import SegmentedControl from '../components/SegmentedControl';
+import BottomSheetPicker from '../components/BottomSheetPicker';
 import TimeSheet, { type TimeSheetRef } from '../components/TimeSheet';
 import Switch from '../components/ui/Switch';
 import {
@@ -43,14 +46,22 @@ import {
   subscribeNutritionIdentity,
 } from '../services/nutritionIdentity';
 import type { RootStackScreenProps } from '../types/navigation';
-import type { EngagementSettings } from '@workspace/shared';
+import {
+  engagementStatusSchema,
+  type EngagementStatus,
+  type EngagementSettingsV2,
+  type EngagementSettingsPatchV2,
+} from '@workspace/shared';
 import {
   enableRemoteEngagement,
   patchRemoteEngagement,
   refreshRemoteEngagement,
+  readCachedRemoteEngagement,
+  disableThisNotificationDevice,
+  flushNotificationDeviceOff,
+  notificationDeviceOffPending,
+  renewRemoteEngagementDevice,
 } from '../services/remoteEngagement';
-
-type IntervalKey = `${WaterReminderIntervalHours}`;
 
 type NotificationSettingsScreenProps =
   RootStackScreenProps<'NotificationSettings'>;
@@ -58,7 +69,8 @@ type NotificationSettingsScreenProps =
 const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   navigation,
 }) => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const statusLabels = notificationStatusLabels(t);
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const notificationsEnabled = useAppPreferencesStore(
@@ -148,14 +160,43 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   const mealPromptSheetRef = useRef<TimeSheetRef>(null);
   const reviewTimeSheetRef = useRef<TimeSheetRef>(null);
   const movementTimeSheetRef = useRef<TimeSheetRef>(null);
+  const quietStartSheetRef = useRef<TimeSheetRef>(null);
+  const quietEndSheetRef = useRef<TimeSheetRef>(null);
   const usesNativeHeader = useNativeIOSHeadersActive();
   const bannerRef = useRef<NotificationPermissionBannerHandle>(null);
   const [dailyOptionalBudgetUsed, setDailyOptionalBudgetUsed] = useState<
     number | null
   >(null);
   const [remoteSettings, setRemoteSettings] =
-    useState<EngagementSettings | null>(null);
+    useState<EngagementSettingsV2 | null>(null);
   const [remoteBusy, setRemoteBusy] = useState(false);
+  const [remoteOffline, setRemoteOffline] = useState(false);
+  const [remoteSaveFailed, setRemoteSaveFailed] = useState(false);
+  const [deviceOffPending, setDeviceOffPending] = useState(false);
+  const [status, setStatus] = useState<EngagementStatus | null>(null);
+  const [limitText, setLimitText] = useState('3');
+  const limit = useAppPreferencesStore(
+    (state) => state.optionalReminderDailyLimit
+  );
+  const setLimit = useAppPreferencesStore(
+    (state) => state.setOptionalReminderDailyLimit
+  );
+  const mutationBusy = useRef(false);
+  const refreshStatus = useCallback(async () => {
+    try {
+      setStatus(
+        engagementStatusSchema.parse(
+          await apiFetch({
+            endpoint: '/api/v2/engagement/status',
+            serviceName: 'Engagement',
+            operation: 'load reminder status',
+          })
+        )
+      );
+    } catch {
+      setStatus(null);
+    }
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -163,7 +204,19 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       try {
         const identity = await getActiveNutritionIdentity();
         if (!identity) return;
+        const cached = await readCachedRemoteEngagement(identity);
+        if (active && cached) setRemoteSettings(cached);
+        await flushNotificationDeviceOff(identity).catch(() => undefined);
+        if (active)
+          setDeviceOffPending(await notificationDeviceOffPending(identity));
         const settings = await refreshRemoteEngagement(identity);
+        if (active) {
+          setRemoteOffline(false);
+          setRemoteSaveFailed(false);
+          setLimit(settings.daily_limit);
+          setLimitText(String(settings.daily_limit ?? 3));
+          void refreshStatus();
+        }
         if (active) {
           setRemoteSettings(settings);
           if (settings.remote_enabled) {
@@ -171,10 +224,24 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
             setMealCaptureReminderEnabled(settings.meal_capture_enabled);
             setReviewEnabled(settings.meal_review_enabled);
             setMovementReminderEnabled(settings.movement_break_enabled);
+            setWaterReminderIntervalHours(
+              settings.hydration_interval_hours as WaterReminderIntervalHours
+            );
+            setWaterReminderWindow(
+              settings.hydration_start,
+              settings.hydration_end
+            );
+            setMealWindow(
+              settings.meal_capture_start,
+              settings.meal_capture_end,
+              settings.meal_capture_time
+            );
+            setReviewTime(settings.meal_review_time);
+            setMovementReminderTime(settings.movement_break_time);
           }
         }
       } catch {
-        if (active) setRemoteSettings(null);
+        if (active) setRemoteOffline(true);
       }
     };
     void refresh();
@@ -189,6 +256,13 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
     setMealCaptureReminderEnabled,
     setReviewEnabled,
     setMovementReminderEnabled,
+    setWaterReminderIntervalHours,
+    setWaterReminderWindow,
+    setMealWindow,
+    setReviewTime,
+    setMovementReminderTime,
+    setLimit,
+    refreshStatus,
   ]);
 
   const updateRemoteKind = useCallback(
@@ -201,26 +275,33 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       value: boolean,
       applyLocal: (next: boolean) => void
     ) => {
-      if (!remoteSettings?.remote_enabled) {
-        applyLocal(value);
-        return;
-      }
+      if (!remoteSettings?.remote_enabled) applyLocal(value);
+      if (!remoteSettings) return;
+      if (mutationBusy.current) return;
+      mutationBusy.current = true;
+      setRemoteBusy(true);
       try {
         const identity = await getActiveNutritionIdentity();
         if (!identity) throw new Error('Sign in to update remote reminders.');
         const updated = await patchRemoteEngagement(identity, { [key]: value });
         setRemoteSettings(updated);
         applyLocal(value);
+        void refreshStatus();
       } catch {
+        setRemoteSaveFailed(true);
         Toast.show({
           type: 'error',
           text1: t('notificationSettings.remoteUpdateFailed', {
-            defaultValue: 'Could not update reminders. Try again.',
+            defaultValue:
+              'Not saved. Reload settings and try again; they may have changed elsewhere.',
           }),
         });
+      } finally {
+        mutationBusy.current = false;
+        setRemoteBusy(false);
       }
     },
-    [remoteSettings?.remote_enabled, t]
+    [remoteSettings, refreshStatus, t]
   );
 
   const handleRemoteToggle = useCallback(
@@ -236,7 +317,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               meal_capture_enabled: mealCaptureReminderEnabled,
               meal_review_enabled: reviewEnabled,
               movement_break_enabled: movementReminderEnabled,
-              mobility_enabled: false,
+              mobility_enabled: true,
             })
           : await patchRemoteEngagement(identity, { remote_enabled: false });
         setRemoteSettings(updated);
@@ -303,36 +384,35 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
     };
   }, [navigation]);
 
-  const handleNotificationsToggle = useCallback(
-    async (value: boolean) => {
-      if (!value) {
-        if (remoteSettings?.remote_enabled) {
-          try {
-            const identity = await getActiveNutritionIdentity();
-            if (!identity) throw new Error('Account unavailable.');
-            const updated = await patchRemoteEngagement(identity, {
-              remote_enabled: false,
-            });
-            setRemoteSettings(updated);
-          } catch {
-            Toast.show({
-              type: 'error',
-              text1: t('notificationSettings.remoteUpdateFailed', {
-                defaultValue: 'Could not update reminders. Try again.',
-              }),
-            });
-            return;
-          }
+  const handleNotificationsToggle = useCallback(async (value: boolean) => {
+    if (!value) {
+      await setNotificationsEnabled(false);
+      const identity = await getActiveNutritionIdentity();
+      if (identity) {
+        try {
+          await disableThisNotificationDevice(identity);
+          setDeviceOffPending(false);
+        } catch {
+          setDeviceOffPending(true);
         }
-        await setNotificationsEnabled(false);
-        return;
       }
-      await setNotificationsEnabled(true);
-      await requestNotificationPermission();
-      bannerRef.current?.refresh();
-    },
-    [remoteSettings?.remote_enabled, t]
-  );
+      return;
+    }
+    await setNotificationsEnabled(true);
+    const permission = await requestNotificationPermission();
+    if (permission === 'granted') {
+      const identity = await getActiveNutritionIdentity();
+      if (identity) {
+        await flushNotificationDeviceOff(identity).catch(() => undefined);
+        const remote = await readCachedRemoteEngagement(identity);
+        if (remote?.remote_enabled)
+          await renewRemoteEngagementDevice(identity).catch(() => {
+            setDeviceOffPending(true);
+          });
+      }
+    }
+    bannerRef.current?.refresh();
+  }, []);
 
   const handleMedicationRemindersToggle = useCallback(
     async (value: boolean) => {
@@ -437,9 +517,41 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
     [setMovementReminderEnabled, updateRemoteKind]
   );
 
+  const updateSchedule = useCallback(
+    async (
+      patch: Omit<EngagementSettingsPatchV2, 'expected_revision'>,
+      applyLocal: () => void
+    ) => {
+      if (!remoteSettings?.remote_enabled) applyLocal();
+      if (!remoteSettings || mutationBusy.current) return;
+      mutationBusy.current = true;
+      setRemoteBusy(true);
+      try {
+        const identity = await getActiveNutritionIdentity();
+        if (!identity) throw new Error('Account unavailable.');
+        const updated = await patchRemoteEngagement(identity, patch);
+        setRemoteSettings(updated);
+        applyLocal();
+        void refreshStatus();
+      } catch {
+        setRemoteSaveFailed(true);
+        Toast.show({
+          type: 'error',
+          text1: t('notificationSettings.remoteUpdateFailed', {
+            defaultValue:
+              'Not saved. Reload settings and try again; they may have changed elsewhere.',
+          }),
+        });
+      } finally {
+        mutationBusy.current = false;
+        setRemoteBusy(false);
+      }
+    },
+    [remoteSettings, refreshStatus, t]
+  );
   const changeMealWindow = useCallback(
     (start: string, end: string, prompt: string) => {
-      if (!(start < prompt && prompt < end)) {
+      if (!(start <= prompt && prompt < end)) {
         Toast.show({
           type: 'error',
           text1: t('engagement.invalidWindow', {
@@ -448,15 +560,22 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         });
         return;
       }
-      setMealWindow(start, end, prompt);
+      void updateSchedule(
+        {
+          meal_capture_start: start,
+          meal_capture_end: end,
+          meal_capture_time: prompt,
+        },
+        () => setMealWindow(start, end, prompt)
+      );
     },
-    [setMealWindow, t]
+    [setMealWindow, updateSchedule, t]
   );
 
   const intervalSegments = useMemo(
     () =>
       WATER_REMINDER_INTERVAL_OPTIONS.map((hours) => ({
-        key: String(hours) as IntervalKey,
+        value: hours,
         label: t('notificationSettings.waterReminderIntervalOption', {
           defaultValue: '{{hours}}h',
           hours,
@@ -466,10 +585,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
   );
 
   const handleIntervalSelect = useCallback(
-    (key: IntervalKey) => {
-      setWaterReminderIntervalHours(Number(key) as WaterReminderIntervalHours);
+    (hours: WaterReminderIntervalHours) => {
+      void updateSchedule({ hydration_interval_hours: hours }, () =>
+        setWaterReminderIntervalHours(hours as WaterReminderIntervalHours)
+      );
     },
-    [setWaterReminderIntervalHours]
+    [setWaterReminderIntervalHours, updateSchedule]
   );
 
   const showInvalidWindowToast = useCallback(() => {
@@ -487,9 +608,17 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         showInvalidWindowToast();
         return;
       }
-      setWaterReminderWindow(time, waterReminderWindowEnd);
+      void updateSchedule(
+        { hydration_start: time, hydration_end: waterReminderWindowEnd },
+        () => setWaterReminderWindow(time, waterReminderWindowEnd)
+      );
     },
-    [waterReminderWindowEnd, setWaterReminderWindow, showInvalidWindowToast]
+    [
+      waterReminderWindowEnd,
+      setWaterReminderWindow,
+      showInvalidWindowToast,
+      updateSchedule,
+    ]
   );
 
   const handleEndTimeSelect = useCallback(
@@ -498,9 +627,17 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         showInvalidWindowToast();
         return;
       }
-      setWaterReminderWindow(waterReminderWindowStart, time);
+      void updateSchedule(
+        { hydration_start: waterReminderWindowStart, hydration_end: time },
+        () => setWaterReminderWindow(waterReminderWindowStart, time)
+      );
     },
-    [waterReminderWindowStart, setWaterReminderWindow, showInvalidWindowToast]
+    [
+      waterReminderWindowStart,
+      setWaterReminderWindow,
+      showInvalidWindowToast,
+      updateSchedule,
+    ]
   );
 
   const startTimeLabel =
@@ -532,16 +669,18 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       >
         <SettingsRow
           title={t('notificationSettings.allow', {
-            defaultValue: 'Allow Notifications',
+            defaultValue: 'Alerts on this device',
           })}
           subtitle={t('notificationSettings.allowSubtitle', {
-            defaultValue: 'Master switch for all alerts from X on Track.',
+            defaultValue:
+              'Stops local alerts and push delivery to this installation. Other devices and account settings stay active.',
           })}
           subtitleNumberOfLines={0}
           rightAccessory={
             <Switch
+              disabled={remoteBusy}
               accessibilityLabel={t('notificationSettings.allow', {
-                defaultValue: 'Allow Notifications',
+                defaultValue: 'Alerts on this device',
               })}
               value={notificationsEnabled}
               onValueChange={handleNotificationsToggle}
@@ -551,7 +690,79 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 
         <NotificationPermissionBanner ref={bannerRef} />
 
-        {notificationsEnabled && remoteSettings && (
+        {(remoteOffline || deviceOffPending || remoteSaveFailed) && (
+          <SettingsRowGroup>
+            <SettingsRow
+              title={
+                deviceOffPending
+                  ? t('notificationSettings.deviceOffPending', {
+                      defaultValue:
+                        'Device alerts off \u00b7 server confirmation pending',
+                    })
+                  : remoteSaveFailed
+                    ? t('common.retry', { defaultValue: 'Retry' })
+                    : t('notificationSettings.offline', {
+                        defaultValue:
+                          'Saved settings \u00b7 connection unavailable',
+                      })
+              }
+              subtitle={
+                remoteSaveFailed && !deviceOffPending
+                  ? t('notificationSettings.remoteUpdateFailed', {
+                      defaultValue:
+                        'Not saved. Reload settings and try again; they may have changed elsewhere.',
+                    })
+                  : t('notificationSettings.offlineDescription', {
+                      defaultValue:
+                        'Local changes remain on this device. Push may continue until the server confirms device-off. Reconnect and tap here to retry.',
+                    })
+              }
+
+              subtitleNumberOfLines={0}
+              onPress={() => {
+                void refreshStatus();
+                navigation.replace('NotificationSettings');
+              }}
+            />
+          </SettingsRowGroup>
+        )}
+        <SettingsRowGroup
+          title={t('notificationSettings.setup', {
+            defaultValue: 'Schedules and widgets',
+          })}
+        >
+          <SettingsRow
+            title={t('widgetGuide.title', {
+              defaultValue: 'Widgets & Live Activities',
+            })}
+            subtitle={t('notificationSettings.widgetHint', {
+              defaultValue: 'Setup steps and Live Activity availability',
+            })}
+            subtitleNumberOfLines={0}
+            testID="notification-widget-guide"
+            onPress={() => navigation.navigate('WidgetGuide')}
+          />
+          <SettingsRow
+            title={t('notificationSettings.trackingSchedules', {
+              defaultValue: 'Check-in, habits and weigh-in',
+            })}
+            subtitle={t('notificationSettings.trackingHint', {
+              defaultValue:
+                'Edit their existing schedules. Recorded or skipped items do not need reminders.',
+            })}
+            subtitleNumberOfLines={0}
+            onPress={() => navigation.navigate('TrackingSettings')}
+          />
+          <SettingsRow
+            title={t('mobility.title', { defaultValue: 'Guided mobility' })}
+            subtitle={t('notificationSettings.mobilityHint', {
+              defaultValue: 'Planned routines, execution and sync status',
+            })}
+            subtitleNumberOfLines={0}
+            onPress={() => navigation.navigate('GuidedMobility')}
+          />
+        </SettingsRowGroup>
+        {notificationsEnabled && (
           <SettingsRowGroup
             title={t('notificationSettings.delivery', {
               defaultValue: 'Delivery',
@@ -559,11 +770,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
           >
             <SettingsRow
               title={t('notificationSettings.remoteReminders', {
-                defaultValue: 'Remind me when the app is closed',
+                defaultValue: 'Server delivery for this account',
               })}
               subtitle={t('notificationSettings.remoteRemindersSubtitle', {
                 defaultValue:
-                  'Sync optional reminders across devices. Requires push permission; local reminders pause to prevent duplicates.',
+                  'The server uses your saved schedules, completion state, quiet hours and daily limit. Local delivery pauses after handoff. Scheduled intake and timer alerts stay on the device.',
               })}
               subtitleNumberOfLines={0}
               rightAccessory={
@@ -571,13 +782,54 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                   accessibilityLabel={t(
                     'notificationSettings.remoteReminders',
                     {
-                      defaultValue: 'Remind me when the app is closed',
+                      defaultValue: 'Server delivery for this account',
                     }
                   )}
-                  value={remoteSettings.remote_enabled}
+                  value={remoteSettings?.remote_enabled ?? false}
+                  disabled={remoteBusy || !remoteSettings || remoteOffline}
                   onValueChange={(value) => void handleRemoteToggle(value)}
-                  disabled={remoteBusy}
                 />
+              }
+            />
+          </SettingsRowGroup>
+        )}
+
+        {notificationsEnabled && remoteSettings && (
+          <SettingsRowGroup
+            title={t('notificationSettings.quietHours', {
+              defaultValue: 'Quiet hours',
+            })}
+          >
+            <SettingsRow
+              title={t('notificationSettings.quietHours', {
+                defaultValue: 'Quiet hours',
+              })}
+              subtitle={t('notificationSettings.quietHoursHint', {
+                defaultValue:
+                  'Optional reminders pause during these hours, in the account time zone. Medication and rest alerts remain separate. Equal times turn quiet hours off.',
+              })}
+              subtitleNumberOfLines={0}
+            />
+            <SettingsRow
+              title={t('notificationSettings.quietStart', {
+                defaultValue: 'Quiet hours start',
+              })}
+              subtitle={formatTimeLabel(remoteSettings.quiet_start)}
+              onPress={
+                remoteBusy
+                  ? undefined
+                  : () => quietStartSheetRef.current?.present()
+              }
+            />
+            <SettingsRow
+              title={t('notificationSettings.quietEnd', {
+                defaultValue: 'Quiet hours end',
+              })}
+              subtitle={formatTimeLabel(remoteSettings.quiet_end)}
+              onPress={
+                remoteBusy
+                  ? undefined
+                  : () => quietEndSheetRef.current?.present()
               }
             />
           </SettingsRowGroup>
@@ -589,21 +841,76 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               title={t('engagement.dailyOptionalBudget', {
                 defaultValue: 'Optional reminders today',
               })}
-              subtitle={
-                dailyOptionalBudgetUsed === null
-                  ? t('engagement.dailyOptionalBudgetUnavailable', {
-                      defaultValue:
-                        'Daily reminder count unavailable. Meal, movement, and water reminders share three slots.',
-                    })
-                  : t('engagement.dailyOptionalBudgetSummary', {
-                      defaultValue:
-                        '{{used}} of 3 daily slots used. Meal, movement, and water share them; medication and rest alerts are separate.',
-                      used: dailyOptionalBudgetUsed,
-                    })
-              }
+              subtitle={t('notificationSettings.budgetState', {
+                defaultValue:
+                  '{{used}} slots reserved or attempted today · Limit: {{limit}}',
+                used: remoteSettings?.remote_enabled
+                  ? (status?.daily_used ?? '—')
+                  : (dailyOptionalBudgetUsed ?? '—'),
+                limit:
+                  limit === null
+                    ? t('notificationSettings.noLimit', {
+                        defaultValue: 'No limit',
+                      })
+                    : limit,
+              })}
               subtitleNumberOfLines={0}
               testID="optional-reminder-budget"
             />
+            <View className="px-4 pb-4 gap-3">
+              <Text className="text-sm text-text-secondary">
+                {t('notificationSettings.capDescription', {
+                  defaultValue:
+                    'Optional meal, hydration, movement, mobility, habit, check-in and weigh-in reminders share this limit. No limit removes the quota; quiet hours, cadence and 20-minute spacing still apply. Scheduled intake, rest and fasting timers are separate.',
+                })}
+              </Text>
+              <TextInput
+                keyboardType="number-pad"
+                editable={!remoteBusy}
+                value={limitText}
+                onChangeText={setLimitText}
+                maxLength={2}
+                accessibilityLabel={t('notificationSettings.dailyLimit', {
+                  defaultValue: 'Daily limit, 1 to 50',
+                })}
+                className="min-h-12 rounded-xl border border-border-subtle px-3 text-base text-text-primary"
+              />
+              <View className="flex-row gap-3">
+                <Button
+                  className="flex-1"
+                  onPress={() => {
+                    const value = Number(limitText);
+                    if (Number.isInteger(value) && value >= 1 && value <= 50)
+                      void updateSchedule({ daily_limit: value }, () =>
+                        setLimit(value)
+                      );
+                    else
+                      Toast.show({
+                        type: 'error',
+                        text1: t('notificationSettings.capInvalid', {
+                          defaultValue: 'Use a whole number from 1 to 50.',
+                        }),
+                      });
+                  }}
+                  disabled={remoteBusy}
+                >
+                  {t('common.save', { defaultValue: 'Save' })}
+                </Button>
+                <Button
+                  className="flex-1"
+                  onPress={() =>
+                    void updateSchedule({ daily_limit: null }, () =>
+                      setLimit(null)
+                    )
+                  }
+                  disabled={remoteBusy}
+                >
+                  {t('notificationSettings.noLimit', {
+                    defaultValue: 'No limit',
+                  })}
+                </Button>
+              </View>
+            </View>
           </SettingsRowGroup>
         )}
 
@@ -622,6 +929,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t('notificationSettings.restTimer', {
                     defaultValue: 'Rest Timer',
                   })}
@@ -642,6 +950,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t('notificationSettings.fastingGoals', {
                     defaultValue: 'Fasting Goals',
                   })}
@@ -669,6 +978,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t(
                     'notificationSettings.medicationReminders',
                     { defaultValue: 'Medication Reminders' }
@@ -690,6 +1000,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 subtitleNumberOfLines={0}
                 rightAccessory={
                   <Switch
+                    disabled={remoteBusy}
                     accessibilityLabel={t(
                       'notificationSettings.repeatReminders',
                       { defaultValue: 'Repeat Reminders' }
@@ -715,6 +1026,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 subtitleNumberOfLines={0}
                 rightAccessory={
                   <Switch
+                    disabled={remoteBusy}
                     accessibilityLabel={t(
                       'notificationSettings.hideMedicationNames',
                       { defaultValue: 'Hide Medication Names' }
@@ -740,11 +1052,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               })}
               subtitle={t('notificationSettings.waterRemindersSubtitle', {
                 defaultValue:
-                  'Water reminders follow your interval and share available reminder slots with meal and movement prompts.',
+                  'After the chosen interval since the last drink, within your window. Stops at the known water goal. Uses remaining optional slots.',
               })}
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t('notificationSettings.waterReminders', {
                     defaultValue: 'Water Reminders',
                   })}
@@ -760,11 +1073,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 })}
                 subtitle={
                   <View className="mt-2">
-                    <SegmentedControl
-                      segments={intervalSegments}
-                      activeKey={
-                        String(waterReminderIntervalHours) as IntervalKey
-                      }
+                    <BottomSheetPicker
+                      options={intervalSegments}
+                      value={waterReminderIntervalHours}
+                      title={t('notificationSettings.waterReminderInterval', {
+                        defaultValue: 'Remind After',
+                      })}
                       onSelect={handleIntervalSelect}
                     />
                   </View>
@@ -776,6 +1090,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 title={t('notificationSettings.waterReminderStart', {
                   defaultValue: 'Start Time',
                 })}
+                disabled={remoteBusy}
                 onPress={() => startTimeSheetRef.current?.present()}
                 accessibilityLabel={t(
                   'notificationSettings.waterReminderStartAccessibility',
@@ -793,6 +1108,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 title={t('notificationSettings.waterReminderEnd', {
                   defaultValue: 'End Time',
                 })}
+                disabled={remoteBusy}
                 onPress={() => endTimeSheetRef.current?.present()}
                 accessibilityLabel={t(
                   'notificationSettings.waterReminderEndAccessibility',
@@ -819,11 +1135,12 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               })}
               subtitle={t('engagement.captureReminderSettingSubtitle', {
                 defaultValue:
-                  'One optional check-in during your chosen window. Saving a photo resolves it, even offline.',
+                  'Reminds only while the selected meal window is unresolved. Food, a meal photo, or an explicit meal state resolves it. Offline saves suppress the local reminder; server delivery needs the save to sync.',
               })}
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t('engagement.captureReminderSetting', {
                     defaultValue: 'Meal photo reminder',
                   })}
@@ -840,6 +1157,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                   title={t('engagement.windowStart', {
                     defaultValue: 'Window starts',
                   })}
+                  accessibilityLabel={t('notificationSettings.timeValue', {
+                    defaultValue: 'Reminder time, {{time}}',
+                    time: mealStart,
+                  })}
+                  disabled={remoteBusy}
                   onPress={() => mealStartSheetRef.current?.present()}
                   rightAccessory={
                     <Text className="text-sm text-text-secondary">
@@ -852,6 +1174,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                   title={t('engagement.promptTime', {
                     defaultValue: 'Reminder time',
                   })}
+                  accessibilityLabel={t('notificationSettings.timeValue', {
+                    defaultValue: 'Reminder time, {{time}}',
+                    time: mealPrompt,
+                  })}
+                  disabled={remoteBusy}
                   onPress={() => mealPromptSheetRef.current?.present()}
                   rightAccessory={
                     <Text className="text-sm text-text-secondary">
@@ -864,6 +1191,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                   title={t('engagement.windowEnd', {
                     defaultValue: 'Window ends',
                   })}
+                  accessibilityLabel={t('notificationSettings.timeValue', {
+                    defaultValue: 'Reminder time, {{time}}',
+                    time: mealEnd,
+                  })}
+                  disabled={remoteBusy}
                   onPress={() => mealEndSheetRef.current?.present()}
                   rightAccessory={
                     <Text className="text-sm text-text-secondary">
@@ -885,6 +1217,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t('engagement.reviewSetting', {
                     defaultValue: 'Meal photo review reminder',
                   })}
@@ -900,6 +1233,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                 title={t('engagement.reviewTime', {
                   defaultValue: 'Review time',
                 })}
+                accessibilityLabel={t('notificationSettings.timeValue', {
+                  defaultValue: 'Reminder time, {{time}}',
+                  time: reviewTime,
+                })}
+                disabled={remoteBusy}
                 onPress={() => reviewTimeSheetRef.current?.present()}
                 rightAccessory={
                   <Text className="text-sm text-text-secondary">
@@ -929,6 +1267,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               subtitleNumberOfLines={0}
               rightAccessory={
                 <Switch
+                  disabled={remoteBusy}
                   accessibilityLabel={t('engagement.movementReminderSetting', {
                     defaultValue: 'Movement break reminder',
                   })}
@@ -945,6 +1284,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               title={t('engagement.movementReminderTime', {
                 defaultValue: 'Reminder time',
               })}
+              accessibilityLabel={t('notificationSettings.timeValue', {
+                defaultValue: 'Reminder time, {{time}}',
+                time: movementReminderTime,
+              })}
+              disabled={remoteBusy}
               onPress={() => movementTimeSheetRef.current?.present()}
               rightAccessory={
                 <Text className="text-sm text-text-secondary">
@@ -968,8 +1312,60 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
             onPress={() => navigation.navigate('MovementBreak')}
           />
         </SettingsRowGroup>
+        {status && notificationsEnabled && (
+          <SettingsRowGroup
+            title={t('notificationSettings.statusTitle', {
+              defaultValue: 'Delivery status · last 7 days',
+            })}
+          >
+            <SettingsRow
+              title={t('notificationSettings.statusNote', {
+                defaultValue: 'Delivery does not mean seen',
+              })}
+              subtitle={t('notificationSettings.statusDescription', {
+                defaultValue:
+                  'Scheduled: reserved by the server. Accepted: Expo accepted the push. Receipt confirmed: the push service confirmed delivery. Unknown: do not retry an uncertain send automatically. Device Focus or notification summaries may delay presentation.',
+              })}
+              subtitleNumberOfLines={0}
+            />
+            {status.occurrences.slice(0, 6).map((item) => (
+              <SettingsRow
+                key={item.id}
+                title={statusLabels.kind[item.kind]}
+                subtitle={`${new Intl.DateTimeFormat(i18n.language, { dateStyle: 'short', timeStyle: 'short', hourCycle: 'h23', timeZone: preferences?.timezone ?? undefined }).format(new Date(item.scheduled_at))} · ${statusLabels.deliveryState[(item.deliveries[0]?.status ?? item.status) as keyof typeof statusLabels.deliveryState] ?? t('notificationSettings.reason.data_unavailable', { defaultValue: 'Required data unavailable; no reminder inferred' })}`}
+                subtitleNumberOfLines={0}
+              />
+            ))}
+            {status.diagnostics
+              .filter((item) => item.reason !== 'disabled')
+              .map((item, index) => (
+                <SettingsRow
+                  key={`${item.kind}:${index}`}
+                  title={statusLabels.kind[item.kind]}
+                  subtitle={`${statusLabels.reason[item.reason as keyof typeof statusLabels.reason] ?? t('notificationSettings.reason.data_unavailable', { defaultValue: 'Required data unavailable; no reminder inferred' })}${item.next_at ? ` · ${new Intl.DateTimeFormat(i18n.language, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23', timeZone: preferences?.timezone ?? undefined }).format(new Date(item.next_at))}` : ''}`}
+                  subtitleNumberOfLines={0}
+                />
+              ))}
+          </SettingsRowGroup>
+        )}
       </ScrollView>
 
+      <TimeSheet
+        ref={quietStartSheetRef}
+        value={remoteSettings?.quiet_start ?? '22:00'}
+        onSelectTime={(time) =>
+          void updateSchedule({ quiet_start: time }, () => undefined)
+        }
+        commitOn="done"
+      />
+      <TimeSheet
+        ref={quietEndSheetRef}
+        value={remoteSettings?.quiet_end ?? '08:00'}
+        onSelectTime={(time) =>
+          void updateSchedule({ quiet_end: time }, () => undefined)
+        }
+        commitOn="done"
+      />
       <TimeSheet
         ref={startTimeSheetRef}
         value={waterReminderWindowStart}
@@ -1003,13 +1399,21 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
       <TimeSheet
         ref={reviewTimeSheetRef}
         value={reviewTime}
-        onSelectTime={setReviewTime}
+        onSelectTime={(time) =>
+          void updateSchedule({ meal_review_time: time }, () =>
+            setReviewTime(time)
+          )
+        }
         commitOn="done"
       />
       <TimeSheet
         ref={movementTimeSheetRef}
         value={movementReminderTime}
-        onSelectTime={setMovementReminderTime}
+        onSelectTime={(time) =>
+          void updateSchedule({ movement_break_time: time }, () =>
+            setMovementReminderTime(time)
+          )
+        }
         commitOn="done"
       />
     </View>

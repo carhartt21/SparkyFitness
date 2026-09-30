@@ -1,9 +1,10 @@
+import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { NutritionActionIdentity } from './nutritionActionOutbox';
 import { toLocalDateString } from '../utils/dateUtils';
 
 const KEY = '@SparkyFitness/discretionaryPromptLedger:v1';
-const DAILY_CAP = 3;
+
 const FUTURE_RELEASE_MARGIN_MS = 2 * 60_000;
 
 interface PromptSlot {
@@ -123,7 +124,9 @@ export function reserveDiscretionaryPrompt(input: {
         countsForScope(slot, input.identity) &&
         toLocalDateString(new Date(slot.at)) === day
     ).length;
-    if (allocated >= DAILY_CAP) return false;
+    const value = useAppPreferencesStore.getState().optionalReminderDailyLimit;
+    const cap = value === undefined ? 3 : value;
+    if (cap !== null && allocated >= cap) return false;
     slots.push({
       serverConfigId: input.identity?.serverConfigId ?? null,
       userId: input.identity?.userId ?? null,
@@ -181,7 +184,7 @@ export function getSpentDiscretionaryPromptCounts(
 export function getTodayDiscretionaryPromptBudget(
   identity: NutritionActionIdentity | null,
   now = Date.now()
-): Promise<{ used: number; remaining: number }> {
+): Promise<{ used: number; remaining: number | null }> {
   return serialized(async () => {
     const today = toLocalDateString(new Date(now));
     const used = (await readSlots()).filter(
@@ -190,7 +193,12 @@ export function getTodayDiscretionaryPromptBudget(
         countsForScope(slot, identity) &&
         toLocalDateString(new Date(slot.at)) === today
     ).length;
-    return { used, remaining: Math.max(0, DAILY_CAP - used) };
+    const value = useAppPreferencesStore.getState().optionalReminderDailyLimit;
+    const limit = value === undefined ? 3 : value;
+    return {
+      used,
+      remaining: limit === null ? null : Math.max(0, limit - used),
+    };
   });
 }
 

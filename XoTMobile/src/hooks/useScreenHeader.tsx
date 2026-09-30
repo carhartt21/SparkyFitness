@@ -903,6 +903,8 @@ export function useScreenHeader(config: ScreenHeaderConfig): React.ReactNode {
         {center ?? (
           <Text
             numberOfLines={1}
+            maxFontSizeMultiplier={1.4}
+            style={{ marginHorizontal: 48 }}
             className="text-center text-text-primary text-lg font-semibold"
           >
             {title ?? ''}

@@ -123,7 +123,7 @@ function extractDefaultImportPaths(source: string): Map<string, string> {
   return new Map(
     [
       ...source.matchAll(
-        /^import ([A-Za-z0-9_]+) from '(?:\.\/src|\.\.)\/screens\/([^']+)';$/gm
+        /^import\s+([A-Za-z0-9_]+)\s+from\s+'(?:\.\/src|\.\.)\/screens\/([^']+)';$/gm
       ),
     ].map(([, localName, screenFile]) => [
       localName,
@@ -138,7 +138,7 @@ function extractSafeComponentNamesByScreen(
   return new Map(
     [
       ...source.matchAll(
-        /^(?:export )?const (Safe[A-Za-z0-9_]+) = withErrorBoundary\(([A-Za-z0-9_]+), '([^']+)'/gm
+        /^(?:export )?const (Safe[A-Za-z0-9_]+)\s*=\s*withErrorBoundary\(\s*([A-Za-z0-9_]+),\s*'([^']+)'/gm
       ),
     ].map(([, safeComponent, importedComponent, routeName]) => [
       routeName,
@@ -323,11 +323,12 @@ function getStackScreenBlock(
   const start = source.lastIndexOf('<Stack.Screen', routeIndex);
   if (start === -1) return undefined;
 
-  const nextScreen = source.indexOf('\n          <Stack.Screen', routeIndex);
-  const navigatorEnd = source.indexOf(
-    '\n        </Stack.Navigator>',
-    routeIndex
-  );
+  // Formatting must not make one route swallow all later screen options.
+  const tail = source.slice(routeIndex);
+  const nextOffset = tail.search(/\n\s*<Stack\.Screen\b/);
+  const navigatorOffset = tail.search(/\n\s*<\/Stack\.Navigator>/);
+  const nextScreen = nextOffset < 0 ? -1 : routeIndex + nextOffset;
+  const navigatorEnd = navigatorOffset < 0 ? -1 : routeIndex + navigatorOffset;
   const candidates = [nextScreen, navigatorEnd].filter((index) => index !== -1);
   const end = candidates.length > 0 ? Math.min(...candidates) : source.length;
 
@@ -456,18 +457,13 @@ describe('native header navigation contract', () => {
       expect(screenBlock).not.toMatch(/\bpresentation\s*:/);
     }
 
-    expect(safeScreensSource).toContain(
-      "withErrorBoundary(FamilyMembersScreen, 'FamilyMembers', { canGoBack: true })"
-    );
-    expect(safeScreensSource).toContain(
-      "withErrorBoundary(FamilyDiaryScreen, 'FamilyDiary', { canGoBack: true })"
-    );
-    expect(safeScreensSource).toContain(
-      "withErrorBoundary(FamilyMealDetailScreen, 'FamilyMealDetail', { canGoBack: true })"
-    );
-    expect(safeScreensSource).toContain(
-      "withErrorBoundary(FamilyCopyReviewScreen, 'FamilyCopyReview', { canGoBack: true })"
-    );
+    for (const { routeName } of familyRoutes) {
+      expect(safeScreensSource).toMatch(
+        new RegExp(
+          `withErrorBoundary\\(\\s*${routeName}Screen,\\s*'${routeName}',\\s*\\{\\s*canGoBack:\\s*true,?\\s*\\},?\\s*\\)`
+        )
+      );
+    }
   });
 
   it('requires every root-stack screen to have native-tabs coverage or an explicit exclusion reason', () => {

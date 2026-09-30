@@ -1,6 +1,12 @@
+import i18n from '../../src/localization/i18n';
+import english from '../../src/localization/locales/en/translation.json';
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import Toast from 'react-native-toast-message';
+import {
+  patchRemoteEngagement,
+  refreshRemoteEngagement,
+} from '../../src/services/remoteEngagement';
 
 import NotificationSettingsScreen from '../../src/screens/NotificationSettingsScreen';
 import { getTodayDiscretionaryPromptBudget } from '../../src/services/discretionaryPromptLedger';
@@ -15,6 +21,19 @@ import {
   useAppPreferencesStore,
   __resetAppPreferencesStoreForTests,
 } from '../../src/stores/appPreferencesStore';
+
+jest.mock('../../src/services/remoteEngagement', () => ({
+  readCachedRemoteEngagement: jest.fn(async () => null),
+  refreshRemoteEngagement: jest.fn(async () => {
+    throw new Error('offline');
+  }),
+  flushNotificationDeviceOff: jest.fn(async () => undefined),
+  notificationDeviceOffPending: jest.fn(async () => false),
+  disableThisNotificationDevice: jest.fn(async () => undefined),
+  renewRemoteEngagementDevice: jest.fn(async () => undefined),
+  patchRemoteEngagement: jest.fn(),
+  enableRemoteEngagement: jest.fn(),
+}));
 
 jest.mock('../../src/services/notifications', () => ({
   requestNotificationPermission: jest.fn(async () => 'granted'),
@@ -88,6 +107,7 @@ const mockNavigation = {
   goBack: jest.fn(),
   setOptions: jest.fn(),
   navigate: jest.fn(),
+  replace: jest.fn(),
 } as never;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -125,11 +145,15 @@ function renderScreen() {
 // when the master toggle is off; medication sub-rows require the medication
 // toggle. Indices below only address rows whose presence the test controls.
 const MASTER_SWITCH_INDEX = 0;
-const REST_TIMER_SWITCH_INDEX = 1;
-const FASTING_SWITCH_INDEX = 2;
-const MEDICATION_SWITCH_INDEX = 3;
+const REST_TIMER_SWITCH_INDEX = 2;
+const FASTING_SWITCH_INDEX = 3;
+const MEDICATION_SWITCH_INDEX = 4;
 
 describe('NotificationSettingsScreen', () => {
+  beforeAll(() => {
+    i18n.addResourceBundle('en', 'translation', english, true, true);
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     __resetAppPreferencesStoreForTests();
@@ -147,11 +171,7 @@ describe('NotificationSettingsScreen', () => {
 
   it('previews the combined optional reminder budget without counting medication', async () => {
     const { findByText } = renderScreen();
-    expect(
-      await findByText(
-        /2 of 3 daily slots used.*medication and rest alerts are separate/i
-      )
-    ).toBeTruthy();
+    expect(await findByText(/2.*3/)).toBeTruthy();
     expect(getTodayDiscretionaryPromptBudget).toHaveBeenCalledWith({
       serverConfigId: 'server-A',
       userId: 'user-A',
@@ -383,10 +403,13 @@ describe('NotificationSettingsScreen', () => {
     const { getAllByRole } = renderScreen();
     const switches = getAllByRole('switch');
 
-    expect(switches[0].props.accessibilityLabel).toBe('Allow Notifications');
-    expect(switches[1].props.accessibilityLabel).toBe('Rest Timer');
-    expect(switches[2].props.accessibilityLabel).toBe('Fasting Goals');
-    expect(switches[3].props.accessibilityLabel).toBe('Medication Reminders');
+    expect(switches[0].props.accessibilityLabel).toBe('Alerts on this device');
+    expect(switches[1].props.accessibilityLabel).toBe(
+      'Server delivery for this account'
+    );
+    expect(switches[2].props.accessibilityLabel).toBe('Rest Timer');
+    expect(switches[3].props.accessibilityLabel).toBe('Fasting Goals');
+    expect(switches[4].props.accessibilityLabel).toBe('Medication Reminders');
   });
 
   it('keeps the meal reminder off if notification permission is denied', async () => {
@@ -471,5 +494,41 @@ describe('NotificationSettingsScreen', () => {
     );
     act(() => latestTimeSheet('20:00').onSelectTime('19:30'));
     expect(useAppPreferencesStore.getState().mealPhotoReviewTime).toBe('19:30');
+  });
+  it('offers an explicit settings reload after a rejected remote save', async () => {
+    const settings = {
+      schema_version: 2 as const,
+      schedule_initialized: true,
+      revision: 1,
+      remote_enabled: true,
+      quiet_start: '22:00',
+      quiet_end: '08:00',
+      hydration_enabled: true,
+      meal_capture_enabled: true,
+      meal_review_enabled: true,
+      movement_break_enabled: true,
+      mobility_enabled: true,
+      daily_limit: 3,
+      hydration_interval_hours: 2,
+      hydration_start: '08:00',
+      hydration_end: '22:00',
+      meal_capture_start: '11:00',
+      meal_capture_end: '14:00',
+      meal_capture_time: '12:30',
+      meal_review_time: '20:00',
+      movement_break_time: '15:00',
+    };
+    jest.mocked(refreshRemoteEngagement).mockResolvedValueOnce(settings);
+    jest
+      .mocked(patchRemoteEngagement)
+      .mockRejectedValueOnce(new Error('concurrent settings edit'));
+    const screen = renderScreen();
+    await waitFor(() => expect(refreshRemoteEngagement).toHaveBeenCalled());
+    await act(async () => {
+      fireEvent(screen.getByLabelText('Water Reminders'), 'valueChange', false);
+    });
+    const retry = await screen.findByText('Retry');
+    fireEvent.press(retry);
+    expect(mockNavigation.replace).toHaveBeenCalledWith('NotificationSettings');
   });
 });

@@ -1,3 +1,4 @@
+import { instantToDay } from '@workspace/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useQuery } from '@tanstack/react-query';
@@ -42,23 +43,34 @@ const HydrationReminderReconciler: React.FC<{
   medicationReservedTimes: number[] | null;
   spentByDay: Record<string, number> | null;
   localRemindersAllowed: boolean;
+  timezone?: string;
+  quietStart?: string;
+  quietEnd?: string;
 }> = ({
   sharedPlan,
   nowMs,
   medicationReservedTimes,
   spentByDay,
   localRemindersAllowed,
+  timezone,
+  quietStart,
+  quietEnd,
 }) => {
   const remindersActive = useAppPreferencesStore(
     (s) => s.notificationsEnabled && s.waterReminderEnabled
   );
   const { isConnected } = useServerConnection();
+  const dailyLimit = useAppPreferencesStore(
+    (s) => s.optionalReminderDailyLimit
+  );
   const intervalHours = useAppPreferencesStore(
     (s) => s.waterReminderIntervalHours
   );
   const windowStart = useAppPreferencesStore((s) => s.waterReminderWindowStart);
   const windowEnd = useAppPreferencesStore((s) => s.waterReminderWindowEnd);
-  const [today, setToday] = useState(getTodayDate);
+  const [today, setToday] = useState(() =>
+    timezone ? instantToDay(new Date(), timezone) : getTodayDate()
+  );
   const [identity, setIdentity] = useState<NutritionActionIdentity | null>(
     null
   );
@@ -102,7 +114,9 @@ const HydrationReminderReconciler: React.FC<{
   }, []);
 
   useEffect(() => {
-    const refreshDay = () => setToday(getTodayDate());
+    const refreshDay = () =>
+      setToday(timezone ? instantToDay(new Date(), timezone) : getTodayDate());
+    refreshDay();
     const subscription = AppState.addEventListener('change', (state) => {
       if (state === 'active') refreshDay();
     });
@@ -112,7 +126,7 @@ const HydrationReminderReconciler: React.FC<{
       subscription.remove();
       clearInterval(interval);
     };
-  }, []);
+  }, [timezone]);
 
   const { summary, refetch: refetchSummary } = useDailySummary({
     date: today,
@@ -144,12 +158,21 @@ const HydrationReminderReconciler: React.FC<{
         windowStart,
         windowEnd,
         goalMetToday,
+        timezone,
         maxCount: 128,
       }),
     // `nowMs` intentionally does not re-anchor an overdue reminder every
     // minute, which would keep postponing its delivery while the app is open.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [today, lastLoggedAtMs, intervalHours, windowStart, windowEnd, goalMetToday]
+    [
+      today,
+      lastLoggedAtMs,
+      intervalHours,
+      windowStart,
+      windowEnd,
+      goalMetToday,
+      timezone,
+    ]
   );
   const sharedPlanSignature = JSON.stringify(
     sharedPlan.map((candidate) => [candidate.id, candidate.preferredAt])
@@ -164,6 +187,10 @@ const HydrationReminderReconciler: React.FC<{
         now: nowMs,
         windowEnd,
         maxScheduled: MAX_SCHEDULED_WATER_REMINDERS,
+        dailyLimit,
+        timezone,
+        quietStart,
+        quietEnd,
       }),
     // Clock ticks alone must not revoke a reminder around its delivery time.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,6 +200,10 @@ const HydrationReminderReconciler: React.FC<{
       medicationReservedTimes,
       spentByDay,
       windowEnd,
+      dailyLimit,
+      timezone,
+      quietStart,
+      quietEnd,
     ]
   );
 

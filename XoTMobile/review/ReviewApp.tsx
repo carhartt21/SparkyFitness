@@ -84,7 +84,7 @@ export default function ReviewApp() {
       useAppPreferencesStore.setState({
         languagePreference: config.language,
         hiddenHealthTrends: ['steps', 'weight', 'sleep', 'hydration'],
-        notificationsEnabled: false,
+        notificationsEnabled: config.scenario === 'notifications',
         fastingEnabled: false,
         caffeineCardVisible: false,
         cycleCardVisible: false,

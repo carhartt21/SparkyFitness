@@ -30,6 +30,7 @@ import { buildDashboardTools } from './dashboardTools.js';
 import { buildFavoritesTools } from './favoritesTools.js';
 import { buildFoodTools } from './foodTools.js';
 import { buildGoalTools } from './goalTools.js';
+import { buildMobilityTools } from './mobilityTools.js';
 import { buildHabitTools } from './habitTools.js';
 import { buildMealPlanTools } from './mealPlansTools.js';
 import { buildMedicationTools } from './medicationTools.js';
@@ -86,6 +87,7 @@ const CATEGORY_BUILDERS: Record<
   ((userId: string, tz: string, ctx?: ToolBuildContext) => ToolMap)[]
 > = {
   exercise: [
+    (u) => buildMobilityTools(u),
     (u, tz) => buildExerciseTools(u, tz),
     (u, tz) => buildExerciseStatsTools(u, tz),
     (u, tz) => buildWorkoutPlanTools(u, tz),
