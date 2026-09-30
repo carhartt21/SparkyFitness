@@ -60,6 +60,8 @@ export function amountWheelScale(metric: boolean): {
 export interface AmountWheelProps {
   value: number;
   onChange: (value: number) => void;
+  /** Preserve typed drafts, including invalid ones, in the submission state. */
+  onDraftChange?: (text: string) => void;
   metric: boolean;
   /** Spoken with the value, e.g. "grams" or "Medium pot". */
   unitLabel: string;
@@ -76,6 +78,7 @@ export interface AmountWheelProps {
 const AmountWheel: React.FC<AmountWheelProps> = ({
   value,
   onChange,
+  onDraftChange,
   metric,
   unitLabel,
   disabled = false,
@@ -104,9 +107,14 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
     if (!DECIMAL_INPUT_REGEX.test(text)) return;
     setDraft(text);
     const parsed = parseDecimalInput(text);
-    if (parsed > 0) onChange(Math.round(parsed * 100) / 100);
+    if (onDraftChange) onDraftChange(text);
+    else if (Number.isFinite(parsed) && parsed > 0) onChange(parsed);
   };
-  const finishEditing = () => setEditing(false);
+  const finishEditing = () => {
+    const parsed = parseDecimalInput(draft);
+    // Keep invalid text visible so it can be corrected; never restore an old amount.
+    if (Number.isFinite(parsed) && parsed > 0) setEditing(false);
+  };
 
   // The latest props for the gesture handlers, which are created once so a
   // drag is never cut off by a re-render. Updated after each render.
@@ -183,6 +191,7 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   /* eslint-enable react-hooks/refs */
 
   const onAccessibilityAction = (event: AccessibilityActionEvent) => {
+    if (disabled) return;
     const name = event.nativeEvent.actionName;
     if (name === 'increment' || name === 'decrement') {
       const next = stepAmount(value, name === 'increment' ? 1 : -1, scale);
@@ -235,6 +244,7 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
       testID={testID}
       accessible
       accessibilityRole="adjustable"
+      accessibilityState={{ disabled }}
       accessibilityLabel={t('foodEntryAdd.labels.amount', {
         defaultValue: 'Amount',
       })}

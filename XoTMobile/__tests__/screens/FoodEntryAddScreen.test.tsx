@@ -6,6 +6,7 @@ import {
   waitFor,
   within,
 } from '@testing-library/react-native';
+import { useReducedMotion } from 'react-native-reanimated';
 import { Keyboard } from 'react-native';
 import {
   findHeaderItemByAccessibilityLabel,
@@ -810,6 +811,43 @@ describe('FoodEntryAddScreen', () => {
       expect.objectContaining({
         createEntryPayload: expect.objectContaining({ quantity: 2 }),
       })
+    );
+  });
+
+  it.each(['', '0', '.', ',', '1..5'])(
+    'refuses an invalid amount draft %s, including after blur',
+    (draft) => {
+      const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+      fireEvent(
+        screen.getByTestId('food-entry-amount-wheel'),
+        'accessibilityAction',
+        {
+          nativeEvent: { actionName: 'longpress' },
+        }
+      );
+      const input = screen.getByTestId('food-entry-amount-input');
+      fireEvent.changeText(input, draft);
+      fireEvent(input, 'blur');
+      expect(screen.getByTestId('food-entry-amount-input').props.value).toBe(
+        draft
+      );
+      fireEvent.press(screen.getByText(ADD_LABEL));
+      expect(mockAddEntry).not.toHaveBeenCalled();
+      fireEvent.changeText(input, '2,5');
+      fireEvent.press(screen.getByText(ADD_LABEL));
+      expect(mockAddEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          createEntryPayload: expect.objectContaining({ quantity: 2.5 }),
+        })
+      );
+    }
+  );
+
+  it('keeps the hero static when Reduce Motion is enabled', () => {
+    jest.mocked(useReducedMotion).mockReturnValueOnce(true);
+    const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+    expect(screen.getByTestId('food-entry-hero').props.style).toEqual(
+      expect.objectContaining({ opacity: 1, transform: [] })
     );
   });
 

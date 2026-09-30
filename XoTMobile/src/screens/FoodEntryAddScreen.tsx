@@ -41,6 +41,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import { useFoodImageSourceContext } from '../components/FoodImageSourceProvider';
 import { externalFoodImage, usableFoodImages } from '../utils/foodImages';
 import BottomSheetPicker from '../components/BottomSheetPicker';
+import { useReducedMotion } from 'react-native-reanimated';
 import AmountWheel, { AMOUNT_WHEEL_HEIGHT } from '../components/AmountWheel';
 import UnitDropdown from '../components/UnitDropdown';
 import { buildEditFoodParams } from '../utils/editFoodRoute';
@@ -767,7 +768,8 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   }, [activeItem, activeVariant.servingSize]);
 
   const [quantityText, setQuantityText] = useState(String(initialQuantity));
-  const quantity = parseDecimalInput(quantityText) || 0;
+  const parsedQuantity = parseDecimalInput(quantityText);
+  const quantity = Number.isFinite(parsedQuantity) ? parsedQuantity : 0;
   const servings =
     displayValues.servingSize > 0 ? quantity / displayValues.servingSize : 0;
   const servingSizeRef = useRef(displayValues.servingSize);
@@ -1898,6 +1900,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   }, [goalTipVisible]);
   // Drives the pinned hero: it shrinks and fades as the cards cover it.
   const scrollY = useRef(new Animated.Value(0)).current;
+  const reducedMotion = useReducedMotion();
 
   // Outlined inputs of the reference: accent hairline over the card surface.
   const outlinedFieldStyle = {
@@ -2041,29 +2044,34 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         <Animated.View
           pointerEvents="none"
           className="absolute left-0 right-0 top-0"
+          testID="food-entry-hero"
           style={{
             height: 260,
-            opacity: scrollY.interpolate({
-              inputRange: [0, 260],
-              outputRange: [1, 0.25],
-              extrapolate: 'clamp',
-            }),
-            transform: [
-              {
-                translateY: scrollY.interpolate({
-                  inputRange: [-120, 0, 260],
-                  outputRange: [0, 0, -52],
+            opacity: reducedMotion
+              ? 1
+              : scrollY.interpolate({
+                  inputRange: [0, 260],
+                  outputRange: [1, 0.25],
                   extrapolate: 'clamp',
                 }),
-              },
-              {
-                scale: scrollY.interpolate({
-                  inputRange: [-120, 0, 260],
-                  outputRange: [1.25, 1, 0.86],
-                  extrapolate: 'clamp',
-                }),
-              },
-            ],
+            transform: reducedMotion
+              ? []
+              : [
+                  {
+                    translateY: scrollY.interpolate({
+                      inputRange: [-120, 0, 260],
+                      outputRange: [0, 0, -52],
+                      extrapolate: 'clamp',
+                    }),
+                  },
+                  {
+                    scale: scrollY.interpolate({
+                      inputRange: [-120, 0, 260],
+                      outputRange: [1.25, 1, 0.86],
+                      extrapolate: 'clamp',
+                    }),
+                  },
+                ],
           }}
         >
           {foodImagePath ? (
@@ -2298,6 +2306,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               <View className="flex-row items-center gap-3">
                 <AmountWheel
                   value={quantity}
+                  onDraftChange={setQuantityText}
                   onChange={(next) =>
                     setQuantityText(formatServingSizeDisplay(next))
                   }
