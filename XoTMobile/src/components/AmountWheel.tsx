@@ -66,6 +66,8 @@ export interface AmountWheelProps {
   /** Spoken with the value, e.g. "grams" or "Medium pot". */
   unitLabel: string;
   disabled?: boolean;
+  fullWidth?: boolean;
+  height?: number;
   testID?: string;
 }
 
@@ -82,6 +84,8 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   metric,
   unitLabel,
   disabled = false,
+  fullWidth = false,
+  height = AMOUNT_WHEEL_HEIGHT,
   testID = 'food-entry-amount-wheel',
 }) => {
   const { t } = useTranslation();
@@ -202,8 +206,9 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   };
 
   const fieldStyle = {
-    flex: 0.66,
-    height: AMOUNT_WHEEL_HEIGHT,
+    flex: fullWidth ? undefined : 0.66,
+    width: fullWidth ? ('100%' as const) : undefined,
+    height,
     borderColor: withAlpha(accent, dragging ? 1 : 0.7),
     backgroundColor: withAlpha(accent, dragging ? 0.1 : 0.05),
   };
@@ -289,6 +294,8 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
               }
               style={offset === 0 ? undefined : { color: textMuted }}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.85}
             >
               {formatLocalizedNumber(n, { maximumFractionDigits: 2 })}
             </Text>

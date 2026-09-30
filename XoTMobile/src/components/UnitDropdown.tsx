@@ -76,7 +76,7 @@ const UnitDropdown: React.FC<{
       >
         <Text
           className="min-w-0 flex-1 text-base font-medium text-text-primary"
-          numberOfLines={1}
+          numberOfLines={2}
         >
           {label}
         </Text>

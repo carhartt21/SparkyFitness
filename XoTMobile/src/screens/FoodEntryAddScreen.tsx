@@ -16,6 +16,7 @@ import {
   Platform,
   Animated,
   Pressable,
+  useWindowDimensions,
 } from 'react-native';
 import {
   KeyboardAwareScrollView,
@@ -1777,6 +1778,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
         : t('foodEntryAdd.actions.addToDiary', {
             defaultValue: 'Add to Diary',
           });
+  const addButtonLabel =
+    !isSelectionMode && !isMeal
+      ? t('foodEntryAdd.actions.addShort', { defaultValue: 'Add' })
+      : addLabel;
   const addDisabled =
     isActionPending ||
     isPhotoCompletionPending ||
@@ -1901,10 +1906,16 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   // Drives the pinned hero: it shrinks and fades as the cards cover it.
   const scrollY = useRef(new Animated.Value(0)).current;
   const reducedMotion = useReducedMotion();
+  const { fontScale } = useWindowDimensions();
+  const largeText = fontScale >= 1.5;
+  const amountFieldHeight = Math.max(
+    AMOUNT_WHEEL_HEIGHT,
+    Math.ceil(28 * fontScale) + 24
+  );
 
   // Outlined inputs of the reference: accent hairline over the card surface.
   const outlinedFieldStyle = {
-    minHeight: AMOUNT_WHEEL_HEIGHT,
+    minHeight: amountFieldHeight,
     borderColor: withAlpha(accentColor, 0.7),
     backgroundColor: withAlpha(accentColor, 0.05),
   };
@@ -2181,7 +2192,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               label over value, separated by hairlines, in the app's macro
               colours with the share of today's goal. */}
             <View>
-              <View className="flex-row" testID="food-entry-highlights">
+              <View
+                className="flex-row flex-wrap"
+                testID="food-entry-highlights"
+              >
                 {nutritionHighlights.map((nutrient, index) => {
                   const amount = formatLocalizedNumber(nutrient.value, {
                     maximumFractionDigits: nutrient.key === 'calories' ? 0 : 1,
@@ -2214,8 +2228,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                               percent,
                             })
                       }
-                      className={`min-w-0 flex-1 items-center py-1 ${
-                        index > 0 ? 'border-l border-border-subtle' : ''
+                      className={`min-w-0 items-center py-1 ${largeText ? 'w-1/2' : 'flex-1'} ${
+                        (largeText ? index % 2 > 0 : index > 0)
+                          ? 'border-l border-border-subtle'
+                          : ''
                       }`}
                     >
                       <Text
@@ -2287,51 +2303,63 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             </View>
 
             <View>
-              <View className="mb-2 flex-row items-end justify-between gap-3">
-                <Text className="text-sm text-text-secondary">
-                  {t('foodEntryAdd.servings.title', {
-                    defaultValue: 'Serving size',
-                  })}
-                </Text>
-                <Text className="text-sm text-text-secondary">
-                  {t('foodEntryAdd.servings.amountPerServing', {
-                    defaultValue: 'Amount per serving',
-                  })}
-                </Text>
-              </View>
-              <View className="flex-row items-center gap-3">
-                <AmountWheel
-                  value={quantity}
-                  onDraftChange={setQuantityText}
-                  onChange={(next) =>
-                    setQuantityText(formatServingSizeDisplay(next))
-                  }
-                  metric={
-                    selectedServingOption
-                      ? selectedServingOption.kind === 'metric'
-                      : isMetricInputUnit(displayValues.servingUnit)
-                  }
-                  unitLabel={quantityUnitLabel}
-                  disabled={isActionPending}
-                />
-                <UnitDropdown
-                  testID="food-entry-unit-picker"
-                  value={selectedVariantId ?? variantPickerOptions[0]?.id ?? ''}
-                  label={quantityUnitLabel}
-                  options={variantPickerOptions.map((variant) => ({
-                    label: variant.label,
-                    value: variant.id ?? '',
-                  }))}
-                  onSelect={handleVariantChange}
-                  busy={isCreateVariantPending}
-                  disabled={isCreateVariantPending}
-                  accessibilityLabel={t('foodEntryAdd.actions.changeUnit', {
-                    defaultValue: 'Change unit: {{unit}}',
-                    unit: quantityUnitLabel,
-                  })}
-                  className="min-w-0 flex-1 flex-row items-center justify-between rounded-xl border px-4"
-                  style={outlinedFieldStyle}
-                />
+              <View
+                className={largeText ? 'gap-4' : 'flex-row items-start gap-3'}
+              >
+                <View
+                  style={largeText ? undefined : { flex: 0.66 }}
+                  className="gap-2"
+                >
+                  <Text className="text-sm text-text-secondary">
+                    {t('foodEntryAdd.labels.amount', {
+                      defaultValue: 'Amount',
+                    })}
+                  </Text>
+                  <AmountWheel
+                    value={quantity}
+                    fullWidth
+                    height={amountFieldHeight}
+                    onDraftChange={setQuantityText}
+                    onChange={(next) =>
+                      setQuantityText(formatServingSizeDisplay(next))
+                    }
+                    metric={
+                      selectedServingOption
+                        ? selectedServingOption.kind === 'metric'
+                        : isMetricInputUnit(displayValues.servingUnit)
+                    }
+                    unitLabel={quantityUnitLabel}
+                    disabled={isActionPending}
+                  />
+                </View>
+                <View
+                  style={largeText ? undefined : { flex: 1 }}
+                  className="gap-2"
+                >
+                  <Text className="text-sm text-text-secondary">
+                    {t('foodEntryAdd.labels.unit', { defaultValue: 'Unit' })}
+                  </Text>
+                  <UnitDropdown
+                    testID="food-entry-unit-picker"
+                    value={
+                      selectedVariantId ?? variantPickerOptions[0]?.id ?? ''
+                    }
+                    label={quantityUnitLabel}
+                    options={variantPickerOptions.map((variant) => ({
+                      label: variant.label,
+                      value: variant.id ?? '',
+                    }))}
+                    onSelect={handleVariantChange}
+                    busy={isCreateVariantPending}
+                    disabled={isCreateVariantPending}
+                    accessibilityLabel={t('foodEntryAdd.actions.changeUnit', {
+                      defaultValue: 'Change unit: {{unit}}',
+                      unit: quantityUnitLabel,
+                    })}
+                    className="min-w-0 flex-row items-center justify-between rounded-xl border px-4"
+                    style={outlinedFieldStyle}
+                  />
+                </View>
               </View>
               {selectedServingOption ? (
                 selectedServingOption.kind === 'portion' &&
@@ -2521,7 +2549,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   className="text-base font-semibold text-accent-text"
                   numberOfLines={1}
                 >
-                  {addLabel}
+                  {addButtonLabel}
                 </Text>
               </View>
             </Button>

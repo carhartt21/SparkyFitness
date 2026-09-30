@@ -3503,7 +3503,8 @@
       "removeFavorite": "Aus Favoriten entfernen",
       "addFavorite": "Zu Favoriten hinzufügen",
       "addToDiary": "Zum Tagebuch hinzufügen",
-      "editFood": "Lebensmittel und Portionsgrößen bearbeiten"
+      "editFood": "Lebensmittel und Portionsgrößen bearbeiten",
+      "addShort": "Hinzufügen"
     },
     "labels": {
       "foodPhoto": "Foto von {{name}}",
@@ -3531,7 +3532,8 @@
       "quickAmounts": "Schnelle Mengen",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
-      "goalShareTip": "Anteil am Tagesziel"
+      "goalShareTip": "Anteil am Tagesziel",
+      "unit": "Einheit"
     },
     "pickers": {
       "selectServing": "Portion auswählen",

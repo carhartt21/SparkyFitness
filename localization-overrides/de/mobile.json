@@ -492,7 +492,8 @@
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
       "entryNotesPlaceholder": "Was möchten Sie zu diesem Eintrag festhalten?",
-      "goalShareTip": "Anteil am Tagesziel"
+      "goalShareTip": "Anteil am Tagesziel",
+      "unit": "Einheit"
     },
     "errors": {
       "savedFoodUnitFailedDetails": "Sie können das Lebensmittel trotzdem hinzufügen und die Einheit später erneut speichern.",
@@ -528,7 +529,8 @@
     },
     "actions": {
       "addToDiary": "Zum Tagebuch hinzufügen",
-      "editFood": "Lebensmittel und Portionsgrößen bearbeiten"
+      "editFood": "Lebensmittel und Portionsgrößen bearbeiten",
+      "addShort": "Hinzufügen"
     },
     "editServings": {
       "title": "Portionsgrößen hinzufügen",

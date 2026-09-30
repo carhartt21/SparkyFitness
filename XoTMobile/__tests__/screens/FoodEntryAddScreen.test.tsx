@@ -346,7 +346,7 @@ const insets = { top: 0, bottom: 0, left: 0, right: 0 };
 const frame = { x: 0, y: 0, width: 390, height: 844 };
 
 /** Log-entry mode says "Add to Diary"; picker modes keep "Add Food". */
-const ADD_LABEL = /^Add (Food|to Diary)$/;
+const ADD_LABEL = /^Add(?: Food| to Diary)?$/;
 
 /** The amount shown by the vertical spinner. */
 function amountValue(screen: { getByTestId: (id: string) => any }): number {

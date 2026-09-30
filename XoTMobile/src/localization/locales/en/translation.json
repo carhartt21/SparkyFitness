@@ -3699,7 +3699,8 @@
       "removeFavorite": "Remove from favorites",
       "addFavorite": "Add to favorites",
       "addToDiary": "Add to Diary",
-      "editFood": "Edit food and serving sizes"
+      "editFood": "Edit food and serving sizes",
+      "addShort": "Add"
     },
     "labels": {
       "foodPhoto": "Photo of {{name}}",
@@ -3727,7 +3728,8 @@
       "quickAmounts": "Quick amounts",
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal",
-      "goalShareTip": "Percent of your daily goal"
+      "goalShareTip": "Percent of your daily goal",
+      "unit": "Unit"
     },
     "pickers": {
       "selectServing": "Select Serving",
