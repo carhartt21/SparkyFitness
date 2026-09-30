@@ -199,3 +199,5 @@ nutrients and references are public, never diary records or account data.
 | `engagement_subject_states`                                                                             | Timer-start hints that suppress obsolete movement prompts; no health records        | Owner-only | Owner-only |
 
 No delegate sharing or global read policy applies. MCP access uses the authenticated owner; writes require the existing write scope and active consent. Scheduler system access is limited to notification processing.
+
+Mobility reads use a read-only transaction; only definition changes and the explicit background planner generate dated occurrences. Session provenance identifies the authenticated API or consent-gated MCP ingress, not a client-asserted device type. Operation receipts are owner-scoped retry metadata retained for 90 days (cleanup is bounded); record revisions and tombstones remain authoritative after receipt expiry. Indexed snapshot columns are kept consistent by checked writes and database constraints.

@@ -1,8 +1,10 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { PoolClient } from 'pg';
 import {
   instantToDay,
+  addDays,
   type MobilityOperation,
   mobilitySessionSchema,
 } from '@workspace/shared';
@@ -10,6 +12,7 @@ import { getClient, getSystemClient, endPool } from '../db/poolManager.js';
 import {
   applyMobilityOperation,
   getMobilitySnapshot,
+  materializeMobilityPlans,
 } from '../services/mobilityService.js';
 import {
   patchEngagementSettings,
@@ -504,6 +507,391 @@ describe.skipIf(!enabled)(
         [alice]
       );
       expect(pending.rows.some((row) => row.subject_id === ids[1])).toBe(false);
+    });
+
+    it('never creates plans on GET, including past ranges; the explicit planner only creates today/future occurrences', async () => {
+      const source = { ...routine, id: randomUUID() };
+      await applyMobilityOperation(
+        bob,
+        op({ kind: 'routine', data: source, deleted: false })
+      );
+      await applyMobilityOperation(
+        bob,
+        op({
+          kind: 'schedule',
+          data: {
+            id: randomUUID(),
+            routineId: source.id,
+            weekdays: [0, 1, 2, 3, 4, 5, 6],
+            time: '18:00',
+            startDay: addDays(today, -30),
+            endDay: null,
+            enabled: true,
+          },
+          deleted: false,
+        })
+      );
+      await owner.query('DELETE FROM mobility_plans WHERE user_id=$1', [bob]);
+      await getMobilitySnapshot(bob, addDays(today, -30), addDays(today, 30));
+      const count = await owner.query(
+        'SELECT count(*) AS n FROM mobility_plans WHERE user_id=$1',
+        [bob]
+      );
+      expect(Number(count.rows[0].n)).toBe(0);
+      await materializeMobilityPlans(bob);
+      const generated = await getMobilitySnapshot(
+        bob,
+        addDays(today, -30),
+        addDays(today, 30)
+      );
+      expect(generated.plans.length).toBeGreaterThan(0);
+      expect(generated.plans.every((row) => row.data.day >= today)).toBe(true);
+    });
+    it('moves plan dates and relationships in both JSON and indexed columns', async () => {
+      const source = { ...routine, id: randomUUID() };
+      await applyMobilityOperation(
+        bob,
+        op({ kind: 'routine', data: source, deleted: false })
+      );
+      const schedule = {
+        id: randomUUID(),
+        routineId: source.id,
+        weekdays: [0, 1, 2, 3, 4, 5, 6],
+        time: '18:00',
+        startDay: today,
+        endDay: null,
+        enabled: false,
+      };
+      await applyMobilityOperation(
+        bob,
+        op({ kind: 'schedule', data: schedule, deleted: false })
+      );
+      const other = { ...source, id: randomUUID() };
+      await applyMobilityOperation(
+        bob,
+        op({ kind: 'routine', data: other, deleted: false })
+      );
+      await applyMobilityOperation(
+        bob,
+        op(
+          {
+            kind: 'schedule',
+            data: { ...schedule, routineId: other.id },
+            deleted: false,
+          },
+          1
+        )
+      );
+      expect(
+        (
+          await owner.query(
+            'SELECT routine_id FROM mobility_schedules WHERE user_id=$1 AND id=$2',
+            [bob, schedule.id]
+          )
+        ).rows[0].routine_id
+      ).toBe(other.id);
+      const plan = {
+        id: randomUUID(),
+        routine: source,
+        scheduleId: null,
+        day: today,
+        time: '18:00',
+        state: 'planned' as const,
+        activeSessionId: null,
+      };
+      await applyMobilityOperation(
+        bob,
+        op({ kind: 'plan', data: plan, deleted: false })
+      );
+      const moved = {
+        ...plan,
+        day: addDays(today, 2),
+        scheduleId: schedule.id,
+      };
+      await applyMobilityOperation(
+        bob,
+        op({ kind: 'plan', data: moved, deleted: false }, 1)
+      );
+      expect(
+        (await getMobilitySnapshot(bob, moved.day, moved.day)).plans.find(
+          (row) => row.data.id === plan.id
+        )?.data
+      ).toEqual(moved);
+      expect(
+        (await getMobilitySnapshot(bob, today, today)).plans.some(
+          (row) => row.data.id === plan.id
+        )
+      ).toBe(false);
+      const indexed = await owner.query(
+        'SELECT schedule_id,local_day::text AS day FROM mobility_plans WHERE user_id=$1 AND id=$2',
+        [bob, plan.id]
+      );
+      expect(indexed.rows[0]).toEqual({
+        schedule_id: schedule.id,
+        day: moved.day,
+      });
+    });
+
+    it('keeps unrelated pending mobility reminders when a different definition changes', async () => {
+      const subject = randomUUID(),
+        slot = randomUUID();
+      await owner.query(
+        "INSERT INTO engagement_occurrences(user_id,kind,subject_id,local_day,scheduled_at,settings_revision,slot_key) VALUES($1,'mobility',$2,$3,now()+interval '1 hour',1,$4)",
+        [bob, subject, today, slot]
+      );
+      await applyMobilityOperation(
+        bob,
+        op({
+          kind: 'routine',
+          data: { ...routine, id: randomUUID() },
+          deleted: false,
+        })
+      );
+      expect(
+        (
+          await owner.query(
+            'SELECT status FROM engagement_occurrences WHERE user_id=$1 AND slot_key=$2',
+            [bob, slot]
+          )
+        ).rows[0].status
+      ).toBe('pending');
+    });
+    it('replays reordered JSON once and prunes expired receipts without permitting a stale mutation', async () => {
+      const source = { ...routine, id: randomUUID() };
+      const operation = op({ kind: 'routine', data: source, deleted: false });
+      await applyMobilityOperation(bob, operation);
+      const reordered = {
+        ...operation,
+        mutation: {
+          deleted: false,
+          data: { ...source, name: source.name },
+          kind: 'routine' as const,
+        },
+      };
+      expect(await applyMobilityOperation(bob, reordered)).toEqual({
+        revision: 1,
+      });
+      for (const source of ['phone', 'web']) {
+        const fingerprint = createHash('sha256')
+          .update(JSON.stringify([operation, source]))
+          .digest('hex');
+        await owner.query(
+          'UPDATE mobility_operations SET request_fingerprint=$3 WHERE user_id=$1 AND operation_id=$2',
+          [bob, operation.operationId, fingerprint]
+        );
+        expect(await applyMobilityOperation(bob, operation, 'api')).toEqual({
+          revision: 1,
+        });
+      }
+      await owner.query(
+        "UPDATE mobility_operations SET created_at=now()-interval '91 days' WHERE user_id=$1 AND operation_id=$2",
+        [bob, operation.operationId]
+      );
+      await applyMobilityOperation(
+        bob,
+        op(
+          {
+            kind: 'routine',
+            data: { ...source, name: 'Updated' },
+            deleted: false,
+          },
+          1
+        )
+      );
+      expect(
+        (
+          await owner.query(
+            'SELECT 1 FROM mobility_operations WHERE user_id=$1 AND operation_id=$2',
+            [bob, operation.operationId]
+          )
+        ).rowCount
+      ).toBe(0);
+      await expect(applyMobilityOperation(bob, operation)).rejects.toThrow(
+        'changed elsewhere'
+      );
+    });
+    it('preserves v2 capability, language and local ownership on an older-protocol token refresh', async () => {
+      const id = randomUUID();
+      const registration = {
+        installation_id: id,
+        expo_push_token: `ExpoPushToken[${randomUUID()}]`,
+        platform: 'ios' as const,
+      };
+      await upsertEngagementDevice(bob, {
+        ...registration,
+        protocol_version: 2,
+        reminder_kinds: ['check_in', 'habit'],
+        delivery_owner: 'local',
+        language: 'de',
+      });
+      await upsertEngagementDevice(bob, registration);
+      expect(
+        (
+          await owner.query(
+            'SELECT protocol_version,reminder_kinds,delivery_owner,language FROM engagement_devices WHERE user_id=$1 AND installation_id=$2',
+            [bob, id]
+          )
+        ).rows[0]
+      ).toEqual({
+        protocol_version: 2,
+        reminder_kinds: ['check_in', 'habit'],
+        delivery_owner: 'local',
+        language: 'de',
+      });
+    });
+    it('acknowledges the new plan revision and preserves closed session provenance on deletion', async () => {
+      const plan = {
+        id: randomUUID(),
+        routine,
+        scheduleId: null,
+        day: today,
+        time: '18:00',
+        state: 'planned' as const,
+        activeSessionId: null,
+      };
+      await applyMobilityOperation(
+        alice,
+        op({ kind: 'plan', data: plan, deleted: false })
+      );
+      const session = mobilitySessionSchema.parse({
+        id: randomUUID(),
+        planId: plan.id,
+        routine,
+        state: 'finished',
+        phase: 'step',
+        stepIndex: 0,
+        phaseStartedAt: null,
+        elapsedSeconds: 0,
+        outcomes: [],
+        startedAt: new Date().toISOString(),
+        endedAt: new Date().toISOString(),
+      });
+      await expect(
+        applyMobilityOperation(
+          alice,
+          op({ kind: 'session', data: session, deleted: false }),
+          'mcp'
+        )
+      ).rejects.toThrow('explicit plan result');
+      const result = await applyMobilityOperation(
+        alice,
+        op({ kind: 'session', data: session, deleted: false }),
+        'api'
+      );
+      expect(result.plan).toMatchObject({
+        revision: 2,
+        data: { state: 'completed', activeSessionId: session.id },
+      });
+      await applyMobilityOperation(
+        alice,
+        op({ kind: 'session', data: session, deleted: true }, 1),
+        'web'
+      );
+      const row = (
+        await owner.query(
+          'SELECT provenance,plan_id,deleted FROM mobility_sessions WHERE user_id=$1 AND id=$2',
+          [alice, session.id]
+        )
+      ).rows[0];
+      expect(row).toEqual({
+        provenance: 'api',
+        plan_id: plan.id,
+        deleted: true,
+      });
+      expect(
+        (await getMobilitySnapshot(alice)).plans.find(
+          (row) => row.data.id === plan.id
+        )?.revision
+      ).toBe(2);
+    });
+
+    it('upgrades v2 without cancelling pending reminders for any owner or kind', async () => {
+      const schema = `xot_review_${randomUUID().replaceAll('-', '')}`;
+      await owner.query('BEGIN');
+      try {
+        await owner.query(
+          `CREATE SCHEMA "${schema}"; SET LOCAL search_path TO "${schema}",public`
+        );
+        await owner.query(`CREATE TABLE engagement_settings (user_id uuid);
+          CREATE TABLE engagement_devices (user_id uuid);
+          CREATE TABLE engagement_occurrences (id uuid, user_id uuid, kind text CHECK (kind IN ('hydration','meal_capture','meal_review','movement_break','mobility')),local_day date,scheduled_at timestamptz,status text,UNIQUE(user_id,kind,local_day,scheduled_at))`);
+        await owner.query(
+          "INSERT INTO engagement_occurrences VALUES($1,$2,'hydration',$3,now(),'pending'),($4,$5,'mobility',$3,now(),'pending'),($6,$5,'meal_review',$3,now(),'pending')",
+          [randomUUID(), alice, today, randomUUID(), bob, randomUUID()]
+        );
+        await owner.query(
+          readFileSync(
+            new URL(
+              '../db/migrations/20260930101000_engagement_v2.sql',
+              import.meta.url
+            ),
+            'utf8'
+          )
+        );
+        expect(
+          (
+            await owner.query(
+              "SELECT count(*)::int AS n FROM engagement_occurrences WHERE status='pending'"
+            )
+          ).rows[0].n
+        ).toBe(3);
+      } finally {
+        await owner.query('ROLLBACK');
+      }
+    });
+    it('repairs stale lookup columns without changing stored snapshots or deleting history', async () => {
+      const schema = `xot_review_${randomUUID().replaceAll('-', '')}`;
+      const id = randomUUID(),
+        oldRelation = randomUUID(),
+        relation = randomUUID();
+      await owner.query('BEGIN');
+      try {
+        await owner.query(
+          `CREATE SCHEMA "${schema}"; SET LOCAL search_path TO "${schema}",public`
+        );
+        await owner.query(`CREATE TABLE mobility_schedules (routine_id uuid,data jsonb);
+          CREATE TABLE mobility_plans (schedule_id uuid,local_day date,data jsonb);
+          CREATE TABLE mobility_sessions (plan_id uuid,data jsonb)`);
+        await owner.query('INSERT INTO mobility_schedules VALUES($1,$2)', [
+          oldRelation,
+          { id, routineId: relation },
+        ]);
+        await owner.query('INSERT INTO mobility_plans VALUES($1,$2,$3)', [
+          oldRelation,
+          today,
+          { id, scheduleId: relation, day: addDays(today, 1) },
+        ]);
+        await owner.query('INSERT INTO mobility_sessions VALUES($1,$2)', [
+          oldRelation,
+          { id, planId: relation },
+        ]);
+        await owner.query(
+          readFileSync(
+            new URL(
+              '../db/migrations/20260930121000_mobility_snapshot_indexes.sql',
+              import.meta.url
+            ),
+            'utf8'
+          )
+        );
+        expect(
+          (await owner.query('SELECT routine_id FROM mobility_schedules'))
+            .rows[0].routine_id
+        ).toBe(relation);
+        expect(
+          (
+            await owner.query(
+              'SELECT schedule_id,local_day::text AS day FROM mobility_plans'
+            )
+          ).rows[0]
+        ).toEqual({ schedule_id: relation, day: addDays(today, 1) });
+        expect(
+          (await owner.query('SELECT plan_id,data FROM mobility_sessions'))
+            .rows[0]
+        ).toEqual({ plan_id: relation, data: { id, planId: relation } });
+      } finally {
+        await owner.query('ROLLBACK');
+      }
     });
   }
 );

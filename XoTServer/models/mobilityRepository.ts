@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import type { MobilityProvenance } from '@workspace/shared';
 export type MobilityTable =
   | 'mobility_routines'
   | 'mobility_schedules'
@@ -9,7 +10,7 @@ export interface MobilityRow {
   data: unknown;
   revision: number;
   deleted: boolean;
-  provenance?: 'phone' | 'web' | 'mcp' | 'import';
+  provenance?: MobilityProvenance;
 }
 export async function mobilityRows(
   client: PoolClient,

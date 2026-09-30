@@ -132,10 +132,17 @@ const versioned = <T extends z.ZodType>(data: T) =>
 export const mobilityRoutineRecordSchema = versioned(mobilityRoutineSchema);
 export const mobilityScheduleRecordSchema = versioned(mobilityScheduleSchema);
 export const mobilityPlanRecordSchema = versioned(mobilityPlanSchema);
+export const mobilityProvenanceSchema = z.enum([
+  "api",
+  "phone",
+  "web",
+  "mcp",
+  "import",
+]);
 export const mobilitySessionRecordSchema = versioned(
   mobilitySessionSchema,
 ).extend({
-  provenance: z.enum(["phone", "web", "mcp", "import"]),
+  provenance: mobilityProvenanceSchema,
 });
 export const mobilitySnapshotSchema = z.strictObject({
   routines: z.array(mobilityRoutineRecordSchema),
@@ -185,3 +192,12 @@ export type MobilityOperation = z.infer<typeof mobilityOperationSchema>;
 export type MobilitySnapshot = z.infer<typeof mobilitySnapshotSchema>;
 
 export type MobilityPlanRecord = z.infer<typeof mobilityPlanRecordSchema>;
+
+export const mobilityOperationResultSchema = z.strictObject({
+  revision: z.number().int().positive(),
+  plan: mobilityPlanRecordSchema.optional(),
+});
+export type MobilityOperationResult = z.infer<
+  typeof mobilityOperationResultSchema
+>;
+export type MobilityProvenance = z.infer<typeof mobilityProvenanceSchema>;

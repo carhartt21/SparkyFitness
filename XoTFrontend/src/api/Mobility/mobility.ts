@@ -2,6 +2,8 @@ import {
   mobilitySnapshotSchema,
   type MobilityOperation,
   type MobilitySnapshot,
+  mobilityOperationResultSchema,
+  type MobilityOperationResult,
 } from '@workspace/shared';
 import { apiCall } from '@/api/api';
 export async function loadMobility(
@@ -12,12 +14,13 @@ export async function loadMobility(
     await apiCall('/v2/mobility', { params: { from, to } })
   );
 }
-export function saveMobility(
+export async function saveMobility(
   operation: MobilityOperation
-): Promise<{ revision: number }> {
-  return apiCall('/v2/mobility', {
-    method: 'POST',
-    body: operation,
-    headers: { 'X-XoT-Client': 'web' },
-  });
+): Promise<MobilityOperationResult> {
+  return mobilityOperationResultSchema.parse(
+    await apiCall('/v2/mobility', {
+      method: 'POST',
+      body: operation,
+    })
+  );
 }

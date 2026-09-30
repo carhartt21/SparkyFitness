@@ -4,6 +4,8 @@ import {
   mobilityScheduleSchema,
   mobilityPlanSchema,
   mobilitySessionSchema,
+  mobilityProvenanceSchema,
+  mobilityOperationResultSchema,
 } from "../api/Mobility.api.zod.ts";
 const row = z.object({
   user_id: z.uuid(),
@@ -27,12 +29,12 @@ export const mobilityPlanDatabaseSchema = row.extend({
 export const mobilitySessionDatabaseSchema = row.extend({
   data: mobilitySessionSchema,
   plan_id: z.uuid().nullable(),
-  provenance: z.enum(["phone", "web", "mcp", "import"]),
+  provenance: mobilityProvenanceSchema,
 });
 export const mobilityOperationDatabaseSchema = z.object({
   user_id: z.uuid(),
   operation_id: z.uuid(),
   request_fingerprint: z.string().length(64),
-  result: z.unknown(),
+  result: mobilityOperationResultSchema,
   created_at: z.date(),
 });

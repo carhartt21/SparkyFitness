@@ -165,8 +165,6 @@ export const SafeFoodEntryAdd = withErrorBoundary(
   'FoodEntryAdd',
   { canGoBack: true }
 );
-// Kept on one line: nativeHeaderContract.test.ts statically maps
-// withErrorBoundary(Component, 'Name') registrations by regex.
 // A multi-add batch may still have requests in flight whose outcomes the
 // user must see recorded — scoped here rather than in the shared boundary
 // so no other screen's crash recovery can be dead-ended by it.

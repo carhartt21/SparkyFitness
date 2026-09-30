@@ -7,6 +7,7 @@ import {
   mobilityRoutineSchema,
   mobilitySessionSchema,
   mobilityOperationSchema,
+  mobilityOperationResultSchema,
   mobilityPlanRecordSchema,
   mobilitySnapshotSchema,
   type MobilityOperation,
@@ -92,7 +93,8 @@ async function read(identity: NutritionActionIdentity): Promise<MobilityState> {
 async function write(
   identity: NutritionActionIdentity,
   value: MobilityState,
-  synchronize = false
+  synchronize = false,
+  deletedSessions: MobilitySession[] = []
 ): Promise<MobilityState> {
   const validated = stateSchema.parse(value);
   if (!synchronize) {
@@ -121,9 +123,9 @@ async function write(
         JSON.stringify(previous.find((item) => item.id === session.id))
       )
         mutations.push({ kind: 'session', data: session, deleted: false });
-    for (const session of previous)
-      if (!sessions.some((item) => item.id === session.id))
-        mutations.push({ kind: 'session', data: session, deleted: true });
+    // Retention is local only. Deletions require an explicit user action.
+    for (const session of deletedSessions)
+      mutations.push({ kind: 'session', data: session, deleted: true });
     for (const mutation of mutations) {
       if (mutation.kind === 'result') continue;
       const key = `${mutation.kind}:${mutation.data.id}`;
@@ -213,10 +215,15 @@ export function deleteMobilitySessionHistory(
   return serialize(async () => {
     const state = await read(identity);
     if (!state.history.some((session) => session.id === sessionId)) return;
-    await write(identity, {
-      ...state,
-      history: state.history.filter((session) => session.id !== sessionId),
-    });
+    await write(
+      identity,
+      {
+        ...state,
+        history: state.history.filter((session) => session.id !== sessionId),
+      },
+      false,
+      state.history.filter((session) => session.id === sessionId)
+    );
   });
 }
 
@@ -454,13 +461,24 @@ export function synchronizeMobility(
       for (const operation of [...state.pendingOperations]) {
         try {
           await assertIdentity();
-          await apiFetch({
-            endpoint: '/api/v2/mobility',
-            method: 'POST',
-            body: operation,
-            serviceName: 'Mobility',
-            operation: 'sync routine or session',
-          });
+          const result = mobilityOperationResultSchema.parse(
+            await apiFetch({
+              endpoint: '/api/v2/mobility',
+              method: 'POST',
+              body: operation,
+              serviceName: 'Mobility',
+              operation: 'sync routine or session',
+            })
+          );
+          await assertIdentity();
+          if (result.plan) {
+            state.plans = state.plans.filter(
+              (row) => row.data.id !== result.plan?.data.id
+            );
+            state.plans.push(result.plan);
+            state.revisions[`plan:${result.plan.data.id}`] =
+              result.plan.revision;
+          }
         } catch (error) {
           if (error instanceof ApiError && error.statusCode === 409) {
             await assertIdentity();

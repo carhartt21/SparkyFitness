@@ -12,6 +12,8 @@ import {
   synchronizeMobility,
   getMobilityState,
   startMobilitySession,
+  applyMobilitySessionAction,
+  deleteMobilitySessionHistory,
 } from '../../src/services/mobilityRoutineStore';
 import type { MobilityOperation } from '@workspace/shared';
 jest.mock('../../src/services/api/apiClient', () => ({ apiFetch: jest.fn() }));
@@ -114,4 +116,85 @@ it('preserves an active local timer while merging remote history', async () => {
         op.mutation.kind === 'session' && op.mutation.data.id === session.id
     )
   ).toBe(true);
+});
+
+it('retains server history when the 101st session trims local history; only explicit deletion queues a tombstone', async () => {
+  const routine = await saveMobilityRoutine(identity, draft);
+  for (let i = 0; i < 101; i++) {
+    const session = await startMobilitySession(
+      identity,
+      routine.id,
+      new Date(1_790_764_800_000 + i * 60_000)
+    );
+    await applyMobilitySessionAction(identity, session.id, 'complete-step');
+  }
+  let state = await getMobilityState(identity);
+  expect(state.history).toHaveLength(100);
+  expect(
+    state.pendingOperations.filter(
+      (op) => op.mutation.kind === 'session' && op.mutation.deleted
+    )
+  ).toHaveLength(0);
+  const removed = state.history[10];
+  await deleteMobilitySessionHistory(identity, removed.id);
+  state = await getMobilityState(identity);
+  const deletes = state.pendingOperations.filter(
+    (op) => op.mutation.kind === 'session' && op.mutation.deleted
+  );
+  expect(deletes).toHaveLength(1);
+  expect(deletes[0].mutation).toMatchObject({
+    data: { id: removed.id },
+    deleted: true,
+  });
+});
+it('persists the linked plan revision from an acknowledgement even if the later snapshot fetch is offline', async () => {
+  const routine = await saveMobilityRoutine(identity, draft);
+  const plan = {
+    revision: 1,
+    deleted: false,
+    data: {
+      id: '00000000-0000-4000-8000-999999999999',
+      routine,
+      scheduleId: null,
+      day: '2026-09-30',
+      time: '18:00',
+      state: 'planned',
+      activeSessionId: null,
+    },
+  };
+  jest.mocked(apiFetch).mockImplementation(async (request) =>
+    request.method === 'POST'
+      ? { revision: 1 }
+      : {
+          ...empty,
+          plans: [plan],
+          routines: [{ revision: 1, data: routine, deleted: false }],
+        }
+  );
+  await synchronizeMobility(identity);
+  const session = await startMobilitySession(
+    identity,
+    routine.id,
+    new Date('2026-09-30T10:00:00Z'),
+    plan.data.id
+  );
+  jest.mocked(apiFetch).mockImplementation(async (request) => {
+    if (request.method === 'POST')
+      return {
+        revision: 1,
+        plan: {
+          ...plan,
+          revision: 2,
+          data: { ...plan.data, state: 'active', activeSessionId: session.id },
+        },
+      };
+    throw new Error('offline');
+  });
+  await expect(synchronizeMobility(identity)).rejects.toThrow('offline');
+  const state = await getMobilityState(identity);
+  expect(state.plans[0]).toMatchObject({
+    revision: 2,
+    data: { state: 'active', activeSessionId: session.id },
+  });
+  expect(state.revisions[`plan:${plan.data.id}`]).toBe(2);
 });

@@ -1,6 +1,8 @@
 # Notification, widget guidance and mobility corrective batch
 
 Date: 2026-09-30. Branch: `feat/notification-mobility-corrective-20260930`.
+
+The [post-review correction record](notification-mobility-review-corrections-2026-09-30.md) supersedes the original read-path and reminder-invalidation behavior and records full-package validation.
 Base: `10286a29a` (German BLS display fix). Implementation is prepared for review; no production deployment, merge or mobile publication was performed.
 
 ## Findings and corrections

@@ -21,8 +21,10 @@ describe('water reminder preferences', () => {
     expect(state.waterReminderWindowEnd).toBe('22:00');
   });
 
-  it('offers exactly the 1, 2, 3 and 4 hour intervals', () => {
-    expect(WATER_REMINDER_INTERVAL_OPTIONS).toEqual([1, 2, 3, 4]);
+  it('offers every whole-hour interval allowed by the shared contract', () => {
+    expect(WATER_REMINDER_INTERVAL_OPTIONS).toEqual([
+      1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12,
+    ]);
   });
 
   it('updates each field through its setter', () => {

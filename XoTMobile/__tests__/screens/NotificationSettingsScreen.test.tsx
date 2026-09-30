@@ -3,6 +3,10 @@ import english from '../../src/localization/locales/en/translation.json';
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import Toast from 'react-native-toast-message';
+import {
+  patchRemoteEngagement,
+  refreshRemoteEngagement,
+} from '../../src/services/remoteEngagement';
 
 import NotificationSettingsScreen from '../../src/screens/NotificationSettingsScreen';
 import { getTodayDiscretionaryPromptBudget } from '../../src/services/discretionaryPromptLedger';
@@ -103,6 +107,7 @@ const mockNavigation = {
   goBack: jest.fn(),
   setOptions: jest.fn(),
   navigate: jest.fn(),
+  replace: jest.fn(),
 } as never;
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -489,5 +494,41 @@ describe('NotificationSettingsScreen', () => {
     );
     act(() => latestTimeSheet('20:00').onSelectTime('19:30'));
     expect(useAppPreferencesStore.getState().mealPhotoReviewTime).toBe('19:30');
+  });
+  it('offers an explicit settings reload after a rejected remote save', async () => {
+    const settings = {
+      schema_version: 2 as const,
+      schedule_initialized: true,
+      revision: 1,
+      remote_enabled: true,
+      quiet_start: '22:00',
+      quiet_end: '08:00',
+      hydration_enabled: true,
+      meal_capture_enabled: true,
+      meal_review_enabled: true,
+      movement_break_enabled: true,
+      mobility_enabled: true,
+      daily_limit: 3,
+      hydration_interval_hours: 2,
+      hydration_start: '08:00',
+      hydration_end: '22:00',
+      meal_capture_start: '11:00',
+      meal_capture_end: '14:00',
+      meal_capture_time: '12:30',
+      meal_review_time: '20:00',
+      movement_break_time: '15:00',
+    };
+    jest.mocked(refreshRemoteEngagement).mockResolvedValueOnce(settings);
+    jest
+      .mocked(patchRemoteEngagement)
+      .mockRejectedValueOnce(new Error('concurrent settings edit'));
+    const screen = renderScreen();
+    await waitFor(() => expect(refreshRemoteEngagement).toHaveBeenCalled());
+    await act(async () => {
+      fireEvent(screen.getByLabelText('Water Reminders'), 'valueChange', false);
+    });
+    const retry = await screen.findByText('Retry');
+    fireEvent.press(retry);
+    expect(mockNavigation.replace).toHaveBeenCalledWith('NotificationSettings');
   });
 });

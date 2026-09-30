@@ -13,6 +13,7 @@ import {
   type EngagementSettingsPatchV2,
 } from '@workspace/shared';
 import { apiFetch } from './api/apiClient';
+import { ApiError } from './api/errors';
 import { getActiveNutritionIdentity } from './nutritionIdentity';
 import type { NutritionActionIdentity } from './nutritionActionOutbox';
 import { newUuid } from '../utils/ids';
@@ -72,7 +73,16 @@ async function assertCurrentIdentity(
   }
 }
 
-export async function refreshRemoteEngagement(
+let settingsTail: Promise<void> = Promise.resolve();
+function serializeSettings<T>(work: () => Promise<T>): Promise<T> {
+  const next = settingsTail.then(work);
+  settingsTail = next.then(
+    () => undefined,
+    () => undefined
+  );
+  return next;
+}
+async function loadSettings(
   identity: NutritionActionIdentity
 ): Promise<EngagementSettingsV2> {
   await assertCurrentIdentity(identity);
@@ -84,30 +94,56 @@ export async function refreshRemoteEngagement(
   await assertCurrentIdentity(identity);
   const settings = engagementSettingsV2Schema.parse(response);
   await storeSettings(identity, settings);
-  if (!settings.schedule_initialized)
-    return applyRemotePatch(identity, currentReminderSchedule());
   return settings;
 }
-
+export function refreshRemoteEngagement(
+  identity: NutritionActionIdentity
+): Promise<EngagementSettingsV2> {
+  // Initialization and foreground/settings refreshes use the same queue as edits.
+  return serializeSettings(async () => {
+    const settings = await loadSettings(identity);
+    return settings.schedule_initialized
+      ? settings
+      : applyRemotePatch(identity, currentReminderSchedule(), settings, true);
+  });
+}
 async function applyRemotePatch(
   identity: NutritionActionIdentity,
-  patch: Omit<EngagementSettingsPatchV2, 'expected_revision'>
+  patch: Omit<EngagementSettingsPatchV2, 'expected_revision'>,
+  loaded?: EngagementSettingsV2,
+  initializeOnly = false
 ): Promise<EngagementSettingsV2> {
-  await assertCurrentIdentity(identity);
-  const previous =
-    (await readCachedRemoteEngagement(identity)) ??
-    (await refreshRemoteEngagement(identity));
-  const response = await apiFetch<EngagementSettingsV2>({
-    endpoint: '/api/v2/engagement/settings?version=2',
-    serviceName: 'Engagement',
-    operation: 'update notification settings',
-    method: 'PATCH',
-    body: { ...patch, expected_revision: previous.revision },
-  });
-  await assertCurrentIdentity(identity);
-  const settings = engagementSettingsV2Schema.parse(response);
-  await storeSettings(identity, settings);
-  return settings;
+  let previous = loaded ?? (await loadSettings(identity));
+  for (let attempt = 0; ; attempt++) {
+    if (initializeOnly && previous.schedule_initialized) return previous;
+    await assertCurrentIdentity(identity);
+    try {
+      const response = await apiFetch<EngagementSettingsV2>({
+        endpoint: '/api/v2/engagement/settings?version=2',
+        serviceName: 'Engagement',
+        operation: 'update notification settings',
+        method: 'PATCH',
+        body: {
+          ...(!previous.schedule_initialized ? currentReminderSchedule() : {}),
+          ...patch,
+          expected_revision: previous.revision,
+        },
+      });
+      await assertCurrentIdentity(identity);
+      const settings = engagementSettingsV2Schema.parse(response);
+      await storeSettings(identity, settings);
+      return settings;
+    } catch (error) {
+      if (
+        !(error instanceof ApiError) ||
+        error.statusCode !== 409 ||
+        attempt > 0
+      )
+        throw error;
+      // One bounded retry carries only the requested fields, retaining other web edits.
+      previous = await loadSettings(identity);
+    }
+  }
 }
 
 export async function getInstallationId(): Promise<string> {
@@ -251,17 +287,11 @@ export async function renewRemoteEngagementDevice(
   await registerRemoteEngagementDevice(identity, false, 'remote');
 }
 
-let settingsTail: Promise<void> = Promise.resolve();
 export function patchRemoteEngagement(
   identity: NutritionActionIdentity,
   patch: Omit<EngagementSettingsPatchV2, 'expected_revision'>
 ): Promise<EngagementSettingsV2> {
-  const next = settingsTail.then(() => applyRemotePatch(identity, patch));
-  settingsTail = next.then(
-    () => undefined,
-    () => undefined
-  );
-  return next;
+  return serializeSettings(() => applyRemotePatch(identity, patch));
 }
 const DEVICE_OFF_PREFIX = '@XonTrack/notification-device-off/v1/';
 /** Device off is immediate locally; a persisted marker retries only this installation. */

@@ -200,13 +200,6 @@ export async function patchEngagementSettings(
         "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND status='pending'",
         [userId]
       );
-      if (!updated.remote_enabled) {
-        await client.query(
-          `UPDATE engagement_occurrences SET status = 'cancelled'
-           WHERE user_id = $1 AND status = 'pending' AND delivery_owner = 'remote'`,
-          [userId]
-        );
-      }
       await appendChange(client, userId, 'notification_settings', userId);
       await client.query('COMMIT');
       return updated;
@@ -264,28 +257,29 @@ export async function upsertEngagementDevice(
         tokenHash,
       ]
     );
-    await client.query(
-      `UPDATE engagement_devices SET protocol_version=$3,reminder_kinds=$4,delivery_owner=$5,language=$6
+    if ('protocol_version' in device)
+      await client.query(
+        `UPDATE engagement_devices SET protocol_version=$3,reminder_kinds=$4,delivery_owner=$5,language=$6
       WHERE user_id=$1 AND installation_id=$2`,
-      [
-        userId,
-        device.installation_id,
-        'protocol_version' in device ? 2 : 1,
-        JSON.stringify(
-          'reminder_kinds' in device
-            ? device.reminder_kinds
-            : [
-                'hydration',
-                'meal_capture',
-                'meal_review',
-                'movement_break',
-                'mobility',
-              ]
-        ),
-        'delivery_owner' in device ? device.delivery_owner : 'remote',
-        'language' in device ? device.language : null,
-      ]
-    );
+        [
+          userId,
+          device.installation_id,
+          'protocol_version' in device ? 2 : 1,
+          JSON.stringify(
+            'reminder_kinds' in device
+              ? device.reminder_kinds
+              : [
+                  'hydration',
+                  'meal_capture',
+                  'meal_review',
+                  'movement_break',
+                  'mobility',
+                ]
+          ),
+          'delivery_owner' in device ? device.delivery_owner : 'remote',
+          'language' in device ? device.language : null,
+        ]
+      );
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');

@@ -171,6 +171,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
     useState<EngagementSettingsV2 | null>(null);
   const [remoteBusy, setRemoteBusy] = useState(false);
   const [remoteOffline, setRemoteOffline] = useState(false);
+  const [remoteSaveFailed, setRemoteSaveFailed] = useState(false);
   const [deviceOffPending, setDeviceOffPending] = useState(false);
   const [status, setStatus] = useState<EngagementStatus | null>(null);
   const [limitText, setLimitText] = useState('3');
@@ -211,6 +212,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         const settings = await refreshRemoteEngagement(identity);
         if (active) {
           setRemoteOffline(false);
+          setRemoteSaveFailed(false);
           setLimit(settings.daily_limit);
           setLimitText(String(settings.daily_limit ?? 3));
           void refreshStatus();
@@ -286,6 +288,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         applyLocal(value);
         void refreshStatus();
       } catch {
+        setRemoteSaveFailed(true);
         Toast.show({
           type: 'error',
           text1: t('notificationSettings.remoteUpdateFailed', {
@@ -531,6 +534,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         applyLocal();
         void refreshStatus();
       } catch {
+        setRemoteSaveFailed(true);
         Toast.show({
           type: 'error',
           text1: t('notificationSettings.remoteUpdateFailed', {
@@ -686,7 +690,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
 
         <NotificationPermissionBanner ref={bannerRef} />
 
-        {(remoteOffline || deviceOffPending) && (
+        {(remoteOffline || deviceOffPending || remoteSaveFailed) && (
           <SettingsRowGroup>
             <SettingsRow
               title={
@@ -695,15 +699,25 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                       defaultValue:
                         'Device alerts off \u00b7 server confirmation pending',
                     })
-                  : t('notificationSettings.offline', {
+                  : remoteSaveFailed
+                    ? t('common.retry', { defaultValue: 'Retry' })
+                    : t('notificationSettings.offline', {
+                        defaultValue:
+                          'Saved settings \u00b7 connection unavailable',
+                      })
+              }
+              subtitle={
+                remoteSaveFailed && !deviceOffPending
+                  ? t('notificationSettings.remoteUpdateFailed', {
                       defaultValue:
-                        'Saved settings \u00b7 connection unavailable',
+                        'Not saved. Reload settings and try again; they may have changed elsewhere.',
+                    })
+                  : t('notificationSettings.offlineDescription', {
+                      defaultValue:
+                        'Local changes remain on this device. Push may continue until the server confirms device-off. Reconnect and tap here to retry.',
                     })
               }
-              subtitle={t('notificationSettings.offlineDescription', {
-                defaultValue:
-                  'Local changes remain on this device. Push may continue until the server confirms device-off. Reconnect and tap here to retry.',
-              })}
+
               subtitleNumberOfLines={0}
               onPress={() => {
                 void refreshStatus();

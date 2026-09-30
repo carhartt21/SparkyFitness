@@ -17,7 +17,8 @@ ALTER TABLE engagement_occurrences ADD COLUMN slot_key text;
 UPDATE engagement_occurrences SET slot_key=id::text;
 ALTER TABLE engagement_occurrences ALTER COLUMN slot_key SET NOT NULL;
 CREATE UNIQUE INDEX engagement_occurrence_subject_slot ON engagement_occurrences(user_id,slot_key);
-UPDATE engagement_occurrences SET status='cancelled' WHERE status='pending';
+-- Do not cancel pending reminders during deployment. Planning/delivery rechecks
+-- each legacy slot's settings revision and eligibility before sending.
 -- A timer-start hint suppresses its reminder, without claiming exercise or calories.
 CREATE TABLE engagement_subject_states (
   user_id uuid NOT NULL REFERENCES "user"(id) ON DELETE CASCADE,

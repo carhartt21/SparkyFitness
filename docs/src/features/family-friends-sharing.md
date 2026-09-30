@@ -98,3 +98,5 @@ If someone else still uses the item — they have logged it, or it sits in their
 ### 6. Meal-to-Meal Composition
 
 A meal's ingredient list can link another reusable meal (e.g. a sauce or side) instead of a plain food. Linking a sub-meal into a parent meal requires the same library access to the sub-meal that reading it directly would require — you cannot link a sub-meal you cannot otherwise view. This check applies independently of, and in addition to, owning the parent meal.
+
+Mobility history remains private to its owner. The phone retains the latest 100 sessions for local display; this retention does not delete older server history. Only explicit session deletion creates a server tombstone. Browsing mobility plans, including past dates, does not create new plans.

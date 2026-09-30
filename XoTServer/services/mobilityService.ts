@@ -13,7 +13,10 @@ import {
   mobilitySnapshotSchema,
   type MobilityOperation,
   type MobilitySnapshot,
+  type MobilityOperationResult,
+  type MobilityProvenance,
 } from '@workspace/shared';
+import { canonicalJson } from '../utils/canonicalJson.js';
 import { getClient } from '../db/poolManager.js';
 import { loadUserTimezone } from '../utils/timezoneLoader.js';
 import {
@@ -26,20 +29,33 @@ export class MobilityNotFoundError extends Error {}
 export class MobilityValidationError extends Error {}
 async function transaction<T>(
   userId: string,
-  work: (client: PoolClient) => Promise<T>
+  work: (client: PoolClient) => Promise<T>,
+  readOnly = false
 ): Promise<T> {
   const client: PoolClient = await getClient(userId, userId);
   try {
-    await client.query('BEGIN');
     await client.query(
-      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
-      [`mobility:${userId}`]
+      readOnly ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN'
     );
+    if (!readOnly)
+      await client.query(
+        'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+        [`mobility:${userId}`]
+      );
     const result = await work(client);
     await client.query('COMMIT');
     return result;
   } catch (error) {
     await client.query('ROLLBACK');
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === '23505'
+    )
+      throw new MobilityConflictError(
+        'The date or active session is already reserved.'
+      );
     throw error;
   } finally {
     client.release();
@@ -53,6 +69,13 @@ async function materialize(
 ): Promise<void> {
   const routines = await mobilityRows(client, userId, 'mobility_routines');
   const schedules = await mobilityRows(client, userId, 'mobility_schedules');
+  const rows = await client.query<{ schedule_id: string; day: string }>(
+    'SELECT schedule_id,local_day::text AS day FROM mobility_plans WHERE user_id=$1 AND local_day BETWEEN $2 AND $3',
+    [userId, from, to]
+  );
+  const existing = new Set(
+    rows.rows.map((row) => `${row.schedule_id}:${row.day}`)
+  );
   for (const row of schedules) {
     if (row.deleted) continue;
     const schedule = mobilityScheduleSchema.parse(row.data);
@@ -62,6 +85,7 @@ async function materialize(
     if (!source) continue;
     const routine = mobilityRoutineSchema.parse(source.data);
     for (const day of mobilityScheduleDays(schedule, from, to)) {
+      if (existing.has(`${schedule.id}:${day}`)) continue;
       const plan = mobilityPlanSchema.parse({
         id: randomUUID(),
         routine,
@@ -79,6 +103,16 @@ async function materialize(
     }
   }
 }
+/** Explicit write path for the existing periodic planner; never backfill past days. */
+export async function materializeMobilityPlans(
+  userId: string,
+  now = new Date()
+): Promise<void> {
+  const today = instantToDay(now, await loadUserTimezone(userId));
+  await transaction(userId, (client) =>
+    materialize(client, userId, today, addDays(today, 30))
+  );
+}
 export async function getMobilitySnapshot(
   userId: string,
   from?: string,
@@ -90,82 +124,106 @@ export async function getMobilitySnapshot(
   const last = to ?? addDays(today, 30);
   if (first > last || addDays(first, 92) < last)
     throw new MobilityValidationError('Date range must be at most 93 days.');
-  return transaction(userId, async (client) => {
-    await materialize(client, userId, first, last);
-    const [routines, schedules, plans, sessions] = [
-      await mobilityRows(client, userId, 'mobility_routines'),
-      await mobilityRows(client, userId, 'mobility_schedules'),
-      (
-        await client.query<
-          import('../models/mobilityRepository.js').MobilityRow
-        >(
-          'SELECT * FROM mobility_plans WHERE user_id=$1 AND local_day BETWEEN $2 AND $3 ORDER BY local_day,id',
-          [userId, first, last]
-        )
-      ).rows,
-      (
-        await client.query<
-          import('../models/mobilityRepository.js').MobilityRow
-        >(
-          from || to
-            ? "SELECT * FROM mobility_sessions WHERE user_id=$1 AND ((data->>'state') IN ('running','paused') OR ((data->>'startedAt')::timestamptz AT TIME ZONE $4)::date BETWEEN $2::date AND $3::date) ORDER BY data->>'startedAt',id"
-            : "SELECT * FROM mobility_sessions WHERE user_id=$1 AND ((data->>'state') IN ('running','paused') OR id IN (SELECT id FROM mobility_sessions WHERE user_id=$1 ORDER BY data->>'startedAt' DESC,id LIMIT 100)) ORDER BY data->>'startedAt',id",
-          from || to ? [userId, first, last, timezone] : [userId]
-        )
-      ).rows,
-    ];
-    return mobilitySnapshotSchema.parse({
-      timezone,
-      routines: routines.map(({ revision, data, deleted }) => ({
-        revision,
-        data,
-        deleted,
-      })),
-      schedules: schedules.map(({ revision, data, deleted }) => ({
-        revision,
-        data,
-        deleted,
-      })),
-      plans: plans
-        .filter((row) => {
-          const plan = mobilityPlanSchema.parse(row.data);
-          return plan.day >= first && plan.day <= last;
-        })
-        .map(({ revision, data, deleted }) => ({ revision, data, deleted })),
-      sessions: sessions.map((row) => ({
-        revision: row.revision,
-        data: row.data,
-        deleted: row.deleted,
-        provenance: row.provenance ?? 'phone',
-      })),
-    });
-  });
+  return transaction(
+    userId,
+    async (client) => {
+      const [routines, schedules, plans, sessions] = [
+        await mobilityRows(client, userId, 'mobility_routines'),
+        await mobilityRows(client, userId, 'mobility_schedules'),
+        (
+          await client.query<
+            import('../models/mobilityRepository.js').MobilityRow
+          >(
+            'SELECT * FROM mobility_plans WHERE user_id=$1 AND local_day BETWEEN $2 AND $3 ORDER BY local_day,id',
+            [userId, first, last]
+          )
+        ).rows,
+        (
+          await client.query<
+            import('../models/mobilityRepository.js').MobilityRow
+          >(
+            from || to
+              ? "SELECT * FROM mobility_sessions WHERE user_id=$1 AND ((data->>'state') IN ('running','paused') OR ((data->>'startedAt')::timestamptz AT TIME ZONE $4)::date BETWEEN $2::date AND $3::date) ORDER BY data->>'startedAt',id"
+              : "SELECT * FROM mobility_sessions WHERE user_id=$1 AND ((data->>'state') IN ('running','paused') OR id IN (SELECT id FROM mobility_sessions WHERE user_id=$1 ORDER BY data->>'startedAt' DESC,id LIMIT 100)) ORDER BY data->>'startedAt',id",
+            from || to ? [userId, first, last, timezone] : [userId]
+          )
+        ).rows,
+      ];
+      return mobilitySnapshotSchema.parse({
+        timezone,
+        routines: routines.map(({ revision, data, deleted }) => ({
+          revision,
+          data,
+          deleted,
+        })),
+        schedules: schedules.map(({ revision, data, deleted }) => ({
+          revision,
+          data,
+          deleted,
+        })),
+        plans: plans
+          .filter((row) => {
+            const plan = mobilityPlanSchema.parse(row.data);
+            return plan.day >= first && plan.day <= last;
+          })
+          .map(({ revision, data, deleted }) => ({ revision, data, deleted })),
+        sessions: sessions.map((row) => ({
+          revision: row.revision,
+          data: row.data,
+          deleted: row.deleted,
+          provenance: row.provenance ?? 'phone',
+        })),
+      });
+    },
+    true
+  );
 }
 /** CAS and operation receipts apply equally to phone, web and consent-gated MCP. */
 export async function applyMobilityOperation(
   userId: string,
   operation: MobilityOperation,
-  provenance: 'phone' | 'web' | 'mcp' | 'import' = 'phone'
-): Promise<{ revision: number }> {
+  provenance: MobilityProvenance = 'api'
+): Promise<MobilityOperationResult> {
   const fingerprint = createHash('sha256')
-    .update(JSON.stringify([operation, provenance]))
+    .update(canonicalJson([operation, provenance]))
     .digest('hex');
   const timezone = await loadUserTimezone(userId);
   return transaction(userId, async (client) => {
     const receipt = await client.query<{
       request_fingerprint: string;
-      result: { revision: number };
+      result: MobilityOperationResult;
     }>(
       'SELECT request_fingerprint,result FROM mobility_operations WHERE user_id=$1 AND operation_id=$2',
       [userId, operation.operationId]
     );
     if (receipt.rows[0]) {
-      if (receipt.rows[0].request_fingerprint !== fingerprint)
+      // Existing API receipts used phone/web labels. Replaying them is read-only,
+      // while new writes are always attributed to the authenticated ingress.
+      const legacySources =
+        provenance === 'api' ? ['api', 'phone', 'web'] : [provenance];
+      const acceptedFingerprints = [
+        fingerprint,
+        ...legacySources.map((source) =>
+          createHash('sha256')
+            .update(JSON.stringify([operation, source]))
+            .digest('hex')
+        ),
+      ];
+      if (!acceptedFingerprints.includes(receipt.rows[0].request_fingerprint))
         throw new MobilityConflictError(
           'Operation ID belongs to another mutation.'
         );
       return receipt.rows[0].result;
     }
+    // Receipts are retry metadata, not history; stale retries still meet record CAS.
+    await client.query(
+      `DELETE FROM mobility_operations WHERE user_id=$1 AND operation_id IN
+      (SELECT operation_id FROM mobility_operations WHERE user_id=$1 AND created_at < now()-interval '90 days'
+       ORDER BY created_at LIMIT 250)`,
+      [userId]
+    );
+    const invalidatedPlans = new Set<string>();
+    let changedPlanId: string | undefined;
     const mutation = operation.mutation;
     const kind = mutation.kind;
     const tables = {
@@ -185,6 +243,8 @@ export async function applyMobilityOperation(
       if (!before || before.deleted)
         throw new MobilityNotFoundError('Planned session not found.');
       const plan = mobilityPlanSchema.parse(before.data);
+      invalidatedPlans.add(plan.id);
+      changedPlanId = plan.id;
       if (plan.state !== 'planned')
         throw new MobilityConflictError(
           'Planned session is active or already resolved.'
@@ -237,6 +297,26 @@ export async function applyMobilityOperation(
           }
       }
       if (mutation.kind === 'plan') {
+        if (before) {
+          const previous = mobilityPlanSchema.parse(before.data);
+          if (
+            mutation.deleted ||
+            previous.day !== mutation.data.day ||
+            previous.time !== mutation.data.time ||
+            previous.scheduleId !== mutation.data.scheduleId
+          )
+            invalidatedPlans.add(data.id);
+        }
+        if (mutation.data.scheduleId) {
+          const schedule = await mobilityRow(
+            client,
+            userId,
+            'mobility_schedules',
+            mutation.data.scheduleId
+          );
+          if (!schedule || schedule.deleted)
+            throw new MobilityNotFoundError('Schedule not found.');
+        }
         if (before && mobilityPlanSchema.parse(before.data).state !== 'planned')
           throw new MobilityConflictError(
             'Active and historical plans are immutable.'
@@ -251,9 +331,9 @@ export async function applyMobilityOperation(
           );
       }
       if (mutation.kind === 'session') {
-        if (provenance !== 'phone' && provenance !== 'import')
+        if (provenance === 'mcp')
           throw new MobilityValidationError(
-            'Run sessions on the phone; use an explicit plan result otherwise.'
+            'Assistant writes require an explicit plan result; the session runner uses the authenticated API.'
           );
         if (before) {
           const previous = mobilitySessionSchema.parse(before.data);
@@ -265,7 +345,7 @@ export async function applyMobilityOperation(
           )
             throw new MobilityConflictError('Session is already closed.');
         }
-        if (mutation.data.planId) {
+        if (mutation.data.planId && !mutation.deleted) {
           const row = await mobilityRow(
             client,
             userId,
@@ -283,6 +363,8 @@ export async function applyMobilityOperation(
             throw new MobilityConflictError(
               'Plan is claimed, resolved or has a different snapshot.'
             );
+          invalidatedPlans.add(plan.id);
+          changedPlanId = plan.id;
           const state =
             mutation.data.state === 'finished'
               ? 'completed'
@@ -306,7 +388,10 @@ export async function applyMobilityOperation(
             : mutation.kind === 'session'
               ? {
                   name: 'plan_id,provenance',
-                  value: [mutation.data.planId ?? null, provenance],
+                  value: [
+                    mutation.data.planId ?? null,
+                    before?.provenance ?? provenance,
+                  ],
                 }
               : null;
       const extras = extra
@@ -318,7 +403,14 @@ export async function applyMobilityOperation(
       await client.query(
         `INSERT INTO ${table}(user_id,id,revision,data,deleted,updated_at${extra ? ',' + extra.name : ''})
         VALUES($1,$2,$3,$4,$5,$6${extra ? ',' + placeholders : ''}) ON CONFLICT(user_id,id) DO UPDATE SET
-        revision=EXCLUDED.revision,data=EXCLUDED.data,deleted=EXCLUDED.deleted,updated_at=EXCLUDED.updated_at`,
+        revision=EXCLUDED.revision,data=EXCLUDED.data,deleted=EXCLUDED.deleted,updated_at=EXCLUDED.updated_at${
+          extra
+            ? extra.name
+                .split(',')
+                .map((name) => `,${name}=EXCLUDED.${name}`)
+                .join('')
+            : ''
+        }`,
         [userId, id, revision, data, mutation.deleted, new Date(), ...extras]
       );
       if (mutation.kind === 'routine') {
@@ -384,28 +476,46 @@ export async function applyMobilityOperation(
                     mobilityScheduleSchema.parse(row.data).routineId === id
                 )
                 .map((row) => row.id);
-        await client.query(
+        const removed = await client.query<{ id: string }>(
           `DELETE FROM mobility_plans WHERE user_id=$1 AND schedule_id=ANY($2::uuid[]) AND local_day>$3
-          AND data->>'state'='planned' AND revision=1`,
+          AND data->>'state'='planned' AND revision=1 RETURNING id`,
           [userId, affected, today]
         );
-        if (mutation.deleted)
-          await client.query(
+        removed.rows.forEach((row) => invalidatedPlans.add(row.id));
+        if (mutation.deleted) {
+          const deleted = await client.query<{ id: string }>(
             "UPDATE mobility_plans SET deleted=true,revision=revision+1,updated_at=now() WHERE user_id=$1 AND schedule_id=ANY($2::uuid[]) AND local_day>=$3 AND data->>'state'='planned'",
             [userId, affected, today]
           );
+          deleted.rows.forEach((row) => invalidatedPlans.add(row.id));
+        }
         await materialize(client, userId, today, addDays(today, 30));
       }
     }
-    const result = { revision };
+    const linked = changedPlanId
+      ? await mobilityRow(client, userId, 'mobility_plans', changedPlanId)
+      : undefined;
+    const result: MobilityOperationResult = {
+      revision,
+      ...(linked
+        ? {
+            plan: {
+              revision: linked.revision,
+              data: mobilityPlanSchema.parse(linked.data),
+              deleted: linked.deleted,
+            },
+          }
+        : {}),
+    };
     await client.query(
       'INSERT INTO mobility_operations(user_id,operation_id,request_fingerprint,result) VALUES($1,$2,$3,$4)',
       [userId, operation.operationId, fingerprint, result]
     );
-    await client.query(
-      "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND kind='mobility' AND status='pending'",
-      [userId]
-    );
+    if (invalidatedPlans.size)
+      await client.query(
+        "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND kind='mobility' AND status='pending' AND subject_id=ANY($2::text[])",
+        [userId, [...invalidatedPlans]]
+      );
     return result;
   });
 }

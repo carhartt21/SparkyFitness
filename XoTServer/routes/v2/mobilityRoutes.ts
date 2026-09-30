@@ -21,7 +21,7 @@ router.use(requireSelfActor);
  *   post:
  *     summary: Idempotent, revision-checked mobility mutation
  *     responses:
- *       '200': { description: Applied revision }
+ *       '200': { description: Applied revision and updated linked plan, when applicable }
  *       '409': { description: Stale revision or active plan conflict }
  */
 router.get('/', async (req, res, next) => {
@@ -54,11 +54,7 @@ router.post('/', async (req, res, next) => {
   }
   try {
     res.json(
-      await applyMobilityOperation(
-        req.authenticatedUserId,
-        parsed.data,
-        req.get('X-XoT-Client') === 'web' ? 'web' : 'phone'
-      )
+      await applyMobilityOperation(req.authenticatedUserId, parsed.data, 'api')
     );
   } catch (error) {
     if (error instanceof MobilityConflictError)

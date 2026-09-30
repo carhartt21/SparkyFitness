@@ -8,6 +8,7 @@ import {
   sameEngagementSlot,
   occurrenceEligible,
 } from './engagementPlanningService.js';
+import { materializeMobilityPlans } from './mobilityService.js';
 import type { PoolClient } from 'pg';
 import { getClient, getSystemClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
@@ -74,6 +75,7 @@ async function fetchExpo(url: string, body: unknown): Promise<Response> {
 
 /** One account lock reserves logical occurrences, not receiving-device copies. */
 async function reserveForUser(userId: string, now: Date): Promise<void> {
+  await materializeMobilityPlans(userId, now);
   const plan = await engagementPlanForUser(userId, now);
   if (!plan.settings.remote_enabled) return;
   const client: PoolClient = await getClient(userId, userId);
@@ -192,8 +194,11 @@ export async function planEngagementOccurrences(
     let ids: string[];
     try {
       const result = await client.query<{ user_id: string }>(
-        `SELECT user_id FROM engagement_settings s WHERE remote_enabled AND ($1::uuid IS NULL OR user_id>$1::uuid)
-      AND EXISTS(SELECT 1 FROM engagement_devices d WHERE d.user_id=s.user_id AND enabled AND delivery_owner='remote') ORDER BY user_id LIMIT 250`,
+        `SELECT user_id FROM (
+        SELECT user_id FROM engagement_settings s WHERE remote_enabled
+        AND EXISTS(SELECT 1 FROM engagement_devices d WHERE d.user_id=s.user_id AND enabled AND delivery_owner='remote')
+        UNION SELECT user_id FROM mobility_schedules WHERE NOT deleted AND (data->>'enabled')::boolean
+      ) owners WHERE ($1::uuid IS NULL OR user_id>$1::uuid) ORDER BY user_id LIMIT 250`,
         [last]
       );
       ids = result.rows.map((row) => row.user_id);

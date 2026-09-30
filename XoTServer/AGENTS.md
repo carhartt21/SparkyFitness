@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-09-30_
 
 X on Track Server is the backend API package for the X on Track monorepo. Use this file as the primary guide for work inside `XoTServer/`.
 
@@ -314,4 +314,4 @@ Before adding a feature or changing auth/permission behavior, read:
 
 Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
-Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.
+Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes. Mobility snapshot reads are read-only; occurrence creation belongs to definition writes and the explicit periodic planner, never GET/MCP reads. Session provenance names a trusted API/MCP ingress, not proof of the device platform. Local history retention must never queue server deletions.
