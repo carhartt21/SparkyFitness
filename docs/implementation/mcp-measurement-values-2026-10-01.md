@@ -25,4 +25,8 @@ Custom rows are selected by latest update/entry timestamp with deterministic tie
 
 ## Release scope
 
-The fix is isolated from the pending coaching batch and based on the running OAuth frontend source revision. Deployment changes only the backend image, retains the current frontend and database, and requires an authenticated MCP read after rollout. Production status and exact revision will be recorded after verification.
+The fix is isolated from the pending coaching batch and based on the running OAuth frontend source revision. Backend source `4df4eabb68b2b83678157c8c6148ef78070e6706` was built from a SHA-256-verified Git archive on the production host and deployed as `x-on-track-server:4df4eabb6`. The frontend stays at `14e993582`; its container and the database container were retained. All three containers are healthy. A fresh encrypted pre-release backup was verified off-host, and the prior backend image/configuration remain available for rollback.
+
+An authenticated live API-key `/mcp` call for 2026-10-01 returned the saved numeric weight in kg alongside `measurement_recorded: true`, row ID and timestamp. The OAuth endpoint shares this pure-read tool implementation; no new consent scope or connection setting is required. Origin API health, HTML, manifest and OAuth resource metadata returned 200; anonymous API-key and OAuth MCP requests returned 401. The live check did not write measurements or copy health values into documentation. Custom zero/latest-row selection and account isolation were verified with synthetic database fixtures.
+
+The same narrow code and documentation changes were applied to the pending coaching worktree, preserving its transaction-client changes and hosted ChatGPT setup instructions. Its focused measurement tests and server typecheck passed. That larger batch remains undeployed.
