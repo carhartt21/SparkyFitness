@@ -13,7 +13,7 @@ import {
   type WorkoutPresetCreatePayload,
   type WorkoutPresetUpdatePayload,
 } from '../services/api/workoutPresetsApi';
-import { workoutPresetsQueryKey } from './queryKeys';
+import { dailyProgressRootQueryKey, workoutPresetsQueryKey } from './queryKeys';
 import type { WorkoutPreset } from '../types/workoutPresets';
 
 const isAuthzError = (error: unknown): boolean => {
@@ -22,6 +22,7 @@ const isAuthzError = (error: unknown): boolean => {
 };
 
 function invalidateWorkoutPresetCaches(qc: QueryClient) {
+  void qc.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
   void qc.invalidateQueries({ queryKey: workoutPresetsQueryKey });
   void qc.invalidateQueries({ queryKey: ['workoutPresets', 'count'] });
   void qc.resetQueries({ queryKey: ['workoutPresetsLibraryList'] });

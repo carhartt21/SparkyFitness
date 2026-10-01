@@ -1,8 +1,18 @@
 # AGENTS.md
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-10-01_
 
 `@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
+
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
 
 ## Scope
 

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 This is the repo-root monorepo guide for X on Track. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -68,6 +68,16 @@ Cheap ways to learn things:
 - API request/response contract: `shared/src/schemas/api/<Name>.api.zod.ts`.
 - Find code by feature in `agent-docs/file-and-domain-reference.md` before a repository-wide search. Naming is not uniform across every domain.
 - CI (`.github/workflows/ci-tests.yml`) runs package `validate` and `test:ci` checks. Frontend/mobile jobs are path-gated; the server job runs whenever that workflow triggers. Garmin and fresh-install/upgrade migration jobs have their own gates. Shared/workspace changes trigger frontend and mobile checks as well; validate affected consumers locally. Frontend/mobile `validate` include Knip; server `validate` does not. Docs PRs use `.github/workflows/docs-test.yml`.
+
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
 
 ## Cross-Package Rules
 

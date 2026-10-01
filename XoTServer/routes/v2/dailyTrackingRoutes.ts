@@ -378,7 +378,12 @@ ownerRouter.get(
       return;
     }
     res.json(
-      await getDailyProgressRange(req.userId, range.start_date, range.end_date)
+      await getDailyProgressRange(
+        req.userId,
+        range.start_date,
+        range.end_date,
+        req.query.include_activity === 'true'
+      )
     );
   })
 );
@@ -387,7 +392,13 @@ ownerRouter.get(
   '/daily-progress/:date',
   handle(async (req, res) => {
     const date = daySchema.parse(req.params.date);
-    res.json(await getDailyProgress(req.userId, date));
+    res.json(
+      await getDailyProgress(
+        req.userId,
+        date,
+        req.query.include_activity === 'true'
+      )
+    );
   })
 );
 

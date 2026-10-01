@@ -5,12 +5,14 @@ import {
   exerciseStatsQueryKeyRoot,
   suggestedExercisesQueryKey,
   dailySummaryQueryKey,
+  dailyProgressRootQueryKey,
 } from './queryKeys';
 
 export function invalidateExerciseCache(
   queryClient: QueryClient,
   entryDate: string
 ) {
+  void queryClient.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
   void queryClient.invalidateQueries({
     queryKey: [...exerciseHistoryQueryKey],
   });

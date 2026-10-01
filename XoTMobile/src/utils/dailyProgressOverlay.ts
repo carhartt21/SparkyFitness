@@ -38,5 +38,5 @@ export function overlayLocalSupplementResponses(
       reason: taken ? 'dose_taken_pending_sync' : 'dose_skipped_pending_sync',
     };
   });
-  return summarizeDailyProgressItems(progress.date, items);
+  return summarizeDailyProgressItems(progress.date, items, progress.version);
 }

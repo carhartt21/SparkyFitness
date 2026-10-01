@@ -23,9 +23,11 @@ import { normalizeActionArgs, normalizeDayKeywords } from './dates.js';
 const VALID_ACTIONS = ['get_goals', 'set_goals', 'list_goal_timeline'];
 
 // The column set MCP's goal queries exposed; richer server goal objects are
-// projected down to it so the chat-visible JSON stays identical.
+// projected down to it with exercise targets in canonical minutes and kcal.
 const GOAL_SNAPSHOT_FIELDS = [
   'calories',
+  'target_exercise_duration_minutes',
+  'target_exercise_calories_burned',
   'protein',
   'carbs',
   'fat',

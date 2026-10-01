@@ -86,6 +86,7 @@ export default defineConfig({
             link: "/features/family-friends-sharing",
           },
           { text: "MCP Server", link: "/features/mcp-server" },
+          { text: "Weekly Activities", link: "/features/weekly-activities" },
           {
             text: "Settings & Integrations",
             link: "/features/settings/preferences",
@@ -152,7 +153,10 @@ export default defineConfig({
         {
           text: "Features Overview",
           items: [
-            { text: "Upstream Feature Comparison", link: "/features/comparison" },
+            {
+              text: "Upstream Feature Comparison",
+              link: "/features/comparison",
+            },
             { text: "Features Index", link: "/features/" },
             { text: "Check-in", link: "/features/check-in" },
             { text: "Reports", link: "/features/reports" },

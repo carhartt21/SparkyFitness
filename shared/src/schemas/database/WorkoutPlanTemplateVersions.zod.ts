@@ -1,8 +1,12 @@
 import { z } from "zod";
+import { activityPrescriptionSchema } from "../api/ActivityPlanning.api.zod.ts";
 
 export const workoutPlanVersionAssignmentSchema = z.object({
   id: z.number().int(),
-  dayOfWeek: z.number().int().min(0).max(6),
+  dayOfWeek: z.number().int().min(0).max(6).nullable(),
+  label: z.string().optional(),
+  exercises: activityPrescriptionSchema.shape.exercises,
+  expectedSetCount: z.number().int().nonnegative().optional(),
   workoutPresetId: z.number().int().nullable(),
   exerciseId: z.string().uuid().nullable(),
   sortOrder: z.number().int().nullable(),

@@ -117,6 +117,7 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | `workout_preset_exercise_sets`      | Reps/sets configured in presets                                                                                                                    |
 | `workout_plan_templates`            | Templates for weekly and sequential workout schedules                                                                                              |
 | `workout_plan_template_versions`    | Dated snapshots of workout schedules for historical plan reviews                                                                                   |
+| `activity_plan_resolutions`         | Owner-only dated workout decisions, revision and explicit diary evidence                                                                           |
 | `workout_plan_template_assignments` | Scheduled workout templates (weekday or ordered sequence)                                                                                          |
 | `workout_plan_assignment_sets`      | Sets within assigned workout plans                                                                                                                 |
 

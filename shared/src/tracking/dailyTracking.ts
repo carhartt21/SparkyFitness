@@ -21,11 +21,7 @@ export type CheckinPolarity = "higher_is_better" | "higher_is_worse";
 
 export interface CheckinQuestionDefinition {
   key:
-    | "energy"
-    | "stress"
-    | "sleep_quality"
-    | "nutrition_on_track"
-    | "activity";
+    "energy" | "stress" | "sleep_quality" | "nutrition_on_track" | "activity";
   /** Meaning of 1 and 5 for this question in this version. */
   low: string;
   high: string;
@@ -35,11 +31,36 @@ export interface CheckinQuestionDefinition {
 /** Version 1 meanings. Never edit in place; add a version instead. */
 export const DAILY_CHECKIN_QUESTIONS_V1: readonly CheckinQuestionDefinition[] =
   [
-    { key: "energy", low: "Very low energy", high: "Very high energy", polarity: "higher_is_better" },
-    { key: "stress", low: "Very little stress", high: "Very stressful", polarity: "higher_is_worse" },
-    { key: "sleep_quality", low: "Very poor sleep", high: "Very good sleep", polarity: "higher_is_better" },
-    { key: "nutrition_on_track", low: "Far off track", high: "Fully on track", polarity: "higher_is_better" },
-    { key: "activity", low: "Not active", high: "Very active", polarity: "higher_is_better" },
+    {
+      key: "energy",
+      low: "Very low energy",
+      high: "Very high energy",
+      polarity: "higher_is_better",
+    },
+    {
+      key: "stress",
+      low: "Very little stress",
+      high: "Very stressful",
+      polarity: "higher_is_worse",
+    },
+    {
+      key: "sleep_quality",
+      low: "Very poor sleep",
+      high: "Very good sleep",
+      polarity: "higher_is_better",
+    },
+    {
+      key: "nutrition_on_track",
+      low: "Far off track",
+      high: "Fully on track",
+      polarity: "higher_is_better",
+    },
+    {
+      key: "activity",
+      low: "Not active",
+      high: "Very active",
+      polarity: "higher_is_better",
+    },
   ];
 
 /** Overall day, 1 = very difficult … 5 = great. */
@@ -60,14 +81,20 @@ export const DAILY_CHECKIN_BUILT_IN_TAGS = [
   "social_event",
   "good_routine",
 ] as const;
-export type DailyCheckinBuiltInTag = (typeof DAILY_CHECKIN_BUILT_IN_TAGS)[number];
+export type DailyCheckinBuiltInTag =
+  (typeof DAILY_CHECKIN_BUILT_IN_TAGS)[number];
 
-export function isBuiltInCheckinTag(tag: string): tag is DailyCheckinBuiltInTag {
+export function isBuiltInCheckinTag(
+  tag: string,
+): tag is DailyCheckinBuiltInTag {
   return (DAILY_CHECKIN_BUILT_IN_TAGS as readonly string[]).includes(tag);
 }
 
 /** Answer quality on a 0–1 scale where 1 is favourable, respecting polarity. */
-export function favourableShare(value: number, polarity: CheckinPolarity): number {
+export function favourableShare(
+  value: number,
+  polarity: CheckinPolarity,
+): number {
   const share = (value - 1) / 4;
   return polarity === "higher_is_worse" ? 1 - share : share;
 }
@@ -115,13 +142,15 @@ export function contextPeriodCoversDay(
   period: Pick<HealthContextPeriod, "start_date" | "end_date">,
   day: string,
 ): boolean {
-  return period.start_date <= day && (period.end_date === null || day <= period.end_date);
+  return (
+    period.start_date <= day &&
+    (period.end_date === null || day <= period.end_date)
+  );
 }
 
-export function activeContextPeriods<P extends Pick<HealthContextPeriod, "start_date" | "end_date">>(
-  periods: readonly P[],
-  day: string,
-): P[] {
+export function activeContextPeriods<
+  P extends Pick<HealthContextPeriod, "start_date" | "end_date">,
+>(periods: readonly P[], day: string): P[] {
   return periods.filter((period) => contextPeriodCoversDay(period, day));
 }
 
@@ -130,21 +159,30 @@ export function activeContextPeriods<P extends Pick<HealthContextPeriod, "start_
  * supplement reminders are never paused by context.
  */
 export function discretionaryRemindersPaused(
-  periods: readonly Pick<HealthContextPeriod, "start_date" | "end_date" | "pause_discretionary_reminders">[],
+  periods: readonly Pick<
+    HealthContextPeriod,
+    "start_date" | "end_date" | "pause_discretionary_reminders"
+  >[],
   day: string,
 ): boolean {
   return periods.some(
-    (period) => period.pause_discretionary_reminders && contextPeriodCoversDay(period, day),
+    (period) =>
+      period.pause_discretionary_reminders &&
+      contextPeriodCoversDay(period, day),
   );
 }
 
 // --- Habits -----------------------------------------------------------------
 
-export function isHabitDue(habit: Pick<Habit, "active" | "days">, day: string): boolean {
+export function isHabitDue(
+  habit: Pick<Habit, "active" | "days">,
+  day: string,
+): boolean {
   return habit.active && scheduledOn(habit.days, day);
 }
 
-export type HabitDayState = "complete" | "started" | "not_done" | "not_recorded";
+export type HabitDayState =
+  "complete" | "started" | "not_done" | "not_recorded";
 
 /**
  * A completion habit is complete only when saved as done. A count habit with a
@@ -156,7 +194,8 @@ export function habitDayState(
   log: Pick<HabitLog, "value"> | undefined,
 ): HabitDayState {
   if (!log) return "not_recorded";
-  if (habit.habit_type === "completion") return log.value > 0 ? "complete" : "not_done";
+  if (habit.habit_type === "completion")
+    return log.value > 0 ? "complete" : "not_done";
   if (habit.target == null) return "complete";
   if (log.value >= habit.target) return "complete";
   return log.value > 0 ? "started" : "not_done";
@@ -194,7 +233,8 @@ export function summarizeMealCoverage(
 
 export const DAILY_PROGRESS_VERSION = 1;
 
-export type DailyProgressDomain = "checkin" | "habit" | "measurement" | "supplement" | "meal";
+export type DailyProgressDomain =
+  "checkin" | "habit" | "measurement" | "supplement" | "meal" | "activity";
 
 /**
  * complete: the explicit task is done.
@@ -204,7 +244,8 @@ export type DailyProgressDomain = "checkin" | "habit" | "measurement" | "supplem
  * excluded: the user explicitly declined the task (skipped check-in, skipped
  *   dose); it leaves the denominator instead of counting as a failure.
  */
-export type DailyProgressItemState = "complete" | "started" | "pending" | "excluded";
+export type DailyProgressItemState =
+  "complete" | "started" | "pending" | "excluded";
 
 export interface DailyProgressItem {
   id: string;
@@ -229,7 +270,10 @@ export interface DailyProgressInput {
     include_supplements: boolean;
     include_meals: boolean;
   };
-  checkin: Pick<DailyCheckin, "id" | "state" | "completed_at" | "skipped_at" | "updated_at"> | null;
+  checkin: Pick<
+    DailyCheckin,
+    "id" | "state" | "completed_at" | "skipped_at" | "updated_at"
+  > | null;
   habits: readonly Habit[];
   habitLogs: readonly HabitLog[];
   measurementReminders: readonly MeasurementReminder[];
@@ -242,7 +286,10 @@ export interface DailyProgressInput {
     status: "taken" | "skipped" | null;
     recorded_at: string | null;
   }[];
-  meals: readonly Pick<MealTrackingItem, "meal_type_id" | "name" | "state" | "logged_item_count" | "updated_at">[];
+  meals: readonly Pick<
+    MealTrackingItem,
+    "meal_type_id" | "name" | "state" | "logged_item_count" | "updated_at"
+  >[];
 }
 
 export interface DailyProgress {
@@ -253,7 +300,10 @@ export interface DailyProgress {
   completed: number;
   /** 0–100, or null when no task applies (render a neutral X). */
   percent: number | null;
-  coverage: Record<DailyProgressDomain, { applicable: number; completed: number }>;
+  coverage: Record<
+    Exclude<DailyProgressDomain, "activity">,
+    { applicable: number; completed: number }
+  > & { activity?: { applicable: number; completed: number } };
 }
 
 /**
@@ -300,7 +350,11 @@ export function buildDailyProgress(input: DailyProgressInput): DailyProgress {
   }
 
   if (preferences.include_habits) {
-    const logs = new Map(input.habitLogs.filter((log) => log.entry_date === date).map((log) => [log.habit_id, log]));
+    const logs = new Map(
+      input.habitLogs
+        .filter((log) => log.entry_date === date)
+        .map((log) => [log.habit_id, log]),
+    );
     for (const habit of input.habits) {
       if (!isHabitDue(habit, date)) continue;
       const log = logs.get(habit.id);
@@ -310,7 +364,12 @@ export function buildDailyProgress(input: DailyProgressInput): DailyProgress {
         domain: "habit",
         label: habit.name,
         reference_id: habit.id,
-        state: state === "complete" ? "complete" : state === "not_recorded" ? "pending" : "started",
+        state:
+          state === "complete"
+            ? "complete"
+            : state === "not_recorded"
+              ? "pending"
+              : "started",
         recorded_at: log?.recorded_at ?? null,
         reason:
           state === "complete"
@@ -325,8 +384,13 @@ export function buildDailyProgress(input: DailyProgressInput): DailyProgress {
   }
 
   for (const reminder of input.measurementReminders) {
-    if (!reminder.include_in_daily_progress || !isMeasurementReminderDue(reminder, date)) continue;
-    const recordedAt = input.recordedMeasurements[reminder.measurement_key] ?? null;
+    if (
+      !reminder.include_in_daily_progress ||
+      !isMeasurementReminderDue(reminder, date)
+    )
+      continue;
+    const recordedAt =
+      input.recordedMeasurements[reminder.measurement_key] ?? null;
     push({
       id: `measurement:${reminder.measurement_key}:${date}`,
       domain: "measurement",
@@ -345,9 +409,19 @@ export function buildDailyProgress(input: DailyProgressInput): DailyProgress {
         domain: "supplement",
         label: dose.label,
         reference_id: dose.schedule_id,
-        state: dose.status === "taken" ? "complete" : dose.status === "skipped" ? "excluded" : "pending",
+        state:
+          dose.status === "taken"
+            ? "complete"
+            : dose.status === "skipped"
+              ? "excluded"
+              : "pending",
         recorded_at: dose.recorded_at,
-        reason: dose.status === "taken" ? "dose_taken" : dose.status === "skipped" ? "dose_skipped" : "not_recorded",
+        reason:
+          dose.status === "taken"
+            ? "dose_taken"
+            : dose.status === "skipped"
+              ? "dose_skipped"
+              : "not_recorded",
       });
     }
   }
@@ -391,6 +465,7 @@ export function buildDailyProgress(input: DailyProgressInput): DailyProgress {
 export function summarizeDailyProgressItems(
   date: string,
   items: DailyProgressItem[],
+  version = DAILY_PROGRESS_VERSION,
 ): DailyProgress {
   const coverage: DailyProgress["coverage"] = {
     checkin: { applicable: 0, completed: 0 },
@@ -399,17 +474,21 @@ export function summarizeDailyProgressItems(
     supplement: { applicable: 0, completed: 0 },
     meal: { applicable: 0, completed: 0 },
   };
+  if (version >= 2 || items.some((item) => item.domain === "activity"))
+    coverage.activity = { applicable: 0, completed: 0 };
   for (const item of items) {
     if (!item.applicable) continue;
-    coverage[item.domain].applicable += 1;
-    if (item.state === "complete") coverage[item.domain].completed += 1;
+    const domainCoverage = coverage[item.domain];
+    if (!domainCoverage) continue;
+    domainCoverage.applicable += 1;
+    if (item.state === "complete") domainCoverage.completed += 1;
   }
   const applicable = items.filter((item) => item.applicable).length;
   const completed = items.filter(
     (item) => item.applicable && item.state === "complete",
   ).length;
   return {
-    version: DAILY_PROGRESS_VERSION,
+    version,
     date,
     items,
     applicable,
@@ -420,7 +499,8 @@ export function summarizeDailyProgressItems(
 }
 
 /** Progression X color stage. 0% is ready (graphite), not a failure. */
-export type ProgressionStage = "ready" | "started" | "progressing" | "completed";
+export type ProgressionStage =
+  "ready" | "started" | "progressing" | "completed";
 
 export function progressionStage(percent: number | null): ProgressionStage {
   if (percent === null || percent <= 0) return "ready";
@@ -437,11 +517,7 @@ export function progressionStage(percent: number | null): ProgressionStage {
  * is never shown as zero or as complete.
  */
 export type DailyProgressDayState =
-  | "unknown"
-  | "none"
-  | "not_started"
-  | "partial"
-  | "complete";
+  "unknown" | "none" | "not_started" | "partial" | "complete";
 
 export interface DailyProgressDay {
   date: string;
@@ -456,4 +532,32 @@ export function dayStateFromProgress(
   if (progress.applicable === 0) return "none";
   if (progress.completed === 0) return "not_started";
   return progress.completed >= progress.applicable ? "complete" : "partial";
+}
+
+/** Opt-in version 2: explicit scheduled activities join the equal-weight task list. */
+export function withActivityProgress(
+  progress: DailyProgress,
+  occurrences: readonly import("../schemas/api/ActivityPlanning.api.zod.ts").ActivityOccurrence[],
+): DailyProgress {
+  return summarizeDailyProgressItems(
+    progress.date,
+    [
+      ...progress.items.filter((item) => item.domain !== "activity"),
+      ...occurrences
+        .filter((row) => row.date === progress.date)
+        .map((row) => ({
+          id: row.id,
+          domain: "activity" as const,
+          label: row.label,
+          date: row.date,
+          applicable:
+            row.state !== "excluded" && row.reason !== "prescription_unknown",
+          state: row.state,
+          reference_id: row.source_id,
+          recorded_at: row.recorded_at,
+          reason: row.reason,
+        })),
+    ],
+    2,
+  );
 }

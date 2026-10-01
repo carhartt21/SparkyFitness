@@ -132,6 +132,8 @@ export function progressDomainLabel(
       return t('progress.domain.habit', { defaultValue: 'Habits' });
     case 'measurement':
       return t('progress.domain.measurement', { defaultValue: 'Measurements' });
+    case 'activity':
+      return t('activityPlanning.activity', { defaultValue: 'Activity' });
     case 'supplement':
       return t('progress.domain.supplement', { defaultValue: 'Supplements' });
     default:

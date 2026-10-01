@@ -1,3 +1,4 @@
+import { dailyProgressKeys } from '@/api/keys/diary';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActiveUser } from '@/contexts/ActiveUserContext';
 import { loadMobility, saveMobility } from '@/api/Mobility/mobility';
@@ -12,7 +13,12 @@ export function useMobility(from: string, to: string) {
   });
   const mutation = useMutation({
     mutationFn: saveMobility,
-    onSuccess: () => client.invalidateQueries({ queryKey: ['mobility'] }),
+    onSuccess: async () => {
+      await Promise.all([
+        client.invalidateQueries({ queryKey: ['mobility'] }),
+        client.invalidateQueries({ queryKey: dailyProgressKeys.all }),
+      ]);
+    },
   });
   return { query, mutation };
 }

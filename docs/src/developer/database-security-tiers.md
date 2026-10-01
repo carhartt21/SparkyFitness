@@ -197,10 +197,11 @@ nutrients and references are public, never diary records or account data.
 
 ### Notification v2 and mobility (Tier 1)
 
-| Tables                                                                                                  | Purpose                                                                             | Read       | Write      |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------- | ---------- |
-| `mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, `mobility_operations` | Private definitions, dated/session snapshots, CAS revisions and idempotent receipts | Owner-only | Owner-only |
-| `engagement_subject_states`                                                                             | Timer-start hints that suppress obsolete movement prompts; no health records        | Owner-only | Owner-only |
+| Tables                                                                                                  | Purpose                                                                                | Read           | Write                                                |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------- | ---------------------------------------------------- |
+| `mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, `mobility_operations` | Private definitions, dated/session snapshots, CAS revisions and idempotent receipts    | Owner-only     | Owner-only                                           |
+| `activity_plan_resolutions`                                                                             | Revision-checked workout skip/link/undo decisions; diary session evidence is exclusive | **Owner-Only** | No delegated access, including diary/reports readers |
+| `engagement_subject_states`                                                                             | Timer-start hints that suppress obsolete movement prompts; no health records           | Owner-only     | Owner-only                                           |
 
 No delegate sharing or global read policy applies. MCP access uses the authenticated owner; writes require the existing write scope and active consent. Scheduler system access is limited to notification processing.
 

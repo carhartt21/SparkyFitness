@@ -64,6 +64,7 @@ BEGIN
     'sparky_chat_history',
     'admin_activity_logs',
     'api_key',
+    'activity_plan_resolutions',
     'mobility_routines',
     'mobility_schedules',
     'mobility_plans',
@@ -592,6 +593,7 @@ USING (
 -- Owner-only access tables
 -- Tier 1: Strictly Private (no delegation allowed)
 SELECT create_owner_policy('api_key', 'reference_id');
+SELECT create_owner_policy('activity_plan_resolutions');
 SELECT create_owner_policy('mobility_routines');
 SELECT create_owner_policy('mobility_schedules');
 SELECT create_owner_policy('mobility_plans');

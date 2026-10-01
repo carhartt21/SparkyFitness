@@ -1,3 +1,5 @@
+import { getActivityPlanning } from './activityPlanningService.js';
+import { withActivityProgress } from '@workspace/shared';
 import {
   addDays,
   buildDailyProgress,
@@ -170,9 +172,16 @@ export async function getDailyProgressInput(
 
 export async function getDailyProgress(
   userId: string,
-  date: string
+  date: string,
+  includeActivity = false
 ): Promise<DailyProgress> {
-  return buildDailyProgress(await getDailyProgressInput(userId, date));
+  const base = buildDailyProgress(await getDailyProgressInput(userId, date));
+  return includeActivity
+    ? withActivityProgress(
+        base,
+        (await getActivityPlanning(userId, date, date)).occurrences
+      )
+    : base;
 }
 
 interface ScheduleWithHistory {
@@ -202,7 +211,8 @@ export const DAILY_PROGRESS_RANGE_MAX_DAYS = 42;
 export async function getDailyProgressRange(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  includeActivity = false
 ): Promise<DailyProgressDay[]> {
   const tz = await loadUserTimezone(userId);
   const today = todayInZone(tz);
@@ -285,10 +295,16 @@ export async function getDailyProgressRange(
         )
     );
 
+  const activity = includeActivity
+    ? await getActivityPlanning(userId, startDate, endDate)
+    : null;
   const days: DailyProgressDay[] = [];
   for (let day = startDate; day <= endDate; day = addDays(day, 1)) {
     if (
       day > today ||
+      activity?.occurrences.some(
+        (row) => row.date === day && row.reason === 'prescription_unknown'
+      ) ||
       (day < today &&
         (trackingStart === null || day < trackingStart || changedAfter(day)))
     ) {
@@ -361,11 +377,14 @@ export async function getDailyProgressRange(
           })
         : [],
     });
+    const combined = activity
+      ? withActivityProgress(progress, activity.occurrences)
+      : progress;
     days.push({
       date: day,
-      state: dayStateFromProgress(progress),
-      completed: progress.completed,
-      applicable: progress.applicable,
+      state: dayStateFromProgress(combined),
+      completed: combined.completed,
+      applicable: combined.applicable,
     });
   }
   return days;

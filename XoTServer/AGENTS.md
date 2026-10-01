@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 X on Track Server is the backend API package for the X on Track monorepo. Use this file as the primary guide for work inside `XoTServer/`.
 
@@ -12,6 +12,16 @@ X on Track Server is the backend API package for the X on Track monorepo. Use th
 - `new-migration-checklist.md` — 8-step database change checklist
 
 If a task also touches `shared/`, the frontend, or the mobile app, read the relevant package guide before editing outside this directory. Use `../AGENTS.md` for monorepo-level context.
+
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
 
 ## Scope
 

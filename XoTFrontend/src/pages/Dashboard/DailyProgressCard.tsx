@@ -64,6 +64,7 @@ export function DailyProgressCard({
     measurement: t('dailyTracking.domain.measurement', 'Measurement'),
     supplement: t('dailyTracking.domain.supplement', 'Supplement'),
     meal: t('dailyTracking.domain.meal', 'Meal'),
+    activity: t('activityPlanning.activity', 'Activity'),
   };
   const stateLabel = (item: DailyProgressItem) =>
     item.state === 'complete'

@@ -1,3 +1,4 @@
+import { dailyProgressKeys } from '@/api/keys/diary';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { formatDateToYYYYMMDD } from '@/lib/utils';
@@ -82,6 +83,7 @@ export const useCreateWorkoutPlanTemplateMutation = () => {
     }) => createWorkoutPlanTemplate(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutPlanKeys.all });
+      queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });
     },
     meta: {
       successMessage: t(
@@ -110,6 +112,7 @@ export const useUpdateWorkoutPlanTemplateMutation = () => {
     }) => updateWorkoutPlanTemplate(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutPlanKeys.all });
+      queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });
     },
     meta: {
       errorMessage: t(
@@ -146,6 +149,7 @@ export const useDeleteWorkoutPlanTemplateMutation = () => {
     mutationFn: (id: string) => deleteWorkoutPlanTemplate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutPlanKeys.all });
+      queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });
     },
     meta: {
       successMessage: t(
