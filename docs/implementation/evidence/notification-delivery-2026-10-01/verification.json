@@ -1,0 +1,104 @@
+{
+  "date": "2026-10-01",
+  "branch": "fix/notification-delivery-copy-20261001",
+  "base_commit": "ce840f415c0e8e86bc1ca917f87d3aae1aa0c88d",
+  "scope": "intake deduplication, reminder-chain cleanup and notification copy",
+  "incident": {
+    "reported_build": "v35",
+    "repeats_enabled_confirmed": true,
+    "intentional_alerts_per_unresolved_today_occurrence": 4,
+    "extra_alert_attribution": "unverified; screenshot lacks request/schedule identities"
+  },
+  "checks": [
+    {
+      "command": "pnpm exec jest --maxWorkers=2 --coverage=false",
+      "package": "XoTMobile",
+      "status": "passed",
+      "suites": 522,
+      "tests": 7546,
+      "note": "Full run before final two German plural-unit tests/copy correction; affected suites rerun afterward."
+    },
+    {
+      "command": "focused notification/store/workout/search Jest batch --runInBand --coverage=false",
+      "package": "XoTMobile",
+      "status": "passed",
+      "suites": 15,
+      "tests": 460
+    },
+    {
+      "command": "hydration/fasting Jest batch --runInBand --coverage=false",
+      "package": "XoTMobile",
+      "status": "passed",
+      "suites": 5,
+      "tests": 47
+    },
+    {
+      "command": "notificationCopy + notifications + activeWorkoutNotification Jest batch",
+      "package": "XoTMobile",
+      "status": "passed",
+      "suites": 3,
+      "tests": 81,
+      "note": "Includes the final German repetition-unit correction and its two regression cases."
+    },
+    {
+      "command": "pnpm exec vitest run tests/engagementNotificationCopy.test.ts tests/engagementPolicy.test.ts tests/engagementV2Policy.test.ts tests/chatbotToolsEngagement.test.ts",
+      "package": "XoTServer",
+      "status": "passed",
+      "suites": 4,
+      "tests": 35
+    },
+    {
+      "command": "node --test scripts/audit-german-copy.test.mjs",
+      "package": "root",
+      "status": "passed",
+      "tests": 5
+    },
+    {
+      "command": "pnpm run validate",
+      "package": "XoTServer",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm run validate",
+      "package": "XoTFrontend",
+      "status": "passed"
+    },
+    {
+      "command": "pnpm run validate",
+      "package": "XoTMobile",
+      "status": "blocked",
+      "reason": "tsx Watch geometry CLI requires IPC pipe denied by sandbox EPERM",
+      "constituents": "passed separately; geometry passes with node --import tsx scripts/generate-watch-progress-x.mjs --check"
+    },
+    {
+      "command": "iOS simulator rendering",
+      "status": "unverified",
+      "reason": "CoreSimulator service unavailable; no rendered screenshots or native build claimed"
+    },
+    {
+      "command": "signed-device native notification replacement, actual receipt and v35 upgrade",
+      "status": "unverified",
+      "reason": "physical checks not performed"
+    }
+  ],
+  "earlier_test_failures": [
+    {
+      "test": "activeWorkoutNotification EN title + activeWorkoutStore rest title expectation",
+      "resolution": "Updated obsolete copy assertions; subsequent focused and full runs pass"
+    },
+    {
+      "test": "useAllProvidersSearch useful BLS rows when another provider times out",
+      "resolution": "One broad-run timing failure in unchanged code; focused and final full run pass. No search implementation/test changes."
+    }
+  ],
+  "pre_fix_reproductions": {
+    "scheduler_failures": 4,
+    "notification_action_cleanup_failures": 4
+  },
+  "publication": {
+    "merged": false,
+    "deployed": false,
+    "mobile_build_started": false
+  },
+  "screenshots": "unverified; copy-preview.json is synthetic text, not rendered OS notifications"
+}

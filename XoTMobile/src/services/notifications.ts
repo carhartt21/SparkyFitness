@@ -1,3 +1,4 @@
+import { engagementNotificationCopy } from './engagementNotificationCopy';
 import { Alert, AppState, Linking, Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
@@ -416,7 +417,7 @@ export async function scheduleRestNotification(
       content: {
         title:
           content?.title ??
-          notificationCopy('notifications.rest.title', 'Rest complete'),
+          notificationCopy('notifications.rest.title', '⏱️ Rest complete'),
         body: content?.body ?? exerciseName,
         sound: true,
         categoryIdentifier: REST_COMPLETE_CATEGORY,
@@ -519,11 +520,11 @@ export async function scheduleFastGoalNotification(
       content: {
         title: notificationCopy(
           'notifications.fasting.title',
-          'Fasting goal reached'
+          '⏳ Fasting goal reached'
         ),
         body: notificationCopy(
           'notifications.fasting.body',
-          "You've hit your fasting goal. Great work!"
+          'Your configured fasting goal is reached.'
         ),
         sound: true,
       },
@@ -575,14 +576,7 @@ export async function scheduleWaterReminderNotifications(
         continue;
       const id = await Notifications.scheduleNotificationAsync({
         content: {
-          title: notificationCopy(
-            'notifications.hydration.title',
-            'Time to hydrate 💧'
-          ),
-          body: notificationCopy(
-            'notifications.hydration.body',
-            "You haven't logged any water in a while."
-          ),
+          ...engagementNotificationCopy(i18n.t.bind(i18n), 'hydration'),
           ...(identity
             ? {
                 categoryIdentifier: HYDRATION_QUICK_LOG_CATEGORY,

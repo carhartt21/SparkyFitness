@@ -2,7 +2,11 @@ import i18n, { initializeI18n } from '../../src/localization/i18n';
 import { notificationStatusLabels } from '../../src/localization/notificationStatusLabels';
 import english from '../../src/localization/locales/en/translation.json';
 import german from '../../src/localization/locales/de/translation.json';
-import { engagementReminderKindV2Schema } from '@workspace/shared';
+import {
+  ENGAGEMENT_NOTIFICATION_COPY,
+  engagementReminderKindV2Schema,
+} from '@workspace/shared';
+import { engagementNotificationCopy } from '../../src/services/engagementNotificationCopy';
 beforeAll(async () => {
   await initializeI18n('en');
 });
@@ -61,3 +65,46 @@ it('resolves explicit delivery labels through the active German locale', async (
     await i18n.changeLanguage('en');
   }
 });
+
+it.each(['en', 'de'] as const)(
+  'matches local and server prompts in %s without changing their meaning',
+  async (language) => {
+    await i18n.changeLanguage(language);
+    try {
+      for (const kind of engagementReminderKindV2Schema.options) {
+        const copy = engagementNotificationCopy(i18n.t.bind(i18n), kind);
+        expect(copy).toEqual(ENGAGEMENT_NOTIFICATION_COPY[kind][language]);
+        expect(copy.title).toMatch(/\p{Extended_Pictographic}/u);
+        if (language === 'de')
+          expect(copy.body).not.toMatch(/\b(?:Sie|Ihr|Ihre|Ihnen)\b/);
+      }
+    } finally {
+      await i18n.changeLanguage('en');
+    }
+  }
+);
+
+it('uses the supplied translator rather than a hidden global language', async () => {
+  await i18n.changeLanguage('en');
+  expect(engagementNotificationCopy(i18n.getFixedT('de'), 'hydration')).toEqual(
+    ENGAGEMENT_NOTIFICATION_COPY.hydration.de
+  );
+});
+
+it.each([1, 8])(
+  'uses German repetition units for a %i-rep rest notification',
+  (count) => {
+    const body = i18n.getFixedT('de')(
+      'notifications.rest.bodySetProgressReps',
+      {
+        count,
+        formattedCount: String(count),
+        setProgress: 'Satz 2 von 3',
+      }
+    );
+    expect(body).toBe(
+      `Satz 2 von 3 · Ziel: ${count} ${count === 1 ? 'Wiederholung' : 'Wiederholungen'}`
+    );
+    expect(body).not.toMatch(/\breps?\b/);
+  }
+);

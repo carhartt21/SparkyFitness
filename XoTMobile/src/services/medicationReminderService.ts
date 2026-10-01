@@ -35,16 +35,23 @@ function repeatMedReminderKey(baseKey: string, offset: number) {
   return `${baseKey}_${offset}`;
 }
 
-async function cancelReminders(ids: string[]): Promise<void> {
+async function cancelReminders(ids: string[]): Promise<Set<string>> {
+  const cancelled = new Set<string>();
   await Promise.all(
     ids.map(async (id) => {
       try {
         await Notifications.cancelScheduledNotificationAsync(id);
+        cancelled.add(id);
       } catch {
-        // already cancelled or invalid
+        // An unconfirmed cancellation must never create another native request.
+        addLog(
+          'Intake reminder cancellation failed; replacement deferred',
+          'WARNING'
+        );
       }
     })
   );
+  return cancelled;
 }
 
 async function scheduleReminder(
@@ -54,14 +61,26 @@ async function scheduleReminder(
 ): Promise<string | null> {
   try {
     return await Notifications.scheduleNotificationAsync({
+      // Native scheduling replaces this occurrence instead of appending a UUID
+      // if a background/foreground pass receives a stale pending snapshot.
+      identifier: `medication:${data.serverConfigId || 'local'}:${data.accountUserId}:${data.key}`,
       content: {
-        title:
-          data.isSupplement === 'true'
+        title: data.repeatNumber
+          ? data.isSupplement === 'true'
+            ? i18n.t('medications.notificationSupplementRepeatTitle', {
+                defaultValue: '🌿 Supplement · follow-up {{number}}',
+                number: data.repeatNumber,
+              })
+            : i18n.t('medications.notificationRepeatTitle', {
+                defaultValue: '💊 Intake · follow-up {{number}}',
+                number: data.repeatNumber,
+              })
+          : data.isSupplement === 'true'
             ? i18n.t('medications.notificationSupplementTitle', {
-                defaultValue: 'Supplement reminder',
+                defaultValue: '🌿 Supplement reminder',
               })
             : i18n.t('medications.notificationTitle', {
-                defaultValue: 'Medication reminder',
+                defaultValue: '💊 Medication reminder',
               }),
         body,
         sound: true,
@@ -191,6 +210,9 @@ export async function reconcileMedicationReminders(
           date,
           timeOfDay
         );
+        // Duplicate API/cache representations are one occurrence. Different
+        // schedule IDs remain separate even if their names and times match.
+        if (desiredKeys.has(baseKey)) continue;
         desiredKeys.add(baseKey);
 
         const withRepeats = isToday && prefs.medicationReminderRepeats;
@@ -220,6 +242,7 @@ export async function reconcileMedicationReminders(
         }
       }
     }
+    const retainedKeys = new Set<string>();
     const toCancel = allPending
       .filter((n) => {
         if (!n.content.data?.medicationId) return false;
@@ -229,29 +252,29 @@ export async function reconcileMedicationReminders(
         if (!expectedDose) return true;
         // Notification copy is language-sensitive as well as privacy-sensitive:
         // changing EN ↔ PL must replace pending notifications created earlier.
-        return (
+        const outdated =
           (n.content.data.hideNames === 'true') !== hideNames ||
           (n.content.data.locale ?? 'en') !== reminderLocale ||
           n.content.data.responseVersion !== '2' ||
-          n.content.data.copyRevision !== '20261001' ||
+          n.content.data.copyRevision !== '20261001b' ||
           n.content.data.serverConfigId !== (identity?.serverConfigId ?? '') ||
           n.content.data.accountUserId !==
             expectedDose.due.medication.user_id ||
           n.content.data.isSupplement !==
             (expectedDose.due.medication.is_supplement === true
               ? 'true'
-              : 'false')
-        );
+              : 'false');
+        if (outdated || retainedKeys.has(key)) return true;
+        retainedKeys.add(key);
+        return false;
       })
       .map((n) => n.identifier);
-    if (toCancel.length > 0) await cancelReminders(toCancel);
+    const cancelled = await cancelReminders(toCancel);
 
     const pendingKeys = new Set(
       allPending
         .filter(
-          (n) =>
-            n.content.data?.medicationId &&
-            toCancel.indexOf(n.identifier) === -1
+          (n) => n.content.data?.medicationId && !cancelled.has(n.identifier)
         )
         .map((n) => n.content.data?.key as string)
     );
@@ -273,19 +296,21 @@ export async function reconcileMedicationReminders(
         due.medication.is_supplement === true
           ? hideNames
             ? i18n.t('medications.notificationSupplementDose', {
-                defaultValue: 'You have a scheduled supplement intake',
+                defaultValue:
+                  'Record your planned supplement if you have taken it.',
               })
             : i18n.t('medications.notificationSupplementDoseNamed', {
-                defaultValue: 'Scheduled supplement: {{name}}{{dose}}',
+                defaultValue: 'Your planned supplement: {{name}}{{dose}}',
                 name: due.medication.name,
                 dose: doseSuffix,
               })
           : hideNames
             ? i18n.t('medications.notificationScheduledDose', {
-                defaultValue: 'You have a scheduled dose',
+                defaultValue:
+                  'Record your scheduled intake if you have taken it.',
               })
             : i18n.t('medications.notificationScheduledDoseNamed', {
-                defaultValue: 'Scheduled dose: {{name}}{{dose}}',
+                defaultValue: 'Your scheduled intake: {{name}}{{dose}}',
                 name: due.medication.name,
                 dose: doseSuffix,
               });
@@ -298,7 +323,7 @@ export async function reconcileMedicationReminders(
         hideNames: String(hideNames),
         locale: reminderLocale,
         responseVersion: '2',
-        copyRevision: '20261001',
+        copyRevision: '20261001b',
         accountUserId: due.medication.user_id,
         serverConfigId: identity?.serverConfigId ?? '',
         isSupplement: due.medication.is_supplement === true ? 'true' : 'false',
@@ -307,7 +332,8 @@ export async function reconcileMedicationReminders(
       const [year, month, day] = date.split('-').map(Number);
       const triggerDate = new Date(year, month - 1, day, hours, minutes, 0, 0);
       if (!pendingKeys.has(baseKey) && triggerDate.getTime() > Date.now()) {
-        await scheduleReminder(body, triggerDate, data);
+        if (await scheduleReminder(body, triggerDate, data))
+          pendingKeys.add(baseKey);
       }
 
       // Checked per key, not per dose: enabling repeats mid-day must still add
@@ -318,10 +344,23 @@ export async function reconcileMedicationReminders(
           if (pendingKeys.has(repeatKey)) continue;
           const repeatDate = new Date(triggerDate.getTime() + offset * 60000);
           if (repeatDate.getTime() > Date.now()) {
-            await scheduleReminder(body, repeatDate, {
+            const repeatBody = hideNames
+              ? i18n.t('medications.notificationRepeatBody', {
+                  defaultValue:
+                    'Already recorded? Check your scheduled intake status in the app.',
+                })
+              : i18n.t('medications.notificationRepeatNamed', {
+                  defaultValue:
+                    'Already recorded? Check the status of {{name}}{{dose}} in the app.',
+                  name: due.medication.name,
+                  dose: doseSuffix,
+                });
+            const scheduled = await scheduleReminder(repeatBody, repeatDate, {
               ...data,
               key: repeatKey,
+              repeatNumber: String(REPEAT_MINUTES.indexOf(offset) + 1),
             });
+            if (scheduled) pendingKeys.add(repeatKey);
           }
         }
       }

@@ -992,11 +992,11 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
             {medicationRemindersEnabled && (
               <SettingsRow
                 title={t('notificationSettings.repeatReminders', {
-                  defaultValue: 'Repeat Reminders',
+                  defaultValue: 'Intake follow-ups',
                 })}
                 subtitle={t('notificationSettings.repeatRemindersSubtitle', {
                   defaultValue:
-                    'Repeat each reminder every 10 minutes, up to 3 times, until the dose is logged.',
+                    'Optional follow-ups today at +10, +20 and +30 minutes. Recording taken or skipped cancels the remaining follow-ups. Off by default; your saved choice is kept.',
                 })}
                 subtitleNumberOfLines={0}
                 rightAccessory={
@@ -1004,7 +1004,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                     disabled={remoteBusy}
                     accessibilityLabel={t(
                       'notificationSettings.repeatReminders',
-                      { defaultValue: 'Repeat Reminders' }
+                      { defaultValue: 'Intake follow-ups' }
                     )}
                     value={medicationReminderRepeats}
                     onValueChange={setMedicationReminderRepeats}

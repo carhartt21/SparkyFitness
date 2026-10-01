@@ -186,7 +186,7 @@ describe('MedicationReminderReconciler', () => {
     expect(mockReconcile).toHaveBeenCalledTimes(1);
 
     act(() => {
-      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      useAppPreferencesStore.setState({ medicationReminderRepeats: true });
     });
 
     expect(mockReconcile).toHaveBeenCalledTimes(2);

@@ -1,7 +1,8 @@
+import i18n from '../localization/i18n';
 import { instantToDay } from '@workspace/shared';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
-import i18n from '../localization/i18n';
+import { engagementNotificationCopy } from './engagementNotificationCopy';
 import { getTodayDate } from '../utils/dateUtils';
 import { reconcileScheduledEngagementReminders } from './engagementReminderScheduler';
 import type { ReminderCandidate } from './healthEngagementPolicy';
@@ -24,14 +25,7 @@ export function reconcileMobilityEngagementReminders(input: {
     ...input,
     prefix: PREFIX,
     accepts: (candidate) => candidate.kind === 'mobility',
-    contentFor: () => ({
-      title: i18n.t('mobility.reminderTitle', {
-        defaultValue: 'Time for your mobility routine?',
-      }),
-      body: i18n.t('mobility.reminderBody', {
-        defaultValue: 'Open your saved routine when it works for you.',
-      }),
-    }),
+    contentFor: () => engagementNotificationCopy(i18n.t.bind(i18n), 'mobility'),
   });
 }
 

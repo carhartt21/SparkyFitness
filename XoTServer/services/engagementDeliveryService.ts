@@ -1,5 +1,6 @@
 import {
   selectOptionalReminderSlots,
+  ENGAGEMENT_NOTIFICATION_COPY,
   engagementQuietAt,
   type EngagementReminderKindV2,
 } from '@workspace/shared';
@@ -25,40 +26,6 @@ type PushReceipt = { status: 'ok' | 'error'; details?: { error?: string } };
 
 const PUSH_SEND_URL = 'https://exp.host/--/api/v2/push/send';
 const PUSH_RECEIPTS_URL = 'https://exp.host/--/api/v2/push/getReceipts';
-const MESSAGE: Record<ReminderKind, { en: string; de: string }> = {
-  check_in: {
-    en: 'Your daily check-in is still open.',
-    de: 'Ihr täglicher Check-in ist noch offen.',
-  },
-  habit: {
-    en: 'A scheduled habit is not recorded yet.',
-    de: 'Eine geplante Gewohnheit ist noch nicht erfasst.',
-  },
-  weigh_in: {
-    en: 'Your scheduled weigh-in is still open.',
-    de: 'Ihre geplante Gewichtserfassung ist noch offen.',
-  },
-  hydration: {
-    en: 'Time to log a drink if you have had one.',
-    de: 'Zeit, ein Getränk zu erfassen, falls Sie etwas getrunken haben.',
-  },
-  meal_capture: {
-    en: 'No meal is captured in the selected time window.',
-    de: 'Für das gewählte Zeitfenster ist noch keine Mahlzeit erfasst.',
-  },
-  meal_review: {
-    en: 'A food photo is waiting for review.',
-    de: 'Ein Essensfoto wartet auf Prüfung.',
-  },
-  movement_break: {
-    en: 'A short movement break is available when it fits your day.',
-    de: 'Eine kurze Bewegungspause steht bereit, wenn es gerade passt.',
-  },
-  mobility: {
-    en: 'Your mobility session is ready when you are.',
-    de: 'Ihre geplante Mobilitätseinheit steht bereit.',
-  },
-};
 
 async function fetchExpo(url: string, body: unknown): Promise<Response> {
   const accessToken = process.env.EXPO_PUSH_ACCESS_TOKEN;
@@ -400,8 +367,11 @@ export async function deliverEngagementOccurrences(): Promise<void> {
           throw new Error('Invalid token ciphertext.');
         const response = await fetchExpo(PUSH_SEND_URL, {
           to: token,
-          title: 'X on Track',
-          body: MESSAGE[occurrence.kind][device.language],
+          title:
+            ENGAGEMENT_NOTIFICATION_COPY[occurrence.kind][device.language]
+              .title,
+          body: ENGAGEMENT_NOTIFICATION_COPY[occurrence.kind][device.language]
+            .body,
           categoryId: 'engagement-remote',
           data: {
             remoteEngagementVersion: device.protocolVersion,

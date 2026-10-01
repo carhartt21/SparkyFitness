@@ -1,3 +1,4 @@
+import i18n from '../localization/i18n';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
 import type { ReminderCandidate } from './healthEngagementPolicy';
@@ -5,7 +6,7 @@ import type { NutritionActionIdentity } from './nutritionActionOutbox';
 import { getActiveNutritionIdentity } from './nutritionIdentity';
 import { reconcileScheduledEngagementReminders } from './engagementReminderScheduler';
 import { getTodayDate } from '../utils/dateUtils';
-import i18n from '../localization/i18n';
+import { engagementNotificationCopy } from './engagementNotificationCopy';
 
 const PREFIX = 'engagement:movement:';
 const URL = 'sparkyfitnessmobile://movement-break';
@@ -22,14 +23,8 @@ export function reconcileMovementEngagementReminders(input: {
     ...input,
     prefix: PREFIX,
     accepts: (candidate) => candidate.kind === 'move',
-    contentFor: () => ({
-      title: i18n.t('engagement.movementReminderTitle', {
-        defaultValue: 'Time for a movement break?',
-      }),
-      body: i18n.t('engagement.movementReminderBody', {
-        defaultValue: 'Open a short timer if this works for you.',
-      }),
-    }),
+    contentFor: () =>
+      engagementNotificationCopy(i18n.t.bind(i18n), 'movement_break'),
   });
 }
 
