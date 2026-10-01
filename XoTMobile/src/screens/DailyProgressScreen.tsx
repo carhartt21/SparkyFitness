@@ -32,6 +32,7 @@ import { usePreferences } from '../hooks/usePreferences';
 import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import { formatLocalizedNumber, useAppLocale } from '../localization';
 import { formatDate, getTodayDate } from '../utils/dateUtils';
+import WeeklyActivityOverview from '../components/WeeklyActivityOverview';
 import { activeLocalSupplementStatus } from '../utils/medications';
 import {
   overlayLocalSupplementResponses,
@@ -49,6 +50,7 @@ const DOMAIN_ORDER: DailyProgressDomain[] = [
   'meal',
   'goal',
   'workout',
+  'activity',
 ];
 
 const DOMAIN_ICON: Record<DailyProgressDomain, IconName> = {
@@ -59,6 +61,7 @@ const DOMAIN_ICON: Record<DailyProgressDomain, IconName> = {
   meal: 'meal',
   goal: 'target',
   workout: 'exercise-running',
+  activity: 'exercise',
 };
 
 const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
@@ -209,6 +212,10 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
           date,
           scheduleId: item.reference_id ?? undefined,
         });
+      case 'activity':
+        if (item.id.startsWith('mobility:'))
+          return navigation.navigate('GuidedMobility');
+        return navigation.navigate('ExerciseReview', { date });
       case 'measurement':
         return navigation.navigate('MeasurementsAdd', {
           date,
@@ -323,7 +330,10 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
               (item) => item.domain === domain
             );
             if (items.length === 0) return null;
-            const coverage = progress.coverage[domain];
+            const coverage = progress.coverage[domain] ?? {
+              applicable: 0,
+              completed: 0,
+            };
             return (
               <GlowCard
                 key={domain}
@@ -464,6 +474,16 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
         </Pressable>
       </Modal>
+      <WeeklyActivityOverview
+        key={date}
+        date={date}
+        enabled={isConnected}
+        onOpen={(source, day) =>
+          source === 'mobility'
+            ? navigation.navigate('GuidedMobility')
+            : navigation.navigate('ExerciseReview', { date: day })
+        }
+      />
     </TrackingScreen>
   );
 };

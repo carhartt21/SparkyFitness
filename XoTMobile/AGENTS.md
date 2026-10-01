@@ -6,6 +6,16 @@ X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Hea
 
 This is the package guide for `XoTMobile/`. Work from this directory for mobile implementation and validation. If a task crosses into the backend, frontend, or `shared/`, read that package guide too before editing outside mobile.
 
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
+
 ## Scope And Style
 
 - TypeScript is strict. Keep changes type-safe and compiling cleanly.

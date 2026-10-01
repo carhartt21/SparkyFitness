@@ -1,3 +1,4 @@
+import { dailyProgressKeys } from '@/api/keys/diary';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { formatDateToYYYYMMDD } from '@/lib/utils';

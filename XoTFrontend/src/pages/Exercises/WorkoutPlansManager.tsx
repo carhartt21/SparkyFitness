@@ -1,3 +1,4 @@
+import WeeklyActivityOverview from '@/components/WeeklyActivityOverview';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
@@ -362,6 +363,7 @@ const WorkoutPlansManager = () => {
 
   return (
     <div className="space-y-6">
+      <WeeklyActivityOverview />
       {activePlan && activePlan.next_assignment && (
         <div className="p-4 rounded-xl border border-primary/30 bg-primary/5 flex items-center justify-between shadow-xs">
           <div className="space-y-1">

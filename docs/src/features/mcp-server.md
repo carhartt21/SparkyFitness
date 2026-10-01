@@ -80,6 +80,29 @@ For an actual weigh-in value, call `sparky_get_measurement_reminder_status` with
 
 ---
 
+## Weekly activity planning (read-only)
+
+- `xot_get_activity_planning`: explicit `start_date` and `end_date`, at most 31
+  account-local calendar days. Includes scheduled workout/mobility occurrences,
+  saved diary sessions, completion reasons and weekly counts. Each top-level array
+  uses the same `limit` (1–50) and `offset` (0–1000); use the returned counts to
+  request another page. Summaries cover the full requested range.
+- `xot_get_workout_plans`: saved prescriptions effective on `date` (today by
+  default), including exercises and sets. Duration is seconds, distance km,
+  weight kg. Older snapshots may lack detail. Sequential plans are shown without
+  assigning invented weekdays.
+- `sparky_get_daily_progress` and `sparky_get_daily_status_context` accept
+  `include_activity: true` to include version 2 activity tasks. The default keeps
+  version 1 tracking behavior for existing clients.
+- `sparky_get_goal_snapshot` also returns `target_exercise_duration_minutes` and
+  `target_exercise_calories_burned`, when saved, in minutes and kcal.
+
+These reads never activate a plan, create a diary entry or record calories. A
+similar activity name is not completion evidence. Phone/Watch activity must be
+synced before it appears. The app owner reviews and explicitly links an imported
+or manual diary session, skips an activity or undoes that decision in the overview.
+The broader consent-based coaching/proposal workflow remains separate.
+
 ## 🕵️ AI Personalization (The "Health Detective")
 
 Because the AI has access to all these tools, it can do things a standard app cannot:

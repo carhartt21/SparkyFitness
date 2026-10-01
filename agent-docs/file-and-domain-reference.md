@@ -28,6 +28,16 @@ Shared   (shared/src/)
 
 ---
 
+### Weekly activity planning
+
+- Server: `routes/v2/activityPlanningRoutes.ts`, `services/activityPlanningService.ts`,
+  `services/activityPlanningProjection.ts`, `models/activityPlanningRepository.ts`.
+- Shared: `schemas/api/ActivityPlanning.api.zod.ts`, `activityPlanning.ts` and the
+  opt-in activity projection in `tracking/dailyTracking.ts`.
+- Clients: `components/WeeklyActivityOverview.tsx`, `hooks/Tracking/useActivityPlanning.ts`
+  (web) and `hooks/useActivityPlanning.ts` (phone); existing Workout/Mobility editors.
+- MCP: `ai/tools/activityPlanningTools.ts`; no resolution-write tool.
+
 ## Feature Domains
 
 Paths are relative to each package root. `—` means that layer does not exist for the domain.

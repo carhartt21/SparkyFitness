@@ -52,6 +52,7 @@ Certain tables contain private user data that is **never** accessible to any fam
 - API Keys (`api_key` table)
 - OIDC SSO Connections (`user_oidc_links` table)
 - Personal AI Assistant Chat History (`sparky_chat_history` table)
+- Weekly activity skip/link/undo decisions (`activity_plan_resolutions`) and the combined activity overview remain owner-only. A shared diary does not grant plan-resolution access.
 - Mobility routines, schedules, dated plans, session history and operation receipts (`mobility_*`), and movement timer-start hints (`engagement_subject_states`). These remain owner-only even with exercise sharing.
 - Notification delivery settings, devices, and reminder response history (`engagement_*` tables). A family member cannot change the owner's reminder schedule or register a phone for the owner's notifications.
 - Connected assistant authorizations and tokens (`oauth*` and `jwks` tables). Only the account owner can approve an MCP connection; the authentication service stores and revokes its credentials.

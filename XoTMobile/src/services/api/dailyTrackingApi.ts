@@ -34,7 +34,7 @@ export const getDailyCheckin = (date: string) =>
 
 export const listDailyCheckins = async (startDate: string, endDate: string) =>
   (await apiFetch<DailyCheckin[] | null>({
-    endpoint: `${BASE}/checkins?start_date=${startDate}&end_date=${endDate}`,
+    endpoint: `${BASE}/checkins?start_date=${startDate}&end_date=${endDate}&include_activity=true`,
     serviceName: SERVICE_NAME,
     operation: 'list daily check-ins',
   })) ?? [];
@@ -217,7 +217,7 @@ export const updateDailyTrackingPreferences = (
 
 export const getDailyProgress = (date: string) =>
   apiFetch<DailyProgress>({
-    endpoint: `${BASE}/daily-progress/${date}?version=2`,
+    endpoint: `${BASE}/daily-progress/${date}?version=2&include_activity=true`,
     serviceName: SERVICE_NAME,
     operation: 'get daily progress',
   });
@@ -228,7 +228,7 @@ export const getDailyProgressRange = async (
   endDate: string
 ) =>
   (await apiFetch<DailyProgressDay[] | null>({
-    endpoint: `${BASE}/daily-progress?start_date=${startDate}&end_date=${endDate}&version=2`,
+    endpoint: `${BASE}/daily-progress?start_date=${startDate}&end_date=${endDate}&version=2&include_activity=true`,
     serviceName: SERVICE_NAME,
     operation: 'get daily progress range',
   })) ?? [];

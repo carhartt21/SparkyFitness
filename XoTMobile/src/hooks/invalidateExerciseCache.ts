@@ -6,6 +6,7 @@ import {
   suggestedExercisesQueryKey,
   dailyProgressRootQueryKey,
   dailySummaryQueryKey,
+  dailyProgressRootQueryKey,
 } from './queryKeys';
 
 export function invalidateExerciseCache(

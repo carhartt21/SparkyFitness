@@ -43,30 +43,7 @@ async function captureWorkoutPlanVersion(
        (user_id, template_id, effective_from, plan_name, start_date, end_date, is_active, assignments)
      SELECT t.user_id, t.id, $3::date, t.plan_name, t.start_date, t.end_date,
             COALESCE($4::boolean, t.is_active, false),
-            COALESCE((
-              SELECT jsonb_agg(
-                jsonb_build_object(
-                  'id', a.id,
-                  'dayOfWeek', a.day_of_week,
-                  'workoutPresetId', a.workout_preset_id,
-                  'exerciseId', a.exercise_id,
-                  'sortOrder', a.sort_order,
-                  'activityType', a.activity_type,
-                  'sessionName', a.session_name,
-                  'plannedDurationMinutes', a.planned_duration_minutes,
-                  'plannedDistanceKm', a.planned_distance_km,
-                  'plannedTime', a.planned_time,
-                  'isOptional', a.is_optional,
-                  'sets', COALESCE((
-                    SELECT jsonb_agg(to_jsonb(s) ORDER BY s.set_number, s.id)
-                    FROM public.workout_plan_assignment_sets s
-                    WHERE s.assignment_id = a.id
-                  ), '[]'::jsonb)
-                ) ORDER BY a.day_of_week, a.sort_order, a.id
-              )
-              FROM public.workout_plan_template_assignments a
-              WHERE a.template_id = t.id
-            ), '[]'::jsonb)
+            public.workout_plan_assignments_snapshot(t.id)
      FROM public.workout_plan_templates t
      WHERE t.id = $1 AND t.user_id = $2`,
     [templateId, userId, effectiveDay, isActiveOverride ?? null]

@@ -86,6 +86,7 @@ export default defineConfig({
             link: "/features/family-friends-sharing",
           },
           { text: "MCP Server", link: "/features/mcp-server" },
+          { text: "Weekly Activities", link: "/features/weekly-activities" },
           {
             text: "Agent recommendations",
             link: "/features/agent-recommendations",

@@ -277,6 +277,16 @@ Shared primitives live in `XoTMobile/src/components/ui/`: `glow.ts` (`useGlowThe
 
 `TabScreenHeader` gives Diary, Insights and More a Settings button, large title and subtitle; the Dashboard is the exception with Settings on the right. Food search rows offer a quick-add button that opens `QuickAddFoodSheet` (serving, 0.5/1/1.5/2× amount presets, meal, live nutrition) and logs without leaving search; food details offer the same amount presets under the stepper.
 
+### Weekly activity overview on web and mobile
+
+`XoTFrontend/src/components/WeeklyActivityOverview.tsx` and `XoTMobile/src/components/WeeklyActivityOverview.tsx` add a bounded **Operate** pattern: week controls, a localized Monday–Sunday calendar range, per-sport completion counts, and dated activity rows. The web section uses the existing plain `GlowCard`, secondary summary badges, outline state badges, and outline or ghost actions. Mobile uses a vertical section with primary and secondary text, bordered row separators, and the existing `ui/Button` variants. Header and action groups wrap in source; this pattern introduces no palette or typography tokens.
+
+Each row keeps its date, sport, activity name, plan name, and explicit state together. Completion counts leave skipped activities and unknown prescriptions out of the displayed scheduled total. Confirmed set counts retain an explicit unknown expected value when necessary. Unknown prescriptions have a visible explanation; a missing linked session has a recovery hint to undo the decision and choose a saved session on that date. Sequential plans retain a separate explanatory note about their existing next-session workflow.
+
+Workout rows offer Skip while unresolved, Undo for a saved decision, and linking to an eligible confirmed session on the row's date. Web uses a labelled select followed by a separate Link action. Mobile expands an inline list of record buttons, each with an accessible “Link [session name]” label, and closes the chooser after a successful decision. Decision controls are disabled during saving or fetching. Loading, load failure with Retry, an empty schedule, and decision failure remain visible in text; decision failure explains that the activity or account may have changed and asks the user to refresh. Mobile also states when a server connection is required. The workout destination retains the row's date: Diary on web and Exercise Review on mobile. Mobility opens its existing destination.
+
+**Verification boundary:** This addition records component source, shared calendar-week and record-selection helpers, reused primitives, and English locale content on 2026-10-01. Browser checks were skipped at the user's request after saved permission rejected access to `localhost:8080`. No screenshot, simulator, or device capture supports this addition; authenticated appearance, narrow-width behavior, theme rendering, and enlarged-text behavior remain unverified.
+
 ## Do's and Don'ts
 
 ### Do:

@@ -240,7 +240,8 @@ export type DailyProgressDomain =
   | "supplement"
   | "meal"
   | "goal"
-  | "workout";
+  | "workout"
+  | "activity";
 
 /**
  * complete: the explicit task is done.
@@ -330,9 +331,9 @@ export interface DailyProgress {
   /** 0–100, or null when no task applies (render a neutral X). */
   percent: number | null;
   coverage: Record<
-    DailyProgressDomain,
+    Exclude<DailyProgressDomain, "activity">,
     { applicable: number; completed: number }
-  >;
+  > & { activity?: { applicable: number; completed: number } };
 }
 
 /**
@@ -535,6 +536,7 @@ export function buildDailyProgress(input: DailyProgressInput): DailyProgress {
 export function summarizeDailyProgressItems(
   date: string,
   items: DailyProgressItem[],
+  version = DAILY_PROGRESS_VERSION,
 ): DailyProgress {
   const coverage: DailyProgress["coverage"] = {
     checkin: { applicable: 0, completed: 0 },
@@ -545,17 +547,21 @@ export function summarizeDailyProgressItems(
     goal: { applicable: 0, completed: 0 },
     workout: { applicable: 0, completed: 0 },
   };
+  if (version >= 2 || items.some((item) => item.domain === "activity"))
+    coverage.activity = { applicable: 0, completed: 0 };
   for (const item of items) {
     if (!item.applicable) continue;
-    coverage[item.domain].applicable += 1;
-    if (item.state === "complete") coverage[item.domain].completed += 1;
+    const domainCoverage = coverage[item.domain];
+    if (!domainCoverage) continue;
+    domainCoverage.applicable += 1;
+    if (item.state === "complete") domainCoverage.completed += 1;
   }
   const applicable = items.filter((item) => item.applicable).length;
   const completed = items.filter(
     (item) => item.applicable && item.state === "complete",
   ).length;
   return {
-    version: DAILY_PROGRESS_VERSION,
+    version,
     date,
     items,
     applicable,
@@ -599,4 +605,32 @@ export function dayStateFromProgress(
   if (progress.applicable === 0) return "none";
   if (progress.completed === 0) return "not_started";
   return progress.completed >= progress.applicable ? "complete" : "partial";
+}
+
+/** Opt-in version 2: explicit scheduled activities join the equal-weight task list. */
+export function withActivityProgress(
+  progress: DailyProgress,
+  occurrences: readonly import("../schemas/api/ActivityPlanning.api.zod.ts").ActivityOccurrence[],
+): DailyProgress {
+  return summarizeDailyProgressItems(
+    progress.date,
+    [
+      ...progress.items.filter((item) => item.domain !== "activity"),
+      ...occurrences
+        .filter((row) => row.date === progress.date)
+        .map((row) => ({
+          id: row.id,
+          domain: "activity" as const,
+          label: row.label,
+          date: row.date,
+          applicable:
+            row.state !== "excluded" && row.reason !== "prescription_unknown",
+          state: row.state,
+          reference_id: row.source_id,
+          recorded_at: row.recorded_at,
+          reason: row.reason,
+        })),
+    ],
+    2,
+  );
 }

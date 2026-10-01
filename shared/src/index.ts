@@ -222,3 +222,8 @@ export * from "./coaching/tools.ts";
 export * from "./schemas/api/MealPlanning.api.zod.ts";
 
 export * from "./coaching/client.ts";
+
+export * from "./schemas/api/ActivityPlanning.api.zod.ts";
+export * from "./schemas/database/ActivityPlanResolutions.zod.ts";
+
+export * from "./activityPlanning.ts";

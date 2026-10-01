@@ -77,7 +77,9 @@ const EXPECTED_TOOLS = [
   'sparky_scan_label',
   'sparky_search_exercises',
   'sparky_search_foods',
+  'xot_get_activity_planning',
   'xot_get_mobility',
+  'xot_get_workout_plans',
   'xot_update_mobility',
 ];
 
@@ -120,7 +122,9 @@ const EXPECTED_CORE_TOOLS = [
   'sparky_manage_workout_plans',
   'sparky_search_exercises',
   'sparky_search_foods',
+  'xot_get_activity_planning',
   'xot_get_mobility',
+  'xot_get_workout_plans',
   'xot_update_mobility',
 ];
 

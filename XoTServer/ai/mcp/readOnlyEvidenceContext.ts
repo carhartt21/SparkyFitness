@@ -2,6 +2,8 @@ import { addDays, daysBetween, todayInZone } from '@workspace/shared';
 import { normalizeDayKeywords } from '../tools/dates.js';
 
 const PERIOD_TOOLS = new Set([
+  'xot_get_activity_planning',
+  'xot_get_workout_plans',
   'sparky_get_exercise_diary',
   'sparky_get_daily_exercise_totals',
   'sparky_get_exercise_usage',
