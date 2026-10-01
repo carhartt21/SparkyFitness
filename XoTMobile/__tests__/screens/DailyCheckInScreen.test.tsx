@@ -10,11 +10,17 @@ import {
 
 type ScreenProps = React.ComponentProps<typeof DailyCheckInScreen>;
 
-const goBack = jest.fn();
+const beforeRemoveListeners = new Set<() => void>();
+const goBack = jest.fn(() => {
+  for (const listener of beforeRemoveListeners) listener();
+});
 const navigation = {
   goBack,
   navigate: jest.fn(),
-  addListener: jest.fn(() => jest.fn()),
+  addListener: jest.fn((_event: string, listener: () => void) => {
+    beforeRemoveListeners.add(listener);
+    return () => beforeRemoveListeners.delete(listener);
+  }),
 } as unknown as ScreenProps['navigation'];
 const route = {
   key: 'DailyCheckIn-1',
@@ -54,6 +60,7 @@ const renderScreen = () =>
 describe('DailyCheckInScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    beforeRemoveListeners.clear();
     (useDailyCheckin as jest.Mock).mockReturnValue({
       data: null,
       isSuccess: true,
@@ -103,6 +110,8 @@ describe('DailyCheckInScreen', () => {
     fireEvent.press(screen.getByTestId('daily-checkin-complete'));
     await waitFor(() => expect(save.mutateAsync).toHaveBeenCalled());
     expect(save.mutateAsync.mock.calls[0][0].energy).toBeNull();
+    await waitFor(() => expect(goBack).toHaveBeenCalled());
+    expect(save.mutate).not.toHaveBeenCalled();
   });
 
   it('skips without sending any answers', async () => {
@@ -111,6 +120,33 @@ describe('DailyCheckInScreen', () => {
     fireEvent.press(screen.getByTestId('daily-checkin-skip'));
     await waitFor(() => expect(skip.mutateAsync).toHaveBeenCalledWith());
     expect(save.mutateAsync).not.toHaveBeenCalled();
+    await waitFor(() => expect(goBack).toHaveBeenCalled());
+    expect(save.mutate).not.toHaveBeenCalled();
+  });
+
+  it('retains an unfinished draft on ordinary back navigation', () => {
+    const screen = renderScreen();
+    fireEvent.press(screen.getByTestId('daily-checkin-overall-2'));
+    goBack();
+    expect(save.mutate).toHaveBeenCalledTimes(1);
+    expect(save.mutate).toHaveBeenCalledWith(
+      expect.objectContaining({ state: 'draft', overall_day: 2 })
+    );
+  });
+
+  it('allows retry after a failed completion without losing answers', async () => {
+    save.mutateAsync.mockRejectedValueOnce(new Error('offline'));
+    const screen = renderScreen();
+    fireEvent.press(screen.getByTestId('daily-checkin-overall-4'));
+    fireEvent.press(screen.getByTestId('daily-checkin-complete'));
+    await waitFor(() => expect(save.mutateAsync).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(goBack).not.toHaveBeenCalled());
+    fireEvent.press(screen.getByTestId('daily-checkin-complete'));
+    await waitFor(() => expect(goBack).toHaveBeenCalled());
+    expect(save.mutateAsync).toHaveBeenLastCalledWith(
+      expect.objectContaining({ state: 'completed', overall_day: 4 })
+    );
+    expect(save.mutate).not.toHaveBeenCalled();
   });
 
   it('offers to reopen a skipped day', () => {

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { View, Text } from 'react-native';
+import { useAppLocale } from '../localization';
 import { useTranslation } from 'react-i18next';
 import { CartesianChart, Line } from 'victory-native';
 import { DashPathEffect } from '@shopify/react-native-skia';
@@ -38,6 +39,7 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
   isLoading,
 }) => {
   const { t } = useTranslation();
+  const locale = useAppLocale();
   const { preferences } = usePreferences();
   const [accentColor, dangerColor, textMuted] = useCSSVariable([
     '--color-accent-primary',
@@ -47,7 +49,8 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
 
   const clockLabel = (value: number | string | Date) => {
     const d = value instanceof Date ? value : new Date(value);
-    return formatDateToTimeLabel(d, preferences?.time_format);
+    const time = formatDateToTimeLabel(d, preferences?.time_format);
+    return `${new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(d)} ${time}`;
   };
 
   const bedtimeMs = kinetics ? new Date(kinetics.bedtime_at).getTime() : 0;
@@ -120,6 +123,14 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
     kinetics.half_life_hours
   );
 
+  // Below the display's 1 mg resolution, past residual alone is not useful.
+  // Do not suppress a dose on the selected day or alter the underlying model.
+  const selectedDay = new Date(kinetics.bedtime_at).toDateString();
+  const hasDoseOnSelectedDay = kinetics.doses.some(
+    (dose) => new Date(dose.at).toDateString() === selectedDay
+  );
+  if (!hasDoseOnSelectedDay && activeNowMg < 1) return null;
+
   const cutoffText =
     kinetics.cutoff_state === 'by' && kinetics.latest_safe_dose_time
       ? formatTimeLabel(
@@ -138,6 +149,13 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
         {t('caffeine.title', { defaultValue: 'Active Caffeine' })}
       </Text>
 
+      {!hasDoseOnSelectedDay && (
+        <Text className="text-text-secondary text-sm mb-2">
+          {t('caffeine.previousDoses', {
+            defaultValue: 'Residual from earlier entries',
+          })}
+        </Text>
+      )}
       <View className="flex-row justify-between mb-3">
         <View>
           <Text className="text-text-muted text-xs">
@@ -187,7 +205,7 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
           domainPadding={{ left: 10, right: 10, top: 12 }}
           xAxis={{
             font,
-            tickCount: 4,
+            tickCount: 2,
             labelColor: textMuted,
             formatXLabel: (value: number) => clockLabel(value),
           }}

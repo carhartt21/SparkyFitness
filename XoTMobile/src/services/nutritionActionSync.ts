@@ -25,7 +25,7 @@ import {
   type PendingNutritionAction,
 } from './nutritionActionOutbox';
 import {
-  caffeineActiveQueryKey,
+  caffeineActiveRootQueryKey,
   dailySummaryRootQueryKey,
   waterIntakeLogQueryKey,
 } from '../hooks/queryKeys';
@@ -257,7 +257,7 @@ async function reconcilePass(
       }
       if (action.type === 'logContainerWater') {
         void queryClient?.invalidateQueries({
-          queryKey: caffeineActiveQueryKey(action.payload.entry_date),
+          queryKey: caffeineActiveRootQueryKey,
         });
       }
       if (action.type === 'logPlannedSupplement' && queryClient) {

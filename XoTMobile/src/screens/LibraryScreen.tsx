@@ -553,6 +553,16 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             <Icon name="chevron-forward" size={20} color="#999" />
           </Pressable>
           <Pressable
+            className="min-h-11 px-4 py-4 border-b border-border-subtle"
+            accessibilityRole="button"
+            testID="more-training-plans"
+            onPress={() => navigation.navigate('WorkoutPlans')}
+          >
+            <Text className="text-text-primary font-semibold">
+              {t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
+            </Text>
+          </Pressable>
+          <Pressable
             className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
             onPress={() => navigation.navigate('ExerciseReview')}
             style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}

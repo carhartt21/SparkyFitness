@@ -7,11 +7,11 @@
     "dailyOptionalBudget": "Optional reminders today",
     "dailyOptionalBudgetSummary": "{{used}} of 3 daily slots used. Meal, movement, and water share them; medication, supplement and rest alerts are separate.",
     "dailyOptionalBudgetUnavailable": "Daily reminder count unavailable. Meal, movement, and water reminders share three slots.",
-    "captureReminderTitle": "Meal check-in",
-    "captureReminderBody": "A photo is enough for now.",
+    "captureReminderTitle": "🍽️ Your meal check-in",
+    "captureReminderBody": "Have you eaten? Record your meal or take a photo. You can also mark “No meal”.",
     "takePhotoAction": "Take photo",
-    "reviewReminderTitle": "Meal photos to review",
-    "reviewReminderBody": "Review today's meal photos when convenient.",
+    "reviewReminderTitle": "📷 Review your meal photo",
+    "reviewReminderBody": "Your meal photo is saved. Add the details when you have a moment.",
     "reviewAction": "Review photos",
     "reviewSetting": "Meal photo review reminder",
     "reviewSettingSubtitle": "Optional later prompt only when an incomplete photo is known on this device.",
@@ -38,16 +38,16 @@
     "movementReminderSetting": "Movement break reminder",
     "movementReminderSettingSubtitle": "One optional invitation at your chosen time. It does not track or log movement.",
     "movementReminderTime": "Reminder time",
-    "movementReminderTitle": "Time for a movement break?",
-    "movementReminderBody": "Open a short timer if this works for you.",
+    "movementReminderTitle": "🚶 A moment to move?",
+    "movementReminderBody": "If it fits your day, open a short movement-break timer.",
     "openBreakTimer": "Open break timer",
     "breakSettingSubtitle": "Start a short, explicit timer. Finishing it does not log movement.",
-    "checkinReminderTitle": "Daily check-in",
-    "checkinReminderBody": "How was your day? It takes a few taps.",
-    "weighInReminderTitle": "Weigh-in",
-    "weighInReminderBody": "Ready to record today’s weight?",
-    "habitReminderTitle": "Habit",
-    "habitReminderBody": "Ready when you are. Record it on the Habits screen."
+    "checkinReminderTitle": "📝 Your daily check-in",
+    "checkinReminderBody": "How are you today? A few details are enough.",
+    "weighInReminderTitle": "⚖️ Record your weight",
+    "weighInReminderBody": "Would you like to record today’s weight? Open your check-in.",
+    "habitReminderTitle": "🌱 Your habit",
+    "habitReminderBody": "Already done? Record your planned habit when you are ready."
   },
   "mobility": {
     "title": "Guided mobility",
@@ -67,8 +67,8 @@
     "reminderTimePlaceholder": "HH:mm",
     "invalidReminderTime": "Enter the reminder time as HH:mm, or leave it blank.",
     "reminderPolicy": "This shares the one-per-day movement reminder limit with movement breaks. A reminder opens the routine list; it never records activity.",
-    "reminderTitle": "Time for your mobility routine?",
-    "reminderBody": "Open your saved routine when it works for you.",
+    "reminderTitle": "🧘 Your mobility routine",
+    "reminderBody": "Your planned routine is ready. Open it when it works for you.",
     "cueOption": {
       "off": "Off",
       "haptic": "Haptic",
@@ -210,7 +210,8 @@
     "requestTimedOut": "Request timed out. Check your server connection.",
     "nextStep": "Next step",
     "notNow": "Not now",
-    "optionalParen": "(Optional)"
+    "optionalParen": "(Optional)",
+    "showAll": "Show all"
   },
   "settings": {
     "app": "App Settings",
@@ -412,20 +413,20 @@
       "openSettings": "Open Settings"
     },
     "rest": {
-      "title": "Rest complete",
-      "nextSetTitle": "Rest complete: next set up",
+      "title": "⏱️ Rest complete",
+      "nextSetTitle": "🏋️ Your next set",
       "bodySetProgress": "{{name}} · Set {{setNumber}} of {{setCount}}",
       "bodySetProgressReps_one": "{{setProgress}} · {{formattedCount}} rep target",
       "bodySetProgressReps_other": "{{setProgress}} · {{formattedCount}} reps target",
       "bodySetProgressDuration": "{{setProgress}} · {{duration}} target"
     },
     "fasting": {
-      "title": "Fasting goal reached",
-      "body": "You've hit your fasting goal. Great work!"
+      "title": "⏳ Fasting goal reached",
+      "body": "Your configured fasting goal is reached."
     },
     "hydration": {
-      "title": "Time to hydrate 💧",
-      "body": "You haven't logged any water in a while.",
+      "title": "💧 Log a drink",
+      "body": "Had something to drink? Record it when it works for you.",
       "log250ml": "Log 250 ml"
     }
   },
@@ -1266,8 +1267,8 @@
     "medications": "Medications & supplements",
     "medicationReminders": "Scheduled intake reminders",
     "medicationRemindersSubtitle": "Remind you at the times saved in medication and supplement schedules. As-needed items without a scheduled time do not send reminders.",
-    "repeatReminders": "Repeat Reminders",
-    "repeatRemindersSubtitle": "Repeat each reminder every 10 minutes, up to 3 times, until the dose is logged.",
+    "repeatReminders": "Intake follow-ups",
+    "repeatRemindersSubtitle": "Optional follow-ups today at +10, +20 and +30 minutes. Recording taken or skipped cancels the remaining follow-ups. Off by default; your saved choice is kept.",
     "hideMedicationNames": "Hide names and doses",
     "hideMedicationNamesSubtitle": "Hide the item’s name and dose on notifications. The title still distinguishes a medication from a supplement.",
     "hydration": "Hydration",
@@ -1629,7 +1630,7 @@
       "selected": "selected",
       "notSelected": "not selected"
     },
-    "notificationTitle": "Medication reminder",
+    "notificationTitle": "💊 Medication reminder",
     "scheduleSummary": {
       "daily": "Daily",
       "weekly": "Weekly",
@@ -1647,8 +1648,8 @@
       "everyNDays_one": "Every {{count}} day",
       "everyNDays_other": "Every {{count}} days"
     },
-    "notificationScheduledDose": "You have a scheduled dose",
-    "notificationScheduledDoseNamed": "Scheduled dose: {{name}}{{dose}}",
+    "notificationScheduledDose": "Record your scheduled intake if you have taken it.",
+    "notificationScheduledDoseNamed": "Your scheduled intake: {{name}}{{dose}}",
     "inactiveA11y_one": "Inactive item ({{count}})",
     "inactiveA11y_other": "Inactive items ({{count}})",
     "inactiveCount_one": "Inactive ({{count}})",
@@ -1661,11 +1662,15 @@
       "medications": "Medications",
       "supplements": "Supplements"
     },
-    "notificationSupplementTitle": "Supplement reminder",
-    "notificationSupplementDose": "You have a scheduled supplement intake",
-    "notificationSupplementDoseNamed": "Scheduled supplement: {{name}}{{dose}}",
+    "notificationSupplementTitle": "🌿 Supplement reminder",
+    "notificationSupplementDose": "Record your planned supplement if you have taken it.",
+    "notificationSupplementDoseNamed": "Your planned supplement: {{name}}{{dose}}",
     "noMatchingItems": "No items in this category",
-    "item": "Intake item"
+    "item": "Intake item",
+    "notificationRepeatTitle": "💊 Intake · follow-up {{number}}",
+    "notificationSupplementRepeatTitle": "🌿 Supplement · follow-up {{number}}",
+    "notificationRepeatBody": "Already recorded? Check your scheduled intake status in the app.",
+    "notificationRepeatNamed": "Already recorded? Check the status of {{name}}{{dose}} in the app."
   },
   "scheduleSummary": {
     "daily": "Daily",
@@ -5962,7 +5967,8 @@
     "estimatedTimes": "Some dose times were estimated",
     "legendCurve": "Active caffeine",
     "legendThreshold": "{{threshold}}mg threshold",
-    "unitMg": "mg"
+    "unitMg": "mg",
+    "previousDoses": "Residual from earlier entries"
   },
   "insights": {
     "subtitle": "Trends from your data.",
@@ -6021,8 +6027,19 @@
       "habit": "Habits",
       "measurement": "Measurements",
       "supplement": "Supplements",
-      "meal": "Meals"
-    }
+      "meal": "Meals",
+      "goal": "Daily objectives",
+      "workout": "Planned training"
+    },
+    "goals": {
+      "hydration": "Hydration goal",
+      "activity_duration": "Activity duration goal",
+      "nutrition_review": "Review daily nutrition",
+      "configured": "Configured targets",
+      "unknown": "No value recorded"
+    },
+    "completedTitle": "Your tracking tasks are complete",
+    "completedHint": "You have recorded or reviewed every applicable task for today. This reflects tracking, not a health score."
   },
   "habits": {
     "targetLabel": "Target {{value}} {{unit}}",
@@ -6345,5 +6362,54 @@
     "androidLive": "Active timer notifications",
     "androidLiveDescription": "iOS Live Activities and Dynamic Island are not available on Android. Existing timer and workout alerts remain available.",
     "placementUnknown": "The app cannot verify whether you added a widget or whether a notification was seen."
+  },
+  "weeklyPlan": {
+    "title": "Weekly training plan",
+    "subtitle": "Plan whole activities and saved workouts. Planned sessions are not completed workouts.",
+    "create": "Create plan",
+    "name": "Plan name",
+    "startDate": "Start date",
+    "endDate": "End date (optional)",
+    "day": "Day",
+    "type": "Activity or saved workout",
+    "labelOptional": "Session name (optional)",
+    "duration": "Duration (min, optional)",
+    "distance": "Distance (km, optional)",
+    "time": "Time (24-hour, optional)",
+    "optional": "Optional session",
+    "addSession": "Add session",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "No training plan yet. Add activities or saved workouts to your week.",
+    "noSession": "No session planned for this day.",
+    "log": "Log activity",
+    "start": "Start workout",
+    "offline": "Connect to your server to edit or start planned sessions.",
+    "loadFailed": "Could not load training plans. Try again.",
+    "saveFailed": "Could not save the plan. Your changes are still here. Try again.",
+    "startFailed": "Could not open the planned session. Try again.",
+    "validation": "Check the plan name, dates, activity and positive duration/distance values. Use a 24-hour time such as 18:30.",
+    "deleteTitle": "Delete training plan?",
+    "deleteHint": "Previous logged workouts remain in your history.",
+    "sequentialHint": "This is an existing workout sequence. Its sessions are preserved. Edit the sequence in the web advanced editor.",
+    "advanced": "Individual exercise",
+    "activities": {
+      "running": "Running",
+      "strength": "Resistance training",
+      "cycling": "Cycling",
+      "walking": "Walking",
+      "hiking": "Hiking",
+      "swimming": "Swimming",
+      "rowing": "Rowing",
+      "soccer": "Soccer",
+      "yoga": "Yoga",
+      "other": "Other activity",
+      "rest": "Rest day"
+    },
+    "dateFormat": "YYYY-MM-DD",
+    "timeFormat": "HH:mm"
+  },
+  "addWorkoutPlanDialog": {
+    "saveFailed": "Could not save the plan. Your changes are still here. Try again."
   }
 }

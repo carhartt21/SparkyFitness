@@ -35,8 +35,10 @@ COPY XoTMobile/src/localization/locales/de/ ./XoTMobile/src/localization/locales
 COPY XoTMobile/locales/en.json XoTMobile/locales/de.json ./XoTMobile/locales/
 COPY XoTMobile/targets/widget/en.lproj/Localizable.strings ./XoTMobile/targets/widget/en.lproj/Localizable.strings
 COPY XoTMobile/targets/widget/de.lproj/Localizable.strings ./XoTMobile/targets/widget/de.lproj/Localizable.strings
-COPY XoTMobile/targets/watch/en.lproj/Localizable.strings ./XoTMobile/targets/watch/en.lproj/Localizable.strings
-COPY XoTMobile/targets/watch/de.lproj/Localizable.strings ./XoTMobile/targets/watch/de.lproj/Localizable.strings
+# Include HealthKit permission metadata as well as ordinary Watch strings.
+# The shared German overlay validates both Localizable and InfoPlist catalogs.
+COPY XoTMobile/targets/watch/en.lproj/ ./XoTMobile/targets/watch/en.lproj/
+COPY XoTMobile/targets/watch/de.lproj/ ./XoTMobile/targets/watch/de.lproj/
 COPY XoTMobile/targets/watch-widget/en.lproj/Localizable.strings ./XoTMobile/targets/watch-widget/en.lproj/Localizable.strings
 COPY XoTMobile/targets/watch-widget/de.lproj/Localizable.strings ./XoTMobile/targets/watch-widget/de.lproj/Localizable.strings
 

@@ -1,0 +1,53 @@
+{
+  "kind": "synthetic_copy_preview_not_rendered_notifications",
+  "languages": {
+    "en": {
+      "notifications.hydration": {
+        "title": "💧 Log a drink",
+        "body": "Had something to drink? Record it when it works for you.",
+        "log250ml": "Log 250 ml"
+      },
+      "notifications.rest": {
+        "title": "⏱️ Rest complete",
+        "nextSetTitle": "🏋️ Your next set",
+        "bodySetProgress": "{{name}} · Set {{setNumber}} of {{setCount}}",
+        "bodySetProgressReps_one": "{{setProgress}} · {{formattedCount}} rep target",
+        "bodySetProgressReps_other": "{{setProgress}} · {{formattedCount}} reps target",
+        "bodySetProgressDuration": "{{setProgress}} · {{duration}} target"
+      },
+      "engagement.captureReminderTitle": "🍽️ Your meal check-in",
+      "engagement.captureReminderBody": "Have you eaten? Record your meal or take a photo. You can also mark “No meal”.",
+      "mobility.reminderTitle": "🧘 Your mobility routine",
+      "mobility.reminderBody": "Your planned routine is ready. Open it when it works for you.",
+      "medications.notificationSupplementTitle": "🌿 Supplement reminder",
+      "medications.notificationSupplementRepeatTitle": "🌿 Supplement · follow-up {{number}}",
+      "medications.notificationRepeatBody": "Already recorded? Check your scheduled intake status in the app.",
+      "notificationSettings.repeatReminders": "Intake follow-ups",
+      "notificationSettings.repeatRemindersSubtitle": "Optional follow-ups today at +10, +20 and +30 minutes. Recording taken or skipped cancels the remaining follow-ups. Off by default; your saved choice is kept."
+    },
+    "de": {
+      "notifications.hydration": {
+        "title": "💧 Dein Getränk",
+        "body": "Schon etwas getrunken? Erfasse dein Getränk, wenn es für dich passt.",
+        "log250ml": "250 ml erfassen"
+      },
+      "notifications.rest": {
+        "title": "⏱️ Pause beendet",
+        "nextSetTitle": "🏋️ Dein nächster Satz",
+        "bodySetProgress": "{{name}} · Satz {{setNumber}} von {{setCount}}",
+        "bodySetProgressReps_one": "{{setProgress}} · Ziel: {{formattedCount}} Wiederholung",
+        "bodySetProgressReps_other": "{{setProgress}} · Ziel: {{formattedCount}} Wiederholungen",
+        "bodySetProgressDuration": "{{setProgress}} · {{duration}} Ziel"
+      },
+      "engagement.captureReminderTitle": "🍽️ Dein Mahlzeiten-Check-in",
+      "engagement.captureReminderBody": "Hast du gegessen? Erfasse deine Mahlzeit oder mach ein Foto. Auch „Keine Mahlzeit“ ist möglich.",
+      "mobility.reminderTitle": "🧘 Deine Mobilitätsroutine",
+      "mobility.reminderBody": "Deine geplante Routine steht bereit. Öffne sie, wenn es für dich passt.",
+      "medications.notificationSupplementTitle": "🌿 Supplement-Erinnerung",
+      "medications.notificationSupplementRepeatTitle": "🌿 Supplement · Erinnerung {{number}}",
+      "medications.notificationRepeatBody": "Schon erfasst? Prüfe den Status deiner geplanten Einnahme in der App.",
+      "notificationSettings.repeatReminders": "Weitere Einnahmeerinnerungen",
+      "notificationSettings.repeatRemindersSubtitle": "Optionale Folgehinweise heute nach 10, 20 und 30 Minuten. Sobald du „Eingenommen“ oder „Übersprungen“ erfasst, entfallen die übrigen Hinweise. Standardmäßig aus; deine gespeicherte Wahl bleibt erhalten."
+    }
+  }
+}

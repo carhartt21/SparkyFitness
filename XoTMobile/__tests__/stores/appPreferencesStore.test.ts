@@ -18,6 +18,7 @@ describe('appPreferencesStore', () => {
       expect(state.hapticsEnabled).toBe(true);
       expect(state.soundsEnabled).toBe(true);
       expect(state.notificationsEnabled).toBe(true);
+      expect(state.medicationReminderRepeats).toBe(false);
       expect(state.hydrationCardVisible).toBe(true);
       expect(state.fastingCardVisible).toBe(true);
       expect(state.askSparkyVisible).toBe(true);
@@ -47,6 +48,20 @@ describe('appPreferencesStore', () => {
       movementBreakReminderEnabled: true,
       movementBreakReminderTime: '16:30',
     });
+  });
+
+  it('keeps an explicitly saved intake follow-up choice during hydration', async () => {
+    await AsyncStorage.setItem(
+      '@SparkyFitness/app-preferences',
+      JSON.stringify({
+        version: 1,
+        state: { medicationReminderRepeats: true },
+      })
+    );
+    await useAppPreferencesStore.persist.rehydrate();
+    expect(useAppPreferencesStore.getState().medicationReminderRepeats).toBe(
+      true
+    );
   });
 
   describe('setters', () => {

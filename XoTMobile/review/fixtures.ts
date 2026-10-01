@@ -190,6 +190,40 @@ export function reviewResponse(path: string, scenario: string): unknown {
   // Calendar photo markers and active workout plans: none in the fixture.
   if (path === '/api/measurements/check-in-photos/dates') return [];
   if (path.startsWith('/api/workout-plan-templates/active/')) return [];
+  if (path === '/api/workout-plan-templates') {
+    const today = localToday();
+    const weekday = new Date(`${today}T12:00:00`).getDay();
+    return [
+      {
+        id: '41',
+        plan_name: 'Synthetic weekly plan',
+        start_date: '2026-09-01',
+        end_date: null,
+        is_active: true,
+        schedule_type: 'weekly',
+        entry_mode: 'prompt',
+        assignments: [
+          {
+            id: 101,
+            day_of_week: weekday,
+            activity_type: 'running',
+            planned_distance_km: 10,
+            planned_time: '07:30',
+            sort_order: 0,
+            sets: [],
+          },
+          {
+            id: 102,
+            day_of_week: weekday,
+            activity_type: 'strength',
+            planned_duration_minutes: 45,
+            sort_order: 1,
+            sets: [],
+          },
+        ],
+      },
+    ];
+  }
   throw new Error(`Unconfigured review endpoint: ${path}`);
 }
 

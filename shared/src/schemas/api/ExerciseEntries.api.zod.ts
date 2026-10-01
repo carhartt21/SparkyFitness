@@ -207,7 +207,7 @@ export const wodScoreDetailDataSchema = z.object({
         round: z.number().int(),
         started_at_s: z.number().optional(),
         completed_at_s: z.number().optional(),
-      })
+      }),
     )
     .optional(),
 });
@@ -296,7 +296,12 @@ export const createExerciseEntryRequestSchema = z
     sets: z.array(exerciseEntrySetRequestSchema).optional(),
     reps: z.coerce.number().nullable().optional(),
     weight: z.coerce.number().nullable().optional(),
-    workout_plan_assignment_id: z.string().uuid().nullable().optional(),
+    workout_plan_assignment_id: z.coerce
+      .number()
+      .int()
+      .positive()
+      .nullable()
+      .optional(),
     image_url: z.string().nullable().optional(),
     distance: z.coerce.number().nullable().optional(),
     avg_heart_rate: z.coerce.number().nullable().optional(),

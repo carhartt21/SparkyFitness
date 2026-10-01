@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-02_
 
 X on Track Server is the backend API package for the X on Track monorepo. Use this file as the primary guide for work inside `XoTServer/`.
 
@@ -25,7 +25,7 @@ If a task also touches `shared/`, the frontend, or the mobile app, read the rele
 - Dev boot path: `pnpm start` -> `nodemon` -> `tsx index.ts`
 - `index.ts` loads `../.env`, applies file-backed secrets, runs preflight checks, calls `initializeDatabase()` for migrations and RLS policies, then imports `XoTServer.ts`
 - Main app shell: `XoTServer.ts`
-- Stack: Express 5, PostgreSQL via `pg`, Better Auth, Zod, TypeScript 5, Vitest 4, ESLint 10
+- Stack: Express 5, PostgreSQL via `pg`, Better Auth, Zod, TypeScript 6, Vitest 5, ESLint 10
 - Module system: ESM with `type: "module"` and `moduleResolution: "NodeNext"`
 - The package is now effectively TypeScript-first; almost all source files are `.ts`
 - Main domains: food and meal tracking, exercise logging, health and sleep data, sleep science, fasting, medications, mood, menstrual cycle and pregnancy, reporting, AI chat, onboarding, identity, admin tooling, and external provider integrations
@@ -64,6 +64,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 - `routes/` - primary HTTP route surface
 - `routes/v2/` - newer typed route surface; pair these changes with `schemas/`
 - `routes/v2/dailyTrackingRoutes.ts` (`/api/v2/tracking`), `models/dailyTrackingRepository.ts` and `services/dailyProgressService.ts` - daily check-ins, user-declared injury/illness/vacation periods, habits (configuration columns on `custom_categories`, logs in `custom_measurements`), measurement reminders, explicit meal status and the Daily Progress projection from `shared/src/tracking/dailyTracking.ts`. Check-in/habit routes use the check-in permission, meal status the diary permission, supplements the medication permission; context, reminders, preferences and progress are owner-only. `ai/tools/dailyTrackingTools.ts` holds pure-read tools that are safe for read-only MCP keys; keep writes out of them.
+  - `recordedMeasurementValuesOn` returns actual values for configured reminder keys on one calendar day; `recordedMeasurementsOn` projects its timestamps for Daily Progress. MCP status includes `measurement_recorded`, value, unit and row provenance. Weight is canonical kg, custom values remain stored text; never carry an older value forward or infer a provider source. The MCP-only schema is in `DailyTracking.api.zod.ts`; the reminder configuration REST contract is unchanged.
 - `routes/v2/engagementRoutes.ts`, `services/engagementService.ts`, `services/engagementPolicy.ts`, and `services/engagementDeliveryService.ts` - owner-only notification settings/actions, scheduling, encrypted push delivery, and Expo receipts. `routes/chatgptMcpRoutes.ts` is the OAuth-scoped read/write assistant endpoint; `routes/v2/mcpConnectionsRoutes.ts` lists and revokes its grants, with `services/mcpConnectionService.ts` enforcing immediate consent revocation for signed tokens.
 - `routes/fddbImportRoutes.ts`, `services/fddbImportService.ts`, and `models/fddbImportRepository.ts` - owner-only, batched import of FDDB diary snapshots and separately selected reusable items; the browser discards profile and transaction fields before calling this route
 - `routes/v2/openFoodFactsContributionRoutes.ts` - owner-only single-food preview and explicit photo-backed publication; background contributions are disabled for this release
@@ -71,6 +72,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 - `routes/v2/nutritionKineticsRoutes.ts` - active-caffeine estimate and bedtime cutoff (`diary` permission)
 - `routes/v2/waterIntakeRoutes.ts` and `services/containerWaterActionService.ts` - diary-permitted container action endpoint, immutable operation receipt, and atomic food/water effects
 - `routes/exerciseStatsRoutes.ts`, `services/exerciseReviewService.ts`, and `models/workoutPlanTemplateRepository.ts` - recorded exercise reviews, dated plan adherence, and transactional plan-version capture
+  - `WorkoutPlans.api.zod.ts` extends existing assignments with whole activities and optional local time/duration/distance. Owner-only activity preparation creates/reuses a private exercise definition; it never records completion. `models/dailyProgressObjectives.ts` reads immutable dated plan snapshots and configured objectives for opt-in Daily Progress v2. Keep GET read-only, rest/optional rules explicit, unknown values nullable and legacy v1 clients compatible. Import-only meal groups do not create routine meal tasks.
 - `routes/auth/` - auth-specific route fragments mounted through `routes/authRoutes.ts`
 - `services/` - business logic and orchestration
 - `models/` - PostgreSQL repositories and persistence helpers

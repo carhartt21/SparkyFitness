@@ -7,6 +7,10 @@ import {
   type QueryClient,
 } from './queryTestUtils';
 
+jest.mock('../../src/hooks/useRefetchOnFocus', () => ({
+  useRefetchOnFocus: jest.fn(),
+}));
+
 jest.mock('../../src/services/api/caffeineApi', () => ({
   fetchActiveCaffeine: jest.fn(),
 }));

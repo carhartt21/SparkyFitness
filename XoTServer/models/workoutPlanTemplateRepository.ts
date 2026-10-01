@@ -1,3 +1,4 @@
+import type { WorkoutPlanActivityFields } from '@workspace/shared';
 import type { PoolClient } from 'pg';
 import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
@@ -19,7 +20,7 @@ export interface WorkoutPlanAssignmentSetInput {
   notes?: string | null;
 }
 
-export interface WorkoutPlanAssignmentInput {
+export interface WorkoutPlanAssignmentInput extends WorkoutPlanActivityFields {
   id?: number | string | null;
   day_of_week?: number | null;
   session_index?: number | null;
@@ -50,6 +51,12 @@ async function captureWorkoutPlanVersion(
                   'workoutPresetId', a.workout_preset_id,
                   'exerciseId', a.exercise_id,
                   'sortOrder', a.sort_order,
+                  'activityType', a.activity_type,
+                  'sessionName', a.session_name,
+                  'plannedDurationMinutes', a.planned_duration_minutes,
+                  'plannedDistanceKm', a.planned_distance_km,
+                  'plannedTime', a.planned_time,
+                  'isOptional', a.is_optional,
                   'sets', COALESCE((
                     SELECT jsonb_agg(to_jsonb(s) ORDER BY s.set_number, s.id)
                     FROM public.workout_plan_assignment_sets s
@@ -91,7 +98,8 @@ export interface WorkoutPlanTemplateUpdateInput {
   assignments?: WorkoutPlanAssignmentInput[] | null;
 }
 
-export interface WorkoutPlanAssignmentRow extends AssignmentProgressionInput {
+export interface WorkoutPlanAssignmentRow
+  extends AssignmentProgressionInput, WorkoutPlanActivityFields {
   id: number | string;
   day_of_week?: number | null;
   sort_order?: number | null;
@@ -128,6 +136,72 @@ export interface WorkoutPlanTemplateRow {
   [key: string]: unknown;
 }
 
+/** Materialize a reusable activity definition only when the owner starts logging.
+ * No diary entry, completion, energy or goal change is made here. */
+export async function preparePlannedActivityExercise(
+  userId: string,
+  templateId: string,
+  assignmentId: number,
+  name: string
+): Promise<string> {
+  const client: PoolClient = await getClient(userId);
+  try {
+    await client.query('BEGIN');
+    const assignment = await client.query<{ activity_type: string }>(
+      `SELECT a.activity_type FROM workout_plan_template_assignments a
+       JOIN workout_plan_templates t ON t.id = a.template_id
+       WHERE a.id = $1 AND t.id = $2 AND t.user_id = $3`,
+      [assignmentId, templateId, userId]
+    );
+    const type = assignment.rows[0]?.activity_type;
+    if (!type || type === 'rest')
+      throw new Error('Training assignment not found.');
+    const sourceId = `planned-activity:${type}`;
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [
+      `${userId}:${sourceId}`,
+    ]);
+    const existing = await client.query<{ id: string }>(
+      'SELECT id FROM exercises WHERE user_id = $1 AND source = $2 AND source_id = $3',
+      [userId, 'X on Track', sourceId]
+    );
+    let id = existing.rows[0]?.id;
+    if (!id) {
+      const distanceBased = [
+        'running',
+        'cycling',
+        'walking',
+        'hiking',
+        'swimming',
+        'rowing',
+      ].includes(type);
+      const result = await client.query<{ id: string }>(
+        `INSERT INTO exercises (user_id, name, category, modality, source, source_id,
+           is_custom, shared_with_public, calories_per_hour)
+         VALUES ($1,$2,$3,$4,'X on Track',$5,true,false,0) RETURNING id`,
+        [
+          userId,
+          name,
+          type === 'strength'
+            ? 'strength'
+            : type === 'yoga'
+              ? 'yoga'
+              : 'cardio',
+          distanceBased ? 'duration_distance' : 'duration',
+          sourceId,
+        ]
+      );
+      id = result.rows[0]!.id;
+    }
+    await client.query('COMMIT');
+    return id;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}
+
 async function createWorkoutPlanTemplate(
   planData: WorkoutPlanTemplateCreateInput,
   effectiveDay: string
@@ -156,8 +230,8 @@ async function createWorkoutPlanTemplate(
     if (planData.assignments && planData.assignments.length > 0) {
       for (const a of planData.assignments) {
         const assignmentResult = await client.query(
-          `INSERT INTO workout_plan_template_assignments (template_id, day_of_week, workout_preset_id, exercise_id, sort_order, session_index, session_name)
-                     VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+          `INSERT INTO workout_plan_template_assignments (template_id, day_of_week, workout_preset_id, exercise_id, sort_order, session_index, session_name, activity_type, planned_duration_minutes, planned_distance_km, planned_time, is_optional)
+                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
           [
             newTemplate.id,
             a.day_of_week,
@@ -166,6 +240,11 @@ async function createWorkoutPlanTemplate(
             a.sort_order || 0,
             a.session_index || null,
             a.session_name || null,
+            a.activity_type ?? null,
+            a.planned_duration_minutes ?? null,
+            a.planned_distance_km ?? null,
+            a.planned_time ?? null,
+            a.is_optional ?? false,
           ]
         );
         if (a.exercise_id && a.sets && a.sets.length > 0) {
@@ -203,7 +282,7 @@ async function createWorkoutPlanTemplate(
                         SELECT json_agg(assignment_data)
                         FROM (
                             SELECT 
-                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.workout_preset_id, wp.name as workout_preset_name,
+                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.activity_type, a.planned_duration_minutes::float8 AS planned_duration_minutes, a.planned_distance_km::float8 AS planned_distance_km, a.planned_time, a.is_optional, a.workout_preset_id, wp.name as workout_preset_name,
                                 a.exercise_id, e.name as exercise_name, e.modality as modality,
                                 (
                                     SELECT COALESCE(json_agg(set_data ORDER BY set_data.set_number), '[]'::json)
@@ -253,7 +332,7 @@ async function getWorkoutPlanTemplatesByUserId(
                         SELECT json_agg(assignment_data)
                         FROM (
                             SELECT 
-                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.workout_preset_id, wp.name as workout_preset_name,
+                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.activity_type, a.planned_duration_minutes::float8 AS planned_duration_minutes, a.planned_distance_km::float8 AS planned_distance_km, a.planned_time, a.is_optional, a.workout_preset_id, wp.name as workout_preset_name,
                                 a.exercise_id, e.name as exercise_name, e.modality as modality,
                                 (
                                     SELECT COALESCE(json_agg(set_data ORDER BY set_data.set_number), '[]'::json)
@@ -297,7 +376,7 @@ async function getWorkoutPlanTemplateById(
                         SELECT json_agg(assignment_data)
                         FROM (
                             SELECT 
-                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.workout_preset_id, wp.name as workout_preset_name,
+                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.activity_type, a.planned_duration_minutes::float8 AS planned_duration_minutes, a.planned_distance_km::float8 AS planned_distance_km, a.planned_time, a.is_optional, a.workout_preset_id, wp.name as workout_preset_name,
                                 a.exercise_id, e.name as exercise_name, e.modality as modality,
                                 (
                                     SELECT COALESCE(json_agg(set_data ORDER BY set_data.set_number), '[]'::json)
@@ -380,6 +459,9 @@ async function updateWorkoutPlanTemplate(
             Number.isInteger(Number(id))
         )
         .map((id) => Number(id));
+      if (newAssignmentIds.some((id) => !existingAssignmentIds.includes(id))) {
+        throw new Error('Assignment does not belong to this plan.');
+      }
       // Delete any assignments that are no longer in the plan
       const assignmentsToDelete = existingAssignmentIds.filter(
         (id) => !newAssignmentIds.includes(id)
@@ -402,7 +484,7 @@ async function updateWorkoutPlanTemplate(
         ) {
           // This is an existing assignment, so we update it
           await client.query(
-            'UPDATE workout_plan_template_assignments SET day_of_week = $1, workout_preset_id = $2, exercise_id = $3, sort_order = $4, session_index = $5, session_name = $6 WHERE id = $7',
+            'UPDATE workout_plan_template_assignments SET day_of_week = $1, workout_preset_id = $2, exercise_id = $3, sort_order = $4, session_index = $5, session_name = $6, activity_type = $7, planned_duration_minutes = $8, planned_distance_km = $9, planned_time = $10, is_optional = $11 WHERE id = $12 AND template_id = $13',
             [
               a.day_of_week,
               a.workout_preset_id,
@@ -410,7 +492,13 @@ async function updateWorkoutPlanTemplate(
               a.sort_order || 0,
               a.session_index || null,
               a.session_name || null,
+              a.activity_type ?? null,
+              a.planned_duration_minutes ?? null,
+              a.planned_distance_km ?? null,
+              a.planned_time ?? null,
+              a.is_optional ?? false,
               a.id,
+              templateId,
             ]
           );
           // And update the sets
@@ -438,8 +526,8 @@ async function updateWorkoutPlanTemplate(
         } else {
           // This is a new assignment, so we insert it
           const assignmentResult = await client.query(
-            `INSERT INTO workout_plan_template_assignments (template_id, day_of_week, workout_preset_id, exercise_id, sort_order, session_index, session_name)
-                         VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`,
+            `INSERT INTO workout_plan_template_assignments (template_id, day_of_week, workout_preset_id, exercise_id, sort_order, session_index, session_name, activity_type, planned_duration_minutes, planned_distance_km, planned_time, is_optional)
+                         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
             [
               templateId,
               a.day_of_week,
@@ -448,6 +536,11 @@ async function updateWorkoutPlanTemplate(
               a.sort_order || 0,
               a.session_index || null,
               a.session_name || null,
+              a.activity_type ?? null,
+              a.planned_duration_minutes ?? null,
+              a.planned_distance_km ?? null,
+              a.planned_time ?? null,
+              a.is_optional ?? false,
             ]
           );
           const newAssignmentId = assignmentResult.rows[0].id;
@@ -481,7 +574,7 @@ async function updateWorkoutPlanTemplate(
                         SELECT json_agg(assignment_data)
                         FROM (
                             SELECT 
-                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.workout_preset_id, wp.name as workout_preset_name,
+                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.activity_type, a.planned_duration_minutes::float8 AS planned_duration_minutes, a.planned_distance_km::float8 AS planned_distance_km, a.planned_time, a.is_optional, a.workout_preset_id, wp.name as workout_preset_name,
                                 a.exercise_id, e.name as exercise_name, e.modality as modality,
                                 (
                                     SELECT COALESCE(json_agg(set_data ORDER BY set_data.set_number), '[]'::json)
@@ -581,7 +674,7 @@ async function getActiveWorkoutPlanForDate(
                         SELECT json_agg(assignment_data)
                         FROM (
                             SELECT 
-                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.workout_preset_id, wp.name as workout_preset_name,
+                                a.id, a.day_of_week, a.sort_order, a.session_index, a.session_name, a.activity_type, a.planned_duration_minutes::float8 AS planned_duration_minutes, a.planned_distance_km::float8 AS planned_distance_km, a.planned_time, a.is_optional, a.workout_preset_id, wp.name as workout_preset_name,
                                 a.exercise_id, e.name as exercise_name, e.modality as modality,
                                 (
                                     SELECT COALESCE(json_agg(set_data ORDER BY set_data.set_number), '[]'::json)

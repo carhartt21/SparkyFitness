@@ -117,12 +117,13 @@ const WorkoutPlansManager = () => {
       'id' | 'user_id' | 'created_at' | 'updated_at'
     >
   ) => {
-    if (!user?.id) return;
+    if (!user?.id) throw new Error('Authentication required');
     try {
       await createWorkoutPlanTemplate({ userId: user.id, data: newPlanData });
       setIsAddPlanDialogOpen(false);
     } catch (err) {
       error(loggingLevel, 'Error creating workout plan:', err);
+      throw err;
     }
   };
 
@@ -130,13 +131,14 @@ const WorkoutPlansManager = () => {
     planId: string,
     updatedPlanData: Partial<WorkoutPlanTemplate>
   ) => {
-    if (!user?.id) return;
+    if (!user?.id) throw new Error('Authentication required');
     try {
       await updateWorkoutPlanTemplate({ id: planId, data: updatedPlanData });
       setIsEditDialogOpen(false);
       setSelectedPlan(null);
     } catch (err) {
       error(loggingLevel, 'Error updating workout plan:', err);
+      throw err;
     }
   };
 

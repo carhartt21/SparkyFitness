@@ -169,7 +169,7 @@ final class DashboardReview: XCTestCase {
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
     XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
-    let tabs = [["Diary", "Tagebuch"], ["Insights"], ["More"]]
+    let tabs = [["Diary", "Tagebuch"], ["Insights"], ["More", "Mehr"]]
     for labels in tabs {
       let tab = app.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
       XCTAssertTrue(tab.waitForExistence(timeout: 10))
@@ -268,7 +268,7 @@ final class DashboardReview: XCTestCase {
       date.tap()
       sleep(3)
       capture("tracking-calendar", app)
-      app.swipeDown(velocity: .fast)
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.1)).tap()
       sleep(2)
     }
     let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add", "Hinzufügen"])).firstMatch
@@ -276,7 +276,7 @@ final class DashboardReview: XCTestCase {
       add.tap()
       sleep(2)
       capture("tracking-add-sheet", app)
-      app.swipeDown(velocity: .fast)
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.12)).tap()
       sleep(2)
     }
     let screens: [(tile: String, id: String)] = [
@@ -284,9 +284,10 @@ final class DashboardReview: XCTestCase {
       ("more-habits", "habits"),
       ("more-supplements", "supplements"),
       ("more-daily-progress", "daily-progress"),
+      ("more-training-plans", "workout-plans"),
     ]
     for screen in screens {
-      let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More"])).firstMatch
+      let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch
       XCTAssertTrue(more.waitForExistence(timeout: 10))
       more.tap()
       let tile = app.descendants(matching: .any)[screen.tile]
@@ -305,6 +306,19 @@ final class DashboardReview: XCTestCase {
       app.swipeDown()
       app.swipeDown()
       app.swipeDown()
+      if screen.id == "workout-plans" {
+        let edit = app.buttons.matching(NSPredicate(format: "label IN %@", ["Edit", "Bearbeiten"])).firstMatch
+        if !edit.isHittable { app.swipeUp() }
+        XCTAssertTrue(edit.waitForExistence(timeout: 10))
+        edit.tap()
+        XCTAssertTrue(app.textFields["weekly-plan-name"].waitForExistence(timeout: 15))
+        capture("weekly-plan-editor-top", app)
+        app.swipeUp()
+        capture("weekly-plan-editor-lower", app)
+        let close = app.buttons.matching(NSPredicate(format: "label IN %@", ["Close", "Schließen"])).firstMatch
+        XCTAssertTrue(close.waitForExistence(timeout: 10))
+        close.tap()
+      }
       app.buttons["\(screen.id)-back"].tap()
       sleep(1)
     }

@@ -1,0 +1,38 @@
+# MCP saved measurement values — 2026-10-01
+
+## Request and cause
+
+The connected assistant could see that a weigh-in was recorded but could not read its value. `sparky_get_measurement_reminder_status` queried only a timestamp; Daily Progress's `measurement_recorded` reason describes completion, not the measurement itself.
+
+## Contract
+
+The existing read-only reminder tool now returns `measurement_recorded`, `measurement_id`, `value`, `unit`, `recorded_at` and `source` alongside each reminder's configuration and due state. Weight is a finite number in canonical kg. Custom measurements retain their stored text and category unit. Zero is recorded; absence is false with null fields. Only values saved on the requested calendar day are returned, with no prefills. The account's timezone resolves `today` and the default date.
+
+Custom rows are selected by latest update/entry timestamp with deterministic ties; value, source and timestamp come from that row. Weight has no stored provider provenance and reports a null source. `recorded_at` describes the saved row's last update, not proof of a device measurement time.
+
+`recordedMeasurementValuesOn` centralizes this read; the existing `recordedMeasurementsOn` projects timestamps for Daily Progress. Reminder configuration REST responses and the Daily Progress contract remain unchanged. This tool reads configured reminders, not arbitrary measurement history. MCP read-only API keys and OAuth `mcp:read` use the same pure-read tool implementation.
+
+## Access-change checklist
+
+1. Migration: not applicable; the existing tables store all fields.
+2. RLS: existing application-role policies retained; fixed authenticated owner and calendar-day filters. No system pool, target-user argument, delegation or grants added.
+3. Startup: booted the exact source on an isolated PostgreSQL database, applied migrations and reapplied RLS; `/api/health` returned UP.
+4. Schema backup: unchanged; no local regeneration.
+5. Shared contract: added `RecordedMeasurementValue` and a separate `measurementReminderMcpStatusResponseSchema`; existing export covers them. Table schemas are unchanged.
+6. Documentation: updated MCP feature/developer guides, sharing and security-tier notes, and server/shared source maps. Database index unchanged because no domain/table was added.
+7. Downstream: web/mobile consume the unchanged reminder REST contract; both full validation scripts passed.
+8. Validation: focused MCP/repository/progress tests passed; five real-database measurement cases and 283 RLS permission-matrix cases passed. Server, web and mobile full validation scripts and the docs build passed. The full server coverage suite passed: 438 suites and 5,224 tests; 11 suites and 375 database/environment-gated tests were skipped in the default run. The five measurement integration cases and the RLS matrix were run separately against the isolated migrated database.
+
+## Release scope
+
+The fix is isolated from the pending coaching batch and based on the running OAuth frontend source revision. Backend source `4df4eabb68b2b83678157c8c6148ef78070e6706` was built from a SHA-256-verified Git archive on the production host and deployed as `x-on-track-server:4df4eabb6`. The frontend stays at `14e993582`; its container and the database container were retained. All three containers are healthy. A fresh encrypted pre-release backup was verified off-host, and the prior backend image/configuration remain available for rollback.
+
+An authenticated live API-key `/mcp` call for 2026-10-01 returned the saved numeric weight in kg alongside `measurement_recorded: true`, row ID and timestamp. The OAuth endpoint shares this pure-read tool implementation; no new consent scope or connection setting is required. Origin API health, HTML, manifest and OAuth resource metadata returned 200; anonymous API-key and OAuth MCP requests returned 401. The live check did not write measurements or copy health values into documentation. Custom zero/latest-row selection and account isolation were verified with synthetic database fixtures.
+
+The same narrow code and documentation changes were applied to the pending coaching worktree, preserving its transaction-client changes and hosted ChatGPT setup instructions. Its focused measurement tests and server typecheck passed. That larger batch remains undeployed.
+
+## Hosted ChatGPT follow-up
+
+The owner initially received another status-only answer with an older timestamp. The selected tool and raw result for that earlier answer were not available, so its exact cause is unconfirmed. A fresh explicit call to `sparky_get_measurement_reminder_status` from the owner's ChatGPT connection then returned the numeric kg value, recorded flag, row ID and current timestamp, confirming the deployed response reaches that connection. No additional runtime rollout was needed. The MCP guide now distinguishes Daily Progress completion from measurement values and documents the official metadata-refresh flow.
+
+Three HTTP regression tests cover the OAuth tool description, measurement result serialization, and revoked-consent rejection without reading measurements. They use synthetic fixtures and mocked token verification, while exercising the real route, consent check, MCP registration and HTTP transport. All three passed, along with server typechecking, focused lint/format checks and the documentation build.

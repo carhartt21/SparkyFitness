@@ -280,7 +280,7 @@ describe('buildRestNotificationContent — dependency injection', () => {
       'Rest'
     );
     // PL title should be Polish, not English.
-    expect(content.title).not.toBe('Rest complete: next set up');
+    expect(content.title).not.toBe('🏋️ Your next set');
     // PL body should contain Polish content (e.g. "Seria").
     expect(content.body).toContain('Seria');
   });
@@ -297,7 +297,7 @@ describe('buildRestNotificationContent — dependency injection', () => {
       'Rest'
     );
     // EN title should be English.
-    expect(content.title).toBe('Rest complete: next set up');
+    expect(content.title).toBe('🏋️ Your next set');
     // EN body should contain English content (e.g. "Set").
     expect(content.body).toContain('Set');
   });

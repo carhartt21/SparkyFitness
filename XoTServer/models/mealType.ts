@@ -42,6 +42,7 @@ async function getAllMealTypes(userId: any) {
       `SELECT 
          mt.id,
          mt.name,
+         mt.purpose,
          COALESCE(umv.sort_order_override, mt.sort_order) AS sort_order,
          COALESCE(umv.name_override, mt.name) AS display_name,
          mt.user_id,
@@ -73,6 +74,7 @@ async function getMealTypeById(mealTypeId: any, userId: any) {
       `SELECT 
          mt.id,
          mt.name,
+         mt.purpose,
          mt.user_id,
          mt.created_at,
          COALESCE(umv.name_override, mt.name) AS display_name,

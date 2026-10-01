@@ -61,6 +61,7 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
     '--color-progress-track',
   ]) as [string, string, string];
   const [date, setDate] = useState(route.params?.date ?? getTodayDate());
+  const [focusedId, setFocusedId] = useState(route.params?.habitId);
   const [range, setRange] = useState<Range>(7);
   const [trendHabitId, setTrendHabitId] = useState<string | null>(null);
   const { isConnected } = useServerConnection();
@@ -202,6 +203,13 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
         ) : null
       }
     >
+      {focusedId && (
+        <NeonButton
+          label={t('common.showAll', { defaultValue: 'Show all' })}
+          variant="subtle"
+          onPress={() => setFocusedId(undefined)}
+        />
+      )}
       {habitsQuery.isLoading ? (
         <StatusView
           loading
@@ -298,24 +306,26 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
                 })}
               </Text>
             ) : (
-              dueHabits.map((habit, index) => (
-                <HabitRow
-                  key={habit.id}
-                  habit={habit}
-                  log={todaysLogs.get(habit.id)}
-                  timeLabel={timeLabel(habit)}
-                  tint={habitTint(index, scale)}
-                  saving={
-                    logHabit.isPending &&
-                    logHabit.variables?.habitId === habit.id
-                  }
-                  onSave={(value) => save(habit, value)}
-                  onEdit={() =>
-                    navigation.navigate('HabitForm', { habitId: habit.id })
-                  }
-                  showDivider={index > 0}
-                />
-              ))
+              dueHabits
+                .filter((habit) => !focusedId || habit.id === focusedId)
+                .map((habit, index) => (
+                  <HabitRow
+                    key={habit.id}
+                    habit={habit}
+                    log={todaysLogs.get(habit.id)}
+                    timeLabel={timeLabel(habit)}
+                    tint={habitTint(index, scale)}
+                    saving={
+                      logHabit.isPending &&
+                      logHabit.variables?.habitId === habit.id
+                    }
+                    onSave={(value) => save(habit, value)}
+                    onEdit={() =>
+                      navigation.navigate('HabitForm', { habitId: habit.id })
+                    }
+                    showDivider={index > 0}
+                  />
+                ))
             )}
           </GlowCard>
 

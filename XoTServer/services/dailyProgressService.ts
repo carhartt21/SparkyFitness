@@ -1,3 +1,4 @@
+import { readProgressObjectives } from '../models/dailyProgressObjectives.js';
 import {
   addDays,
   buildDailyProgress,
@@ -128,7 +129,8 @@ export async function getMealTrackingStatus(
 
 export async function getDailyProgressInput(
   userId: string,
-  date: string
+  date: string,
+  includeObjectives = false
 ): Promise<DailyProgressInput> {
   const [preferences, checkin, habits, habitLogs, reminders] =
     await Promise.all([
@@ -155,7 +157,19 @@ export async function getDailyProgressInput(
         : Promise.resolve(null),
     ]
   );
+  const objectives = includeObjectives
+    ? await readProgressObjectives(
+        userId,
+        date,
+        Boolean(
+          mealStatus &&
+          mealStatus.coverage.total > 0 &&
+          mealStatus.coverage.resolved === mealStatus.coverage.total
+        )
+      )
+    : {};
   return {
+    ...objectives,
     date,
     preferences,
     checkin,
@@ -170,9 +184,12 @@ export async function getDailyProgressInput(
 
 export async function getDailyProgress(
   userId: string,
-  date: string
+  date: string,
+  includeObjectives = false
 ): Promise<DailyProgress> {
-  return buildDailyProgress(await getDailyProgressInput(userId, date));
+  return buildDailyProgress(
+    await getDailyProgressInput(userId, date, includeObjectives)
+  );
 }
 
 interface ScheduleWithHistory {
@@ -202,7 +219,8 @@ export const DAILY_PROGRESS_RANGE_MAX_DAYS = 42;
 export async function getDailyProgressRange(
   userId: string,
   startDate: string,
-  endDate: string
+  endDate: string,
+  includeObjectives = false
 ): Promise<DailyProgressDay[]> {
   const tz = await loadUserTimezone(userId);
   const today = todayInZone(tz);
@@ -324,7 +342,26 @@ export async function getDailyProgressRange(
       };
     });
     const checkin = checkins.find((item) => item.entry_date === day) ?? null;
+    const objectives = includeObjectives
+      ? await readProgressObjectives(
+          userId,
+          day,
+          Boolean(
+            meals &&
+            meals[0].meals.length > 0 &&
+            meals[0].meals.every((meal) => {
+              const status = meals[1].find(
+                (row) =>
+                  row.entry_date === day &&
+                  row.meal_type_id === meal.meal_type_id
+              )?.status;
+              return status === 'complete' || status === 'skipped';
+            })
+          )
+        )
+      : {};
     const progress = buildDailyProgress({
+      ...objectives,
       date: day,
       preferences: {
         ...preferences,

@@ -27,7 +27,7 @@ export function useWorkoutPlanAssignments(
   const { loggingLevel } = usePreferences();
 
   const [scheduleType, setScheduleType] = useState<'weekly' | 'sequential'>(
-    () => initialData?.schedule_type || 'sequential'
+    () => initialData?.schedule_type || 'weekly'
   );
   const [entryMode, setEntryMode] = useState<'prompt' | 'prefill'>(
     () => initialData?.entry_mode || 'prompt'
@@ -513,7 +513,7 @@ export function useWorkoutPlanAssignments(
   const buildAssignmentsForSave = useCallback(() => {
     if (scheduleType === 'sequential') {
       return assignments
-        .filter((a) => a.workout_preset_id || a.exercise_id)
+        .filter((a) => a.workout_preset_id || a.exercise_id || a.activity_type)
         .map((a) => {
           const sIdx = a.session_index ?? 1;
           const sessionAssignments = assignments.filter(
@@ -531,7 +531,7 @@ export function useWorkoutPlanAssignments(
         });
     }
     return assignments
-      .filter((a) => a.workout_preset_id || a.exercise_id)
+      .filter((a) => a.workout_preset_id || a.exercise_id || a.activity_type)
       .map((a) => {
         const dayAssignments = assignments.filter(
           (da) => da.day_of_week === a.day_of_week
@@ -539,15 +539,38 @@ export function useWorkoutPlanAssignments(
         return {
           ...a,
           session_index: null,
-          session_name: null,
+          session_name: a.session_name ?? null,
           sort_order: dayAssignments.indexOf(a),
           sets: a.sets || [],
         };
       });
   }, [assignments, scheduleType, sessionNames]);
 
+  const addActivity = (day: number) => {
+    setEntryMode('prompt');
+    setAssignments((current) => [
+      ...current,
+      {
+        id: generateClientId(),
+        day_of_week: day,
+        activity_type: 'running',
+        sort_order: current.length,
+        sets: [],
+      },
+    ]);
+  };
+  const updateActivity = (
+    id: string | undefined,
+    patch: Partial<WorkoutPlanAssignment>
+  ) =>
+    setAssignments((current) =>
+      current.map((a) => (a.id === id ? { ...a, ...patch } : a))
+    );
+
   return {
     assignments,
+    addActivity,
+    updateActivity,
     sessionList,
     sessionNames,
     setSessionName,

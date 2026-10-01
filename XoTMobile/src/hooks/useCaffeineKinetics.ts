@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { AppState } from 'react-native';
+import { useRefetchOnFocus } from './useRefetchOnFocus';
+import { getTodayDate } from '../utils/dateUtils';
 import { useQuery } from '@tanstack/react-query';
 import { fetchActiveCaffeine } from '../services/api/caffeineApi';
 import { caffeineActiveQueryKey } from './queryKeys';
@@ -17,15 +20,30 @@ export function useCaffeineKinetics(date: string, enabled: boolean = true) {
     queryKey: caffeineActiveQueryKey(date),
     queryFn: () => fetchActiveCaffeine(date),
     enabled: Boolean(date) && enabled,
-    staleTime: 1000 * 60 * 5,
+    staleTime: 30_000,
+    refetchInterval: date === getTodayDate() && enabled ? 5 * 60_000 : false,
   });
+
+  const { refetch } = query;
+  useRefetchOnFocus(refetch, enabled);
 
   const [nowMs, setNowMs] = useState<number>(() => Date.now());
   useEffect(() => {
     if (!enabled) return;
+    const refreshClock = setTimeout(() => setNowMs(Date.now()), 0);
     const interval = setInterval(() => setNowMs(Date.now()), 30000);
-    return () => clearInterval(interval);
-  }, [enabled]);
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        setNowMs(Date.now());
+        void refetch();
+      }
+    });
+    return () => {
+      clearTimeout(refreshClock);
+      clearInterval(interval);
+      subscription.remove();
+    };
+  }, [enabled, date, refetch]);
 
   return {
     kinetics: query.data,

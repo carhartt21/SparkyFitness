@@ -1,21 +1,24 @@
 {
   "engagement": {
     "movementReminderSetting": "Erinnerung an Bewegungspausen",
-    "movementReminderSettingSubtitle": "Eine optionale Einladung zu Ihrem Wunschtermin. Bewegungen werden nicht verfolgt oder protokolliert.",
+    "movementReminderSettingSubtitle": "Eine optionale Einladung zur gewählten Uhrzeit. Dabei wird keine Bewegung gestartet oder erfasst.",
     "movementReminderTime": "Erinnerungszeit",
-    "movementReminderTitle": "Zeit für eine Bewegungspause?",
-    "movementReminderBody": "Öffnen Sie einen kurzen Timer, wenn dies für Sie funktioniert.",
-    "checkinReminderTitle": "Täglicher Check-in",
-    "checkinReminderBody": "Wie war Ihr Tag? Das dauert nur wenige Sekunden.",
-    "weighInReminderTitle": "Wiegen",
-    "weighInReminderBody": "Bereit, das heutige Gewicht aufzuzeichnen?",
-    "habitReminderTitle": "Gewohnheit",
-    "habitReminderBody": "Bereit für Ihren Gewohnheitseintrag? Öffnen Sie die Gewohnheiten.",
-    "reviewReminderBody": "Prüfen Sie Ihre Mahlzeitenfotos, wenn es für Sie passt.",
+    "movementReminderTitle": "🚶 Zeit für eine Bewegungspause?",
+    "movementReminderBody": "Wenn es in deinen Tag passt, öffne den Timer für eine kurze Bewegungspause.",
+    "checkinReminderTitle": "📝 Dein Tages-Check-in",
+    "checkinReminderBody": "Wie geht es dir heute? Ein paar Angaben genügen.",
+    "weighInReminderTitle": "⚖️ Gewicht erfassen",
+    "weighInReminderBody": "Möchtest du dein heutiges Gewicht erfassen? Öffne deinen Check-in.",
+    "habitReminderTitle": "🌱 Deine Gewohnheit",
+    "habitReminderBody": "Schon erledigt? Erfasse deine geplante Gewohnheit, wenn du soweit bist.",
+    "reviewReminderBody": "Dein Mahlzeitenfoto ist gespeichert. Ergänze die Angaben, wenn du einen Moment Zeit hast.",
     "breakExplanation": "Stehen Sie auf, gehen Sie ein Stück oder bewegen Sie sich auf eine für Sie passende Weise. Der Timer erfasst keine Bewegung; eine Aktivität können Sie separat speichern.",
     "breakSettingSubtitle": "Starten Sie einen kurzen Timer. Das Beenden erfasst keine Bewegung.",
     "captureReminderSettingSubtitle": "Erinnert nur bei offenem Mahlzeitfenster. Essen, ein Mahlzeitfoto oder ein gesetzter Mahlzeitstatus klärt es. Offline gespeicherte Einträge stoppen den lokalen Hinweis; der Server benötigt die Synchronisierung.",
-    "dailyOptionalBudgetSummary": "{{used}} von 3 täglichen Erinnerungen genutzt. Mahlzeiten, Bewegung und Wasser teilen dieses Kontingent; Medikamente, Ergänzungsmittel und Pausen sind davon ausgenommen."
+    "dailyOptionalBudgetSummary": "{{used}} von 3 täglichen Erinnerungen genutzt. Mahlzeiten, Bewegung und Wasser teilen dieses Kontingent; Medikamente, Ergänzungsmittel und Pausen sind davon ausgenommen.",
+    "captureReminderTitle": "🍽️ Dein Mahlzeiten-Check-in",
+    "captureReminderBody": "Hast du gegessen? Erfasse deine Mahlzeit oder mach ein Foto. Auch „Keine Mahlzeit“ ist möglich.",
+    "reviewReminderTitle": "📷 Dein Mahlzeitenfoto"
   },
   "mobility": {
     "title": "Geführte Mobilität",
@@ -35,8 +38,8 @@
     "reminderTimePlaceholder": "HH: mm",
     "invalidReminderTime": "Geben Sie die Erinnerungszeit im Format HH:mm ein oder lassen Sie das Feld leer.",
     "reminderPolicy": "Dadurch wird das Bewegungserinnerungslimit von einer Bewegung pro Tag mit Bewegungspausen geteilt. Eine Erinnerung öffnet die Routineliste; Es zeichnet niemals Aktivitäten auf.",
-    "reminderTitle": "Zeit für Ihre Mobilitätsroutine?",
-    "reminderBody": "Öffnen Sie Ihre gespeicherte Routine, wenn sie für Sie funktioniert.",
+    "reminderTitle": "🧘 Deine Mobilitätsroutine",
+    "reminderBody": "Deine geplante Routine steht bereit. Öffne sie, wenn es für dich passt.",
     "cueOption": {
       "off": "Aus",
       "haptic": "Haptisch",
@@ -110,7 +113,8 @@
   "common": {
     "optionalParen": "(Optional)",
     "connectionRetry": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-    "requestTimedOut": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung."
+    "requestTimedOut": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung.",
+    "showAll": "Alle anzeigen"
   },
   "settings": {
     "language": {
@@ -157,22 +161,22 @@
       "workoutTimer": "Trainingstimer"
     },
     "hydration": {
-      "title": "Zeit, etwas zu trinken 💧",
-      "body": "Sie haben seit einiger Zeit kein Wasser erfasst.",
+      "title": "💧 Dein Getränk",
+      "body": "Schon etwas getrunken? Erfasse dein Getränk, wenn es für dich passt.",
       "log250ml": "250 ml erfassen"
     },
     "permission": {
       "timerInApp": "Der Timer alarmiert weiterhin in der App."
     },
     "exactAlarm": {
-      "message": "Android kann geplante Hinweise verzögern. Aktivieren Sie „Wecker & Erinnerungen“, damit Trainingstimer und geplante Erinnerungen an Medikamente und Ergänzungsmittel pünktlich ausgelöst werden können.",
+      "message": "Android kann geplante Hinweise verzögern. Aktiviere „Wecker & Erinnerungen“, damit Trainingstimer und geplante Erinnerungen an Medikamente und Supplements pünktlich ausgelöst werden können.",
       "notNow": "Nicht jetzt",
       "openSettings": "Einstellungen öffnen",
       "title": "Pünktliche Hinweise"
     },
     "fasting": {
-      "body": "Ihr Fastenziel ist erreicht.",
-      "title": "Fastenziel erreicht"
+      "body": "Dein eingestelltes Fastenziel ist erreicht.",
+      "title": "⏳ Fastenziel erreicht"
     },
     "actions": {
       "snooze15": "In 15 Min. erinnern",
@@ -180,8 +184,10 @@
       "completeSet": "Satz abschließen"
     },
     "rest": {
-      "title": "Pause beendet",
-      "nextSetTitle": "Nächster Satz"
+      "title": "⏱️ Pause beendet",
+      "nextSetTitle": "🏋️ Dein nächster Satz",
+      "bodySetProgressReps_one": "{{setProgress}} · Ziel: {{formattedCount}} Wiederholung",
+      "bodySetProgressReps_other": "{{setProgress}} · Ziel: {{formattedCount}} Wiederholungen"
     }
   },
   "activeWorkout": {
@@ -377,7 +383,8 @@
     "progressPhotosSubtitle": "Zeigen Sie die Fortschrittsfotokarte im Dashboard an",
     "caffeineSubtitle": "Zeigen Sie die aktive Koffeinkarte im Dashboard an",
     "fastingDisabledSubtitle": "Aktivieren Sie Fasten zuerst in den App-Einstellungen",
-    "medications": "Medikamente & Ergänzungsmittel"
+    "medications": "Medikamente & Ergänzungsmittel",
+    "fasting": "Fasten"
   },
   "notificationSettings": {
     "hydration": "Flüssigkeitszufuhr",
@@ -390,11 +397,11 @@
     "waterReminderEnd": "Endzeit",
     "waterReminderEndAccessibility": "Endzeit, {{time}}",
     "waterReminderInvalidWindow": "Die Endzeit muss nach der Startzeit liegen.",
-    "restTimerSubtitle": "Benachrichtigt Sie am Ende einer Pause, auch im Hintergrund.",
-    "fastingGoalsSubtitle": "Benachrichtigt Sie, wenn Sie Ihr Fastenziel erreichen.",
-    "permissionBody": "Ohne Benachrichtigungsberechtigung zeigt dieses Telefon keine Erinnerungen oder Timerhinweise an. Aktivieren Sie die Berechtigung hier oder in den Systemeinstellungen.",
-    "remoteUpdateFailed": "Nicht gespeichert. Laden Sie die Einstellungen neu und versuchen Sie es erneut; sie wurden möglicherweise andernorts geändert.",
-    "remoteUnavailable": "Erinnerungen bei geschlossener App sind nicht verfügbar. Prüfen Sie die Benachrichtigungsberechtigung und die Push-Einrichtung.",
+    "restTimerSubtitle": "Erinnert dich am Ende einer Pause, auch im Hintergrund.",
+    "fastingGoalsSubtitle": "Erinnert dich, wenn du dein eingestelltes Fastenziel erreichst.",
+    "permissionBody": "Ohne Benachrichtigungsberechtigung zeigt dieses Telefon keine Erinnerungen oder Timerhinweise an. Aktiviere die Berechtigung hier oder in den Systemeinstellungen.",
+    "remoteUpdateFailed": "Nicht gespeichert. Lade die Einstellungen neu und versuche es erneut; sie wurden möglicherweise andernorts geändert.",
+    "remoteUnavailable": "Server-Erinnerungen sind nicht verfügbar. Prüfe die Benachrichtigungsberechtigung und die Push-Einrichtung.",
     "allow": "Hinweise auf diesem Gerät",
     "allowSubtitle": "Stoppt lokale Hinweise und Push-Zustellung auf diesem Gerät. Andere Geräte und Kontoeinstellungen bleiben aktiv.",
     "remoteReminders": "Server-Zustellung für dieses Konto",
@@ -403,10 +410,10 @@
     "noLimit": "Kein Limit",
     "dailyLimit": "Tageslimit, 1 bis 50",
     "capDescription": "Mahlzeit-, Wasser-, Bewegungs-, Mobilitäts-, Gewohnheits-, Check-in- und Wiegehinweise teilen dieses Limit. Ohne Limit gelten weiterhin Ruhezeiten, Intervalle und 20 Minuten Abstand. Einnahme-, Pausen- und Fastentimer sind getrennt.",
-    "capInvalid": "Geben Sie eine ganze Zahl von 1 bis 50 ein.",
+    "capInvalid": "Gib eine ganze Zahl von 1 bis 50 ein.",
     "deviceOffPending": "Gerätehinweise aus · Serverbestätigung ausstehend",
     "offline": "Gespeicherte Einstellungen · Verbindung nicht verfügbar",
-    "offlineDescription": "Lokale Änderungen bleiben auf diesem Gerät. Push kann bis zur Serverbestätigung weiterlaufen. Verbinden Sie sich erneut und tippen Sie hier zum Wiederholen.",
+    "offlineDescription": "Lokale Änderungen bleiben auf diesem Gerät. Push kann bis zur Serverbestätigung weiterlaufen. Verbinde dich erneut und tippe hier zum Wiederholen.",
     "setup": "Zeitpläne und Widgets",
     "widgetHint": "Einrichtung und Verfügbarkeit von Live-Aktivitäten",
     "trackingSchedules": "Check-in, Gewohnheiten und Gewicht",
@@ -445,20 +452,22 @@
       "scheduled": "Zur eingestellten Zeit möglich; Ruhezeiten, Abstand und Tageslimit gelten weiterhin",
       "data_unavailable": "Erforderliche Daten nicht verfügbar; kein Hinweis abgeleitet",
       "local_delivery": "Auf diesem Telefon geplant; Serverzustellung ist ausgeschaltet.",
-      "no_device": "Kein erreichbares Telefon für diese Erinnerung registriert. Öffnen Sie die App auf dem Telefon, um es erneut zu verbinden.",
+      "no_device": "Kein aktives Gerät. Aktiviere die Server-Zustellung auf diesem Telefon.",
       "daily_limit": "Das Tageslimit für Erinnerungen ist erreicht.",
       "quiet_hours": "Während der Ruhezeit pausiert.",
       "spacing": "Mit Abstand zu einer anderen Erinnerung geplant."
     },
     "quietHours": "Ruhezeiten",
-    "quietHoursHint": "Optionale Erinnerungen pausieren in diesem Zeitraum in der Zeitzone Ihres Kontos. Erinnerungen an Medikamente, Ergänzungsmittel und Pausen sind davon ausgenommen. Gleiche Uhrzeiten deaktivieren die Ruhezeiten.",
+    "quietHoursHint": "Optionale Erinnerungen pausieren in diesem Zeitraum in der Zeitzone deines Kontos. Erinnerungen an Medikamente, Supplements und Pausen sind davon ausgenommen. Gleiche Uhrzeiten deaktivieren die Ruhezeiten.",
     "quietStart": "Beginn der Ruhezeit",
     "quietEnd": "Ende der Ruhezeit",
     "medications": "Medikamente & Ergänzungsmittel",
     "medicationReminders": "Geplante Einnahmen",
-    "medicationRemindersSubtitle": "Erinnert zu den gespeicherten Uhrzeiten Ihrer Medikamente und Ergänzungsmittel. Einträge ohne feste Uhrzeit senden keine Erinnerung.",
+    "medicationRemindersSubtitle": "Erinnert dich zu den gespeicherten Uhrzeiten deiner Medikamente und Supplements. Einträge ohne feste Uhrzeit senden keine Erinnerung.",
     "hideMedicationNames": "Namen und Mengen ausblenden",
-    "hideMedicationNamesSubtitle": "Blendet Name und Menge in Benachrichtigungen aus. Der Titel unterscheidet weiterhin zwischen Medikament und Ergänzungsmittel."
+    "hideMedicationNamesSubtitle": "Blendet Name und Menge in Benachrichtigungen aus. Der Titel unterscheidet weiterhin zwischen Medikament und Ergänzungsmittel.",
+    "repeatReminders": "Weitere Einnahmeerinnerungen",
+    "repeatRemindersSubtitle": "Optionale Folgehinweise heute nach 10, 20 und 30 Minuten. Sobald du „Eingenommen“ oder „Übersprungen“ erfasst, entfallen die übrigen Hinweise. Standardmäßig aus; deine gespeicherte Wahl bleibt erhalten."
   },
   "diary": {
     "bulk": {
@@ -826,8 +835,19 @@
       "habit": "Gewohnheiten",
       "measurement": "Messungen",
       "supplement": "Nahrungsergänzung",
-      "meal": "Mahlzeiten"
-    }
+      "meal": "Mahlzeiten",
+      "goal": "Tagesziele",
+      "workout": "Geplantes Training"
+    },
+    "goals": {
+      "hydration": "Flüssigkeitsziel",
+      "activity_duration": "Bewegungsdauer",
+      "nutrition_review": "Tagesernährung prüfen",
+      "configured": "Festgelegte Ziele",
+      "unknown": "Noch kein Wert erfasst"
+    },
+    "completedTitle": "Alle Erfassungsaufgaben abgeschlossen",
+    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung."
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
@@ -1184,7 +1204,7 @@
       "viewAllA11y": "Alle Medikamente und Ergänzungsmittel anzeigen",
       "title": "Medikamente & Ergänzungsmittel"
     },
-    "notificationScheduledDose": "Sie haben eine geplante Dosis",
+    "notificationScheduledDose": "Erfasse deine geplante Einnahme, wenn du sie genommen hast.",
     "loadFailed": "Medikamente und Ergänzungsmittel konnten nicht geladen werden.",
     "dose": {
       "savedActionError": "Eine gespeicherte Reaktion auf die Nahrungsergänzungs-Erinnerung konnte nicht gelesen werden. Prüfen Sie das Protokoll, bevor Sie die Einnahme erneut eintragen.",
@@ -1220,8 +1240,8 @@
       "updateFailed": "Medikament konnte nicht aktualisiert werden: {{error}}",
       "createFailed": "Medikament konnte nicht angelegt werden: {{error}}"
     },
-    "notificationTitle": "Einnahmeerinnerung",
-    "notificationScheduledDoseNamed": "Geplante Einnahme: {{name}}{{dose}}",
+    "notificationTitle": "💊 Medikamentenerinnerung",
+    "notificationScheduledDoseNamed": "Deine geplante Einnahme: {{name}}{{dose}}",
     "title": "Medikamente & Ergänzungsmittel",
     "loading": "Medikamente und Ergänzungsmittel werden geladen …",
     "noMedications": "Noch keine Medikamente oder Ergänzungsmittel",
@@ -1247,9 +1267,9 @@
       "afterMeal": "Nach der Mahlzeit",
       "awayFromMeals": "Zwischen den Mahlzeiten"
     },
-    "notificationSupplementTitle": "Erinnerung an Ergänzungsmittel",
-    "notificationSupplementDose": "Eine Einnahme eines Ergänzungsmittels ist geplant",
-    "notificationSupplementDoseNamed": "Geplantes Ergänzungsmittel: {{name}}{{dose}}",
+    "notificationSupplementTitle": "🌿 Supplement-Erinnerung",
+    "notificationSupplementDose": "Erfasse dein geplantes Supplement, wenn du es genommen hast.",
+    "notificationSupplementDoseNamed": "Dein geplantes Supplement: {{name}}{{dose}}",
     "noMatchingItems": "Keine Einträge in dieser Kategorie",
     "addMedication": "Medikament hinzufügen",
     "addMedicationTitle": "Medikament hinzufügen",
@@ -1265,7 +1285,11 @@
       "everyNDays_one": "Alle {{count}} Tage",
       "everyNDays_other": "Alle {{count}} Tage"
     },
-    "item": "Einnahme"
+    "item": "Einnahme",
+    "notificationRepeatTitle": "💊 Einnahme · Erinnerung {{number}}",
+    "notificationSupplementRepeatTitle": "🌿 Supplement · Erinnerung {{number}}",
+    "notificationRepeatBody": "Schon erfasst? Prüfe den Status deiner geplanten Einnahme in der App.",
+    "notificationRepeatNamed": "Schon erfasst? Prüfe den Status von {{name}}{{dose}} in der App."
   },
   "mealBuilder": {
     "linkedMealWebEdit": "Bearbeiten Sie diese Untermahlzeitzutat in der Web-App.",
@@ -1635,7 +1659,8 @@
   },
   "fastingCard": {
     "goalProgress": "{{remaining}} zu Ihrem {{goal}}h-Ziel",
-    "goalReached": "Ziel erreicht · {{goal}} h"
+    "goalReached": "Ziel erreicht · {{goal}} h",
+    "title": "Fasten"
   },
   "fastingProtocol": {
     "presets": {
@@ -1648,12 +1673,17 @@
       "warrior18": {
         "description": "Fasten mit einem Essensfenster von 6 Stunden."
       }
+    },
+    "startAction": "Start Fasten",
+    "accessibility": {
+      "durationHours": "Fasten duration in Stunden"
     }
   },
   "fastingHistory": {
     "deleteMessage": "Dies kann nicht rückgängig gemacht werden.",
     "hint": "Zum Bearbeiten antippen · zum Löschen nach links wischen",
-    "empty": "Noch keine vergangenen Fastenzeiten."
+    "empty": "Noch keine vergangenen Fastenzeiten.",
+    "title": "Fasten history"
   },
   "fastingEdit": {
     "beforeEnd": "Die Startzeit muss vor der Endzeit liegen.",
@@ -2074,7 +2104,8 @@
         "name": "Tiefe Ketose"
       }
     },
-    "goalReached": "Ziel erreicht"
+    "goalReached": "Ziel erreicht",
+    "title": "Fasten"
   },
   "exerciseDetail": {
     "makePublicMessage": "Diese Übung wird für alle Benutzer auf diesem Server sichtbar.",
@@ -3050,7 +3081,8 @@
   "caffeine": {
     "estimatedTimes": "Einige Dosiszeiten wurden geschätzt",
     "crossingNote": "Ab {{time}} wieder unter {{threshold}} mg",
-    "underThreshold": "Bleibt heute Nacht unter {{threshold}} mg"
+    "underThreshold": "Bleibt heute Nacht unter {{threshold}} mg",
+    "previousDoses": "Restmenge aus früheren Einträgen"
   },
   "cycleSymptoms": {
     "title": "Symptome",
@@ -3254,5 +3286,54 @@
   "foodNutrition": {
     "hideExtra": "Weitere Nährstoffe ausblenden ▴",
     "showMore": "Weitere Nährstoffe anzeigen ▾"
+  },
+  "weeklyPlan": {
+    "title": "Wöchentlicher Trainingsplan",
+    "subtitle": "Aktivitäten und gespeicherte Trainings planen. Geplant bedeutet noch nicht durchgeführt.",
+    "create": "Plan erstellen",
+    "name": "Planname",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum (optional)",
+    "day": "Wochentag",
+    "type": "Aktivität oder Trainingsvorlage",
+    "labelOptional": "Name der Einheit (optional)",
+    "duration": "Dauer (Min., optional)",
+    "distance": "Strecke (km, optional)",
+    "time": "Uhrzeit (24 Stunden, optional)",
+    "optional": "Optionale Einheit",
+    "addSession": "Einheit hinzufügen",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "empty": "Noch kein Trainingsplan. Aktivitäten oder Trainingsvorlagen für die Woche hinzufügen.",
+    "noSession": "Für diesen Tag ist keine Einheit geplant.",
+    "log": "Aktivität erfassen",
+    "start": "Training starten",
+    "offline": "Zum Bearbeiten oder Starten eine Verbindung zum Server herstellen.",
+    "loadFailed": "Trainingspläne konnten nicht geladen werden. Erneut versuchen.",
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen.",
+    "startFailed": "Die geplante Einheit konnte nicht geöffnet werden. Erneut versuchen.",
+    "validation": "Planname, Datum und Aktivität prüfen. Dauer und Strecke müssen positiv sein. Uhrzeiten im Format 18:30 eingeben.",
+    "deleteTitle": "Trainingsplan löschen?",
+    "deleteHint": "Bereits erfasste Trainings bleiben im Verlauf erhalten.",
+    "sequentialHint": "Dies ist eine bestehende Trainingsfolge. Ihre Einheiten bleiben erhalten. Die Folge lässt sich im erweiterten Webeditor bearbeiten.",
+    "advanced": "Einzelne Übung",
+    "activities": {
+      "running": "Laufen",
+      "strength": "Krafttraining",
+      "cycling": "Radfahren",
+      "walking": "Gehen",
+      "hiking": "Wandern",
+      "swimming": "Schwimmen",
+      "rowing": "Rudern",
+      "soccer": "Fußball",
+      "yoga": "Yoga",
+      "other": "Andere Aktivität",
+      "rest": "Ruhetag"
+    },
+    "dateFormat": "JJJJ-MM-TT",
+    "timeFormat": "SS:mm"
+  },
+  "addWorkoutPlanDialog": {
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."
   }
 }

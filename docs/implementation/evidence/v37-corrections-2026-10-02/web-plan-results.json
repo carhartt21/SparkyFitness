@@ -1,0 +1,8 @@
+{
+  "creation": true,
+  "persistenceAfterReload": true,
+  "failureRetainsInputs": true,
+  "targetsReconcile": true,
+  "horizontalOverflow": false,
+  "synthetic": true
+}

@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import {
+  caffeineActiveRootQueryKey,
   medicationsRootQueryKey,
   medicationEntriesQueryKey,
   dailySummaryRootQueryKey,
@@ -22,6 +23,7 @@ import {
 export function invalidateMedicationEntryCaches(
   queryClient: QueryClient
 ): void {
+  void queryClient.invalidateQueries({ queryKey: caffeineActiveRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: medicationEntriesQueryKey() });
   void queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: dailySummaryRootQueryKey });

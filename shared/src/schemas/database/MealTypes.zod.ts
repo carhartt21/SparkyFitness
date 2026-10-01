@@ -12,6 +12,7 @@ const userIdSchema = z.any();
 export const mealTypesSchema = z.object({
   id: mealTypesIdSchema,
   name: z.string(),
+  purpose: z.enum(["regular", "import"]).optional(),
   user_id: userIdSchema.nullable(),
   sort_order: z.number().nullable(),
   created_at: z.date().nullable(),
@@ -23,6 +24,7 @@ export const mealTypesSchema = z.object({
 export const mealTypesInitializerSchema = z.object({
   id: mealTypesIdSchema.optional(),
   name: z.string(),
+  purpose: z.enum(["regular", "import"]).optional(),
   user_id: userIdSchema.optional().nullable(),
   sort_order: z.number().optional().nullable(),
   created_at: z.date().optional().nullable(),
@@ -34,6 +36,7 @@ export const mealTypesInitializerSchema = z.object({
 export const mealTypesMutatorSchema = z.object({
   id: mealTypesIdSchema.optional(),
   name: z.string().optional(),
+  purpose: z.enum(["regular", "import"]).optional(),
   user_id: userIdSchema.optional().nullable(),
   sort_order: z.number().optional().nullable(),
   created_at: z.date().optional().nullable(),

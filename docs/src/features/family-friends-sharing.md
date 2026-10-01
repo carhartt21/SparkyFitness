@@ -55,6 +55,8 @@ Certain tables contain private user data that is **never** accessible to any fam
 - Mobility routines, schedules, dated plans, session history and operation receipts (`mobility_*`), and movement timer-start hints (`engagement_subject_states`). These remain owner-only even with exercise sharing.
 - Notification delivery settings, devices, and reminder response history (`engagement_*` tables). A family member cannot change the owner's reminder schedule or register a phone for the owner's notifications.
 - Connected assistant authorizations and tokens (`oauth*` and `jwks` tables). Only the account owner can approve an MCP connection; the authentication service stores and revokes its credentials.
+
+An assistant connected with your MCP read permission can read actual saved weight and custom measurement values alongside your measurement reminder status. These reads are restricted to your authenticated account and the requested day; they do not switch to a shared profile or grant access to another person's reminders. Missing readings remain absent.
 - Cycle & Pregnancy hub data (`cycle_settings`, `cycle_daily_entries`, `cycles`, `user_cycle_display_preferences`, `cycle_test_entries`, `pregnancies`, `pregnancy_kick_sessions`, `pregnancy_contractions`, `pregnancy_photos`, `pregnancy_checklist_state`, `health_appointments` tables) — this reproductive-health data is **never** shared or delegated, even with `can_view_reports`. It is strictly owner-only. Bump photo _files_ are owner-only too: they are excluded from the public uploads URLs and can only be fetched through an authenticated request by their owner.
 
 ### 2. Tier 2: Read-Only Profile & Settings Data

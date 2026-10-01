@@ -2,7 +2,13 @@ import { z } from "zod";
 
 export const workoutPlanVersionAssignmentSchema = z.object({
   id: z.number().int(),
-  dayOfWeek: z.number().int().min(0).max(6),
+  dayOfWeek: z.number().int().min(0).max(6).nullable(),
+  activityType: z.string().nullable().optional(),
+  sessionName: z.string().nullable().optional(),
+  plannedDurationMinutes: z.number().nullable().optional(),
+  plannedDistanceKm: z.number().nullable().optional(),
+  plannedTime: z.string().nullable().optional(),
+  isOptional: z.boolean().optional(),
   workoutPresetId: z.number().int().nullable(),
   exerciseId: z.string().uuid().nullable(),
   sortOrder: z.number().int().nullable(),

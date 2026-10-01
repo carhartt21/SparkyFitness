@@ -1,8 +1,14 @@
 import express, { type RequestHandler } from 'express';
 import { z } from 'zod';
-import { exerciseSetTypeRequestSchema } from '@workspace/shared';
+import {
+  exerciseSetTypeRequestSchema,
+  workoutPlanWriteSchema,
+} from '@workspace/shared';
+import { requireSelfActor } from '../middleware/requireSelfMiddleware.js';
 import { authenticate } from '../middleware/authMiddleware.js';
-import workoutPlanTemplateService from '../services/workoutPlanTemplateService.js';
+import workoutPlanTemplateService, {
+  preparePlannedActivityExercise,
+} from '../services/workoutPlanTemplateService.js';
 const router = express.Router();
 
 // This older endpoint passes the rest of its plan payload through to the
@@ -36,16 +42,58 @@ const setTypeOnlyBodySchema = z
 
 const validateSetTypes: RequestHandler = (req, res, next) => {
   const parsed = setTypeOnlyBodySchema.safeParse(req.body);
-  if (!parsed.success) {
+  const full = workoutPlanWriteSchema.safeParse(req.body);
+  if (!parsed.success || !full.success) {
     res.status(400).json({
-      error: 'Invalid workout plan set type.',
-      details: parsed.error.flatten(),
+      error: 'Invalid workout plan.',
+      code: 'INVALID_WORKOUT_PLAN',
+      details: !parsed.success
+        ? parsed.error.flatten()
+        : !full.success
+          ? full.error.flatten()
+          : undefined,
     });
     return;
   }
-  req.body = parsed.data;
+  req.body = full.success ? full.data : parsed.data;
   next();
 };
+router.post(
+  '/:id/assignments/:assignmentId/activity-exercise',
+  authenticate,
+  requireSelfActor,
+  async (req, res, next) => {
+    const body = z
+      .object({ name: z.string().trim().min(1).max(160) })
+      .safeParse(req.body);
+    const assignmentId = Number(req.params.assignmentId);
+    if (
+      !body.success ||
+      !Number.isSafeInteger(assignmentId) ||
+      assignmentId <= 0 ||
+      typeof req.params.id !== 'string'
+    ) {
+      return res.status(400).json({ error: 'Invalid activity assignment.' });
+    }
+    try {
+      const exerciseId = await preparePlannedActivityExercise(
+        req.userId,
+        req.params.id,
+        assignmentId,
+        body.data.name
+      );
+      res.json({ exercise_id: exerciseId });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message === 'Training assignment not found.'
+      )
+        return res.status(404).json({ error: error.message });
+      next(error);
+    }
+  }
+);
+
 /**
  * @swagger
  * /workout-plan-templates:

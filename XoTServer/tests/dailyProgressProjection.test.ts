@@ -87,7 +87,7 @@ describe('buildDailyProgress', () => {
     expect(progress.completed).toBe(2);
     expect(progress.applicable).toBe(4);
     expect(progress.percent).toBe(50);
-    expect(progress.version).toBe(1);
+    expect(progress.version).toBe(2);
   });
 
   it('drops explicitly skipped tasks from the denominator', () => {

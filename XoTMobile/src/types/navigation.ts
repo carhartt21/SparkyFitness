@@ -261,6 +261,9 @@ export type RootStackParamList = {
   ExerciseSearch: { returnKey: string };
   PresetSearch:
     { selectedExercise?: Exercise; selectionNonce?: number } | undefined;
+  WorkoutPlans: { date?: string; assignmentId?: string } | undefined;
+  WorkoutPlanForm:
+    { plan?: import('./workoutPlans').WorkoutPlanTemplate } | undefined;
   WorkoutAdd:
     | {
         session?: PresetSessionResponse;
@@ -274,6 +277,9 @@ export type RootStackParamList = {
     | undefined;
   ActivityAdd:
     | {
+        workoutPlanAssignmentId?: number;
+        plannedDurationMinutes?: number;
+        plannedDistanceKm?: number;
         entry?: IndividualSessionResponse;
         date?: string;
         popCount?: number;
@@ -320,7 +326,7 @@ export type RootStackParamList = {
   Logs: undefined;
   Sync: undefined;
   ImportHistory: undefined;
-  MeasurementsAdd: { date?: string } | undefined;
+  MeasurementsAdd: { date?: string; measurementKey?: string } | undefined;
   /**
    * Progress photos: one day's three angles with their management, over a
    * timeline of every check-in photo with that day's weight. `date` picks the
@@ -347,10 +353,10 @@ export type RootStackParamList = {
   WhatsNew: undefined;
   MedicationsList: undefined;
   DailyCheckIn: { date?: string } | undefined;
-  Habits: { date?: string } | undefined;
+  Habits: { date?: string; habitId?: string } | undefined;
   HabitsManage: undefined;
   HabitForm: { habitId?: string } | undefined;
-  Supplements: { date?: string } | undefined;
+  Supplements: { date?: string; scheduleId?: string } | undefined;
   HealthContext: undefined;
   HealthContextForm: { periodId?: string } | undefined;
   DailyProgress: { date?: string } | undefined;

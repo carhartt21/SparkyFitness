@@ -1,3 +1,5 @@
+import WorkoutPlansScreen from '../screens/WorkoutPlansScreen';
+import WorkoutPlanFormScreen from '../screens/WorkoutPlanFormScreen';
 import WidgetGuideScreen from '../screens/WidgetGuideScreen';
 import SyncScreen from '../screens/SyncScreen';
 import ImportHistoryScreen from '../screens/ImportHistoryScreen';
@@ -502,5 +504,16 @@ export const SafeTrackingSettings = withErrorBoundary(
 export const SafeWidgetGuide = withErrorBoundary(
   WidgetGuideScreen,
   'WidgetGuide',
+  { canGoBack: true }
+);
+
+export const SafeWorkoutPlans = withErrorBoundary(
+  WorkoutPlansScreen,
+  'WorkoutPlans',
+  { canGoBack: true }
+);
+export const SafeWorkoutPlanForm = withErrorBoundary(
+  WorkoutPlanFormScreen,
+  'WorkoutPlanForm',
   { canGoBack: true }
 );

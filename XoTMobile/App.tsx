@@ -50,6 +50,8 @@ import {
   SafeWaterContainerEdit,
   SafeExercisesLibrary,
   SafeExerciseReview,
+  SafeWorkoutPlans,
+  SafeWorkoutPlanForm,
   SafeWorkoutPresetsLibrary,
   SafeFoodDetail,
   SafeMealDetail,
@@ -376,6 +378,7 @@ function AppContent() {
           MovementBreak: 'movement-break',
           GuidedMobility: 'guided-mobility',
           WorkoutPresetsLibrary: 'routines',
+          WorkoutPlans: 'training-plans',
           FoodSearch: 'search',
           // Tapping the workout Live Activity opens its associated URL.
           ActiveWorkout: 'active-workout',
@@ -604,6 +607,27 @@ function AppContent() {
                   headerBackTitle: t('navigation.library', {
                     defaultValue: 'Library',
                   }),
+                }
+              )}
+            />
+            <Stack.Screen
+              name="WorkoutPlans"
+              component={SafeWorkoutPlans}
+              options={createStackScreenOptions(
+                t('weeklyPlan.title', 'Weekly training plan'),
+                {
+                  headerBackButtonDisplayMode: 'minimal',
+                }
+              )}
+            />
+            <Stack.Screen
+              name="WorkoutPlanForm"
+              component={SafeWorkoutPlanForm}
+              options={createStackScreenOptions(
+                t('weeklyPlan.title', 'Weekly training plan'),
+                {
+                  headerBackButtonDisplayMode: 'minimal',
+                  presentation: 'modal',
                 }
               )}
             />

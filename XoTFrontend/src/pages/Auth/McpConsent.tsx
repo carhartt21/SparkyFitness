@@ -11,14 +11,12 @@ import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { useMcpAuthorization } from '@/hooks/Auth/useMcpAuthorization';
 
-type ConsentResponse = {
-  redirect_uri?: string;
-  message?: string;
-  error?: string;
-};
-
 export default function McpConsent() {
-  const { fetchMcpPublicClient, submitMcpConsent } = useMcpAuthorization();
+  const {
+    fetchMcpPublicClient,
+    submitMcpConsent,
+    readMcpAuthorizationRedirect,
+  } = useMcpAuthorization();
   const { i18n } = useTranslation();
   const de = i18n.language.startsWith('de');
   const { user, loading } = useAuth();
@@ -61,15 +59,11 @@ export default function McpConsent() {
     setError(null);
     try {
       const response = await submitMcpConsent(query, accept);
-      const result = (await response.json()) as ConsentResponse;
-      if (!response.ok || !result.redirect_uri) {
-        throw new Error(
-          result.message ??
-            result.error ??
-            'Authorization could not be completed.'
-        );
-      }
-      window.location.assign(result.redirect_uri);
+      const redirectUrl = await readMcpAuthorizationRedirect(
+        response,
+        'Authorization could not be completed.'
+      );
+      window.location.assign(redirectUrl);
     } catch (cause) {
       setError(
         cause instanceof Error

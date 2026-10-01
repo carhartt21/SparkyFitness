@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import WeeklyActivityAssignment from './WeeklyActivityAssignment';
+import { workoutPlanWriteSchema } from '@workspace/shared';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TooltipProvider } from '@/components/ui/tooltip';
 
@@ -58,12 +60,12 @@ interface AddWorkoutPlanDialogProps {
       WorkoutPlanTemplate,
       'id' | 'user_id' | 'created_at' | 'updated_at'
     >
-  ) => void;
+  ) => Promise<void>;
   initialData?: WorkoutPlanTemplate | null;
   onUpdate?: (
     planId: string,
     updatedPlan: Partial<WorkoutPlanTemplate>
-  ) => void;
+  ) => Promise<void>;
 }
 
 const AddWorkoutPlanDialog = ({
@@ -75,6 +77,8 @@ const AddWorkoutPlanDialog = ({
 }: AddWorkoutPlanDialogProps) => {
   const {
     assignments,
+    addActivity,
+    updateActivity,
     sessionList,
     sessionNames,
     setSessionName,
@@ -103,7 +107,7 @@ const AddWorkoutPlanDialog = ({
     handlePasteAssignment,
     buildAssignmentsForSave,
   } = useWorkoutPlanAssignments(initialData);
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { weightUnit } = usePreferences();
   const [planName, setPlanName] = useState(() => initialData?.plan_name || '');
   const [description, setDescription] = useState(
@@ -137,7 +141,11 @@ const AddWorkoutPlanDialog = ({
     })
   );
 
-  const handleSave = () => {
+  const [saving, setSaving] = useState(false);
+  const saveLock = useRef(false);
+  const [saveError, setSaveError] = useState(false);
+  const handleSave = async () => {
+    if (saveLock.current) return;
     if (planName.trim() === '' || startDate?.trim() === '') {
       toast({
         title: t(
@@ -167,16 +175,35 @@ const AddWorkoutPlanDialog = ({
       assignments: buildAssignmentsForSave(),
     };
 
-    if (initialData && onUpdate) {
-      onUpdate(initialData.id, planData);
-    } else {
-      onSave(planData);
+    if (!workoutPlanWriteSchema.safeParse(planData).success) {
+      setSaveError(true);
+      return;
     }
-    onClose();
+    saveLock.current = true;
+    setSaving(true);
+    setSaveError(false);
+    try {
+      if (initialData && onUpdate) {
+        await onUpdate(initialData.id, planData);
+      } else {
+        await onSave(planData);
+      }
+      onClose();
+    } catch {
+      setSaveError(true);
+    } finally {
+      saveLock.current = false;
+      setSaving(false);
+    }
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={() => {
+        if (!saveLock.current) onClose();
+      }}
+    >
       <TooltipProvider>
         <DialogContent
           requireConfirmation
@@ -335,6 +362,7 @@ const AddWorkoutPlanDialog = ({
                         ? 'border-primary bg-primary/10 ring-1 ring-primary shadow-xs'
                         : 'border-border/70 bg-card hover:bg-accent/40 text-muted-foreground hover:text-foreground'
                     }`}
+                    disabled={assignments.some((a) => a.activity_type)}
                     onClick={() => setEntryMode('prefill')}
                   >
                     <span className="font-semibold text-sm text-foreground">
@@ -435,14 +463,21 @@ const AddWorkoutPlanDialog = ({
                       (assignment) => assignment.day_of_week === day.id
                     );
                     return (
-                      <Card key={day.name} className="p-4 bg-muted/30">
+                      <Card
+                        key={new Intl.DateTimeFormat(i18n.language, {
+                          weekday: 'long',
+                        }).format(new Date(2026, 8, 27 + day.id))}
+                        className="p-4 bg-muted/30"
+                      >
                         <SortableContext
                           items={dayAssignments.map((a) => a.id as string)}
                         >
                           <div className="space-y-4">
                             <div className="flex items-center justify-between">
                               <h3 className="font-semibold text-primary">
-                                {day.name}
+                                {new Intl.DateTimeFormat(i18n.language, {
+                                  weekday: 'long',
+                                }).format(new Date(2026, 8, 27 + day.id))}
                               </h3>
                               <div className="flex items-center space-x-2">
                                 {copiedAssignment && (
@@ -476,10 +511,36 @@ const AddWorkoutPlanDialog = ({
                                 </Button>
                               </div>
                             </div>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="min-h-11 w-full"
+                              onClick={() => addActivity(day.id)}
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              {t('weeklyPlan.addSession')}
+                            </Button>
                             {dayAssignments.map((assignment) => {
                               const originalIndex = assignments.findIndex(
                                 (a) => a.id === assignment.id
                               );
+                              if (
+                                assignment.activity_type ||
+                                assignment.workout_preset_id
+                              )
+                                return (
+                                  <WeeklyActivityAssignment
+                                    key={assignment.id}
+                                    assignment={assignment}
+                                    presets={workoutPresets}
+                                    onChange={(patch) =>
+                                      updateActivity(assignment.id, patch)
+                                    }
+                                    onRemove={() =>
+                                      handleRemoveAssignment(originalIndex)
+                                    }
+                                  />
+                                );
                               return (
                                 <SortableExerciseItem
                                   key={assignment.id}
@@ -703,13 +764,21 @@ const AddWorkoutPlanDialog = ({
               </DndContext>
             </div>
           </div>
+          {saveError && (
+            <p role="alert" className="text-destructive">
+              {t(
+                'addWorkoutPlanDialog.saveFailed',
+                'The plan could not be saved. Your changes are still here. Please try again.'
+              )}
+            </p>
+          )}
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline" onClick={onClose}>
+              <Button variant="outline" onClick={onClose} disabled={saving}>
                 {t('addWorkoutPlanDialog.cancelButton', 'Cancel')}
               </Button>
             </DialogClose>
-            <Button onClick={handleSave}>
+            <Button onClick={handleSave} disabled={saving}>
               {t('addWorkoutPlanDialog.saveButton', 'Save Plan')}
             </Button>
           </DialogFooter>

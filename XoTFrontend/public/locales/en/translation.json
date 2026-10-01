@@ -3012,7 +3012,8 @@
     "selectRow": "Select row",
     "unknown": "Unknown",
     "avg": "Avg",
-    "max": "Max"
+    "max": "Max",
+    "showAll": "Show all"
   },
   "diary": {
     "addFood": "Add Food",
@@ -3992,7 +3993,8 @@
     "removeSessionTitle": "Remove Session",
     "moveSessionUp": "Move session up",
     "moveSessionDown": "Move session down",
-    "sessionNamePlaceholder": "Custom name (e.g., Push Day, Legs)"
+    "sessionNamePlaceholder": "Custom name (e.g., Push Day, Legs)",
+    "saveFailed": "Could not save the plan. Your changes are still here. Try again."
   },
   "reports": {
     "nutritionPageTitle": "Nutrition reports",
@@ -6490,7 +6492,9 @@
       "habit": "Habit",
       "measurement": "Measurement",
       "supplement": "Supplement",
-      "meal": "Meal"
+      "meal": "Meal",
+      "goal": "Daily objectives",
+      "workout": "Planned training"
     },
     "state": {
       "complete": "Complete",
@@ -6506,7 +6510,16 @@
     "nothingAppliesLine": "{{day}} · no tracking tasks",
     "explanation": "Each task counts equally; this is not a health score.",
     "emptyExplanation": "Nothing is scheduled or selected for this day.",
-    "more": "+{{count}} more"
+    "more": "+{{count}} more",
+    "goals": {
+      "hydration": "Hydration goal",
+      "activity_duration": "Activity duration goal",
+      "nutrition_review": "Review daily nutrition",
+      "configured": "Configured targets",
+      "unknown": "No value recorded"
+    },
+    "completedTitle": "Your tracking tasks are complete",
+    "completedHint": "You have recorded or reviewed every applicable task for today. This reflects tracking, not a health score."
   },
   "mealStatus": {
     "label": "{{meal}} status",
@@ -6602,5 +6615,49 @@
     "exerciseFailed": "Exercise search failed. Custom steps remain available.",
     "noExercises": "No matching saved exercise. You can use a custom step.",
     "ownerOnly": "Mobility planning is available only for your own account. Switch back to your account to continue."
+  },
+  "weeklyPlan": {
+    "title": "Weekly training plan",
+    "subtitle": "Plan whole activities and saved workouts. Planned sessions are not completed workouts.",
+    "create": "Create plan",
+    "name": "Plan name",
+    "startDate": "Start date",
+    "endDate": "End date (optional)",
+    "day": "Day",
+    "type": "Activity or saved workout",
+    "labelOptional": "Session name (optional)",
+    "duration": "Duration (min, optional)",
+    "distance": "Distance (km, optional)",
+    "time": "Time (24-hour, optional)",
+    "optional": "Optional session",
+    "addSession": "Add session",
+    "active": "Active",
+    "inactive": "Inactive",
+    "empty": "No training plan yet. Add activities or saved workouts to your week.",
+    "noSession": "No session planned for this day.",
+    "log": "Log activity",
+    "start": "Start workout",
+    "offline": "Connect to your server to edit or start planned sessions.",
+    "loadFailed": "Could not load training plans. Try again.",
+    "saveFailed": "Could not save the plan. Your changes are still here. Try again.",
+    "startFailed": "Could not open the planned session. Try again.",
+    "validation": "Check the plan name, dates, activity and positive duration/distance values. Use a 24-hour time such as 18:30.",
+    "deleteTitle": "Delete training plan?",
+    "deleteHint": "Previous logged workouts remain in your history.",
+    "sequentialHint": "This is an existing workout sequence. Its sessions are preserved. Edit the sequence in the web advanced editor.",
+    "advanced": "Individual exercise",
+    "activities": {
+      "running": "Running",
+      "strength": "Resistance training",
+      "cycling": "Cycling",
+      "walking": "Walking",
+      "hiking": "Hiking",
+      "swimming": "Swimming",
+      "rowing": "Rowing",
+      "soccer": "Soccer",
+      "yoga": "Yoga",
+      "other": "Other activity",
+      "rest": "Rest day"
+    }
   }
 }

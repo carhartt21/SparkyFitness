@@ -1,3 +1,4 @@
+import { markFddbImportMealType } from '../models/fddbImportRepository.js';
 import type {
   FddbDiaryRow,
   FddbExtras,
@@ -39,7 +40,10 @@ async function ensureImportMealType(userId: string): Promise<string> {
   const existing = mealTypes.find(
     (type) => type.user_id === userId && type.name === IMPORT_MEAL_TYPE
   );
-  if (existing) return existing.id;
+  if (existing) {
+    await markFddbImportMealType(userId, existing.id);
+    return existing.id;
+  }
   const highestSortOrder = Math.max(
     0,
     ...mealTypes.map((type) => type.sort_order)
@@ -48,6 +52,7 @@ async function ensureImportMealType(userId: string): Promise<string> {
     { name: IMPORT_MEAL_TYPE, sort_order: highestSortOrder + 1 },
     userId
   )) as MealTypeRecord;
+  await markFddbImportMealType(userId, created.id);
   return created.id;
 }
 

@@ -940,13 +940,13 @@ export function buildRestNotificationContent(
     }
     return {
       title: t('notifications.rest.nextSetTitle', {
-        defaultValue: 'Rest complete: next set up',
+        defaultValue: '🏋️ Your next set',
       }),
       body,
     };
   }
   return {
-    title: t('notifications.rest.title', { defaultValue: 'Rest complete' }),
+    title: t('notifications.rest.title', { defaultValue: '⏱️ Rest complete' }),
     body: fallbackExerciseName,
   };
 }

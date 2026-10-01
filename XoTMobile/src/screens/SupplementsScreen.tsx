@@ -84,6 +84,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
     '--color-border-subtle',
   ]) as [string, string, string];
   const [date, setDate] = useState(route.params?.date ?? getTodayDate());
+  const [focusedId, setFocusedId] = useState(route.params?.scheduleId);
   const { isConnected } = useServerConnection();
   const { preferences } = usePreferences({ enabled: isConnected });
   const remindersEnabled = useAppPreferencesStore(
@@ -252,6 +253,13 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
         Promise.all([medicationsQuery.refetch(), entriesQuery.refetch()])
       }
     >
+      {focusedId && (
+        <NeonButton
+          label={t('common.showAll', { defaultValue: 'Show all' })}
+          variant="subtle"
+          onPress={() => setFocusedId(undefined)}
+        />
+      )}
       {storageError ? (
         <Text className="mb-2 text-sm text-text-danger">
           {t('medications.dose.savedActionError', {
@@ -315,7 +323,9 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
             stats={stats}
           />
 
-          {groupByDaypart(doses).map(({ daypart, doses: group }) => {
+          {groupByDaypart(
+            doses.filter((dose) => !focusedId || dose.schedule.id === focusedId)
+          ).map(({ daypart, doses: group }) => {
             const color = daypartColor(daypart, scale);
             const groupTaken = group.filter(
               (dose) => statusOf(dose) === 'taken'

@@ -503,6 +503,20 @@ export default function ExerciseReviewScreen({
               'A look at the activity you recorded, compared with the previous period.',
           })}
         </Text>
+        <TouchableOpacity
+          accessibilityRole="button"
+          accessibilityLabel={t('weeklyPlan.title', {
+            defaultValue: 'Weekly training plan',
+          })}
+          className="min-h-11 rounded-xl bg-raised p-3 mb-3"
+          onPress={() =>
+            navigation.navigate('WorkoutPlans', { date: getTodayDate() })
+          }
+        >
+          <Text className="text-accent-primary font-semibold">
+            {t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
+          </Text>
+        </TouchableOpacity>
         <SegmentedControl<ExerciseReviewWindow>
           segments={[
             {

@@ -41,7 +41,9 @@ node --test review/runtime-check.test.mjs
 
 ## Daily tracking tour
 
-`--interactions --tracking-tour` opens Daily Check-In, Habits, Supplements and Daily Progress from More and captures top, lower and bottom views. It also runs on `430-de-large` for Dynamic Type. `review/trackingFixture.ts` supplies synthetic habits, habit logs, supplements and check-ins for the populated scenario; the names are illustrations only.
+`--interactions --tracking-tour` opens Daily Check-In, Habits, Supplements, Daily Progress and Weekly Planning from More and captures top, lower and bottom views, including the weekly-plan editor. It also runs on `430-de-large` for Dynamic Type. `review/trackingFixture.ts` supplies synthetic habits, habit logs, supplements, configured objectives, planned sessions and check-ins for the populated scenario; the names are illustrations only. The tour proves navigation/rendering, not real backend persistence or physical-device synchronization.
+
+The corresponding web persistence check runs with `XOT_VISUAL_URL=http://localhost:<isolated-web-port> node scripts/review-weekly-plan.mjs` from `XoTFrontend/`. It accepts loopback demo servers only, creates a synthetic two-session plan, verifies failed-save input retention and reload persistence against the database, then removes its synthetic plan.
 
 ## Launch-icon shortcuts
 

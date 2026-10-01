@@ -217,7 +217,7 @@ export const updateDailyTrackingPreferences = (
 
 export const getDailyProgress = (date: string) =>
   apiFetch<DailyProgress>({
-    endpoint: `${BASE}/daily-progress/${date}`,
+    endpoint: `${BASE}/daily-progress/${date}?version=2`,
     serviceName: SERVICE_NAME,
     operation: 'get daily progress',
   });
@@ -228,7 +228,7 @@ export const getDailyProgressRange = async (
   endDate: string
 ) =>
   (await apiFetch<DailyProgressDay[] | null>({
-    endpoint: `${BASE}/daily-progress?start_date=${startDate}&end_date=${endDate}`,
+    endpoint: `${BASE}/daily-progress?start_date=${startDate}&end_date=${endDate}&version=2`,
     serviceName: SERVICE_NAME,
     operation: 'get daily progress range',
   })) ?? [];
