@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
@@ -121,6 +127,9 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
   const checkin = checkinQuery.data;
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [dirty, setDirty] = useState(false);
+  const dirtyRef = useRef(false);
+  // Navigation fires synchronously before React commits state/query updates.
+  const saveIntent = useRef<'idle' | 'saving' | 'resolved'>('idle');
   const [customTag, setCustomTag] = useState('');
   const [addingTag, setAddingTag] = useState(false);
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
@@ -131,11 +140,14 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
     setLoadedFor(date);
     setDraft(draftFrom(checkin));
     setDirty(false);
+    dirtyRef.current = false;
+    saveIntent.current = 'idle';
   }
 
   const update = useCallback((patch: Partial<Draft>) => {
     setDraft((current) => ({ ...current, ...patch }));
     setDirty(true);
+    dirtyRef.current = true;
   }, []);
 
   const payload = useMemo(
@@ -152,24 +164,50 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
   // check-in. An empty draft is not stored.
   useEffect(
     () =>
-      navigation.addListener('beforeRemove', () => {
-        if (dirty && canComplete && checkin?.state !== 'completed') {
+      navigation.addListener('beforeRemove', (event) => {
+        if (saveIntent.current === 'saving') {
+          event.preventDefault();
+          return;
+        }
+        if (saveIntent.current === 'resolved') return;
+        if (dirtyRef.current && canComplete && checkin?.state !== 'completed') {
+          dirtyRef.current = false;
           save.mutate({ ...payload, state: 'draft' });
         }
       }),
     [navigation, dirty, canComplete, checkin?.state, payload, save]
   );
 
-  const changeDate = (next: string) => {
-    if (dirty && canComplete && checkin?.state !== 'completed') {
-      save.mutate({ ...payload, state: 'draft' });
+  const changeDate = async (next: string) => {
+    if (saveIntent.current === 'saving') return;
+    saveIntent.current = 'saving';
+    try {
+      if (dirtyRef.current && canComplete && checkin?.state !== 'completed') {
+        await save.mutateAsync({ ...payload, state: 'draft' });
+      }
+      dirtyRef.current = false;
+      setDirty(false);
+      setDate(next);
+    } catch {
+      saveIntent.current = 'idle';
+      Toast.show({
+        type: 'error',
+        text1: t('checkin.saveFailed', {
+          defaultValue: 'Could not save the check-in. Please try again.',
+        }),
+      });
+    } finally {
+      saveIntent.current = 'idle';
     }
-    setDate(next);
   };
 
   const complete = async () => {
+    if (!canComplete || saveIntent.current === 'saving') return;
+    saveIntent.current = 'saving';
     try {
       await save.mutateAsync({ ...payload, state: 'completed' });
+      saveIntent.current = 'resolved';
+      dirtyRef.current = false;
       setDirty(false);
       Toast.show({
         type: 'success',
@@ -179,6 +217,7 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
       });
       navigation.goBack();
     } catch {
+      saveIntent.current = 'idle';
       Toast.show({
         type: 'error',
         text1: t('checkin.saveFailed', {
@@ -189,12 +228,17 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const skipToday = async () => {
+    if (saveIntent.current === 'saving') return;
+    saveIntent.current = 'saving';
     try {
       await skip.mutateAsync();
+      saveIntent.current = 'resolved';
+      dirtyRef.current = false;
       setDraft(EMPTY);
       setDirty(false);
       navigation.goBack();
     } catch {
+      saveIntent.current = 'idle';
       Toast.show({
         type: 'error',
         text1: t('checkin.skipFailed', {
