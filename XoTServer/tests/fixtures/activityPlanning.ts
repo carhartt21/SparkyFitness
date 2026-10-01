@@ -4,7 +4,7 @@ import type {
   PlanningEntry,
 } from '../../models/activityPlanningRepository.js';
 const DAY = '2026-10-01';
-const exerciseId = randomUUID();
+export const exerciseId = randomUUID();
 export const activityData = (): ActivityPlanningData => ({
   versions: [
     {
@@ -35,6 +35,7 @@ export const activityData = (): ActivityPlanningData => ({
   resolutions: [],
   mobilityPlans: [],
   mobilitySessions: [],
+  exerciseCategories: {},
 });
 export const activityEntry = (
   changes: Partial<PlanningEntry> = {}

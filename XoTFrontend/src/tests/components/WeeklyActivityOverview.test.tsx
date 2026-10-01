@@ -8,7 +8,7 @@ jest.mock('@/hooks/Tracking/useActivityPlanning');
 jest.mock('@/contexts/PreferencesContext', () => ({
   usePreferences: () => ({
     timezone: 'UTC',
-    formatDateInUserTimezone: (day: string) => day,
+    formatDate: (day: string) => `shown:${day}`,
   }),
 }));
 jest.mock('react-i18next', () => ({
@@ -104,6 +104,11 @@ it('navigates a calendar week and records an explicit skip with the revision', a
   expect(
     screen.getByRole('link', { name: 'activityPlanning.openDiary' })
   ).toHaveAttribute('href', '/diary?date=2026-10-01');
+});
+it("shows dates in the user's chosen date format", () => {
+  mount();
+  expect(screen.getByText(/shown:2026-10-01 ·/)).toBeInTheDocument();
+  expect(screen.queryByText(/^2026-10-01/)).not.toBeInTheDocument();
 });
 it('shows a recoverable error and hides owner-only content in delegated context', () => {
   load.mockReturnValue({

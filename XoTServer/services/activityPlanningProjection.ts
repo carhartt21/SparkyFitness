@@ -7,7 +7,10 @@ import {
   type ActivityPlanningResponse,
   type ActivityRecord,
 } from '@workspace/shared';
-import type { ActivityPlanningData } from '../models/activityPlanningRepository.js';
+import type {
+  ActivityPlanningData,
+  PlanVersion,
+} from '../models/activityPlanningRepository.js';
 
 /** Pure projection: reads never generate plans, completion or diary rows. */
 export function projectActivityPlanning(
@@ -223,6 +226,7 @@ export function projectActivityPlanning(
           plan_label: version.plan_name,
           activity_type: classifyActivitySport({
             exerciseName: assignment.label ?? version.plan_name,
+            category: sharedCategory(assignment, data.exerciseCategories),
           }).sport,
           state: skipped
             ? 'excluded'
@@ -356,4 +360,23 @@ export function projectActivityPlanning(
       })),
     note: 'Counts describe scheduled activities, not all exercise volume or a health score. Classification from names is inferred. Only confirmed records resolve tasks; unsynced phone/Watch activity is absent. Earlier prescriptions without snapshots are unknown. Sequential plans are not dated weekly tasks.',
   };
+}
+
+/**
+ * The category every planned exercise of an assignment shares, or null when
+ * they differ or are unknown — a mixed preset falls back to its name.
+ */
+function sharedCategory(
+  assignment: PlanVersion['assignments'][number],
+  categories: Record<string, string | null> | undefined
+): string | null {
+  const ids = [
+    ...(assignment.exerciseId ? [assignment.exerciseId] : []),
+    ...(assignment.exercises ?? []).map((exercise) => exercise.exerciseId),
+  ];
+  const found = [...new Set(ids)].map((id) =>
+    categories?.[id]?.trim().toLowerCase()
+  );
+  if (found.length === 0 || found.some((category) => !category)) return null;
+  return new Set(found).size === 1 ? (found[0] ?? null) : null;
 }

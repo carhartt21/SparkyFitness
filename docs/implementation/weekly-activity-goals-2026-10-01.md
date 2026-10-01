@@ -191,8 +191,27 @@ an alternate browser or workaround. On 2026-10-01 the user directed that browser
 checks be skipped and the blocker recorded in Todoist. The follow-up is
 **Resolve X on Track browser verification permission blocker**.
 
-Authenticated light/dark, desktop/narrow and German text-expansion captures are
-unverified. No physical-device or emulator verification was performed. The PR
-remains a draft with these template gates unchecked; automated component tests
-and a production build do not replace those checks. No deployment or merge is
-included in this delivery.
+### Finish review 2026-10-01
+
+A later review captured the web overview headlessly against an isolated
+PostgreSQL demo built from this branch (production build served with `/api`
+forwarded to the branch server; synthetic demo account and plan only). It
+covered English and German, light and dark, at 1440 px and 390 px. No capture
+showed horizontal overflow; German labels wrap without clipping. Evidence is in
+`weekly-activity-goals-evidence/`.
+
+The captures found and fixed two issues:
+
+1. Planned rows were classified from the assignment name only, so a strength
+   exercise without a sport keyword ("Pull Workout — Back & Biceps") counted as
+   "Other activity". The repository now reads the planned exercises' categories
+   (live, RLS-scoped) and the projection uses a category every exercise of the
+   assignment shares; a mixed preset or a deleted exercise keeps the name-based
+   result. Covered by a projection test and the isolated integration suite.
+2. The web overview printed ISO dates regardless of the user's date format. It
+   now uses `formatDate` like the rest of the app (the mobile overview already
+   formatted dates). Covered by a component test.
+
+No physical-device or emulator verification was performed, and the mobile
+overview was not captured. The PR remains a draft for those gates. No
+deployment or merge is included in this delivery.
