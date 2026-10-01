@@ -1,0 +1,581 @@
+{
+  "source": "899ac67bc",
+  "externalImagesBlocked": true,
+  "rendered": [
+    {
+      "file": "docs/src/developer/engagement-delivery.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Notification delivery and assistant access ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/mcp/checkin.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Health Check-in Management Tool (sparky_manage_checkin) ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/developer/mcp/coach.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Coaching and trends tools ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/developer/mcp/engagement.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Notification and engagement tools ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 2
+    },
+    {
+      "file": "docs/src/developer/mcp/exercise.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Exercise Management Tool (sparky_manage_exercise) ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/mcp/food.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Food Management Tool (sparky_manage_food) ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/mcp/vision.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Food photo and label tools ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/faq.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "X on Track FAQ ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/comparison.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Upstream feature comparison ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 8
+    },
+    {
+      "file": "docs/src/features/diary/exercise.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Exercise Tracking ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/exercises/exercise-database-manager.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Exercise library and saved workouts ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/exercises/exercise-search.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Exercise search ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/index.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Features overview ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/mcp-server.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "MCP server and connected assistants ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 2
+    },
+    {
+      "file": "docs/src/features/settings/preferences.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Preferences ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 7,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/user-settings.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Settings ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/mobile-app/mobile-app.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "X on Track mobile app ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/mobile-app/troubleshooting.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Mobile troubleshooting ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/exercises/mcp-training.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "MCP-based training ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/features/exercises/weekly-planning.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Weekly training plans ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/features/settings/notifications.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Notifications and reminders ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 3
+    },
+    {
+      "file": "docs/src/mobile-app/widgets-live-activities.md",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "status": 200,
+      "title": "Widgets, Watch complications and Live Activities ​",
+      "width": 1440,
+      "scrollWidth": 1440,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/engagement-delivery.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Notification delivery and assistant access ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/mcp/checkin.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Health Check-in Management Tool (sparky_manage_checkin) ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/developer/mcp/coach.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Coaching and trends tools ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/developer/mcp/engagement.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Notification and engagement tools ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 2
+    },
+    {
+      "file": "docs/src/developer/mcp/exercise.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Exercise Management Tool (sparky_manage_exercise) ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/mcp/food.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Food Management Tool (sparky_manage_food) ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/developer/mcp/vision.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Food photo and label tools ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/faq.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "X on Track FAQ ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/comparison.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Upstream feature comparison ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 8
+    },
+    {
+      "file": "docs/src/features/diary/exercise.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Exercise Tracking ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/exercises/exercise-database-manager.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Exercise library and saved workouts ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/exercises/exercise-search.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Exercise search ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/index.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Features overview ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/mcp-server.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "MCP server and connected assistants ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 2
+    },
+    {
+      "file": "docs/src/features/settings/preferences.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Preferences ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 7,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/user-settings.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Settings ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/mobile-app/mobile-app.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "X on Track mobile app ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/mobile-app/troubleshooting.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Mobile troubleshooting ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    },
+    {
+      "file": "docs/src/features/exercises/mcp-training.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "MCP-based training ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/features/exercises/weekly-planning.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Weekly training plans ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 1
+    },
+    {
+      "file": "docs/src/features/settings/notifications.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Notifications and reminders ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 3
+    },
+    {
+      "file": "docs/src/mobile-app/widgets-live-activities.md",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": 200,
+      "title": "Widgets, Watch complications and Live Activities ​",
+      "width": 390,
+      "scrollWidth": 390,
+      "brokenImages": 0,
+      "tables": 0
+    }
+  ],
+  "runtimeErrors": [],
+  "documentedToolNamesChecked": 73,
+  "unknownToolNames": []
+}

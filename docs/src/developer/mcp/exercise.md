@@ -5,11 +5,13 @@ description: Tool for tracking fitness activities and managing workouts.
 
 # Exercise Management Tool (`sparky_manage_exercise`)
 
-The `sparky_manage_exercise` tool is designed for comprehensive fitness tracking. It allows users and AI agents to search for exercises, log workouts (with multi-set support), manage routines, and view exercise history. If an exercise is not found, it can be automatically created.
+`sparky_manage_exercise` searches exercise definitions, records actual activity, manages saved workout presets and reads history. Its retained `sparky_` name is a compatibility identifier. A name-based log can create a missing exercise definition; prefer an existing ID to avoid unintended duplicates.
 
 **Tool Name:** `sparky_manage_exercise`
 
-**Description:** Primary tool for fitness tracking. Use this to search for exercises, log workouts (multi-set support), manage routines, and view your exercise history. If an exercise is missing, it will be automatically created. Supports providing details across multiple turns.
+It is available to full API keys at `/mcp`, or OAuth at `/mcp/chatgpt` with `mcp:write`. Read-only connections use dedicated query tools instead: mixed-action management tools are not published even for their read actions. Send a flat object with an explicit `action`, not nested action arguments. The source contracts are `XoTServer/ai/tools/schemas/exercise.ts` and `exerciseTools.ts`.
+
+For a user workflow see [MCP-based training](/features/exercises/mcp-training). None of these actions starts a live phone/Watch session. Weekly-plan authoring and mobility use separate surfaces described below.
 
 ## Actions
 
@@ -22,6 +24,7 @@ The `sparky_manage_exercise` tool supports the following actions:
   - `searchTerm` (string): Name or part of exercise name.
   - `muscleGroup` (string, optional): Muscle group to filter by (e.g., "Chest", "Biceps").
   - `equipment` (string, optional): Equipment to filter by (e.g., "Dumbbell", "None").
+  - `limit`, `offset` (integers, optional): Pagination; inspect the current published schema for bounds.
 
 ### `create_exercise`
 
@@ -31,6 +34,7 @@ The `sparky_manage_exercise` tool supports the following actions:
   - `category` (string, optional): Category (e.g., "Strength", "Cardio").
   - `calories_per_hour` (number, optional): Estimated calories burned per hour.
   - `description` (string, optional): Description of the exercise.
+  - `modality` (optional): `weight_reps`, `reps_only`, `duration` or `duration_distance`.
 
 ### `log_exercise`
 
@@ -39,11 +43,17 @@ The `sparky_manage_exercise` tool supports the following actions:
   - `exercise_id` (string, optional): UUID of the exercise.
   - `exercise_name` (string, optional): Name of the exercise to log (alternative to ID).
   - `entry_date` (string, YYYY-MM-DD): The date the exercise was performed.
+  - `entry_time` (string, optional): Account-local 24-hour entry time.
   - `duration_minutes` (number, optional): Duration of the exercise in minutes.
   - `calories_burned` (number, optional): Calories burned during the exercise.
   - `notes` (string, optional): Any additional notes for the exercise.
+  - `distance` (number, optional): Activity distance in the account's distance unit; this differs from per-set distance in km.
+  - `avg_heart_rate` (integer, optional): bpm.
+  - `steps` (integer, optional): Recorded steps.
   - `sets` (array of objects, optional): Details for multiple sets (e.g., for strength training).
-    - Each set object includes: `reps` (number), `weight` (number, kg), `duration` (number, seconds), `rest_time` (number, seconds), `set_type` (enum: "Working Set", "Warmup", "Drop Set", "Failure").
+    - Set fields: `reps`, `weight` (kg), `duration` (seconds), `distance` (km), `rest_time` (seconds), `set_type` ("Working Set", "Warmup", "Drop Set", "Failure"), `rpe` (0–10), `notes`. Sets may also be supplied as a JSON string. Each weight-reduction segment is a separate drop-set row.
+
+Only record values the user actually supplied or confirmed. Do not turn planned sets or an unknown energy value into a fabricated completed result. A logging timeout can occur after persistence; reread before resending to avoid duplicates.
 
 ### `list_exercise_diary`
 
@@ -66,10 +76,28 @@ The `sparky_manage_exercise` tool supports the following actions:
 ### `log_workout_preset`
 
 - **Description:** Logs a predefined workout preset to the user's exercise diary.
+  It does not start a live session or establish that every planned set was actually performed. Use only for a workout the user confirms they performed, and inspect the resulting diary.
 - **Parameters:**
   - `preset_id` (number, optional): Numeric ID of the workout preset.
   - `preset_name` (string, optional): Name of a preset you own or that is family-shared. Public presets outside those scopes must use `preset_id`.
   - `entry_date` (string, YYYY-MM-DD): The date the preset was performed.
+
+### `create_workout_preset`
+
+- Required: `name`, `exercises` (array or JSON string of `{exercise_id, sets?, superset_group?}`).
+- Optional: `description`, `is_public`.
+- Planned preset sets use the set fields above except `rpe`. Matching positive `superset_group` values group exercises together; exercise IDs come from the library, not invented names.
+
+### `update_exercise_entry`
+
+- Required: `entry_id` (UUID).
+- Optional: `entry_date`, `entry_time`, `duration_minutes`, `calories_burned`, `notes`, `distance`, `avg_heart_rate`, `steps`, `sets`.
+- Only provided scalar fields change. Supplying `sets` replaces the complete set list; read the current diary entry first.
+
+### `get_exercise_details` and `get_exercise_progress`
+
+- Details accepts `exercise_id` or `exercise_name`.
+- Progress accepts the same identity plus optional `start_date`, `end_date`, `limit`, `offset` in the management tool. Dedicated reviewed `sparky_get_exercise_progress` requires explicit range dates.
 
 ### `update_workout_preset`
 
@@ -94,3 +122,17 @@ The `sparky_manage_exercise` tool supports the following actions:
 - **Description:** Deletes a specific exercise entry from the user's diary.
 - **Parameters:**
   - `entry_id` (string): UUID of the exercise entry to delete.
+
+## Weekly plan templates
+
+Full-key `sparky_manage_workout_plans` accepts only `list_workout_plans`, `get_workout_plan` (`plan_id`) and `delete_workout_plan` (`plan_id`). Plan IDs are positive integers. It is not published on the reviewed OAuth/read-only surface; deletion is an immediate mutation, without a `confirmed` field in this contract.
+
+The current formatter only renders preset/exercise names and set counts. Activity-first assignments can appear as “Unknown item” and lose planned duration/distance/time in this text view. Use the app or existing REST contract to inspect them. General plan create/update is an app operation, not an available MCP action. See [Weekly planning](/features/exercises/weekly-planning) and [API reference](/developer/api-reference#activity-first-weekly-workout-plans).
+
+## Mobility
+
+`xot_get_mobility` accepts optional account-local `from`/`to` dates (maximum 93 days) and returns revisioned routines, schedules, plans and sessions. Reads do not create plans.
+
+`xot_update_mobility` uses `Mobility.api.zod.ts`: `{operationId, expectedRevision, mutation}`. New records use revision 0; existing records use their current snapshot revision. Mutation kinds are `routine`, `schedule`, `plan`, `session`, `result`; ingress/state validation limits what a non-phone caller may do. Manual completion uses a `result` for an existing plan, with confirmed outcomes only. It cannot override an active phone session.
+
+Retain `operationId` for the same retry; reread/reconcile conflicts before issuing a changed operation with a new ID. Missing outcomes remain unknown. These records never generate exercise calories or Apple Health workouts.

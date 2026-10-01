@@ -9,6 +9,8 @@ The `sparky_manage_checkin` tool is a primary interface for logging and tracking
 
 **Tool Name:** `sparky_manage_checkin`
 
+This mixed read/write tool belongs to the full API-key registry and configured in-app tools. It is not part of the reviewed read-only/OAuth surface. The retained prefix is an API identifier. These legacy biometric/mood/sleep actions do not complete the separate versioned daily check-in questionnaire; use the app for that flow. Dedicated daily-tracking reads are described in the [MCP overview](/features/mcp-server#daily-tracking-reads).
+
 **Description:** Primary tool for health tracking. Use this to log your WEIGHT, daily step count, height, body measurements (waist, neck, hips), mood, sleep duration/quality, and fasting windows. Supports providing health details across multiple turns.
 
 ## Actions
@@ -16,68 +18,76 @@ The `sparky_manage_checkin` tool is a primary interface for logging and tracking
 The `sparky_manage_checkin` tool supports the following actions:
 
 ### `log_biometrics`
+
 - **Description:** Logs or updates various biometric measurements for a given date.
 - **Parameters:**
-    - `entry_date` (string, YYYY-MM-DD): The date of the record.
-    - `weight` (number, optional): Weight value.
-    - `weight_unit` (enum: "kg", "lbs", "lb", "g", optional): Unit for weight (defaults to kg).
-    - `steps` (number, optional): Daily step count.
-    - `height` (number, optional): Height value.
-    - `height_unit` (enum: "cm", "in", "inch", "ft", optional): Unit for height.
-    - `neck` (number, optional): Neck measurement.
-    - `waist` (number, optional): Waist measurement.
-    - `hips` (number, optional): Hips measurement.
-    - `measurements_unit` (enum: "cm", "in", "inch", optional): Unit for body measurements.
-    - `body_fat` (number, optional): Body fat percentage.
+  - `entry_date` (string, YYYY-MM-DD): The date of the record.
+  - `weight` (number, optional): Weight value.
+  - `weight_unit` (enum: "kg", "lbs", "lb", "g", optional): Unit for weight (defaults to kg).
+  - `steps` (number, optional): Daily step count.
+  - `height` (number, optional): Height value.
+  - `height_unit` (enum: "cm", "in", "inch", "ft", optional): Unit for height.
+  - `neck` (number, optional): Neck measurement.
+  - `waist` (number, optional): Waist measurement.
+  - `hips` (number, optional): Hips measurement.
+  - `measurements_unit` (enum: "cm", "in", "inch", optional): Unit for body measurements.
+  - `body_fat` (number, optional): Body fat percentage.
 
 ### `log_custom_metric`
+
 - **Description:** Logs a value for a user-defined custom health category.
 - **Parameters:**
-    - `category_name` (string): Name of the custom category (e.g., "Blood Pressure").
-    - `value` (string or number): The value to record.
-    - `unit` (string, optional): Unit for the recorded value.
-    - `notes` (string, optional): Optional notes for the entry.
-    - `entry_date` (string, YYYY-MM-DD): The date of the record.
+  - `category_name` (string): Name of the custom category (e.g., "Blood Pressure").
+  - `value` (string or number): The value to record.
+  - `unit` (string, optional): Unit for the recorded value.
+  - `notes` (string, optional): Optional notes for the entry.
+  - `entry_date` (string, YYYY-MM-DD): The date of the record.
 
 ### `list_categories`
+
 - **Description:** Lists all user-defined custom health categories.
 - **Parameters:** None.
 
 ### `create_category`
+
 - **Description:** Creates a new custom health category for logging.
 - **Parameters:**
-    - `category_name` (string): Name of the custom category.
-    - `unit` (string, optional): Unit for the new category.
+  - `category_name` (string): Name of the custom category.
+  - `unit` (string, optional): Unit for the new category.
 
 ### `log_mood`
+
 - **Description:** Logs the user's mood for a specific date.
 - **Parameters:**
-    - `mood_value` (number): Mood score (typically 1-10).
-    - `notes` (string, optional): Optional notes about the mood.
-    - `entry_date` (string, YYYY-MM-DD): The date of the record.
+  - `mood_value` (number): Mood score (typically 1-10).
+  - `notes` (string, optional): Optional notes about the mood.
+  - `entry_date` (string, YYYY-MM-DD): The date of the record.
 
 ### `log_fasting`
+
 - **Description:** Logs a fasting window.
 - **Parameters:**
-    - `start_time` (string, ISO 8601): Start timestamp of the fasting window.
-    - `end_time` (string, ISO 8601, optional): End timestamp of the fasting window.
-    - `fasting_status` (enum: "ACTIVE", "COMPLETED", "CANCELLED", optional): Current status of the fast.
-    - `fasting_type` (string, optional): Type of fasting (e.g., "Intermittent").
+  - `start_time` (string, ISO 8601): Start timestamp of the fasting window.
+  - `end_time` (string, ISO 8601, optional): End timestamp of the fasting window.
+  - `fasting_status` (enum: "ACTIVE", "COMPLETED", "CANCELLED", optional): Current status of the fast.
+  - `fasting_type` (string, optional): Type of fasting (e.g., "Intermittent").
 
 ### `log_sleep`
+
 - **Description:** Logs sleep details for a given date.
 - **Parameters:**
-    - `entry_date` (string, YYYY-MM-DD): The date of the sleep entry.
-    - `duration_seconds` (number, optional): Total sleep duration in seconds.
-    - `sleep_score` (number, optional): Sleep quality score (0-100).
-    - `bedtime` (string, ISO 8601, optional): Bedtime timestamp.
-    - `wake_time` (string, ISO 8601, optional): Wake up timestamp.
-    - `source` (string, optional): Source of data (e.g., "manual", "Garmin", "Fitbit").
+  - `entry_date` (string, YYYY-MM-DD): The date of the sleep entry.
+  - `duration_seconds` (number, optional): Total sleep duration in seconds.
+  - `sleep_score` (number, optional): Sleep quality score (0-100).
+  - `bedtime` (string, ISO 8601, optional): Bedtime timestamp.
+  - `wake_time` (string, ISO 8601, optional): Wake up timestamp.
+  - `source` (string, optional): Source of data (e.g., "manual", "Garmin", "Fitbit").
 
 ### `list_checkin_diary`
+
 - **Description:** Retrieves all logged health check-in entries (biometrics, mood, sleep, custom metrics) for a specific date.
 - **Parameters:**
-    - `entry_date` (string, YYYY-MM-DD, optional): The date to retrieve the diary for. Defaults to today.
+  - `entry_date` (string, YYYY-MM-DD, optional): The date to retrieve the diary for. Defaults to today.
 
 ## Read-only measurement reminder status
 
@@ -85,14 +95,14 @@ The `sparky_manage_checkin` tool supports the following actions:
 
 Each reminder retains its configuration and `due` state and adds:
 
-| Field | Meaning |
-| --- | --- |
-| `measurement_recorded` | A saved value exists on the requested day, including zero. |
-| `value` | Numeric kg for weight; unchanged stored text for a custom measurement. Null when absent. |
-| `unit` | `kg` for weight or the custom category's configured measurement unit. Null when absent. |
-| `measurement_id` | ID of the saved row, or null. |
-| `recorded_at` | Last update timestamp of the selected saved row, or null. |
-| `source` | Stored source for a custom measurement, or null when provenance is unavailable. Weight has no stored provider source. |
+| Field                  | Meaning                                                                                                               |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| `measurement_recorded` | A saved value exists on the requested day, including zero.                                                            |
+| `value`                | Numeric kg for weight; unchanged stored text for a custom measurement. Null when absent.                              |
+| `unit`                 | `kg` for weight or the custom category's configured measurement unit. Null when absent.                               |
+| `measurement_id`       | ID of the saved row, or null.                                                                                         |
+| `recorded_at`          | Last update timestamp of the selected saved row, or null.                                                             |
+| `source`               | Stored source for a custom measurement, or null when provenance is unavailable. Weight has no stored provider source. |
 
 For example, a saved weigh-in yields these fields (illustrative data):
 

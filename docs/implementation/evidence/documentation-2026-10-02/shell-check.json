@@ -1,0 +1,97 @@
+{
+  "externalRequestsBlocked": true,
+  "results": [
+    {
+      "width": 1440,
+      "theme": "light",
+      "dark": false,
+      "scrollWidth": 1440,
+      "hero": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "logo": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "dark": true,
+      "scrollWidth": 1440,
+      "hero": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "logo": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "width": 1440,
+      "search": "MCP-based training",
+      "results": 16,
+      "trainingGuideFound": true
+    },
+    {
+      "width": 390,
+      "theme": "light",
+      "dark": false,
+      "scrollWidth": 390,
+      "hero": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "logo": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "dark": true,
+      "scrollWidth": 390,
+      "hero": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ],
+      "logo": [
+        {
+          "complete": true,
+          "width": 512,
+          "height": 512
+        }
+      ]
+    },
+    {
+      "width": 390,
+      "search": "MCP-based training",
+      "results": 16,
+      "trainingGuideFound": true
+    }
+  ]
+}

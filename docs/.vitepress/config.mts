@@ -87,6 +87,11 @@ export default defineConfig({
           },
           { text: "MCP Server", link: "/features/mcp-server" },
           {
+            text: "Weekly Training & MCP",
+            link: "/features/exercises/mcp-training",
+          },
+          { text: "Notifications", link: "/features/settings/notifications" },
+          {
             text: "Settings & Integrations",
             link: "/features/settings/preferences",
           },
@@ -152,7 +157,10 @@ export default defineConfig({
         {
           text: "Features Overview",
           items: [
-            { text: "Upstream Feature Comparison", link: "/features/comparison" },
+            {
+              text: "Upstream Feature Comparison",
+              link: "/features/comparison",
+            },
             { text: "Features Index", link: "/features/" },
             { text: "Check-in", link: "/features/check-in" },
             { text: "Reports", link: "/features/reports" },
@@ -206,6 +214,14 @@ export default defineConfig({
           collapsed: false,
           items: [
             {
+              text: "Weekly Training Plans",
+              link: "/features/exercises/weekly-planning",
+            },
+            {
+              text: "MCP-based Training",
+              link: "/features/exercises/mcp-training",
+            },
+            {
               text: "Exercise Database Manager",
               link: "/features/exercises/exercise-database-manager",
             },
@@ -223,6 +239,8 @@ export default defineConfig({
           text: "Settings & Integrations",
           collapsed: true,
           items: [
+            { text: "Settings Overview", link: "/features/user-settings" },
+            { text: "Notifications", link: "/features/settings/notifications" },
             { text: "Preferences", link: "/features/settings/preferences" },
             {
               text: "Calculation Settings",
@@ -294,6 +312,10 @@ export default defineConfig({
           text: "Mobile Application",
           items: [
             { text: "Mobile App Guide", link: "/mobile-app/mobile-app" },
+            {
+              text: "Widgets & Live Activities",
+              link: "/mobile-app/widgets-live-activities",
+            },
             { text: "Proxy Setup", link: "/mobile-app/proxy-setup" },
             { text: "Troubleshooting", link: "/mobile-app/troubleshooting" },
           ],
@@ -311,6 +333,10 @@ export default defineConfig({
             },
             { text: "Database Schema & Tables", link: "/developer/database" },
             { text: "API Reference", link: "/developer/api-reference" },
+            {
+              text: "Notification Delivery & OAuth",
+              link: "/developer/engagement-delivery",
+            },
             { text: "Troubleshooting", link: "/developer/troubleshooting" },
             { text: "Testing Guide", link: "/developer/testing" },
             { text: "Translations Guide", link: "/developer/translations" },
@@ -363,7 +389,10 @@ export default defineConfig({
             { text: "Exercise MCP", link: "/developer/mcp/exercise" },
             { text: "Check-in MCP", link: "/developer/mcp/checkin" },
             { text: "Coach MCP", link: "/developer/mcp/coach" },
-            { text: "Engagement MCP", link: "/developer/mcp/engagement" },
+            {
+              text: "Notifications & Engagement MCP",
+              link: "/developer/mcp/engagement",
+            },
             { text: "Vision MCP", link: "/developer/mcp/vision" },
           ],
         },
