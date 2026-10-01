@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 X on Track Frontend is the React web app for the X on Track monorepo. Use this file as the primary guide for work inside `XoTFrontend/`.
 
@@ -122,3 +122,7 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.
+
+## Micronutrient reports
+
+`src/pages/Reports/MicronutrientCoverage.tsx` displays recorded averages and known/eligible entry counts through `useNutrientCoverage` in the Reports hook/API layers. Coverage has its own response contract and stays outside legacy dynamic numeric trend keys. Provider saves and diary mutations invalidate definitions, preferences, goals and dependent report queries. Local Vite supports `VITE_BACKEND_PORT` (default 3010) for isolated worktrees.

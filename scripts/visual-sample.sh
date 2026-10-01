@@ -5,9 +5,9 @@ repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 state_dir="$repo_dir/.visual-sample"
 db_dir="$state_dir/postgres"
 env_file="$state_dir/config.env"
-db_port=55432
-server_port=3010
-frontend_port=8080
+db_port="${VISUAL_SAMPLE_DB_PORT:-55432}"
+server_port="${VISUAL_SAMPLE_SERVER_PORT:-3010}"
+frontend_port="${VISUAL_SAMPLE_FRONTEND_PORT:-8080}"
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {
@@ -138,7 +138,7 @@ start_sample() {
 
   (
     cd "$repo_dir/XoTFrontend"
-    nohup ./node_modules/.bin/vite --host 127.0.0.1 \
+    VITE_BACKEND_PORT="$SPARKY_FITNESS_SERVER_PORT" nohup ./node_modules/.bin/vite --host 127.0.0.1 \
       --port "$frontend_port" --strictPort \
       > "$state_dir/frontend.log" 2>&1 < /dev/null &
     echo "$!" > "$state_dir/frontend.pid"

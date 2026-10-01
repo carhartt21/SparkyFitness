@@ -1,3 +1,4 @@
+import { invalidateNutritionCaches } from './invalidateNutritionCaches';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   caffeineActiveQueryKey,
@@ -12,6 +13,16 @@ export function invalidateFoodCache(
   queryClient: QueryClient,
   entryDate?: string
 ) {
+  invalidateNutritionCaches(queryClient);
+  for (const queryKey of [
+    ['foodSearch'],
+    ['foodsLibrary'],
+    ['favorites'],
+    ['foodVariants'],
+    ['meals'],
+    ['mealPlans'],
+  ])
+    void queryClient.invalidateQueries({ queryKey });
   if (entryDate) {
     void queryClient.invalidateQueries({
       queryKey: dailySummaryQueryKey(entryDate),

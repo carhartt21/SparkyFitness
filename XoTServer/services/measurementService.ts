@@ -395,11 +395,7 @@ async function processHealthData(
         skipped.push({ reason: outcome.reason, entry: dataEntry });
       }
     } catch (error) {
-      log(
-        'error',
-        `Error processing health data entry ${JSON.stringify(dataEntry)}:`,
-        error
-      );
+      log('error', 'Error processing health data entry:', error);
       errors.push({
         // @ts-expect-error TS(2571): Object is of type 'unknown'.
         error: `Failed to process entry: ${error.message}`,

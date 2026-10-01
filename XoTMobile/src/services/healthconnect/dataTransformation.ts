@@ -1,3 +1,8 @@
+import { MICRONUTRIENT_SYNC_ENABLED } from '../shared/micronutrientFeature';
+import {
+  NATIVE_MICRONUTRIENT_MAPPINGS,
+  type HealthNutrientQuantity,
+} from '@workspace/shared';
 import { addLog } from '../LogService';
 import { attachWorkoutTelemetry } from '../shared/workoutTelemetryPayload';
 import {
@@ -593,6 +598,18 @@ const DIRECT_TRANSFORMERS: Record<string, DirectTransformer> = {
       ...extractTimezoneMetadata(rec),
     };
 
+    const quantities: HealthNutrientQuantity[] = [];
+    for (const mapping of MICRONUTRIENT_SYNC_ENABLED
+      ? NATIVE_MICRONUTRIENT_MAPPINGS
+      : []) {
+      const amount = extractMassGrams(rec, mapping.healthConnectField);
+      // Health Connect represents absent optional mass as zero; zero cannot
+      // establish known coverage on this platform.
+      if (amount != null && amount > 0 && Number.isFinite(amount))
+        quantities.push({ catalogId: mapping.catalogId, amount, unit: 'g' });
+    }
+    if (quantities.length)
+      entry.nutrient_observation = { mode: 'partial', quantities };
     const calories = extractEnergyKcal(rec, 'energy');
     if (calories != null) entry.calories = calories;
 

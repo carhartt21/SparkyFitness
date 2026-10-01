@@ -196,7 +196,7 @@ The review re-ran each finding against `main` at `ce840f415`. All confirmed-beha
 
 The original investigation changed no runtime code, schema, or production data. Feature-wide checks above remain planned validation; results for the first implementation increment are recorded below.
 
-## Implementation progress 2026-10-01
+## First implementation increment 2026-10-01
 
 The six follow-up review issues are resolved as design decisions above. Initial implementation uses branch `feat/micronutrient-coverage`, based on the reviewed `main` revision, in an isolated worktree. The first increment implements strict shared unit conversion, removes unsafe raw-value fallback in server/web provider matching, and adds validated observation contracts and replay behavior. It does not enable native collection, automatic provisioning, schema binding, or historical repair. Those remain gated by the corresponding persistence, permission, and physical-device tests.
 
@@ -213,3 +213,9 @@ Validation results for the first increment:
 - Mobile HealthKit/Health Connect transformation suites: 221 tests passed using Watchman-disabled Jest.
 - Server, web, and mobile `pnpm run validate` passed; docs `pnpm run build` passed. Shared changed TypeScript files passed the explicit Prettier check, and the patch passed `git diff --check`.
 - No physical-device checks, migration/database integration tests, native collection rollout, or production deployment were performed. Skipped database suites are not counted as passes.
+
+## Completed implementation and release gates
+
+All six code phases are implemented on `feat/micronutrient-coverage`: pinned source inventory, catalog bindings and strict conversions, transactional native/BLS ingestion, native collection/background/writeback, explicit coverage in web/mobile, and bounded historical repair/replay. The earlier increment record above describes its historical state. Current validation and operational instructions are in [the rollout record](./micronutrient-coverage-rollout-2026-10-01.md).
+
+Two conservative choices refine the plan: existing definition names/units are immutable even before a reference is detected, because concurrent name-keyed consumers and RLS-hidden snapshots cannot safely participate in a rename; aliases remain editable. Completed native imports reuse the existing explicit Start Over controls and resumable 30-day windows rather than adding a second replay engine. Native SDK compilation and adapter tests are complete; actual iOS/Android permission prompts, observer delivery and visual checks remain release gates requiring a device/emulator. Production deployment is outside this PR.

@@ -5,6 +5,8 @@ export interface UserCustomNutrient {
   id: string;
   name: string;
   unit: string;
+  catalog_id?: string | null;
+  archived?: boolean;
 }
 
 /**

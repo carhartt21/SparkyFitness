@@ -148,15 +148,13 @@ export const useDeleteFoodMutation = () => {
   });
 };
 export const useCreateFoodMutation = () => {
-  const queryClient = useQueryClient();
+  const invalidate = useFoodEntryInvalidation();
   const { t } = useTranslation();
   return useMutation({
     mutationFn: ({ foodData }: { foodData: FoodEntryCreateData }) =>
       createFoodEntry(foodData),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: foodKeys.all,
-      });
+      invalidate();
     },
     meta: {
       errorMessage: t(
@@ -172,14 +170,12 @@ export const useCreateFoodMutation = () => {
 };
 
 export const useCreateFoodDatabaseItemMutation = () => {
-  const queryClient = useQueryClient();
+  const invalidate = useFoodEntryInvalidation();
   return useMutation({
     mutationFn: (payload: Parameters<typeof createFood>[0]) =>
       createFood(payload),
     onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: foodKeys.all,
-      });
+      invalidate();
     },
   });
 };

@@ -210,3 +210,15 @@ export * from "./mobility/planning.ts";
 export * from "./engagement/policy.ts";
 export * from "./schemas/api/HealthNutrition.api.zod.ts";
 export * from "./nutrients/healthNutritionObservation.ts";
+
+export { BLS_COMPONENT_MANIFEST } from "./nutrients/blsComponentManifest.ts";
+
+export { NATIVE_MICRONUTRIENT_MAPPINGS } from "./nutrients/nativeMicronutrientMappings.ts";
+
+export {
+  nutrientCoverageSchema,
+  averageRecordedNutrient,
+  type NutrientCoverage,
+} from "./nutrients/nutrientCoverage.ts";
+
+export { convertCatalogNutrientAmount } from "./nutrients/catalogUnitConversion.ts";

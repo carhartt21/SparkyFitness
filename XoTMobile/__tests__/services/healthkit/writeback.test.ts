@@ -258,18 +258,14 @@ describe('writebackPhase', () => {
     mockDeleteObjects.mockRejectedValue(new Error('permission revoked'));
     await writebackPhase(['2026-06-01']);
 
-    // Old UUIDs we couldn't delete are kept alongside the freshly-written ones, so a later
-    // run retries the delete rather than orphaning them in HealthKit.
+    // Retry deletion before writing replacements, preventing duplicate samples.
     const map = store['writebackNutritionUuids:2026-06-01'] as Record<
       string,
       string[]
     >;
-    expect(map[ENERGY]).toEqual(
-      expect.arrayContaining(['obj-energy', 'old-energy'])
-    );
-    expect(map[FOOD_CORRELATION]).toEqual(
-      expect.arrayContaining(['corr-1', 'old-corr'])
-    );
+    expect(map[ENERGY]).toEqual(['old-energy']);
+    expect(map[FOOD_CORRELATION]).toEqual(['old-corr']);
+    expect(mockSaveCorrelation).not.toHaveBeenCalled();
     // Signature withheld so the next run re-enters and retries the delete.
     expect(store['writebackNutritionSig:2026-06-01']).toBeUndefined();
   });

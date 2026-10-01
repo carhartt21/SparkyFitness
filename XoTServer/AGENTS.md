@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 X on Track Server is the backend API package for the X on Track monorepo. Use this file as the primary guide for work inside `XoTServer/`.
 
@@ -25,7 +25,7 @@ If a task also touches `shared/`, the frontend, or the mobile app, read the rele
 - Dev boot path: `pnpm start` -> `nodemon` -> `tsx index.ts`
 - `index.ts` loads `../.env`, applies file-backed secrets, runs preflight checks, calls `initializeDatabase()` for migrations and RLS policies, then imports `XoTServer.ts`
 - Main app shell: `XoTServer.ts`
-- Stack: Express 5, PostgreSQL via `pg`, Better Auth, Zod, TypeScript 5, Vitest 4, ESLint 10
+- Stack: Express 5, PostgreSQL via `pg`, Better Auth, Zod, TypeScript 6, Vitest 5, ESLint 10
 - Module system: ESM with `type: "module"` and `moduleResolution: "NodeNext"`
 - The package is now effectively TypeScript-first; almost all source files are `.ts`
 - Main domains: food and meal tracking, exercise logging, health and sleep data, sleep science, fasting, medications, mood, menstrual cycle and pregnancy, reporting, AI chat, onboarding, identity, admin tooling, and external provider integrations
@@ -315,3 +315,7 @@ Before adding a feature or changing auth/permission behavior, read:
 Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes. Mobility snapshot reads are read-only; occurrence creation belongs to definition writes and the explicit periodic planner, never GET/MCP reads. Session provenance names a trusted API/MCP ingress, not proof of the device platform. Local history retention must never queue server deletions.
+
+## Micronutrient ingestion and coverage
+
+`services/nutrientObservationService.ts` resolves the bounded shared catalog in caller-owned transactions. Native ingestion is partial and preserves each source record independently; diary delegates write standalone snapshots without library mutation. `GET /api/reports/nutrient-coverage` and `models/nutrientCoverageRepository.ts` expose known/eligible counts separately from numeric trend keys. BLS imports reload trusted source values; `scripts/repair_bls_micronutrients.ts` defaults to a bounded, rolled-back dry run. See `../docs/implementation/micronutrient-coverage-rollout-2026-10-01.md` for flags, repair restrictions, replay and verification.

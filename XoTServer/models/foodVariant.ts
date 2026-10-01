@@ -1,3 +1,4 @@
+import type { FoodVariantInput } from '../types/nutrition.js';
 import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
 // @ts-expect-error TS(7016): Could not find a declaration file for module 'pg-f... Remove this comment to see the full error message
@@ -114,14 +115,20 @@ async function getFoodVariantsByFoodId(foodId: any, userId: any) {
     client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function updateFoodVariant(id: any, variantData: any, userId: any) {
+async function updateFoodVariant(
+  id: string | undefined,
+  variantData: FoodVariantInput,
+  userId: string
+) {
+  if (!id)
+    throw Object.assign(new Error('A variant ID is required'), { status: 400 });
   // For update operations, we need the user_id of the food owner to ensure RLS is applied correctly.
   const client = await getClient(userId); // User-specific operation
   try {
     const hasAiConfidence = variantData.ai_confidence !== undefined;
     const result = await client.query(
       `UPDATE food_variants SET
+        provider_dataset_sha256 = NULL,
         food_id = COALESCE($1, food_id),
         serving_size = COALESCE($2, serving_size),
         serving_unit = COALESCE($3, serving_unit),

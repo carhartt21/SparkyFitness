@@ -1,3 +1,10 @@
+import type { PoolClient } from 'pg';
+import { getClient } from '../db/poolManager.js';
+import { resolveNutrientQuantities } from './nutrientObservationService.js';
+import {
+  healthNutritionObservationSchema,
+  type HealthNutritionObservation,
+} from '@workspace/shared';
 import { log } from '../config/logging.js';
 import measurementRepository from '../models/measurementRepository.js';
 import exerciseDb from '../models/exercise.js';
@@ -328,14 +335,18 @@ function resolveProvider(source: string | undefined): {
 // source_id), so re-syncing the same record updates in place — which lets the
 // client chunk freely without a destructive range-delete.
 async function ingestNutritionFoodEntry(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  dataEntry: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  userId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  actingUserId: any,
+  dataEntry: {
+    source: string;
+    source_id?: string;
+    food_name?: string;
+    meal_type?: string;
+    nutrient_observation?: HealthNutritionObservation;
+  } & Partial<Record<(typeof NUTRITION_DIRECT_COLUMNS)[number], number>>,
+  userId: string,
+  actingUserId: string,
   parsedDate: string
 ) {
+  const startedAt = performance.now();
   const { providerType, fallbackName } = resolveProvider(dataEntry.source);
   const trimmedName =
     typeof dataEntry.food_name === 'string' ? dataEntry.food_name.trim() : '';
@@ -352,63 +363,131 @@ async function ingestNutritionFoodEntry(
     nutrients[field] = dataEntry[field] ?? null;
   }
 
-  // Reuse this provider's food for the same external id if present (refreshing its
-  // variant to the latest values), else create it. The provider_type scoping
-  // keeps user-authored library foods untouched.
-  let food = await foodRepository.findFoodByProviderExternalId(
-    userId,
-    providerExternalId,
-    providerType
-  );
-  let variantId = food?.default_variant_id ?? food?.default_variant?.id;
-  if (food && variantId) {
-    await foodRepository.updateFoodVariantNutrition(variantId, userId, {
-      serving_size: 1,
-      serving_unit: 'serving',
-      ...nutrients,
-    });
-  } else {
-    food = await foodRepository.createFood({
-      name: foodName,
-      user_id: userId,
-      is_custom: false,
-      // Hidden from food search (these are diary-only provider entries, and the
-      // generic fallback food name would otherwise clutter results).
-      is_quick_food: true,
-      provider_type: providerType,
-      provider_external_id: providerExternalId,
-      shared_with_public: false,
-      // food_variants.source is constrained to manual|ai_estimate|imported.
-      source: 'imported',
-      serving_size: 1,
-      serving_unit: 'serving',
-      ...nutrients,
-    });
-    variantId = food.default_variant_id ?? food.default_variant?.id;
+  const observation =
+    dataEntry.nutrient_observation === undefined
+      ? undefined
+      : healthNutritionObservationSchema.parse(dataEntry.nutrient_observation);
+  if (observation?.mode === 'authoritative') {
+    throw Object.assign(
+      new Error('Native nutrition observations must be partial'),
+      { status: 400 }
+    );
   }
+  const client: PoolClient = await getClient(userId, actingUserId);
+  try {
+    await client.query('BEGIN');
+    await client.query(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 27))',
+      [userId]
+    );
+    const previous = await client.query<
+      {
+        custom_nutrients: Record<string, number>;
+      } & Partial<
+        Record<(typeof NUTRITION_DIRECT_COLUMNS)[number], number | null>
+      >
+    >(
+      `SELECT custom_nutrients, ${NUTRITION_DIRECT_COLUMNS.join(', ')} FROM food_entries WHERE user_id = $1 AND source = $2 AND source_id = $3 FOR UPDATE`,
+      [userId, providerType, dataEntry.source_id]
+    );
+    for (const field of NUTRITION_DIRECT_COLUMNS) {
+      nutrients[field] = dataEntry[field] ?? previous.rows[0]?.[field] ?? null;
+    }
+    const resolved = await resolveNutrientQuantities(
+      client,
+      userId,
+      process.env.MICRONUTRIENT_IMPORT_ENABLED === 'false'
+        ? []
+        : (observation?.quantities ?? [])
+    );
+    // Reuse this provider's food for the same external id if present (refreshing its
+    // variant to the latest values), else create it. The provider_type scoping
+    // keeps user-authored library foods untouched.
+    let food =
+      actingUserId === userId
+        ? await foodRepository.findFoodByProviderExternalId(
+            userId,
+            providerExternalId,
+            providerType,
+            client
+          )
+        : null;
+    let variantId = food?.default_variant_id ?? food?.default_variant?.id;
+    if (food && variantId) {
+      await foodRepository.updateFoodVariantNutrition(
+        variantId,
+        userId,
+        {
+          serving_size: 1,
+          serving_unit: 'serving',
+          ...nutrients,
+        },
+        client
+      );
+    } else if (actingUserId === userId) {
+      food = await foodRepository.createFoodWithClient(client, {
+        name: foodName,
+        user_id: userId,
+        is_custom: false,
+        // Hidden from food search (these are diary-only provider entries, and the
+        // generic fallback food name would otherwise clutter results).
+        is_quick_food: true,
+        provider_type: providerType,
+        provider_external_id: providerExternalId,
+        shared_with_public: false,
+        // food_variants.source is constrained to manual|ai_estimate|imported.
+        source: 'imported',
+        serving_size: 1,
+        serving_unit: 'serving',
+        ...nutrients,
+      });
+      variantId = food.default_variant_id ?? food.default_variant?.id;
+    }
 
-  // The consumed nutrients are passed through as snapshot overrides so the entry
-  // keeps its own values; createFoodEntry upserts on (user, source, source_id).
-  return foodRepository.createFoodEntry(
-    {
-      user_id: userId,
-      food_id: food.id,
-      variant_id: variantId,
-      quantity: 1,
-      unit: 'serving',
-      entry_date: parsedDate,
-      meal_type: dataEntry.meal_type || 'snacks',
-      serving_size: 1,
-      serving_unit: 'serving',
-      food_name: foodName,
-      ...nutrients,
-      // Idempotency key. Tagged with the provider tag (not the client's display
-      // label) so it stays consistent with the food's provider_type.
+    // The consumed nutrients are passed through as snapshot overrides so the entry
+    // keeps its own values; createFoodEntry upserts on (user, source, source_id).
+    const result = await foodRepository.createFoodEntry(
+      {
+        user_id: userId,
+        food_id: food?.id,
+        variant_id: variantId,
+        quantity: 1,
+        unit: 'serving',
+        entry_date: parsedDate,
+        meal_type: dataEntry.meal_type || 'snacks',
+        serving_size: 1,
+        serving_unit: 'serving',
+        food_name: foodName,
+        ...nutrients,
+        ...resolved.fixed,
+        custom_nutrients: {
+          ...previous.rows[0]?.custom_nutrients,
+          ...resolved.custom,
+        },
+        // Idempotency key. Tagged with the provider tag (not the client's display
+        // label) so it stays consistent with the food's provider_type.
+        source: providerType,
+        source_id: dataEntry.source_id || null,
+      },
+      actingUserId,
+      client
+    );
+    await client.query('COMMIT');
+    log('info', 'Native micronutrient ingestion', {
       source: providerType,
-      source_id: dataEntry.source_id || null,
-    },
-    actingUserId
-  );
+      mapped: observation?.quantities.length ?? 0,
+      persisted:
+        Object.keys(resolved.custom).length +
+        Object.keys(resolved.fixed).length,
+      durationMs: Math.round(performance.now() - startedAt),
+    });
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
 // ── Registry types ─────────────────────────────────────────────────────────
@@ -1757,7 +1836,7 @@ const nutritionHandler: HealthTypeHandler = {
     if (!entry.source_id) {
       log(
         'warn',
-        `[processHealthData] Skipping Nutrition record without source_id (cannot dedupe): '${entry.food_name || 'unnamed'}'`
+        '[processHealthData] Skipping Nutrition record without source_id (cannot dedupe)'
       );
       return {
         status: 'skipped',
@@ -1778,7 +1857,10 @@ const nutritionHandler: HealthTypeHandler = {
         nutritionError instanceof Error
           ? nutritionError.message
           : String(nutritionError);
-      log('error', `Error processing Nutrition entry: ${errMsg}`, entry);
+      log(
+        'error',
+        'Native nutrition ingestion failed; observation was not saved'
+      );
       return {
         status: 'error',
         error: `Failed to process Nutrition entry: ${errMsg}`,

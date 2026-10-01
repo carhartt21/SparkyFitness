@@ -1,3 +1,4 @@
+import { nutrientCoverageSchema } from '@workspace/shared';
 import { apiCall } from '@/api/api';
 import { ExerciseDashboardData, ReportResponse } from '@/types/reports';
 import type {
@@ -76,3 +77,16 @@ export const getHydrationNutritionRange = async (
   );
   return response;
 };
+
+export async function loadNutrientCoverage(
+  startDate: string,
+  endDate: string,
+  userId: string
+) {
+  return nutrientCoverageSchema.parse(
+    await apiCall(
+      `/reports/nutrient-coverage?${new URLSearchParams({ startDate, endDate, userId })}`,
+      { method: 'GET' }
+    )
+  );
+}

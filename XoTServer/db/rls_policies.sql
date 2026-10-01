@@ -235,10 +235,10 @@ $function$;
 CREATE OR REPLACE FUNCTION has_diary_access(owner_uuid uuid) RETURNS bool
 LANGUAGE sql STABLE
 AS $function$
-  SELECT authenticated_user_id() = owner_uuid OR EXISTS (
+  SELECT public.authenticated_user_id() = owner_uuid OR EXISTS (
     SELECT 1 FROM public.family_access fa
     WHERE fa.owner_user_id = owner_uuid
-    AND fa.family_user_id = authenticated_user_id()
+    AND fa.family_user_id = public.authenticated_user_id()
     AND fa.is_active = true
     AND (fa.access_end_date IS NULL OR fa.access_end_date > now())
     AND (fa.access_permissions->>'can_manage_diary')::boolean = true
@@ -617,6 +617,19 @@ CREATE POLICY modify_policy ON public.user_preferences FOR ALL TO PUBLIC
 USING (authenticated_user_id() = user_id)
 WITH CHECK (authenticated_user_id() = user_id);
 
+-- Narrow guard for orphaned nutrition keys, including hidden supplement history.
+CREATE OR REPLACE FUNCTION public.nutrient_key_is_reserved(owner_uuid uuid, nutrient_key text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog AS $$
+  SELECT CASE WHEN public.has_diary_access(owner_uuid) THEN (
+    EXISTS (SELECT 1 FROM public.food_entries WHERE user_id = owner_uuid AND custom_nutrients ? nutrient_key)
+    OR EXISTS (SELECT 1 FROM public.medication_entries WHERE user_id = owner_uuid AND nutrients_snapshot->'custom_nutrients' ? nutrient_key)
+    OR EXISTS (SELECT 1 FROM public.medications WHERE user_id = owner_uuid AND nutrients->'custom_nutrients' ? nutrient_key)
+    OR EXISTS (SELECT 1 FROM public.user_goals WHERE user_id = owner_uuid AND custom_nutrients ? nutrient_key)
+    OR EXISTS (SELECT 1 FROM public.goal_presets WHERE user_id = owner_uuid AND custom_nutrients ? nutrient_key)
+    OR EXISTS (SELECT 1 FROM public.food_variants v JOIN public.foods f ON f.id = v.food_id WHERE f.user_id = owner_uuid AND v.custom_nutrients ? nutrient_key)
+  ) ELSE true END;
+$$;
+
 SELECT create_diary_policy('user_goals');
 SELECT create_diary_policy('weekly_goal_plans');
 -- user_water_containers now references foods / food_variants / meal_types
@@ -832,6 +845,19 @@ WITH CHECK (
     (meal_id IS NOT NULL AND EXISTS (SELECT 1 FROM public.meals m WHERE m.id = food_entries.meal_id))
   )
 );
+-- Native diary delegates write standalone snapshots without editing the owner's library.
+CREATE POLICY food_entries_native_snapshot_insert_policy
+ON public.food_entries FOR INSERT TO PUBLIC
+WITH CHECK (
+  has_diary_access(user_id)
+  AND source IN ('healthkit', 'health_connect')
+  AND source_id IS NOT NULL AND length(source_id) BETWEEN 1 AND 512
+  AND food_id IS NULL AND meal_id IS NULL
+  AND food_name IS NOT NULL AND btrim(food_name) <> ''
+  AND quantity = 1 AND serving_size = 1
+  AND EXISTS (SELECT 1 FROM public.meal_types mt WHERE mt.id = food_entries.meal_type_id AND (mt.user_id = food_entries.user_id OR mt.user_id IS NULL))
+);
+
 -- These standalone logging-time snapshots are only writable by their owner.
 -- Keep this here, not solely in a migration: startup purges all policies.
 CREATE POLICY food_entries_offline_snapshot_insert_policy

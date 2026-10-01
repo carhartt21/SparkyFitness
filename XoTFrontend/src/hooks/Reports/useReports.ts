@@ -7,6 +7,7 @@ import {
   getAlcoholWeekReport,
   getHydrationNutritionRange,
   loadReportsData,
+  loadNutrientCoverage,
 } from '@/api/Reports/reportsService';
 import { parseStressMeasurement } from '@/utils/reportUtil';
 import { useQuery } from '@tanstack/react-query';
@@ -184,3 +185,21 @@ export const useHydrationNutritionRange = (
     },
   });
 };
+
+export function useNutrientCoverage(
+  startDate: string,
+  endDate: string,
+  userId: string | null
+) {
+  return useQuery({
+    queryKey: [
+      ...reportKeys.all,
+      'nutrientCoverage',
+      startDate,
+      endDate,
+      userId,
+    ],
+    enabled: !!userId,
+    queryFn: () => loadNutrientCoverage(startDate, endDate, userId!),
+  });
+}

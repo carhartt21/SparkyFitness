@@ -40,7 +40,7 @@ async function getNutritionData(
       .map((cn, idx) => {
         const ident = cn.name.replace(/"/g, '""');
         const paramIdx = customNutrientParamIndexes[idx];
-        return `(COALESCE(NULLIF(fe.custom_nutrients->>$${paramIdx}, '')::numeric, 0) * fe.quantity / fe.serving_size) AS "${ident}"`;
+        return `(COALESCE(public.sf_try_numeric(fe.custom_nutrients->>$${paramIdx}), 0) * fe.quantity / fe.serving_size) AS "${ident}"`;
       })
       .join(',\n           ');
     // Note: fe_meal.quantity is already scaled, so do NOT multiply by fem.quantity
@@ -52,7 +52,7 @@ async function getNutritionData(
       .map((cn, idx) => {
         const ident = cn.name.replace(/"/g, '""');
         const paramIdx = customNutrientParamIndexes[idx];
-        return `SUM(COALESCE(NULLIF(fe_meal.custom_nutrients->>$${paramIdx}, '')::numeric, 0) * fe_meal.quantity / fe_meal.serving_size) AS "${ident}"`;
+        return `SUM(COALESCE(public.sf_try_numeric(fe_meal.custom_nutrients->>$${paramIdx}), 0) * fe_meal.quantity / fe_meal.serving_size) AS "${ident}"`;
       })
       .join(',\n           ');
     // Each snapshot holds ONE dose's payload; multiply by the dose count taken in this
@@ -147,7 +147,7 @@ async function getTabularFoodData(
         const ident = cn.name.replace(/"/g, '""');
         params.push(cn.name);
         const paramIdx = params.length;
-        return `(COALESCE(NULLIF(fe.custom_nutrients->>$${paramIdx}, '')::numeric, 0) * fe.quantity / fe.serving_size) AS "${ident}"`;
+        return `(COALESCE(public.sf_try_numeric(fe.custom_nutrients->>$${paramIdx}), 0) * fe.quantity / fe.serving_size) AS "${ident}"`;
       })
       .join(',\n          ');
     const customNutrientsSelectOuter = customNutrients
@@ -437,7 +437,7 @@ async function getMiniNutritionTrends(
       .map((cn, idx) => {
         const ident = cn.name.replace(/"/g, '""');
         const paramIdx = customNutrientParamIndexes[idx];
-        return `(COALESCE(NULLIF(fe.custom_nutrients->>$${paramIdx}, '')::numeric, 0) * fe.quantity / fe.serving_size) AS "${ident}"`;
+        return `(COALESCE(public.sf_try_numeric(fe.custom_nutrients->>$${paramIdx}), 0) * fe.quantity / fe.serving_size) AS "${ident}"`;
       })
       .join(',\n           ');
     // Note: fe_meal.quantity is already scaled, so do NOT multiply by fem.quantity
@@ -445,7 +445,7 @@ async function getMiniNutritionTrends(
       .map((cn, idx) => {
         const ident = cn.name.replace(/"/g, '""');
         const paramIdx = customNutrientParamIndexes[idx];
-        return `SUM(COALESCE(NULLIF(fe_meal.custom_nutrients->>$${paramIdx}, '')::numeric, 0) * fe_meal.quantity / fe_meal.serving_size) AS "${ident}"`;
+        return `SUM(COALESCE(public.sf_try_numeric(fe_meal.custom_nutrients->>$${paramIdx}), 0) * fe_meal.quantity / fe_meal.serving_size) AS "${ident}"`;
       })
       .join(',\n           ');
     const result = await client.query(

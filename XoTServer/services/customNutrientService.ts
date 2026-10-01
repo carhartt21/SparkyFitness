@@ -85,14 +85,35 @@ class CustomNutrientService {
         // from views they had deliberately hidden it from. The racing writers both
         // supply identical values, so the loser simply skips the setup the winner did.
         `INSERT INTO user_custom_nutrients (id, user_id, name, unit, aliases)
-                     VALUES ($1, $2, $3, $4, $5::jsonb)
+                     SELECT $1, $2, $3, $4, $5::jsonb
+                     WHERE NOT public.nutrient_key_is_reserved($2::uuid, $3)
+                        OR EXISTS (SELECT 1 FROM user_custom_nutrients WHERE user_id = $2 AND name = $3)
                      ON CONFLICT (user_id, name)
                      DO UPDATE SET name = EXCLUDED.name
                      RETURNING *, (xmax = 0) AS inserted`,
         [id, userId, name, unit, JSON.stringify(sanitizeAliases(aliases))]
       );
+      if (!result.rows[0])
+        throw Object.assign(
+          new Error(
+            'Historical nutrient unit requires review before recreating this name'
+          ),
+          { status: 409 }
+        );
       const wasInserted = result.rows[0]?.inserted === true;
       if (!wasInserted) {
+        if (result.rows[0]?.unit !== unit)
+          throw Object.assign(
+            new Error('This nutrient name is reserved with a different unit'),
+            { status: 409 }
+          );
+        if (result.rows[0]?.archived) {
+          await client.query(
+            'UPDATE user_custom_nutrients SET archived = false WHERE id = $1 AND user_id = $2',
+            [result.rows[0].id, userId]
+          );
+          result.rows[0].archived = false;
+        }
         log(
           'info',
           `Custom nutrient already existed: ${name} for user ${userId}; skipping view and goal setup`
@@ -161,7 +182,7 @@ class CustomNutrientService {
     try {
       const result = await client.query(
         `SELECT * FROM user_custom_nutrients
-                     WHERE user_id = $1`,
+                     WHERE user_id = $1 AND archived = false`,
         [userId]
       );
       log(
@@ -305,10 +326,26 @@ class CustomNutrientService {
     const client = await getClient(userId);
     try {
       const previousRes = await client.query(
-        'SELECT name FROM user_custom_nutrients WHERE id = $1 AND user_id = $2',
+        'SELECT name, unit, catalog_id FROM user_custom_nutrients WHERE id = $1 AND user_id = $2',
         [id, userId]
       );
       const previousName = previousRes.rows[0]?.name;
+      const previous = previousRes.rows[0] as
+        { name: string; unit: string; catalog_id: string | null } | undefined;
+      if (
+        previous &&
+        ((name !== undefined && name !== previous.name) ||
+          (unit !== undefined && unit !== previous.unit))
+      ) {
+        // Until every name-keyed consumer supports an atomic rename, keep the
+        // retained identity stable. This also protects history hidden by RLS.
+        throw Object.assign(
+          new Error(
+            'Nutrient names and units cannot be changed; create a new definition instead'
+          ),
+          { status: 409 }
+        );
+      }
       // `aliases` omitted (undefined) keeps the existing value; an explicit
       // array (including []) replaces it.
       const aliasesParam =
@@ -380,7 +417,9 @@ class CustomNutrientService {
       await client.query('BEGIN');
       // 2. Remove the definition
       await client.query(
-        'DELETE FROM user_custom_nutrients WHERE id = $1 AND user_id = $2',
+        deleteAllHistory
+          ? 'DELETE FROM user_custom_nutrients WHERE id = $1 AND user_id = $2'
+          : 'UPDATE user_custom_nutrients SET archived = true, updated_at = NOW() WHERE id = $1 AND user_id = $2',
         [id, userId]
       );
       // Remove from nutrient goal direction preferences (Always)

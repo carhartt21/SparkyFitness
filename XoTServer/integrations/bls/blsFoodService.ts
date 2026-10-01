@@ -1,12 +1,19 @@
 import { getClient } from '../../db/poolManager.js';
 import type { FoodVariant } from '../../schemas/foodSchemas.js';
-import { foodSearchTokens } from '@workspace/shared';
+import {
+  foodSearchTokens,
+  BLS_COMPONENT_MANIFEST,
+  healthMicronutrientIdSchema,
+  type HealthNutrientQuantity,
+} from '@workspace/shared';
 
 export interface BlsFood {
   code: string;
   name_de: string;
   name_en: string;
   nutrients: Record<string, number>;
+  qualifiers?: Record<string, string>;
+  dataset_sha256?: string;
 }
 
 const REQUIRED = ['ENERCC', 'PROT625', 'CHO', 'FAT'] as const;
@@ -17,11 +24,78 @@ export function mapBlsFood(food: BlsFood, language = 'en') {
   const values = food.nutrients;
   // The API requires numeric energy and macros. A trace, below-detection
   // qualifier, or missing source value is unknown, not a measured zero.
-  if (!REQUIRED.every((code) => Number.isFinite(values[code]))) return null;
+  if (
+    !REQUIRED.every(
+      (code) =>
+        Number.isFinite(values[code]) &&
+        values[code] >= 0 &&
+        !food.qualifiers?.[code]
+    )
+  )
+    return null;
   const optional = (field: string, code: string): Record<string, number> =>
-    Number.isFinite(values[code]) ? { [field]: values[code] } : {};
+    Number.isFinite(values[code]) &&
+    values[code] >= 0 &&
+    !food.qualifiers?.[code]
+      ? { [field]: values[code] }
+      : {};
 
+  const nutrient_quantities: HealthNutrientQuantity[] = [];
+  for (const component of BLS_COMPONENT_MANIFEST) {
+    if (component.status !== 'supported') continue;
+    const amount = values[component.code];
+    if (
+      Number.isFinite(amount) &&
+      amount >= 0 &&
+      !food.qualifiers?.[component.code]
+    ) {
+      nutrient_quantities.push({
+        catalogId: healthMicronutrientIdSchema.parse(component.catalogId),
+        amount,
+        unit: component.unit,
+      });
+    }
+  }
+  const diagnostics = {
+    qualified: 0,
+    blocked: 0,
+    unsupported: 0,
+    conversionFailed: 0,
+  };
+  for (const component of BLS_COMPONENT_MANIFEST) {
+    if (
+      !Object.hasOwn(values, component.code) &&
+      !food.qualifiers?.[component.code]
+    )
+      continue;
+    if (food.qualifiers?.[component.code]) diagnostics.qualified++;
+    else if (component.status === 'blocked') diagnostics.blocked++;
+    else if (component.status === 'out_of_scope') diagnostics.unsupported++;
+    else if (
+      !Number.isFinite(values[component.code]) ||
+      values[component.code] < 0
+    )
+      diagnostics.conversionFailed++;
+  }
   const variant: FoodVariant = {
+    provider_nutrient_diagnostics: diagnostics,
+    nutrient_quantities,
+    provider_components: BLS_COMPONENT_MANIFEST.flatMap((component) => {
+      const value = values[component.code];
+      const qualifier = food.qualifiers?.[component.code];
+      return Number.isFinite(value) || qualifier
+        ? [
+            {
+              ...component,
+              ...(Number.isFinite(value) ? { value } : {}),
+              ...(qualifier ? { qualifier } : {}),
+            },
+          ]
+        : [];
+    }),
+    provider_dataset_sha256: food.dataset_sha256 ?? null,
+    source: 'imported',
+    provider_nutrient_qualifiers: food.qualifiers ?? {},
     serving_size: 100,
     serving_unit: 'g',
     calories: values.ENERCC,
@@ -107,7 +181,7 @@ export async function searchBlsFoods(
   );
   try {
     const { rows } = await client.query(
-      `SELECT code, name_de, name_en, nutrients,
+      `SELECT code, name_de, name_en, nutrients, qualifiers, dataset_sha256,
               count(*) OVER ()::integer AS total_count
        FROM public.bls4_foods
        WHERE (${searchable}) @@ to_tsquery('german', $1)
@@ -186,7 +260,7 @@ export async function getBlsFoodDetails(
   const client = await getClient(userId);
   try {
     const { rows } = await client.query(
-      'SELECT code, name_de, name_en, nutrients FROM public.bls4_foods WHERE code = $1',
+      'SELECT code, name_de, name_en, nutrients, qualifiers, dataset_sha256 FROM public.bls4_foods WHERE code = $1',
       [code]
     );
     return rows[0] ? mapBlsFood(rows[0] as BlsFood, language) : null;

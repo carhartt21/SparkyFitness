@@ -1,3 +1,4 @@
+import { invalidateNutritionCaches } from './invalidateNutritionCaches';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   medicationsRootQueryKey,
@@ -22,6 +23,7 @@ import {
 export function invalidateMedicationEntryCaches(
   queryClient: QueryClient
 ): void {
+  invalidateNutritionCaches(queryClient);
   void queryClient.invalidateQueries({ queryKey: medicationEntriesQueryKey() });
   void queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: dailySummaryRootQueryKey });

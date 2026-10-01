@@ -27,7 +27,10 @@ import {
   mapDayStatisticsToMinMaxAvg,
 } from './dataAggregation';
 import { BLOOD_GLUCOSE_MG_DL_PER_MMOL_L } from '../shared/dataTransformation';
-import { DIETARY_WRITE_IDENTIFIERS } from './writebackMappers';
+import {
+  DIETARY_WRITE_IDENTIFIERS,
+  DIETARY_READ_IDENTIFIERS,
+} from './writebackMappers';
 import {
   collectWorkoutTelemetry,
   type WorkoutProxyLike,
@@ -407,7 +410,7 @@ export const requestHealthPermissions = async (
         // Sets, so the two Nutrition perms (read from HealthMetrics, write from
         // WritebackMetrics) never clobber.
         if (p.accessType === 'read') {
-          DIETARY_WRITE_IDENTIFIERS.forEach((identifier) =>
+          DIETARY_READ_IDENTIFIERS.forEach((identifier) =>
             readPermissionsSet.add(identifier)
           );
         } else if (p.accessType === 'write') {
@@ -1593,11 +1596,17 @@ const readLooseNutrition = async (
   // a large or old dietary history would otherwise silently drop valid in-window samples.
   const dateFilter = { date: { startDate, endDate } };
 
-  for (const identifier of DIETARY_WRITE_IDENTIFIERS) {
+  for (const identifier of DIETARY_READ_IDENTIFIERS) {
     const samples = await queryQuantitySamples(
       identifier as Parameters<typeof queryQuantitySamples>[0],
       { filter: dateFilter, limit: 0, ascending: false }
-    );
+    ).catch(() => {
+      addLog(
+        '[HealthKitService] A dietary category could not be read; keeping this observation partial',
+        'WARNING'
+      );
+      return [];
+    });
     if (!Array.isArray(samples)) continue;
 
     for (const s of samples) {
@@ -1893,7 +1902,7 @@ const probeEarliestSample = async (
     // every dietary identifier the nutrition reader covers is probed (iOS has no
     // read quota; a dozen limit-1 probes are free).
     const dates: (Date | null)[] = [];
-    for (const identifier of DIETARY_WRITE_IDENTIFIERS) {
+    for (const identifier of DIETARY_READ_IDENTIFIERS) {
       dates.push(await probeQuantityEarliest(identifier, now));
     }
     return minDate(dates);

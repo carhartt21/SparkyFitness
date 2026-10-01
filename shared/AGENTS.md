@@ -15,7 +15,7 @@ _Last updated: 2026-10-01_
 - `src/schemas/database/` - one Zod file per table (`Foods.zod.ts`, `Exercises.zod.ts`, ~60 files). Agent shortcut: to learn a table shape, read the matching file here instead of the SQL dump.
 - `src/schemas/api/` - API request/response contracts (`*api.zod.ts`).
 - `src/schemas/api/Engagement.api.zod.ts` and `src/schemas/database/{Engagement,McpOAuth}.zod.ts` - notification delivery/action contracts and auth-owned MCP OAuth table shapes.
-- `src/schemas/api/HealthNutrition.api.zod.ts` and `src/nutrients/healthNutritionObservation.ts` define the bounded micronutrient observation contract and per-source-record replay behavior. Partial observations preserve unobserved values; authoritative observations clear only their covered catalog IDs and require trusted source evidence at ingestion. These contracts are groundwork; native adapters and persistence are not yet wired.
+- `src/schemas/api/HealthNutrition.api.zod.ts` and `src/nutrients/healthNutritionObservation.ts` define the bounded micronutrient observation contract and per-source-record replay behavior. Partial observations preserve unobserved values; authoritative observations clear only their covered catalog IDs and require trusted source evidence at ingestion. Native adapters and server persistence use partial observations. Trusted BLS imports resolve source quantities separately; client-asserted authoritative native observations are rejected.
 - `src/constants/` - shared constants and enums (exercises, nutrients, meal types, fasting protocols, medication schedules, cycle phases, etc.).
 - `src/utils/` - timezone helpers (`todayInZone`, `instantToDay`, `dayToUtcRange`, `compareDays`, `addDays`, `isDayString`), cycle/menstruation helpers, and unit/calculation utilities.
 - `src/ai/`, `src/cycle/`, `src/medications/`, `src/mood/` - domain-specific helpers.
@@ -39,3 +39,5 @@ _Last updated: 2026-10-01_
 - Nutrient imports must use `convertNutrientAmount` and leave failed conversions unmapped. Missing/unknown units and substance-specific IU conversions cannot fall back to raw numbers. Preserve small converted amounts rather than rounding to a fixed decimal count.
 - Keep this package export-focused and schema-focused; logic that scales should live in consuming packages.
 - Never export stale or unfinished types; if a consumer is drafting code and needs a type not yet here, add it.
+
+The nutrient source inventory lives in `src/nutrients/blsComponentManifest.ts` (138 pinned headers, explicit supported/blocked/out-of-scope classifications) and `nativeMicronutrientMappings.ts` (27 categories). `catalogUnitConversion.ts` permits vitamin-D IU conversion only with explicit catalog identity. `nutrientCoverage.ts` separates nullable recorded totals from known/eligible counts; unknown days never become zero in averages. Database mirrors include retained catalog identities and BLS variant dataset provenance.

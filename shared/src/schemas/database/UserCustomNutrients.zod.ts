@@ -7,7 +7,7 @@ export const userCustomNutrientsIdSchema = z.string().and(
   }),
 );
 
-const userIdSchema = z.any();
+const userIdSchema = z.string();
 
 export const userCustomNutrientsSchema = z.object({
   id: userCustomNutrientsIdSchema,
@@ -15,6 +15,8 @@ export const userCustomNutrientsSchema = z.object({
   name: z.string(),
   unit: z.string(),
   aliases: z.array(z.string()),
+  catalog_id: z.string().nullable(),
+  archived: z.boolean(),
   created_at: z.date(),
   updated_at: z.date(),
 });
@@ -25,6 +27,8 @@ export const userCustomNutrientsInitializerSchema = z.object({
   name: z.string(),
   unit: z.string(),
   aliases: z.array(z.string()).optional(),
+  catalog_id: z.string().nullable().optional(),
+  archived: z.boolean().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
 });
@@ -35,6 +39,8 @@ export const userCustomNutrientsMutatorSchema = z.object({
   name: z.string().optional(),
   unit: z.string().optional(),
   aliases: z.array(z.string()).optional(),
+  catalog_id: z.string().nullable().optional(),
+  archived: z.boolean().optional(),
   created_at: z.date().optional(),
   updated_at: z.date().optional(),
 });
