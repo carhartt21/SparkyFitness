@@ -27,7 +27,10 @@ export function submitMcpConsent(
   return fetch('/api/auth/oauth2/consent', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
     body: JSON.stringify({ accept, oauth_query: query }),
   });
 }
@@ -36,7 +39,10 @@ export function continueMcpAuthorization(query: string): Promise<Response> {
   return fetch('/api/auth/oauth2/continue', {
     method: 'POST',
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
     body: JSON.stringify({ oauth_query: query, postLogin: true }),
   });
 }
