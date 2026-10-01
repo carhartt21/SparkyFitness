@@ -1,0 +1,73 @@
+{
+  "date": "2026-10-01",
+  "codeRevision": "64cd47e67c9c9b6887082ba0b44273244d05a925",
+  "integratedMainRevision": "221a4080c88ae00714ce448a3e222f11f9906980",
+  "review": {
+    "verdict": "safe to merge",
+    "blockingFindings": 0,
+    "addressed": [
+      "persist late workout edits before export and clear",
+      "route retries through the finish concurrency guard",
+      "scope asynchronous recorder cleanup to generation-specific ownership",
+      "declare WKBackgroundModes workout-processing in the generated Watch plist"
+    ],
+    "trust": "No new dependencies, install scripts, CI changes, network hosts, credentials, auth changes or server/shared contracts."
+  },
+  "checks": {
+    "mobileFullSuite": {
+      "status": "passed",
+      "suites": 522,
+      "tests": 7531,
+      "failures": 0
+    },
+    "focusedRegressions": { "status": "passed", "suites": 3, "tests": 13 },
+    "foundationWatchProtocolAndLifecycle": {
+      "status": "passed",
+      "assertions": 29
+    },
+    "watchSwiftSDKTypecheck": {
+      "status": "passed",
+      "sourceFiles": 24,
+      "sdk": "watchOS 26.5",
+      "target": "arm64_32-apple-watchos10.0"
+    },
+    "generatedWatchPlist": {
+      "status": "passed",
+      "WKBackgroundModes": ["workout-processing"]
+    },
+    "mobileValidateWrapper": {
+      "status": "environment-blocked",
+      "reason": "tsx CLI IPC listen EPERM at Watch geometry check"
+    },
+    "mobileValidateConstituents": {
+      "status": "passed",
+      "geometryInvocation": "node --import tsx scripts/generate-watch-progress-x.mjs --check",
+      "includes": [
+        "generated i18n",
+        "German overlays",
+        "German copy",
+        "typecheck",
+        "lint",
+        "i18n audit",
+        "Knip",
+        "native locales",
+        "Watch geometry",
+        "formatting"
+      ]
+    },
+    "watchXcodePackaging": {
+      "status": "environment-blocked",
+      "configurations": ["Debug watchsimulator", "Release watchos"],
+      "reason": "Unable to write module session cache file before compilation"
+    }
+  },
+  "unverified": [
+    "Signed Watch HealthKit provisioning and permissions",
+    "Physical energy and heart-rate sensor collection",
+    "Locked/background recording and interrupted HealthKit save recovery",
+    "Physical phone-Watch disconnect/reconnect behavior",
+    "Exactly one positive-energy workout in Apple Health/Fitness"
+  ],
+  "deploymentPerformed": false,
+  "testFlightPublicationPerformed": false
+}
