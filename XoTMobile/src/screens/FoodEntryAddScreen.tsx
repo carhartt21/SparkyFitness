@@ -2361,6 +2361,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   />
                 </View>
               </View>
+              <Text className="mt-2 text-xs text-text-muted">
+                {t('foodEntryAdd.wheel.instructions', {
+                  defaultValue: 'Tap to type · Hold and drag to adjust',
+                })}
+              </Text>
               {selectedServingOption ? (
                 selectedServingOption.kind === 'portion' &&
                 selectedServingOption.weight &&

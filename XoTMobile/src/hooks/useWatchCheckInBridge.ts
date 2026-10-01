@@ -67,6 +67,7 @@ import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import { buildWatchWorkoutSnapshot } from '../utils/watchWorkoutSnapshot';
 import {
   buildWatchFoodShortcuts,
+  buildWatchMealTypes,
   watchFoodCandidates,
   watchThumbnailPaths,
   type WatchFoodDetails,
@@ -697,10 +698,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         weightUnit,
         containers: watchContainers,
         foodShortcuts: watchFoodShortcuts,
-        mealTypes: mealTypes.map((meal) => ({
-          id: meal.id,
-          name: meal.display_name?.trim() || meal.name,
-        })),
+        mealTypes: buildWatchMealTypes(mealTypes, t),
         defaultMealTypeId: getDefaultMealTypeId(mealTypes),
         // Goal and display unit ride outside the day gate: the watch treats
         // both as account configuration and carries them forward, which is

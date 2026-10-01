@@ -1264,7 +1264,7 @@ function ActiveWorkoutExerciseCard({
                   </Text>
                 )}
                 <Text className="flex-1 text-center text-xs font-semibold uppercase text-text-muted">
-                  {t('workout.reps', { defaultValue: 'Reps' })}
+                  {t('activeWorkout.columns.reps', { defaultValue: 'Reps' })}
                 </Text>
               </>
             )}

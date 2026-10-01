@@ -567,7 +567,8 @@
     "columns": {
       "set": "Set",
       "previous": "Prev",
-      "seconds": "Sec"
+      "seconds": "Sec",
+      "reps": "Reps"
     },
     "exercise": {
       "expand": "Expand {{name}}",
@@ -3762,8 +3763,9 @@
       "adjustEntry": "Adjust this entry only"
     },
     "wheel": {
-      "hint": "Swipe up or down to change. Long press to type an amount.",
-      "enterAmount": "Enter amount"
+      "hint": "Tap to enter an amount. Hold, then drag up or down to change it.",
+      "enterAmount": "Enter amount",
+      "instructions": "Tap to type · Hold and drag to adjust"
     },
     "editServings": {
       "title": "Add serving sizes",
