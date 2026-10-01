@@ -76,6 +76,8 @@ These tools only read. Logging habits, completing check-ins, changing health con
 
 Ranges are limited to 92 days, or 31 days for a read-only MCP key.
 
+For an actual weigh-in value, call `sparky_get_measurement_reminder_status` with the requested date and read its `value` and `unit` fields. Daily Progress's `measurement_recorded` reason confirms task completion; its item timestamp alone is not the weight. Ask for a fresh measurement-tool call when a conversation contains an earlier status-only result.
+
 ---
 
 ## 🕵️ AI Personalization (The "Health Detective")
@@ -122,6 +124,8 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 The server must have OAuth enabled and its discovery/authentication routes must be reachable through the public ingress. Browser login continuation and consent return a Better Auth JSON redirect (`url`), which the app follows to the next signed authorization page or the registered client callback. If an earlier attempt expired, begin a new authorization from the client instead of reusing the old browser URL. See the [official desktop MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=app).
 
 For an API-key connection in the same desktop form, use `https://<your-host>/mcp` and an `Authorization` header with `Bearer <MCP_READ_ONLY_KEY>`. The **Bearer token env var** field is a variable name whose value is read from the client environment; it is not a field for pasting the token. Account OAuth tokens and application API keys use separate endpoints.
+
+After a server update changes tool descriptions or schemas, use the connection's **Refresh** action in ChatGPT Plugins, where available, then start a new conversation and retry the affected tool. A successful authorization does not establish that the chat has refreshed tool metadata. See the [official connection testing and metadata refresh guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
 **HTTP / remote-capable clients** (Cursor and other clients that support streamable HTTP) point directly at `/mcp` with an `Authorization: Bearer <API_KEY>` header:
 
