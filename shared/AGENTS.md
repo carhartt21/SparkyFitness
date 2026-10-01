@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-27_
+_Last updated: 2026-10-01_
 
 `@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
 
@@ -14,6 +14,7 @@ _Last updated: 2026-09-27_
 
 - `src/schemas/database/` - one Zod file per table (`Foods.zod.ts`, `Exercises.zod.ts`, ~60 files). Agent shortcut: to learn a table shape, read the matching file here instead of the SQL dump.
 - `src/schemas/api/` - API request/response contracts (`*api.zod.ts`).
+- `src/schemas/api/DailyTracking.api.zod.ts` - daily tracking REST contracts plus the separate MCP-only measurement reminder status response (recorded flag, saved value, explicit unit and row provenance); do not widen the reminder configuration REST response with these fields.
 - `src/schemas/api/Engagement.api.zod.ts` and `src/schemas/database/{Engagement,McpOAuth}.zod.ts` - notification delivery/action contracts and auth-owned MCP OAuth table shapes.
 - `src/constants/` - shared constants and enums (exercises, nutrients, meal types, fasting protocols, medication schedules, cycle phases, etc.).
 - `src/utils/` - timezone helpers (`todayInZone`, `instantToDay`, `dayToUtcRange`, `compareDays`, `addDays`, `isDayString`), cycle/menstruation helpers, and unit/calculation utilities.

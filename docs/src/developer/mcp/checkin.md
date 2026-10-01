@@ -78,3 +78,35 @@ The `sparky_manage_checkin` tool supports the following actions:
 - **Description:** Retrieves all logged health check-in entries (biometrics, mood, sleep, custom metrics) for a specific date.
 - **Parameters:**
     - `entry_date` (string, YYYY-MM-DD, optional): The date to retrieve the diary for. Defaults to today.
+
+## Read-only measurement reminder status
+
+`sparky_get_measurement_reminder_status` is a separate pure-read tool published for MCP read-only API keys and OAuth connections with `mcp:read`. It accepts an optional `date` (`YYYY-MM-DD`, `today`, or `yesterday`); the default uses the authenticated account's timezone. It reads only that owner's configured measurement reminders and saved measurements on that calendar day.
+
+Each reminder retains its configuration and `due` state and adds:
+
+| Field | Meaning |
+| --- | --- |
+| `measurement_recorded` | A saved value exists on the requested day, including zero. |
+| `value` | Numeric kg for weight; unchanged stored text for a custom measurement. Null when absent. |
+| `unit` | `kg` for weight or the custom category's configured measurement unit. Null when absent. |
+| `measurement_id` | ID of the saved row, or null. |
+| `recorded_at` | Last update timestamp of the selected saved row, or null. |
+| `source` | Stored source for a custom measurement, or null when provenance is unavailable. Weight has no stored provider source. |
+
+For example, a saved weigh-in yields these fields (illustrative data):
+
+```json
+{
+  "measurement_key": "weight",
+  "due": true,
+  "measurement_recorded": true,
+  "measurement_id": "11111111-1111-4111-8111-111111111111",
+  "value": 78.3,
+  "unit": "kg",
+  "recorded_at": "2026-10-01T07:05:00.000Z",
+  "source": null
+}
+```
+
+When several custom entries exist on the day, the latest updated entry is selected with deterministic tie-breaking; its value, timestamp and source come from the same row. Missing values are never filled from another day. The tool does not log measurements, expose a delegated profile, or return measurements without a configured reminder. The MCP-only response contract is `measurementReminderMcpStatusResponseSchema` in `shared/src/schemas/api/DailyTracking.api.zod.ts`; the reminder configuration REST response and Daily Progress completion projection are unchanged.

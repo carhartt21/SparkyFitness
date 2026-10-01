@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ToolExecutionOptions } from 'ai';
+import { measurementReminderMcpStatusResponseSchema } from '@workspace/shared';
 
 vi.mock('../config/logging.js', () => ({ log: vi.fn() }));
 
@@ -13,7 +14,7 @@ vi.mock('../models/dailyTrackingRepository.js', () => {
     listHabits: vi.fn(async () => []),
     listHealthContextPeriods: vi.fn(async () => []),
     listMeasurementReminders: vi.fn(async () => []),
-    recordedMeasurementsOn: vi.fn(async () => ({})),
+    recordedMeasurementValuesOn: vi.fn(async () => ({})),
     saveDailyCheckin: write(),
     skipDailyCheckin: write(),
     logHabit: write(),
@@ -158,7 +159,128 @@ const WRITES = [
 ] as const;
 
 describe('daily tracking read tools', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(repo.listMeasurementReminders).mockResolvedValue([]);
+    vi.mocked(repo.recordedMeasurementValuesOn).mockResolvedValue({});
+  });
+
+  const weightReminder = {
+    id: '11111111-1111-4111-8111-111111111111',
+    measurement_key: 'weight',
+    enabled: true,
+    days: null,
+    daypart: 'morning' as const,
+    reminder_time: '08:00',
+    include_in_daily_progress: true,
+  };
+
+  it('returns the actual weight with its canonical unit and recorded state', async () => {
+    vi.mocked(repo.listMeasurementReminders).mockResolvedValue([
+      weightReminder,
+    ]);
+    vi.mocked(repo.recordedMeasurementValuesOn).mockResolvedValue({
+      weight: {
+        measurement_id: '22222222-2222-4222-8222-222222222222',
+        value: 78.3,
+        unit: 'kg',
+        recorded_at: '2026-10-01T07:05:00.000Z',
+        source: null,
+      },
+    });
+    const text = await call(
+      buildDailyTrackingTools('owner', 'Europe/Berlin') as Record<
+        string,
+        Executable
+      >,
+      'sparky_get_measurement_reminder_status',
+      { date: '2026-10-01' }
+    );
+    const payload: unknown = JSON.parse(text);
+    const result = measurementReminderMcpStatusResponseSchema.parse(payload);
+    expect(result.reminders[0]).toMatchObject({
+      measurement_key: 'weight',
+      measurement_recorded: true,
+      value: 78.3,
+      unit: 'kg',
+      recorded_at: '2026-10-01T07:05:00.000Z',
+      source: null,
+    });
+    expect(repo.recordedMeasurementValuesOn).toHaveBeenCalledWith(
+      'owner',
+      '2026-10-01',
+      ['weight']
+    );
+  });
+
+  it('reports an absent value as null and preserves custom zero text', async () => {
+    const key = 'custom:33333333-3333-4333-8333-333333333333';
+    vi.mocked(repo.listMeasurementReminders).mockResolvedValue([
+      weightReminder,
+      {
+        ...weightReminder,
+        id: '44444444-4444-4444-8444-444444444444',
+        measurement_key: key,
+        enabled: false,
+      },
+    ]);
+    vi.mocked(repo.recordedMeasurementValuesOn).mockResolvedValue({
+      [key]: {
+        measurement_id: '55555555-5555-4555-8555-555555555555',
+        value: '0',
+        unit: 'count',
+        recorded_at: '2026-10-01T07:05:00.000Z',
+        source: 'manual',
+      },
+    });
+    const text = await call(
+      buildDailyTrackingTools('owner', 'UTC') as Record<string, Executable>,
+      'sparky_get_measurement_reminder_status',
+      { date: '2026-10-01' }
+    );
+    const payload: unknown = JSON.parse(text);
+    const result = measurementReminderMcpStatusResponseSchema.parse(payload);
+    expect(result.reminders[0]).toMatchObject({
+      measurement_recorded: false,
+      value: null,
+      unit: null,
+      recorded_at: null,
+      measurement_id: null,
+      source: null,
+    });
+    expect(result.reminders[1]).toMatchObject({
+      measurement_recorded: true,
+      due: false,
+      value: '0',
+      unit: 'count',
+      source: 'manual',
+    });
+  });
+
+  it('uses the account-local day near UTC midnight', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-10-02T00:30:00Z'));
+    try {
+      vi.mocked(repo.listMeasurementReminders).mockResolvedValue([
+        weightReminder,
+      ]);
+      await call(
+        buildDailyTrackingTools('owner', 'America/Los_Angeles') as Record<
+          string,
+          Executable
+        >,
+        'sparky_get_measurement_reminder_status',
+        { date: 'today' }
+      );
+      expect(repo.recordedMeasurementValuesOn).toHaveBeenCalledWith(
+        'owner',
+        '2026-10-01',
+        ['weight']
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it('publishes exactly the declared read tools', () => {
     const tools = buildDailyTrackingTools('user', 'UTC');

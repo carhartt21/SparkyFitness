@@ -39,10 +39,12 @@ export type DailyCheckinResponses = z.infer<typeof dailyCheckinResponsesSchema>;
  * Save a draft or complete the check-in. "skipped" has its own endpoint so a
  * skip can never carry responses.
  */
-export const saveDailyCheckinRequestSchema = dailyCheckinResponsesSchema.extend({
-  state: z.enum(["draft", "completed"]),
-  question_version: z.number().int().min(1).optional(),
-});
+export const saveDailyCheckinRequestSchema = dailyCheckinResponsesSchema.extend(
+  {
+    state: z.enum(["draft", "completed"]),
+    question_version: z.number().int().min(1).optional(),
+  },
+);
 export type SaveDailyCheckinRequest = z.infer<
   typeof saveDailyCheckinRequestSchema
 >;
@@ -245,6 +247,38 @@ export const measurementReminderResponseSchema = z.object({
 });
 export type MeasurementReminder = z.infer<
   typeof measurementReminderResponseSchema
+>;
+
+/** A saved value on the requested day, without prefills or unit conversion. */
+export const recordedMeasurementValueSchema = z.object({
+  measurement_id: z.uuid(),
+  value: z.union([z.number(), z.string()]),
+  unit: z.string().nullable(),
+  recorded_at: z.iso.datetime(),
+  source: z.string().nullable(),
+});
+export type RecordedMeasurementValue = z.infer<
+  typeof recordedMeasurementValueSchema
+>;
+
+/** MCP-only projection; the reminder configuration REST response is unchanged. */
+export const measurementReminderMcpStatusResponseSchema = z.object({
+  date: day,
+  reminders: z.array(
+    measurementReminderResponseSchema.extend({
+      due: z.boolean(),
+      measurement_recorded: z.boolean(),
+      measurement_id: z.uuid().nullable(),
+      value: z.union([z.number(), z.string()]).nullable(),
+      unit: z.string().nullable(),
+      recorded_at: z.iso.datetime().nullable(),
+      source: z.string().nullable(),
+    }),
+  ),
+  note: z.string(),
+});
+export type MeasurementReminderMcpStatusResponse = z.infer<
+  typeof measurementReminderMcpStatusResponseSchema
 >;
 
 // --- Meal status ----------------------------------------------------------

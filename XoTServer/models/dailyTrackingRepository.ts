@@ -13,6 +13,7 @@ import {
   type HealthContextPeriod,
   type MealDayStatusValue,
   type MeasurementReminder,
+  type RecordedMeasurementValue,
   type SaveDailyCheckinRequest,
   type UpdateDailyTrackingPreferencesRequest,
   type UpdateHabitRequest,
@@ -746,32 +747,82 @@ export async function recordedMeasurementsOn(
   date: string,
   keys: readonly string[]
 ): Promise<Record<string, string>> {
+  const measurements = await recordedMeasurementValuesOn(userId, date, keys);
+  return Object.fromEntries(
+    Object.entries(measurements).map(([key, measurement]) => [
+      key,
+      measurement.recorded_at,
+    ])
+  );
+}
+
+/** Read the saved value and timestamp from the same row on this calendar day. */
+export async function recordedMeasurementValuesOn(
+  userId: string,
+  date: string,
+  keys: readonly string[]
+): Promise<Record<string, RecordedMeasurementValue>> {
   if (keys.length === 0) return {};
   return withClient(userId, undefined, async (client) => {
-    const recorded: Record<string, string> = {};
+    const recorded: Record<string, RecordedMeasurementValue> = {};
     if (keys.includes('weight')) {
-      const weight = await client.query<{ updated_at: Date }>(
-        `SELECT updated_at FROM check_in_measurements
+      const weight = await client.query<{
+        id: string;
+        weight: string | number;
+        recorded_at: Date;
+      }>(
+        `SELECT id, weight, COALESCE(updated_at, created_at) AS recorded_at
+         FROM check_in_measurements
          WHERE user_id = $1 AND entry_date = $2 AND weight IS NOT NULL
-         ORDER BY updated_at DESC LIMIT 1`,
+         ORDER BY COALESCE(updated_at, created_at) DESC, id DESC LIMIT 1`,
         [userId, date]
       );
-      if (weight.rows[0])
-        recorded.weight = weight.rows[0].updated_at.toISOString();
+      const row = weight.rows[0];
+      if (row) {
+        const value = Number(row.weight);
+        if (!Number.isFinite(value)) {
+          throw new Error('The saved weight is not a finite number.');
+        }
+        recorded.weight = {
+          measurement_id: row.id,
+          value,
+          unit: 'kg',
+          recorded_at: row.recorded_at.toISOString(),
+          // Check-in measurements do not store device/provider provenance.
+          source: null,
+        };
+      }
     }
     const categoryIds = keys
       .filter((key) => key.startsWith('custom:'))
       .map((key) => key.slice('custom:'.length));
     if (categoryIds.length > 0) {
-      const custom = await client.query<{ category_id: string; at: Date }>(
-        `SELECT category_id, MAX(COALESCE(updated_at, entry_timestamp)) AS at
-         FROM custom_measurements
-         WHERE user_id = $1 AND entry_date = $2 AND category_id = ANY($3::uuid[])
-         GROUP BY category_id`,
+      const custom = await client.query<{
+        id: string;
+        category_id: string;
+        value: string;
+        unit: string;
+        recorded_at: Date;
+        source: string;
+      }>(
+        `SELECT DISTINCT ON (cm.category_id)
+           cm.id, cm.category_id, cm.value, cc.measurement_type AS unit,
+           COALESCE(cm.updated_at, cm.entry_timestamp) AS recorded_at, cm.source
+         FROM custom_measurements cm
+         JOIN custom_categories cc ON cc.id = cm.category_id AND cc.user_id = cm.user_id
+         WHERE cm.user_id = $1 AND cm.entry_date = $2 AND cm.category_id = ANY($3::uuid[])
+         ORDER BY cm.category_id, COALESCE(cm.updated_at, cm.entry_timestamp) DESC,
+           cm.entry_timestamp DESC, cm.id DESC`,
         [userId, date, categoryIds]
       );
       for (const row of custom.rows) {
-        recorded[`custom:${row.category_id}`] = row.at.toISOString();
+        recorded[`custom:${row.category_id}`] = {
+          measurement_id: row.id,
+          value: row.value,
+          unit: row.unit,
+          recorded_at: row.recorded_at.toISOString(),
+          source: row.source,
+        };
       }
     }
     return recorded;

@@ -8,7 +8,7 @@ When you enable the MCP Server, your AI assistant transforms into a **Personal H
 
 ## 🛠 Available Tools & Capabilities
 
-The AI assistant can perform the following actions across different health domains. All tools automatically respect your **Unit Preferences** (e.g., converting lbs to kg or kcal to kJ).
+The AI assistant can perform the following actions across different health domains. Tools that convert units use your **Unit Preferences**; read-only measurement reminder status returns weight in kg and custom values in their configured unit, explicitly named in the response.
 
 ### 🥗 Nutrition & Food
 
@@ -69,11 +69,14 @@ These tools only read. Logging habits, completing check-ins, changing health con
 - **Daily check-in** (`sparky_get_daily_checkin`, `sparky_list_daily_checkins`): answers with their versioned meanings; a missing day is not recorded, never low.
 - **Health context** (`sparky_list_health_context_periods`): user-declared injury, illness and vacation periods. They are declarations, not diagnoses.
 - **Habits** (`sparky_list_habits`, `sparky_get_habit_history`): an explicit 0 is a record; days without a record are omitted.
-- **Measurement reminders** (`sparky_get_measurement_reminder_status`), **meal status** (`sparky_get_meal_tracking_status`).
+- **Measurement reminders** (`sparky_get_measurement_reminder_status`): due state plus `measurement_recorded`, the actual saved `value`, `unit`, `measurement_id`, `recorded_at` and `source` for the requested day. Weight is a number in kg; custom values retain their stored text and configured unit. Missing readings return `false` and null value fields; an older reading is never substituted. Zero is a recorded value. Weight source is null because the measurement table does not retain provider provenance. Only configured reminders are included; this is not a full measurement history endpoint.
+- **Meal status** (`sparky_get_meal_tracking_status`).
 - **Daily Progress** (`sparky_get_daily_progress`, `sparky_get_daily_status_context`): completed and applicable explicit tasks with each item's reason and a version. It is not a health score.
 - **Supplements** (`sparky_list_supplements`, `sparky_get_supplement`, `sparky_list_supplement_entries`): only items marked as supplements; medications are never returned.
 
 Ranges are limited to 92 days, or 31 days for a read-only MCP key.
+
+For an actual weigh-in value, call `sparky_get_measurement_reminder_status` with the requested date and read its `value` and `unit` fields. Daily Progress's `measurement_recorded` reason confirms task completion; its item timestamp alone is not the weight. Ask for a fresh measurement-tool call when a conversation contains an earlier status-only result.
 
 ---
 
@@ -121,6 +124,8 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 The server must have OAuth enabled and its discovery/authentication routes must be reachable through the public ingress. Browser login continuation and consent return a Better Auth JSON redirect (`url`), which the app follows to the next signed authorization page or the registered client callback. If an earlier attempt expired, begin a new authorization from the client instead of reusing the old browser URL. See the [official desktop MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=app).
 
 For an API-key connection in the same desktop form, use `https://<your-host>/mcp` and an `Authorization` header with `Bearer <MCP_READ_ONLY_KEY>`. The **Bearer token env var** field is a variable name whose value is read from the client environment; it is not a field for pasting the token. Account OAuth tokens and application API keys use separate endpoints.
+
+After a server update changes tool descriptions or schemas, use the connection's **Refresh** action in ChatGPT Plugins, where available, then start a new conversation and retry the affected tool. A successful authorization does not establish that the chat has refreshed tool metadata. See the [official connection testing and metadata refresh guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
 **HTTP / remote-capable clients** (Cursor and other clients that support streamable HTTP) point directly at `/mcp` with an `Authorization: Bearer <API_KEY>` header:
 
