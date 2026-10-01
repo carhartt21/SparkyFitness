@@ -42,9 +42,14 @@ jest.mock('../../src/hooks/useExerciseImageSource', () => ({
 
 // The real hook imports the workout update API and the screen destructures
 // { flush } from it — left unmocked it would fire network on blur/finish.
+// A successful save acknowledges the dirty state, as the real autosave does.
+async function mockFlushSavedWorkout(): Promise<boolean> {
+  useActiveWorkoutStore.setState({ hasUnsavedChanges: false });
+  return true;
+}
 jest.mock('../../src/hooks/useActiveWorkoutAutosave', () => ({
   useActiveWorkoutAutosave: jest.fn(() => ({
-    flush: jest.fn(async () => true),
+    flush: jest.fn(mockFlushSavedWorkout),
   })),
 }));
 
@@ -689,7 +694,7 @@ describe('ActiveWorkoutScreen finish success celebration', () => {
     __resetActiveWorkoutStoreForTests();
     __resetAppPreferencesStoreForTests();
     (useActiveWorkoutAutosave as jest.Mock).mockReturnValue({
-      flush: jest.fn(async () => true),
+      flush: jest.fn(mockFlushSavedWorkout),
     });
     alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   });
@@ -781,7 +786,7 @@ describe('ActiveWorkoutScreen long-workout duration adjust', () => {
       // right after, so this is the value the duration payload was built from.
       flush: jest.fn(async () => {
         startedAtAtFlush = useActiveWorkoutStore.getState().startedAt;
-        return true;
+        return mockFlushSavedWorkout();
       }),
     });
     alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
