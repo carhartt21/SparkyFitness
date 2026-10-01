@@ -25,6 +25,20 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(wheel.isHittable)
     XCTAssertGreaterThanOrEqual(wheel.frame.height, 44)
     capture("food-details-top", app)
+    // An ordinary scroll that starts on the quantity field must not change
+    // the logged amount. Only a deliberate hold activates the spinner.
+    let initialAmount = wheel.value as? String
+    XCTAssertNotNil(initialAmount)
+    let scrollStart = wheel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let scrollEnd = scrollStart.withOffset(CGVector(dx: 0, dy: -60))
+    scrollStart.press(forDuration: 0.05, thenDragTo: scrollEnd)
+    XCTAssertEqual(wheel.value as? String, initialAmount)
+    for _ in 0..<5 { if wheel.isHittable { break }; app.swipeDown() }
+    XCTAssertTrue(wheel.isHittable)
+    let spinStart = wheel.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    spinStart.press(forDuration: 0.6, thenDragTo: spinStart.withOffset(CGVector(dx: 0, dy: -28)))
+    XCTAssertNotEqual(wheel.value as? String, initialAmount)
+    capture("food-amount-intentional-drag", app)
     let options = app.buttons["food-entry-more-options"]
     for _ in 0..<5 {
       if options.exists && options.isHittable { break }
@@ -35,6 +49,26 @@ final class DashboardReview: XCTestCase {
     capture("food-details-sections", app)
     options.tap()
     capture("food-details-options", app)
+    let edit = app.buttons.matching(NSPredicate(format: "label IN %@", ["Edit food and serving sizes", "Lebensmittel und Portionsgrößen bearbeiten"])).firstMatch
+    XCTAssertTrue(edit.waitForExistence(timeout: 10))
+    edit.tap()
+    let cancel = app.buttons["food-edit-cancel"]
+    let save = app.buttons["food-edit-save"]
+    XCTAssertTrue(cancel.waitForExistence(timeout: 15))
+    XCTAssertTrue(save.isHittable)
+    let title = app.staticTexts.matching(NSPredicate(format: "label IN %@", ["Edit Food", "Lebensmittel bearbeiten"])).firstMatch
+    XCTAssertTrue(title.exists)
+    XCTAssertGreaterThanOrEqual(title.frame.minX, cancel.frame.maxX)
+    XCTAssertLessThanOrEqual(title.frame.maxX, save.frame.minX)
+    capture("food-edit-header", app)
+    let addServing = app.buttons["serving-add"]
+    for _ in 0..<12 { if addServing.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(addServing.isHittable)
+    XCTAssertGreaterThanOrEqual(addServing.frame.height, 44 - 0.01)
+    XCTAssertGreaterThanOrEqual(addServing.frame.width, 44 - 0.01)
+    capture("food-edit-servings", app)
+    app.swipeUp()
+    capture("food-edit-preview", app)
   }
 
   func testLaunchIconActions() throws {

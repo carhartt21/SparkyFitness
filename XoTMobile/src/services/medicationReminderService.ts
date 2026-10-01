@@ -55,9 +55,14 @@ async function scheduleReminder(
   try {
     return await Notifications.scheduleNotificationAsync({
       content: {
-        title: i18n.t('medications.notificationTitle', {
-          defaultValue: 'Medication reminder',
-        }),
+        title:
+          data.isSupplement === 'true'
+            ? i18n.t('medications.notificationSupplementTitle', {
+                defaultValue: 'Supplement reminder',
+              })
+            : i18n.t('medications.notificationTitle', {
+                defaultValue: 'Medication reminder',
+              }),
         body,
         sound: true,
         categoryIdentifier: MEDICATION_REMINDER_CATEGORY,
@@ -228,7 +233,7 @@ export async function reconcileMedicationReminders(
           (n.content.data.hideNames === 'true') !== hideNames ||
           (n.content.data.locale ?? 'en') !== reminderLocale ||
           n.content.data.responseVersion !== '2' ||
-          n.content.data.copyRevision !== '20260930' ||
+          n.content.data.copyRevision !== '20261001' ||
           n.content.data.serverConfigId !== (identity?.serverConfigId ?? '') ||
           n.content.data.accountUserId !==
             expectedDose.due.medication.user_id ||
@@ -261,18 +266,29 @@ export async function reconcileMedicationReminders(
 
       const [hours, minutes] = timeOfDay.split(':').map(Number);
       const doseSuffix =
-        due.medication.dose_amount != null
-          ? ` (${due.medication.dose_amount}${due.medication.dose_unit ? ` ${due.medication.dose_unit}` : ''})`
+        (due.schedule.dose_amount ?? due.medication.dose_amount) != null
+          ? ` (${due.schedule.dose_amount ?? due.medication.dose_amount}${due.medication.dose_unit ? ` ${due.medication.dose_unit}` : ''})`
           : '';
-      const body = hideNames
-        ? i18n.t('medications.notificationScheduledDose', {
-            defaultValue: 'You have a scheduled dose',
-          })
-        : i18n.t('medications.notificationScheduledDoseNamed', {
-            defaultValue: 'Scheduled dose: {{name}}{{dose}}',
-            name: due.medication.name,
-            dose: doseSuffix,
-          });
+      const body =
+        due.medication.is_supplement === true
+          ? hideNames
+            ? i18n.t('medications.notificationSupplementDose', {
+                defaultValue: 'You have a scheduled supplement intake',
+              })
+            : i18n.t('medications.notificationSupplementDoseNamed', {
+                defaultValue: 'Scheduled supplement: {{name}}{{dose}}',
+                name: due.medication.name,
+                dose: doseSuffix,
+              })
+          : hideNames
+            ? i18n.t('medications.notificationScheduledDose', {
+                defaultValue: 'You have a scheduled dose',
+              })
+            : i18n.t('medications.notificationScheduledDoseNamed', {
+                defaultValue: 'Scheduled dose: {{name}}{{dose}}',
+                name: due.medication.name,
+                dose: doseSuffix,
+              });
       const data = {
         medicationId: due.medication.id,
         scheduleId: due.schedule.id,
@@ -282,7 +298,7 @@ export async function reconcileMedicationReminders(
         hideNames: String(hideNames),
         locale: reminderLocale,
         responseVersion: '2',
-        copyRevision: '20260930',
+        copyRevision: '20261001',
         accountUserId: due.medication.user_id,
         serverConfigId: identity?.serverConfigId ?? '',
         isSupplement: due.medication.is_supplement === true ? 'true' : 'false',

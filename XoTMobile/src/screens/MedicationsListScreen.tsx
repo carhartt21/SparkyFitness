@@ -16,6 +16,7 @@ import { useScreenHeader } from '../hooks/useScreenHeader';
 import Icon from '../components/Icon';
 import MedicalDisclaimer from '../components/MedicalDisclaimer';
 import MedicationRow from '../components/medications/MedicationRow';
+import BottomSheetPicker from '../components/BottomSheetPicker';
 import type { RootStackScreenProps } from '../types/navigation';
 import type { Medication } from '@workspace/shared';
 
@@ -34,16 +35,25 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
   ]) as [string, string];
   const [refreshing, setRefreshing] = useState(false);
   const [showInactive, setShowInactive] = useState(false);
+  const [category, setCategory] = useState('all');
+  const addItem = () =>
+    navigation.navigate('MedicationForm', {
+      ...(category === 'supplements' ? { supplement: true } : {}),
+    });
 
   const { data: medications, isLoading, isError, refetch } = useMedications();
 
   const { active, inactive } = useMemo(() => {
-    const meds = medications ?? [];
+    const meds = (medications ?? []).filter(
+      (med) =>
+        category === 'all' ||
+        (med.is_supplement === true) === (category === 'supplements')
+    );
     return {
       active: meds.filter((m) => m.is_active),
       inactive: meds.filter((m) => !m.is_active),
     };
-  }, [medications]);
+  }, [medications, category]);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -52,17 +62,24 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
   }, [refetch]);
 
   const header = useScreenHeader({
-    title: t('medications.title', { defaultValue: 'Medications' }),
+    title: t('medications.title', {
+      defaultValue: 'Medications & supplements',
+    }),
     left: { kind: 'back' },
     right: {
       kind: 'icon',
       sfSymbol: 'plus',
       ionicon: 'add-outline',
       role: 'primary',
-      onPress: () => navigation.navigate('MedicationForm', {}),
-      accessibilityLabel: t('medications.addMedication', {
-        defaultValue: 'Add medication',
-      }),
+      onPress: addItem,
+      accessibilityLabel:
+        category === 'supplements'
+          ? t('supplements.add', {
+              defaultValue: 'Add supplement',
+            })
+          : t('medications.addMedication', {
+              defaultValue: 'Add medication',
+            }),
       identifier: 'medications-list-add',
     },
   });
@@ -91,11 +108,38 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
       style={usesNativeHeader ? undefined : { paddingTop: insets.top }}
     >
       {header}
+      <View className="px-4 py-2">
+        <BottomSheetPicker
+          value={category}
+          onSelect={setCategory}
+          title={t('medications.form.classification', {
+            defaultValue: 'Category',
+          })}
+          options={[
+            {
+              value: 'all',
+              label: t('medications.filters.all', { defaultValue: 'All' }),
+            },
+            {
+              value: 'medications',
+              label: t('medications.filters.medications', {
+                defaultValue: 'Medications',
+              }),
+            },
+            {
+              value: 'supplements',
+              label: t('medications.filters.supplements', {
+                defaultValue: 'Supplements',
+              }),
+            },
+          ]}
+        />
+      </View>
       {isLoading ? (
         <View className="flex-1 items-center justify-center">
           <Text className="text-text-muted text-base">
             {t('medications.loading', {
-              defaultValue: 'Loading medications...',
+              defaultValue: 'Loading medications and supplements…',
             })}
           </Text>
         </View>
@@ -103,7 +147,7 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
         <View className="flex-1 items-center justify-center p-8">
           <Text className="text-text-muted text-base text-center">
             {t('medications.loadFailed', {
-              defaultValue: 'Failed to load medications.',
+              defaultValue: 'Could not load medications and supplements.',
             })}
           </Text>
           <TouchableOpacity onPress={() => void refetch()} className="mt-4">
@@ -116,23 +160,31 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
         <View className="flex-1 items-center justify-center p-8">
           <Icon name="medication" size={48} color={iconDecorative} />
           <Text className="text-text-muted text-lg mt-4 text-center">
-            {t('medications.noMedications', {
-              defaultValue: 'No medications yet',
-            })}
+            {category === 'all'
+              ? t('medications.noMedications', {
+                  defaultValue: 'No medications or supplements yet',
+                })
+              : t('medications.noMatchingItems', {
+                  defaultValue: 'No items in this category',
+                })}
           </Text>
           <Text className="text-text-muted text-sm mt-2 text-center">
             {t('medications.emptyDescription', {
-              defaultValue: 'Add your first medication to start tracking.',
+              defaultValue: 'Add a medication or supplement to start tracking.',
             })}
           </Text>
           <TouchableOpacity
             className="mt-4 bg-accent-primary px-6 py-3 rounded-xl"
-            onPress={() => navigation.navigate('MedicationForm', {})}
+            onPress={addItem}
           >
             <Text className="text-accent-text font-semibold">
-              {t('medications.addMedicationTitle', {
-                defaultValue: 'Add Medication',
-              })}
+              {category === 'supplements'
+                ? t('supplements.add', {
+                    defaultValue: 'Add supplement',
+                  })
+                : t('medications.addMedicationTitle', {
+                    defaultValue: 'Add Medication',
+                  })}
             </Text>
           </TouchableOpacity>
         </View>
@@ -150,7 +202,7 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
                 accessibilityRole="button"
                 accessibilityState={{ expanded: showInactive }}
                 accessibilityLabel={t('medications.inactiveA11y', {
-                  defaultValue: 'Inactive medications ({{count}})',
+                  defaultValue: 'Inactive items ({{count}})',
                   count: inactive.length,
                 })}
               >

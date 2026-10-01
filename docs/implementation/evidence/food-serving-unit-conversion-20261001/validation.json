@@ -1,0 +1,46 @@
+{
+  "date": "2026-10-01",
+  "branch": "fix/food-serving-unit-conversion-20261001",
+  "baseCommit": "a37673dfc",
+  "newScreenRegressionTests": 12,
+  "targetedMobile": {
+    "status": "passed",
+    "suites": 7,
+    "tests": 129,
+    "command": "pnpm --dir XoTMobile exec jest --runTestsByPath __tests__/screens/FoodEntryAddScreen.test.tsx __tests__/components/AmountWheel.test.ts __tests__/components/AmountWheel.interactions.test.tsx __tests__/utils/servingOptions.test.ts __tests__/utils/numericInput.test.ts __tests__/hooks/useAddFoodEntry.test.ts __tests__/utils/mealBuilderDraft.test.ts --runInBand --coverage=false"
+  },
+  "fullMobile": {
+    "status": "passed",
+    "suites": 519,
+    "tests": 7489,
+    "coverage": true,
+    "command": "pnpm --dir XoTMobile exec jest --ci --coverage --maxWorkers=2"
+  },
+  "mobileValidateWrapper": {
+    "status": "blocked",
+    "reason": "tsx CLI IPC listen EPERM during watch-geometry:check",
+    "equivalentSteps": "passed",
+    "geometryAlternative": "node --import tsx scripts/generate-watch-progress-x.mjs --check",
+    "checksPassed": [
+      "i18n:generate:check",
+      "German overlay and copy audit",
+      "typecheck",
+      "lint",
+      "i18n:audit",
+      "knip",
+      "native-locales:check",
+      "Watch geometry using alternative runner",
+      "format:check"
+    ]
+  },
+  "diffCheck": "passed",
+  "unverified": [
+    "physical device",
+    "simulator rendering",
+    "signed native build",
+    "live API persistence"
+  ],
+  "merged": false,
+  "published": false,
+  "deployed": false
+}

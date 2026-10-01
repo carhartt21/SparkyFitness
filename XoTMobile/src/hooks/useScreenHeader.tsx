@@ -509,6 +509,7 @@ function HeaderBarButton({
 
   return (
     <Pressable
+      testID={item.identifier}
       onPress={onPress}
       disabled={disabled}
       hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
@@ -889,29 +890,17 @@ export function useScreenHeader(config: ScreenHeaderConfig): React.ReactNode {
         justifyContent: 'space-between',
       }}
     >
-      {/* The title is a separate, absolutely-positioned layer centered on the
-          bar's full width, independent of the side cells' own flex layout —
-          the same technique native iOS/Android headers use. Centering the
-          title by giving the side cells equal flex-grow instead (so an empty
-          side matched the populated one) is what let a long title squeeze
-          both side cells to zero width in the first place: under CSS/Yoga's
-          shrink algorithm, a `flexBasis: 0%` sibling always computes a scaled
-          shrink factor of 0, so once the title overflowed the row it claimed
-          100% of the space and the side cells rendered at 0 width (confirmed
-          via on-device onLayout measurement). Decoupling the title from that
-          layout means it can never compete with the side cells for space, so
-          it can never squeeze them — and it still lands on the bar's true
-          center regardless of how the left/right content widths differ.
-          pointerEvents="box-none" keeps the title layer itself untouchable so
-          it can never sit "on top of" a button for hit-testing purposes. */}
+      <View className="flex-row items-center gap-4" style={{ flexShrink: 0 }}>
+        {leftCustom}
+      </View>
+      {/* Only the title takes the remaining space. The content-sized side
+          actions cannot squeeze it beneath a button when labels grow. */}
       <View
         pointerEvents="box-none"
         style={{
-          position: 'absolute',
-          left: 16,
-          right: 16,
-          top: 0,
-          bottom: 0,
+          flex: 1,
+          minWidth: 0,
+          paddingHorizontal: 8,
           alignItems: 'center',
           justifyContent: 'center',
         }}
@@ -920,19 +909,12 @@ export function useScreenHeader(config: ScreenHeaderConfig): React.ReactNode {
           <Text
             numberOfLines={1}
             maxFontSizeMultiplier={1.4}
-            style={{ marginHorizontal: 48 }}
+            style={{ width: '100%' }}
             className="text-center text-text-primary text-lg font-semibold"
           >
             {title ?? ''}
           </Text>
         )}
-      </View>
-      {/* flexShrink: 0 (content-sized) rather than flex-1: these cells can
-          never be squeezed by the title, at the cost of no longer truncating
-          if their own content ever got wide enough to overflow — a non-issue
-          for the icon/short-text buttons this bar renders. */}
-      <View className="flex-row items-center gap-4" style={{ flexShrink: 0 }}>
-        {leftCustom}
       </View>
       <View
         className="flex-row items-center justify-end gap-4"

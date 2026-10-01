@@ -1,3 +1,4 @@
+import { medicationKindLabel } from '@/utils/medicationKindLabel';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -166,14 +167,17 @@ export default function MedicationLogTable({
       <Card>
         <CardHeader>
           <CardTitle className="text-base font-semibold">
-            {t('medications.reports.logTableTitle', 'Medication Log Table')}
+            {t(
+              'medications.reports.logTableTitle',
+              'Medication & supplement log'
+            )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground text-center py-6">
             {t(
               'medications.reports.logTableEmpty',
-              'No medication doses logged in this date range.'
+              'No medication or supplement intake logged in this date range.'
             )}
           </p>
         </CardContent>
@@ -185,7 +189,10 @@ export default function MedicationLogTable({
     <Card>
       <CardHeader>
         <CardTitle className="text-base font-semibold">
-          {t('medications.reports.logTableTitle', 'Medication Log Table')}
+          {t(
+            'medications.reports.logTableTitle',
+            'Medication & supplement log'
+          )}
         </CardTitle>
         <CardDescription>
           {t(
@@ -199,7 +206,8 @@ export default function MedicationLogTable({
         {sections.map(({ medication, rows, totalDoses }) => (
           <div key={medication.id} className="space-y-2">
             <h4 className="text-sm font-semibold">
-              {medication.display_name || medication.name} —{' '}
+              {medication.display_name || medication.name} ·{' '}
+              {medicationKindLabel(medication, t)} —{' '}
               {t('medications.reports.dosesLogged', '{{count}} doses logged', {
                 count: totalDoses,
               })}

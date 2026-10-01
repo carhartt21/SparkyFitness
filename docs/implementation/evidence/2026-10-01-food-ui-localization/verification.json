@@ -1,0 +1,57 @@
+{
+  "recordedAt": "2026-10-01T06:34:31.812482+00:00",
+  "branch": "fix/food-ui-localization-20261001",
+  "baseRevision": "53c7092ef",
+  "scope": [
+    "Amount spinner intent",
+    "German workout copy and food edit layout",
+    "Watch meal labels"
+  ],
+  "mobileTests": {
+    "success": true,
+    "numPassedTests": 7463,
+    "numPendingTests": 0,
+    "numFailedTests": 0,
+    "numPassedTestSuites": 518,
+    "numFailedTestSuites": 0
+  },
+  "checks": {
+    "typecheck": "passed",
+    "lint": "passed",
+    "compilerLint": "passed",
+    "germanOverlay": "passed",
+    "germanCopyAudit": "passed",
+    "localeGeneration": "passed",
+    "mobileI18nAudit": "passed; no blocking hardcoded strings, unsafe number formatting or manual plurals",
+    "knip": "passed; existing configuration hints remain",
+    "nativeLocales": "passed",
+    "watchGeometry": "passed via node --import tsx scripts/generate-watch-progress-x.mjs --check",
+    "mobileFormatting": "passed",
+    "gitDiffCheck": "passed",
+    "nativeReviewSwiftSyntax": "passed; xcrun swiftc -parse review/DashboardReview.swift",
+    "reviewRunnerRuntimeTests": "3 passed",
+    "validateWrapper": "blocked at tsx CLI IPC listen EPERM; same geometry program and remaining formatting check passed separately"
+  },
+  "germanStringsChangedOrAdded": 168,
+  "nativeReview": {
+    "status": "unverified",
+    "screenshots": [],
+    "blockers": [
+      "CoreSimulatorService connection invalid / connection refused while enumerating runtimes",
+      "Automatic approval review: Computer Use was not approved to use Simulator"
+    ],
+    "pending": [
+      "390x844 normal German dark/light food details and Food Edit",
+      "430x932 enlarged German food details and Food Edit",
+      "Native scroll vs hold-and-drag arbitration",
+      "German live workout/set-type menu render",
+      "Physical phone-Watch meal selection and logging"
+    ]
+  },
+  "boundaries": [
+    "Synthetic test data only",
+    "Original Todoist screenshots inspected, not committed",
+    "Existing workout-energy work unchanged",
+    "No merge, deployment, build publication or real-record mutation"
+  ]
+}

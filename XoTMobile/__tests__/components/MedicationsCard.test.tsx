@@ -150,7 +150,7 @@ describe('MedicationsCard', () => {
     expect(screen.getByText('Lisinopril')).toBeTruthy();
     expect(screen.getByText('08:00')).toBeTruthy();
     expect(
-      screen.getByText('08:00 · Pill · 1 tablet', { exact: false })
+      screen.getByText('08:00 · Medication · Pill · 1 tablet', { exact: false })
     ).toBeTruthy();
     fireEvent.press(screen.getByText('Log'));
     expect(mockLogDose).toHaveBeenCalledWith(
@@ -217,7 +217,7 @@ describe('MedicationsCard', () => {
     ]);
 
     expect(
-      screen.getByText('08:00 · Pill · 2 tablet', { exact: false })
+      screen.getByText('08:00 · Medication · Pill · 2 tablet', { exact: false })
     ).toBeTruthy();
   });
 
@@ -254,13 +254,13 @@ describe('MedicationsCard', () => {
   it('navigates to the medications list from the card title', () => {
     const screen = setupCard([buildMedication()]);
 
-    fireEvent.press(screen.getByText('Medications'));
+    fireEvent.press(screen.getByText('Medications & supplements'));
     expect(mockNavigate).toHaveBeenCalledWith('MedicationsList');
   });
 
   it('renders nothing when no doses are due and no PRN meds exist', () => {
     const screen = setupCard([buildMedication({ is_active: false })]);
 
-    expect(screen.queryByText('Medications')).toBeNull();
+    expect(screen.queryByText('Medications & supplements')).toBeNull();
   });
 });

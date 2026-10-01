@@ -142,20 +142,10 @@ describe('useScreenHeader custom bar title layout', () => {
     if (osSpy) osSpy.restore();
   });
 
-  // Confirmed via onLayout measurement on a real device (row:411 L:0 T:379
-  // R:0): a `flex-1` (flexBasis: 0%) side cell next to a flexShrink-only
-  // (flexBasis: auto/content) title gets ZERO share of both the shrink
-  // distribution (scaled shrink factor = flexShrink × flexBasis = 0 for
-  // basis:0% items) and the growth (growth doesn't apply during overflow) —
-  // a long title claims the entire row and the side cells vanish. Fixed via
-  // an absolutely-positioned title layer (decoupled from the side cells'
-  // flex layout entirely, so it can never compete with them for space) plus
-  // content-sized (flexShrink: 0) side cells, so neither a long title nor
-  // wide side content can squeeze the other. Asserts the inline `style` (not
-  // a className string) since Uniwind's classes are processed at build time
-  // and are opaque to this test either way — the inline style is what
-  // actually guarantees the behavior at runtime.
-  it('renders the title as an untouchable absolute layer and keeps the side cells content-sized, so a long title cannot squeeze them to zero', () => {
+  // Native action widths are reserved before the title gets its flex share.
+  // An absolute title layer with fixed icon insets overlapped translated
+  // text actions such as German Cancel and Save.
+  it('reserves side actions and gives only the remaining width to a truncating title', () => {
     const { UNSAFE_getAllByType } = render(
       <TestScreen
         title={
@@ -169,8 +159,10 @@ describe('useScreenHeader custom bar title layout', () => {
       (view) => view.props.pointerEvents === 'box-none'
     );
     expect(titleLayer?.props.style).toEqual(
-      expect.objectContaining({ position: 'absolute', left: 16, right: 16 })
+      expect.objectContaining({ flex: 1, minWidth: 0, paddingHorizontal: 8 })
     );
+    expect(titleLayer?.props.style.position).toBeUndefined();
+    expect(titleLayer?.props.children.props.numberOfLines).toBe(1);
     expect(titleLayer?.props.children.props.children).toBe(
       'A very long preset name that would otherwise overflow the header bar'
     );

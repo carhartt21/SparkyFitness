@@ -20,6 +20,32 @@ jest.mock('../../src/components/Icon', () => {
   };
 });
 
+jest.mock('../../src/components/BottomSheetPicker', () => {
+  const { Pressable, Text, View } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      options,
+      onSelect,
+    }: {
+      options: { label: string; value: string }[];
+      onSelect: (value: string) => void;
+    }) => (
+      <View>
+        {options.map((option) => (
+          <Pressable
+            key={option.value}
+            testID={`category-${option.value}`}
+            onPress={() => onSelect(option.value)}
+          >
+            <Text>{option.label}</Text>
+          </Pressable>
+        ))}
+      </View>
+    ),
+  };
+});
+
 jest.mock('uniwind', () => ({
   useCSSVariable: (keys: string | string[]) =>
     Array.isArray(keys) ? keys.map(() => '#111827') : '#111827',
@@ -164,7 +190,7 @@ describe('MedicationsListScreen', () => {
   it('still shows the disclosure row when every medication is inactive', () => {
     const screen = setupScreen([buildMedication({ is_active: false })]);
 
-    expect(screen.queryByText('No medications yet')).toBeNull();
+    expect(screen.queryByText('No medications or supplements yet')).toBeNull();
     expect(screen.getByText('Inactive (1)')).toBeTruthy();
 
     fireEvent.press(screen.getByText('Inactive (1)'));
@@ -174,9 +200,42 @@ describe('MedicationsListScreen', () => {
   it('shows the empty state with a working add button when there are no medications', () => {
     const screen = setupScreen([]);
 
-    expect(screen.getByText('No medications yet')).toBeTruthy();
+    expect(screen.getByText('No medications or supplements yet')).toBeTruthy();
     fireEvent.press(screen.getByText('Add Medication'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('MedicationForm', {});
+  });
+
+  it('filters by the saved category rather than item names and creates supplements from that view', () => {
+    const screen = setupScreen([
+      buildMedication({
+        id: 'ordinary',
+        name: 'Vitamin D',
+        is_supplement: false,
+      }),
+      buildMedication({
+        id: 'supplement',
+        name: 'Recorded supplement',
+        is_supplement: true,
+      }),
+    ]);
+    fireEvent.press(screen.getByTestId('category-supplements'));
+    expect(screen.queryByText('Vitamin D')).toBeNull();
+    expect(screen.getByText('Recorded supplement')).toBeTruthy();
+    fireEvent.press(screen.getByTestId('category-medications'));
+    expect(screen.getByText('Vitamin D')).toBeTruthy();
+    expect(screen.queryByText('Recorded supplement')).toBeNull();
+    fireEvent.press(screen.getByTestId('category-all'));
+    expect(screen.getByText('Recorded supplement')).toBeTruthy();
+  });
+
+  it('offers supplement creation in an empty supplement category', () => {
+    const screen = setupScreen([buildMedication()]);
+    fireEvent.press(screen.getByTestId('category-supplements'));
+    expect(screen.getByText('No items in this category')).toBeTruthy();
+    fireEvent.press(screen.getByText('Add supplement'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('MedicationForm', {
+      supplement: true,
+    });
   });
 
   it('offers a retry that refetches on error', () => {
@@ -204,7 +263,9 @@ describe('MedicationsListScreen', () => {
       </SafeAreaProvider>
     );
 
-    expect(screen.getByText('Failed to load medications.')).toBeTruthy();
+    expect(
+      screen.getByText('Could not load medications and supplements.')
+    ).toBeTruthy();
     fireEvent.press(screen.getByText('Retry'));
     expect(refetch).toHaveBeenCalled();
   });

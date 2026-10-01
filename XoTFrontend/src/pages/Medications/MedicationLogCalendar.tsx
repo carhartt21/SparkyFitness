@@ -152,8 +152,16 @@ export default function MedicationLogCalendar({
     [medications]
   );
   const entryIsVisible = useCallback(
-    (medicationId: string | null | undefined) =>
-      isEntryVisibleForSubtype(medicationId, visibleMedIds, subtype),
+    (
+      medicationId: string | null | undefined,
+      nutrientsSnapshot?: MedicationEntry['nutrients_snapshot']
+    ) =>
+      isEntryVisibleForSubtype(
+        medicationId,
+        visibleMedIds,
+        subtype,
+        nutrientsSnapshot
+      ),
     [subtype, visibleMedIds]
   );
 
@@ -194,7 +202,11 @@ export default function MedicationLogCalendar({
     const map: Record<string, DayCounts> = {};
     (entries as MedicationEntry[]).forEach((e) => {
       if (!isAllSelected && e.medication_id !== activeMedId) return;
-      if (isAllSelected && !entryIsVisible(e.medication_id)) return;
+      if (
+        isAllSelected &&
+        !entryIsVisible(e.medication_id, e.nutrients_snapshot)
+      )
+        return;
       const day = e.entry_date.split('T')[0];
       if (!day) return;
       if (!map[day]) map[day] = { taken: 0, prn: 0, skipped: 0, snoozed: 0 };

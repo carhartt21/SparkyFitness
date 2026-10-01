@@ -1,3 +1,4 @@
+import { medicationKindLabel } from '@/utils/medicationKindLabel';
 import { useMemo, useState, useEffect } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import {
@@ -466,12 +467,12 @@ const MedicationReports = ({
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-xl font-bold tracking-tight">
-            {t('medications.reports.title', 'Medications Report')}
+            {t('medications.reports.title', 'Medication & supplement report')}
           </h2>
           <p className="text-sm text-muted-foreground">
             {t(
               'medications.reports.subtitle',
-              'Analyze dose correlations, side effects, and adherence trends.'
+              'Review recorded intake, schedules and symptoms for medications and supplements.'
             )}
           </p>
         </div>
@@ -528,7 +529,7 @@ const MedicationReports = ({
                 id: 'medication_log_table',
                 label: t(
                   'medications.reports.configMedicationLog',
-                  'Medication Log Table'
+                  'Medication & supplement log table'
                 ),
               },
               {
@@ -1311,7 +1312,7 @@ const MedicationReports = ({
           <CardDescription>
             {t(
               'medications.reports.exportDesc',
-              'Download a coherent report including medication details, logs, schedules, symptoms, and weight data for your doctor.'
+              'Download a report including medication and supplement details, recorded intake, schedules, symptoms, and weight data for your doctor.'
             )}
           </CardDescription>
         </CardHeader>
@@ -1331,7 +1332,7 @@ const MedicationReports = ({
       <div className="hidden print:block space-y-8 p-8 max-w-4xl mx-auto bg-white text-slate-900">
         <div className="border-b-2 border-slate-300 pb-4">
           <h1 className="text-2xl font-bold">
-            {t('medications.print.header', 'Prescriber Medication Report')}
+            {t('medications.print.header', 'Medication & supplement report')}
           </h1>
           <p className="text-sm text-slate-500">
             {t('medications.print.dates', 'Reporting Period:')} {startDate}{' '}
@@ -1374,13 +1375,16 @@ const MedicationReports = ({
         {/* Medications list */}
         <div>
           <h2 className="text-sm font-bold border-b border-slate-200 pb-1 mb-2">
-            {t('medications.print.activeMedications', 'Active Medications')}
+            {t(
+              'medications.print.activeMedications',
+              'Medications & supplements'
+            )}
           </h2>
           <table className="w-full text-xs text-left">
             <thead>
               <tr className="border-b border-slate-200 bg-slate-50">
                 <th className="py-1">
-                  {t('medications.print.medication', 'Medication')}
+                  {t('medications.print.medication', 'Item')}
                 </th>
                 <th className="py-1">{t('medications.print.type', 'Type')}</th>
                 <th className="py-1">
@@ -1399,6 +1403,9 @@ const MedicationReports = ({
                 <tr key={m.id} className="border-b border-slate-100">
                   <td className="py-1 font-semibold">
                     {m.display_name || m.name}
+                    <span className="block font-normal">
+                      {medicationKindLabel(m, t)}
+                    </span>
                   </td>
                   <td className="py-1">
                     {m.type_id
@@ -1506,7 +1513,7 @@ const MedicationReports = ({
                     {t('medications.print.date', 'Date')}
                   </th>
                   <th className="py-1">
-                    {t('medications.print.medication', 'Medication')}
+                    {t('medications.print.medication', 'Item')}
                   </th>
                   <th className="py-1">
                     {t('medications.print.doseMg', 'Dose (mg)')}

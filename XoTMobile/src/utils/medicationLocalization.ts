@@ -1,4 +1,15 @@
 import type { TFunction } from 'i18next';
+import type { Medication } from '@workspace/shared';
+
+/** Use the saved flag, never names, nutrients, or prescription metadata. */
+export function medicationKindLabel(
+  medication: Pick<Medication, 'is_supplement'>,
+  t: TFunction
+): string {
+  return medication.is_supplement === true
+    ? t('supplements.singular', { defaultValue: 'Supplement' })
+    : t('medications.medication', { defaultValue: 'Medication' });
+}
 
 export function medicationTypeLabel(
   typeId: string | null | undefined,
@@ -13,6 +24,12 @@ export function medicationTypeLabel(
       return t('medications.types.capsule', { defaultValue: 'Capsule' });
     case 'liquid':
       return t('medications.types.liquid', { defaultValue: 'Liquid' });
+    case 'softgel':
+      return t('medications.types.softgel', { defaultValue: 'Softgel' });
+    case 'gummy':
+      return t('medications.types.gummy', { defaultValue: 'Gummy' });
+    case 'powder':
+      return t('medications.types.powder', { defaultValue: 'Powder' });
     case 'injection':
       return t('medications.types.injection', { defaultValue: 'Injection' });
     case 'patch':
@@ -66,6 +83,10 @@ export function mealTimingLabel(value: string, t: TFunction): string {
       return t('medications.types.withMeal', { defaultValue: 'With meal' });
     case 'after':
       return t('medications.types.afterMeal', { defaultValue: 'After meal' });
+    case 'away_from_meals':
+      return t('medications.types.awayFromMeals', {
+        defaultValue: 'Away from meals',
+      });
     default:
       return value;
   }

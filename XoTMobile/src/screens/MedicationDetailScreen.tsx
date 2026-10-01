@@ -31,6 +31,7 @@ import { formatDateToTimeLabel } from '../utils/entryTimeDisplay';
 import { getDeviceTimezone, formatDateLabel } from '../utils/dateUtils';
 import type { RootStackScreenProps } from '../types/navigation';
 import {
+  medicationKindLabel,
   medicationTypeLabel,
   mealTimingLabel,
 } from '../utils/medicationLocalization';
@@ -47,9 +48,8 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
   navigation,
 }) => {
   const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const dateLocale =
+    translationI18n.resolvedLanguage ?? translationI18n.language;
   const { medicationId } = route.params;
   const { preferences } = usePreferences();
   const insets = useSafeAreaInsets();
@@ -104,9 +104,13 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
   const handleDelete = useCallback(() => {
     if (!med) return;
     Alert.alert(
-      t('medications.detail.deleteTitle', {
-        defaultValue: 'Delete Medication',
-      }),
+      med.is_supplement
+        ? t('medications.detail.deleteSupplementTitle', {
+            defaultValue: 'Delete supplement',
+          })
+        : t('medications.detail.deleteTitle', {
+            defaultValue: 'Delete Medication',
+          }),
       t('medications.detail.deleteMessage', {
         defaultValue:
           "Are you sure you want to delete '{{name}}'? This will also remove all schedules and logged entries.",
@@ -130,9 +134,13 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
                 );
                 Toast.show({
                   type: 'error',
-                  text1: t('medications.detail.deleteFailed', {
-                    defaultValue: 'Failed to delete medication',
-                  }),
+                  text1: med.is_supplement
+                    ? t('medications.detail.deleteSupplementFailed', {
+                        defaultValue: 'Could not delete supplement',
+                      })
+                    : t('medications.detail.deleteFailed', {
+                        defaultValue: 'Failed to delete medication',
+                      }),
                 });
               },
             });
@@ -226,10 +234,9 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
   );
 
   const header = useScreenHeader({
-    title:
-      med?.name ?? t('medications.medication', { defaultValue: 'Medication' }),
+    title: med?.name ?? t('medications.item', { defaultValue: 'Intake item' }),
     nativeTitle:
-      med?.name ?? t('medications.medication', { defaultValue: 'Medication' }),
+      med?.name ?? t('medications.item', { defaultValue: 'Intake item' }),
     left: { kind: 'back' },
     right: {
       kind: 'text',
@@ -241,7 +248,13 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
   const typeLabel = med ? medicationTypeLabel(med.type_id, t) : '';
   const doseLabel = med ? formatDose(med) : null;
   const strengthLabel = med ? formatStrengthPerUnit(med) : null;
-  const contextLine = [typeLabel, med?.reason_text].filter(Boolean).join(' · ');
+  const contextLine = [
+    med ? medicationKindLabel(med, t) : null,
+    typeLabel,
+    med?.reason_text,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <View
@@ -571,9 +584,13 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
             onPress={handleDelete}
           >
             <Text className="text-base font-medium text-center text-text-danger-subtle">
-              {t('medications.detail.delete', {
-                defaultValue: 'Delete Medication',
-              })}
+              {med.is_supplement
+                ? t('medications.detail.deleteSupplementTitle', {
+                    defaultValue: 'Delete supplement',
+                  })
+                : t('medications.detail.delete', {
+                    defaultValue: 'Delete Medication',
+                  })}
             </Text>
           </TouchableOpacity>
         </ScrollView>

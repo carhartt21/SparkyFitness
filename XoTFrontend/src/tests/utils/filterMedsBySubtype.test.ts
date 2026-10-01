@@ -131,3 +131,22 @@ describe('isEntryVisibleForSubtype', () => {
     expect(isEntryVisibleForSubtype(undefined, ids, 'supplements')).toBe(false);
   });
 });
+
+it('retains snapshotted supplement intake in its category after deletion or reclassification', () => {
+  const history = [
+    { medication_id: 'deleted', nutrients_snapshot: {} },
+    { medication_id: 'reclassified', nutrients_snapshot: { protein: 3 } },
+    { medication_id: 'medicine', nutrients_snapshot: null },
+  ];
+  expect(filterEntriesBySubtype(history, new Set(), 'supplements')).toEqual(
+    history.slice(0, 2)
+  );
+  expect(
+    filterEntriesBySubtype(
+      history,
+      new Set(['reclassified', 'medicine']),
+      'meds'
+    )
+  ).toEqual([history[2]]);
+  expect(filterEntriesBySubtype(history, new Set(), 'all')).toEqual(history);
+});

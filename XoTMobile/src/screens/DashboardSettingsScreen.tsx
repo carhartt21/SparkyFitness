@@ -357,15 +357,16 @@ const DashboardSettingsScreen: React.FC<DashboardSettingsScreenProps> = ({
           />
           <SettingsRow
             title={t('dashboardSettings.medications', {
-              defaultValue: 'Medications',
+              defaultValue: 'Medications & supplements',
             })}
             subtitle={t('dashboardSettings.medicationsSubtitle', {
-              defaultValue: 'Show the medications card on the Dashboard',
+              defaultValue:
+                'Show scheduled medications and supplements on the Dashboard',
             })}
             rightAccessory={
               <Switch
                 accessibilityLabel={t('dashboardSettings.medications', {
-                  defaultValue: 'Medications',
+                  defaultValue: 'Medications & supplements',
                 })}
                 value={medicationsCardVisible}
                 onValueChange={setMedicationsCardVisible}

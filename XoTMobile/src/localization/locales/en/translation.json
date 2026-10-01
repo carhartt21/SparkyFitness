@@ -5,7 +5,7 @@
   },
   "engagement": {
     "dailyOptionalBudget": "Optional reminders today",
-    "dailyOptionalBudgetSummary": "{{used}} of 3 daily slots used. Meal, movement, and water share them; medication and rest alerts are separate.",
+    "dailyOptionalBudgetSummary": "{{used}} of 3 daily slots used. Meal, movement, and water share them; medication, supplement and rest alerts are separate.",
     "dailyOptionalBudgetUnavailable": "Daily reminder count unavailable. Meal, movement, and water reminders share three slots.",
     "captureReminderTitle": "Meal check-in",
     "captureReminderBody": "A photo is enough for now.",
@@ -287,7 +287,7 @@
     },
     "notifications": {
       "title": "Notifications",
-      "subtitle": "Rest timers, fasting goals, and medication reminders."
+      "subtitle": "Reminders for routines, medications and supplements, plus workout timers."
     },
     "fasting": {
       "title": "Fasting",
@@ -390,7 +390,7 @@
   "notifications": {
     "title": "Notifications",
     "channels": {
-      "medicationReminders": "Medication reminders",
+      "medicationReminders": "Medication & supplement reminders",
       "workoutTimer": "Workout timer",
       "fasting": "Fasting",
       "hydration": "Hydration reminders"
@@ -407,7 +407,7 @@
     },
     "exactAlarm": {
       "title": "On-time alerts",
-      "message": "Android delays scheduled alerts unless X on Track is allowed to set exact alarms. Enable \"Alarms & reminders\" so rest timers and medication reminders ring on time.",
+      "message": "Android may delay scheduled alerts. Enable “Alarms & reminders” so workout timers and scheduled medication and supplement reminders can ring on time.",
       "notNow": "Not Now",
       "openSettings": "Open Settings"
     },
@@ -567,7 +567,8 @@
     "columns": {
       "set": "Set",
       "previous": "Prev",
-      "seconds": "Sec"
+      "seconds": "Sec",
+      "reps": "Reps"
     },
     "exercise": {
       "expand": "Expand {{name}}",
@@ -655,7 +656,7 @@
     "wellnessHub": "Wellness Hub",
     "logDailyEntry": "Log Daily Entry",
     "pregnancySetup": "Pregnancy Setup",
-    "medications": "Medications",
+    "medications": "Medications & supplements",
     "medication": "Medication",
     "library": {
       "noServerConfigured": "No server configured",
@@ -678,7 +679,7 @@
       "mealPlansSubtitle": "Repeat meals on selected days",
       "exercises": "Exercises",
       "workoutPresets": "Workout presets",
-      "medications": "Medications",
+      "medications": "Medications & supplements",
       "waterContainers": "Water containers",
       "waterContainersSubtitle": "Bottles, glasses, and drinks linked to foods",
       "recentlyLogged": "Recently Logged",
@@ -1206,8 +1207,8 @@
     "fastingDisabledSubtitle": "Enable fasting in App Settings first",
     "cyclePregnancy": "Cycle & Pregnancy",
     "cyclePregnancySubtitle": "Show the wellness card on the Dashboard",
-    "medications": "Medications",
-    "medicationsSubtitle": "Show the medications card on the Dashboard",
+    "medications": "Medications & supplements",
+    "medicationsSubtitle": "Show scheduled medications and supplements on the Dashboard",
     "healthTrends": "Health Trends",
     "healthTrendsSubtitle": "Choose which graphs show on the Dashboard and their order",
     "progressPhotos": "Progress Photos",
@@ -1262,13 +1263,13 @@
     "restTimerSubtitle": "Alert when a rest period ends, even in the background.",
     "fastingGoals": "Fasting Goals",
     "fastingGoalsSubtitle": "Alert when you reach your fasting goal.",
-    "medications": "Medications",
-    "medicationReminders": "Medication Reminders",
-    "medicationRemindersSubtitle": "Reminders for scheduled medications.",
+    "medications": "Medications & supplements",
+    "medicationReminders": "Scheduled intake reminders",
+    "medicationRemindersSubtitle": "Remind you at the times saved in medication and supplement schedules. As-needed items without a scheduled time do not send reminders.",
     "repeatReminders": "Repeat Reminders",
     "repeatRemindersSubtitle": "Repeat each reminder every 10 minutes, up to 3 times, until the dose is logged.",
-    "hideMedicationNames": "Hide Medication Names",
-    "hideMedicationNamesSubtitle": "Show a generic reminder instead of the medication name and dose.",
+    "hideMedicationNames": "Hide names and doses",
+    "hideMedicationNamesSubtitle": "Hide the item’s name and dose on notifications. The title still distinguishes a medication from a supplement.",
     "hydration": "Hydration",
     "waterReminders": "Water Reminders",
     "waterRemindersSubtitle": "After the chosen interval since the last drink, within your window. Stops at the known water goal. Uses remaining optional slots.",
@@ -1336,7 +1337,7 @@
       "spacing": "Spaced away from another reminder."
     },
     "quietHours": "Quiet hours",
-    "quietHoursHint": "Optional reminders pause during these hours, in the account time zone. Medication and rest alerts remain separate. Equal times turn quiet hours off.",
+    "quietHoursHint": "Optional reminders pause during these hours, in the account time zone. Medication, supplement and rest alerts remain separate. Equal times turn quiet hours off.",
     "quietStart": "Quiet hours start",
     "quietEnd": "Quiet hours end"
   },
@@ -1395,16 +1396,16 @@
     "subtitle": "Log your meals and activity."
   },
   "medications": {
-    "title": "Medications",
+    "title": "Medications & supplements",
     "medication": "Medication",
     "addMedication": "Add medication",
     "addMedicationTitle": "Add Medication",
     "viewAll": "View all",
-    "viewAllMedications": "View all medications",
-    "loading": "Loading medications...",
-    "loadFailed": "Failed to load medications.",
-    "noMedications": "No medications yet",
-    "emptyDescription": "Add your first medication to start tracking.",
+    "viewAllMedications": "View medications and supplements",
+    "loading": "Loading medications and supplements…",
+    "loadFailed": "Could not load medications and supplements.",
+    "noMedications": "No medications or supplements yet",
+    "emptyDescription": "Add a medication or supplement to start tracking.",
     "retry": "Retry",
     "inactive": "Inactive",
     "form": {
@@ -1434,7 +1435,7 @@
       "invalidNumberMessage": "Please enter valid numeric values for strength and dose.",
       "invalidNutrient": "Enter a non-negative number for each nutrient.",
       "isSupplement": "This is a supplement",
-      "supplementHint": "Nutrients are counted when a dose is logged.",
+      "supplementHint": "Choose the category yourself; it is not inferred from the name. Only supplements with logged intake contribute their recorded nutrients to nutrition totals.",
       "nutrientsPerDose": "Nutrition per dose",
       "nutrientsOptional": "Leave unknown values blank.",
       "nutrient": {
@@ -1452,7 +1453,16 @@
         "alcohol_g": "Alcohol"
       },
       "updateFailed": "Failed to update medication: {{error}}",
-      "createFailed": "Failed to create medication: {{error}}"
+      "createFailed": "Failed to create medication: {{error}}",
+      "newSupplementTitle": "New supplement",
+      "editSupplementTitle": "Edit supplement",
+      "supplementTypeTitle": "Supplement form",
+      "supplementNamePlaceholder": "e.g. Vitamin D",
+      "supplementNameRequired": "Please enter a supplement name.",
+      "supplementCreateFailed": "Could not create supplement: {{error}}",
+      "supplementUpdateFailed": "Could not update supplement: {{error}}",
+      "classification": "Category",
+      "glp1Classification": "GLP-1 items remain medications. Their classification cannot be changed here."
     },
     "detail": {
       "deleteTitle": "Delete Medication",
@@ -1478,7 +1488,9 @@
       "notes": "Notes",
       "delete": "Delete Medication",
       "logged": "Logged",
-      "today": "today"
+      "today": "today",
+      "deleteSupplementTitle": "Delete supplement",
+      "deleteSupplementFailed": "Could not delete supplement"
     },
     "schedule": {
       "newTitle": "New Schedule",
@@ -1572,9 +1584,9 @@
       "reviewAndClear": "Review the dose, then clear this response"
     },
     "card": {
-      "title": "Medications",
+      "title": "Medications & supplements",
       "viewAll": "View all",
-      "viewAllA11y": "View all medications",
+      "viewAllA11y": "View all medications and supplements",
       "medicationA11y": "{{name}}{{summary}}"
     },
     "types": {
@@ -1599,7 +1611,10 @@
       "beforeMeal": "Before meal",
       "withMeal": "With meal",
       "afterMeal": "After meal",
-      "awayFromMeals": "Away from meals"
+      "awayFromMeals": "Away from meals",
+      "softgel": "Softgel",
+      "gummy": "Gummy",
+      "powder": "Powder"
     },
     "weekdays": {
       "title": "Days of Week",
@@ -1634,13 +1649,23 @@
     },
     "notificationScheduledDose": "You have a scheduled dose",
     "notificationScheduledDoseNamed": "Scheduled dose: {{name}}{{dose}}",
-    "inactiveA11y_one": "Inactive medication ({{count}})",
-    "inactiveA11y_other": "Inactive medications ({{count}})",
+    "inactiveA11y_one": "Inactive item ({{count}})",
+    "inactiveA11y_other": "Inactive items ({{count}})",
     "inactiveCount_one": "Inactive ({{count}})",
     "inactiveCount_other": "Inactive ({{count}})",
     "mealRelation": {
       "awayFromMeals": "Away from meals"
-    }
+    },
+    "filters": {
+      "all": "All",
+      "medications": "Medications",
+      "supplements": "Supplements"
+    },
+    "notificationSupplementTitle": "Supplement reminder",
+    "notificationSupplementDose": "You have a scheduled supplement intake",
+    "notificationSupplementDoseNamed": "Scheduled supplement: {{name}}{{dose}}",
+    "noMatchingItems": "No items in this category",
+    "item": "Intake item"
   },
   "scheduleSummary": {
     "daily": "Daily",
@@ -3195,10 +3220,10 @@
     },
     "features": {
       "medications": {
-        "eyebrow": "MEDICATIONS",
-        "headline": "Track your medications",
-        "body": "Add your medications, set dose schedules, and log each dose from the dashboard with optional reminders.",
-        "cta": "Set up medications"
+        "eyebrow": "INTAKE TRACKING",
+        "headline": "Track medications and supplements",
+        "body": "Add medications or supplements, set their schedules, and log actual intake with optional reminders.",
+        "cta": "Set up intake tracking"
       },
       "cycle": {
         "eyebrow": "CYCLE & PREGNANCY",
@@ -3771,8 +3796,9 @@
       "adjustEntry": "Adjust this entry only"
     },
     "wheel": {
-      "hint": "Swipe up or down to change. Long press to type an amount.",
-      "enterAmount": "Enter amount"
+      "hint": "Tap to enter an amount. Hold, then drag up or down to change it.",
+      "enterAmount": "Enter amount",
+      "instructions": "Tap to type · Hold and drag to adjust"
     },
     "editServings": {
       "title": "Add serving sizes",
@@ -6214,7 +6240,7 @@
     "offlineSubtitle": "Connect to your server to see your routine.",
     "loading": "Loading supplements…",
     "emptyTitle": "No supplements yet",
-    "emptySubtitle": "Add a supplement with a schedule to see it here. Medications stay in Medications.",
+    "emptySubtitle": "Add a supplement with a schedule to see it here. This view contains supplements only.",
     "add": "Add supplement",
     "takenToday": "taken",
     "noneScheduled": "No supplements scheduled for this day.",
@@ -6236,7 +6262,8 @@
       "midday": "Midday",
       "evening": "Evening",
       "anytime": "Any time"
-    }
+    },
+    "singular": "Supplement"
   },
   "trackingSettings": {
     "title": "Tracking settings",

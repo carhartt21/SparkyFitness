@@ -24,7 +24,10 @@
     },
     "cabinet": {
       "nutrientCount": "{{count}} Nährstoff",
-      "adherenceDescriptionBefore": "Zeitpläne und tägliche Checklisten für Nicht-GLP-1-Medikamente sind aktiv. Verwalten Sie unten die Zeitplanregeln und erfassen Sie die tägliche Einnahme über die "
+      "adherenceDescriptionBefore": "Einnahmepläne und tägliche Listen für Medikamente und Ergänzungsmittel sind verfügbar. Verwalten Sie die Pläne unten und erfassen Sie tatsächliche Einnahmen in der Ansicht",
+      "activeScripts": "Aktive Einträge",
+      "totalMeds": "Einträge insgesamt",
+      "empty": "Noch keine Medikamente oder Ergänzungsmittel. Fügen Sie Ihren ersten Eintrag hinzu."
     },
     "today": {
       "loggedActivityDescription": "Alle Einnahmen und ausgelassenen Dosen an diesem Tag.",
@@ -41,13 +44,65 @@
     },
     "reports": {
       "doseDependentNausea": "<strong>Dosisabhängige Übelkeit:</strong> Höhere Medikamentendosen korrelieren mit stärkerer Übelkeit. Besprechen Sie mögliche Anpassungen der Dosierung oder eine Aufteilung der Dosis mit einer medizinischen Fachperson.",
-      "restBenefit": "<strong>Erholung und Müdigkeit:</strong> Eine längere Schlafdauer korreliert mit geringerer Müdigkeit. Achten Sie auf regelmäßige Schlafenszeiten."
+      "restBenefit": "<strong>Erholung und Müdigkeit:</strong> Eine längere Schlafdauer korreliert mit geringerer Müdigkeit. Achten Sie auf regelmäßige Schlafenszeiten.",
+      "title": "Bericht zu Medikamenten und Ergänzungsmitteln",
+      "subtitle": "Erfasste Einnahmen, Einnahmepläne und Symptome zu Medikamenten und Ergänzungsmitteln ansehen.",
+      "logTableTitle": "Einnahmen von Medikamenten und Ergänzungsmitteln",
+      "logTableEmpty": "In diesem Zeitraum sind keine Einnahmen von Medikamenten oder Ergänzungsmitteln erfasst.",
+      "configMedicationLog": "Einnahmetabelle für Medikamente und Ergänzungsmittel",
+      "exportDesc": "Laden Sie einen Bericht mit Medikamenten und Ergänzungsmitteln, erfassten Einnahmen, Einnahmeplänen, Symptomen und Gewichtsdaten für Ihre ärztliche Beratung herunter.",
+      "failedToLoadPrefs": "Anzeigeeinstellungen für Einnahmen konnten nicht geladen werden."
     },
     "glp1": {
       "tapZone": "Wählen Sie einen Bereich"
     },
     "disclaimer": {
-      "text2": "Sprechen Sie immer mit Ihrem Arzt, Apotheker oder einer anderen qualifizierten medizinischen Fachperson, bevor Sie ein Medikament einnehmen, absetzen oder ändern. Ignorieren Sie keinen medizinischen Rat und verzögern Sie keine ärztliche Beratung aufgrund von Informationen aus dieser App."
+      "text2": "Sprechen Sie immer mit Ihrem Arzt, Apotheker oder einer anderen qualifizierten medizinischen Fachperson, bevor Sie ein Medikament einnehmen, absetzen oder ändern. Ignorieren Sie keinen medizinischen Rat und verzögern Sie keine ärztliche Beratung aufgrund von Informationen aus dieser App.",
+      "badge": "Medikamente & Ergänzungsmittel",
+      "subtitle": "Bitte lesen Sie die folgenden Hinweise, bevor Sie Medikamente und Ergänzungsmittel erfassen.",
+      "text1": "Diese Erfassung von Medikamenten und Ergänzungsmitteln dient der persönlichen Dokumentation und allgemeinen Information. Sie ersetzt keine medizinische Beratung, Diagnose oder Behandlung.",
+      "acknowledge": "Ich verstehe, dass diese Erfassung kein Medizinprodukt ist und keine medizinische Beratung bietet."
+    },
+    "subtype": {
+      "meds": "Medikamente"
+    },
+    "noSelection": {
+      "title": "Kein Eintrag ausgewählt",
+      "description": "Wählen Sie ein Medikament oder Ergänzungsmittel, um Einnahmeplan und Notizen anzuzeigen. GLP-1-Begleitung steht für entsprechend eingerichtete Medikamente zur Verfügung."
+    },
+    "kind": {
+      "medication": "Medikament",
+      "supplement": "Ergänzungsmittel",
+      "unknown": "Kategorie nicht verfügbar"
+    },
+    "print": {
+      "header": "Bericht zu Medikamenten und Ergänzungsmitteln",
+      "activeMedications": "Medikamente & Ergänzungsmittel",
+      "medication": "Eintrag"
+    },
+    "symptoms": {
+      "linkMed": "Mit Medikament oder Ergänzungsmittel verknüpfen (optional)",
+      "noMedLinked": "Kein Eintrag verknüpft"
+    },
+    "messages": {
+      "itemsLoadFailed": "Medikamente und Ergänzungsmittel konnten nicht geladen werden.",
+      "itemCreateFailed": "Eintrag konnte nicht hinzugefügt werden.",
+      "itemCreated": "Eintrag hinzugefügt.",
+      "itemUpdateFailed": "Eintrag konnte nicht aktualisiert werden.",
+      "itemUpdated": "Eintrag aktualisiert.",
+      "itemDeleteFailed": "Eintrag konnte nicht entfernt werden.",
+      "itemDeleted": "Eintrag entfernt.",
+      "intakeLoadFailed": "Erfasste Einnahmen konnten nicht geladen werden.",
+      "intakeCreateFailed": "Einnahme konnte nicht erfasst werden.",
+      "intakeCreated": "Einnahme erfasst.",
+      "intakeUpdateFailed": "Erfasste Einnahme konnte nicht aktualisiert werden.",
+      "intakeUpdated": "Erfasste Einnahme aktualisiert.",
+      "intakeDeleteFailed": "Erfasste Einnahme konnte nicht entfernt werden.",
+      "intakeDeleted": "Erfasste Einnahme entfernt.",
+      "scheduleCreateFailed": "Einnahmeplan konnte nicht hinzugefügt werden.",
+      "scheduleCreated": "Einnahmeplan hinzugefügt.",
+      "scheduleDeleteFailed": "Einnahmeplan konnte nicht gelöscht werden.",
+      "scheduleDeleted": "Einnahmeplan gelöscht."
     }
   },
   "nav": {
@@ -56,7 +111,8 @@
     "more": "Mehr",
     "skipToContent": "Zum Inhalt springen",
     "dashboard": "Dashboard",
-    "home": "Startseite"
+    "home": "Startseite",
+    "medications": "Medikamente & Ergänzungsmittel"
   },
   "aboutDialog": {
     "personalBestDescription": "X on Track hilft Ihnen, Wichtiges zu erfassen, Muster zu verstehen und sich an Ihrem eigenen Ausgangspunkt zu orientieren. Keep getting better.",
@@ -351,7 +407,10 @@
     "familyAccess": {
       "description": "Zugriff auf Ihre Daten für Familienmitglieder verwalten",
       "canUseExerciseLibrary": "Meine Übungs- und Trainingsbibliothek verwenden",
-      "canUseExerciseLibraryHelp": "Ermöglicht der bevollmächtigten Person, bei aktiviertem Kontextwechsel Ihre eigenen Übungen und Trainingsvorlagen anzuzeigen und zu verwenden. Gewährt keinen Zugriff auf Tagebucheinträge oder Profileinstellungen."
+      "canUseExerciseLibraryHelp": "Ermöglicht der bevollmächtigten Person, bei aktiviertem Kontextwechsel Ihre eigenen Übungen und Trainingsvorlagen anzuzeigen und zu verwenden. Gewährt keinen Zugriff auf Tagebucheinträge oder Profileinstellungen.",
+      "canManageMedications": "Medikamente & Ergänzungsmittel verwalten",
+      "managesMedications": "Verwaltet Medikamente & Ergänzungsmittel",
+      "canManageMedicationsHelp": "Erlaubt die Verwaltung von Medikamenten und Ergänzungsmitteln, Einnahmeplänen, Symptomen und Injektionsstellen. Das Erfassen von Ergänzungsmittel-Einnahmen und Bearbeiten ihrer Nährwerte erfordert zusätzlich Zugriff auf das Ernährungstagebuch. Das Profil kann nur gelesen werden."
     },
     "dataManagement": {
       "subtitle": "Exportieren oder verwalten Sie Ihre Daten",
@@ -576,7 +635,8 @@
     "spo2DescVeryLow": "Ihre Blutsauerstoffwerte sind sehr niedrig. Holen Sie ärztliche Hilfe.",
     "respirationDescLow": "Ihre Atemfrequenz liegt unter dem üblichen Bereich.",
     "respirationDescNormal": "Ihre Atemfrequenz liegt im üblichen Bereich.",
-    "respirationDescElevated": "Ihre Atemfrequenz ist erhöht."
+    "respirationDescElevated": "Ihre Atemfrequenz ist erhöht.",
+    "medicationsTab": "Medikamente & Ergänzungsmittel"
   },
   "sleepHealth": {
     "dailyTrend": "Trend",
@@ -900,7 +960,8 @@
   },
   "chat": {
     "toolCategories": {
-      "tooltip": "Wählen Sie Ihre Trackbot-Werkzeuge"
+      "tooltip": "Wählen Sie Ihre Trackbot-Werkzeuge",
+      "medications": "Medikamente & Ergänzungsmittel"
     }
   },
   "exerciseReportsDashboard": {
@@ -1034,5 +1095,11 @@
     "useFood": "{{name}} verwenden",
     "searchFoods": "Lebensmittel und Anbieter durchsuchen",
     "unresolved": "Verknüpfen Sie alle importierten Zutaten, bevor Sie diese Mahlzeit speichern."
+  },
+  "pregnancy": {
+    "vitals": {
+      "prenatalSupplements": "Verknüpfte Medikamente & Ergänzungsmittel",
+      "noPrenatalsLinked": "Keine Einträge verknüpft. Verknüpfen Sie Medikamente oder Ergänzungsmittel in den Einstellungen, um erfasste Einnahmen anzuzeigen."
+    }
   }
 }

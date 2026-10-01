@@ -90,7 +90,9 @@ const mobileDoseMed = {
 } as unknown as Medication;
 
 function openDialog() {
-  fireEvent.click(screen.getByRole('button', { name: /Add medication/ }));
+  fireEvent.click(
+    screen.getByRole('button', { name: /Add (medication|supplement)/ })
+  );
 }
 
 function save() {
@@ -387,6 +389,20 @@ describe('AddMedicationDialog dose fields', () => {
     expect(body).toMatchObject({
       dose_amount: 1.7,
       dose_unit: 'mg',
+    });
+  });
+});
+
+describe('supplement category entry point', () => {
+  it('labels the default supplement trigger and saves explicit classification', () => {
+    jest.clearAllMocks();
+    render(<AddMedicationDialog defaultIsSupplement />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add supplement' }));
+    setField('Name', 'Vitamin D');
+    save();
+    expect(lastCreateBody()).toMatchObject({
+      name: 'Vitamin D',
+      is_supplement: true,
     });
   });
 });

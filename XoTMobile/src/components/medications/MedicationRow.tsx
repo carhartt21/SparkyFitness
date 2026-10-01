@@ -5,6 +5,7 @@ import { useCSSVariable } from 'uniwind';
 import { formatDose, type Medication } from '@workspace/shared';
 import { localizedDescribeSchedules } from '../../utils/medicationScheduleLocalization';
 import Icon from '../Icon';
+import { medicationKindLabel } from '../../utils/medicationLocalization';
 
 interface MedicationRowProps {
   medication: Medication;
@@ -26,6 +27,7 @@ const MedicationRow: React.FC<MedicationRowProps> = ({
   ]
     .filter((part) => part != null && part !== '')
     .join(' · ');
+  const kindLabel = medicationKindLabel(medication, t);
 
   return (
     <TouchableOpacity
@@ -36,7 +38,7 @@ const MedicationRow: React.FC<MedicationRowProps> = ({
       accessibilityLabel={t('medications.card.medicationA11y', {
         defaultValue: '{{name}}{{summary}}',
         name: medication.name,
-        summary: summary ? `, ${summary}` : '',
+        summary: `, ${kindLabel}${summary ? `, ${summary}` : ''}`,
       })}
     >
       <View className="flex-1">
@@ -46,6 +48,7 @@ const MedicationRow: React.FC<MedicationRowProps> = ({
         >
           {medication.name}
         </Text>
+        <Text className="text-xs text-text-secondary mt-1">{kindLabel}</Text>
         {summary !== '' && (
           <Text className="text-xs text-text-secondary mt-1" numberOfLines={1}>
             {summary}

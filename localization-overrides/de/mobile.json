@@ -14,7 +14,8 @@
     "reviewReminderBody": "Prüfen Sie Ihre Mahlzeitenfotos, wenn es für Sie passt.",
     "breakExplanation": "Stehen Sie auf, gehen Sie ein Stück oder bewegen Sie sich auf eine für Sie passende Weise. Der Timer erfasst keine Bewegung; eine Aktivität können Sie separat speichern.",
     "breakSettingSubtitle": "Starten Sie einen kurzen Timer. Das Beenden erfasst keine Bewegung.",
-    "captureReminderSettingSubtitle": "Erinnert nur bei offenem Mahlzeitfenster. Essen, ein Mahlzeitfoto oder ein gesetzter Mahlzeitstatus klärt es. Offline gespeicherte Einträge stoppen den lokalen Hinweis; der Server benötigt die Synchronisierung."
+    "captureReminderSettingSubtitle": "Erinnert nur bei offenem Mahlzeitfenster. Essen, ein Mahlzeitfoto oder ein gesetzter Mahlzeitstatus klärt es. Offline gespeicherte Einträge stoppen den lokalen Hinweis; der Server benötigt die Synchronisierung.",
+    "dailyOptionalBudgetSummary": "{{used}} von 3 täglichen Erinnerungen genutzt. Mahlzeiten, Bewegung und Wasser teilen dieses Kontingent; Medikamente, Ergänzungsmittel und Pausen sind davon ausgenommen."
   },
   "mobility": {
     "title": "Geführte Mobilität",
@@ -137,7 +138,10 @@
       "fallbackName": "Ihr Konto",
       "accessibilityLabel": "{{name}}. Verbunden mit {{host}}. Öffnet die Servereinstellungen."
     },
-    "addServer": "Tippen Sie, um einen Server hinzuzufügen"
+    "addServer": "Tippen Sie, um einen Server hinzuzufügen",
+    "notifications": {
+      "subtitle": "Erinnerungen an Routinen, Medikamente und Ergänzungsmittel sowie Trainingstimer."
+    }
   },
   "navigation": {
     "home": "Zuhause",
@@ -149,7 +153,7 @@
     "channels": {
       "hydration": "Trinkerinnerungen",
       "fasting": "Fasten",
-      "medicationReminders": "Einnahmeerinnerungen",
+      "medicationReminders": "Medikamente und Ergänzungsmittel",
       "workoutTimer": "Trainingstimer"
     },
     "hydration": {
@@ -161,7 +165,7 @@
       "timerInApp": "Der Timer alarmiert weiterhin in der App."
     },
     "exactAlarm": {
-      "message": "Android verzögert geplante Alarme, es sei denn, X on Track darf genaue Alarme festlegen. Aktivieren Sie „Alarme und Erinnerungen“, damit Ruhe-Timer und Medikamentenerinnerungen pünktlich klingeln.",
+      "message": "Android kann geplante Hinweise verzögern. Aktivieren Sie „Wecker & Erinnerungen“, damit Trainingstimer und geplante Erinnerungen an Medikamente und Ergänzungsmittel pünktlich ausgelöst werden können.",
       "notNow": "Nicht jetzt",
       "openSettings": "Einstellungen öffnen",
       "title": "Pünktliche Hinweise"
@@ -207,23 +211,104 @@
       "clearWorkout": "Training leeren",
       "clearWorkoutTitle": "Training leeren?",
       "open": "Aktives Training öffnen",
-      "saveFailed": "Ihr Training konnte nicht gespeichert werden."
+      "saveFailed": "Ihr Training konnte nicht gespeichert werden.",
+      "discardAnyway": "Trotzdem verwerfen",
+      "doneStartNextSet": "Fertig, nächsten Satz starten",
+      "finishWorkout": "Training beenden",
+      "skipRest": "Pause überspringen",
+      "resting": "Pause",
+      "paused": "Pausiert",
+      "workoutComplete": "Training abgeschlossen",
+      "workoutActive": "Training aktiv",
+      "nextUpSet": "Als Nächstes: {{exerciseName}} – Satz {{setNumber}}/{{setCount}}",
+      "nextUp": "Als Nächstes",
+      "doneNext": "Fertig, nächsten Satz starten"
     },
     "exerciseCard": {
-      "addSetFallback": "Set zur Übung hinzufügen",
+      "addSetFallback": "Satz zur Übung hinzufügen",
       "addSetTo": "Satz zu {{exerciseName}} hinzufügen",
       "moreOptionsFor": "Weitere Optionen für {{exerciseName}}",
       "moreOptionsFallback": "Weitere Optionen für Übung",
-      "addNote": "Fügen Sie eine Notiz zu dieser Übung hinzu …"
+      "addNote": "Fügen Sie eine Notiz zu dieser Übung hinzu …",
+      "addSet": "Satz hinzufügen",
+      "caloriesBurnedFallback": "Aktivitätsenergie der Übung",
+      "caloriesBurnedFor": "Aktivitätsenergie für {{exerciseName}}",
+      "changeMetricColumn": "Kennzahl ändern",
+      "collapseFallback": "Übung einklappen",
+      "collapse": "{{exerciseName}} einklappen",
+      "editCaloriesFallback": "Aktivitätsenergie der Übung bearbeiten",
+      "expand": "{{exerciseName}} ausklappen",
+      "expandFallback": "Übung ausklappen",
+      "viewDetailsFor": "Details zu {{exerciseName}} anzeigen",
+      "viewDetailsFallback": "Übungsdetails anzeigen",
+      "editCaloriesFor": "Aktivitätsenergie für {{exerciseName}} bearbeiten",
+      "notesFor": "Notizen zu {{exerciseName}}",
+      "notesFallback": "Übungsnotizen",
+      "notesForSet": "Notizen zu Satz {{setNumber}}"
     },
     "exercise": {
       "addSet": "Satz zu {{name}} hinzufügen",
       "moreOptions": "Weitere Optionen für {{name}}",
-      "notePlaceholder": "Fügen Sie eine Notiz zu dieser Übung hinzu …"
+      "notePlaceholder": "Fügen Sie eine Notiz zu dieser Übung hinzu …",
+      "expand": "{{name}} ausklappen",
+      "viewDetails": "Details zu {{name}} anzeigen",
+      "collapse": "{{name}} einklappen",
+      "notesFor": "Notizen zu {{name}}",
+      "caloriesFor": "Aktivitätsenergie für {{name}}",
+      "editCaloriesFor": "Aktivitätsenergie für {{name}} bearbeiten",
+      "changeMetric": "Kennzahl ändern",
+      "notesForSet": "Notizen zu Satz {{number}}",
+      "addSetLabel": "Satz hinzufügen"
     },
     "setDetail": {
-      "addNote": "Fügen Sie eine Notiz zu diesem Satz hinzu …"
-    }
+      "addNote": "Fügen Sie eine Notiz zu diesem Satz hinzu …",
+      "notesForSet": "Notizen zu Satz {{setNumber}}",
+      "notes": "Satznotizen"
+    },
+    "liveActivity": {
+      "paused": "Pausiert",
+      "elapsed": "Verstrichen",
+      "workoutComplete": "Training abgeschlossen",
+      "complete": "Abschließen",
+      "addFifteenSeconds": "15 Sekunden hinzufügen",
+      "skipRest": "Pause überspringen"
+    },
+    "header": {
+      "addExercise": "Übung hinzufügen",
+      "back": "Zurück",
+      "clearAllSets": "Alle eingetragenen Sätze zurücksetzen",
+      "discardWorkout": "Training verwerfen",
+      "endWorkout": "Training beenden",
+      "menu": "Trainingsmenü",
+      "settings": "Trainingseinstellungen"
+    },
+    "rail": {
+      "addExercise": "Übung hinzufügen"
+    },
+    "rest": {
+      "completeSet": "Satz abschließen",
+      "completeSetTitle": "Satz abschließen",
+      "extendBySeconds": "Pause um {{seconds}} Sekunden verlängern",
+      "shortenBySeconds": "Pause um {{seconds}} Sekunden verkürzen",
+      "skip": "Pause überspringen",
+      "pause": "Pause anhalten",
+      "resume": "Pause fortsetzen",
+      "shorten": "Pause um 15 Sekunden verkürzen",
+      "extend": "Pause um 15 Sekunden verlängern"
+    },
+    "setRow": {
+      "changeType": "Satztyp für Satz {{setNumber}} ändern",
+      "delete": "Satz {{setNumber}} löschen",
+      "log": "Satz {{setNumber}} eintragen",
+      "complete": "Satz {{setNumber}} als abgeschlossen markieren",
+      "incomplete": "Satz {{setNumber}} als offen markieren",
+      "fillFromPrevious": "Satz {{setNumber}} aus dem vorherigen Satz übernehmen"
+    },
+    "columns": {
+      "previous": "Vorher",
+      "reps": "Wdh."
+    },
+    "nextSet": "Nächster Satz"
   },
   "screens": {
     "library": {
@@ -235,8 +320,10 @@
       "progressSubtitle": "Heute erledigte Aufgaben",
       "contextSubtitle": "Verletzung, Krankheit, Urlaub",
       "trackingSettingsSubtitle": "Fortschritt und Erinnerungen",
-      "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihre Mediathek anzuzeigen."
-    }
+      "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihre Mediathek anzuzeigen.",
+      "medications": "Medikamente & Ergänzungsmittel"
+    },
+    "medications": "Medikamente & Ergänzungsmittel"
   },
   "syncScreen": {
     "syncChoice": {
@@ -285,11 +372,12 @@
     "customNutrientsDescription": "Benutzerdefinierte Nährstoffe werden in der X on Track-Web-App erstellt. Sobald Sie welche hinzugefügt haben, werden sie hier angezeigt, sodass Sie auswählen können, welche auf Ihrem Dashboard angezeigt werden sollen.",
     "hydrationSubtitle": "Zeigen Sie die Trinkkarte im Dashboard an",
     "cyclePregnancySubtitle": "Zeigen Sie die Wellnesskarte im Dashboard an",
-    "medicationsSubtitle": "Zeigen Sie die Medikamentenkarte im Dashboard an",
+    "medicationsSubtitle": "Geplante Medikamente und Ergänzungsmittel auf der Startseite anzeigen",
     "healthTrendsSubtitle": "Wählen Sie aus, welche Diagramme im Dashboard angezeigt werden und in welcher Reihenfolge",
     "progressPhotosSubtitle": "Zeigen Sie die Fortschrittsfotokarte im Dashboard an",
     "caffeineSubtitle": "Zeigen Sie die aktive Koffeinkarte im Dashboard an",
-    "fastingDisabledSubtitle": "Aktivieren Sie Fasten zuerst in den App-Einstellungen"
+    "fastingDisabledSubtitle": "Aktivieren Sie Fasten zuerst in den App-Einstellungen",
+    "medications": "Medikamente & Ergänzungsmittel"
   },
   "notificationSettings": {
     "hydration": "Flüssigkeitszufuhr",
@@ -363,9 +451,14 @@
       "spacing": "Mit Abstand zu einer anderen Erinnerung geplant."
     },
     "quietHours": "Ruhezeiten",
-    "quietHoursHint": "Optionale Erinnerungen pausieren in diesem Zeitraum, nach der Kontozeitzone. Medikamenten- und Pausenhinweise sind davon getrennt. Gleiche Uhrzeiten deaktivieren die Ruhezeit.",
+    "quietHoursHint": "Optionale Erinnerungen pausieren in diesem Zeitraum in der Zeitzone Ihres Kontos. Erinnerungen an Medikamente, Ergänzungsmittel und Pausen sind davon ausgenommen. Gleiche Uhrzeiten deaktivieren die Ruhezeiten.",
     "quietStart": "Beginn der Ruhezeit",
-    "quietEnd": "Ende der Ruhezeit"
+    "quietEnd": "Ende der Ruhezeit",
+    "medications": "Medikamente & Ergänzungsmittel",
+    "medicationReminders": "Geplante Einnahmen",
+    "medicationRemindersSubtitle": "Erinnert zu den gespeicherten Uhrzeiten Ihrer Medikamente und Ergänzungsmittel. Einträge ohne feste Uhrzeit senden keine Erinnerung.",
+    "hideMedicationNames": "Namen und Mengen ausblenden",
+    "hideMedicationNamesSubtitle": "Blendet Name und Menge in Benachrichtigungen aus. Der Titel unterscheidet weiterhin zwischen Medikament und Ergänzungsmittel."
   },
   "diary": {
     "bulk": {
@@ -537,8 +630,9 @@
       "subtitle": "Speichere Portionen wie „1 Scheibe“, um sie mit einem Tipp einzutragen."
     },
     "wheel": {
-      "hint": "Nach oben oder unten wischen, um die Menge zu ändern. Lange drücken, um sie einzugeben.",
-      "enterAmount": "Menge eingeben"
+      "hint": "Tippen, um die Menge einzugeben. Gedrückt halten und dann nach oben oder unten ziehen, um sie zu ändern.",
+      "enterAmount": "Menge eingeben",
+      "instructions": "Tippen zum Eingeben · Halten und ziehen zum Ändern"
     }
   },
   "foodEntryMultiAdd": {
@@ -951,7 +1045,7 @@
     "offlineSubtitle": "Stellen Sie eine Verbindung zu Ihrem Server her, um Ihre Routine anzuzeigen.",
     "loading": "Ergänzungen werden geladen…",
     "emptyTitle": "Noch keine Ergänzungen",
-    "emptySubtitle": "Fügen Sie eine Nahrungsergänzung mit Einnahmeplan hinzu, um sie hier zu sehen. Medikamente finden Sie weiterhin unter „Medikamente“.",
+    "emptySubtitle": "Fügen Sie ein Ergänzungsmittel mit einem Einnahmeplan hinzu. Diese Ansicht enthält ausschließlich Ergänzungsmittel.",
     "add": "Nahrungsergänzung hinzufügen",
     "takenToday": "genommen",
     "noneScheduled": "Für diesen Tag sind keine Nahrungsergänzungsmittel geplant.",
@@ -973,7 +1067,8 @@
       "midday": "Mittag",
       "evening": "Abend",
       "anytime": "Jederzeit"
-    }
+    },
+    "singular": "Ergänzungsmittel"
   },
   "trackingSettings": {
     "title": "Tracking-Einstellungen",
@@ -1035,31 +1130,142 @@
       "datesMessage": "Das Enddatum muss am oder nach dem Startdatum liegen.",
       "selectDays": "Wählen Sie Wochentage aus",
       "doseMessage": "Geben Sie eine gültige Dosismenge ein.",
-      "noTimeReminder": "Ein Zeitplan ohne Uhrzeit erzeugt keine Erinnerung."
+      "noTimeReminder": "Ein Zeitplan ohne Uhrzeit erzeugt keine Erinnerung.",
+      "newTitle": "Neuer Einnahmeplan",
+      "editTitle": "Einnahmeplan bearbeiten",
+      "everyNStart": "Für einen Einnahmeplan im Abstand mehrerer Tage ist ein Startdatum erforderlich.",
+      "cycleStart": "Für einen Einnahmeplan mit Einnahme- und Pausentagen ist ein Startdatum erforderlich.",
+      "invalidDay": "Ungültiger Tag",
+      "invalidLimit": "Ungültige Höchstmenge",
+      "deleteTitle": "Einnahmeplan löschen",
+      "delete": "Einnahmeplan löschen",
+      "deleteMessage": "Diesen Einnahmeplan löschen? Bereits erfasste Einnahmen bleiben erhalten.",
+      "time": "Uhrzeit",
+      "setTime": "Uhrzeit festlegen",
+      "clearTime": "Uhrzeit entfernen",
+      "scheduleType": "Art des Einnahmeplans",
+      "daysOfWeek": "Wochentage",
+      "daysTitle": "Wochentage",
+      "everyNDays": "Abstand in Tagen",
+      "dayOfMonth": "Tag im Monat",
+      "daysOn": "Einnahmetage",
+      "daysOff": "Pausentage",
+      "maxPerDay": "Höchstens pro Tag",
+      "noLimit": "Keine Höchstmenge",
+      "doseOverride": "Menge in diesem Plan ({{unit}})",
+      "doseOverridePlain": "Menge in diesem Plan",
+      "withMealTitle": "Bezug zur Mahlzeit",
+      "startDate": "Startdatum",
+      "startDateRequired": "Startdatum *",
+      "setStartDate": "Startdatum festlegen",
+      "clearStartDate": "Startdatum entfernen",
+      "endDate": "Enddatum",
+      "setEndDate": "Enddatum festlegen",
+      "clearEndDate": "Enddatum entfernen"
     },
-    "viewAllMedications": "Alle Medikamente anzeigen",
+    "viewAllMedications": "Medikamente und Ergänzungsmittel anzeigen",
     "detail": {
       "deleteMessage": "Sind Sie sicher, dass Sie „{{name}}“ löschen möchten? Dadurch werden auch alle Zeitpläne und protokollierten Einträge entfernt.",
       "noDoses": "Für diesen Tag sind keine Dosen geplant.",
-      "noSchedule": "Kein Einnahmeplan. Einnahmen werden bei Bedarf erfasst."
+      "noSchedule": "Kein Einnahmeplan. Einnahmen werden bei Bedarf erfasst.",
+      "deleteSupplementTitle": "Ergänzungsmittel löschen",
+      "deleteSupplementFailed": "Ergänzungsmittel konnte nicht gelöscht werden",
+      "deleteTitle": "Medikament löschen",
+      "delete": "Medikament löschen",
+      "removeDoseTitle": "Einnahme entfernen",
+      "removeDoseMessage": "Diese erfasste Einnahme um {{time}} entfernen?",
+      "removeDose": "Einnahme entfernen",
+      "addSchedule": "Einnahmeplan hinzufügen",
+      "schedules": "Einnahmepläne",
+      "notes": "Notizen",
+      "rxNumber": "Rezeptnummer"
     },
     "card": {
-      "viewAllA11y": "Alle Medikamente anzeigen"
+      "viewAllA11y": "Alle Medikamente und Ergänzungsmittel anzeigen",
+      "title": "Medikamente & Ergänzungsmittel"
     },
     "notificationScheduledDose": "Sie haben eine geplante Dosis",
-    "loadFailed": "Medikamente konnten nicht geladen werden.",
+    "loadFailed": "Medikamente und Ergänzungsmittel konnten nicht geladen werden.",
     "dose": {
       "savedActionError": "Eine gespeicherte Reaktion auf die Nahrungsergänzungs-Erinnerung konnte nicht gelesen werden. Prüfen Sie das Protokoll, bevor Sie die Einnahme erneut eintragen.",
       "discardRejectedMessage": "Der Server hat diese gespeicherte Reaktion nicht angenommen. Prüfen Sie den Einnahmeverlauf, bevor Sie sie erneut eintragen.",
-      "logTaken": "{{title}} als eingenommen erfassen"
+      "logTaken": "{{title}} als eingenommen erfassen",
+      "skipTitle": "{{title}} überspringen",
+      "markTaken": "{{title}} als eingenommen markieren",
+      "unmark": "Markierung für {{title}} aufheben",
+      "logTitle": "{{title}} eintragen",
+      "failedUpdate": "{{name}} konnte nicht aktualisiert werden",
+      "failedLog": "Einnahme von {{name}} konnte nicht erfasst werden",
+      "failedRemoveDose": "Einnahme von {{name}} konnte nicht entfernt werden",
+      "failedUnmark": "Markierung für {{name}} konnte nicht aufgehoben werden"
     },
     "form": {
       "nameRequired": "Geben Sie einen Namen für das Medikament ein.",
       "invalidNumberMessage": "Geben Sie gültige Zahlen für Wirkstärke und Dosis ein.",
-      "invalidNutrient": "Geben Sie für jeden Nährstoff eine nicht negative Zahl ein."
+      "invalidNutrient": "Geben Sie für jeden Nährstoff eine nicht negative Zahl ein.",
+      "newSupplementTitle": "Neues Ergänzungsmittel",
+      "editSupplementTitle": "Ergänzungsmittel bearbeiten",
+      "supplementTypeTitle": "Darreichungsform",
+      "supplementNamePlaceholder": "z. B. Vitamin D",
+      "supplementNameRequired": "Bitte geben Sie einen Namen für das Ergänzungsmittel ein.",
+      "supplementCreateFailed": "Ergänzungsmittel konnte nicht angelegt werden: {{error}}",
+      "supplementUpdateFailed": "Ergänzungsmittel konnte nicht aktualisiert werden: {{error}}",
+      "classification": "Kategorie",
+      "supplementHint": "Wählen Sie die Kategorie selbst; sie wird nicht aus dem Namen abgeleitet. Nur tatsächlich erfasste Einnahmen von Ergänzungsmitteln gehen mit ihren gespeicherten Nährwerten in die Ernährungssummen ein.",
+      "glp1Classification": "GLP-1-Einträge bleiben Medikamente. Ihre Kategorie kann hier nicht geändert werden.",
+      "type": "Darreichungsform",
+      "typeTitle": "Darreichungsform des Medikaments",
+      "isSupplement": "Als Ergänzungsmittel einordnen",
+      "nutrientsOptional": "Lassen Sie unbekannte Werte frei.",
+      "updateFailed": "Medikament konnte nicht aktualisiert werden: {{error}}",
+      "createFailed": "Medikament konnte nicht angelegt werden: {{error}}"
     },
     "notificationTitle": "Einnahmeerinnerung",
-    "notificationScheduledDoseNamed": "Geplante Einnahme: {{name}}{{dose}}"
+    "notificationScheduledDoseNamed": "Geplante Einnahme: {{name}}{{dose}}",
+    "title": "Medikamente & Ergänzungsmittel",
+    "loading": "Medikamente und Ergänzungsmittel werden geladen …",
+    "noMedications": "Noch keine Medikamente oder Ergänzungsmittel",
+    "emptyDescription": "Fügen Sie ein Medikament oder Ergänzungsmittel hinzu, um die Einnahme zu erfassen.",
+    "inactiveA11y_one": "Inaktiver Eintrag ({{count}})",
+    "inactiveA11y_other": "Inaktive Einträge ({{count}})",
+    "filters": {
+      "all": "Alle",
+      "medications": "Medikamente",
+      "supplements": "Ergänzungsmittel"
+    },
+    "types": {
+      "softgel": "Weichkapsel",
+      "gummy": "Gummiform",
+      "powder": "Pulver",
+      "weekly": "Bestimmte Wochentage",
+      "every_n_days": "Im Abstand mehrerer Tage",
+      "cyclic": "Einnahme- und Pausentage",
+      "pill": "Pille",
+      "tablet": "Tablette",
+      "beforeMeal": "Vor der Mahlzeit",
+      "withMeal": "Zur Mahlzeit",
+      "afterMeal": "Nach der Mahlzeit",
+      "awayFromMeals": "Zwischen den Mahlzeiten"
+    },
+    "notificationSupplementTitle": "Erinnerung an Ergänzungsmittel",
+    "notificationSupplementDose": "Eine Einnahme eines Ergänzungsmittels ist geplant",
+    "notificationSupplementDoseNamed": "Geplantes Ergänzungsmittel: {{name}}{{dose}}",
+    "noMatchingItems": "Keine Einträge in dieser Kategorie",
+    "addMedication": "Medikament hinzufügen",
+    "addMedicationTitle": "Medikament hinzufügen",
+    "weekdays": {
+      "title": "Wochentage"
+    },
+    "scheduleSummary": {
+      "taper": "Ausschleichen",
+      "cycleOn_one": "{{count}} Einnahmetag",
+      "cycleOn_other": "{{count}} Einnahmetage",
+      "cycleOff_one": "{{count}} Pausentag",
+      "cycleOff_other": "{{count}} Pausentage",
+      "everyNDays_one": "Alle {{count}} Tage",
+      "everyNDays_other": "Alle {{count}} Tage"
+    },
+    "item": "Einnahme"
   },
   "mealBuilder": {
     "linkedMealWebEdit": "Bearbeiten Sie diese Untermahlzeitzutat in der Web-App.",
@@ -1287,12 +1493,12 @@
     "searchExerciseToStart": "Suchen Sie nach einer Übung, um loszulegen",
     "connectToSearch": "Stellen Sie eine Verbindung zu einem Server her, um nach Online-Übungen zu suchen",
     "connectToView": "Stellen Sie eine Verbindung zu einem Server her, um Übungen anzuzeigen",
-    "startEmptyOrSave": "Starten Sie ein leeres Training oder speichern Sie ein Training als Voreinstellung, um es hier anzuzeigen",
+    "startEmptyOrSave": "Starten Sie ein leeres Training oder speichern Sie ein Training als Vorlage, damit es hier erscheint.",
     "changeOwnership": "Versuchen Sie, Ihren Eigentumsfilter zu ändern",
-    "optionalPresetNotes": "Optionale Hinweise zu dieser Routine",
-    "presetNameRequired": "Bitte geben Sie einen Namen für diese Voreinstellung ein.",
-    "makePresetPublicMessage": "Diese Trainingsvoreinstellung wird für alle Benutzer auf diesem Server sichtbar.",
-    "presetDraftMessage": "Sie haben einen nicht gespeicherten {{name}}-Entwurf. Was möchten Sie tun?",
+    "optionalPresetNotes": "Optionale Notizen zu diesem Training",
+    "presetNameRequired": "Geben Sie einen Namen für diese Vorlage ein.",
+    "makePresetPublicMessage": "Diese Trainingsvorlage wird für alle Nutzer dieses Servers sichtbar.",
+    "presetDraftMessage": "Sie haben einen ungespeicherten Entwurf für {{name}}. Wie möchten Sie fortfahren?",
     "todayDiffers": "Das heutige Training unterscheidet sich von „{{name}}“. Voreinstellung entsprechend aktualisieren?",
     "configureServer": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um Ihre Trainingsvoreinstellungen anzuzeigen.",
     "tryConnection": "Bitte überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
@@ -1300,7 +1506,7 @@
     "restTimerSoundSubtitle": "Spielen Sie einen Ton ab, wenn der Ruhetimer endet, während die App geöffnet ist.",
     "keepAwakeSubtitle": "Verhindern Sie, dass der Bildschirm während eines Trainings in den Ruhezustand wechselt.",
     "durationSpan": "Minuten, die dieses Training zählt, bis zu seiner {{span}}-Zeitspanne.",
-    "setsRemaining": "{{done}} oder {{total}} protokollierte Sätze. {{remaining}} steht noch aus.",
+    "setsRemaining": "{{done}} von {{total}} Sätzen eingetragen. {{remaining}} noch offen.",
     "tryDifferentPresetSearch": "Versuchen Sie einen anderen Suchbegriff, um eine Trainingsvoreinstellung zu finden.",
     "presetsAppearHere": "Von Ihnen erstellte Trainingsvoreinstellungen werden hier angezeigt.",
     "categoryCardio": "Ausdauer",
@@ -1319,7 +1525,96 @@
     "presetAddBeforeSave": "Fügen Sie vor dem Speichern mindestens eine Übung mit einem Satz hinzu.",
     "pleaseTryAgain": "Versuchen Sie es erneut.",
     "addExerciseOrDelete": "Fügen Sie mindestens eine Übung mit einem Satz hinzu oder löschen Sie das Training.",
-    "exerciseUpdated": "Übung aktualisiert"
+    "exerciseUpdated": "Übung aktualisiert",
+    "editActivity": "Aktivität bearbeiten",
+    "durationTitle": "Trainingsdauer",
+    "useToday": "Heute verwenden",
+    "useYesterday": "Gestern verwenden",
+    "workoutNamePlaceholder": "Trainingsname",
+    "addExercise": "Übung hinzufügen",
+    "replaceExercise": "Übung ersetzen",
+    "viewExercise": "Übung anzeigen",
+    "deleteSet": "Satz löschen",
+    "clearAllSetsTitle": "Alle eingetragenen Sätze zurücksetzen?",
+    "discardChangesTitle": "Ungespeicherte Änderungen verwerfen?",
+    "adjustDurationTitle": "Trainingsdauer anpassen?",
+    "renamePlaceholder": "Trainingsname",
+    "dismissRename": "Umbenennen schließen",
+    "nextSet": "Nächster Satz",
+    "keep": "{{name}} beibehalten",
+    "logWorkout": "{{name}} erfassen",
+    "endWorkout": "Training beenden",
+    "reorderDone": "Sortieren beenden",
+    "selectActivity": "Aktivität auswählen",
+    "optionalNotes": "Optionale Notizen …",
+    "exerciseDetails": "Übungsdetails",
+    "logExercise": "Übung erfassen",
+    "addExerciseLabel": "Übung hinzufügen",
+    "editExercise": "Übung bearbeiten",
+    "exerciseDeleted": "Übung gelöscht",
+    "exerciseNameRequired": "Geben Sie einen Namen für die Übung ein.",
+    "missingName": "Name fehlt",
+    "invalidNumber": "Geben Sie eine gültige Zahl ein.",
+    "exerciseCreated": "Übung erstellt",
+    "public": "Öffentlich",
+    "online": "Online",
+    "popular": "Beliebt",
+    "recent": "Zuletzt",
+    "presets": "Trainingsvorlagen",
+    "noMatchingPresets": "Keine passenden Trainingsvorlagen gefunden",
+    "noPresets": "Noch keine Trainingsvorlagen",
+    "presetNamePlaceholder": "z. B. Oberkörper",
+    "presetCreated": "Trainingsvorlage erstellt",
+    "presetUpdated": "Trainingsvorlage aktualisiert",
+    "presetDeleted": "Trainingsvorlage gelöscht",
+    "presetMissingName": "Name fehlt",
+    "draftInProgress": "Entwurf in Bearbeitung",
+    "resumeDraft": "Entwurf fortsetzen",
+    "discardContinue": "Verwerfen und fortfahren",
+    "keepPreset": "Vorlage behalten",
+    "updatePresetTitle": "Vorlage aktualisieren?",
+    "updatePreset": "Aktualisieren",
+    "presetUpdatedToast": "Vorlage aktualisiert",
+    "presetsTitle": "Trainingsvorlagen",
+    "categoryGeneral": "Allgemein",
+    "categoryStrength": "Krafttraining",
+    "categoryPlyometrics": "Plyometrie",
+    "categoryStretching": "Dehnen",
+    "categoryIsometric": "Isometrisch",
+    "trackingType": "Erfassungsart",
+    "modalityDurationDistance": "Dauer und Entfernung",
+    "caloriesPerHour": "Kalorien pro Stunde",
+    "deleteActivity": "Aktivität löschen",
+    "setTypeDropSet": "Reduktionssatz",
+    "thisExercise": "diese Übung",
+    "allSetsLogged": "Alle {{total}} Sätze eingetragen.",
+    "setNumber": "Satz {{number}}",
+    "exerciseShared": "Übung öffentlich geteilt",
+    "exercisePrivate": "Übung ist jetzt privat",
+    "sharePublic": "Öffentlich teilen",
+    "calPerHour": "kcal / Stunde",
+    "invalidCalories": "Ungültige Kalorien pro Stunde",
+    "failedLoadMore": "Weitere Einträge konnten nicht geladen werden. Tippen Sie, um es erneut zu versuchen.",
+    "searchProviderExercises": "Übungen bei {{provider}} suchen",
+    "presetShared": "Trainingsvorlage öffentlich geteilt",
+    "presetPrivate": "Trainingsvorlage ist jetzt privat",
+    "deletePreset": "Vorlage löschen",
+    "prev": "Vorher",
+    "mi": "mi",
+    "unknownExercise": "Unbekannte Übung",
+    "setOf_one": "Satz {{number}} von {{count}}",
+    "setOf_other": "Satz {{number}} von {{count}}",
+    "clearLoggedSets": "Eingetragene Sätze zurücksetzen",
+    "removeExercise": "Übung entfernen",
+    "noProviders": "Keine Anbieter für Online-Übungen eingerichtet",
+    "viewExerciseDetails": "Übungsdetails anzeigen",
+    "viewPresetDetails": "Vorlagendetails anzeigen",
+    "saveAsPreset": "Als Vorlage speichern",
+    "saveAsPresetLabel": "Als Vorlage speichern",
+    "workoutNeedsExercise": "Das Training benötigt eine Übung",
+    "defaultRest": "Standardpause",
+    "defaultRestAccessibility": "Standardpause, {{value}}",
+    "defaultRestSubtitle": "Pause zwischen Sätzen bei neu hinzugefügten Übungen."
   },
   "cycleCard": {
     "setupA11y": "Richten Sie die Zyklus- und Schwangerschaftsverfolgung ein",
@@ -1590,7 +1885,7 @@
       "recalculated": "Diese Portion hatte eigene Nährwerte. Beim Speichern werden sie aus {{basis}} neu berechnet.",
       "preview": "Portionsvorschau",
       "calories": "Kalorien",
-      "protein": "Eiweiß",
+      "protein": "Protein",
       "carbs": "Kohlenhydrate",
       "fat": "Fett",
       "previewUnknown": "Geben Sie ein Gewicht an, um die Nährwerte dieser Portion zu sehen.",
@@ -1601,7 +1896,7 @@
       "inUseMessage": "Essensplan-Vorlagen verwenden eine entfernte Portion ({{entries}} Einträge). Beim Entfernen werden diese Einträge ebenfalls entfernt. Ihr Tagebuch bleibt unverändert.",
       "inUseConfirm": "Entfernen",
       "weight": "Gewicht ({{unit}})",
-      "subtitle": "Lege die Portionsgrößen für dieses Lebensmittel fest.",
+      "subtitle": "Portionsgrößen für dieses Lebensmittel festlegen.",
       "grams": "Gramm",
       "labelA11y": "Bezeichnung von {{name}}",
       "amountA11y": "Menge von {{name}}",
@@ -1720,9 +2015,10 @@
     },
     "features": {
       "medications": {
-        "body": "Fügen Sie Ihre Medikamente hinzu, legen Sie Dosispläne fest und protokollieren Sie jede Dosis über das Dashboard mit optionalen Erinnerungen.",
-        "eyebrow": "MEDIKAMENTE",
-        "headline": "Medikamente erfassen"
+        "body": "Medikamente oder Ergänzungsmittel anlegen, Einnahmezeiten festlegen und tatsächliche Einnahmen mit optionalen Erinnerungen erfassen.",
+        "eyebrow": "EINNAHMEN ERFASSEN",
+        "headline": "Medikamente und Ergänzungsmittel erfassen",
+        "cta": "Einnahmen einrichten"
       },
       "photo": {
         "headline": "Schnappen Sie sich eine Mahlzeit und protokollieren Sie die Makros",
@@ -1971,16 +2267,28 @@
   },
   "foodImagePicker": {
     "errors": {
-      "cameraPermissionBody": "Aktivieren Sie den Kamerazugriff, um ein Foto hinzuzufügen.",
-      "addFailed": "Foto konnte nicht hinzugefügt werden."
+      "cameraPermissionBody": "Erlauben Sie den Kamerazugriff, um ein Foto hinzuzufügen.",
+      "addFailed": "Foto konnte nicht hinzugefügt werden",
+      "cameraPermission": "Kamerazugriff erforderlich"
     },
     "labels": {
-      "main": "Hauptbild",
+      "main": "Hauptfoto",
       "count": "{{total}} Fotos"
     },
     "actions": {
-      "nextAsMain": "Nächstes Foto zuerst zeigen"
-    }
+      "nextAsMain": "Nächstes Foto zuerst anzeigen",
+      "addPhoto": "Foto hinzufügen",
+      "takePhoto": "Foto aufnehmen",
+      "chooseFromLibrary": "Aus Mediathek auswählen",
+      "setAsMain": "Als Hauptfoto festlegen",
+      "photo": "Foto"
+    },
+    "accessibility": {
+      "mainPhotoEdit": "Hauptfoto bearbeiten",
+      "photoEdit": "Foto {{number}} bearbeiten",
+      "addPhoto": "Foto hinzufügen"
+    },
+    "photos": "Fotos"
   },
   "editLoggedMeal": {
     "fields": {

@@ -632,38 +632,33 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
         testID="serving-sizes-editor"
         style={[cardStyle, disabled ? { opacity: 0.6 } : null]}
       >
-        <View className="flex-row items-start justify-between gap-3">
-          <View className="min-w-0 flex-1">
-            <Text className="text-lg font-semibold text-text-primary">
-              {t('foodForm.servings.title', { defaultValue: 'Serving sizes' })}
-            </Text>
-            <Text className="mt-0.5 text-xs text-text-secondary">
-              {t('foodForm.servings.subtitle', {
-                defaultValue: 'Define the serving sizes for this food.',
-              })}
-            </Text>
-          </View>
+        <View className="flex-row items-center justify-between gap-3">
+          <Text className="min-w-0 flex-1 text-lg font-semibold text-text-primary">
+            {t('foodForm.servings.title', { defaultValue: 'Serving sizes' })}
+          </Text>
           <TouchableOpacity
             testID="serving-add"
             onPress={addServing}
-            className="min-h-11 flex-row items-center gap-1.5 rounded-xl border px-3"
+            disabled={disabled}
+            className="h-11 w-11 items-center justify-center rounded-xl border"
             style={{
               borderColor: accentColor,
               backgroundColor: withAlpha(accentColor, 0.1),
             }}
             accessibilityRole="button"
+            accessibilityState={{ disabled }}
+            accessibilityLabel={t('foodForm.servings.add', {
+              defaultValue: 'Add serving size',
+            })}
           >
-            <Icon name="add" size={18} color={accentColor} />
-            <Text
-              className="text-sm font-semibold"
-              style={{ color: accentColor }}
-            >
-              {t('foodForm.servings.add', {
-                defaultValue: 'Add serving size',
-              })}
-            </Text>
+            <Icon name="add" size={22} color={accentColor} />
           </TouchableOpacity>
         </View>
+        <Text className="text-sm text-text-secondary">
+          {t('foodForm.servings.subtitle', {
+            defaultValue: 'Define the serving sizes for this food.',
+          })}
+        </Text>
 
         {basis && !basisIsMetric ? (
           <View className="gap-1">
@@ -771,16 +766,11 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
           style={cardStyle}
           testID="serving-preview"
         >
-          <View className="flex-row items-start justify-between gap-3">
-            <View className="min-w-0 flex-1">
+          <View className="items-start gap-3">
+            <View className="w-full">
               <Text className="text-lg font-semibold text-text-primary">
                 {t('foodForm.servings.preview', {
                   defaultValue: 'Serving preview',
-                })}
-              </Text>
-              <Text className="mt-0.5 text-xs text-text-secondary">
-                {t('foodForm.servings.previewSubtitle', {
-                  defaultValue: 'Nutrition for the selected serving size.',
                 })}
               </Text>
             </View>
@@ -801,11 +791,12 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                     defaultValue: 'Preview serving, {{serving}}',
                     serving: previewLabel,
                   })}
-                  className="max-w-[45%] flex-row items-center gap-1 rounded-xl border border-border-subtle bg-raised px-3 py-2"
+                  className="min-h-11 max-w-full flex-row items-center gap-1 rounded-xl border border-border-subtle bg-raised px-3 py-2"
                 >
                   <Text
                     className="text-sm font-medium text-text-primary"
                     numberOfLines={1}
+                    style={{ flexShrink: 1 }}
                   >
                     {previewLabel}
                   </Text>
@@ -814,8 +805,16 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
               )}
             />
           </View>
+          <Text className="text-sm text-text-secondary">
+            {t('foodForm.servings.previewSubtitle', {
+              defaultValue: 'Nutrition for the selected serving size.',
+            })}
+          </Text>
           {previewValues ? (
-            <View className="flex-row gap-2" testID="serving-preview-values">
+            <View
+              className="flex-row flex-wrap gap-2"
+              testID="serving-preview-values"
+            >
               {PREVIEW_TILES.map((tile) => {
                 const color = tileColors[tile.key];
                 const label = tileLabel(tile.key);
@@ -826,33 +825,25 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                 return (
                   <View
                     key={tile.key}
-                    className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-xl border px-2 py-3"
+                    className="min-w-0 gap-1.5 rounded-xl border px-3 py-3"
                     style={{
+                      flexBasis: '47%',
+                      flexGrow: 1,
                       borderColor: withAlpha(color, 0.6),
                       backgroundColor: withAlpha(color, 0.18),
                     }}
                     accessible
                     accessibilityLabel={`${label}: ${value}`}
                   >
-                    <Icon name={tile.icon} size={20} color={color} />
-                    <View className="min-w-0 flex-1">
-                      <Text
-                        className="text-sm font-bold text-text-primary"
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.7}
-                      >
-                        {value}
-                      </Text>
-                      <Text
-                        className="text-[11px] text-text-secondary"
-                        numberOfLines={1}
-                        adjustsFontSizeToFit
-                        minimumFontScale={0.8}
-                      >
+                    <View className="flex-row items-center gap-1.5">
+                      <Icon name={tile.icon} size={16} color={color} />
+                      <Text className="min-w-0 flex-1 text-sm text-text-secondary">
                         {label}
                       </Text>
                     </View>
+                    <Text className="text-lg font-bold text-text-primary">
+                      {value}
+                    </Text>
                   </View>
                 );
               })}

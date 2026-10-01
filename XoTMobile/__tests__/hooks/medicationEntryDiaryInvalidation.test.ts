@@ -1,10 +1,12 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import {
+  useUpdateMedication,
   useCreateMedicationEntry,
   useUpdateMedicationEntry,
   useDeleteMedicationEntry,
 } from '../../src/hooks/useMedications';
 import {
+  updateMedication,
   createEntry,
   updateEntry,
   deleteEntry,
@@ -87,6 +89,24 @@ describe('medication entry mutations invalidate the daily summary', () => {
     result.current.mutate('e1');
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(invalidatedDailySummary()).toBe(true);
+  });
+
+  it('refreshes daily progress and cached item views after a category change', async () => {
+    (updateMedication as jest.Mock).mockResolvedValue({
+      id: 'm1',
+      is_supplement: true,
+    });
+    const { result } = renderHook(() => useUpdateMedication(), {
+      wrapper: createQueryWrapper(queryClient),
+    });
+    result.current.mutate({ id: 'm1', body: { is_supplement: true } });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    const invalidatedRoots = spy.mock.calls.map(
+      ([options]) => options.queryKey[0]
+    );
+    expect(invalidatedRoots).toContain('dailyProgress');
+    expect(invalidatedRoots).toContain('medications');
     expect(invalidatedDailySummary()).toBe(true);
   });
 

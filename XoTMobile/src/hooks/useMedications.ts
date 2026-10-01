@@ -18,7 +18,6 @@ import {
   deleteEntry,
 } from '../services/api/medicationsApi';
 import {
-  medicationsRootQueryKey,
   medicationsListQueryKey,
   medicationDetailQueryKey,
   medicationEntriesQueryKey,
@@ -85,7 +84,7 @@ export function useCreateMedication() {
   return useMutation({
     mutationFn: (body: CreateMedicationInput) => createMedication(body),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
+      invalidateMedicationEntryCaches(queryClient);
     },
   });
 }
@@ -96,7 +95,7 @@ export function useUpdateMedication() {
     mutationFn: ({ id, body }: { id: string; body: UpdateMedicationInput }) =>
       updateMedication(id, body),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
+      invalidateMedicationEntryCaches(queryClient);
       queryClient.invalidateQueries({
         queryKey: medicationDetailQueryKey(variables.id),
       });
@@ -109,7 +108,7 @@ export function useDeleteMedication() {
   return useMutation({
     mutationFn: (id: string) => deleteMedication(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
+      invalidateMedicationEntryCaches(queryClient);
     },
   });
 }
@@ -125,7 +124,7 @@ export function useCreateMedicationSchedule() {
       body: CreateScheduleInput;
     }) => createSchedule(medicationId, body),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
+      invalidateMedicationEntryCaches(queryClient);
       queryClient.invalidateQueries({
         queryKey: medicationDetailQueryKey(variables.medicationId),
       });
@@ -145,7 +144,7 @@ export function useUpdateMedicationSchedule() {
       body: UpdateScheduleInput;
     }) => updateSchedule(id, body),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
+      invalidateMedicationEntryCaches(queryClient);
       queryClient.invalidateQueries({
         queryKey: medicationDetailQueryKey(variables.medicationId),
       });
@@ -159,7 +158,7 @@ export function useDeleteMedicationSchedule() {
     mutationFn: ({ id }: { id: string; medicationId: string }) =>
       deleteSchedule(id),
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
+      invalidateMedicationEntryCaches(queryClient);
       queryClient.invalidateQueries({
         queryKey: medicationDetailQueryKey(variables.medicationId),
       });

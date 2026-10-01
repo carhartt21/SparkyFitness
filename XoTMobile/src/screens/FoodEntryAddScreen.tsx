@@ -773,6 +773,21 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const quantity = Number.isFinite(parsedQuantity) ? parsedQuantity : 0;
   const servings =
     displayValues.servingSize > 0 ? quantity / displayValues.servingSize : 0;
+  // A named portion can be stored in grams/ml ("Slice" = 7.1 g) or
+  // multiple units ("Pair" = 2 pieces). The amount field counts
+  // portions; logging and nutrition continue to use the row's actual unit.
+  const amountInputScale =
+    !selectedVariantOverride &&
+    selectedServingOption?.kind === 'portion' &&
+    selectedServingOption.servingSize > 0
+      ? selectedServingOption.servingSize
+      : 1;
+  const handleAmountDraftChange = (draft: string) => {
+    const parsed = parseDecimalInput(draft);
+    setQuantityText(
+      Number.isFinite(parsed) ? String(parsed * amountInputScale) : draft
+    );
+  };
   const servingSizeRef = useRef(displayValues.servingSize);
   const pendingEquivalentsRef = useRef<EquivalentUnit[] | null>(null);
 
@@ -958,7 +973,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             : undefined;
         setQuantityText(
           converted !== undefined
-            ? formatServingSizeDisplay(Math.round(converted * 10) / 10)
+            ? formatServingSizeDisplay(converted)
             : String(localVariant.servingSize)
         );
         return;
@@ -2316,12 +2331,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                     })}
                   </Text>
                   <AmountWheel
-                    value={quantity}
+                    key={`${selectedVariantId ?? ''}:${displayValues.servingUnit}:${amountInputScale}`}
+                    value={quantity / amountInputScale}
                     fullWidth
                     height={amountFieldHeight}
-                    onDraftChange={setQuantityText}
+                    onDraftChange={handleAmountDraftChange}
                     onChange={(next) =>
-                      setQuantityText(formatServingSizeDisplay(next))
+                      setQuantityText(String(next * amountInputScale))
                     }
                     metric={
                       selectedServingOption
@@ -2361,6 +2377,11 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   />
                 </View>
               </View>
+              <Text className="mt-2 text-xs text-text-muted">
+                {t('foodEntryAdd.wheel.instructions', {
+                  defaultValue: 'Tap to type · Hold and drag to adjust',
+                })}
+              </Text>
               {selectedServingOption ? (
                 selectedServingOption.kind === 'portion' &&
                 selectedServingOption.weight &&

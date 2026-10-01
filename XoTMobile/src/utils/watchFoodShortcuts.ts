@@ -1,9 +1,13 @@
 import type {
   WatchFoodServingPayload,
   WatchFoodShortcutPayload,
+  WatchMealTypePayload,
 } from '../../modules/watch-connectivity';
+import type { TFunction } from 'i18next';
 import type { FoodLastServing } from '@workspace/shared';
 import type { FoodItem, FoodVariantDetail } from '../types/foods';
+import type { MealType } from '../types/mealTypes';
+import { getMealTypeDisplayLabel } from './mealNutrition';
 import { primaryImageOf } from './foodImages';
 import {
   buildQuickAddServings,
@@ -19,6 +23,20 @@ export const WATCH_DEFAULT_METRIC_AMOUNT = 100;
 const MAX_WATCH_SERVINGS = 4;
 
 type ShortcutGroup = WatchFoodShortcutPayload['group'];
+
+/** Present the same labels as Diary; logging continues to use the original IDs. */
+export function buildWatchMealTypes(
+  mealTypes: readonly Pick<
+    MealType,
+    'id' | 'name' | 'user_id' | 'display_name'
+  >[],
+  t: TFunction
+): WatchMealTypePayload[] {
+  return mealTypes.map((meal) => ({
+    id: meal.id,
+    name: getMealTypeDisplayLabel(meal, t),
+  }));
+}
 
 export interface WatchFoodCandidate {
   food: FoodItem;

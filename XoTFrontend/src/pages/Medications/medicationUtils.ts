@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { BUILT_IN_SYMPTOMS } from '@workspace/shared';
 import { formatTimeOfDayString } from '@/utils/timeFormatters';
-import type { MedicationSchedule } from '@/types/medications';
+import type { MedicationSchedule, MedicationEntry } from '@/types/medications';
 
 export const MED_TYPES = [
   'pill',
@@ -56,15 +56,6 @@ export const MED_TYPES = [
 // Dose-forms offered on the supplement form. These reuse the medication `type_id`
 // text column (no schema change) — a supplement is an is_supplement medication row,
 // so its form lives in the same field a medication's type does.
-export const SUPPLEMENT_FORMS = [
-  'tablet',
-  'capsule',
-  'softgel',
-  'gummy',
-  'powder',
-  'liquid',
-] as const;
-
 /**
  * Forms whose servings can be COUNTED, so "1 serving = 2 tablets" says something.
  *
@@ -100,26 +91,38 @@ export const filterMedsBySubtype = <T extends { is_supplement?: boolean }>(
         : !med.is_supplement
   );
 
-// Whether a logged entry belongs to the subtype currently on screen. `all` always
-// says yes and deliberately never consults the id set: an entry outlives the
-// medication it came from, so an orphan matches no visible id and filtering the
-// mixed view would silently drop history that view exists to show. The narrowed
-// views do filter, because an orphan cannot be classified once its row is gone.
+// Preserve all history in the mixed view. A retained nutrition snapshot identifies
+// supplement intake even after its definition is deleted or reclassified. Without
+// that evidence, narrowed views use the current saved category; unclassified orphans
+// remain available in All rather than being guessed from their names.
 export const isEntryVisibleForSubtype = (
   medicationId: string | null | undefined,
   visibleMedIds: Set<string>,
-  subtype: MedSubtype
-): boolean =>
-  subtype === 'all' || (!!medicationId && visibleMedIds.has(medicationId));
+  subtype: MedSubtype,
+  nutrientsSnapshot?: MedicationEntry['nutrients_snapshot']
+): boolean => {
+  if (subtype === 'all') return true;
+  if (nutrientsSnapshot != null) return subtype === 'supplements';
+  return !!medicationId && visibleMedIds.has(medicationId);
+};
 
-// Array form of the rule above, for the Log view's entry lists.
-export const filterEntriesBySubtype = <T extends { medication_id: string }>(
+export const filterEntriesBySubtype = <
+  T extends {
+    medication_id: string;
+    nutrients_snapshot?: MedicationEntry['nutrients_snapshot'];
+  },
+>(
   entries: T[],
   visibleMedIds: Set<string>,
   subtype: MedSubtype
 ): T[] =>
   entries.filter((entry) =>
-    isEntryVisibleForSubtype(entry.medication_id, visibleMedIds, subtype)
+    isEntryVisibleForSubtype(
+      entry.medication_id,
+      visibleMedIds,
+      subtype,
+      entry.nutrients_snapshot
+    )
   );
 
 export const MED_TYPE_ICONS: Record<string, LucideIcon> = {

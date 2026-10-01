@@ -1,12 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  PanResponder,
   Text,
   TextInput,
   View,
   type AccessibilityActionEvent,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useCSSVariable } from 'uniwind';
 import Icon from './Icon';
 import { withAlpha } from './ui/glow';
@@ -72,10 +72,8 @@ export interface AmountWheelProps {
 }
 
 /**
- * A draggable spinner for the logged amount: drag up to increase and down to
- * decrease, one grid step per few points, with the neighbouring values
- * shown while dragging. A long press (or the VoiceOver "Enter amount"
- * action) switches to a number field for an exact amount.
+ * Tap to enter an exact amount, or hold before dragging to spin it. Movement
+ * before the hold completes belongs to the surrounding scroll view.
  */
 const AmountWheel: React.FC<AmountWheelProps> = ({
   value,
@@ -129,70 +127,48 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   const gesture = useRef({
     startValue: 0,
     appliedValue: 0,
-    moved: false,
-    timer: null as ReturnType<typeof setTimeout> | null,
   });
 
-  // The handlers read the refs only while a gesture runs, never during
-  // render; the compiler cannot see that through PanResponder.create.
-  /* eslint-disable react-hooks/refs */
-  const panResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => !latest.current.disabled,
-        onMoveShouldSetPanResponder: (_, g) =>
-          !latest.current.disabled && Math.abs(g.dy) > Math.abs(g.dx),
-        // Keep the page from scrolling while the amount is being spun.
-        onPanResponderTerminationRequest: () => false,
-        onShouldBlockNativeResponder: () => true,
-        onPanResponderGrant: () => {
-          const state = gesture.current;
-          state.startValue = latest.current.value;
-          state.appliedValue = latest.current.value;
-          state.moved = false;
-          state.timer = setTimeout(() => {
-            state.timer = null;
-            if (!state.moved) latest.current.startEditing();
-          }, LONG_PRESS_MS);
-        },
-        onPanResponderMove: (_, g) => {
-          const state = gesture.current;
-          if (!state.moved && Math.abs(g.dy) < MOVE_SLOP) return;
-          if (!state.moved) {
-            state.moved = true;
-            if (state.timer) clearTimeout(state.timer);
-            state.timer = null;
-            setDragging(true);
-          }
-          const { scale: grid, onChange: change } = latest.current;
-          // Dragging up (negative dy) increases the amount.
-          const delta = Math.trunc(-g.dy / STEP_PX);
-          const next = stepAmount(state.startValue, delta, grid);
-          setDragRemainder((-g.dy / STEP_PX - delta) * ROW_PX);
-          if (Math.abs(next - state.appliedValue) > 1e-9) {
-            state.appliedValue = next;
-            fireSelectionHaptic();
-            change(next);
-          }
-        },
-        onPanResponderRelease: () => {
-          const state = gesture.current;
-          if (state.timer) clearTimeout(state.timer);
-          state.timer = null;
-          setDragging(false);
-          setDragRemainder(0);
-        },
-        onPanResponderTerminate: () => {
-          const state = gesture.current;
-          if (state.timer) clearTimeout(state.timer);
-          state.timer = null;
-          setDragging(false);
-          setDragRemainder(0);
-        },
-      }),
-    []
-  );
-  /* eslint-enable react-hooks/refs */
+  // Read the latest props only inside callbacks, never during render.
+  const amountGesture = useMemo(() => {
+    const pan = Gesture.Pan()
+      .enabled(!disabled)
+      .activateAfterLongPress(LONG_PRESS_MS)
+      .minDistance(MOVE_SLOP)
+      .failOffsetX([-MOVE_SLOP, MOVE_SLOP])
+      .runOnJS(true)
+      .onStart(() => {
+        const state = gesture.current;
+        state.startValue = latest.current.value;
+        state.appliedValue = latest.current.value;
+        setDragging(true);
+      })
+      .onUpdate(({ translationY }) => {
+        const state = gesture.current;
+        const { scale: grid, onChange: change } = latest.current;
+        // Dragging up (negative dy) increases the amount.
+        const delta = Math.trunc(-translationY / STEP_PX);
+        const next = stepAmount(state.startValue, delta, grid);
+        setDragRemainder((-translationY / STEP_PX - delta) * ROW_PX);
+        if (Math.abs(next - state.appliedValue) > 1e-9) {
+          state.appliedValue = next;
+          fireSelectionHaptic();
+          change(next);
+        }
+      })
+      .onFinalize(() => {
+        setDragging(false);
+        setDragRemainder(0);
+      });
+    const tap = Gesture.Tap()
+      .enabled(!disabled)
+      .maxDistance(MOVE_SLOP)
+      .runOnJS(true)
+      .onEnd((_, success) => {
+        if (success) latest.current.startEditing();
+      });
+    return Gesture.Exclusive(pan, tap);
+  }, [disabled]);
 
   const onAccessibilityAction = (event: AccessibilityActionEvent) => {
     if (disabled) return;
@@ -245,72 +221,73 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   });
 
   return (
-    <View
-      testID={testID}
-      accessible
-      accessibilityRole="adjustable"
-      accessibilityState={{ disabled }}
-      accessibilityLabel={t('foodEntryAdd.labels.amount', {
-        defaultValue: 'Amount',
-      })}
-      accessibilityValue={{ text: `${formatted} ${unitLabel}` }}
-      accessibilityHint={t('foodEntryAdd.wheel.hint', {
-        defaultValue:
-          'Swipe up or down to change. Long press to type an amount.',
-      })}
-      accessibilityActions={[
-        { name: 'increment' },
-        { name: 'decrement' },
-        {
-          name: 'longpress',
-          label: t('foodEntryAdd.wheel.enterAmount', {
-            defaultValue: 'Enter amount',
-          }),
-        },
-      ]}
-      onAccessibilityAction={onAccessibilityAction}
-      className="overflow-hidden rounded-xl border"
-      style={fieldStyle}
-      {...panResponder.panHandlers}
-    >
-      {neighbours.map(({ offset, value: n }) =>
-        n === undefined || (!dragging && offset !== 0) ? null : (
-          <View
-            key={offset}
-            pointerEvents="none"
-            className="absolute left-0 right-8 justify-center pl-4"
-            style={{
-              top: 0,
-              bottom: 0,
-              transform: [{ translateY: offset * -ROW_PX + dragRemainder }],
-              opacity: offset === 0 ? 1 : 0.35,
-            }}
-          >
-            <Text
-              className={
-                offset === 0
-                  ? 'text-xl font-semibold text-text-primary'
-                  : 'text-base'
-              }
-              style={offset === 0 ? undefined : { color: textMuted }}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.85}
-            >
-              {formatLocalizedNumber(n, { maximumFractionDigits: 2 })}
-            </Text>
-          </View>
-        )
-      )}
-      {/* Spinner hint: drag up or down to change the amount. */}
+    <GestureDetector gesture={amountGesture}>
       <View
-        pointerEvents="none"
-        className="absolute bottom-0 right-2 top-0 justify-center"
+        testID={testID}
+        accessible
+        accessibilityRole="adjustable"
+        accessibilityState={{ disabled }}
+        accessibilityLabel={t('foodEntryAdd.labels.amount', {
+          defaultValue: 'Amount',
+        })}
+        accessibilityValue={{ text: `${formatted} ${unitLabel}` }}
+        accessibilityHint={t('foodEntryAdd.wheel.hint', {
+          defaultValue:
+            'Tap to enter an amount. Hold, then drag up or down to change it.',
+        })}
+        accessibilityActions={[
+          { name: 'increment' },
+          { name: 'decrement' },
+          {
+            name: 'longpress',
+            label: t('foodEntryAdd.wheel.enterAmount', {
+              defaultValue: 'Enter amount',
+            }),
+          },
+        ]}
+        onAccessibilityAction={onAccessibilityAction}
+        className="overflow-hidden rounded-xl border"
+        style={fieldStyle}
       >
-        <Icon name="chevron-up" size={12} color={textMuted} />
-        <Icon name="chevron-down" size={12} color={textMuted} />
+        {neighbours.map(({ offset, value: n }) =>
+          n === undefined || (!dragging && offset !== 0) ? null : (
+            <View
+              key={offset}
+              pointerEvents="none"
+              className="absolute left-0 right-8 justify-center pl-4"
+              style={{
+                top: 0,
+                bottom: 0,
+                transform: [{ translateY: offset * -ROW_PX + dragRemainder }],
+                opacity: offset === 0 ? 1 : 0.35,
+              }}
+            >
+              <Text
+                className={
+                  offset === 0
+                    ? 'text-xl font-semibold text-text-primary'
+                    : 'text-base'
+                }
+                style={offset === 0 ? undefined : { color: textMuted }}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.85}
+              >
+                {formatLocalizedNumber(n, { maximumFractionDigits: 2 })}
+              </Text>
+            </View>
+          )
+        )}
+        {/* Hold before dragging so ordinary scrolling does not change the amount. */}
+        <View
+          pointerEvents="none"
+          className="absolute bottom-0 right-2 top-0 justify-center"
+        >
+          <Icon name="chevron-up" size={12} color={textMuted} />
+          <Icon name="chevron-down" size={12} color={textMuted} />
+        </View>
       </View>
-    </View>
+    </GestureDetector>
   );
 };
 

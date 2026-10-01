@@ -487,8 +487,8 @@ export function EditFoodMode({
   const header = useScreenHeader({
     title: t('foodForm.editTitle', { defaultValue: 'Edit Food' }),
     left: {
-      kind: 'text',
-      label: t('common.cancel', { defaultValue: 'Cancel' }),
+      kind: 'dismiss',
+      accessibilityLabel: t('common.cancel', { defaultValue: 'Cancel' }),
       onPress: () => navigation.goBack(),
       disabled: isSubmitting,
       identifier: 'food-edit-cancel',
@@ -499,7 +499,7 @@ export function EditFoodMode({
       busyLabel: SAVING_LABEL,
       busy: isSubmitting,
       disabled: isSubmitting,
-      pill: true,
+      pill: false,
       onPress: () => submitRequestRef.current?.(),
       identifier: 'food-edit-save',
     },

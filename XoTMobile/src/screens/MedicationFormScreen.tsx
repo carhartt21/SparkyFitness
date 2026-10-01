@@ -17,8 +17,12 @@ import FormInput from '../components/FormInput';
 import Icon from '../components/Icon';
 import Switch from '../components/ui/Switch';
 import type { RootStackScreenProps } from '../types/navigation';
-import { medicationTypeLabel } from '../utils/medicationLocalization';
+import {
+  medicationKindLabel,
+  medicationTypeLabel,
+} from '../utils/medicationLocalization';
 import { MEDICATION_TYPES } from '../types/medications';
+import { SUPPLEMENT_FORMS } from '@workspace/shared';
 
 type MedicationFormScreenProps = RootStackScreenProps<'MedicationForm'>;
 
@@ -179,9 +183,13 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     if (!form.name.trim()) {
       Alert.alert(
         t('medications.form.required', { defaultValue: 'Required' }),
-        t('medications.form.nameRequired', {
-          defaultValue: 'Please enter a medication name.',
-        })
+        form.isSupplement
+          ? t('medications.form.supplementNameRequired', {
+              defaultValue: 'Please enter a supplement name.',
+            })
+          : t('medications.form.nameRequired', {
+              defaultValue: 'Please enter a medication name.',
+            })
       );
       return;
     }
@@ -240,7 +248,11 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
       pharmacy: form.pharmacy.trim() || null,
       notes: form.notes.trim() || null,
       is_supplement: form.isSupplement,
-      nutrients: form.isSupplement ? nutrientAmounts : null,
+      // A category change does not erase the saved nutrition definition. The flag
+      // controls whether future intake contributes nutrients; history keeps its snapshots.
+      nutrients: form.isSupplement
+        ? nutrientAmounts
+        : (existingMed?.nutrients ?? {}),
     };
 
     if (isEditing && medicationId) {
@@ -251,10 +263,15 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
           onError: (error) =>
             Alert.alert(
               t('common.error', { defaultValue: 'Error' }),
-              t('medications.form.updateFailed', {
-                defaultValue: 'Failed to update medication: {{error}}',
-                error: error.message,
-              })
+              form.isSupplement
+                ? t('medications.form.supplementUpdateFailed', {
+                    defaultValue: 'Could not update supplement: {{error}}',
+                    error: error.message,
+                  })
+                : t('medications.form.updateFailed', {
+                    defaultValue: 'Failed to update medication: {{error}}',
+                    error: error.message,
+                  })
             ),
         }
       );
@@ -268,10 +285,15 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
           onError: (error) =>
             Alert.alert(
               t('common.error', { defaultValue: 'Error' }),
-              t('medications.form.createFailed', {
-                defaultValue: 'Failed to create medication: {{error}}',
-                error: error.message,
-              })
+              form.isSupplement
+                ? t('medications.form.supplementCreateFailed', {
+                    defaultValue: 'Could not create supplement: {{error}}',
+                    error: error.message,
+                  })
+                : t('medications.form.createFailed', {
+                    defaultValue: 'Failed to create medication: {{error}}',
+                    error: error.message,
+                  })
             ),
         }
       );
@@ -287,13 +309,20 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     t,
   ]);
 
+  const formTitle = form.isSupplement
+    ? isEditing
+      ? t('medications.form.editSupplementTitle', {
+          defaultValue: 'Edit supplement',
+        })
+      : t('medications.form.newSupplementTitle', {
+          defaultValue: 'New supplement',
+        })
+    : isEditing
+      ? t('medications.form.editTitle', { defaultValue: 'Edit Medication' })
+      : t('medications.form.newTitle', { defaultValue: 'New Medication' });
   const header = useScreenHeader({
-    title: isEditing
-      ? t('medications.form.editTitle', { defaultValue: 'Edit Medication' })
-      : t('medications.form.newTitle', { defaultValue: 'New Medication' }),
-    nativeTitle: isEditing
-      ? t('medications.form.editTitle', { defaultValue: 'Edit Medication' })
-      : t('medications.form.newTitle', { defaultValue: 'New Medication' }),
+    title: formTitle,
+    nativeTitle: formTitle,
     left: { kind: 'dismiss', onPress: () => navigation.goBack() },
     right: {
       kind: 'primary',
@@ -304,14 +333,17 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     },
   });
 
-  const typeOptions = useMemo(
-    () =>
-      MEDICATION_TYPES.map((id) => ({
-        label: medicationTypeLabel(id, t),
-        value: id,
-      })),
-    [t]
-  );
+  const typeOptions = useMemo(() => {
+    const types: string[] = form.isSupplement
+      ? [...SUPPLEMENT_FORMS]
+      : [...MEDICATION_TYPES];
+    // Retain legacy/custom forms when editing; never silently rewrite stored type_id.
+    if (form.typeId && !types.includes(form.typeId)) types.push(form.typeId);
+    return types.map((id) => ({
+      label: medicationTypeLabel(id, t),
+      value: id,
+    }));
+  }, [form.isSupplement, form.typeId, t]);
 
   return (
     <View
@@ -334,12 +366,61 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
         <View className="gap-4">
           <View className="gap-1.5">
             <Text className="text-text-secondary text-sm font-medium">
+              {t('medications.form.classification', {
+                defaultValue: 'Category',
+              })}
+            </Text>
+            {existingMed?.is_glp1 ? (
+              <Text className="text-base text-text-primary">
+                {medicationKindLabel({ is_supplement: form.isSupplement }, t)}
+              </Text>
+            ) : (
+              <BottomSheetPicker
+                value={form.isSupplement ? 'supplement' : 'medication'}
+                options={[
+                  {
+                    value: 'medication',
+                    label: medicationKindLabel({ is_supplement: false }, t),
+                  },
+                  {
+                    value: 'supplement',
+                    label: medicationKindLabel({ is_supplement: true }, t),
+                  },
+                ]}
+                onSelect={(value) =>
+                  updateField('isSupplement', value === 'supplement')
+                }
+                title={t('medications.form.classification', {
+                  defaultValue: 'Category',
+                })}
+              />
+            )}
+            <Text className="text-sm text-text-secondary">
+              {existingMed?.is_glp1
+                ? t('medications.form.glp1Classification', {
+                    defaultValue:
+                      'GLP-1 items remain medications. Their classification cannot be changed here.',
+                  })
+                : t('medications.form.supplementHint', {
+                    defaultValue:
+                      'Choose the category yourself; it is not inferred from the name. Only supplements with logged intake contribute their recorded nutrients to nutrition totals.',
+                  })}
+            </Text>
+          </View>
+          <View className="gap-1.5">
+            <Text className="text-text-secondary text-sm font-medium">
               {t('medications.form.name', { defaultValue: 'Name *' })}
             </Text>
             <FormInput
-              placeholder={t('medications.form.namePlaceholder', {
-                defaultValue: 'Ipsumol',
-              })}
+              placeholder={
+                form.isSupplement
+                  ? t('medications.form.supplementNamePlaceholder', {
+                      defaultValue: 'e.g. Vitamin D',
+                    })
+                  : t('medications.form.namePlaceholder', {
+                      defaultValue: 'Ipsumol',
+                    })
+              }
               value={form.name}
               onChangeText={(v) => updateField('name', v)}
               autoCapitalize="words"
@@ -354,9 +435,15 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
               value={form.typeId}
               options={typeOptions}
               onSelect={(val) => updateField('typeId', val)}
-              title={t('medications.form.typeTitle', {
-                defaultValue: 'Medication Type',
-              })}
+              title={
+                form.isSupplement
+                  ? t('medications.form.supplementTypeTitle', {
+                      defaultValue: 'Supplement form',
+                    })
+                  : t('medications.form.typeTitle', {
+                      defaultValue: 'Medication Type',
+                    })
+              }
             />
           </View>
 
@@ -384,25 +471,6 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
                 onChangeText={(v) => updateField('strengthUnit', v)}
               />
             </View>
-          </View>
-
-          <View className="flex-row items-center justify-between gap-4 py-2">
-            <View className="flex-1">
-              <Text className="text-base text-text-primary">
-                {t('medications.form.isSupplement', {
-                  defaultValue: 'This is a supplement',
-                })}
-              </Text>
-              <Text className="text-sm text-text-secondary">
-                {t('medications.form.supplementHint', {
-                  defaultValue: 'Nutrients are counted when a dose is logged.',
-                })}
-              </Text>
-            </View>
-            <Switch
-              value={form.isSupplement}
-              onValueChange={(value) => updateField('isSupplement', value)}
-            />
           </View>
 
           {form.isSupplement && (
@@ -503,34 +571,39 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
               />
             </View>
 
-            <View className="gap-1.5">
-              <Text className="text-text-secondary text-sm font-medium">
-                {t('medications.form.prescriber', {
-                  defaultValue: 'Prescriber',
-                })}
-              </Text>
-              <FormInput
-                placeholder={t('medications.form.prescriberPlaceholder', {
-                  defaultValue: 'Dr. Ipsum',
-                })}
-                value={form.prescriber}
-                onChangeText={(v) => updateField('prescriber', v)}
-              />
-            </View>
+            {!form.isSupplement && (
+              <>
+                <View className="gap-1.5">
+                  <Text className="text-text-secondary text-sm font-medium">
+                    {t('medications.form.prescriber', {
+                      defaultValue: 'Prescriber',
+                    })}
+                  </Text>
+                  <FormInput
+                    placeholder={t('medications.form.prescriberPlaceholder', {
+                      defaultValue: 'Dr. Ipsum',
+                    })}
+                    value={form.prescriber}
+                    onChangeText={(v) => updateField('prescriber', v)}
+                  />
+                </View>
 
-            <View className="gap-1.5">
-              <Text className="text-text-secondary text-sm font-medium">
-                {t('medications.form.pharmacy', { defaultValue: 'Pharmacy' })}
-              </Text>
-              <FormInput
-                placeholder={t('medications.form.pharmacyPlaceholder', {
-                  defaultValue: 'Sunny Pharmacy',
-                })}
-                value={form.pharmacy}
-                onChangeText={(v) => updateField('pharmacy', v)}
-              />
-            </View>
-
+                <View className="gap-1.5">
+                  <Text className="text-text-secondary text-sm font-medium">
+                    {t('medications.form.pharmacy', {
+                      defaultValue: 'Pharmacy',
+                    })}
+                  </Text>
+                  <FormInput
+                    placeholder={t('medications.form.pharmacyPlaceholder', {
+                      defaultValue: 'Sunny Pharmacy',
+                    })}
+                    value={form.pharmacy}
+                    onChangeText={(v) => updateField('pharmacy', v)}
+                  />
+                </View>
+              </>
+            )}
             <View className="gap-1.5">
               <Text className="text-text-secondary text-sm font-medium">
                 {t('medications.form.notes', { defaultValue: 'Notes' })}

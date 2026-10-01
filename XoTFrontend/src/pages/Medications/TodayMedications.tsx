@@ -75,6 +75,7 @@ import { MedTypeIcon } from './AddMedicationDialog';
 import GlpDailyCheckIn from './GlpDailyCheckIn';
 import Glp1QuickLogDialog from './Glp1QuickLogDialog';
 import MedicationLogCalendar from './MedicationLogCalendar';
+import { medicationEntryKindLabel } from '@/utils/medicationKindLabel';
 
 export interface DueDose {
   medication: MedicationDetail;
@@ -1245,6 +1246,16 @@ export default function TodayMedications({
                           {entry.med_name_snapshot}
                         </p>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                          <span>
+                            {medicationEntryKindLabel(
+                              entry,
+                              meds.find(
+                                (med) => med.id === entry.medication_id
+                              ),
+                              t
+                            )}
+                          </span>
+                          <span>·</span>
                           <span className="tabular-nums font-medium">
                             {formatEntryTime(entry.taken_at)}
                           </span>

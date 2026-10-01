@@ -147,7 +147,7 @@ function pendingRequest(
 ): Notifications.NotificationRequest {
   return {
     identifier,
-    content: { data: data ? { copyRevision: '20260930', ...data } : data },
+    content: { data: data ? { copyRevision: '20261001', ...data } : data },
     trigger: null,
   } as unknown as Notifications.NotificationRequest;
 }
@@ -302,7 +302,7 @@ describe('reconcileMedicationReminders', () => {
             hideNames: 'false',
             locale: 'en',
             responseVersion: '2',
-            copyRevision: '20260930',
+            copyRevision: '20261001',
             accountUserId: 'user-1',
             serverConfigId: '',
             isSupplement: 'false',
@@ -520,7 +520,7 @@ describe('reconcileMedicationReminders', () => {
         expect(content.data?.locale).toBe('de');
         expect(content.title).not.toMatch(/reminder/i);
         expect(content.body).not.toMatch(/scheduled/i);
-        expect(content.data?.copyRevision).toBe('20260930');
+        expect(content.data?.copyRevision).toBe('20261001');
       } finally {
         await i18n.changeLanguage('en');
       }
@@ -684,6 +684,90 @@ describe('reconcileMedicationReminders', () => {
         (c) => c[0].content.data?.key === BASE_KEY
       );
       expect(base?.[0].content.body).toBe('Scheduled dose: Metformin (500 mg)');
+    });
+  });
+
+  describe('medication and supplement identity', () => {
+    it.each(['en', 'de'])(
+      'uses category-specific copy and the schedule dose in %s',
+      async (language) => {
+        (getActiveNutritionIdentity as jest.Mock).mockResolvedValue({
+          userId: 'user-1',
+          serverConfigId: 'server-1',
+        });
+        useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+        await i18n.changeLanguage(language);
+        try {
+          await reconcileMedicationReminders(
+            [
+              buildMedication({
+                is_supplement: true,
+                name: 'Synthetic supplement',
+                schedules: [buildSchedule({ dose_amount: 2 })],
+              }),
+            ],
+            []
+          );
+          const content = mockSchedule.mock.calls[0][0].content;
+          expect(content.title).toBe(
+            language === 'de'
+              ? 'Erinnerung an Ergänzungsmittel'
+              : 'Supplement reminder'
+          );
+          expect(content.body).toContain('Synthetic supplement (2 mg)');
+          expect(content.data?.isSupplement).toBe('true');
+          expect(content.categoryIdentifier).toBe('medication-reminder');
+        } finally {
+          await i18n.changeLanguage('en');
+        }
+      }
+    );
+
+    it('hides supplement name and dose without calling it a medication', async () => {
+      (getActiveNutritionIdentity as jest.Mock).mockResolvedValue({
+        userId: 'user-1',
+        serverConfigId: 'server-1',
+      });
+      useAppPreferencesStore.setState({
+        medicationReminderHideNames: true,
+        medicationReminderRepeats: false,
+      });
+      await reconcileMedicationReminders(
+        [buildMedication({ is_supplement: true, name: 'Private name' })],
+        []
+      );
+      const content = mockSchedule.mock.calls[0][0].content;
+      expect(content.title).toBe('Supplement reminder');
+      expect(content.body).toBe('You have a scheduled supplement intake');
+      expect(content.body).not.toContain('Private name');
+    });
+
+    it('replaces a medication reminder after explicit reclassification as a supplement', async () => {
+      (getActiveNutritionIdentity as jest.Mock).mockResolvedValue({
+        userId: 'user-1',
+        serverConfigId: 'server-1',
+      });
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      mockGetAllScheduled.mockResolvedValue([
+        pendingRequest('old-category', {
+          medicationId: 'med-1',
+          key: BASE_KEY,
+          hideNames: 'false',
+          locale: 'en',
+          responseVersion: '2',
+          accountUserId: 'user-1',
+          serverConfigId: 'server-1',
+          isSupplement: 'false',
+        }),
+      ]);
+      await reconcileMedicationReminders(
+        [buildMedication({ is_supplement: true })],
+        []
+      );
+      expect(mockCancel).toHaveBeenCalledWith('old-category');
+      expect(mockSchedule.mock.calls[0][0].content.title).toBe(
+        'Supplement reminder'
+      );
     });
   });
 

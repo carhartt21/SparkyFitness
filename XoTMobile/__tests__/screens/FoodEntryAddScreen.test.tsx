@@ -27,6 +27,7 @@ import { setPendingMealIngredientSelection } from '../../src/services/mealBuilde
 import { setPendingMealPlanSelection } from '../../src/services/mealPlanSelection';
 import { buildMealIngredientDraft } from '../../src/utils/mealBuilderDraft';
 import { completeMealPhotoWithFoodLocally } from '../../src/services/nutritionPhotoCompletion';
+import type { FoodVariantDetail } from '../../src/types/foods';
 
 const mockPop = jest.fn((count: number) => ({
   type: 'POP',
@@ -1599,6 +1600,329 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.getByLabelText('Change unit: Grams')).toBeTruthy();
     expect(amountValue(screen)).toBe(15);
     expect(screen.getAllByText('1 piece (15 g)').length).toBeGreaterThan(0);
+  });
+
+  const namedSliceVariants: FoodVariantDetail[] = [
+    {
+      id: 'variant-reference',
+      food_id: 'food-1',
+      serving_size: 100,
+      serving_unit: 'g',
+      calories: (24 / 7.1) * 100,
+      protein: (1.5 / 7.1) * 100,
+      carbs: (3.9 / 7.1) * 100,
+      fat: (0.1 / 7.1) * 100,
+      is_default: true,
+    },
+    {
+      id: 'variant-slice',
+      food_id: 'food-1',
+      serving_size: 7.1,
+      serving_unit: 'g',
+      serving_label: 'Slice',
+      calories: 24,
+      protein: 1.5,
+      carbs: 3.9,
+      fat: 0.1,
+    },
+  ];
+  const namedSliceItem = {
+    ...baseLocalItem,
+    servingSize: 100,
+    servingUnit: 'g',
+    variantId: 'variant-reference',
+  };
+
+  it('uses a serving count for a named gram portion and saves its actual weight', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+
+    chooseUnit(screen, 'Slice (7.1 g)');
+    expect(amountValue(screen)).toBe(1);
+    typeAmount(screen, '2');
+    expect(amountValue(screen)).toBe(2);
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '14.2 g in total'
+    );
+    expect(
+      screen.getByTestId('food-entry-highlight-calories').props
+        .accessibilityLabel
+    ).toBe('Calories: 48 kcal');
+    expect(
+      screen.getByTestId('food-entry-highlight-protein').props
+        .accessibilityLabel
+    ).toBe('Protein: 3 g');
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          variant_id: 'variant-slice',
+          quantity: 14.2,
+          unit: 'g',
+        }),
+      })
+    );
+  });
+
+  it('saves fractional serving counts entered with a decimal comma while focused', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    chooseUnit(screen, 'Slice (7.1 g)');
+    fireEvent(
+      screen.getByTestId('food-entry-amount-wheel'),
+      'accessibilityAction',
+      {
+        nativeEvent: { actionName: 'longpress' },
+      }
+    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '0,5');
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '3.55 g in total'
+    );
+    expect(
+      screen.getByTestId('food-entry-highlight-calories').props
+        .accessibilityLabel
+    ).toBe('Calories: 12 kcal');
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          quantity: 3.55,
+          unit: 'g',
+        }),
+      })
+    );
+  });
+
+  it('resets an open amount editor when switching from grams to a named portion', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    fireEvent(
+      screen.getByTestId('food-entry-amount-wheel'),
+      'accessibilityAction',
+      {
+        nativeEvent: { actionName: 'longpress' },
+      }
+    );
+    fireEvent.changeText(screen.getByTestId('food-entry-amount-input'), '50');
+    chooseUnit(screen, 'Slice (7.1 g)');
+    expect(screen.queryByTestId('food-entry-amount-input')).toBeNull();
+    expect(amountValue(screen)).toBe(1);
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '7.1 g in total'
+    );
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          quantity: 7.1,
+          unit: 'g',
+        }),
+      })
+    );
+  });
+
+  it('does not round a fractional serving to a tenth of a gram when changing units', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    chooseUnit(screen, 'Slice (7.1 g)');
+    typeAmount(screen, '0,5');
+    chooseUnit(screen, 'Grams');
+    expect(amountValue(screen)).toBe(3.55);
+    expect(
+      screen.getByTestId('food-entry-highlight-calories').props
+        .accessibilityLabel
+    ).toBe('Calories: 12 kcal');
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          variant_id: 'variant-reference',
+          quantity: 3.55,
+          unit: 'g',
+        }),
+      })
+    );
+  });
+
+  it('steps in quarter portions rather than quarter grams for a named gram serving', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    chooseUnit(screen, 'Slice (7.1 g)');
+    fireEvent(
+      screen.getByTestId('food-entry-amount-wheel'),
+      'accessibilityAction',
+      {
+        nativeEvent: { actionName: 'increment' },
+      }
+    );
+    expect(amountValue(screen)).toBe(1.25);
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '8.875 g in total'
+    );
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          quantity: 8.875,
+          unit: 'g',
+        }),
+      })
+    );
+  });
+
+  it('shows the portion count when reopening a saved canonical gram quantity', () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({
+      item: {
+        ...namedSliceItem,
+        variantId: 'variant-slice',
+        originalItem: {
+          ...namedSliceItem.originalItem,
+          quantity: 14.2,
+          unit: 'g',
+        },
+      },
+      date: '2026-04-23',
+    });
+    expect(amountValue(screen)).toBe(2);
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      '14.2 g in total'
+    );
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          quantity: 14.2,
+          unit: 'g',
+        }),
+      })
+    );
+  });
+
+  it('keeps quick-add portions in canonical units', async () => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId('food-entry-quick-add-button-variant-slice')
+      );
+    });
+    expect(mockAddEntryAsync).toHaveBeenCalledWith({
+      createEntryPayload: expect.objectContaining({
+        variant_id: 'variant-slice',
+        quantity: 7.1,
+        unit: 'g',
+      }),
+    });
+  });
+
+  it.each(['', ',', '0'])('blocks invalid named-portion drafts %s', (draft) => {
+    mockUseFoodVariants.mockReturnValue({
+      variants: namedSliceVariants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    chooseUnit(screen, 'Slice (7.1 g)');
+    typeAmount(screen, draft);
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    {
+      label: 'Glass (200 ml)',
+      servingSize: 200,
+      servingUnit: 'ml',
+      servingLabel: 'Glass',
+      metricAmount: 200,
+      metricUnit: 'ml' as const,
+      expectedQuantity: 400,
+      expectedWeight: '400 ml in total',
+    },
+    {
+      label: 'Pair (14.2 g)',
+      servingSize: 2,
+      servingUnit: 'slice',
+      servingLabel: 'Pair',
+      metricAmount: 14.2,
+      metricUnit: 'g' as const,
+      expectedQuantity: 4,
+      expectedWeight: '28.4 g in total',
+    },
+  ])('counts whole portions for $label', (fixture) => {
+    const variants: FoodVariantDetail[] = [
+      {
+        ...namedSliceVariants[0],
+        serving_unit: fixture.metricUnit,
+        calories: (24 / fixture.metricAmount) * 100,
+        protein: (1.5 / fixture.metricAmount) * 100,
+        carbs: (3.9 / fixture.metricAmount) * 100,
+        fat: (0.1 / fixture.metricAmount) * 100,
+      },
+      {
+        ...namedSliceVariants[1],
+        serving_size: fixture.servingSize,
+        serving_unit: fixture.servingUnit,
+        serving_label: fixture.servingLabel,
+        metric_amount: fixture.metricAmount,
+        metric_unit: fixture.metricUnit,
+      },
+    ];
+    mockUseFoodVariants.mockReturnValue({
+      variants,
+      isLoading: false,
+      isError: false,
+    });
+    const screen = renderScreen({ item: namedSliceItem, date: '2026-04-23' });
+    chooseUnit(screen, fixture.label);
+    expect(amountValue(screen)).toBe(1);
+    typeAmount(screen, '2');
+    expect(screen.getByTestId('food-entry-amount-weight').props.children).toBe(
+      fixture.expectedWeight
+    );
+    expect(
+      screen.getByTestId('food-entry-highlight-calories').props
+        .accessibilityLabel
+    ).toBe('Calories: 48 kcal');
+    fireEvent.press(screen.getByText(ADD_LABEL));
+    expect(mockAddEntry).toHaveBeenCalledWith(
+      expect.objectContaining({
+        createEntryPayload: expect.objectContaining({
+          quantity: fixture.expectedQuantity,
+          unit: fixture.servingUnit,
+        }),
+      })
+    );
   });
 
   it('starts a chosen portion at one and converts back to grams exactly', () => {
