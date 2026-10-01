@@ -278,6 +278,52 @@ export function trackingReviewResponse(
     return buildDailyProgress({
       date,
       preferences: DEFAULT_DAILY_TRACKING_PREFERENCES,
+      goals: populated
+        ? [
+            {
+              key: 'hydration',
+              value: 1000,
+              target: 2500,
+              unit: 'ml',
+              complete: false,
+            },
+            {
+              key: 'activity_duration',
+              value: null,
+              target: 30,
+              unit: 'min',
+              complete: false,
+            },
+            {
+              key: 'nutrition_review',
+              value: null,
+              target: 1,
+              unit: '',
+              complete: false,
+              summary: { calories: 2000, protein: 150, carbs: 250, fat: 67 },
+            },
+          ]
+        : [],
+      workouts: populated
+        ? [
+            {
+              assignment_id: '101',
+              plan_id: '41',
+              label: 'running',
+              activity_type: 'running',
+              recorded_at: null,
+              optional: false,
+            },
+            {
+              assignment_id: '102',
+              plan_id: '41',
+              label: 'strength',
+              activity_type: 'strength',
+              recorded_at: null,
+              optional: false,
+            },
+          ]
+        : [],
       checkin: populated ? checkin(date, today) : null,
       habits: populated ? HABITS : [],
       habitLogs: populated ? habitLogs(today) : [],

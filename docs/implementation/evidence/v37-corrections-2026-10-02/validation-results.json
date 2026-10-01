@@ -1,0 +1,38 @@
+{
+  "frozenInstall": "passed",
+  "mobileFull": {
+    "suites": 523,
+    "tests": 7555,
+    "status": "passed"
+  },
+  "mobileFinalFocused": {
+    "suites": 4,
+    "tests": 16,
+    "status": "passed"
+  },
+  "webFinalFull": {
+    "suites": 166,
+    "tests": 1454,
+    "status": "passed"
+  },
+  "serverFocused": {
+    "files": 7,
+    "tests": 76,
+    "status": "passed"
+  },
+  "serverFull": "skipped at owner request",
+  "packageValidate": {
+    "mobile": "passed",
+    "web": "passed",
+    "server": "passed"
+  },
+  "postgresFreshAndUpgrade": "passed with real isolated databases; old version retained",
+  "migrations": {
+    "before": 255,
+    "after": 258
+  },
+  "webProductionBuild": "passed",
+  "productionIosJavaScriptExport": "passed; review markers absent",
+  "physicalIphoneWatchHealthkitNotifications": "unverified",
+  "extremeTextCalendarWeekdayLayout": "known pre-existing limitation"
+}
