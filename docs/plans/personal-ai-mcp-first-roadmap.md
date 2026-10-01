@@ -7,6 +7,8 @@
 **Scope:** A single owner's personal, non-commercial use over an indicative 3–6-month implementation horizon.  
 **Product context:** PersonalBest is the owner-facing direction previously called HealthIntel; SparkyFitness remains the application/backend foundation. Follow the actual implementation branch's naming and preserve persistent identifiers. This plan is not another rebranding task.
 
+> **Status update, 2026-10-01** (checked against `main` at `53c7092ef`). The server package has since been renamed (`SparkyFitnessServer/` → `XoTServer/`); the source links below stay pinned to the baseline. Already on `main`: a dedicated read-only MCP key that is bound to its owner, rejected outside `/mcp`, limited to an allowlist of query tools with per-call date and page bounds, and answered with an evidence-context block; and OAuth access to MCP. See [`docs/implementation/ai-mcp-access-inventory.md`](../implementation/ai-mcp-access-inventory.md) for that boundary and the work it still lists. Not yet done: the external read-only pilot with a chosen client and account, and every later stage (proposals, approval, in-app findings).
+
 ## 1. Decision
 
 Use an external MCP-connected assistant for substantial reviews, questions, and planning first. Keep immediate food, hydration, supplement, and workout capture in the application, widgets, notifications, and Apple Watch. Bring an AI workflow into the application only after repeated use shows that the native integration removes meaningful friction.
