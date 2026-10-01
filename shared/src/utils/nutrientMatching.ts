@@ -24,6 +24,7 @@ const NUTRIENT_UNIT_ALIASES: Record<string, string> = {
   mg: "mg",
   ug: "µg",
   µg: "µg",
+  μg: "µg",
   mcg: "µg",
   kcal: "kcal",
   kj: "kJ",
@@ -35,16 +36,14 @@ export function normalizeNutrientUnit(unit: string): string {
   return NUTRIENT_UNIT_ALIASES[trimmed.toLowerCase()] ?? trimmed;
 }
 
-// Grams per unit, for converting a provider's reported amount into the unit a
+// Decimal exponents relative to grams, for converting a provider's amount into the unit a
 // user chose for their custom nutrient (e.g. USDA "g" -> user "mg").
-const MASS_TO_GRAMS: Record<string, number> = {
-  kg: 1000,
-  g: 1,
-  mg: 1e-3,
-  µg: 1e-6,
-  mcg: 1e-6,
-  ug: 1e-6,
-  ng: 1e-9,
+const MASS_EXPONENT: Record<string, number> = {
+  kg: 3,
+  g: 0,
+  mg: -3,
+  µg: -6,
+  ng: -9,
 };
 
 // kJ per unit, for energy custom nutrients.
@@ -56,28 +55,32 @@ const ENERGY_TO_KJ: Record<string, number> = {
 /**
  * Convert a nutrient amount from one unit to another when they're in the same
  * convertible family (mass or energy). Returns null when conversion isn't safe
- * — unknown units, cross-family, or non-convertible units like IU — so callers
- * can fall back to storing the raw value. Same unit returns the value unchanged.
+ * — unknown units, cross-family, or substance-specific units like IU. Callers
+ * must leave the value unmapped on failure rather than relabel its raw amount.
  */
 export function convertNutrientAmount(
   value: number,
   fromUnit: string | undefined,
   toUnit: string | undefined,
 ): number | null {
+  if (!Number.isFinite(value) || value < 0) return null;
   if (!fromUnit || !toUnit) return null;
-  const from = fromUnit.trim().toLowerCase();
-  const to = toUnit.trim().toLowerCase();
+  const from = normalizeNutrientUnit(fromUnit).toLowerCase();
+  const to = normalizeNutrientUnit(toUnit).toLowerCase();
   if (!from || !to) return null;
-  if (from === to) return value;
-  const fromMass = MASS_TO_GRAMS[from];
-  const toMass = MASS_TO_GRAMS[to];
-  if (fromMass !== undefined && toMass !== undefined) {
-    return value * (fromMass / toMass);
-  }
+  const fromMass = MASS_EXPONENT[from];
+  const toMass = MASS_EXPONENT[to];
   const fromKj = ENERGY_TO_KJ[from];
   const toKj = ENERGY_TO_KJ[to];
-  if (fromKj !== undefined && toKj !== undefined) {
-    return value * (fromKj / toKj);
-  }
-  return null;
+  const factor =
+    fromMass !== undefined && toMass !== undefined
+      ? 10 ** (fromMass - toMass)
+      : fromKj !== undefined && toKj !== undefined
+        ? fromKj / toKj
+        : null;
+  if (factor === null) return null;
+  const converted = value * factor;
+  return Number.isFinite(converted) && (value === 0 || converted > 0)
+    ? converted
+    : null;
 }

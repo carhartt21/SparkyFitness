@@ -51,11 +51,12 @@ describe('applyCustomNutrientMatches', () => {
     // Alias is the provider's exact label "Magnesium, Mg"; matching is
     // case/punctuation-insensitive so it lines up with the USDA field.
     const index = buildAliasIndex([
-      { name: 'Magnesium', aliases: ['Magnesium, Mg'] },
+      { name: 'Magnesium', unit: 'mg', aliases: ['Magnesium, Mg'] },
     ]);
     const variant = {
       calories: 100,
       provider_nutrients: { 'Magnesium, Mg': 18, Sodium: 200 },
+      provider_nutrient_units: { 'Magnesium, Mg': 'mg', Sodium: 'mg' },
     };
     const foods = [{ default_variant: variant, variants: [variant] }];
 
@@ -105,7 +106,7 @@ describe('applyCustomNutrientMatches', () => {
     ).toEqual({ Magnesium: 400 });
   });
 
-  it('retains the raw provider value when units are incompatible (e.g. IU)', () => {
+  it('leaves incompatible units unmapped (e.g. IU)', () => {
     const index = buildAliasIndex([
       { name: 'Vitamin D', unit: 'mg', aliases: ['vitd'] },
     ]);
@@ -117,10 +118,11 @@ describe('applyCustomNutrientMatches', () => {
     expect(
       (variant as { custom_nutrients?: Record<string, number> })
         .custom_nutrients
-    ).toEqual({ 'Vitamin D': 10 });
+    ).toBeUndefined();
+    expect(variant.provider_nutrients.vitd).toBe(10);
   });
 
-  it('retains the raw value when the provider reports no unit', () => {
+  it('leaves missing provider units unmapped', () => {
     const index = buildAliasIndex([
       { name: 'Magnesium', unit: 'mg', aliases: ['magnesium'] },
     ]);
@@ -129,7 +131,31 @@ describe('applyCustomNutrientMatches', () => {
     expect(
       (variant as { custom_nutrients?: Record<string, number> })
         .custom_nutrients
-    ).toEqual({ Magnesium: 18 });
+    ).toBeUndefined();
+    expect(variant.provider_nutrients.magnesium).toBe(18);
+  });
+  it('preserves very small converted amounts instead of rounding them to zero', () => {
+    const index = buildAliasIndex([{ name: 'Iodine', unit: 'g' }]);
+    const variant = {
+      provider_nutrients: { Iodine: 0.1 },
+      provider_nutrient_units: { Iodine: 'µg' },
+    };
+    applyCustomNutrientMatches([{ default_variant: variant }], index);
+    expect(
+      (variant as { custom_nutrients?: Record<string, number> })
+        .custom_nutrients?.Iodine
+    ).toBeCloseTo(1e-7, 15);
+  });
+
+  it('does not overwrite existing custom values on a failed conversion', () => {
+    const index = buildAliasIndex([{ name: 'Magnesium', unit: 'mg' }]);
+    const variant = {
+      custom_nutrients: { Magnesium: 12 },
+      provider_nutrients: { Magnesium: 18 },
+      provider_nutrient_units: { Magnesium: 'IU' },
+    };
+    applyCustomNutrientMatches([{ default_variant: variant }], index);
+    expect(variant.custom_nutrients).toEqual({ Magnesium: 12 });
   });
 });
 
@@ -165,7 +191,7 @@ describe('mapUsdaBarcodeProduct provider nutrients', () => {
 
     // End-to-end: a user custom Magnesium with the USDA alias picks up the value.
     const index = buildAliasIndex([
-      { name: 'Magnesium', aliases: ['Magnesium, Mg'] },
+      { name: 'Magnesium', unit: 'mg', aliases: ['Magnesium, Mg'] },
     ]);
     applyCustomNutrientMatches([mapped], index);
     expect(

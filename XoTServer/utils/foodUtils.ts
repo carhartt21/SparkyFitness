@@ -92,8 +92,8 @@ function applyCustomNutrientMatches(
         const value =
           typeof rawValue === 'number' ? rawValue : Number(rawValue);
         if (!Number.isFinite(value) || value <= 0) continue;
-        // Convert the provider's amount into the custom nutrient's unit when
-        // both are known and compatible; otherwise store the raw value.
+        // Only map values whose units can be converted safely. Raw quantities
+        // stay available for inspection when a unit or form needs resolution.
         const providerUnit =
           units && typeof units === 'object' ? units[rawKey] : undefined;
         const converted = convertNutrientAmount(
@@ -101,11 +101,10 @@ function applyCustomNutrientMatches(
           providerUnit,
           target.unit ?? undefined
         );
-        const finalValue =
-          converted === null ? value : Math.round(converted * 1e6) / 1e6;
+        if (converted === null) continue;
         variant.custom_nutrients = {
           ...(variant.custom_nutrients || {}),
-          [target.name]: finalValue,
+          [target.name]: converted,
         };
       }
     }
