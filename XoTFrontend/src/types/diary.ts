@@ -31,6 +31,7 @@ export interface DayData {
 }
 
 export interface MealTypeDefinition {
+  purpose?: 'regular' | 'import';
   id: string;
   name: string;
   display_name?: string;

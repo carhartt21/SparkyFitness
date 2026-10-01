@@ -3,16 +3,26 @@ import express from 'express';
 import request from 'supertest';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import workoutPlanTemplateRoutes from '../routes/workoutPlanTemplateRoutes.js';
-import workoutPlanTemplateService from '../services/workoutPlanTemplateService.js';
+import workoutPlanTemplateService, {
+  preparePlannedActivityExercise,
+} from '../services/workoutPlanTemplateService.js';
+
+const actor = vi.hoisted(() => ({ delegated: false }));
 
 vi.mock('../middleware/authMiddleware.js', () => ({
-  authenticate: (req: { userId?: string }, _res: unknown, next: () => void) => {
+  authenticate: (
+    req: { userId?: string; authenticatedUserId?: string },
+    _res: unknown,
+    next: () => void
+  ) => {
     req.userId = 'test-user';
+    req.authenticatedUserId = actor.delegated ? 'other-user' : 'test-user';
     next();
   },
 }));
 
 vi.mock('../services/workoutPlanTemplateService.js', () => ({
+  preparePlannedActivityExercise: vi.fn(),
   default: {
     createWorkoutPlanTemplate: vi.fn(),
     updateWorkoutPlanTemplate: vi.fn(),
@@ -26,13 +36,18 @@ app.use('/workout-plan-templates', workoutPlanTemplateRoutes);
 const bodyWithSetType = (setType: string) => ({
   plan_name: 'Synthetic plan',
   assignments: [
-    { day_of_week: 1, sets: [{ set_number: 1, set_type: setType }] },
+    {
+      day_of_week: 1,
+      exercise_id: '00000000-0000-4000-8000-000000000001',
+      sets: [{ set_number: 1, set_type: setType }],
+    },
   ],
 });
 
 describe('workout plan template set-type validation', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    actor.delegated = false;
     vi.mocked(
       workoutPlanTemplateService.createWorkoutPlanTemplate
     ).mockResolvedValue({
@@ -76,4 +91,50 @@ describe('workout plan template set-type validation', () => {
       ).not.toHaveBeenCalled();
     }
   );
+});
+
+describe('planned activity preparation is owner-only', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    actor.delegated = false;
+    vi.mocked(preparePlannedActivityExercise).mockResolvedValue(
+      '00000000-0000-4000-8000-000000000001'
+    );
+  });
+
+  it('prepares the owned assignment without logging completion', async () => {
+    const response = await request(app)
+      .post('/workout-plan-templates/41/assignments/101/activity-exercise')
+      .send({ name: 'Laufen' });
+    expect(response.status).toBe(200);
+    expect(response.body.exercise_id).toBe(
+      '00000000-0000-4000-8000-000000000001'
+    );
+    expect(preparePlannedActivityExercise).toHaveBeenCalledWith(
+      'test-user',
+      '41',
+      101,
+      'Laufen'
+    );
+  });
+
+  it.each(['0', '-1', '1.5', 'not-an-id'])(
+    'rejects invalid assignment %s before writing',
+    async (id) => {
+      const response = await request(app)
+        .post(`/workout-plan-templates/41/assignments/${id}/activity-exercise`)
+        .send({ name: 'Laufen' });
+      expect(response.status).toBe(400);
+      expect(preparePlannedActivityExercise).not.toHaveBeenCalled();
+    }
+  );
+
+  it('rejects a delegated actor before preparation', async () => {
+    actor.delegated = true;
+    const response = await request(app)
+      .post('/workout-plan-templates/41/assignments/101/activity-exercise')
+      .send({ name: 'Laufen' });
+    expect(response.status).toBe(403);
+    expect(preparePlannedActivityExercise).not.toHaveBeenCalled();
+  });
 });

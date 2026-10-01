@@ -172,6 +172,11 @@ const ActivityAddScreen: React.FC<Props> = ({ navigation, route }) => {
       duration_minutes: submission.durationMinutes,
       calories_burned: submission.caloriesBurned,
       entry_date: submission.entryDate,
+      workout_plan_assignment_id:
+        route.params?.workoutPlanAssignmentId ??
+        (entry?.workout_plan_assignment_id
+          ? Number(entry.workout_plan_assignment_id)
+          : null),
       distance: submission.distanceKm,
       avg_heart_rate: submission.avgHeartRate,
       notes: submission.notes,
@@ -224,6 +229,7 @@ const ActivityAddScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   }, [
     submission,
+    route.params?.workoutPlanAssignmentId,
     isEditMode,
     entry,
     popCount,
@@ -236,6 +242,23 @@ const ActivityAddScreen: React.FC<Props> = ({ navigation, route }) => {
     navigation,
     t,
   ]);
+
+  const initializedPlan = useRef(false);
+  useEffect(() => {
+    if (initializedPlan.current || !route.params?.workoutPlanAssignmentId)
+      return;
+    initializedPlan.current = true;
+    if (route.params.plannedDurationMinutes)
+      setDuration(String(route.params.plannedDurationMinutes));
+    if (route.params.plannedDistanceKm)
+      setDistance(
+        String(
+          distanceUnit === 'miles'
+            ? route.params.plannedDistanceKm / 1.609344
+            : route.params.plannedDistanceKm
+        )
+      );
+  }, [route.params, setDuration, setDistance, distanceUnit]);
 
   const header = useScreenHeader({
     left: {

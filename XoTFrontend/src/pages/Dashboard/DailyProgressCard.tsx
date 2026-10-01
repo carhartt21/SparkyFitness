@@ -64,6 +64,8 @@ export function DailyProgressCard({
     measurement: t('dailyTracking.domain.measurement', 'Measurement'),
     supplement: t('dailyTracking.domain.supplement', 'Supplement'),
     meal: t('dailyTracking.domain.meal', 'Meal'),
+    goal: t('dailyTracking.domain.goal', 'Daily objectives'),
+    workout: t('dailyTracking.domain.workout', 'Planned training'),
   };
   const stateLabel = (item: DailyProgressItem) =>
     item.state === 'complete'
@@ -74,6 +76,9 @@ export function DailyProgressCard({
           ? t('dailyTracking.state.excluded', 'Skipped, not counted')
           : t('dailyTracking.state.pending', 'Not recorded yet');
   const itemLabel = (item: DailyProgressItem) => {
+    if (item.domain === 'goal') return t(`dailyTracking.goals.${item.label}`);
+    if (item.domain === 'workout' && item.activity_type)
+      return t(`weeklyPlan.activities.${item.activity_type}`);
     if (item.domain === 'checkin') {
       return t('dailyTracking.checkinItem', 'Daily check-in');
     }

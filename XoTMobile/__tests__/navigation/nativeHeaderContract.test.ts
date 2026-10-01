@@ -86,6 +86,10 @@ const NATIVE_TABS_ROUTE_EXCLUSIONS = {
     'Root-stack context period form with its own back button, presented above the tab host.',
   DailyProgress:
     'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  WorkoutPlans:
+    'Root-stack weekly training list with its own date bar and back button, presented above the tab host.',
+  WorkoutPlanForm:
+    'Root-stack weekly training editor using shared form chrome, presented above the tab host.',
   TrackingSettings:
     'Root-stack tracking settings with its own back button, presented above the tab host.',
 } satisfies Record<string, string>;

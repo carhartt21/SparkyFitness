@@ -1,4 +1,5 @@
 export interface MealType {
+  purpose?: 'regular' | 'import';
   id: string;
   name: string;
   /** Per-account label for a system type; name remains the canonical key. */

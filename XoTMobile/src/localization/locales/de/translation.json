@@ -120,7 +120,8 @@
     "requestTimedOut": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung.",
     "nextStep": "Nächster Schritt",
     "notNow": "Nicht jetzt",
-    "optionalParen": "(Optional)"
+    "optionalParen": "(Optional)",
+    "showAll": "Alle anzeigen"
   },
   "settings": {
     "app": "App-Einstellungen",
@@ -1445,7 +1446,7 @@
     "askSparkySubtitle": "Trackbot im Dashboard anzeigen",
     "hydration": "Flüssigkeitszufuhr",
     "hydrationSubtitle": "Zeigen Sie die Trinkkarte im Dashboard an",
-    "fasting": "Schnelling",
+    "fasting": "Fasten",
     "fastingSubtitle": "Fasten im Dashboard anzeigen",
     "fastingDisabledSubtitle": "Aktivieren Sie Fasten zuerst in den App-Einstellungen",
     "cyclePregnancy": "Zyklus & Schwangerschaft",
@@ -2120,7 +2121,7 @@
     "uploadErrors_other": "{{count}}-Datensätze wurden vom Server abgelehnt. Siehe Protokolle."
   },
   "fastingCard": {
-    "title": "Schnelling",
+    "title": "Fasten",
     "openDetails": "Öffnen fasting Details",
     "viewHistory": "fasting history anzeigen",
     "history": "Verlauf",
@@ -2148,11 +2149,11 @@
     "hourFast": "Stunde fast",
     "startTime": "Start Zeit",
     "starting": "Wird gestartet…",
-    "startAction": "Start Schnelling",
+    "startAction": "Start Fasten",
     "accessibility": {
       "startTime": "Start Zeit: {{time}}",
       "decreaseHours": "Decrease fasting Dauer",
-      "durationHours": "Schnelling duration in Stunden",
+      "durationHours": "Fasten duration in Stunden",
       "increaseHours": "Increase fasting Dauer"
     },
     "presets": {
@@ -2183,7 +2184,7 @@
     "deleteMessage": "Dies kann nicht rückgängig gemacht werden.",
     "deleted": "Schnell deleted",
     "failedDelete": "Fehler beim Löschen des Fastens",
-    "title": "Schnelling history",
+    "title": "Fasten history",
     "hint": "Zum Bearbeiten antippen · zum Löschen nach links wischen",
     "empty": "Noch keine vergangenen Fastenzeiten."
   },
@@ -3241,7 +3242,7 @@
     }
   },
   "fastingDetail": {
-    "title": "Schnelling",
+    "title": "Fasten",
     "metabolicStages": "Stoffwechsel- Stages",
     "now": "jetzt",
     "remaining": "{{percent}}% · {{time}} übrig",
@@ -5763,7 +5764,8 @@
     "estimatedTimes": "Einige Dosiszeiten wurden geschätzt",
     "legendCurve": "Aktives Koffein",
     "legendThreshold": "{{threshold}}mg Grenzwert",
-    "unitMg": "mg"
+    "unitMg": "mg",
+    "previousDoses": "Restmenge aus früheren Einträgen"
   },
   "mobility": {
     "title": "Geführte Mobilität",
@@ -6036,8 +6038,19 @@
       "habit": "Gewohnheiten",
       "measurement": "Messungen",
       "supplement": "Nahrungsergänzung",
-      "meal": "Mahlzeiten"
-    }
+      "meal": "Mahlzeiten",
+      "goal": "Tagesziele",
+      "workout": "Geplantes Training"
+    },
+    "goals": {
+      "hydration": "Flüssigkeitsziel",
+      "activity_duration": "Bewegungsdauer",
+      "nutrition_review": "Tagesernährung prüfen",
+      "configured": "Festgelegte Ziele",
+      "unknown": "Noch kein Wert erfasst"
+    },
+    "completedTitle": "Alle Erfassungsaufgaben abgeschlossen",
+    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung."
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
@@ -6360,5 +6373,54 @@
     "androidLive": "Mitteilungen aktiver Timer",
     "androidLiveDescription": "iOS-Live-Aktivitäten und Dynamic Island sind auf Android nicht verfügbar. Bestehende Timer- und Trainingshinweise bleiben verfügbar.",
     "placementUnknown": "Die App kann nicht prüfen, ob ein Widget hinzugefügt oder eine Mitteilung gelesen wurde."
+  },
+  "weeklyPlan": {
+    "title": "Wöchentlicher Trainingsplan",
+    "subtitle": "Aktivitäten und gespeicherte Trainings planen. Geplant bedeutet noch nicht durchgeführt.",
+    "create": "Plan erstellen",
+    "name": "Planname",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum (optional)",
+    "day": "Wochentag",
+    "type": "Aktivität oder Trainingsvorlage",
+    "labelOptional": "Name der Einheit (optional)",
+    "duration": "Dauer (Min., optional)",
+    "distance": "Strecke (km, optional)",
+    "time": "Uhrzeit (24 Stunden, optional)",
+    "optional": "Optionale Einheit",
+    "addSession": "Einheit hinzufügen",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "empty": "Noch kein Trainingsplan. Aktivitäten oder Trainingsvorlagen für die Woche hinzufügen.",
+    "noSession": "Für diesen Tag ist keine Einheit geplant.",
+    "log": "Aktivität erfassen",
+    "start": "Training starten",
+    "offline": "Zum Bearbeiten oder Starten eine Verbindung zum Server herstellen.",
+    "loadFailed": "Trainingspläne konnten nicht geladen werden. Erneut versuchen.",
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen.",
+    "startFailed": "Die geplante Einheit konnte nicht geöffnet werden. Erneut versuchen.",
+    "validation": "Planname, Datum und Aktivität prüfen. Dauer und Strecke müssen positiv sein. Uhrzeiten im Format 18:30 eingeben.",
+    "deleteTitle": "Trainingsplan löschen?",
+    "deleteHint": "Bereits erfasste Trainings bleiben im Verlauf erhalten.",
+    "sequentialHint": "Dies ist eine bestehende Trainingsfolge. Ihre Einheiten bleiben erhalten. Die Folge lässt sich im erweiterten Webeditor bearbeiten.",
+    "advanced": "Einzelne Übung",
+    "activities": {
+      "running": "Laufen",
+      "strength": "Krafttraining",
+      "cycling": "Radfahren",
+      "walking": "Gehen",
+      "hiking": "Wandern",
+      "swimming": "Schwimmen",
+      "rowing": "Rudern",
+      "soccer": "Fußball",
+      "yoga": "Yoga",
+      "other": "Andere Aktivität",
+      "rest": "Ruhetag"
+    },
+    "dateFormat": "JJJJ-MM-TT",
+    "timeFormat": "SS:mm"
+  },
+  "addWorkoutPlanDialog": {
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."
   }
 }

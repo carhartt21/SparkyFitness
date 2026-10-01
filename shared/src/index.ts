@@ -209,3 +209,5 @@ export * from "./schemas/database/Mobility.zod.ts";
 export * from "./mobility/planning.ts";
 export * from "./engagement/policy.ts";
 export * from "./engagement/notificationCopy.ts";
+
+export * from "./schemas/api/WorkoutPlans.api.zod.ts";

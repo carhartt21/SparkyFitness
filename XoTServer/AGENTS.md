@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 X on Track Server is the backend API package for the X on Track monorepo. Use this file as the primary guide for work inside `XoTServer/`.
 
@@ -72,6 +72,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 - `routes/v2/nutritionKineticsRoutes.ts` - active-caffeine estimate and bedtime cutoff (`diary` permission)
 - `routes/v2/waterIntakeRoutes.ts` and `services/containerWaterActionService.ts` - diary-permitted container action endpoint, immutable operation receipt, and atomic food/water effects
 - `routes/exerciseStatsRoutes.ts`, `services/exerciseReviewService.ts`, and `models/workoutPlanTemplateRepository.ts` - recorded exercise reviews, dated plan adherence, and transactional plan-version capture
+  - `WorkoutPlans.api.zod.ts` extends existing assignments with whole activities and optional local time/duration/distance. Owner-only activity preparation creates/reuses a private exercise definition; it never records completion. `models/dailyProgressObjectives.ts` reads immutable dated plan snapshots and configured objectives for opt-in Daily Progress v2. Keep GET read-only, rest/optional rules explicit, unknown values nullable and legacy v1 clients compatible. Import-only meal groups do not create routine meal tasks.
 - `routes/auth/` - auth-specific route fragments mounted through `routes/authRoutes.ts`
 - `services/` - business logic and orchestration
 - `models/` - PostgreSQL repositories and persistence helpers

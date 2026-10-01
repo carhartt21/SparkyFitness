@@ -1,3 +1,4 @@
+import { plannedActivityLabel } from './tracking/trackingLabels';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, Pressable } from 'react-native';
@@ -108,7 +109,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
           : plan.next_assignment
             ? [plan.next_assignment]
             : [];
-      return todayAssignments;
+      return todayAssignments.filter((a) => a.activity_type !== 'rest');
     }
   };
 
@@ -137,6 +138,9 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
                 })
               : null) ||
             currentAssignment.workout_preset_name ||
+            (currentAssignment.activity_type
+              ? plannedActivityLabel(t, currentAssignment.activity_type)
+              : null) ||
             currentAssignment.exercise_name ||
             t('exerciseSummary.title', 'Exercise');
 
@@ -151,7 +155,12 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
                       current: session.session_index,
                     }
                   )
-                : session.workout_preset_name || session.exercise_name || ''),
+                : session.workout_preset_name ||
+                  (session.activity_type
+                    ? plannedActivityLabel(t, session.activity_type)
+                    : null) ||
+                  session.exercise_name ||
+                  ''),
             value: String(session.id),
           }));
 
@@ -257,7 +266,7 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
                       onPressPlanAssignment(plan, currentAssignment)
                     }
                     accessibilityRole="button"
-                    className="px-3.5 py-1.5 rounded-lg flex-row items-center gap-1.5 active:opacity-80 shadow-sm"
+                    className="min-h-11 justify-center px-3.5 py-1.5 rounded-lg flex-row items-center gap-1.5 active:opacity-80 shadow-sm"
                     style={{ backgroundColor: activeAccent }}
                   >
                     <Icon name="play" size={13} color="#ffffff" />

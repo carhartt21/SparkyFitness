@@ -339,17 +339,26 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
   // an empty day. Historical entries remain visible in their own groups.
   const groups = onAddFood
     ? [
-        ...mealTypes.map(
-          (type) =>
-            entryGroups.find((group) => group.mealTypeId === type.id) ?? {
-              mealTypeId: type.id,
-              name: type.name,
-              sortOrder: type.sort_order ?? 999,
-              entries: [],
-              isSystem: type.user_id === null,
-              displayName: type.display_name,
-            }
-        ),
+        ...mealTypes
+          .filter(
+            (type) =>
+              type.purpose !== 'import' ||
+              entryGroups.some(
+                (group) =>
+                  group.mealTypeId === type.id && group.entries.length > 0
+              )
+          )
+          .map(
+            (type) =>
+              entryGroups.find((group) => group.mealTypeId === type.id) ?? {
+                mealTypeId: type.id,
+                name: type.name,
+                sortOrder: type.sort_order ?? 999,
+                entries: [],
+                isSystem: type.user_id === null,
+                displayName: type.display_name,
+              }
+          ),
         ...entryGroups.filter(
           (group) => !mealTypes.some((type) => type.id === group.mealTypeId)
         ),

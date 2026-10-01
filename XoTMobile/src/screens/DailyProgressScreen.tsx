@@ -1,5 +1,14 @@
-import React, { useMemo, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import {
+  plannedActivityLabel,
+  progressGoalLabel,
+  nutritionGoalLabel,
+  progressDomainLabel,
+} from '../components/tracking/trackingLabels';
+import { useMealTypes } from '../hooks/useMealTypes';
+import { getMealTypeDisplayLabel } from '../utils/mealNutrition';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useIsFocused } from '@react-navigation/native';
+import { AccessibilityInfo, Modal, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -10,7 +19,6 @@ import {
 } from '@workspace/shared';
 import TrackingScreen from '../components/tracking/TrackingScreen';
 import { useNeonScale } from '../components/tracking/useNeonScale';
-import { progressDomainLabel } from '../components/tracking/trackingLabels';
 import ProgressTrackX from '../components/brand/ProgressTrackX';
 import GlowCard from '../components/ui/GlowCard';
 import NeonButton from '../components/ui/NeonButton';
@@ -20,7 +28,9 @@ import { useDailyProgress } from '../hooks/useDailyTracking';
 import { useMedicationEntries } from '../hooks/useMedications';
 import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
 import { useServerConnection } from '../hooks';
-import { useAppLocale } from '../localization';
+import { usePreferences } from '../hooks/usePreferences';
+import HydrationDetailsModal from '../components/HydrationDetailsModal';
+import { formatLocalizedNumber, useAppLocale } from '../localization';
 import { formatDate, getTodayDate } from '../utils/dateUtils';
 import { activeLocalSupplementStatus } from '../utils/medications';
 import {
@@ -37,6 +47,8 @@ const DOMAIN_ORDER: DailyProgressDomain[] = [
   'measurement',
   'supplement',
   'meal',
+  'goal',
+  'workout',
 ];
 
 const DOMAIN_ICON: Record<DailyProgressDomain, IconName> = {
@@ -45,12 +57,34 @@ const DOMAIN_ICON: Record<DailyProgressDomain, IconName> = {
   measurement: 'scale',
   supplement: 'medication',
   meal: 'meal',
+  goal: 'target',
+  workout: 'exercise-running',
 };
 
 const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const scale = useNeonScale();
+  const isFocused = useIsFocused();
   const locale = useAppLocale();
+  const { mealTypes } = useMealTypes();
+  const previousProgress = useRef<{
+    date: string;
+    percent: number | null;
+  } | null>(null);
+  const celebratedDays = useRef(new Set<string>());
+  const [completionProgress, setCompletionProgress] = useState(100);
+  const [completionVisible, setCompletionVisible] = useState(false);
+  const [hydrationVisible, setHydrationVisible] = useState(false);
+  const { preferences } = usePreferences();
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
+    const sub = AccessibilityInfo.addEventListener(
+      'reduceMotionChanged',
+      setReducedMotion
+    );
+    return () => sub.remove();
+  }, []);
   const [secondary, border] = useCSSVariable([
     '--color-text-secondary',
     '--color-border-subtle',
@@ -76,6 +110,31 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
     }
     return overlayLocalSupplementResponses(progressQuery.data, responses);
   }, [progressQuery.data, bySchedule]);
+
+  useEffect(() => {
+    if (!progress || !isFocused) return;
+    const previous = previousProgress.current;
+    if (
+      date === getTodayDate() &&
+      previous?.date === date &&
+      previous.percent != null &&
+      previous.percent < 100 &&
+      progress.percent === 100 &&
+      progress.applicable > 0 &&
+      !celebratedDays.current.has(date)
+    ) {
+      celebratedDays.current.add(date);
+      setCompletionProgress(previous.percent);
+      setCompletionVisible(true);
+    }
+    previousProgress.current = { date, percent: progress.percent };
+  }, [date, progress, isFocused]);
+
+  useEffect(() => {
+    if (!completionVisible) return;
+    const frame = requestAnimationFrame(() => setCompletionProgress(100));
+    return () => cancelAnimationFrame(frame);
+  }, [completionVisible]);
 
   const isToday = date === getTodayDate();
   const dayLabel = isToday
@@ -118,6 +177,13 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const itemLabel = (item: DailyProgressItem) => {
+    if (item.domain === 'workout' && item.activity_type)
+      return plannedActivityLabel(t, item.activity_type);
+    if (item.domain === 'goal') return progressGoalLabel(t, item.label);
+    if (item.domain === 'meal') {
+      const type = mealTypes.find((type) => type.id === item.reference_id);
+      return type ? getMealTypeDisplayLabel(type, t) : item.label;
+    }
     if (item.domain === 'checkin')
       return t('progress.checkinItem', { defaultValue: 'Daily check-in' });
     if (item.domain === 'measurement' && item.label === 'weight') {
@@ -134,11 +200,36 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
       case 'checkin':
         return navigation.navigate('DailyCheckIn', { date });
       case 'habit':
-        return navigation.navigate('Habits', { date });
+        return navigation.navigate('Habits', {
+          date,
+          habitId: item.reference_id ?? undefined,
+        });
       case 'supplement':
-        return navigation.navigate('Supplements', { date });
+        return navigation.navigate('Supplements', {
+          date,
+          scheduleId: item.reference_id ?? undefined,
+        });
       case 'measurement':
-        return navigation.navigate('MeasurementsAdd', { date });
+        return navigation.navigate('MeasurementsAdd', {
+          date,
+          measurementKey: item.label,
+        });
+      case 'workout':
+        return navigation.navigate('WorkoutPlans', {
+          date,
+          assignmentId: item.reference_id ?? undefined,
+        });
+      case 'goal':
+        if (item.label === 'hydration') return setHydrationVisible(true);
+        return item.label === 'activity_duration'
+          ? navigation.navigate('ExerciseReview', { date })
+          : navigation.navigate('DailyNutritionDetails', { date });
+      case 'meal':
+        return navigation.navigate('MealTypeDetail', {
+          date,
+          mealTypeId: item.reference_id ?? undefined,
+          mealLabel: itemLabel(item),
+        });
       default:
         return navigation.navigate('Tabs', {
           screen: 'Diary',
@@ -280,6 +371,18 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                         <Text className="text-base text-text-primary">
                           {itemLabel(item)}
                         </Text>
+                        {item.domain === 'goal' && (
+                          <Text className="text-sm text-text-secondary">
+                            {item.goal_summary
+                              ? Object.entries(item.goal_summary)
+                                  .map(
+                                    ([key, value]) =>
+                                      `${nutritionGoalLabel(t, key)}: ${formatLocalizedNumber(value)} ${key === 'calories' ? 'kcal' : 'g'}`
+                                  )
+                                  .join(' · ')
+                              : `${item.value == null ? t('progress.goals.unknown', { defaultValue: 'No value recorded' }) : formatLocalizedNumber(item.value)} / ${formatLocalizedNumber(item.target ?? 0)} ${item.unit ?? ''}`}
+                          </Text>
+                        )}
                         <Text className="text-xs text-text-secondary">
                           {style.label}
                           {item.reason.endsWith('_pending_sync')
@@ -310,6 +413,57 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
           />
         </>
       )}
+      <HydrationDetailsModal
+        visible={hydrationVisible}
+        date={date}
+        unit={preferences?.water_display_unit ?? 'ml'}
+        onClose={() => setHydrationVisible(false)}
+        onConfigure={() => {
+          setHydrationVisible(false);
+          navigation.navigate('WaterContainers');
+        }}
+      />
+      <Modal
+        visible={completionVisible}
+        transparent
+        animationType={reducedMotion ? 'none' : 'fade'}
+        onRequestClose={() => setCompletionVisible(false)}
+      >
+        <Pressable
+          className="flex-1 items-center justify-end bg-black/50 p-6"
+          onPress={() => setCompletionVisible(false)}
+          accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
+        >
+          <View className="w-full rounded-2xl bg-surface p-6 gap-4 items-center">
+            <ProgressTrackX
+              progress={completionProgress}
+              size={120}
+              label={t('progress.title', { defaultValue: 'Daily Progress' })}
+              unknownLabel={t('progress.nothingApplies', {
+                defaultValue: 'No tasks today',
+              })}
+            />
+            <Text
+              accessibilityRole="header"
+              className="text-xl font-semibold text-text-primary"
+            >
+              {t('progress.completedTitle', {
+                defaultValue: 'Your tracking tasks are complete',
+              })}
+            </Text>
+            <Text className="text-text-secondary text-center">
+              {t('progress.completedHint', {
+                defaultValue:
+                  'You have recorded or reviewed every applicable task for today. This reflects tracking, not a health score.',
+              })}
+            </Text>
+            <NeonButton
+              label={t('common.done', { defaultValue: 'Done' })}
+              onPress={() => setCompletionVisible(false)}
+            />
+          </View>
+        </Pressable>
+      </Modal>
     </TrackingScreen>
   );
 };

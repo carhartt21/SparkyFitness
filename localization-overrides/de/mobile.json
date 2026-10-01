@@ -113,7 +113,8 @@
   "common": {
     "optionalParen": "(Optional)",
     "connectionRetry": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
-    "requestTimedOut": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung."
+    "requestTimedOut": "Zeitüberschreitung der Anfrage. Prüfen Sie Ihre Serververbindung.",
+    "showAll": "Alle anzeigen"
   },
   "settings": {
     "language": {
@@ -382,7 +383,8 @@
     "progressPhotosSubtitle": "Zeigen Sie die Fortschrittsfotokarte im Dashboard an",
     "caffeineSubtitle": "Zeigen Sie die aktive Koffeinkarte im Dashboard an",
     "fastingDisabledSubtitle": "Aktivieren Sie Fasten zuerst in den App-Einstellungen",
-    "medications": "Medikamente & Ergänzungsmittel"
+    "medications": "Medikamente & Ergänzungsmittel",
+    "fasting": "Fasten"
   },
   "notificationSettings": {
     "hydration": "Flüssigkeitszufuhr",
@@ -833,8 +835,19 @@
       "habit": "Gewohnheiten",
       "measurement": "Messungen",
       "supplement": "Nahrungsergänzung",
-      "meal": "Mahlzeiten"
-    }
+      "meal": "Mahlzeiten",
+      "goal": "Tagesziele",
+      "workout": "Geplantes Training"
+    },
+    "goals": {
+      "hydration": "Flüssigkeitsziel",
+      "activity_duration": "Bewegungsdauer",
+      "nutrition_review": "Tagesernährung prüfen",
+      "configured": "Festgelegte Ziele",
+      "unknown": "Noch kein Wert erfasst"
+    },
+    "completedTitle": "Alle Erfassungsaufgaben abgeschlossen",
+    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung."
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
@@ -1646,7 +1659,8 @@
   },
   "fastingCard": {
     "goalProgress": "{{remaining}} zu Ihrem {{goal}}h-Ziel",
-    "goalReached": "Ziel erreicht · {{goal}} h"
+    "goalReached": "Ziel erreicht · {{goal}} h",
+    "title": "Fasten"
   },
   "fastingProtocol": {
     "presets": {
@@ -1659,12 +1673,17 @@
       "warrior18": {
         "description": "Fasten mit einem Essensfenster von 6 Stunden."
       }
+    },
+    "startAction": "Start Fasten",
+    "accessibility": {
+      "durationHours": "Fasten duration in Stunden"
     }
   },
   "fastingHistory": {
     "deleteMessage": "Dies kann nicht rückgängig gemacht werden.",
     "hint": "Zum Bearbeiten antippen · zum Löschen nach links wischen",
-    "empty": "Noch keine vergangenen Fastenzeiten."
+    "empty": "Noch keine vergangenen Fastenzeiten.",
+    "title": "Fasten history"
   },
   "fastingEdit": {
     "beforeEnd": "Die Startzeit muss vor der Endzeit liegen.",
@@ -2085,7 +2104,8 @@
         "name": "Tiefe Ketose"
       }
     },
-    "goalReached": "Ziel erreicht"
+    "goalReached": "Ziel erreicht",
+    "title": "Fasten"
   },
   "exerciseDetail": {
     "makePublicMessage": "Diese Übung wird für alle Benutzer auf diesem Server sichtbar.",
@@ -3061,7 +3081,8 @@
   "caffeine": {
     "estimatedTimes": "Einige Dosiszeiten wurden geschätzt",
     "crossingNote": "Ab {{time}} wieder unter {{threshold}} mg",
-    "underThreshold": "Bleibt heute Nacht unter {{threshold}} mg"
+    "underThreshold": "Bleibt heute Nacht unter {{threshold}} mg",
+    "previousDoses": "Restmenge aus früheren Einträgen"
   },
   "cycleSymptoms": {
     "title": "Symptome",
@@ -3265,5 +3286,54 @@
   "foodNutrition": {
     "hideExtra": "Weitere Nährstoffe ausblenden ▴",
     "showMore": "Weitere Nährstoffe anzeigen ▾"
+  },
+  "weeklyPlan": {
+    "title": "Wöchentlicher Trainingsplan",
+    "subtitle": "Aktivitäten und gespeicherte Trainings planen. Geplant bedeutet noch nicht durchgeführt.",
+    "create": "Plan erstellen",
+    "name": "Planname",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum (optional)",
+    "day": "Wochentag",
+    "type": "Aktivität oder Trainingsvorlage",
+    "labelOptional": "Name der Einheit (optional)",
+    "duration": "Dauer (Min., optional)",
+    "distance": "Strecke (km, optional)",
+    "time": "Uhrzeit (24 Stunden, optional)",
+    "optional": "Optionale Einheit",
+    "addSession": "Einheit hinzufügen",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "empty": "Noch kein Trainingsplan. Aktivitäten oder Trainingsvorlagen für die Woche hinzufügen.",
+    "noSession": "Für diesen Tag ist keine Einheit geplant.",
+    "log": "Aktivität erfassen",
+    "start": "Training starten",
+    "offline": "Zum Bearbeiten oder Starten eine Verbindung zum Server herstellen.",
+    "loadFailed": "Trainingspläne konnten nicht geladen werden. Erneut versuchen.",
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen.",
+    "startFailed": "Die geplante Einheit konnte nicht geöffnet werden. Erneut versuchen.",
+    "validation": "Planname, Datum und Aktivität prüfen. Dauer und Strecke müssen positiv sein. Uhrzeiten im Format 18:30 eingeben.",
+    "deleteTitle": "Trainingsplan löschen?",
+    "deleteHint": "Bereits erfasste Trainings bleiben im Verlauf erhalten.",
+    "sequentialHint": "Dies ist eine bestehende Trainingsfolge. Ihre Einheiten bleiben erhalten. Die Folge lässt sich im erweiterten Webeditor bearbeiten.",
+    "advanced": "Einzelne Übung",
+    "activities": {
+      "running": "Laufen",
+      "strength": "Krafttraining",
+      "cycling": "Radfahren",
+      "walking": "Gehen",
+      "hiking": "Wandern",
+      "swimming": "Schwimmen",
+      "rowing": "Rudern",
+      "soccer": "Fußball",
+      "yoga": "Yoga",
+      "other": "Andere Aktivität",
+      "rest": "Ruhetag"
+    },
+    "dateFormat": "JJJJ-MM-TT",
+    "timeFormat": "SS:mm"
+  },
+  "addWorkoutPlanDialog": {
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."
   }
 }

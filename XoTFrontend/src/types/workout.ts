@@ -1,3 +1,4 @@
+import type { WorkoutPlanActivityFields } from '@workspace/shared';
 import {
   ExerciseEntryResponse,
   ExerciseEntrySetRequest,
@@ -52,7 +53,7 @@ export interface PaginatedWorkoutPresets {
   limit: number;
 }
 
-export interface WorkoutPlanAssignment {
+export interface WorkoutPlanAssignment extends WorkoutPlanActivityFields {
   id?: string;
   template_id?: string;
   day_of_week?: number | null;

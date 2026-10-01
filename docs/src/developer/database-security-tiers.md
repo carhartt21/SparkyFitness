@@ -207,3 +207,9 @@ nutrients and references are public, never diary records or account data.
 No delegate sharing or global read policy applies. MCP access uses the authenticated owner; writes require the existing write scope and active consent. Scheduler system access is limited to notification processing.
 
 Mobility reads use a read-only transaction; only definition changes and the explicit background planner generate dated occurrences. Session provenance identifies the authenticated API or consent-gated MCP ingress, not a client-asserted device type. Operation receipts are owner-scoped retry metadata retained for 90 days (cleanup is bounded); record revisions and tombstones remain authoritative after receipt expiry. Indexed snapshot columns are kept consistent by checked writes and database constraints.
+
+### Weekly activity planning and Daily Progress (v38)
+
+Workout assignments also store a whole activity type or a saved preset, optional account-local time, duration/distance targets and an optional-session flag. They retain the existing parent ownership and RLS policies; no new sharing permission or completed-health-data table is introduced. Version ownership references Better Auth `public."user"`, matching templates. The activity-definition preparation endpoint is owner-only and creates a private library definition, never a diary completion or energy record.
+
+Daily Progress version 2 reads configured daily goals, immutable dated workout snapshots and actual recording evidence through the owner-only tracking route. Legacy clients retain the version 1 projection. An intake target is context for reviewing nutrition, not an instruction to maximize consumption. Planned sets do not count as recorded training. `meal_types.purpose = import` hides an importer-owned destination from routine tasks while preserving its diary history.

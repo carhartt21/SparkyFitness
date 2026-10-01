@@ -1893,7 +1893,8 @@
     "removeSessionTitle": "Einheit entfernen",
     "moveSessionUp": "Einheit nach oben verschieben",
     "moveSessionDown": "Einheit nach unten verschieben",
-    "sessionNamePlaceholder": "Benutzerdefinierter Name (z. B. Push Day, Legs)"
+    "sessionNamePlaceholder": "Benutzerdefinierter Name (z. B. Push Day, Legs)",
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."
   },
   "exerciseReportsDashboard": {
     "totalWorkouts": "Gesamtzahl der Trainingseinheiten",
@@ -2407,7 +2408,8 @@
     "working": "Arbeiten…",
     "retry": "Versuchen Sie es erneut",
     "avg": "Durchschn",
-    "max": "Max"
+    "max": "Max",
+    "showAll": "Alle anzeigen"
   },
   "diary": {
     "nutritionSummary": "Ernährungsübersicht",
@@ -6480,7 +6482,9 @@
       "habit": "Gewohnheit",
       "measurement": "Messung",
       "supplement": "Nahrungsergänzung",
-      "meal": "Mahlzeit"
+      "meal": "Mahlzeit",
+      "goal": "Tagesziele",
+      "workout": "Geplantes Training"
     },
     "state": {
       "complete": "Abgeschlossen",
@@ -6496,7 +6500,16 @@
     "nothingAppliesLine": "{{day}} · keine Tracking-Aufgaben",
     "explanation": "Jede Aufgabe zählt gleich viel; dies ist kein Gesundheitswert.",
     "emptyExplanation": "Für diesen Tag ist nichts geplant oder ausgewählt.",
-    "more": "+{{count}} mehr"
+    "more": "+{{count}} mehr",
+    "goals": {
+      "hydration": "Flüssigkeitsziel",
+      "activity_duration": "Bewegungsdauer",
+      "nutrition_review": "Tagesernährung prüfen",
+      "configured": "Festgelegte Ziele",
+      "unknown": "Noch kein Wert erfasst"
+    },
+    "completedTitle": "Alle Erfassungsaufgaben abgeschlossen",
+    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung."
   },
   "mealStatus": {
     "label": "{{meal}}-Status",
@@ -6603,5 +6616,49 @@
     "useFood": "{{name}} verwenden",
     "searchFoods": "Lebensmittel und Anbieter durchsuchen",
     "unresolved": "Verknüpfen Sie alle importierten Zutaten, bevor Sie diese Mahlzeit speichern."
+  },
+  "weeklyPlan": {
+    "title": "Wöchentlicher Trainingsplan",
+    "subtitle": "Aktivitäten und gespeicherte Trainings planen. Geplant bedeutet noch nicht durchgeführt.",
+    "create": "Plan erstellen",
+    "name": "Planname",
+    "startDate": "Startdatum",
+    "endDate": "Enddatum (optional)",
+    "day": "Wochentag",
+    "type": "Aktivität oder Trainingsvorlage",
+    "labelOptional": "Name der Einheit (optional)",
+    "duration": "Dauer (Min., optional)",
+    "distance": "Strecke (km, optional)",
+    "time": "Uhrzeit (24 Stunden, optional)",
+    "optional": "Optionale Einheit",
+    "addSession": "Einheit hinzufügen",
+    "active": "Aktiv",
+    "inactive": "Inaktiv",
+    "empty": "Noch kein Trainingsplan. Aktivitäten oder Trainingsvorlagen für die Woche hinzufügen.",
+    "noSession": "Für diesen Tag ist keine Einheit geplant.",
+    "log": "Aktivität erfassen",
+    "start": "Training starten",
+    "offline": "Zum Bearbeiten oder Starten eine Verbindung zum Server herstellen.",
+    "loadFailed": "Trainingspläne konnten nicht geladen werden. Erneut versuchen.",
+    "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen.",
+    "startFailed": "Die geplante Einheit konnte nicht geöffnet werden. Erneut versuchen.",
+    "validation": "Planname, Datum und Aktivität prüfen. Dauer und Strecke müssen positiv sein. Uhrzeiten im Format 18:30 eingeben.",
+    "deleteTitle": "Trainingsplan löschen?",
+    "deleteHint": "Bereits erfasste Trainings bleiben im Verlauf erhalten.",
+    "sequentialHint": "Dies ist eine bestehende Trainingsfolge. Ihre Einheiten bleiben erhalten. Die Folge lässt sich im erweiterten Webeditor bearbeiten.",
+    "advanced": "Einzelne Übung",
+    "activities": {
+      "running": "Laufen",
+      "strength": "Krafttraining",
+      "cycling": "Radfahren",
+      "walking": "Gehen",
+      "hiking": "Wandern",
+      "swimming": "Schwimmen",
+      "rowing": "Rudern",
+      "soccer": "Fußball",
+      "yoga": "Yoga",
+      "other": "Andere Aktivität",
+      "rest": "Ruhetag"
+    }
   }
 }

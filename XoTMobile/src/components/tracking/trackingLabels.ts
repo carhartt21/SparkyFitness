@@ -132,9 +132,80 @@ export function progressDomainLabel(
       return t('progress.domain.habit', { defaultValue: 'Habits' });
     case 'measurement':
       return t('progress.domain.measurement', { defaultValue: 'Measurements' });
+    case 'goal':
+      return t('progress.domain.goal', { defaultValue: 'Daily objectives' });
+    case 'workout':
+      return t('progress.domain.workout', { defaultValue: 'Planned training' });
     case 'supplement':
       return t('progress.domain.supplement', { defaultValue: 'Supplements' });
     default:
       return t('progress.domain.meal', { defaultValue: 'Meals' });
+  }
+}
+
+export function plannedActivityLabel(t: TFunction, value: string): string {
+  switch (value) {
+    case 'running':
+      return t('weeklyPlan.activities.running', { defaultValue: 'Running' });
+    case 'strength':
+      return t('weeklyPlan.activities.strength', {
+        defaultValue: 'Resistance training',
+      });
+    case 'cycling':
+      return t('weeklyPlan.activities.cycling', { defaultValue: 'Cycling' });
+    case 'walking':
+      return t('weeklyPlan.activities.walking', { defaultValue: 'Walking' });
+    case 'hiking':
+      return t('weeklyPlan.activities.hiking', { defaultValue: 'Hiking' });
+    case 'swimming':
+      return t('weeklyPlan.activities.swimming', { defaultValue: 'Swimming' });
+    case 'rowing':
+      return t('weeklyPlan.activities.rowing', { defaultValue: 'Rowing' });
+    case 'soccer':
+      return t('weeklyPlan.activities.soccer', { defaultValue: 'Soccer' });
+    case 'yoga':
+      return t('weeklyPlan.activities.yoga', { defaultValue: 'Yoga' });
+    case 'other':
+      return t('weeklyPlan.activities.other', {
+        defaultValue: 'Other activity',
+      });
+    case 'rest':
+      return t('weeklyPlan.activities.rest', { defaultValue: 'Rest day' });
+    default:
+      return t('weeklyPlan.activities.other', {
+        defaultValue: 'Other activity',
+      });
+  }
+}
+
+export function progressGoalLabel(t: TFunction, value: string): string {
+  switch (value) {
+    case 'hydration':
+      return t('progress.goals.hydration', { defaultValue: 'Hydration goal' });
+    case 'activity_duration':
+      return t('progress.goals.activity_duration', {
+        defaultValue: 'Activity duration goal',
+      });
+    case 'nutrition_review':
+      return t('progress.goals.nutrition_review', {
+        defaultValue: 'Review daily nutrition',
+      });
+    default:
+      return value;
+  }
+}
+
+export function nutritionGoalLabel(t: TFunction, value: string): string {
+  switch (value) {
+    case 'calories':
+      return t('nutrition.calories', { defaultValue: 'calories' });
+    case 'protein':
+      return t('nutrition.protein', { defaultValue: 'protein' });
+    case 'carbs':
+      return t('nutrition.carbs', { defaultValue: 'carbs' });
+    case 'fat':
+      return t('nutrition.fat', { defaultValue: 'fat' });
+    default:
+      return value;
   }
 }

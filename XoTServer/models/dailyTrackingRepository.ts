@@ -871,6 +871,7 @@ export async function listMealStatuses(
          ON mds.meal_type_id = mt.id AND mds.user_id = $1 AND mds.entry_date = $2
        WHERE (mt.user_id = $1 OR mt.user_id IS NULL)
          AND COALESCE(umv.is_visible, mt.is_visible)
+         AND mt.purpose <> 'import'
        ORDER BY COALESCE(umv.sort_order_override, mt.sort_order) ASC, mt.id ASC`,
       [userId, date]
     );

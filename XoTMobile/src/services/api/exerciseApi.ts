@@ -336,6 +336,7 @@ export const createWorkout = async (
 };
 
 export interface CreateExerciseEntryPayload {
+  workout_plan_assignment_id?: number | null;
   exercise_id: string;
   exercise_name?: string | null;
   duration_minutes: number;

@@ -1,4 +1,10 @@
-import workoutPlanTemplateRepository from '../models/workoutPlanTemplateRepository.js';
+import {
+  workoutPlanWriteSchema,
+  type WorkoutPlanActivityFields,
+} from '@workspace/shared';
+import workoutPlanTemplateRepository, {
+  preparePlannedActivityExercise,
+} from '../models/workoutPlanTemplateRepository.js';
 import workoutPresetRepository from '../models/workoutPresetRepository.js';
 import exerciseRepository from '../models/exerciseRepository.js';
 import { log } from '../config/logging.js';
@@ -15,7 +21,7 @@ export interface WorkoutPlanAssignmentSetInput {
   notes?: string | null;
 }
 
-export interface WorkoutPlanAssignmentInput {
+export interface WorkoutPlanAssignmentInput extends WorkoutPlanActivityFields {
   id?: number | string | null;
   day_of_week?: number | null;
   session_index?: number | null;
@@ -99,11 +105,10 @@ async function createWorkoutPlanTemplate(
   userId: string,
   planData: CreateWorkoutPlanTemplateInput
 ) {
-  log(
-    'info',
-    'createWorkoutPlanTemplate service - received planData:',
-    planData
-  );
+  log('info', 'Creating workout plan', {
+    assignmentCount: planData.assignments?.length ?? 0,
+  });
+  workoutPlanWriteSchema.parse(planData);
   // Validate assignments
   const scheduleType = planData.schedule_type || 'weekly';
   if (planData.assignments) {
@@ -128,11 +133,7 @@ async function createWorkoutPlanTemplate(
         },
         today
       );
-    log(
-      'info',
-      'createWorkoutPlanTemplate service - newPlan created:',
-      newPlan
-    );
+    log('info', 'Workout plan created', { templateId: newPlan.id });
     if (
       newPlan.is_active &&
       newPlan.schedule_type !== 'sequential' &&
@@ -194,11 +195,10 @@ async function updateWorkoutPlanTemplate(
   templateId: string | number,
   updateData: UpdateWorkoutPlanTemplateInput
 ) {
-  log(
-    'info',
-    `updateWorkoutPlanTemplate service - received updateData for template ${templateId}:`,
-    updateData
-  );
+  log('info', `Updating workout plan ${templateId}`, {
+    assignmentCount: updateData.assignments?.length,
+  });
+  workoutPlanWriteSchema.parse(updateData);
   const ownerId =
     await workoutPlanTemplateRepository.getWorkoutPlanTemplateOwnerId(
       templateId,
@@ -397,3 +397,5 @@ export default {
   deleteWorkoutPlanTemplate,
   getActiveWorkoutPlanForDate,
 };
+
+export { preparePlannedActivityExercise };

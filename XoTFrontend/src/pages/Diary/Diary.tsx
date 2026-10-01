@@ -392,8 +392,17 @@ const Diary = () => {
   };
 
   const visibleMealTypes = useMemo(
-    () => (availableMealTypes ?? []).filter((meal) => meal.is_visible),
-    [availableMealTypes]
+    () =>
+      (availableMealTypes ?? []).filter(
+        (meal) =>
+          meal.is_visible &&
+          (meal.purpose !== 'import' ||
+            fetchedFoodEntries?.some(
+              (entry) => entry.meal_type_id === meal.id
+            ) ||
+            foodEntryMeals?.some((entry) => entry.meal_type === meal.name))
+      ),
+    [availableMealTypes, fetchedFoodEntries, foodEntryMeals]
   );
 
   // Some Garmin sync fields (e.g. lactate_threshold, fitness_age) can create a

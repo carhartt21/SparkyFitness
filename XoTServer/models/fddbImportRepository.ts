@@ -171,3 +171,19 @@ export async function importFddbActivities(
     client.release();
   }
 }
+
+/** Explicit provenance for the importer-owned diary group. */
+export async function markFddbImportMealType(
+  userId: string,
+  mealTypeId: string
+): Promise<void> {
+  const client = await getClient(userId);
+  try {
+    await client.query(
+      "UPDATE meal_types SET purpose = 'import' WHERE id = $1 AND user_id = $2",
+      [mealTypeId, userId]
+    );
+  } finally {
+    client.release();
+  }
+}

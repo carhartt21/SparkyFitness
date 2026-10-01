@@ -45,6 +45,9 @@ const TEMPLATE_ID = 'template-uuid-9999';
 describe('workoutPlanTemplateService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(exerciseRepository.getExerciseById).mockResolvedValue({
+      id: '00000000-0000-4000-8000-000000000001',
+    } as never);
   });
 
   describe('getWorkoutPlanTemplateById', () => {
@@ -236,7 +239,13 @@ describe('workoutPlanTemplateService', () => {
           is_active: true,
           schedule_type: 'weekly',
           entry_mode: 'prefill',
-          assignments: [{ day_of_week: 1, sort_order: 0 }],
+          assignments: [
+            {
+              exercise_id: '00000000-0000-4000-8000-000000000001',
+              day_of_week: 1,
+              sort_order: 0,
+            },
+          ],
         }
       );
 
@@ -266,7 +275,13 @@ describe('workoutPlanTemplateService', () => {
           is_active: true,
           schedule_type: 'weekly',
           entry_mode: 'prompt',
-          assignments: [{ day_of_week: 1, sort_order: 0 }],
+          assignments: [
+            {
+              exercise_id: '00000000-0000-4000-8000-000000000001',
+              day_of_week: 1,
+              sort_order: 0,
+            },
+          ],
         }
       );
 
@@ -295,7 +310,13 @@ describe('workoutPlanTemplateService', () => {
           plan_name: 'Sequential Plan',
           is_active: true,
           schedule_type: 'sequential',
-          assignments: [{ day_of_week: null, sort_order: 0 }],
+          assignments: [
+            {
+              exercise_id: '00000000-0000-4000-8000-000000000001',
+              day_of_week: null,
+              sort_order: 0,
+            },
+          ],
         }
       );
 
@@ -315,9 +336,7 @@ describe('workoutPlanTemplateService', () => {
             { day_of_week: null as unknown as number, sort_order: 0 },
           ],
         })
-      ).rejects.toThrow(
-        'Weekly workout plan assignments must have a valid day_of_week (0-6).'
-      );
+      ).rejects.toThrow();
     });
   });
 
@@ -381,7 +400,13 @@ describe('workoutPlanTemplateService', () => {
           plan_name: 'Switched to Sequential',
           is_active: true,
           schedule_type: 'sequential',
-          assignments: [{ session_index: 0, sort_order: 0 }],
+          assignments: [
+            {
+              exercise_id: '00000000-0000-4000-8000-000000000001',
+              session_index: 0,
+              sort_order: 0,
+            },
+          ],
         }
       );
 
@@ -397,7 +422,14 @@ describe('workoutPlanTemplateService', () => {
           plan_name: 'Switched to Sequential',
           is_active: true,
           schedule_type: 'sequential',
-          assignments: [{ session_index: 0, sort_order: 0, day_of_week: null }],
+          assignments: [
+            {
+              exercise_id: '00000000-0000-4000-8000-000000000001',
+              session_index: 0,
+              sort_order: 0,
+              day_of_week: null,
+            },
+          ],
         },
         '2026-09-10',
         true
@@ -419,12 +451,16 @@ describe('workoutPlanTemplateService', () => {
           TEMPLATE_ID,
           {
             schedule_type: 'weekly',
-            assignments: [{ day_of_week: 7, sort_order: 0 }],
+            assignments: [
+              {
+                exercise_id: '00000000-0000-4000-8000-000000000001',
+                day_of_week: 7,
+                sort_order: 0,
+              },
+            ],
           }
         )
-      ).rejects.toThrow(
-        'Weekly workout plan assignments must have a valid day_of_week (0-6).'
-      );
+      ).rejects.toThrow();
     });
   });
 

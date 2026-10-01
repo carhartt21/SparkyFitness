@@ -447,3 +447,11 @@ Progress photos attached to a calendar day. Every route below requires the `chec
 *   **Authentication**: JWT Token.
 *   **Responses**:
     *   `204 No Content`:
+
+## Activity-first weekly workout plans
+
+The existing `/api/workout-plan-templates` create/update API accepts `activity_type` (`running`, `strength`, `cycling`, `walking`, `hiking`, `swimming`, `rowing`, `soccer`, `yoga`, `other`, `rest`), `planned_duration_minutes`, `planned_distance_km`, account-local `planned_time` (`HH:mm`), and `is_optional` on assignments. Exactly one of activity type, saved preset or exercise is required. Activity plans use `entry_mode: prompt`; legacy preset/exercise prefill and sequential editing remain available. Duration and distance must be positive and bounded. Several assignments can share one weekday.
+
+Owner-only `POST /api/workout-plan-templates/:id/assignments/:assignmentId/activity-exercise` with `{ "name": "Localized activity label" }` returns `{ "exercise_id": "uuid" }`, reusing one private definition per activity type. It records no workout. The existing exercise-entry API then carries a positive numeric `workout_plan_assignment_id` when actual logging completes.
+
+`GET /api/v2/tracking/daily-progress/:date?version=2` and the range endpoint with `version=2` include configured recording objectives and scheduled training. Existing clients without the parameter retain their original item domains and counts. Unknown recorded values stay null; optional unrecorded sessions are excluded. Workout completion here means real recording evidence, not achievement of a planned distance or every planned set.

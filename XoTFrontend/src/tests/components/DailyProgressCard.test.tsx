@@ -14,6 +14,8 @@ const base: DailyProgress = {
   completed: 1,
   percent: 50,
   coverage: {
+    goal: { applicable: 0, completed: 0 },
+    workout: { applicable: 0, completed: 0 },
     checkin: { applicable: 1, completed: 1 },
     habit: { applicable: 0, completed: 0 },
     measurement: { applicable: 0, completed: 0 },

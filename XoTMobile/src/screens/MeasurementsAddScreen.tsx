@@ -364,7 +364,9 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
 
   // Lazy "More categories" expansion state (presentation only — never owns the
   // form value; collapsing keeps typed values in customForm).
-  const [showMoreCategories, setShowMoreCategories] = useState(false);
+  const [showMoreCategories, setShowMoreCategories] = useState(
+    Boolean(route.params?.measurementKey?.startsWith('custom:'))
+  );
 
   // Sync the form to the latest measurements snapshot. Re-runs on every
   // measurements change (including background refetches) so cached-then-fresh
@@ -1310,6 +1312,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
             ) : (
               <FormInput
                 value={row?.value ?? ''}
+                autoFocus={route.params?.measurementKey === `custom:${cat.id}`}
                 onChangeText={(v) => setSingleCustomValue(cat.id, v)}
                 keyboardType={isNumeric ? 'decimal-pad' : 'default'}
                 placeholder={previousValue ?? (isNumeric ? '0' : '')}
@@ -1449,6 +1452,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
                   <View className="flex-1">
                     <FormInput
                       value={form.weight}
+                      autoFocus={route.params?.measurementKey === 'weight'}
                       onChangeText={(v) => updateField('weight', v)}
                       keyboardType="decimal-pad"
                       placeholder={standardPlaceholder(
@@ -1467,6 +1471,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               ) : (
                 <FormInput
                   value={form.weight}
+                  autoFocus={route.params?.measurementKey === 'weight'}
                   onChangeText={(v) => updateField('weight', v)}
                   keyboardType="decimal-pad"
                   placeholder={standardPlaceholder('weight', '0')}
@@ -1492,6 +1497,9 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
                 <View className="flex-1">
                   <FormInput
                     value={form.bodyFatPercentage}
+                    autoFocus={
+                      route.params?.measurementKey === 'bodyFatPercentage'
+                    }
                     onChangeText={(v) => updateField('bodyFatPercentage', v)}
                     keyboardType="decimal-pad"
                     placeholder={standardPlaceholder('bodyFatPercentage', '0')}
@@ -1566,6 +1574,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
                   <View className="flex-1">
                     <FormInput
                       value={form.height}
+                      autoFocus={route.params?.measurementKey === 'height'}
                       onChangeText={(v) => updateField('height', v)}
                       keyboardType="decimal-pad"
                       placeholder={standardPlaceholder(
@@ -1584,6 +1593,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               ) : (
                 <FormInput
                   value={form.height}
+                  autoFocus={route.params?.measurementKey === 'height'}
                   onChangeText={(v) => updateField('height', v)}
                   keyboardType="decimal-pad"
                   placeholder={standardPlaceholder('height', '0')}
@@ -1608,6 +1618,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.neck}
+                autoFocus={route.params?.measurementKey === 'neck'}
                 onChangeText={(v) => updateField('neck', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('neck', '0')}
@@ -1631,6 +1642,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.waist}
+                autoFocus={route.params?.measurementKey === 'waist'}
                 onChangeText={(v) => updateField('waist', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('waist', '0')}
@@ -1654,6 +1666,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.hips}
+                autoFocus={route.params?.measurementKey === 'hips'}
                 onChangeText={(v) => updateField('hips', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('hips', '0')}
@@ -1674,6 +1687,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.steps}
+                autoFocus={route.params?.measurementKey === 'steps'}
                 onChangeText={(v) => updateField('steps', v)}
                 keyboardType="number-pad"
                 placeholder={standardPlaceholder('steps', '0')}
@@ -1696,6 +1710,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.muscleMassKg}
+                autoFocus={route.params?.measurementKey === 'muscleMassKg'}
                 onChangeText={(v) => updateField('muscleMassKg', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('muscleMassKg', '0')}
@@ -1718,6 +1733,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.boneMassKg}
+                autoFocus={route.params?.measurementKey === 'boneMassKg'}
                 onChangeText={(v) => updateField('boneMassKg', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('boneMassKg', '0')}
@@ -1739,6 +1755,9 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.bodyWaterPercentage}
+                autoFocus={
+                  route.params?.measurementKey === 'bodyWaterPercentage'
+                }
                 onChangeText={(v) => updateField('bodyWaterPercentage', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('bodyWaterPercentage', '0')}
@@ -1761,6 +1780,7 @@ const MeasurementsAddScreen: React.FC<Props> = ({ navigation, route }) => {
               )}
               <FormInput
                 value={form.bmr}
+                autoFocus={route.params?.measurementKey === 'bmr'}
                 onChangeText={(v) => updateField('bmr', v)}
                 keyboardType="decimal-pad"
                 placeholder={standardPlaceholder('bmr', '0')}
