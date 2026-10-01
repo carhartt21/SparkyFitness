@@ -14,12 +14,32 @@ interface NutrientDefinition {
   archived: boolean;
 }
 
-/** Caller owns a user-scoped transaction. Never called by provider search. */
+function isConflict(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error as Error & { status?: number }).status === 409
+  );
+}
+
+/**
+ * Caller owns a user-scoped transaction. Never called by provider search.
+ *
+ * A definition conflict (ambiguous name, incompatible unit, orphaned history)
+ * throws by default, so an interactive import fails visibly and can be fixed.
+ * Background native sync passes `onConflict: 'skip'`: the conflicting nutrient
+ * is left out and reported in `skipped`, and the rest of the record (energy,
+ * macros, other nutrients) is still saved instead of being lost on every sync.
+ */
 export async function resolveNutrientQuantities(
   client: PoolClient,
   userId: string,
-  quantities: readonly HealthNutrientQuantity[]
-): Promise<{ custom: Record<string, number>; fixed: Record<string, number> }> {
+  quantities: readonly HealthNutrientQuantity[],
+  { onConflict = 'throw' }: { onConflict?: 'throw' | 'skip' } = {}
+): Promise<{
+  custom: Record<string, number>;
+  fixed: Record<string, number>;
+  skipped: string[];
+}> {
   await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 27))', [
     userId,
   ]);
@@ -29,9 +49,23 @@ export async function resolveNutrientQuantities(
   );
   const custom: Record<string, number> = {};
   const fixed: Record<string, number> = {};
+  const skipped: string[] = [];
   for (const quantity of quantities) {
+    try {
+      await resolveOne(quantity);
+    } catch (error) {
+      if (onConflict === 'skip' && isConflict(error)) {
+        skipped.push(quantity.catalogId);
+        continue;
+      }
+      throw error;
+    }
+  }
+  return { custom, fixed, skipped };
+
+  async function resolveOne(quantity: HealthNutrientQuantity): Promise<void> {
     const catalog = getMicronutrientById(quantity.catalogId);
-    if (!catalog) continue;
+    if (!catalog) return;
     if (catalog.fixedField) {
       const amount = convertCatalogNutrientAmount(
         catalog.id,
@@ -40,7 +74,7 @@ export async function resolveNutrientQuantities(
         catalog.unit
       );
       if (amount !== null) fixed[catalog.fixedField] = amount;
-      continue;
+      return;
     }
     let definition = rows.find((row) => row.catalog_id === catalog.id);
     if (!definition) {
@@ -123,5 +157,4 @@ export async function resolveNutrientQuantities(
     }
     custom[definition.name] = amount;
   }
-  return { custom, fixed };
 }

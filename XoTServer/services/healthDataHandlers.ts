@@ -393,12 +393,16 @@ async function ingestNutritionFoodEntry(
     for (const field of NUTRITION_DIRECT_COLUMNS) {
       nutrients[field] = dataEntry[field] ?? previous.rows[0]?.[field] ?? null;
     }
+    // A definition conflict drops only that nutrient: background sync has no
+    // one to resolve it, and failing the record would lose its energy and
+    // macros on every sync until the definition is fixed by hand.
     const resolved = await resolveNutrientQuantities(
       client,
       userId,
       process.env.MICRONUTRIENT_IMPORT_ENABLED === 'false'
         ? []
-        : (observation?.quantities ?? [])
+        : (observation?.quantities ?? []),
+      { onConflict: 'skip' }
     );
     // Reuse this provider's food for the same external id if present (refreshing its
     // variant to the latest values), else create it. The provider_type scoping
@@ -479,6 +483,7 @@ async function ingestNutritionFoodEntry(
       persisted:
         Object.keys(resolved.custom).length +
         Object.keys(resolved.fixed).length,
+      conflicts: resolved.skipped.length,
       durationMs: Math.round(performance.now() - startedAt),
     });
     return result;

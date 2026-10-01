@@ -409,6 +409,52 @@ describe.runIf(RUN)('micronutrient persistence with real RLS', () => {
     }
   });
 
+  it('saves a native record without only the nutrient whose definition conflicts', async () => {
+    // A legacy key with no definition on another record: its unit cannot be
+    // recovered, so selenium must be refused rather than guessed.
+    await ingest('orphan-holder');
+    const client: PoolClient = await getSystemClient();
+    try {
+      await client.query(
+        "UPDATE food_entries SET custom_nutrients = custom_nutrients || '{\"Selenium\":0.02}'::jsonb WHERE user_id = $1 AND source_id = 'orphan-holder'",
+        [owner]
+      );
+    } finally {
+      client.release();
+    }
+    await measurementService.processHealthData(
+      [
+        {
+          ...record('conflict'),
+          nutrient_observation: {
+            mode: 'partial',
+            quantities: [
+              { catalogId: 'selenium', amount: 20, unit: 'µg' },
+              { catalogId: 'magnesium', amount: 25, unit: 'mg' },
+            ],
+          },
+        },
+      ],
+      owner,
+      owner
+    );
+    const scoped: PoolClient = await getClient(owner, owner);
+    try {
+      const saved = await scoped.query<{
+        calories: string;
+        custom_nutrients: Record<string, number>;
+      }>(
+        "SELECT calories, custom_nutrients FROM food_entries WHERE user_id = $1 AND source_id = 'conflict'",
+        [owner]
+      );
+      expect(saved.rows).toHaveLength(1);
+      expect(Number(saved.rows[0]!.calories)).toBe(10);
+      expect(saved.rows[0]!.custom_nutrients).toEqual({ Magnesium: 25 });
+    } finally {
+      scoped.release();
+    }
+  });
+
   it('accepts built-in meal types for diary delegates without granting library writes', async () => {
     const client: PoolClient = await getSystemClient();
     let mealType: string;
