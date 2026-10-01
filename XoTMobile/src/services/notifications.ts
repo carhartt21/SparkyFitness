@@ -89,7 +89,7 @@ export async function registerLocalizedNotificationPresentation(): Promise<void>
       {
         name: notificationCopy(
           'notifications.channels.medicationReminders',
-          'Medication reminders'
+          'Medication & supplement reminders'
         ),
         importance: Notifications.AndroidImportance.HIGH,
         enableVibrate: true,
@@ -176,7 +176,7 @@ export async function ensureMedicationReminderChannel(): Promise<void> {
     {
       name: notificationCopy(
         'notifications.channels.medicationReminders',
-        'Medication reminders'
+        'Medication & supplement reminders'
       ),
       importance: Notifications.AndroidImportance.HIGH,
       enableVibrate: true,

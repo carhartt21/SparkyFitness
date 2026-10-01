@@ -244,7 +244,7 @@ const AppSettingsScreen: React.FC<AppSettingsScreenProps> = ({
           })}
           subtitle={t('settings.notifications.subtitle', {
             defaultValue:
-              'Rest timers, fasting goals, and medication reminders.',
+              'Reminders for routines, medications and supplements, plus workout timers.',
           })}
           subtitleNumberOfLines={0}
           testID="settings-notifications"

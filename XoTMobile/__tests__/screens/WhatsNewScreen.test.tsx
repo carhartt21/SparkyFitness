@@ -66,12 +66,12 @@ describe('WhatsNewScreen localization', () => {
     render(<WhatsNewScreen navigation={navigation} route={route} />);
 
     expect(screen.getByText("What's New")).toBeTruthy();
-    expect(screen.getByText('Track your medications')).toBeTruthy();
+    expect(screen.getByText('Track medications and supplements')).toBeTruthy();
     expect(
       screen.getByText('What can I have for dinner with 500 calories left?')
     ).toBeTruthy();
 
-    fireEvent.press(screen.getByText('Set up medications'));
+    fireEvent.press(screen.getByText('Set up intake tracking'));
     expect(navigation.navigate).toHaveBeenCalledWith('MedicationsList');
   });
 

@@ -19,7 +19,7 @@ export const useMedicationDisplayPreferences = () => {
     meta: {
       errorMessage: t(
         'medications.reports.failedToLoadPrefs',
-        'Failed to load medication display preferences.'
+        'Failed to load intake display preferences.'
       ),
     },
   });

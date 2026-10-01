@@ -1,3 +1,4 @@
+import { medicationKindLabel } from '@/utils/medicationKindLabel';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Activity, Plus, X, Info, MapPin } from 'lucide-react';
@@ -593,7 +594,10 @@ export default function SymptomLogForm({
         {/* Optional Linked Medication */}
         <div className="space-y-2">
           <Label htmlFor="linked-med">
-            {t('medications.symptoms.linkMed', 'Link to Medication (Optional)')}
+            {t(
+              'medications.symptoms.linkMed',
+              'Link to medication or supplement (optional)'
+            )}
           </Label>
           <Select
             value={linkedMedId || 'none'}
@@ -603,17 +607,17 @@ export default function SymptomLogForm({
               <SelectValue
                 placeholder={t(
                   'medications.symptoms.noMedLinked',
-                  'No medication linked'
+                  'No item linked'
                 )}
               />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">
-                {t('medications.symptoms.noMedLinked', 'No medication linked')}
+                {t('medications.symptoms.noMedLinked', 'No item linked')}
               </SelectItem>
               {meds.map((m) => (
                 <SelectItem key={m.id} value={m.id}>
-                  {m.display_name || m.name}
+                  {m.display_name || m.name} · {medicationKindLabel(m, t)}
                 </SelectItem>
               ))}
             </SelectContent>

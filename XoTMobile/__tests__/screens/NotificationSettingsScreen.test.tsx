@@ -140,8 +140,8 @@ function renderScreen() {
 }
 
 // Switch order with everything enabled and the banner mocked out:
-// [Allow Notifications, Rest Timer, Fasting Goals, Medication Reminders,
-//  Repeat Reminders, Hide Medication Names]. Rows after index 0 disappear
+// [Allow Notifications, Rest Timer, Fasting Goals, Scheduled intake reminders,
+//  Repeat Reminders, Hide names and doses]. Rows after index 0 disappear
 // when the master toggle is off; medication sub-rows require the medication
 // toggle. Indices below only address rows whose presence the test controls.
 const MASTER_SWITCH_INDEX = 0;
@@ -409,7 +409,9 @@ describe('NotificationSettingsScreen', () => {
     );
     expect(switches[2].props.accessibilityLabel).toBe('Rest Timer');
     expect(switches[3].props.accessibilityLabel).toBe('Fasting Goals');
-    expect(switches[4].props.accessibilityLabel).toBe('Medication Reminders');
+    expect(switches[4].props.accessibilityLabel).toBe(
+      'Scheduled intake reminders'
+    );
   });
 
   it('keeps the meal reminder off if notification permission is denied', async () => {

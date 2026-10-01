@@ -1,0 +1,57 @@
+{
+  "date": "2026-10-01",
+  "branch": "fix/medication-supplement-distinction-20261001",
+  "base": "2dfab7b21",
+  "fixtures": "synthetic",
+  "mobile": {
+    "command": "pnpm exec jest --watchman=false --runInBand",
+    "status": "passed",
+    "suites": 519,
+    "tests": 7477,
+    "validate_wrapper": "blocked_at_watch_geometry_by_sandbox_ipc_listen_EPERM",
+    "passed_validate_steps": [
+      "i18n:generate:check",
+      "German overlays/copy audit",
+      "typecheck",
+      "lint",
+      "i18n:audit",
+      "knip",
+      "native-locales:check"
+    ],
+    "equivalent_geometry_check": {
+      "command": "node --import tsx scripts/generate-watch-progress-x.mjs --check",
+      "status": "passed"
+    },
+    "format_check": "passed"
+  },
+  "web": {
+    "command": "pnpm exec jest --watchman=false --runInBand",
+    "status": "passed",
+    "suites": 165,
+    "tests": 1442,
+    "final_hook_test_recheck": {
+      "suites": 1,
+      "tests": 4,
+      "status": "passed"
+    },
+    "validate": "passed",
+    "production_build": "passed"
+  },
+  "server": {
+    "command": "targeted medication tool/schema/route/repository suites",
+    "status": "passed",
+    "suites": 7,
+    "tests": 53,
+    "validate": "passed"
+  },
+  "diff_check": "passed",
+  "unverified": [
+    "authenticated screenshots",
+    "native text scaling and visual layout",
+    "physical iPhone/Watch",
+    "signed native build",
+    "live server",
+    "delivered notification receipt"
+  ],
+  "deployment": "not performed"
+}

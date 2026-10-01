@@ -50,6 +50,7 @@ import ScheduleManager from './ScheduleManager';
 import TodayMedications from './TodayMedications';
 import SymptomDashboard from './SymptomDashboard';
 import MedicationDisclaimer from './MedicationDisclaimer';
+import { medicationKindLabel } from '@/utils/medicationKindLabel';
 import { formatScheduleDescription } from './medicationUtils';
 
 export default function Medications() {
@@ -306,7 +307,7 @@ export default function Medications() {
           {(
             [
               ['all', t('medications.subtype.all', 'All')],
-              ['meds', t('medications.subtype.meds', 'Meds')],
+              ['meds', t('medications.subtype.meds', 'Medications')],
               [
                 'supplements',
                 t('medications.subtype.supplements', 'Supplements'),
@@ -350,7 +351,7 @@ export default function Medications() {
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
             {[
               {
-                label: t('medications.cabinet.activeScripts', 'Active scripts'),
+                label: t('medications.cabinet.activeScripts', 'Active items'),
                 value: visibleMeds.filter((m) => m.is_active).length,
                 Icon: Pill,
                 color: 'text-rose-500',
@@ -372,7 +373,7 @@ export default function Medications() {
                 color: 'text-amber-500',
               },
               {
-                label: t('medications.cabinet.totalMeds', 'Total meds'),
+                label: t('medications.cabinet.totalMeds', 'Total items'),
                 value: visibleMeds.length,
                 Icon: Activity,
                 color: 'text-slate-500',
@@ -414,7 +415,7 @@ export default function Medications() {
                           )
                         : t(
                             'medications.cabinet.empty',
-                            'No medications yet. Add your first one to get started.'
+                            'No medications or supplements yet. Add your first item to get started.'
                           )}
                   </CardContent>
                 </Card>
@@ -441,6 +442,8 @@ export default function Medications() {
                           {med.display_name || med.name}
                         </p>
                         <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
+                          <span>{medicationKindLabel(med, t)}</span>
+                          <span>·</span>
                           <span>{formatDose(med) ?? med.type_id}</span>
                           {med.schedules?.[0] && (
                             <>
@@ -484,15 +487,12 @@ export default function Medications() {
                     <Info className="h-6 w-6" />
                   </div>
                   <CardTitle className="text-sm font-semibold">
-                    {t(
-                      'medications.noSelection.title',
-                      'No medication selected'
-                    )}
+                    {t('medications.noSelection.title', 'No item selected')}
                   </CardTitle>
                   <CardDescription className="max-w-[240px] mt-1 text-xs">
                     {t(
                       'medications.noSelection.description',
-                      'Select a medication from the list to view schedules, notes, and GLP-1 coaching tools.'
+                      'Select a medication or supplement to view its schedule and notes. GLP-1 coaching is available for configured GLP-1 medications.'
                     )}
                   </CardDescription>
                 </Card>
@@ -505,6 +505,9 @@ export default function Medications() {
                           <CardTitle className="text-base font-bold">
                             {selected.display_name || selected.name}
                           </CardTitle>
+                          <Badge variant="secondary">
+                            {medicationKindLabel(selected, t)}
+                          </Badge>
                           {selected.is_glp1 && (
                             <Badge className="bg-blue-600 hover:bg-blue-700 text-white text-[10px] px-1.5 py-0">
                               GLP-1
@@ -697,7 +700,7 @@ export default function Medications() {
                         <CardContent className="text-sm text-muted-foreground">
                           {t(
                             'medications.cabinet.adherenceDescriptionBefore',
-                            'Schedules and daily checklists for non-GLP-1 medications are fully active. Manage schedule rules below, and log daily intake from the'
+                            'Schedules and daily checklists for medications and supplements are available. Manage schedule rules below, and log actual intake from the'
                           )}{' '}
                           <strong>
                             {t('medications.cabinet.todayTab', 'Today')}

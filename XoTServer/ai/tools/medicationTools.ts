@@ -30,6 +30,7 @@ interface MedicationRow {
   strength_value: number | null;
   strength_unit: string | null;
   is_active: boolean;
+  is_supplement?: boolean;
   schedules: ScheduleSummary[];
 }
 
@@ -78,6 +79,7 @@ interface MedicationMutationRow {
   strength_value: number | null;
   strength_unit: string | null;
   is_active: boolean;
+  is_supplement?: boolean;
 }
 
 interface ScheduleRow {
@@ -169,7 +171,7 @@ async function resolveMedicationId(
 export function buildMedicationTools(userId: string, tz: string) {
   return {
     sparky_manage_medications: tool({
-      description: `Medication tracking: manage medications and schedules, log doses, and view history.
+      description: `Medication and supplement tracking: manage saved items and schedules, log actual intake, and view history. is_supplement is the user's explicit classification; medications include non-prescription medicines. Do not infer it from an item name or change it without the user's instruction.
 
 Actions:
 - list_medications(glp1_only?, active_only?)
@@ -295,8 +297,8 @@ Actions:
                   glp1Only: args.glp1_only,
                   activeOnly: args.active_only,
                 });
-              return formatList(meds, 'Medications', (m) => {
-                let text = `**${m.display_name || m.name}**`;
+              return formatList(meds, 'Medications & supplements', (m) => {
+                let text = `**${m.display_name || m.name}** (${m.is_supplement === true ? 'Supplement' : 'Medication'})`;
                 if (m.strength_value && m.strength_unit) {
                   text += ` — ${m.strength_value}${m.strength_unit}`;
                 }
@@ -320,7 +322,7 @@ Actions:
                 );
               if (!med)
                 return ERRORS.NOT_FOUND('Medication', args.medication_id);
-              let text = `**${med.display_name || med.name}**`;
+              let text = `**${med.display_name || med.name}** (${med.is_supplement === true ? 'Supplement' : 'Medication'})`;
               if (med.strength_value && med.strength_unit) {
                 text += ` — ${med.strength_value}${med.strength_unit}`;
               }
@@ -375,23 +377,27 @@ Actions:
                     medicationId: args.medication_id,
                   }
                 );
-              return formatList(entries, 'Medication Entries', (e) => {
-                const icon =
-                  e.status === 'taken'
-                    ? '✅'
-                    : e.status === 'skipped'
-                      ? '❌'
-                      : e.status === 'snoozed'
-                        ? '⏰'
-                        : '💊';
-                let text = `${icon} ${e.med_name_snapshot || 'Unknown'} — ${e.status} on ${dayString(e.entry_date)}`;
-                if (e.dose_amount_snapshot) {
-                  text += ` (${e.dose_amount_snapshot} ${e.dose_unit_snapshot || ''})`;
+              return formatList(
+                entries,
+                'Medication & supplement entries',
+                (e) => {
+                  const icon =
+                    e.status === 'taken'
+                      ? '✅'
+                      : e.status === 'skipped'
+                        ? '❌'
+                        : e.status === 'snoozed'
+                          ? '⏰'
+                          : '💊';
+                  let text = `${icon} ${e.med_name_snapshot || 'Unknown'} — ${e.status} on ${dayString(e.entry_date)}`;
+                  if (e.dose_amount_snapshot) {
+                    text += ` (${e.dose_amount_snapshot} ${e.dose_unit_snapshot || ''})`;
+                  }
+                  if (e.notes) text += ` — ${e.notes}`;
+                  if (e.entry_type === 'injection') text += ' [injection]';
+                  return text;
                 }
-                if (e.notes) text += ` — ${e.notes}`;
-                if (e.entry_type === 'injection') text += ' [injection]';
-                return text;
-              });
+              );
             }
             case 'update_entry': {
               const entry: MedicationEntryRow | null =
@@ -469,7 +475,7 @@ Actions:
                 label += ` — ${med.strength_value}${med.strength_unit}`;
               }
               return formatConfirmation(
-                `Medication ${label} created (ID: ${med.id}).`
+                `${med.is_supplement === true ? 'Supplement' : 'Medication'} ${label} created (ID: ${med.id}).`
               );
             }
             case 'update_medication': {
@@ -497,7 +503,9 @@ Actions:
               if (med.strength_value && med.strength_unit) {
                 label += ` — ${med.strength_value}${med.strength_unit}`;
               }
-              return formatConfirmation(`Medication ${label} updated.`);
+              return formatConfirmation(
+                `${med.is_supplement === true ? 'Supplement' : 'Medication'} ${label} updated.`
+              );
             }
             case 'delete_medication': {
               const ok = await medicationRepository.deleteMedication(
@@ -506,7 +514,7 @@ Actions:
               );
               if (!ok)
                 return ERRORS.NOT_FOUND('Medication', args.medication_id);
-              return formatConfirmation('Medication deleted.');
+              return formatConfirmation('Item deleted.');
             }
             case 'list_schedules': {
               const med: MedicationDetailRow | null =

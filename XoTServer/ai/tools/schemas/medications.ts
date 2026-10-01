@@ -169,7 +169,9 @@ const createMedicationSchema = z
     is_supplement: z
       .boolean()
       .optional()
-      .describe('Whether this is a supplement rather than a prescription'),
+      .describe(
+        'Explicit category: true for a supplement, false for a medication (including non-prescription medicines). Do not infer from its name; ask when unclear.'
+      ),
     is_active: z
       .boolean()
       .optional()
@@ -448,7 +450,9 @@ export const manageMedicationsInput = z.object({
   is_supplement: z
     .boolean()
     .optional()
-    .describe('Whether this is a supplement'),
+    .describe(
+      'Explicit supplement category; non-prescription medicines remain medications. Ask the user when classification is unclear.'
+    ),
   is_active: z
     .boolean()
     .optional()

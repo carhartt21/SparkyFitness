@@ -75,6 +75,33 @@ describe('sparky_manage_medications create/update/delete + schedules', () => {
     );
   });
 
+  it('confirms a supplement with its explicit category', async () => {
+    vi.mocked(medicationRepository.createMedication).mockResolvedValue({
+      id: MED_ID,
+      name: 'Synthetic item',
+      display_name: null,
+      is_supplement: true,
+      strength_value: null,
+      strength_unit: null,
+      is_active: true,
+    });
+    const result = await tools.sparky_manage_medications.execute!(
+      {
+        action: 'create_medication',
+        name: 'Synthetic item',
+        is_supplement: true,
+      },
+      opts
+    );
+    expect(result).toBe(
+      `✅ Supplement **Synthetic item** created (ID: ${MED_ID}).`
+    );
+    expect(medicationRepository.createMedication).toHaveBeenCalledWith(
+      'user-1',
+      expect.objectContaining({ is_supplement: true })
+    );
+  });
+
   it('create_medication is inferred from name without an action', async () => {
     vi.mocked(medicationRepository.createMedication).mockResolvedValue({
       id: MED_ID,
@@ -172,7 +199,7 @@ describe('sparky_manage_medications create/update/delete + schedules', () => {
       opts
     );
 
-    expect(result).toBe('✅ Medication deleted.');
+    expect(result).toBe('✅ Item deleted.');
   });
 
   it('delete_medication returns NOT_FOUND when nothing was deleted', async () => {

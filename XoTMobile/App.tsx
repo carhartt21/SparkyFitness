@@ -1418,7 +1418,9 @@ function AppContent() {
               name="MedicationsList"
               component={SafeMedicationsList}
               options={createStackScreenOptions(
-                t('screens.medications', { defaultValue: 'Medications' }),
+                t('screens.medications', {
+                  defaultValue: 'Medications & supplements',
+                }),
                 { headerBackButtonDisplayMode: 'minimal' }
               )}
             />
@@ -1429,7 +1431,7 @@ function AppContent() {
                 t('screens.medication', { defaultValue: 'Medication' }),
                 {
                   headerBackTitle: t('screens.medications', {
-                    defaultValue: 'Medications',
+                    defaultValue: 'Medications & supplements',
                   }),
                 }
               )}

@@ -146,7 +146,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       items.push(
         {
           value: 'medications',
-          label: t('nav.medications', 'Medications'),
+          label: t('nav.medications', 'Medications & supplements'),
           icon: Pill,
         },
         { value: 'foods', label: t('nav.foods', 'Foods'), icon: Utensils },
@@ -259,7 +259,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       tabs.push(
         {
           value: '/medications',
-          label: t('nav.medications', 'Medications'),
+          label: t('nav.medications', 'Medications & supplements'),
           icon: Pill,
         },
         {
@@ -325,7 +325,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       if (hasWritePermission('can_manage_medications')) {
         tabs.push({
           value: '/medications',
-          label: t('nav.medications', 'Medications'),
+          label: t('nav.medications', 'Medications & supplements'),
           icon: Pill,
         });
       }
@@ -411,7 +411,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({
       if (hasWritePermission('can_manage_medications')) {
         mobileTabs.push({
           value: '/medications',
-          label: t('nav.medications', 'Medications'),
+          label: t('nav.medications', 'Medications & supplements'),
           icon: Pill,
         });
       }

@@ -1,13 +1,25 @@
 import type { SharedScheduleRule } from './schedules.ts';
 
+/** Supplement dose forms share type_id with medications; classification is is_supplement. */
+export const SUPPLEMENT_FORMS = [
+  'tablet',
+  'capsule',
+  'softgel',
+  'gummy',
+  'powder',
+  'liquid',
+] as const;
+
 // Contract types for the v2 medications API (/api/v2/medications). Field
 // names mirror the server's medicationSchemas.ts and repository columns —
 // snake_case, straight from the database.
 
-export type MedicationEntryStatus = 'taken' | 'skipped' | 'snoozed' | 'prn_taken';
+export type MedicationEntryStatus =
+  'taken' | 'skipped' | 'snoozed' | 'prn_taken';
 
 /** Meal timing for a scheduled dose, relative to the nearest meal. */
-export type MedicationWithMeal = 'before' | 'with' | 'after' | 'away_from_meals';
+export type MedicationWithMeal =
+  'before' | 'with' | 'after' | 'away_from_meals';
 
 export interface Medication {
   id: string;

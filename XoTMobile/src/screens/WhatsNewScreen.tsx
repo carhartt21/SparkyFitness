@@ -488,19 +488,19 @@ const WhatsNewScreen: React.FC<WhatsNewScreenProps> = ({ navigation }) => {
   const features: Feature[] = [
     {
       eyebrow: t('whatsNewPage.features.medications.eyebrow', {
-        defaultValue: 'MEDICATIONS',
+        defaultValue: 'INTAKE TRACKING',
       }),
       headline: t('whatsNewPage.features.medications.headline', {
-        defaultValue: 'Track your medications',
+        defaultValue: 'Track medications and supplements',
       }),
       body: t('whatsNewPage.features.medications.body', {
         defaultValue:
-          'Add your medications, set dose schedules, and log each dose from the dashboard with optional reminders.',
+          'Add medications or supplements, set their schedules, and log actual intake with optional reminders.',
       }),
       hero: <MedicationsMockup />,
       cta: {
         label: t('whatsNewPage.features.medications.cta', {
-          defaultValue: 'Set up medications',
+          defaultValue: 'Set up intake tracking',
         }),
         onPress: () => navigation.navigate('MedicationsList'),
       },

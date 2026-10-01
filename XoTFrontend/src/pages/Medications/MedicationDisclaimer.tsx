@@ -29,7 +29,10 @@ export default function MedicationDisclaimer({
           <div className="flex items-center gap-2 text-primary">
             <Pill className="h-5 w-5" />
             <span className="text-xs font-semibold uppercase tracking-wider">
-              {t('medications.disclaimer.badge', 'Medication Tracker')}
+              {t(
+                'medications.disclaimer.badge',
+                'Medication & supplement tracker'
+              )}
             </span>
           </div>
           <CardTitle className="text-xl font-bold">
@@ -38,7 +41,7 @@ export default function MedicationDisclaimer({
           <CardDescription>
             {t(
               'medications.disclaimer.subtitle',
-              'Please read and acknowledge the following before using the medication tracker.'
+              'Please read the following before tracking medications and supplements.'
             )}
           </CardDescription>
         </CardHeader>
@@ -58,7 +61,7 @@ export default function MedicationDisclaimer({
                 <p className="leading-relaxed">
                   {t(
                     'medications.disclaimer.text1',
-                    'This medication tracking feature is intended for personal record-keeping and informational purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.'
+                    'This medication and supplement tracker is for personal record-keeping and general information. It does not replace professional medical advice, diagnosis, or treatment.'
                   )}
                 </p>
                 <p className="leading-relaxed">
@@ -106,7 +109,7 @@ export default function MedicationDisclaimer({
             >
               {t(
                 'medications.disclaimer.acknowledge',
-                'I understand that this tracker is not a medical device and does not provide medical advice. I will consult my healthcare provider for all medication-related decisions.'
+                'I understand that this tracker is not a medical device and does not provide medical advice.'
               )}
             </label>
           </div>

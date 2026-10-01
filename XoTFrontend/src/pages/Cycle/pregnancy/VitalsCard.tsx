@@ -167,14 +167,17 @@ export default function VitalsCard({
         {/* Prenatal Supplement Quick-Log */}
         <div className="space-y-2">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-            {t('pregnancy.vitals.prenatalSupplements', 'Prenatal Supplements')}
+            {t(
+              'pregnancy.vitals.prenatalSupplements',
+              'Linked medications & supplements'
+            )}
           </p>
 
           {!vitals.prenatalMedication && !vitals.supplementMedication ? (
             <p className="text-xs text-muted-foreground">
               {t(
                 'pregnancy.vitals.noPrenatalsLinked',
-                'No prenatal medications linked. Link medications in settings to track compliance.'
+                'No items linked. Link medications or supplements in settings to track recorded intake.'
               )}
             </p>
           ) : (

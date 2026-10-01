@@ -600,7 +600,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           >
             <Text className="text-base font-semibold text-text-primary">
               {t('screens.library.medications', {
-                defaultValue: 'Medications',
+                defaultValue: 'Medications & supplements',
               })}
             </Text>
             <View className="flex-row items-center">

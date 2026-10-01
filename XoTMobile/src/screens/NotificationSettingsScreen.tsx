@@ -806,7 +806,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
               })}
               subtitle={t('notificationSettings.quietHoursHint', {
                 defaultValue:
-                  'Optional reminders pause during these hours, in the account time zone. Medication and rest alerts remain separate. Equal times turn quiet hours off.',
+                  'Optional reminders pause during these hours, in the account time zone. Medication, supplement and rest alerts remain separate. Equal times turn quiet hours off.',
               })}
               subtitleNumberOfLines={0}
             />
@@ -965,15 +965,16 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
         {notificationsEnabled && (
           <SettingsRowGroup
             title={t('notificationSettings.medications', {
-              defaultValue: 'Medications',
+              defaultValue: 'Medications & supplements',
             })}
           >
             <SettingsRow
               title={t('notificationSettings.medicationReminders', {
-                defaultValue: 'Medication Reminders',
+                defaultValue: 'Scheduled intake reminders',
               })}
               subtitle={t('notificationSettings.medicationRemindersSubtitle', {
-                defaultValue: 'Reminders for scheduled medications.',
+                defaultValue:
+                  'Remind you at the times saved in medication and supplement schedules. As-needed items without a scheduled time do not send reminders.',
               })}
               subtitleNumberOfLines={0}
               rightAccessory={
@@ -981,7 +982,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                   disabled={remoteBusy}
                   accessibilityLabel={t(
                     'notificationSettings.medicationReminders',
-                    { defaultValue: 'Medication Reminders' }
+                    { defaultValue: 'Scheduled intake reminders' }
                   )}
                   value={medicationRemindersEnabled}
                   onValueChange={handleMedicationRemindersToggle}
@@ -1014,13 +1015,13 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
             {medicationRemindersEnabled && (
               <SettingsRow
                 title={t('notificationSettings.hideMedicationNames', {
-                  defaultValue: 'Hide Medication Names',
+                  defaultValue: 'Hide names and doses',
                 })}
                 subtitle={t(
                   'notificationSettings.hideMedicationNamesSubtitle',
                   {
                     defaultValue:
-                      'Show a generic reminder instead of the medication name and dose.',
+                      'Hide the item’s name and dose on notifications. The title still distinguishes a medication from a supplement.',
                   }
                 )}
                 subtitleNumberOfLines={0}
@@ -1029,7 +1030,7 @@ const NotificationSettingsScreen: React.FC<NotificationSettingsScreenProps> = ({
                     disabled={remoteBusy}
                     accessibilityLabel={t(
                       'notificationSettings.hideMedicationNames',
-                      { defaultValue: 'Hide Medication Names' }
+                      { defaultValue: 'Hide names and doses' }
                     )}
                     value={medicationReminderHideNames}
                     onValueChange={setMedicationReminderHideNames}

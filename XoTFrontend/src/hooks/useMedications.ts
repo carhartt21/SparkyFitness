@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   useMutation,
   useQuery,
@@ -63,12 +64,19 @@ const invalidateDiaryTotals = (queryClient: QueryClient) => {
 
 // --- Queries ---------------------------------------------------------------
 
-export const useMedications = (opts?: ListMedicationsOptions) =>
-  useQuery({
+export const useMedications = (opts?: ListMedicationsOptions) => {
+  const { t } = useTranslation();
+  return useQuery({
     queryKey: medKeys.list(opts),
     queryFn: () => medicationService.listMedications(opts),
-    meta: { errorMessage: 'Failed to load medications.' },
+    meta: {
+      errorMessage: t(
+        'medications.messages.itemsLoadFailed',
+        'Failed to load medications and supplements.'
+      ),
+    },
   });
+};
 
 export const useMedicationPens = (medId: string) =>
   useQuery({
@@ -157,6 +165,7 @@ export const useSiteSuggestion = (medId: string) =>
 // --- Mutations -------------------------------------------------------------
 
 export const useCreateMedicationMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: Partial<Medication> & { name: string }) =>
@@ -164,15 +173,20 @@ export const useCreateMedicationMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       invalidateReports(queryClient);
+      invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not add medication.',
-      successMessage: 'Medication added.',
+      errorMessage: t(
+        'medications.messages.itemCreateFailed',
+        'Could not add item.'
+      ),
+      successMessage: t('medications.messages.itemCreated', 'Item added.'),
     },
   });
 };
 
 export const useUpdateMedicationMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, body }: { id: string; body: Partial<Medication> }) =>
@@ -180,25 +194,34 @@ export const useUpdateMedicationMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       invalidateReports(queryClient);
+      invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not update medication.',
-      successMessage: 'Medication updated.',
+      errorMessage: t(
+        'medications.messages.itemUpdateFailed',
+        'Could not update item.'
+      ),
+      successMessage: t('medications.messages.itemUpdated', 'Item updated.'),
     },
   });
 };
 
 export const useDeleteMedicationMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => medicationService.deleteMedication(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       invalidateReports(queryClient);
+      invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not remove medication.',
-      successMessage: 'Medication removed.',
+      errorMessage: t(
+        'medications.messages.itemDeleteFailed',
+        'Could not remove item.'
+      ),
+      successMessage: t('medications.messages.itemDeleted', 'Item removed.'),
     },
   });
 };
@@ -393,14 +416,22 @@ export const useDeletePenMutation = (medId: string) => {
 
 // --- Entries & Adherence Queries & Mutations ------------------------------
 
-export const useMedicationEntries = (opts?: ListMedicationEntriesOptions) =>
-  useQuery({
+export const useMedicationEntries = (opts?: ListMedicationEntriesOptions) => {
+  const { t } = useTranslation();
+  return useQuery({
     queryKey: medKeys.entries(opts),
     queryFn: () => medicationService.listMedicationEntries(opts),
-    meta: { errorMessage: 'Failed to load logged doses.' },
+    meta: {
+      errorMessage: t(
+        'medications.messages.intakeLoadFailed',
+        'Failed to load recorded intake.'
+      ),
+    },
   });
+};
 
 export const useCreateMedicationEntryMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (body: CreateMedicationEntryInput) =>
@@ -416,13 +447,20 @@ export const useCreateMedicationEntryMutation = () => {
       invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not log dose.',
-      successMessage: 'Dose logged.',
+      errorMessage: t(
+        'medications.messages.intakeCreateFailed',
+        'Could not record intake.'
+      ),
+      successMessage: t(
+        'medications.messages.intakeCreated',
+        'Intake recorded.'
+      ),
     },
   });
 };
 
 export const useUpdateMedicationEntryMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({
@@ -442,13 +480,20 @@ export const useUpdateMedicationEntryMutation = () => {
       invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not update logged dose.',
-      successMessage: 'Logged dose updated.',
+      errorMessage: t(
+        'medications.messages.intakeUpdateFailed',
+        'Could not update recorded intake.'
+      ),
+      successMessage: t(
+        'medications.messages.intakeUpdated',
+        'Recorded intake updated.'
+      ),
     },
   });
 };
 
 export const useDeleteMedicationEntryMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => medicationService.deleteMedicationEntry(id),
@@ -462,8 +507,14 @@ export const useDeleteMedicationEntryMutation = () => {
       invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not remove logged dose.',
-      successMessage: 'Logged dose removed.',
+      errorMessage: t(
+        'medications.messages.intakeDeleteFailed',
+        'Could not remove recorded intake.'
+      ),
+      successMessage: t(
+        'medications.messages.intakeDeleted',
+        'Recorded intake removed.'
+      ),
     },
   });
 };
@@ -471,6 +522,7 @@ export const useDeleteMedicationEntryMutation = () => {
 // --- Schedule Mutations ---------------------------------------------------
 
 export const useAddScheduleMutation = (medId: string) => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (
@@ -479,25 +531,40 @@ export const useAddScheduleMutation = (medId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       invalidateReports(queryClient);
+      invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not add schedule.',
-      successMessage: 'Schedule added.',
+      errorMessage: t(
+        'medications.messages.scheduleCreateFailed',
+        'Could not add schedule.'
+      ),
+      successMessage: t(
+        'medications.messages.scheduleCreated',
+        'Schedule added.'
+      ),
     },
   });
 };
 
 export const useDeleteScheduleMutation = () => {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => medicationService.deleteSchedule(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['medications'] });
       invalidateReports(queryClient);
+      invalidateDiaryTotals(queryClient);
     },
     meta: {
-      errorMessage: 'Could not delete schedule.',
-      successMessage: 'Schedule deleted.',
+      errorMessage: t(
+        'medications.messages.scheduleDeleteFailed',
+        'Could not delete schedule.'
+      ),
+      successMessage: t(
+        'medications.messages.scheduleDeleted',
+        'Schedule deleted.'
+      ),
     },
   });
 };

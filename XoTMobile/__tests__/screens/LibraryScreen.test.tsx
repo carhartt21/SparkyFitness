@@ -361,7 +361,7 @@ describe('LibraryScreen', () => {
 
   it('navigates to MedicationsList when the Medications row is pressed', () => {
     const screen = renderScreen();
-    fireEvent.press(screen.getByText('Medications'));
+    fireEvent.press(screen.getByText('Medications & supplements'));
     expect(navigation.navigate).toHaveBeenCalledWith('MedicationsList');
   });
 

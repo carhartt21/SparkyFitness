@@ -7,6 +7,7 @@ import {
   GLP1_DRUG_PROFILES,
   normalizeNutrientName,
   resolveMacroFieldKey,
+  SUPPLEMENT_FORMS,
 } from '@workspace/shared';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -50,7 +51,6 @@ import {
   MED_TYPES,
   MED_TYPE_ICONS,
   MED_TYPE_COLORS,
-  SUPPLEMENT_FORMS,
   MACRO_FIELD_KEYS,
   isCountableForm,
   hasMacroValue,
@@ -532,7 +532,9 @@ export default function AddMedicationDialog({
       type_id: typeId,
       is_glp1: isGlp1,
       is_supplement: isSupplement,
-      nutrients: isSupplement ? getNutrients(rename) : {},
+      nutrients: isSupplement
+        ? getNutrients(rename)
+        : (editMed?.nutrients ?? {}),
       // The supplement form hides strength entirely, so never persist a leftover unit
       // for one (matching how the dose fields are pinned below).
       strength_value: isSupplement ? null : strength ? Number(strength) : null,
@@ -634,7 +636,9 @@ export default function AddMedicationDialog({
         {trigger ?? (
           <Button>
             <Plus className="mr-2 h-4 w-4" />{' '}
-            {t('medications.cabinet.addMed', 'Add medication')}
+            {isSupplement
+              ? t('medications.cabinet.addSupplement', 'Add supplement')
+              : t('medications.cabinet.addMed', 'Add medication')}
           </Button>
         )}
       </DialogTrigger>

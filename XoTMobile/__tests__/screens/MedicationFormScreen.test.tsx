@@ -196,6 +196,61 @@ describe('MedicationFormScreen — optional text fields', () => {
     );
   });
 
+  it('keeps supplement copy and dose forms distinct while preserving unseen nutrient metadata', () => {
+    mockUseMedicationDetail.mockReturnValue({
+      data: {
+        ...baseMed,
+        is_supplement: true,
+        type_id: 'powder',
+        nutrients: { custom_nutrients: { vitamin_d: 12 }, dietary_fiber: 2 },
+      },
+    } as ReturnType<typeof useMedicationDetail>);
+    const screen = renderScreen('med-1');
+    expect(screen.getByPlaceholderText('e.g. Vitamin D')).toBeTruthy();
+    expect(screen.getByText('Powder')).toBeTruthy();
+    expect(screen.getByText('opt-softgel')).toBeTruthy();
+    expect(screen.queryByPlaceholderText('Dr. Ipsum')).toBeNull();
+    pressAction(screen, mockNavigation, 'Save');
+    expect(updateMutate).toHaveBeenCalledWith(
+      {
+        id: 'med-1',
+        body: expect.objectContaining({
+          is_supplement: true,
+          type_id: 'powder',
+          dose_amount: 1,
+          nutrients: { custom_nutrients: { vitamin_d: 12 }, dietary_fiber: 2 },
+          prescriber: 'Dr. Smith',
+        }),
+      },
+      expect.anything()
+    );
+  });
+
+  it('uses an accepted empty nutrient object for ordinary medications', () => {
+    const screen = renderScreen('med-1');
+    pressAction(screen, mockNavigation, 'Save');
+    expect(updateMutate).toHaveBeenCalledWith(
+      {
+        id: 'med-1',
+        body: expect.objectContaining({ is_supplement: false, nutrients: {} }),
+      },
+      expect.anything()
+    );
+  });
+
+  it('does not infer supplement status from a vitamin name', () => {
+    mockUseMedicationDetail.mockReturnValue({
+      data: { ...baseMed, name: 'Vitamin D', is_supplement: false },
+    } as ReturnType<typeof useMedicationDetail>);
+    const screen = renderScreen('med-1');
+    expect(screen.getByPlaceholderText('Ipsumol')).toBeTruthy();
+    pressAction(screen, mockNavigation, 'Save');
+    expect(updateMutate).toHaveBeenCalledWith(
+      { id: 'med-1', body: expect.objectContaining({ is_supplement: false }) },
+      expect.anything()
+    );
+  });
+
   it('treats whitespace-only input as cleared', () => {
     const screen = renderScreen('med-1');
 
@@ -227,6 +282,28 @@ describe('MedicationFormScreen — optional text fields', () => {
           prescriber: 'Dr. Smith',
           pharmacy: 'Corner Pharmacy',
           notes: 'Take with food',
+        }),
+      },
+      expect.anything()
+    );
+  });
+
+  it('preserves nutrition metadata when explicitly changing a supplement to a medication', () => {
+    const nutrients = { protein: 3, custom_nutrients: { vitamin_d: 12 } };
+    mockUseMedicationDetail.mockReturnValue({
+      data: { ...baseMed, is_supplement: true, nutrients },
+    } as ReturnType<typeof useMedicationDetail>);
+    const screen = renderScreen('med-1');
+    fireEvent.press(screen.getByText('opt-medication'));
+    pressAction(screen, mockNavigation, 'Save');
+    expect(updateMutate).toHaveBeenCalledWith(
+      {
+        id: 'med-1',
+        body: expect.objectContaining({
+          is_supplement: false,
+          nutrients,
+          dose_amount: 1,
+          dose_unit: 'tablet',
         }),
       },
       expect.anything()

@@ -277,7 +277,7 @@ const FamilyAccessManager = () => {
     ),
     managesMedications: t(
       'settings.familyAccess.managesMedications',
-      'Manages Medications'
+      'Manages medications & supplements'
     ),
     viewsReports: t('settings.familyAccess.viewsReports', 'Views Reports'),
     sharesExternalProviders: t(
@@ -518,7 +518,7 @@ const FamilyAccessManager = () => {
                       >
                         {t(
                           'settings.familyAccess.canManageMedications',
-                          'Can Manage Medications'
+                          'Manage medications & supplements'
                         )}
                       </Label>
                     </div>
@@ -530,7 +530,7 @@ const FamilyAccessManager = () => {
                         <p className="text-xs">
                           {t(
                             'settings.familyAccess.canManageMedicationsHelp',
-                            'Allows delegate to log medications, doses, titration plans, symptoms, and injection sites on your behalf. Diary logs are blocked. Gives read-only profile access.'
+                            'Allows managing medications and supplements, schedules, symptoms, and injection sites. Logging supplement intake and editing supplement nutrition also require food diary access. Gives read-only profile access.'
                           )}
                         </p>
                       </TooltipContent>

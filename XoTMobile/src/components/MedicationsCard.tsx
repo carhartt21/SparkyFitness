@@ -20,7 +20,10 @@ import { getDeviceTimezone } from '../utils/dateUtils';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 import { formatLocalizedTimeOfDay } from '../utils/medicationScheduleLocalization';
 
-import { medicationTypeLabel } from '../utils/medicationLocalization';
+import {
+  medicationKindLabel,
+  medicationTypeLabel,
+} from '../utils/medicationLocalization';
 import {
   activeLocalSupplementStatus,
   doseSlotStatus,
@@ -84,8 +87,10 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
     return (
       <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
         <View className="flex-row items-center justify-between">
-          <Text className="font-bold text-text-secondary">
-            {t('medications.card.title', { defaultValue: 'Medications' })}
+          <Text className="flex-1 mr-3 font-bold text-text-secondary">
+            {t('medications.card.title', {
+              defaultValue: 'Medications & supplements',
+            })}
           </Text>
           <ActivityIndicator size="small" color={accentPrimary} />
         </View>
@@ -102,12 +107,14 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         accessibilityRole="button"
         accessibilityLabel={t('medications.card.viewAllA11y', {
-          defaultValue: 'View all medications',
+          defaultValue: 'View all medications and supplements',
         })}
         className="flex-row items-center justify-between mb-2"
       >
         <Text className="font-bold text-text-secondary">
-          {t('medications.card.title', { defaultValue: 'Medications' })}
+          {t('medications.card.title', {
+            defaultValue: 'Medications & supplements',
+          })}
         </Text>
         <View className="flex-row items-center">
           <Text className="text-accent-primary font-medium">
@@ -141,6 +148,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
           local?.syncState === 'synced' &&
           local.serverIdentity === local.clientOperationId;
         const subtitle = [
+          medicationKindLabel(med, t),
           typeLabelFor(med.type_id, t),
           formatDose(med, due.schedule),
         ]
@@ -181,7 +189,11 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
               e.status === 'prn_taken' &&
               e.entry_date === selectedDate
           ).length ?? 0;
-        const subtitle = [typeLabelFor(med.type_id, t), formatDose(med)]
+        const subtitle = [
+          medicationKindLabel(med, t),
+          typeLabelFor(med.type_id, t),
+          formatDose(med),
+        ]
           .filter(Boolean)
           .join(' · ');
         return (

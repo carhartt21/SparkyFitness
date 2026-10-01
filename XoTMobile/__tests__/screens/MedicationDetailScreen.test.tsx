@@ -218,7 +218,7 @@ describe('MedicationDetailScreen', () => {
     const screen = setupScreen(buildMedication());
 
     expect(screen.getAllByText('Lisinopril').length).toBeGreaterThan(0);
-    expect(screen.getByText('Pill · Blood pressure')).toBeTruthy();
+    expect(screen.getByText('Medication · Pill · Blood pressure')).toBeTruthy();
     expect(screen.getAllByText('1 tablet').length).toBeGreaterThan(0);
     expect(screen.getByText('500 mg per tablet')).toBeTruthy();
   });

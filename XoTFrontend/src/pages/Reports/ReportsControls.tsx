@@ -63,7 +63,7 @@ const ReportsControls = ({
     },
     {
       id: 'medications-reports',
-      label: t('reports.medicationsTab', 'Medications'),
+      label: t('reports.medicationsTab', 'Medications & supplements'),
       icon: Pill,
     },
     {

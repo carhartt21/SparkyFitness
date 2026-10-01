@@ -281,7 +281,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
           <Text className="text-center text-sm text-text-secondary">
             {t('supplements.emptySubtitle', {
               defaultValue:
-                'Add a supplement with a schedule to see it here. Medications stay in Medications.',
+                'Add a supplement with a schedule to see it here. This view contains supplements only.',
             })}
           </Text>
           <NeonButton

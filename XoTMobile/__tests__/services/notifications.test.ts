@@ -158,7 +158,7 @@ describe('notifications service', () => {
       await registerLocalizedNotificationPresentation();
       expect(mockSetChannel).toHaveBeenLastCalledWith(
         'medication-reminders',
-        expect.objectContaining({ name: 'Medication reminders' })
+        expect.objectContaining({ name: 'Medication & supplement reminders' })
       );
     });
 
