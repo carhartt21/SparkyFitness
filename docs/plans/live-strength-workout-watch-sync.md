@@ -5,6 +5,8 @@
 **Target:** SparkyFitness mobile application, native iOS/watchOS integration, shared contracts, and narrowly scoped server support.  
 **Repository baseline:** [`carhartt21/SparkyFitness@3c84e8007fb4f2541c58238ec71a2dcbb7d458a4`](https://github.com/carhartt21/SparkyFitness/tree/3c84e8007fb4f2541c58238ec71a2dcbb7d458a4).
 
+> **Status update, 2026-10-01** (checked against `main` at `53c7092ef`). The packages have since been renamed (`SparkyFitnessMobile/` → `XoTMobile/`, `SparkyFitnessServer/` → `XoTServer/`); the source links below stay pinned to the baseline. Already on `main`: the active workout is mirrored to the Watch, sets can be completed or reopened from the Watch through a persisted outbox with acknowledgements and a set-value signature check (`applyWatchSetOperation`), the rest countdown is shown on the Watch, and the iPhone shows a workout Live Activity. Still planned: editing weight and repetitions on the Watch, adding/removing sets, rest controls on the Watch, exercise and superset operations, and the physical-device release gates in this document.
+
 ## 1. Decision and product objective
 
 Build **two interfaces to one ongoing strength-training session**. The iPhone and Apple Watch must both support entering weight and repetitions, adding/removing/editing sets, completing or reopening sets, and controlling rest periods. Changes should appear promptly on the other device when communication is available. Recording must remain possible during temporary disconnection and server outages.
