@@ -93,7 +93,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
   title,
   titleNumberOfLines = 0,
   subtitle,
-  subtitleNumberOfLines = 1,
+  subtitleNumberOfLines = 0,
   onPress,
   rightAccessory,
   iconColor,
@@ -128,7 +128,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
           <Icon name={icon} size={22} color={tintColor} weight="semibold" />
         </View>
       ) : null}
-      <View className="flex-1 mr-2">
+      <View className="flex-1 min-w-0 mr-2">
         <Text
           className="text-base font-semibold text-text-primary"
           numberOfLines={titleNumberOfLines}
@@ -140,7 +140,7 @@ const SettingsRow: React.FC<SettingsRowProps> = ({
           <Text
             className="text-sm text-text-secondary mt-0.5"
             numberOfLines={subtitleNumberOfLines}
-            ellipsizeMode="middle"
+            ellipsizeMode="tail"
           >
             {subtitle}
           </Text>

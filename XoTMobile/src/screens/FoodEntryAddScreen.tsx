@@ -101,7 +101,7 @@ import CalendarSheet, {
   type CalendarSheetRef,
 } from '../components/CalendarSheet';
 import DateSelectRow from '../components/DateSelectRow';
-import { FooterSaveBar } from '../components/FormScreenChrome';
+import { SetInputAccessoryBar } from '../components/SetRowChrome';
 import Button from '../components/ui/Button';
 import { createDuplicatePressGuard } from '../utils/duplicatePress';
 import type { FoodFormData } from '../components/FoodForm';
@@ -3024,11 +3024,18 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             onLayout={noteVisibility.onNoteLayout}
             className="bg-background"
           >
-            <FooterSaveBar
-              label={addLabel}
-              busy={isActionPending || isPhotoCompletionPending}
-              disabled={addDisabled}
-              onPress={handleAddPress}
+            <SetInputAccessoryBar
+              onDone={Keyboard.dismiss}
+              actions={[
+                {
+                  key: 'add',
+                  label: addLabel,
+                  onPress: handleAddPress,
+                  disabled:
+                    addDisabled || isActionPending || isPhotoCompletionPending,
+                  bold: true,
+                },
+              ]}
             />
           </View>
         </KeyboardStickyView>

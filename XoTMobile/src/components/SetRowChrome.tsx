@@ -196,6 +196,7 @@ export interface SetAccessoryAction {
   onPress: () => void;
   /** Heavier weight for the primary action (e.g. Log). */
   bold?: boolean;
+  disabled?: boolean;
 }
 
 /** Floating rounded-rectangle button: Liquid Glass on iOS 26+, themed chrome chip elsewhere. */
@@ -203,12 +204,14 @@ function AccessoryChromeButton({
   label,
   onPress,
   bold,
+  disabled,
   accentPrimary,
   chromeBorder,
 }: {
   label: string;
   onPress: () => void;
   bold?: boolean;
+  disabled?: boolean;
   accentPrimary: string;
   chromeBorder: string;
 }) {
@@ -225,8 +228,18 @@ function AccessoryChromeButton({
     >
       <TouchableOpacity
         onPress={onPress}
+        disabled={disabled}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: Boolean(disabled) }}
+        accessibilityLabel={label}
         hitSlop={HIT_SLOP}
-        style={{ paddingHorizontal: 16, paddingVertical: 8 }}
+        style={{
+          minHeight: 44,
+          justifyContent: 'center',
+          paddingHorizontal: 16,
+          paddingVertical: 8,
+          opacity: disabled ? 0.5 : 1,
+        }}
       >
         <Text
           style={{
@@ -285,6 +298,7 @@ export function SetInputAccessoryBar({
             label={action.label}
             onPress={action.onPress}
             bold={action.bold}
+            disabled={action.disabled}
             accentPrimary={accentPrimary}
             chromeBorder={chromeBorder}
           />

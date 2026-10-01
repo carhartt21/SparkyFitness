@@ -109,9 +109,9 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
         accessibilityLabel={t('medications.card.viewAllA11y', {
           defaultValue: 'View all medications and supplements',
         })}
-        className="flex-row items-center justify-between mb-2"
+        className="flex-row flex-wrap items-center justify-between gap-2 mb-2"
       >
-        <Text className="font-bold text-text-secondary">
+        <Text className="flex-1 min-w-0 font-bold text-text-secondary">
           {t('medications.card.title', {
             defaultValue: 'Medications & supplements',
           })}

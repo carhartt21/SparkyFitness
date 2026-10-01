@@ -7,12 +7,12 @@ const SUBTITLE =
   'Repeat each reminder every 10 minutes, up to 3 times, until the dose is logged.';
 
 describe('SettingsRow', () => {
-  it('clamps string subtitles to one line by default', () => {
+  it('keeps complete descriptions visible by default', () => {
     const { getByText } = render(
       <SettingsRow title="Repeat Reminders" subtitle={SUBTITLE} />
     );
 
-    expect(getByText(SUBTITLE).props.numberOfLines).toBe(1);
+    expect(getByText(SUBTITLE).props.numberOfLines).toBe(0);
   });
 
   it('lets string subtitles wrap when subtitleNumberOfLines is 0', () => {

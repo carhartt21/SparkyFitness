@@ -3,6 +3,7 @@ import {
   caffeineActiveQueryKey,
   caffeineActiveRootQueryKey,
   dailySummaryQueryKey,
+  dailyProgressRootQueryKey,
   dailySummaryRootQueryKey,
   foodsQueryKey,
   waterIntakeLogQueryKey,
@@ -43,6 +44,24 @@ describe('invalidateFoodCache', () => {
     });
 
     invalidateSpy.mockRestore();
+  });
+
+  test('refreshes the residual window across month boundaries and daily objectives', () => {
+    const invalidateSpy = jest.spyOn(queryClient, 'invalidateQueries');
+    invalidateFoodCache(queryClient, '2026-09-30');
+    for (const day of ['2026-09-30', '2026-10-01', '2026-10-02']) {
+      expect(invalidateSpy).toHaveBeenCalledWith({
+        queryKey: caffeineActiveQueryKey(day),
+        refetchType: 'all',
+      });
+    }
+    expect(invalidateSpy).not.toHaveBeenCalledWith({
+      queryKey: caffeineActiveQueryKey('2026-10-03'),
+      refetchType: 'all',
+    });
+    expect(invalidateSpy).toHaveBeenCalledWith({
+      queryKey: dailyProgressRootQueryKey,
+    });
   });
 
   test('invalidates root summary, root caffeine, and foods when entryDate is omitted', () => {
