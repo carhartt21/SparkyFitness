@@ -1,3 +1,4 @@
+import i18n from '../localization/i18n';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
 import type { ReminderCandidate } from './healthEngagementPolicy';
@@ -9,7 +10,7 @@ import {
   NUTRITION_REVIEW_ACTION,
   NUTRITION_REVIEW_CATEGORY,
 } from './notifications';
-import i18n from '../localization/i18n';
+import { engagementNotificationCopy } from './engagementNotificationCopy';
 import { getTodayDate } from '../utils/dateUtils';
 import { reconcileScheduledEngagementReminders } from './engagementReminderScheduler';
 
@@ -32,20 +33,10 @@ export function reconcileNutritionEngagementReminders(input: {
     contentFor: (candidate) => {
       const isReview = candidate.kind === 'review';
       return {
-        title: isReview
-          ? i18n.t('engagement.reviewReminderTitle', {
-              defaultValue: 'Meal photos to review',
-            })
-          : i18n.t('engagement.captureReminderTitle', {
-              defaultValue: 'Meal check-in',
-            }),
-        body: isReview
-          ? i18n.t('engagement.reviewReminderBody', {
-              defaultValue: "Review today's meal photos when convenient.",
-            })
-          : i18n.t('engagement.captureReminderBody', {
-              defaultValue: 'A photo is enough for now.',
-            }),
+        ...engagementNotificationCopy(
+          i18n.t.bind(i18n),
+          isReview ? 'meal_review' : 'meal_capture'
+        ),
         categoryIdentifier: isReview
           ? NUTRITION_REVIEW_CATEGORY
           : NUTRITION_CAPTURE_CATEGORY,

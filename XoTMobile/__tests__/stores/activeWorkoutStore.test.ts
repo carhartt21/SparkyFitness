@@ -3344,7 +3344,7 @@ describe('activeWorkoutStore', () => {
           'Bench Press',
           60,
           expect.objectContaining({
-            title: expect.stringContaining('Rest complete'),
+            title: expect.stringContaining('Your next set'),
             body: expect.stringContaining('Set'),
           })
         );

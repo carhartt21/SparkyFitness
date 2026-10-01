@@ -312,7 +312,7 @@ describe('notifications service', () => {
       expect(id).toBe('mock-id');
       expect(mockSchedule).toHaveBeenCalledWith({
         content: expect.objectContaining({
-          title: 'Rest complete',
+          title: '⏱️ Rest complete',
           body: 'Bench Press',
           sound: true,
           categoryIdentifier: 'rest-complete',
@@ -370,7 +370,7 @@ describe('notifications service', () => {
 
       expect(id).toBe('fast-goal-id');
       expect(mockSchedule).toHaveBeenCalledWith({
-        content: expect.objectContaining({ title: 'Fasting goal reached' }),
+        content: expect.objectContaining({ title: '⏳ Fasting goal reached' }),
         trigger: expect.objectContaining({
           type: Notifications.SchedulableTriggerInputTypes.DATE,
           channelId: 'fasting',
@@ -420,8 +420,8 @@ describe('notifications service', () => {
       expect(mockSchedule).toHaveBeenCalledTimes(2);
       expect(mockSchedule).toHaveBeenCalledWith({
         content: expect.objectContaining({
-          title: 'Time to hydrate 💧',
-          body: "You haven't logged any water in a while.",
+          title: '💧 Log a drink',
+          body: 'Had something to drink? Record it when it works for you.',
         }),
         trigger: expect.objectContaining({
           type: Notifications.SchedulableTriggerInputTypes.DATE,

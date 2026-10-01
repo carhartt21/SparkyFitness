@@ -67,24 +67,46 @@ export function initMedicationNotificationActions(): void {
       scheduleId ?? null,
       entryDate,
       response.notification.request.identifier,
-      data?.baseKey ?? data?.key ?? null
+      data?.baseKey ?? data?.key ?? null,
+      data?.accountUserId,
+      data?.serverConfigId
     );
   });
 }
 
-async function cancelMatchingReminders(key: string | null): Promise<void> {
+async function clearMatchingReminders(
+  key: string | null,
+  accountUserId: string | undefined,
+  serverConfigId: string | undefined
+): Promise<void> {
   if (!key) return;
-  const allPending = await Notifications.getAllScheduledNotificationsAsync();
-  const toCancel = allPending.filter(
-    (notification) => notification.content.data?.baseKey === key
-  );
-  await Promise.all(
-    toCancel.map((notification) =>
-      Notifications.cancelScheduledNotificationAsync(
-        notification.identifier
-      ).catch(() => {})
-    )
-  );
+  const matches = (data: Record<string, unknown> | undefined) =>
+    (data?.baseKey ?? data?.key) === key &&
+    (!accountUserId || data?.accountUserId === accountUserId) &&
+    (!serverConfigId || data?.serverConfigId === serverConfigId);
+
+  // Cleanup is best effort after persistence. Native read failures must not make
+  // an already saved intake look like a failed write or trigger a second write.
+  const [pending, presented] = await Promise.all([
+    Notifications.getAllScheduledNotificationsAsync().catch(() => []),
+    Notifications.getPresentedNotificationsAsync().catch(() => []),
+  ]);
+  await Promise.all([
+    ...pending
+      .filter((notification) => matches(notification.content.data))
+      .map((notification) =>
+        Notifications.cancelScheduledNotificationAsync(
+          notification.identifier
+        ).catch(() => {})
+      ),
+    ...presented
+      .filter((notification) => matches(notification.request.content.data))
+      .map((notification) =>
+        Notifications.dismissNotificationAsync(
+          notification.request.identifier
+        ).catch(() => {})
+      ),
+  ]);
 }
 
 async function handlePlannedSupplementAction(
@@ -124,7 +146,7 @@ async function handlePlannedSupplementAction(
       status: status === 'taken' ? 'taken' : 'skipped',
       occurredAt: new Date().toISOString(),
     });
-    await cancelMatchingReminders(key);
+    await clearMatchingReminders(key, accountUserId, serverConfigId);
     await dismissDeliveredNotification(notificationId);
     void reconcileNutritionActions(queryClient).catch((error: unknown) => {
       addLog(
@@ -146,7 +168,9 @@ async function handleNotificationAction(
   scheduleId: string | null,
   entryDate: string,
   notificationId: string,
-  key: string | null
+  key: string | null,
+  accountUserId: string | undefined,
+  serverConfigId: string | undefined
 ): Promise<void> {
   try {
     const existing = await listEntries({
@@ -155,6 +179,7 @@ async function handleNotificationAction(
       medicationId,
     });
     if (isDoseLogged(existing, medicationId, scheduleId)) {
+      await clearMatchingReminders(key, accountUserId, serverConfigId);
       await dismissDeliveredNotification(notificationId);
       return;
     }
@@ -173,7 +198,7 @@ async function handleNotificationAction(
     // calories that do not include the dose the user just marked taken from the reminder.
     invalidateMedicationEntryCaches(queryClient);
 
-    await cancelMatchingReminders(key);
+    await clearMatchingReminders(key, accountUserId, serverConfigId);
 
     await dismissDeliveredNotification(notificationId);
     addLog(

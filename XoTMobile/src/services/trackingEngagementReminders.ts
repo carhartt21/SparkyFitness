@@ -1,3 +1,4 @@
+import i18n from '../localization/i18n';
 import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
 import type { ReminderCandidate } from './healthEngagementPolicy';
@@ -5,7 +6,7 @@ import type { NutritionActionIdentity } from './nutritionActionOutbox';
 import { getActiveNutritionIdentity } from './nutritionIdentity';
 import { reconcileScheduledEngagementReminders } from './engagementReminderScheduler';
 import { getTodayDate } from '../utils/dateUtils';
-import i18n from '../localization/i18n';
+import { engagementNotificationCopy } from './engagementNotificationCopy';
 
 const PREFIX = 'engagement:tracking:';
 let initialized = false;
@@ -37,33 +38,15 @@ export function reconcileTrackingEngagementReminders(input: {
     prefix: PREFIX,
     accepts: (candidate) => candidate.domain === 'tracking',
     contentFor: (candidate) => {
-      if (candidate.kind === 'checkin') {
-        return {
-          title: i18n.t('engagement.checkinReminderTitle', {
-            defaultValue: 'Daily check-in',
-          }),
-          body: i18n.t('engagement.checkinReminderBody', {
-            defaultValue: 'How was your day? It takes a few taps.',
-          }),
-        };
-      }
-      if (candidate.kind === 'measurement') {
-        return {
-          title: i18n.t('engagement.weighInReminderTitle', {
-            defaultValue: 'Weigh-in',
-          }),
-          body: i18n.t('engagement.weighInReminderBody', {
-            defaultValue: 'Ready to record today’s weight?',
-          }),
-        };
-      }
+      if (candidate.kind === 'checkin')
+        return engagementNotificationCopy(i18n.t.bind(i18n), 'check_in');
+      if (candidate.kind === 'measurement')
+        return engagementNotificationCopy(i18n.t.bind(i18n), 'weigh_in');
+      const copy = engagementNotificationCopy(i18n.t.bind(i18n), 'habit');
+      const name = input.habitNames.get(candidate.id);
       return {
-        title:
-          input.habitNames.get(candidate.id) ??
-          i18n.t('engagement.habitReminderTitle', { defaultValue: 'Habit' }),
-        body: i18n.t('engagement.habitReminderBody', {
-          defaultValue: 'Ready when you are. Record it on the Habits screen.',
-        }),
+        ...copy,
+        title: name ? `🌱 ${name}` : copy.title,
       };
     },
   });

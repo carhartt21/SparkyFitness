@@ -152,9 +152,35 @@ describe('tracking reminder notifications', () => {
     expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         content: expect.objectContaining({
-          title: 'Weigh-in',
-          body: 'Ready to record today’s weight?',
+          title: '⚖️ Record your weight',
+          body: 'Would you like to record today’s weight? Open your check-in.',
         }),
+      })
+    );
+  });
+
+  it('keeps the saved habit name and adds its reminder icon', async () => {
+    const tomorrow = Date.now() + 86_400_000;
+    const id = 'tracking:habit:future:synthetic';
+    await reconcileTrackingEngagementReminders({
+      identity,
+      enabled: true,
+      habitNames: new Map([[id, 'A synthetic habit']]),
+      candidates: [
+        {
+          id,
+          domain: 'tracking',
+          kind: 'habit',
+          preferredAt: tomorrow,
+          earliestAt: tomorrow,
+          expiresAt: tomorrow + 3_600_000,
+          flexibilityMinutes: 0,
+        },
+      ],
+    });
+    expect(Notifications.scheduleNotificationAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: expect.objectContaining({ title: '🌱 A synthetic habit' }),
       })
     );
   });

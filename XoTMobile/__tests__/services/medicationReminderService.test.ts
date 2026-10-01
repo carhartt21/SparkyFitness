@@ -147,7 +147,7 @@ function pendingRequest(
 ): Notifications.NotificationRequest {
   return {
     identifier,
-    content: { data: data ? { copyRevision: '20261001', ...data } : data },
+    content: { data: data ? { copyRevision: '20261001b', ...data } : data },
     trigger: null,
   } as unknown as Notifications.NotificationRequest;
 }
@@ -165,6 +165,7 @@ describe('reconcileMedicationReminders', () => {
   beforeEach(() => {
     jest.useFakeTimers({ now: NOW });
     __resetAppPreferencesStoreForTests();
+    useAppPreferencesStore.setState({ medicationReminderRepeats: true });
     mockGetPerms.mockReset().mockResolvedValue({ status: 'granted' } as never);
     mockSchedule.mockReset().mockResolvedValue('notif-id' as never);
     mockCancel.mockReset().mockResolvedValue(undefined);
@@ -288,9 +289,10 @@ describe('reconcileMedicationReminders', () => {
       await reconcileMedicationReminders([buildMedication()], []);
 
       expect(mockSchedule).toHaveBeenNthCalledWith(1, {
+        identifier: `medication:local:user-1:${BASE_KEY}`,
         content: {
-          title: 'Medication reminder',
-          body: 'Scheduled dose: Metformin (500 mg)',
+          title: '💊 Medication reminder',
+          body: 'Your scheduled intake: Metformin (500 mg)',
           sound: true,
           categoryIdentifier: 'medication-reminder',
           data: {
@@ -302,7 +304,7 @@ describe('reconcileMedicationReminders', () => {
             hideNames: 'false',
             locale: 'en',
             responseVersion: '2',
-            copyRevision: '20261001',
+            copyRevision: '20261001b',
             accountUserId: 'user-1',
             serverConfigId: '',
             isSupplement: 'false',
@@ -332,6 +334,17 @@ describe('reconcileMedicationReminders', () => {
       // sweep the whole chain.
       expect(
         repeatCalls.every((c) => c[0].content.data?.baseKey === BASE_KEY)
+      ).toBe(true);
+      expect(repeatCalls.map(([request]) => request.content.title)).toEqual([
+        '💊 Intake · follow-up 1',
+        '💊 Intake · follow-up 2',
+        '💊 Intake · follow-up 3',
+      ]);
+      expect(
+        repeatCalls.every(
+          ([request]) =>
+            request.content.body !== mockSchedule.mock.calls[0][0].content.body
+        )
       ).toBe(true);
     });
 
@@ -374,7 +387,7 @@ describe('reconcileMedicationReminders', () => {
       );
 
       expect(mockSchedule.mock.calls[0][0].content.body).toBe(
-        'Scheduled dose: Metformin'
+        'Your scheduled intake: Metformin'
       );
     });
 
@@ -520,7 +533,7 @@ describe('reconcileMedicationReminders', () => {
         expect(content.data?.locale).toBe('de');
         expect(content.title).not.toMatch(/reminder/i);
         expect(content.body).not.toMatch(/scheduled/i);
-        expect(content.data?.copyRevision).toBe('20261001');
+        expect(content.data?.copyRevision).toBe('20261001b');
       } finally {
         await i18n.changeLanguage('en');
       }
@@ -628,7 +641,11 @@ describe('reconcileMedicationReminders', () => {
       await reconcileMedicationReminders([buildMedication()], []);
 
       for (const call of mockSchedule.mock.calls) {
-        expect(call[0].content.body).toBe('You have a scheduled dose');
+        expect(call[0].content.body).toBe(
+          call[0].content.data?.repeatNumber
+            ? 'Already recorded? Check your scheduled intake status in the app.'
+            : 'Record your scheduled intake if you have taken it.'
+        );
         expect(call[0].content.data?.hideNames).toBe('true');
       }
     });
@@ -683,7 +700,9 @@ describe('reconcileMedicationReminders', () => {
       const base = mockSchedule.mock.calls.find(
         (c) => c[0].content.data?.key === BASE_KEY
       );
-      expect(base?.[0].content.body).toBe('Scheduled dose: Metformin (500 mg)');
+      expect(base?.[0].content.body).toBe(
+        'Your scheduled intake: Metformin (500 mg)'
+      );
     });
   });
 
@@ -711,8 +730,8 @@ describe('reconcileMedicationReminders', () => {
           const content = mockSchedule.mock.calls[0][0].content;
           expect(content.title).toBe(
             language === 'de'
-              ? 'Erinnerung an Ergänzungsmittel'
-              : 'Supplement reminder'
+              ? '🌿 Supplement-Erinnerung'
+              : '🌿 Supplement reminder'
           );
           expect(content.body).toContain('Synthetic supplement (2 mg)');
           expect(content.data?.isSupplement).toBe('true');
@@ -737,8 +756,10 @@ describe('reconcileMedicationReminders', () => {
         []
       );
       const content = mockSchedule.mock.calls[0][0].content;
-      expect(content.title).toBe('Supplement reminder');
-      expect(content.body).toBe('You have a scheduled supplement intake');
+      expect(content.title).toBe('🌿 Supplement reminder');
+      expect(content.body).toBe(
+        'Record your planned supplement if you have taken it.'
+      );
       expect(content.body).not.toContain('Private name');
     });
 
@@ -766,7 +787,7 @@ describe('reconcileMedicationReminders', () => {
       );
       expect(mockCancel).toHaveBeenCalledWith('old-category');
       expect(mockSchedule.mock.calls[0][0].content.title).toBe(
-        'Supplement reminder'
+        '🌿 Supplement reminder'
       );
     });
   });
@@ -790,6 +811,86 @@ describe('reconcileMedicationReminders', () => {
   });
 
   describe('locking', () => {
+    it('preserves different schedule identities with the same item and time', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      await reconcileMedicationReminders(
+        [
+          buildMedication({
+            schedules: [buildSchedule(), buildSchedule({ id: 'sched-other' })],
+          }),
+        ],
+        []
+      );
+      expect(mockSchedule).toHaveBeenCalledTimes(14);
+      expect(new Set(scheduledKeys()).size).toBe(14);
+    });
+
+    it('does not retry a failed schedule within a duplicate input pass', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      mockSchedule.mockRejectedValue(new Error('Native schedule failed'));
+      const medication = buildMedication();
+      await reconcileMedicationReminders([medication, medication], []);
+      expect(mockSchedule).toHaveBeenCalledTimes(7);
+    });
+
+    it('schedules each occurrence once when the input repeats the same medication or schedule', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      const medication = buildMedication({
+        schedules: [buildSchedule(), buildSchedule()],
+      });
+      await reconcileMedicationReminders([medication, medication], []);
+      expect(scheduledKeys()).toEqual(WINDOW_DATES.map(baseKeyFor));
+    });
+
+    it('removes duplicate native requests for an otherwise current occurrence', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      const data = {
+        medicationId: 'med-1',
+        key: BASE_KEY,
+        hideNames: 'false',
+        locale: 'en',
+        responseVersion: '2',
+        accountUserId: 'user-1',
+        serverConfigId: '',
+        isSupplement: 'false',
+      };
+      mockGetAllScheduled.mockResolvedValue([
+        pendingRequest('first', data),
+        pendingRequest('duplicate', data),
+      ]);
+      await reconcileMedicationReminders([buildMedication()], []);
+      expect(mockCancel).toHaveBeenCalledWith('duplicate');
+      expect(mockCancel).not.toHaveBeenCalledWith('first');
+      expect(scheduledKeys()).not.toContain(BASE_KEY);
+    });
+
+    it('does not add a replacement if cancelling an old request fails', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      mockGetAllScheduled.mockResolvedValue([
+        pendingRequest('old-copy', { medicationId: 'med-1', key: BASE_KEY }),
+      ]);
+      mockCancel.mockRejectedValue(new Error('Native cancellation failed'));
+      await reconcileMedicationReminders([buildMedication()], []);
+      expect(scheduledKeys()).not.toContain(BASE_KEY);
+    });
+
+    it('uses the same account-scoped native identifiers when the pending snapshot is stale', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      await reconcileMedicationReminders([buildMedication()], []);
+      const first = mockSchedule.mock.calls.map(
+        ([request]) => request.identifier
+      );
+      mockSchedule.mockClear();
+      await reconcileMedicationReminders([buildMedication()], []);
+      const second = mockSchedule.mock.calls.map(
+        ([request]) => request.identifier
+      );
+      expect(first.every((identifier) => typeof identifier === 'string')).toBe(
+        true
+      );
+      expect(second).toEqual(first);
+    });
+
     it('makes a concurrent second call a no-op', async () => {
       useAppPreferencesStore.setState({ medicationRemindersEnabled: false });
       mockGetAllScheduled.mockResolvedValue([

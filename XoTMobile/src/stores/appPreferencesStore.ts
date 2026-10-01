@@ -57,7 +57,8 @@ export const PREFERENCE_DEFAULTS = {
   dailyProgressCardVisible: true,
   progressPhotosCardVisible: true,
   medicationRemindersEnabled: true,
-  medicationReminderRepeats: true,
+  // Follow-ups are opt-in; persisted choices remain unchanged on upgrade.
+  medicationReminderRepeats: false,
   medicationReminderHideNames: false,
   waterReminderEnabled: false,
   optionalReminderDailyLimit: 3 as number | null,
