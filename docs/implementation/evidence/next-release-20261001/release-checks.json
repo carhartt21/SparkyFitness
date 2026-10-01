@@ -1,0 +1,164 @@
+{
+  "date": "2026-10-01",
+  "candidate_branch": "release/next-cycle-20261001",
+  "validated_code_revision": "b82cbbdb3c6b4bcdc47e4d5ef4ab62ccc96c36c8",
+  "worktree": "/Users/chge7185/Projects/xot-release-next-20261001",
+  "local_main": "ce840f415c0e8e86bc1ca917f87d3aae1aa0c88d",
+  "remote_main": "53c7092ef642154e2254d16ede70d2ff6ed02a6a",
+  "prepared": true,
+  "production_cleared": false,
+  "published": false,
+  "deployed": false,
+  "github_prs_merged": false,
+  "included_branch_tips": {
+    "fix/mcp-oauth-redirect-20261001": "9d7ee2d0cf5caec39cfcb1bad5a63e8445a5313e",
+    "fix/mcp-measurement-values-20261001": "94b34257346dea79bb9670aeedc5dad71b94a5a9",
+    "fix/notification-delivery-copy-20261001": "2d7564d6e6665637842f51a665dfdde723276be0"
+  },
+  "open_prs": [
+    {
+      "number": 1,
+      "head": "aae24e10d33cafb87ac6f4e412b8af9e9af3d876",
+      "draft": false,
+      "mergeable": false,
+      "decision": "hold; reconcile planning documentation"
+    },
+    {
+      "number": 2,
+      "head": "f6006084c09b84ca3bb066e10342373140ec75f9",
+      "draft": false,
+      "mergeable": false,
+      "decision": "hold; reconcile planning documentation"
+    },
+    {
+      "number": 4,
+      "head": "63bec202980b1de8a89bcdf1af2afd362fe9fa56",
+      "draft": true,
+      "mergeable": false,
+      "decision": "hold; exact-tip/native acceptance"
+    },
+    {
+      "number": 5,
+      "head": "89fa205684d2b442c8c1a05eed960fe765e020b6",
+      "draft": true,
+      "mergeable": true,
+      "decision": "hold; mobile/device acceptance"
+    }
+  ],
+  "review_threads": 0,
+  "review_submissions": 0,
+  "pr_triggered_workflow_runs_returned": 0,
+  "recorded_deployment": {
+    "frontend": "14e993582adc0c52735ff57e5450cac6ac81e28b",
+    "server": "4df4eabb68b2b83678157c8c6148ef78070e6706",
+    "internal_testflight": "1.7.2 (35)"
+  },
+  "signing_identity": {
+    "bundle_id": "com.cg.phi",
+    "app_group": "group.com.cg.phi",
+    "team": "4V6HSJQ4JP",
+    "eas_project": "d0d1c7d2-deb1-4675-9411-2a1bd0a3a967",
+    "asc_app_id": "6803564460",
+    "new_watch_requirement": "HealthKit-capable provisioning profile"
+  },
+  "checks": {
+    "server_validate": {
+      "status": "passed",
+      "local_log": "/private/tmp/xot-next-server_validate.log",
+      "log_sha256": "a4d4ddd0b693d8684ebdd3f418fc52206f0f07f130032901804105a0f2b78c1b"
+    },
+    "web_build": {
+      "status": "passed",
+      "local_log": "/private/tmp/xot-next-web_build.log",
+      "log_sha256": "254861f46c6137c38b06a46dd1f419e4c5d12f9573d881e76dc7d3e3f671dff4"
+    },
+    "web_tests": {
+      "status": "passed",
+      "suites": 166,
+      "tests": 1454,
+      "local_log": "/private/tmp/xot-next-web_tests.log",
+      "log_sha256": "3f3cf0ccea35dbd78778555a0e80a555a25bb0bbdba79b20f71714fa7ac4bc3f"
+    },
+    "mobile_tests": {
+      "status": "passed",
+      "suites": 522,
+      "tests": 7548,
+      "local_log": "/private/tmp/xot-next-mobile_tests.log",
+      "log_sha256": "e033cca58cb02f72227b39309696a62d59cd1f4778e94d3d4f1ddaa98905b6b1"
+    },
+    "mobile_validate": {
+      "status": "environment_blocked",
+      "cause": "tsx IPC listen EPERM",
+      "preceding_steps": "passed",
+      "geometry_direct_node": "passed",
+      "format": "passed",
+      "local_log": "/private/tmp/xot-next-mobile_validate.log",
+      "log_sha256": "b29226e3067a947d489f18857ebf46066381da04a5c4aa0757649b1a33d5f559"
+    },
+    "server_tests": {
+      "status": "environment_blocked",
+      "passed_suites": 366,
+      "failed_suites": 74,
+      "skipped_suites": 11,
+      "passed_tests": 4393,
+      "failed_tests": 831,
+      "skipped_tests": 380,
+      "cause": "Local sockets denied; Supertest port access failures and proxy fixture timeout",
+      "local_log": "/private/tmp/xot-next-server_tests.log",
+      "log_sha256": "a273886462c4ddafa664b504e5ba9dd7dbf43184d05c893822e42bf6984eb970"
+    },
+    "server_focused": {
+      "status": "passed",
+      "suites": 4,
+      "tests": 24
+    },
+    "server_additional": {
+      "status": "passed",
+      "suites": 3,
+      "tests": 74
+    },
+    "german_tests": {
+      "status": "passed",
+      "tests": 5
+    },
+    "docs_build": {
+      "status": "passed"
+    },
+    "watch_typecheck": {
+      "status": "passed",
+      "sources": 24,
+      "sdk": "watchOS 26.5",
+      "deployment_target": "watchOS 10.0"
+    },
+    "swift_protocol": {
+      "status": "passed",
+      "assertions": 29
+    },
+    "ios_export": {
+      "status": "passed",
+      "modules": 5033,
+      "assets": 179
+    },
+    "lock_check": {
+      "status": "passed",
+      "kind": "offline frozen lockfile-only; not a fresh install"
+    },
+    "fresh_install": {
+      "status": "not_run",
+      "dependency_manifests": "identical to existing installed checkout"
+    },
+    "native_archive": {
+      "status": "not_run"
+    },
+    "physical_device": {
+      "status": "not_run"
+    },
+    "postgres_integration": {
+      "status": "not_run"
+    },
+    "live_deployment_inspection": {
+      "status": "not_run",
+      "evidence": "private deployment checkout release-lock.json"
+    }
+  }
+}
