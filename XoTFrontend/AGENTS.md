@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 X on Track Frontend is the React web app for the X on Track monorepo. Use this file as the primary guide for work inside `XoTFrontend/`.
 
@@ -55,6 +55,7 @@ Features are organized by domain across `src/pages/`, `src/api/`, and `src/hooks
 - Routes: `/` is the Dashboard summary (`src/pages/Dashboard/`); the full Diary lives at `/diary`. Legacy `/?date=` links and `openFoodSearchForMeal` navigation state are forwarded to `/diary` by `DashboardRoute`. Diary accepts navigation state `openFoodSearchForMeal` (+ `startWithScanner`) and `focusWidget` (`exercise` | `water`).
 - Shared look: `src/components/ui/glow-card.tsx` (`GlowCard`, neon tones) and the `glow-surface` utility / `--neon-*` tokens in `src/index.css`; `ui/card.tsx` carries the same radius/border. Water logging logic is shared through `src/hooks/Diary/useWaterControls.ts`.
 - `src/pages/Auth/McpConsent.tsx` and `src/pages/Settings/{NotificationDeliverySettings,McpConnectionsSettings}.tsx` - assistant OAuth consent and account notification/connection controls; their HTTP helpers live under `src/api/Auth/` and `src/api/Engagement/`.
+- `src/api/Auth/mcpAuthorizationResponse.ts` normalizes OAuth redirects for both login continuation and consent. Better Auth browser responses use `{ redirect: true, url }`; do not confuse that response field with the OAuth request's `redirect_uri`. Keep signed authorization queries intact.
 - `src/api/api.ts` - `apiCall(endpoint, options)` helper for normal app API requests: base URL `/api`, query `params`, JSON/FormData bodies, `responseType`, error toasts, `suppress404Toast`. Better Auth and specialized streaming paths have their own clients.
 - `src/api/<Domain>/` - per-domain API clients built on `apiCall`.
 - `src/hooks/<Domain>/` and `src/hooks/use*.ts(x)` - TanStack Query hooks and shared UI hooks (`use-toast`, `useDebounce`, `useAuth`, ...).

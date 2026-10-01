@@ -110,6 +110,18 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 
 ### 3. Configure Your Client
 
+**ChatGPT desktop custom MCP connection**
+
+1. Open **Plugins → MCPs → Add** and choose **Streamable HTTP**.
+2. Name the server `x-on-track` and enter `https://<your-host>/mcp/chatgpt`.
+3. Leave **Bearer token env var** and **Headers** empty for OAuth. Save and restart the connection, then select **Authenticate/Authorize** in the server list. OAuth does not require an authentication dropdown in the add-server form.
+4. Sign in to your X on Track account and review the permissions. An existing browser session can skip the sign-in prompt.
+5. Start a new conversation and check `/mcp` for the connected server. The connection and credentials are shared with Codex clients using the same local host configuration. If needed, `codex mcp login x-on-track` starts the sign-in flow from the CLI.
+
+The server must have OAuth enabled and its discovery/authentication routes must be reachable through the public ingress. Browser login continuation and consent return a Better Auth JSON redirect (`url`), which the app follows to the next signed authorization page or the registered client callback. If an earlier attempt expired, begin a new authorization from the client instead of reusing the old browser URL. See the [official desktop MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=app).
+
+For an API-key connection in the same desktop form, use `https://<your-host>/mcp` and an `Authorization` header with `Bearer <MCP_READ_ONLY_KEY>`. The **Bearer token env var** field is a variable name whose value is read from the client environment; it is not a field for pasting the token. Account OAuth tokens and application API keys use separate endpoints.
+
 **HTTP / remote-capable clients** (Cursor and other clients that support streamable HTTP) point directly at `/mcp` with an `Authorization: Bearer <API_KEY>` header:
 
 ```json

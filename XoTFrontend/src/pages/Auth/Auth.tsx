@@ -40,7 +40,8 @@ import { useTranslation } from 'react-i18next';
 import { useMcpAuthorization } from '@/hooks/Auth/useMcpAuthorization';
 
 const Auth = () => {
-  const { continueMcpAuthorization } = useMcpAuthorization();
+  const { continueMcpAuthorization, readMcpAuthorizationRedirect } =
+    useMcpAuthorization();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { loggingLevel } = usePreferences();
@@ -81,17 +82,11 @@ const Auth = () => {
     }
     try {
       const response = await continueMcpAuthorization(query);
-      const result = (await response.json()) as {
-        redirect_uri?: string;
-        error?: string;
-        message?: string;
-      };
-      if (!response.ok || !result.redirect_uri) {
-        throw new Error(
-          result.message ?? result.error ?? 'Could not continue the connection.'
-        );
-      }
-      window.location.assign(result.redirect_uri);
+      const redirectUrl = await readMcpAuthorizationRedirect(
+        response,
+        'Could not continue the connection.'
+      );
+      window.location.assign(redirectUrl);
     } catch (cause) {
       setFormError(
         cause instanceof Error
@@ -99,7 +94,7 @@ const Auth = () => {
           : 'Could not continue the connection.'
       );
     }
-  }, [navigate, continueMcpAuthorization]);
+  }, [navigate, continueMcpAuthorization, readMcpAuthorizationRedirect]);
 
   useEffect(() => {
     const fetchAuthSettings = async () => {
