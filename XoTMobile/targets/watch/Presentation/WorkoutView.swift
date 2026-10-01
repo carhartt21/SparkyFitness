@@ -5,13 +5,14 @@ import SwiftUI
 struct WorkoutView: View {
     @EnvironmentObject private var store: CheckInStore
     @EnvironmentObject private var session: WatchSessionManager
+    @EnvironmentObject private var healthRecorder: WorkoutHealthRecorder
 
     private var workout: WatchWorkoutSnapshot? { store.context.workout }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
-                Text("Workout")
+                Text(WatchCopy.text("workout.title"))
                     .font(.headline)
 
                 if let workout {
@@ -20,10 +21,12 @@ struct WorkoutView: View {
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
 
+                    WorkoutHealthStatusView(workout: workout)
+
                     if let restEndsAt = workout.restEndsAt {
                         TimelineView(.periodic(from: .now, by: 1)) { timeline in
                             let remaining = max(0, Int(ceil(restEndsAt.timeIntervalSince(timeline.date))))
-                            Text(remaining > 0 ? "Rest · \(remaining)s" : "Ready for next set")
+                            Text(remaining > 0 ? WatchCopy.text("workout.rest", remaining) : WatchCopy.text("workout.ready"))
                                 .font(.caption2)
                                 .foregroundStyle(.orange)
                                 .monospacedDigit()
@@ -76,16 +79,16 @@ struct WorkoutView: View {
 
                                 if let pending, pending.state == .failed {
                                     HStack {
-                                        Text("Not saved")
+                                        Text(WatchCopy.text("workout.notSaved"))
                                             .foregroundStyle(.red)
                                         Spacer()
-                                        Button("Dismiss") {
+                                        Button(WatchCopy.text("workout.dismiss")) {
                                             store.discardFailedWorkoutOperation(pending.id)
                                             session.retryPending()
                                         }
                                         .buttonStyle(.plain)
                                         .foregroundStyle(.orange)
-                                        .accessibilityLabel("Dismiss failed set action")
+                                        .accessibilityLabel(WatchCopy.text("workout.dismissSetAction"))
                                     }
                                     .font(.system(size: 10))
                                 }
@@ -96,11 +99,24 @@ struct WorkoutView: View {
                         .neonSurface(Neon.accent, intensity: .edge, cornerRadius: 9)
                     }
 
-                    Text("Set taps sync through your iPhone")
+                    Text(WatchCopy.text("workout.syncHint"))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                 } else {
-                    Text("Start a workout on your iPhone to see it here.")
+                    if let record = healthRecorder.records.last(where: {
+                        $0.scope == store.context.actionScope &&
+                        Calendar.current.isDateInToday($0.finishedAt ?? .distantPast)
+                    }) {
+                        Text(record.phase == .saved ? WatchCopy.text("workout.health.saved") :
+                             record.phase == .discarded ? WatchCopy.text("workout.health.discarded") :
+                             record.phase == .failed ? WatchCopy.text("workout.health.failed") :
+                             WatchCopy.text("workout.health.finishing"))
+                            .font(.caption)
+                        if let key = healthRecorder.messageKey {
+                            Text(WatchCopy.text(key)).font(.caption2).foregroundStyle(.orange)
+                        }
+                    }
+                    Text(WatchCopy.text("workout.empty"))
                         .font(.caption2)
                         .foregroundStyle(.secondary)
                 }
@@ -111,15 +127,15 @@ struct WorkoutView: View {
 
     private func setLabel(_ set: WatchWorkoutSnapshot.Exercise.SetRow) -> String {
         let unit = store.context.effectiveWeightUnit
-        let weight = set.weightKg.map { "\(String(format: "%.1f", unit.fromKg($0)))\(unit.suffix)" }
-        let reps = set.reps.map { "\($0) reps" }
+        let weight = set.weightKg.map { "\(String(format: "%.1f", locale: Locale.current, unit.fromKg($0)))\(unit.suffix)" }
+        let reps = set.reps.map { WatchCopy.text("workout.reps", $0) }
         let duration = set.durationSeconds.map { "\(Int($0))s" }
         let values = [weight, reps, duration].compactMap { $0 }.joined(separator: " × ")
         let kind: String
         switch set.type {
-        case "warmup": kind = "Warm-up"
-        case "dropset": kind = "Drop"
-        case "failure": kind = "Failure"
+        case "warmup": kind = WatchCopy.text("workout.warmup")
+        case "dropset": kind = WatchCopy.text("workout.dropset")
+        case "failure": kind = WatchCopy.text("workout.failure")
         default: kind = ""
         }
         return [kind, values].filter { !$0.isEmpty }.joined(separator: " · ")
@@ -132,11 +148,11 @@ struct WorkoutView: View {
     ) -> String {
         let state: String
         switch pending?.state {
-        case .queued: state = "waiting for iPhone"
-        case .saved: state = "saved, waiting for update"
-        case .failed: state = "not saved, tap to retry"
-        case nil: state = set.completed ? "completed" : "not completed"
+        case .queued: state = WatchCopy.text("workout.queuedState")
+        case .saved: state = WatchCopy.text("workout.savedState")
+        case .failed: state = WatchCopy.text("workout.failedState")
+        case nil: state = set.completed ? WatchCopy.text("workout.completedState") : WatchCopy.text("workout.openState")
         }
-        return "\(exercise.name), set \(set.number), \(setLabel(set)), \(state)"
+        return WatchCopy.text("workout.setAccessibility", exercise.name, set.number, setLabel(set), state)
     }
 }

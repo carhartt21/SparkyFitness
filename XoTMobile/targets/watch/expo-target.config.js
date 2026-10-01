@@ -42,6 +42,12 @@ const syncInfoPlist = (appGroup, bundleIdentifier) => {
     <string>${escapePlistString(appGroup)}</string>
     <key>CFBundleDisplayName</key>
     <string>X on Track</string>
+    <key>NSHealthShareUsageDescription</key>
+    <string>X on Track reads workout energy and heart rate while recording your workout.</string>
+    <key>NSHealthUpdateUsageDescription</key>
+    <string>X on Track saves completed workouts with their recorded active energy and heart rate to Apple Health.</string>
+    <key>WKBackgroundModes</key>
+    <array><string>workout-processing</string></array>
     <key>CFBundleURLTypes</key>
     <array>
       <dict>
@@ -78,6 +84,7 @@ module.exports = (config) => {
     // watchOS 10 is the floor for the SwiftUI APIs used in this target.
     // Lower this if your physical Watch is running an older watchOS.
     deploymentTarget: '10.0',
+    frameworks: ['HealthKit'],
     // Needed so the Daily Energy Goal complication (targets/watch-widget, a
     // separate process) can read what this app writes — WatchConnectivity
     // delivers into this app, but a widget extension can't see this app's
@@ -88,6 +95,7 @@ module.exports = (config) => {
     // "requires a paid account" caveat this comment used to carry doesn't
     // apply.
     entitlements: {
+      'com.apple.developer.healthkit': true,
       'com.apple.security.application-groups': [appGroup],
     },
   };

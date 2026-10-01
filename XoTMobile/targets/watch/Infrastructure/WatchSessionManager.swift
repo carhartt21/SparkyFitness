@@ -120,6 +120,11 @@ final class WatchSessionManager: NSObject, ObservableObject {
         sendQueuedQuickWaterActions()
         for action in store.queuedFoodActions { sendFoodLog(action) }
         sendNextWorkoutOperation()
+        WorkoutHealthRecorder.shared.retryPending()
+    }
+
+    func sendWorkoutHealth(_ payload: [String: Any]) {
+        transfer(payload)
     }
 
     private func sendQueuedQuickWaterActions() {
@@ -328,6 +333,8 @@ final class WatchSessionManager: NSObject, ObservableObject {
         let previousActionScope = store.context.actionScope
         let incoming = ContextPayloadMapper.context(from: payload, previous: store.context)
         store.apply(context: incoming)
+        WorkoutHealthRecorder.shared.reconcileScope(incoming.actionScope)
+        WorkoutHealthRecorder.shared.retryPending()
         ComplicationPublisher.setScope(incoming.actionScope)
         if incoming.actionScope != previousActionScope {
             // An action captured under account A remains in the outbox while
@@ -419,6 +426,7 @@ final class WatchSessionManager: NSObject, ObservableObject {
         switch ContextPayloadMapper.type(of: payload) {
         case "context": handle(context: payload)
         case "ack": handle(ack: payload)
+        case "workoutHealthCommand": WorkoutHealthRecorder.shared.receive(payload)
         default: break
         }
     }

@@ -151,7 +151,7 @@ const HealthDataWriteback: React.FC<HealthDataWritebackProps> = ({
         <Text className="text-xs text-text-muted mb-2">
           {t('healthSync.workoutExportNote', {
             defaultValue:
-              'Completed workouts are exported only after you turn this on. Turning it off stops future exports; the removal control below affects nutrition and hydration only.',
+              'Completed workouts are exported only when this is on. On Watch, open the active workout and tap Record energy; allow Workouts and Active Energy. Finish on iPhone and keep both connected until the Watch saves to Health. Phone-only workouts need known active calories or can skip export. Turning this off stops future exports. Removal below affects nutrition and hydration only.',
           })}
         </Text>
       )}

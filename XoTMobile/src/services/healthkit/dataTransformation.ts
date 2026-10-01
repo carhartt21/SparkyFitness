@@ -48,7 +48,11 @@ const isOwnRecord = (rec: Record<string, unknown>): boolean => {
     metadata?.SparkyWritebackVersion !== undefined
   )
     return true;
-  return Boolean(ownBundleId && rec.sourceBundleId === ownBundleId);
+  return Boolean(
+    ownBundleId &&
+    (rec.sourceBundleId === ownBundleId ||
+      rec.sourceBundleId === `${ownBundleId}.watchkitapp`)
+  );
 };
 
 // ============================================================================

@@ -1425,3 +1425,41 @@ describe('Nutrition correlation transformer', () => {
     expect(result[0].record_timezone).toBeUndefined();
   });
 });
+
+describe('Watch workout export feedback guard', () => {
+  afterEach(() => setOwnBundleId(null));
+  const workout = {
+    startTime: '2026-10-01T08:00:00Z',
+    endTime: '2026-10-01T08:30:00Z',
+    activityType: 50,
+    duration: 1800,
+    totalEnergyBurned: 175,
+  };
+  const options = { recordType: 'Workout', unit: '', type: 'workout' };
+  it.each(['com.cg.phi', 'com.cg.phi.watchkitapp'])(
+    'does not re-import our %s workout as another diary entry',
+    (sourceBundleId) => {
+      setOwnBundleId('com.cg.phi');
+      expect(
+        transformHealthRecords([{ ...workout, sourceBundleId }], options)
+      ).toEqual([]);
+    }
+  );
+  it('recognizes the native writer marker without source revision', () => {
+    expect(
+      transformHealthRecords(
+        [{ ...workout, metadata: { XOnTrackWritebackVersion: 1 } }],
+        options
+      )
+    ).toEqual([]);
+  });
+  it('keeps other apps and similarly named sources', () => {
+    setOwnBundleId('com.cg.phi');
+    expect(
+      transformHealthRecords(
+        [{ ...workout, sourceBundleId: 'com.cg.phi.watchkitapp.other' }],
+        options
+      )
+    ).toHaveLength(1);
+  });
+});

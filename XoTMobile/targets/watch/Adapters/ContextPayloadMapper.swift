@@ -279,6 +279,7 @@ enum ContextPayloadMapper {
             restEndsAt: (raw["restEndsAt"] as? Double).map {
                 Date(timeIntervalSince1970: $0 / 1000)
             },
+            healthRecordingEnabled: raw["healthRecordingEnabled"] as? Bool,
             exercises: exercises
         )
     }

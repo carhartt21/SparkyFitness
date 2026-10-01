@@ -80,6 +80,8 @@ export interface WatchWorkoutPayload {
   name: string;
   activeSetId: string | null;
   restEndsAt: number | null;
+  /** Optional for compatibility with an older phone. */
+  healthRecordingEnabled?: boolean;
   exercises: {
     id: string;
     name: string;
@@ -97,6 +99,28 @@ export interface WatchWorkoutPayload {
       completed: boolean;
     }[];
   }[];
+}
+
+/** Phone reserves the sole HealthKit writer before the Watch starts sensors. */
+export interface WatchWorkoutHealthCommand {
+  type: 'workoutHealthCommand';
+  action: 'start' | 'finish' | 'discard' | 'ack' | 'reject';
+  sessionId: string;
+  scope: string;
+  syncId: string;
+  finishedAt?: number;
+  save?: boolean;
+  ackPhase?: WatchWorkoutHealthEvent['phase'];
+}
+
+export interface WatchWorkoutHealthEvent {
+  type: 'workoutHealth';
+  sessionId: string;
+  scope: string;
+  syncId: string;
+  phase: 'request' | 'recording' | 'saved' | 'failed' | 'discarded';
+  /** HealthKit can confirm a save while withholding the UUID on a locked Watch. */
+  workoutUuid?: string;
 }
 
 /** Desired completion state captured on the Watch, with a stale-view guard. */
@@ -317,6 +341,7 @@ export type WatchConnectivityEvents = {
   onManualWater: (payload: WatchManualWaterPayload) => void;
   onWaterDelete: (payload: WatchWaterDeletePayload) => void;
   onWorkoutSetOperation: (payload: WatchWorkoutSetOperationPayload) => void;
+  onWorkoutHealth: (payload: WatchWorkoutHealthEvent) => void;
   onFoodLog: (payload: WatchFoodLogPayload) => void;
   /** Thumbnail keys the watch has no picture for. */
   onThumbnailRequest: (payload: { keys: string[] }) => void;
@@ -328,6 +353,8 @@ declare class WatchConnectivityModuleType extends NativeModule<WatchConnectivity
   isPaired(): boolean;
   updateContext(context: WatchContextPayload): Promise<void>;
   sendAck(clientId: string, ok: boolean): Promise<void>;
+  /** Queued, durable control messages; never rely on reachability for finish. */
+  sendWorkoutHealthCommand(command: WatchWorkoutHealthCommand): Promise<void>;
   /** Queues a local file (a `file://` URI) for background transfer to the watch. */
   transferFile(
     fileUri: string,

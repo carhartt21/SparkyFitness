@@ -17,6 +17,7 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
     /// A request from the watch to delete one logged drink.
     var onWaterDelete: (([String: Any]) -> Void)?
     var onWorkoutSetOperation: (([String: Any]) -> Void)?
+    var onWorkoutHealth: (([String: Any]) -> Void)?
     var onFoodLog: (([String: Any]) -> Void)?
     /// The watch asking for food pictures it has no file for.
     var onThumbnailRequest: (([String]) -> Void)?
@@ -42,6 +43,8 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
             onWaterDelete?(payload)
         case "workoutSetOperation":
             onWorkoutSetOperation?(payload)
+        case "workoutHealth":
+            onWorkoutHealth?(payload)
         case "foodLog":
             onFoodLog?(payload)
         case "thumbnailRequest":
@@ -110,6 +113,7 @@ public class WatchConnectivityModule: Module {
             "onManualWater",
             "onWaterDelete",
             "onWorkoutSetOperation",
+            "onWorkoutHealth",
             "onFoodLog",
             "onThumbnailRequest"
         )
@@ -168,6 +172,9 @@ public class WatchConnectivityModule: Module {
                     "expectedCompleted": payload["expectedCompleted"] as? Bool ?? false,
                     "completed": payload["completed"] as? Bool ?? false,
                 ])
+            }
+            self.delegateHandler.onWorkoutHealth = { [weak self] payload in
+                self?.sendEvent("onWorkoutHealth", payload)
             }
             self.delegateHandler.onFoodLog = { [weak self] payload in
                 var event: [String: Any] = [
@@ -242,6 +249,20 @@ public class WatchConnectivityModule: Module {
                 replyHandler: nil,
                 errorHandler: nil
             )
+        }
+
+        AsyncFunction("sendWorkoutHealthCommand") { (command: [String: Any]) -> Void in
+            guard WCSession.isSupported(),
+                  WCSession.default.activationState == .activated,
+                  WCSession.default.isWatchAppInstalled else {
+                throw NSError(domain: "XOnTrack.WorkoutHealth", code: 1)
+            }
+            let payload = command.compactMapValues(withoutNulls)
+            // The persisted phone reservation is retried if delivery is lost.
+            WCSession.default.transferUserInfo(payload)
+            if WCSession.default.isReachable {
+                WCSession.default.sendMessage(payload, replyHandler: nil, errorHandler: nil)
+            }
         }
     }
 }

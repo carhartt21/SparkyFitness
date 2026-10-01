@@ -2,6 +2,12 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { AppState } from 'react-native';
+import {
+  handleWatchWorkoutHealth,
+  discardWatchWorkoutRecording,
+  isWorkoutHealthRecordingEnabled,
+  retryPendingWorkoutExports,
+} from '../services/workoutHealthExport';
 import WatchConnectivity, {
   type WatchCheckInPayload,
   type WatchContextPayload,
@@ -710,7 +716,10 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         workout:
           activeConfig?.id != null &&
           activeConfig.id === currentWorkoutState.sourceServerConfigId
-            ? currentWorkoutSnapshot
+            ? currentWorkoutSnapshot && {
+                ...currentWorkoutSnapshot,
+                healthRecordingEnabled: await isWorkoutHealthRecordingEnabled(),
+              }
             : null,
         timers,
         ...figures,
@@ -1285,6 +1294,15 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     if (!enabled || !WatchConnectivity || !WatchConnectivity.isSupported())
       return;
 
+    const retryWorkoutHealth = () => {
+      void retryPendingWorkoutExports().catch((error: unknown) => {
+        addLog(
+          `[Workout Health] Pending coordination retry failed: ${String(error)}`,
+          'WARNING'
+        );
+      });
+    };
+
     // Every inbound event is a chance to notice the day has turned over: each
     // one means the watch is awake and talking to us, which after a night
     // asleep is the first moment anything here runs at all.
@@ -1316,6 +1334,34 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         onEvent(handlersRef.current.handleWorkoutSetOperation)(payload);
       }
     );
+    const workoutHealthSub = WatchConnectivity.addListener(
+      'onWorkoutHealth',
+      (event) => {
+        void handleWatchWorkoutHealth(
+          event,
+          useActiveWorkoutStore.getState()
+        ).catch((error: unknown) => {
+          addLog(
+            `[Workout Health] Watch coordination failed: ${String(error)}`,
+            'WARNING'
+          );
+        });
+      }
+    );
+    const workoutLifecycleSub = useActiveWorkoutStore.subscribe(
+      (state, previous) => {
+        if (previous.sessionId && previous.sessionId !== state.sessionId) {
+          void discardWatchWorkoutRecording(previous.sessionId).catch(
+            (error: unknown) => {
+              addLog(
+                `[Workout Health] Watch discard pending: ${String(error)}`,
+                'WARNING'
+              );
+            }
+          );
+        }
+      }
+    );
     const foodLogSub = WatchConnectivity.addListener('onFoodLog', (payload) => {
       onEvent(handlersRef.current.handleFoodLog)(payload);
     });
@@ -1330,6 +1376,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       () => {
         handlersRef.current.catchUpToToday();
         void handlersRef.current.pushContext();
+        retryWorkoutHealth();
       }
     );
     const reachabilitySub = WatchConnectivity.addListener(
@@ -1338,6 +1385,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         if (!isReachable) return;
         handlersRef.current.catchUpToToday();
         void handlersRef.current.pushContext();
+        retryWorkoutHealth();
       }
     );
 
@@ -1347,6 +1395,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       if (state !== 'active') return;
       handlersRef.current.catchUpToToday();
       void handlersRef.current.pushContext();
+      retryWorkoutHealth();
     });
 
     return () => {
@@ -1354,6 +1403,8 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       waterIntakeSub.remove();
       waterDeleteSub.remove();
       workoutSetSub.remove();
+      workoutHealthSub.remove();
+      workoutLifecycleSub();
       thumbnailRequestSub.remove();
       foodLogSub.remove();
       contextRequestSub.remove();

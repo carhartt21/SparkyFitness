@@ -1117,7 +1117,17 @@
       "permissionErrorMessage": "Beim Versuch, Integritätsberechtigungen anzufordern, ist ein unerwarteter Fehler aufgetreten: {{error}}"
     },
     "consultProfessional": "Wenden Sie sich für medizinische Beratung, Diagnosen oder Behandlungen an eine medizinische Fachperson.",
-    "workoutExportErrorMessage": "Ihr Training wurde gespeichert, aber der Apple-Health-Export ist fehlgeschlagen: {{error}}"
+    "workoutExportErrorMessage": "Ihr Training wurde gespeichert, aber der Apple-Health-Export ist fehlgeschlagen: {{error}}",
+    "workoutEnergyTitle": "Aktive Kalorien für Apple Health",
+    "workoutEnergyMessage": "Es wurde keine Energieaufzeichnung auf der Watch gestartet. Geben Sie aktive Kalorien nur ein, wenn sie bekannt sind. Ohne Export bleibt das Training in X on Track gespeichert und es entsteht kein Health-Eintrag mit 0 kcal. Ihre Zieleinstellungen bleiben unverändert.",
+    "workoutSkipExport": "Ohne Export",
+    "workoutEnergyInvalid": "Geben Sie eine positive Kalorienmenge ein oder wählen Sie „Ohne Export“.",
+    "workoutWatchPendingTitle": "Apple-Health-Aufzeichnung auf der Watch",
+    "workoutWatchPendingMessage": "Ihr Training ist in X on Track gespeichert. Die Watch beendet die Energieaufzeichnung, sobald das Abschluss-Signal ankommt. Lassen Sie beide Geräte verbunden; das iPhone erzeugt keinen doppelten Health-Eintrag.",
+    "workoutWatchUnavailableTitle": "Apple-Health-Export prüfen",
+    "workoutWatchUnavailableMessage": "Ihr Training ist in X on Track gespeichert, aber die Watch konnte den Health-Export nicht bestätigen. Prüfen Sie nach dem Verbinden Apple Health. Das iPhone erzeugt kein zweites Training.",
+    "workoutExportNote": "Trainings werden nur bei aktivierter Option exportiert. Öffnen Sie auf der Watch das laufende Training und tippen Sie auf „Energie aufzeichnen“. Erlauben Sie „Trainings“ und „Aktive Energie“. Beenden Sie das Training auf dem iPhone und lassen Sie beide Geräte bis zum Health-Export verbunden. Ohne Watch können Sie bekannte aktive Kalorien eingeben oder den Export auslassen. Ausschalten stoppt künftige Exporte. Das Entfernen unten betrifft nur Ernährung und Flüssigkeit.",
+    "workoutExportCheckPermissions": "Ihr Training ist in X on Track gespeichert. Prüfen Sie in den Sync-Einstellungen die Schreibberechtigungen für Trainings und aktive Energie. Verbinden Sie die Watch und prüfen Sie Apple Health. Ein nicht bestätigter Watch-Export wird nicht durch ein weiteres Training ersetzt."
   },
   "auth": {
     "noMethods": "Auf diesem Server sind derzeit keine Standard-Anmeldemethoden aktiviert. Bitte verwenden Sie einen API-Schlüssel oder wenden Sie sich an einen Administrator.",

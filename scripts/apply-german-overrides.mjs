@@ -36,6 +36,11 @@ const nativeCatalogs = [
     german: `XoTMobile/targets/${target}/de.lproj/Localizable.strings`,
     overrides: `localization-overrides/de/${target}.json`,
   })),
+  {
+    english: "XoTMobile/targets/watch/en.lproj/InfoPlist.strings",
+    german: "XoTMobile/targets/watch/de.lproj/InfoPlist.strings",
+    overrides: "localization-overrides/de/watch-metadata.json",
+  },
 ];
 
 const placeholders = (text) =>

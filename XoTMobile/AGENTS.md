@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and Trackbot chat.
 
@@ -138,6 +138,7 @@ npx expo prebuild --clean
 - Android read helpers return `{ records, error }` via `readHealthRecordsDetailed` and `aggregateCumulativeMetricByDayDetailed`; legacy wrappers unwrap only records.
 - Android exercise sessions are enriched with `aggregateRecord` for active, total, and basal calories plus distance and steps over the session window. Active/total calories start scoped to `dataOrigin`, while basal energy remains unfiltered; `total - basal` is compared as an active-energy candidate. Incomplete or implausible active/total pairs retry without the origin filter so Health Connect can apply source priority. Distance and steps always stay origin-scoped; never infer workout steps from an unfiltered clock-window query.
 - iOS exercise-session steps must come from statistics attached directly to the `HKWorkout`. Do not infer workout steps by querying all step samples in the workout's clock window.
+- Completed-workout Health export has one writer. `workoutHealthExport.ios.ts` reserves a Watch-owned session in the account-scoped export journal before granting recording; `targets/watch/Infrastructure/WorkoutHealthRecorder.swift` owns the native HealthKit session/builder and returns durable receipts through WatchConnectivity. Never fall back to a phone export after a Watch reservation or an ambiguous save. Watch recording starts at the actual sensor start, not the earlier phone timestamp. Phone-only exports require positive known active energy or skip Health export; missing energy is unknown, never a fabricated zero. Preserve the export sync identifier and both canonical/legacy metadata lookups. Exclude own phone and Watch writeback records from Health reimport. Watch Health permission copy uses English `InfoPlist.strings` and the reviewed `localization-overrides/de/watch-metadata.json` overlay.
 - iOS HealthKit locked-device failures surface as database-inaccessible warnings. Do not treat these as successful empty reads.
 - `app.config.ts` grants `android.permission.health.READ_HEALTH_DATA_HISTORY` so Android can read data older than 30 days.
 - Health Connect permission migrations belong in `services/shared/healthPermissionMigration.ts`, not UI-only state.

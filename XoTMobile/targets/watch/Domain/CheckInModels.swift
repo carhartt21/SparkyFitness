@@ -365,6 +365,7 @@ struct WatchWorkoutSnapshot: Codable, Equatable {
     let name: String
     let activeSetId: String?
     let restEndsAt: Date?
+    var healthRecordingEnabled: Bool? = nil
     let exercises: [Exercise]
 }
 

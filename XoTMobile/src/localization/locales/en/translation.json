@@ -790,7 +790,7 @@
     "enableAll": "Enable All Health Metrics",
     "batteryNote": "Enabling many health metrics may increase battery usage. Each enabled metric allows the app to wake in the background when new data is available.",
     "workoutExport": "Completed workouts",
-    "workoutExportNote": "Completed workouts are exported only after you turn this on. Turning it off stops future exports; the removal control below affects nutrition and hydration only.",
+    "workoutExportNote": "Completed workouts are exported only when this is on. On Watch, open the active workout and tap Record energy; allow Workouts and Active Energy. Finish on iPhone and keep both connected until the Watch saves to Health. Phone-only workouts need known active calories or can skip export. Turning this off stops future exports. Removal below affects nutrition and hydration only.",
     "workoutExportErrorTitle": "Apple Health export unavailable",
     "workoutExportErrorMessage": "Your workout was saved, but Apple Health export failed: {{error}}",
     "writeTitle": "Write to {{store}}",
@@ -812,7 +812,16 @@
       "healthAppUnavailableMessage": "Please install the Apple Health app to sync your health data.",
       "permissionErrorTitle": "Permission Error",
       "permissionErrorMessage": "An unexpected error occurred while trying to request Health permissions: {{error}}"
-    }
+    },
+    "workoutEnergyTitle": "Active calories for Apple Health",
+    "workoutEnergyMessage": "No Watch energy recording was started. Enter active calories only if you know them. Skip export to keep the workout in X on Track without a zero-calorie Health entry. Your goal settings stay unchanged.",
+    "workoutSkipExport": "Skip export",
+    "workoutEnergyInvalid": "Enter a positive calorie amount, or skip export.",
+    "workoutWatchPendingTitle": "Apple Health recording on Watch",
+    "workoutWatchPendingMessage": "Your workout is saved in X on Track. The Watch will finish its energy recording when it receives the finish command. Keep both devices connected; the phone will not create a duplicate Health workout.",
+    "workoutWatchUnavailableTitle": "Check Apple Health export",
+    "workoutWatchUnavailableMessage": "Your workout is saved in X on Track, but the Watch could not confirm its Health export. Check Apple Health after reconnecting. The phone will not create a second workout.",
+    "workoutExportCheckPermissions": "Your workout is saved in X on Track. Check the workout and active-energy write permissions in Sync settings, then reconnect your Watch and check Apple Health. No extra workout will be created to replace an unconfirmed Watch save."
   },
   "auth": {
     "frontendUrl": "Frontend URL",

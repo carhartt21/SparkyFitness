@@ -903,6 +903,41 @@ describe('readHealthRecords', () => {
   });
 
   describe('Workout records', () => {
+    test('preserves native Watch export metadata and timezone through the reader', async () => {
+      await initHealthConnect();
+      mockQueryWorkoutSamples.mockResolvedValue([
+        {
+          startDate: '2024-01-15T08:00:00Z',
+          endDate: '2024-01-15T09:00:00Z',
+          workoutActivityType: 50,
+          duration: 3600,
+          totalEnergyBurned: { unit: 'kcal', quantity: 175 },
+          metadata: {
+            XOnTrackWritebackVersion: 1,
+            HKSyncIdentifier: 'same-workout',
+          },
+          metadataTimeZone: 'Europe/Berlin',
+          sourceRevision: {
+            source: { bundleIdentifier: 'com.cg.phi.watchkitapp' },
+          },
+          getStatistic: jest.fn().mockResolvedValue(undefined),
+        },
+      ]);
+      const result = await readHealthRecords(
+        'Workout',
+        new Date('2024-01-15T00:00:00Z'),
+        new Date('2024-01-16T00:00:00Z')
+      );
+      expect(result[0]).toMatchObject({
+        metadata: {
+          XOnTrackWritebackVersion: 1,
+          HKSyncIdentifier: 'same-workout',
+          HKTimeZone: 'Europe/Berlin',
+        },
+        sourceBundleId: 'com.cg.phi.watchkitapp',
+      });
+    });
+
     test('fetches workouts using queryWorkoutSamples', async () => {
       await initHealthConnect();
 

@@ -384,6 +384,7 @@ export const requestHealthPermissions = async (
           );
         } else if (p.accessType === 'write') {
           writePermissionsSet.add('HKWorkoutTypeIdentifier');
+          writePermissionsSet.add('HKQuantityTypeIdentifierActiveEnergyBurned');
         }
       } else if (p.recordType === 'TotalCaloriesBurned') {
         // Total calories is derived from basal + active energy: the day-statistics
@@ -1249,12 +1250,16 @@ const handleWorkout: RecordHandler = async (
         sourceBundleId: w.sourceRevision?.source?.bundleIdentifier,
       };
       if (totalSteps !== undefined) record.totalSteps = totalSteps;
-      // Forward timezone metadata so the transform layer can attach it to output records
+      // Preserve our Watch writeback marker as well as timezone. Dropping
+      // workout metadata here bypasses the transform's feedback-loop guard.
+      const workoutMetadata: Record<string, unknown> = { ...w.metadata };
       const tz = (w as unknown as { metadataTimeZone?: string })
         .metadataTimeZone;
       if (tz) {
-        record.metadata = { HKTimeZone: tz };
+        workoutMetadata.HKTimeZone = tz;
       }
+      if (Object.keys(workoutMetadata).length > 0)
+        record.metadata = workoutMetadata;
 
       // Elevation is not a totals field on the workout; it arrives as metadata.
       const elevation = w as unknown as {

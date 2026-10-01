@@ -82,6 +82,7 @@ describe('workout read authorization', () => {
     ]);
 
     expect(toShare).toContain('HKWorkoutTypeIdentifier');
+    expect(toShare).toContain('HKQuantityTypeIdentifierActiveEnergyBurned');
     expect(toShare).not.toContain('HKWorkoutRouteTypeIdentifier');
   });
 

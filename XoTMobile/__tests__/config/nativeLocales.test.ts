@@ -22,6 +22,24 @@ function readMetadata(locale: string): { ios?: Record<string, string> } {
 }
 
 describe('native app locale resources', () => {
+  it('ships Watch workout permission explanations in English and German', () => {
+    for (const locale of ['en', 'de']) {
+      const resource = fs.readFileSync(
+        path.join(
+          MOBILE_ROOT,
+          `targets/watch/${locale}.lproj/InfoPlist.strings`
+        ),
+        'utf8'
+      );
+      for (const key of [
+        'NSHealthShareUsageDescription',
+        'NSHealthUpdateUsageDescription',
+      ]) {
+        expect(resource).toMatch(new RegExp(`"${key}" = "[^"]+";`));
+      }
+    }
+  });
+
   it('ships an Expo metadata catalog for every registered locale', () => {
     for (const locale of SHIPPED) {
       expect(
