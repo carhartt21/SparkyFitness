@@ -8,7 +8,7 @@ When you enable the MCP Server, your AI assistant transforms into a **Personal H
 
 ## 🛠 Available Tools & Capabilities
 
-The AI assistant can perform the following actions across different health domains. All tools automatically respect your **Unit Preferences** (e.g., converting lbs to kg or kcal to kJ).
+The AI assistant can perform the following actions across different health domains. Tools that convert units use your **Unit Preferences**; read-only measurement reminder status returns weight in kg and custom values in their configured unit, explicitly named in the response.
 
 ### 🥗 Nutrition & Food
 
@@ -69,7 +69,8 @@ These tools only read. Logging habits, completing check-ins, changing health con
 - **Daily check-in** (`sparky_get_daily_checkin`, `sparky_list_daily_checkins`): answers with their versioned meanings; a missing day is not recorded, never low.
 - **Health context** (`sparky_list_health_context_periods`): user-declared injury, illness and vacation periods. They are declarations, not diagnoses.
 - **Habits** (`sparky_list_habits`, `sparky_get_habit_history`): an explicit 0 is a record; days without a record are omitted.
-- **Measurement reminders** (`sparky_get_measurement_reminder_status`), **meal status** (`sparky_get_meal_tracking_status`).
+- **Measurement reminders** (`sparky_get_measurement_reminder_status`): due state plus `measurement_recorded`, the actual saved `value`, `unit`, `measurement_id`, `recorded_at` and `source` for the requested day. Weight is a number in kg; custom values retain their stored text and configured unit. Missing readings return `false` and null value fields; an older reading is never substituted. Zero is a recorded value. Weight source is null because the measurement table does not retain provider provenance. Only configured reminders are included; this is not a full measurement history endpoint.
+- **Meal status** (`sparky_get_meal_tracking_status`).
 - **Daily Progress** (`sparky_get_daily_progress`, `sparky_get_daily_status_context`): completed and applicable explicit tasks with each item's reason and a version. It is not a health score.
 - **Supplements** (`sparky_list_supplements`, `sparky_get_supplement`, `sparky_list_supplement_entries`): only items marked as supplements; medications are never returned.
 

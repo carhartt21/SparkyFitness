@@ -7,6 +7,7 @@ import {
   DAILY_CHECKIN_QUESTIONS_V1,
   discretionaryRemindersPaused,
   isMeasurementReminderDue,
+  measurementReminderMcpStatusResponseSchema,
   todayInZone,
 } from '@workspace/shared';
 import { log } from '../../config/logging.js';
@@ -17,7 +18,7 @@ import {
   listHabits,
   listHealthContextPeriods,
   listMeasurementReminders,
-  recordedMeasurementsOn,
+  recordedMeasurementValuesOn,
 } from '../../models/dailyTrackingRepository.js';
 import medicationRepository from '../../models/medicationRepository.js';
 import medicationEntryRepository from '../../models/medicationEntryRepository.js';
@@ -246,7 +247,7 @@ export function buildDailyTrackingTools(userId: string, tz: string) {
 
     sparky_get_measurement_reminder_status: tool({
       description:
-        'Read measurement reminders (e.g. weigh-in) and, for one day, which reminded measurements are due and whether a value was saved. Read-only.',
+        'Read measurement reminders (e.g. weigh-in) for one day, with due state, measurement_recorded, the actual saved value, unit and timestamp. Weight is returned in kg; custom values retain their stored text and configured unit. Missing values are null, never carried forward. Read-only.',
       inputSchema: dayInput,
       execute: async (rawArgs) => {
         const args = parseArgs(dayInput, rawArgs, tz);
@@ -254,20 +255,28 @@ export function buildDailyTrackingTools(userId: string, tz: string) {
         const date = args.value.date ?? today();
         return run('sparky_get_measurement_reminder_status', async () => {
           const reminders = await listMeasurementReminders(userId);
-          const recorded = await recordedMeasurementsOn(
+          const recorded = await recordedMeasurementValuesOn(
             userId,
             date,
             reminders.map((reminder) => reminder.measurement_key)
           );
-          return {
+          return measurementReminderMcpStatusResponseSchema.parse({
             date,
             reminders: reminders.map((reminder) => ({
               ...reminder,
               due: isMeasurementReminderDue(reminder, date),
-              recorded_at: recorded[reminder.measurement_key] ?? null,
+              measurement_recorded:
+                recorded[reminder.measurement_key] !== undefined,
+              measurement_id:
+                recorded[reminder.measurement_key]?.measurement_id ?? null,
+              value: recorded[reminder.measurement_key]?.value ?? null,
+              unit: recorded[reminder.measurement_key]?.unit ?? null,
+              recorded_at:
+                recorded[reminder.measurement_key]?.recorded_at ?? null,
+              source: recorded[reminder.measurement_key]?.source ?? null,
             })),
-            note: 'A measurement that is not due is not expected that day.',
-          };
+            note: 'A measurement that is not due is not expected that day. Only saved values on this date are returned; null means not recorded. Weight uses kg; custom values retain their stored text and configured unit. A null source means provider provenance was not stored.',
+          });
         });
       },
     }),
