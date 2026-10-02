@@ -19,7 +19,8 @@
     },
     "production": {
       "env": {
-        "APP_VARIANT": "production"
+        "APP_VARIANT": "production",
+        "EXPO_PUBLIC_MICRONUTRIENT_SYNC_ENABLED": "false"
       },
       "autoIncrement": true,
       "android": {

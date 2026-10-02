@@ -32,10 +32,12 @@ it('previews unresolved tasks only, bounded and stable, with check-in last', () 
     task('habit', 'complete'),
     task('goal', 'excluded'),
     task('workout', 'started'),
+    task('activity'),
   ];
-  expect(nextProgressTasks(items).map((item) => item.domain)).toEqual([
+  expect(nextProgressTasks(items, 5).map((item) => item.domain)).toEqual([
     'meal',
     'workout',
+    'activity',
     'checkin',
   ]);
   expect(nextProgressTasks(items, 1).map((item) => item.domain)).toEqual([
@@ -55,4 +57,16 @@ it('retains calendar date, subject IDs and literal meal labels in task navigatio
   });
   result.current.openItem({ ...task('goal'), label: 'hydration' });
   expect(hydration).toHaveBeenCalledTimes(1);
+});
+
+it('routes projected activities to their dated existing destinations', () => {
+  const { result } = renderHook(() =>
+    useProgressActions('2026-10-02', jest.fn())
+  );
+  result.current.openItem({ ...task('activity'), id: 'mobility:plan' });
+  expect(mockNavigate).toHaveBeenCalledWith('GuidedMobility');
+  result.current.openItem({ ...task('activity'), id: 'workout:plan' });
+  expect(mockNavigate).toHaveBeenCalledWith('ExerciseReview', {
+    date: '2026-10-02',
+  });
 });

@@ -402,7 +402,10 @@ export default defineConfig({
               text: "Proposal & review MCP",
               link: "/developer/mcp/recommendations",
             },
-            { text: "Notifications & Engagement MCP", link: "/developer/mcp/engagement" },
+            {
+              text: "Notifications & Engagement MCP",
+              link: "/developer/mcp/engagement",
+            },
             { text: "Vision MCP", link: "/developer/mcp/vision" },
           ],
         },

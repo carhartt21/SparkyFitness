@@ -1,0 +1,168 @@
+{
+  "base": "http://localhost:8139",
+  "results": [
+    {
+      "page": "dashboard",
+      "theme": "dark",
+      "viewport": "reference",
+      "size": "1586x992",
+      "file": "dashboard-reference-1586x992-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "diary",
+      "theme": "dark",
+      "viewport": "reference",
+      "size": "1586x992",
+      "file": "diary-reference-1586x992-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "reports",
+      "theme": "dark",
+      "viewport": "reference",
+      "size": "1586x992",
+      "file": "reports-reference-1586x992-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "dashboard",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "file": "dashboard-desktop-1280x800-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "diary",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "file": "diary-desktop-1280x800-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "reports",
+      "theme": "dark",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "file": "reports-desktop-1280x800-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "dashboard",
+      "theme": "dark",
+      "viewport": "mobile",
+      "size": "390x844",
+      "file": "dashboard-mobile-390x844-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "diary",
+      "theme": "dark",
+      "viewport": "mobile",
+      "size": "390x844",
+      "file": "diary-mobile-390x844-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "reports",
+      "theme": "dark",
+      "viewport": "mobile",
+      "size": "390x844",
+      "file": "reports-mobile-390x844-dark.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "dashboard",
+      "theme": "light",
+      "viewport": "reference",
+      "size": "1586x992",
+      "file": "dashboard-reference-1586x992-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "diary",
+      "theme": "light",
+      "viewport": "reference",
+      "size": "1586x992",
+      "file": "diary-reference-1586x992-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "reports",
+      "theme": "light",
+      "viewport": "reference",
+      "size": "1586x992",
+      "file": "reports-reference-1586x992-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "dashboard",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "file": "dashboard-desktop-1280x800-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "diary",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "file": "diary-desktop-1280x800-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "reports",
+      "theme": "light",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "file": "reports-desktop-1280x800-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "dashboard",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": "390x844",
+      "file": "dashboard-mobile-390x844-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "diary",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": "390x844",
+      "file": "diary-mobile-390x844-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    },
+    {
+      "page": "reports",
+      "theme": "light",
+      "viewport": "mobile",
+      "size": "390x844",
+      "file": "reports-mobile-390x844-light.png",
+      "horizontalOverflow": false,
+      "reference": null
+    }
+  ],
+  "consoleErrors": []
+}

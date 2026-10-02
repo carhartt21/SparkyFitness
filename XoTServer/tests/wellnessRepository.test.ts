@@ -56,6 +56,35 @@ describe('wellness persistence', () => {
     expect(client.query).toHaveBeenCalledWith('COMMIT');
     expect(client.release).toHaveBeenCalledOnce();
   });
+  it('leaves a borrowed coaching transaction under its caller control', async () => {
+    client.query.mockImplementation(async (sql: string) => ({
+      rows: sql.includes('SELECT id, name') ? [row] : [],
+    }));
+    await createHabit(
+      'owner',
+      'owner',
+      wellnessActivityRequest('Sauna'),
+      client as unknown as Awaited<ReturnType<typeof getClient>>
+    );
+    expect(getClient).not.toHaveBeenCalled();
+    for (const command of ['BEGIN', 'COMMIT', 'ROLLBACK']) {
+      expect(client.query).not.toHaveBeenCalledWith(command);
+    }
+    expect(client.release).not.toHaveBeenCalled();
+  });
+  it('propagates failures without rolling back a borrowed transaction', async () => {
+    client.query.mockRejectedValue(new Error('database unavailable'));
+    await expect(
+      createHabit(
+        'owner',
+        'owner',
+        wellnessActivityRequest('Sauna'),
+        client as unknown as Awaited<ReturnType<typeof getClient>>
+      )
+    ).rejects.toThrow('database unavailable');
+    expect(client.query).not.toHaveBeenCalledWith('ROLLBACK');
+    expect(client.release).not.toHaveBeenCalled();
+  });
   it('rolls back creation failures and releases the scoped client', async () => {
     client.query.mockImplementation(async (sql: string) => {
       if (sql.includes('INSERT INTO')) throw new Error('database unavailable');

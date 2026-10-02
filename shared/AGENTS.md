@@ -52,6 +52,7 @@ activity queries under the Daily Progress family. See
 - Never export stale or unfinished types; if a consumer is drafting code and needs a type not yet here, add it.
 
 The nutrient source inventory lives in `src/nutrients/blsComponentManifest.ts` (138 pinned headers, explicit supported/blocked/out-of-scope classifications) and `nativeMicronutrientMappings.ts` (27 categories). `catalogUnitConversion.ts` permits vitamin-D IU conversion only with explicit catalog identity. `nutrientCoverage.ts` separates nullable recorded totals from known/eligible counts; unknown days never become zero in averages. Database mirrors include retained catalog identities and BLS variant dataset provenance.
+
 ## Reviewed MCP recommendations
 
 - `src/schemas/api/{Coaching,MealPlanning}.api.zod.ts`, database `{Coaching,MealPlanning}.zod.ts`, `src/coaching/` and `src/fddb/` define coaching trust/action contracts, scheduling, confirmed outcomes, shared client/editor behavior and FDDB presentation. Engagement v3 adds coaching kinds; v1/v2 schemas remain strict. Validate all consuming packages.

@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function WeeklyActivityOverview() {
   const { t, i18n } = useTranslation();
-  const { timezone, formatDateInUserTimezone } = usePreferences();
+  const { timezone, formatDate } = usePreferences();
   const today = todayInZone(timezone);
   const [anchor, setAnchor] = useState(today);
   const [selected, setSelected] = useState<Record<string, string>>({});
@@ -70,8 +70,7 @@ export default function WeeklyActivityOverview() {
         </div>
       </div>
       <p className="text-sm text-muted-foreground tabular-nums">
-        {formatDateInUserTimezone(range.start_date)} –{' '}
-        {formatDateInUserTimezone(range.end_date)}
+        {formatDate(range.start_date)} – {formatDate(range.end_date)}
       </p>
       <p className="text-sm text-muted-foreground max-w-prose">
         {t('activityPlanning.explanation')}
@@ -127,7 +126,7 @@ export default function WeeklyActivityOverview() {
                   <div className="flex flex-wrap justify-between items-start gap-2">
                     <div className="min-w-0">
                       <p className="text-sm text-muted-foreground">
-                        {formatDateInUserTimezone(row.date)} ·{' '}
+                        {formatDate(row.date)} ·{' '}
                         {t(`activityPlanning.sport.${row.activity_type}`)}
                       </p>
                       <h3 className="font-semibold break-words">{row.label}</h3>

@@ -336,6 +336,7 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Micronutrient ingestion and coverage
 
 `services/nutrientObservationService.ts` resolves the bounded shared catalog in caller-owned transactions. Native ingestion is partial and preserves each source record independently; diary delegates write standalone snapshots without library mutation. `GET /api/reports/nutrient-coverage` and `models/nutrientCoverageRepository.ts` expose known/eligible counts separately from numeric trend keys. BLS imports reload trusted source values; `scripts/repair_bls_micronutrients.ts` defaults to a bounded, rolled-back dry run. See `../docs/implementation/micronutrient-coverage-rollout-2026-10-01.md` for flags, repair restrictions, replay and verification.
+
 ## Reviewed MCP recommendations
 
 - `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `models/coachingRepository.ts`, and `services/coaching{Run,Evidence,Planning,Review,Maintenance,Credential}Service.ts` implement owner-only leased proposals, frozen evidence, preview/activation and outcomes. `services/mealPlanOccurrenceService.ts` owns prompt occurrences and explicit consumption receipts; `tools/coachingRunner.ts` is the external Mac subscription runner. Agents never approve or log intake. See `../docs/src/developer/mcp/recommendations.md`.

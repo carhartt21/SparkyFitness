@@ -140,6 +140,7 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Micronutrient reports
 
 `src/pages/Reports/MicronutrientCoverage.tsx` displays recorded averages and known/eligible entry counts through `useNutrientCoverage` in the Reports hook/API layers. Coverage has its own response contract and stays outside legacy dynamic numeric trend keys. Provider saves and diary mutations invalidate definitions, preferences, goals and dependent report queries. Local Vite supports `VITE_BACKEND_PORT` (default 3010) for isolated worktrees.
+
 ## Reviewed MCP recommendations
 
 - `src/pages/Coaching/`, `src/hooks/Coaching/` and `src/api/Coaching/` own `/coaching`, review/edit/preview, owner schedule/credentials and explicit planned-meal consumption. Keep API/query imports in hooks; invalidate every dependent library/plan/diary family after acceptance. FDDB cards are read-only and empty imports are omitted before dashboard layout.

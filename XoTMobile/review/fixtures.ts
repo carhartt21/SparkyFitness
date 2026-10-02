@@ -1,3 +1,4 @@
+import { defaultCoachingSettings } from '@workspace/shared';
 import type { DailySummaryApiResponse } from '../src/services/api/dailySummaryApi';
 import { trackingReviewResponse } from './trackingFixture';
 
@@ -191,6 +192,26 @@ export function reviewResponse(path: string, scenario: string): unknown {
     ].includes(path)
   )
     return [];
+  // The v39 release intentionally leaves external coaching disabled.
+  if (path === '/api/v2/coaching/settings')
+    return {
+      featureEnabled: false,
+      timezone: 'Europe/Berlin',
+      settings: defaultCoachingSettings,
+      reconsiderTopics: [],
+      agents: [],
+    };
+  if (path === '/api/v2/activity-planning')
+    return {
+      start_date: reviewDate,
+      end_date: reviewDate,
+      timezone: 'Europe/Berlin',
+      occurrences: [],
+      records: [],
+      summary: [],
+      workout_plans: [],
+      note: '',
+    };
   const tracking = trackingReviewResponse(path, scenario, localToday());
   if (tracking !== undefined) return tracking;
   // Library (More tab) reads for the screen tour: an empty synthetic library.

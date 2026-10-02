@@ -47,3 +47,12 @@ it('distinguishes objective and planned training categories', () => {
   ).toBe('exercise-soccer');
   expect(progressTaskIcon(task({ domain: 'meal' }), [])).toBe('food');
 });
+
+it('distinguishes projected mobility from other planned activity', () => {
+  expect(
+    progressTaskIcon(task({ domain: 'activity', id: 'mobility:session' }), [])
+  ).toBe('exercise-yoga');
+  expect(
+    progressTaskIcon(task({ domain: 'activity', id: 'workout:session' }), [])
+  ).toBe('exercise-running');
+});

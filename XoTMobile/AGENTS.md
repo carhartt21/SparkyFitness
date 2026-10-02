@@ -395,6 +395,7 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Micronutrient synchronization
 
 The shared native registry covers 27 vitamins/minerals. Collection, permission probing, loose HealthKit reads, background delivery and bound custom-nutrient writeback use this registry; Health Connect unset zero remains unknown. `EXPO_PUBLIC_MICRONUTRIENT_SYNC_ENABLED=false` disables the expanded adapters at build time. Daily nutrition details show explicit known/eligible coverage through a separate report endpoint. Reuse Import History's resumable 30-day windows and Start Over for explicit replay after granting new permissions; stable source IDs upsert snapshots. `invalidateNutritionCaches.ts` keeps imported definitions, preferences, goals, daily values and coverage consistent. See the dated rollout record for physical-device checks.
+
 ## Reviewed MCP recommendations
 
 - `src/screens/CoachingScreen.tsx`, `src/hooks/useCoaching.ts` and `src/components/coaching/` implement the owner inbox, preview/acceptance and explicit prompt-meal logging. Identity guards bind requests/cache to account and server. The root `Coaching` deep link is opened by Engagement v3 pushes; taps do not complete anything. `useMealTypes` excludes FDDB for writable choices; opt into read-only types only for diary/detail presentation.

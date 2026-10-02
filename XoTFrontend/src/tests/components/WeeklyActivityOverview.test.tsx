@@ -8,7 +8,7 @@ jest.mock('@/hooks/Tracking/useActivityPlanning');
 jest.mock('@/contexts/PreferencesContext', () => ({
   usePreferences: () => ({
     timezone: 'UTC',
-    formatDateInUserTimezone: (day: string) => day,
+    formatDate: (day: string) => day.split('-').reverse().join('.'),
   }),
 }));
 jest.mock('react-i18next', () => ({
@@ -140,4 +140,10 @@ it('reports a failed write without claiming completion', async () => {
   expect(
     screen.getByText('activityPlanning.state.pending')
   ).toBeInTheDocument();
+});
+
+it('uses the configured calendar-date format for the range and occurrence', () => {
+  mount();
+  expect(screen.getByText('28.09.2026 – 04.10.2026')).toBeInTheDocument();
+  expect(screen.getByText(/01\.10\.2026/)).toBeInTheDocument();
 });
