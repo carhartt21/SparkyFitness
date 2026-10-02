@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v39 owner-review corrective plan](v39-review-corrective-plan-2026-10-02.md) and [results](v39-review-corrective-results-2026-10-02.md): activity labels/skip, category overview and localized Watch daily goals; physical-device checks remain separate.
+
 - [Feature merge strategy](feature-branch-merge-strategy-2026-09-30.md) and [combined integration evidence](feature-batch-integration-2026-09-30.md): branch order, blocker corrections and release/device gates.
 - [TestFlight release](../../XoTMobile/docs/testflight-release.md): signing, local/cloud build and submission. Confirm the actual submission state independently of a successful archive.
 - [Repository cleanup](repository-cleanup-2026-09-29.md): current package layout, compatibility boundaries and cleanup verification.

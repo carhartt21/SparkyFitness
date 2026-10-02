@@ -98,6 +98,21 @@ npx expo prebuild --clean
 - `ActiveWorkoutBar` is mounted outside normal screen trees, uses the root navigation ref, and hides itself on modal/editor routes such as food search/forms/scan/photo, exercise search, workout/activity add, measurements, and barcode edit.
 - Most screens are wrapped with `withErrorBoundary(...)`; `SettingsScreen` also uses section-level recovery so settings remain reachable.
 
+## Watch daily goals
+
+`targets/watch/Presentation/DailyGoalsView.swift` reads the current-day phone snapshot;
+`dailyProgressItems` contains at most 64 unfinished goals. Only boolean completion
+habits and explicit meal-state confirmations can be written without additional data.
+Never infer a completed workout, intake, count or measurement from a Watch tap.
+The existing WatchConnectivity queue persists IDs, account scope, day and captured
+source timestamps. `src/services/watchProgressActions.ts` records attempt receipts
+before writes and blocks uncertain replays after later edits/undo; it is not a second
+outbox. Pending actions are not completed progress. API calls stay pinned to the
+active identity. Preserve the canonical generated drawing shared by Watch and its
+complication. Native copy goes through `WatchCopy` and the reviewed German overlay,
+including sync-state and accessibility labels. See `review/README.md` for isolated
+native render checks and remaining paired-device gates.
+
 ## Source Map
 
 - `src/screens/CoachingScreen.tsx`, `src/components/coaching/`, and `src/hooks/useCoaching.ts` - owner recommendation inbox, typed review/preview, follow-up and prompt meal consumption. Engagement v3 taps open the owner inbox without logging or completing actions.
