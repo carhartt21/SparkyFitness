@@ -31,12 +31,15 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier . --write",
     "format:check": "prettier . --check",
-    "validate": "pnpm run i18n:generate:check && node ../scripts/apply-german-overrides.mjs --check && node ../scripts/audit-german-copy.mjs && pnpm run typecheck && pnpm run lint && pnpm run i18n:audit && pnpm run knip && pnpm run native-locales:check && pnpm run watch-geometry:check && pnpm run format:check",
+    "validate": "pnpm run i18n:generate:check && node ../scripts/apply-german-overrides.mjs --check && node ../scripts/audit-german-copy.mjs && pnpm run typecheck && pnpm run lint && pnpm run i18n:audit && pnpm run knip && pnpm run native-locales:check && pnpm run watch-geometry:check && pnpm run widget-brand:check && pnpm run format:check",
     "i18n:generate": "node scripts/generate-locale-resources.mjs",
     "i18n:generate:check": "node scripts/generate-locale-resources.mjs --check",
     "native-locales:check": "node scripts/validate-native-widget-locales.mjs",
     "watch-geometry:check": "tsx scripts/generate-watch-progress-x.mjs --check",
-    "ui:review:ios": "node scripts/review-ios.mjs"
+    "ui:review:ios": "node scripts/review-ios.mjs",
+    "widget-brand:generate": "node scripts/generate-widget-brand.mjs",
+    "widget-brand:check": "node scripts/generate-widget-brand.mjs --check",
+    "ui:review:widgets": "node scripts/review-widget-content.mjs"
   },
   "dependencies": {
     "@assistant-ui/react-ai-sdk": "^1.4.10",

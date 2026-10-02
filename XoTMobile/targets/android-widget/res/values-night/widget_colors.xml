@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generated from global.css. -->
+<resources>
+    <color name="xot_widget_surface">#08181e</color>
+    <color name="xot_widget_raised">#10242b</color>
+    <color name="xot_widget_foreground">#edf5f7</color>
+    <color name="xot_widget_secondary">#b4c8d2</color>
+    <color name="xot_widget_accent">#14e89a</color>
+    <color name="xot_widget_energy">#b4c8d2</color>
+    <color name="xot_widget_track">#12302a</color>
+    <color name="xot_widget_protein">#57b9f8</color>
+    <color name="xot_widget_carbs">#b59cff</color>
+    <color name="xot_widget_fat">#f5b647</color>
+    <color name="xot_widget_action_outline">#3814e89a</color>
+</resources>

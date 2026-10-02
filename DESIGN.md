@@ -287,6 +287,12 @@ Workout rows offer Skip while unresolved, Undo for a saved decision, and linking
 
 **Verification boundary:** This addition records component source, shared calendar-week and record-selection helpers, reused primitives, and English locale content on 2026-10-01. Browser checks were skipped at the user's request after saved permission rejected access to `localhost:8080`. No screenshot, simulator, or device capture supports this addition; authenticated appearance, narrow-width behavior, theme rendering, and enlarged-text behavior remain unverified.
 
+### Native Home Screen and Lock Screen widgets
+
+The native calorie, macro, meal-capture, and routine widgets use the app’s semantic palette and the approved Progression X geometry. The small X is static identity artwork. Energy remains slate, protein blue, carbs violet, and fat amber; nutrition rings and bars retain their actual snapshot semantics. Dark full-color widgets use a restrained green corner wash, narrow nutrient halos, and green shortcut outlines. Light widgets use cream surfaces and dark green actions. OS tinted/vibrant modes suppress color and glow; iOS Lock Screen accessories retain transparent backgrounds and recognizable action symbols with a monochrome X detail. Reduce Transparency removes the iOS glow.
+
+Fixed widget frames prioritize numeric values and readable status copy. iOS nutrition metrics place values and wrapping units beside compact rings, with the identity title at the top in both sizes; the rings are excluded from duplicate accessibility announcements. Shortcut outlines are a quiet 22% accent, leaving full-contrast action symbols and data in the foreground. iOS medium shortcuts use a horizontal row with 44-point targets; Android shortcuts use 48dp targets. Native system fonts, localized labels, units, and existing deep links are preserved. Text growth is bounded to the available widget frame; full accessibility labels remain available. Palette and artwork changes must pass `XoTMobile`’s generated-widget asset check. Native content captures and outstanding OS-host/device acceptance are recorded separately in the dated implementation notes.
+
 ## Do's and Don'ts
 
 ### Do:

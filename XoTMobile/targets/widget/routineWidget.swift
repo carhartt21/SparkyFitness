@@ -74,30 +74,30 @@ private struct RoutineView: View {
             case .accessoryInline:
                 Text(localizedWidgetString("widget.routine.open")).lineLimit(1)
             case .accessoryCircular:
-                Image(systemName: "list.bullet")
+                WidgetAccessorySymbol(icon: "list.bullet")
                     .accessibilityLabel(localizedWidgetString("widget.routine.open"))
             case .accessoryRectangular:
                 VStack(alignment: .leading, spacing: 2) {
-                    Label(localizedWidgetString("widget.routine.name"),
-                        systemImage: "list.bullet")
+                    WidgetTitle(title: localizedWidgetString("widget.routine.name"), markSize: 16)
                     Text(localizedWidgetString("widget.routine.open"))
                         .font(.caption).lineLimit(1)
                 }
             default:
-                VStack(alignment: .leading, spacing: 8) {
-                    Label(localizedWidgetString("widget.routine.name"),
-                        systemImage: "list.bullet")
-                        .font(.headline)
-                    Text(summary).font(.subheadline).lineLimit(2)
+                VStack(alignment: .leading, spacing: 6) {
+                    WidgetTitle(title: localizedWidgetString("widget.routine.name"))
+                    Text(summary).font(.caption).lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .modifier(WidgetTextStyle(secondary: true))
                     Spacer(minLength: 0)
-                    Text(localizedWidgetString("widget.routine.open"))
-                        .font(.caption)
+                    Label(localizedWidgetString("widget.routine.open"), systemImage: "list.bullet")
+                        .modifier(WidgetActionStyle())
                 }
-                .padding()
+                .modifier(WidgetTextStyle())
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
             }
         }
         .widgetURL(routinesURL)
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) { WidgetSurface() }
     }
 }
 

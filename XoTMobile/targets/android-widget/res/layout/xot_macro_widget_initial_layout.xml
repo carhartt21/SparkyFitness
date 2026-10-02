@@ -4,21 +4,28 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center_vertical"
-    android:background="#FFFFFFFF"
+    android:background="@drawable/widget_surface"
     android:padding="14dp">
 
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="horizontal" android:gravity="center_vertical">
+        <ImageView android:layout_width="20dp" android:layout_height="20dp"
+            android:layout_marginEnd="6dp" android:src="@drawable/ic_widget_brand_x"
+            android:importantForAccessibility="no" />
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="wrap_content"
         android:text="@string/widget_preview_macros_left"
-        android:textSize="20sp"
+        android:textSize="16sp"
         android:textStyle="bold"
-        android:textColor="#FF1F1F1F"
+        android:textColor="@color/xot_widget_foreground"
         android:maxLines="1" />
+    </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="10dp"
+        android:layout_height="6dp"
         android:text="" />
 
     <LinearLayout
@@ -30,7 +37,7 @@
         <TextView
             android:layout_width="12dp"
             android:layout_height="12dp"
-            android:background="#FFF6B151"
+            android:background="@color/xot_widget_protein"
             android:text="" />
 
         <TextView
@@ -44,7 +51,7 @@
             android:layout_weight="1"
             android:text="@string/widget_protein"
             android:textSize="14sp"
-            android:textColor="#FF1F1F1F"
+            android:textColor="@color/xot_widget_foreground"
             android:maxLines="1" />
 
         <TextView
@@ -52,7 +59,7 @@
             android:layout_height="wrap_content"
             android:text="@string/widget_preview_grams_protein"
             android:textSize="14sp"
-            android:textColor="#FF1F1F1F"
+            android:textColor="@color/xot_widget_foreground"
             android:maxLines="1" />
     </LinearLayout>
 
@@ -60,18 +67,18 @@
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:orientation="horizontal"
-        android:background="#FFE2E4EB">
+        android:background="@color/xot_widget_track">
 
         <TextView
             android:layout_width="72dp"
             android:layout_height="match_parent"
-            android:background="#FFF6B151"
+            android:background="@color/xot_widget_protein"
             android:text="" />
     </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="7dp"
+        android:layout_height="4dp"
         android:text="" />
 
     <LinearLayout
@@ -83,7 +90,7 @@
         <TextView
             android:layout_width="12dp"
             android:layout_height="12dp"
-            android:background="#FF7BD680"
+            android:background="@color/xot_widget_carbs"
             android:text="" />
 
         <TextView
@@ -97,7 +104,7 @@
             android:layout_weight="1"
             android:text="@string/widget_carbs"
             android:textSize="14sp"
-            android:textColor="#FF1F1F1F"
+            android:textColor="@color/xot_widget_foreground"
             android:maxLines="1" />
 
         <TextView
@@ -105,7 +112,7 @@
             android:layout_height="wrap_content"
             android:text="@string/widget_preview_grams_carbs"
             android:textSize="14sp"
-            android:textColor="#FF1F1F1F"
+            android:textColor="@color/xot_widget_foreground"
             android:maxLines="1" />
     </LinearLayout>
 
@@ -113,18 +120,18 @@
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:orientation="horizontal"
-        android:background="#FFE2E4EB">
+        android:background="@color/xot_widget_track">
 
         <TextView
             android:layout_width="154dp"
             android:layout_height="match_parent"
-            android:background="#FF7BD680"
+            android:background="@color/xot_widget_carbs"
             android:text="" />
     </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="7dp"
+        android:layout_height="4dp"
         android:text="" />
 
     <LinearLayout
@@ -136,7 +143,7 @@
         <TextView
             android:layout_width="12dp"
             android:layout_height="12dp"
-            android:background="#FF6DCBE9"
+            android:background="@color/xot_widget_fat"
             android:text="" />
 
         <TextView
@@ -150,7 +157,7 @@
             android:layout_weight="1"
             android:text="@string/widget_fat"
             android:textSize="14sp"
-            android:textColor="#FF1F1F1F"
+            android:textColor="@color/xot_widget_foreground"
             android:maxLines="1" />
 
         <TextView
@@ -158,7 +165,7 @@
             android:layout_height="wrap_content"
             android:text="@string/widget_preview_grams_fat"
             android:textSize="14sp"
-            android:textColor="#FF1F1F1F"
+            android:textColor="@color/xot_widget_foreground"
             android:maxLines="1" />
     </LinearLayout>
 
@@ -166,18 +173,18 @@
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:orientation="horizontal"
-        android:background="#FFE2E4EB">
+        android:background="@color/xot_widget_track">
 
         <TextView
             android:layout_width="78dp"
             android:layout_height="match_parent"
-            android:background="#FF6DCBE9"
+            android:background="@color/xot_widget_fat"
             android:text="" />
     </LinearLayout>
 
     <TextView
         android:layout_width="match_parent"
-        android:layout_height="14dp"
+        android:layout_height="8dp"
         android:text="" />
 
     <LinearLayout
@@ -188,24 +195,24 @@
 
         <ImageView
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:src="@drawable/ic_widget_search"
-            android:tint="#FF1B5744"
+            android:tint="@color/xot_widget_energy"
             android:contentDescription="@string/widget_search_food" />
 
         <TextView
             android:layout_width="1dp"
             android:layout_height="48dp"
-            android:background="#FFE2E4EB"
+            android:background="@color/xot_widget_track"
             android:text="" />
 
         <ImageView
             android:layout_width="0dp"
-            android:layout_height="40dp"
+            android:layout_height="48dp"
             android:layout_weight="1"
             android:src="@drawable/ic_widget_scan"
-            android:tint="#FF1B5744"
+            android:tint="@color/xot_widget_energy"
             android:contentDescription="@string/widget_scan_barcode" />
     </LinearLayout>
 </LinearLayout>

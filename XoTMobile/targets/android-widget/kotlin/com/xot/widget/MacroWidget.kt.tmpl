@@ -4,17 +4,14 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -47,14 +44,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToLong
 import org.json.JSONObject
 
-/**
- * Classic base composition, unchanged from the pre-localization macro widget
- * (22415819): one-line localized kcal header, three inline macro rows with
- * progress bars, and the search/scan shortcut row — all rendered in the fixed
- * 2x2 footprint. Only strings, accessibility labels and number formatting
- * follow the app/system language; geometry, footprint and behavior are
- * untouched.
- */
+/** Nutrition values retain their snapshot semantics; the X is static brand artwork. */
 class MacroWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
@@ -98,7 +88,7 @@ class MacroWidget : GlanceAppWidget() {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ImageProvider(R.drawable.widget_surface))
                 .appWidgetBackgroundCornerRadius()
                 .padding(14.dp)
                 .clickable(actionStartActivity(openAppIntent)),
@@ -106,58 +96,29 @@ class MacroWidget : GlanceAppWidget() {
         ) {
             Column(modifier = GlanceModifier.fillMaxWidth()) {
                 CalorieHeader(context = widgetContext, snapshot = snapshot)
-                Spacer(modifier = GlanceModifier.height(10.dp))
-                MacroRows(context = widgetContext, snapshot = snapshot, spacing = 7)
-                Spacer(modifier = GlanceModifier.height(14.dp))
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    ActionButton(
-                        intent = searchIntent,
-                        icon = R.drawable.ic_widget_search,
-                        contentDescription = searchFoodLabel,
-                        modifier = GlanceModifier
-                            .defaultWeight()
-                            .height(40.dp),
-                    )
-                    Box(
-                        modifier = GlanceModifier
-                            .width(1.dp)
-                            .height(48.dp)
-                            .background(GlanceTheme.colors.surfaceVariant),
-                    ) {}
-                    ActionButton(
-                        intent = scanIntent,
-                        icon = R.drawable.ic_widget_scan,
-                        contentDescription = scanBarcodeLabel,
-                        modifier = GlanceModifier
-                            .defaultWeight()
-                            .height(40.dp),
-                    )
+                Spacer(modifier = GlanceModifier.height(6.dp))
+                MacroRows(context = widgetContext, snapshot = snapshot, spacing = 4)
+                Spacer(modifier = GlanceModifier.height(8.dp))
+                Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    WidgetActionButton(intent = searchIntent, icon = R.drawable.ic_widget_search,
+                        contentDescription = searchFoodLabel, modifier = GlanceModifier.defaultWeight())
+                    Spacer(modifier = GlanceModifier.width(8.dp))
+                    WidgetActionButton(intent = scanIntent, icon = R.drawable.ic_widget_scan,
+                        contentDescription = scanBarcodeLabel, modifier = GlanceModifier.defaultWeight())
                 }
             }
         }
     }
 
     @Composable
-    private fun CalorieHeader(context: Context, snapshot: MacroSnapshot?, fontSize: Int = 20) {
+    private fun CalorieHeader(context: Context, snapshot: MacroSnapshot?) {
         val calories = snapshot?.displayCalories
         val text = if (snapshot?.hasData == true && calories != null) {
             context.getString(R.string.widget_kcal_left, formatInt(context, calories))
         } else {
             context.getString(R.string.widget_kcal_left_empty)
         }
-        Text(
-            text = text,
-            style = TextStyle(
-                color = GlanceTheme.colors.onSurface,
-                fontSize = fontSize.sp,
-                fontWeight = FontWeight.Bold,
-            ),
-            maxLines = 1,
-            modifier = GlanceModifier.fillMaxWidth(),
-        )
+        WidgetHeader(text = text)
     }
 
     @Composable
@@ -167,7 +128,7 @@ class MacroWidget : GlanceAppWidget() {
             label = context.getString(R.string.widget_protein),
             grams = snapshot?.protein ?: 0.0,
             progress = snapshot.progressFor(MacroKind.PROTEIN),
-            color = MacroPalette.protein,
+            color = WidgetPalette.protein,
         )
         Spacer(modifier = GlanceModifier.height(spacing.dp))
         MacroRow(
@@ -175,7 +136,7 @@ class MacroWidget : GlanceAppWidget() {
             label = context.getString(R.string.widget_carbs),
             grams = snapshot?.carbs ?: 0.0,
             progress = snapshot.progressFor(MacroKind.CARBS),
-            color = MacroPalette.carbs,
+            color = WidgetPalette.carbs,
         )
         Spacer(modifier = GlanceModifier.height(spacing.dp))
         MacroRow(
@@ -183,7 +144,7 @@ class MacroWidget : GlanceAppWidget() {
             label = context.getString(R.string.widget_fat),
             grams = snapshot?.fat ?: 0.0,
             progress = snapshot.progressFor(MacroKind.FAT),
-            color = MacroPalette.fat,
+            color = WidgetPalette.fat,
         )
     }
 
@@ -210,7 +171,7 @@ class MacroWidget : GlanceAppWidget() {
                 Text(
                     text = label,
                     style = TextStyle(
-                        color = GlanceTheme.colors.onSurfaceVariant,
+                        color = WidgetPalette.secondary,
                         fontSize = 14.sp,
                     ),
                     maxLines = 1,
@@ -219,7 +180,7 @@ class MacroWidget : GlanceAppWidget() {
                 Text(
                     text = context.getString(R.string.widget_grams, formatInt(context, grams)),
                     style = TextStyle(
-                        color = GlanceTheme.colors.onSurface,
+                        color = WidgetPalette.foreground,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Medium,
                     ),
@@ -233,29 +194,7 @@ class MacroWidget : GlanceAppWidget() {
                     .fillMaxWidth()
                     .height(4.dp),
                 color = color,
-                backgroundColor = GlanceTheme.colors.surfaceVariant,
-            )
-        }
-    }
-
-    @Composable
-    private fun ActionButton(
-        intent: Intent,
-        icon: Int,
-        contentDescription: String,
-        modifier: GlanceModifier = GlanceModifier
-            .fillMaxWidth()
-            .height(42.dp),
-    ) {
-        Box(
-            modifier = modifier.clickable(actionStartActivity(intent)),
-            contentAlignment = Alignment.Center,
-        ) {
-            Image(
-                provider = ImageProvider(icon),
-                contentDescription = contentDescription,
-                colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
-                modifier = GlanceModifier.size(24.dp),
+                backgroundColor = WidgetPalette.track,
             )
         }
     }
@@ -393,10 +332,4 @@ class MacroWidget : GlanceAppWidget() {
     companion object {
         val SNAPSHOT_STATE_KEY = stringPreferencesKey(MacroWidgetReceiver.PREFS_KEY_SNAPSHOT)
     }
-}
-
-private object MacroPalette {
-    val protein = ColorProvider(Color(0xFFF6B151))
-    val carbs = ColorProvider(Color(0xFF7BD680))
-    val fat = ColorProvider(Color(0xFF6DCBE9))
 }

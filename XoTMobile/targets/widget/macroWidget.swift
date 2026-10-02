@@ -77,13 +77,8 @@ struct MacroProvider: TimelineProvider {
     }
 }
 
-private enum MacroPalette {
-    static let protein = Color(red: 0.965, green: 0.694, blue: 0.318)
-    static let carbs   = Color(red: 0.484, green: 0.840, blue: 0.503)
-    static let fat     = Color(red: 0.430, green: 0.797, blue: 0.913)
-}
-
 private struct MacroRing: View {
+    @Environment(\.widgetRenderingMode) private var mode
     let snapshot: MacroSnapshot
     let size: CGFloat
     let strokeWidth: CGFloat
@@ -94,7 +89,7 @@ private struct MacroRing: View {
         ZStack {
             Circle()
                 .stroke(
-                    Color.secondary.opacity(0.2),
+                    widgetColor(WidgetPalette.track, mode: mode).opacity(mode == .fullColor ? 1 : 0.15),
                     style: StrokeStyle(lineWidth: strokeWidth)
                 )
 
@@ -107,17 +102,17 @@ private struct MacroRing: View {
                 segment(
                     start: 0,
                     length: proteinFrac,
-                    color: MacroPalette.protein
+                    color: WidgetPalette.protein
                 )
                 segment(
                     start: proteinFrac,
                     length: carbsFrac,
-                    color: MacroPalette.carbs
+                    color: WidgetPalette.carbs
                 )
                 segment(
                     start: proteinFrac + carbsFrac,
                     length: fatFrac,
-                    color: MacroPalette.fat
+                    color: WidgetPalette.fat
                 )
             }
         }
@@ -133,50 +128,18 @@ private struct MacroRing: View {
             Circle()
                 .trim(from: from, to: to)
                 .stroke(
-                    color,
+                    widgetColor(color, mode: mode),
                     style: StrokeStyle(lineWidth: strokeWidth, lineCap: .butt)
                 )
                 .rotationEffect(.degrees(-90))
+                .modifier(WidgetNeonStroke(color: color))
+                .widgetAccentable()
         }
     }
 }
 
-private struct MacroRingWithLabel: View {
-    let snapshot: MacroSnapshot
-    let ringSize: CGFloat
-    let strokeWidth: CGFloat
-    let numberFontSize: CGFloat
-
-    private var centerText: String {
-        guard snapshot.hasData else { return "-" }
-        return localizedNumberString(snapshot.caloriesConsumed)
-    }
-
-    var body: some View {
-        MacroRing(snapshot: snapshot, size: ringSize, strokeWidth: strokeWidth)
-            .overlay(
-                VStack(spacing: 0) {
-                    Text(centerText)
-                        .font(.system(size: numberFontSize, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.6)
-                        .lineLimit(1)
-                    Text(localizedWidgetString("widget.kcal"))
-                        .font(.system(size: numberFontSize * 0.58))
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, strokeWidth)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(
-                    String(
-                        format: localizedWidgetString("widget.a11y.kcal"),
-                        centerText
-                    )
-                )
-            )
-    }
-}
-
 private struct MacroRow: View {
+    @Environment(\.widgetRenderingMode) private var mode
     let label: String
     let grams: Double
     let color: Color
@@ -191,17 +154,17 @@ private struct MacroRow: View {
     var body: some View {
         HStack(spacing: 8) {
             Circle()
-                .fill(color)
+                .fill(widgetColor(color, mode: mode))
                 .frame(width: 8, height: 8)
             Text(label)
-                .font(.system(size: 15))
-                .foregroundStyle(.secondary)
+                .font(.caption2)
+                .modifier(WidgetTextStyle(secondary: true))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             Spacer(minLength: 0)
             Text(valueText)
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundStyle(.primary)
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
@@ -212,90 +175,71 @@ private struct MacroRow: View {
 
 struct macroWidgetEntryView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.dynamicTypeSize) private var typeSize
     var entry: MacroProvider.Entry
-
-    private var dashboardURL: URL? {
-        URL(string: "sparkyfitnessmobile://")
-    }
 
     var body: some View {
         Group {
-            switch family {
-            case .systemSmall:
-                smallBody
-            default:
-                mediumBody
-            }
+            if family == .systemSmall { smallBody } else { mediumBody }
         }
-        .widgetURL(dashboardURL)
+        .modifier(WidgetTextStyle())
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .widgetURL(URL(string: "sparkyfitnessmobile://"))
+    }
+
+    private var caloriesText: String {
+        entry.snapshot.hasData ? localizedNumberString(entry.snapshot.caloriesConsumed) : "-"
+    }
+
+    private var metric: some View {
+        WidgetMetric(value: caloriesText, label: localizedWidgetString("widget.kcal"),
+            accessibilityText: String(format: localizedWidgetString("widget.a11y.kcal"), caloriesText),
+            compact: family == .systemSmall)
+    }
+
+    private var macroRows: some View {
+        VStack(spacing: 2) {
+            MacroRow(label: localizedWidgetString("widget.protein"), grams: entry.snapshot.proteinGrams, color: WidgetPalette.protein)
+            MacroRow(label: localizedWidgetString("widget.carbs"), grams: entry.snapshot.carbsGrams, color: WidgetPalette.carbs)
+            MacroRow(label: localizedWidgetString("widget.fat"), grams: entry.snapshot.fatGrams, color: WidgetPalette.fat)
+        }
     }
 
     private var smallBody: some View {
-        VStack(spacing: 8) {
-            MacroRingWithLabel(
-                snapshot: entry.snapshot,
-                ringSize: 80,
-                strokeWidth: 8,
-                numberFontSize: 18
-            )
-            VStack(spacing: 3) {
-                MacroRow(label: localizedWidgetString("widget.protein"), grams: entry.snapshot.proteinGrams, color: MacroPalette.protein)
-                MacroRow(label: localizedWidgetString("widget.carbs"), grams: entry.snapshot.carbsGrams, color: MacroPalette.carbs)
-                MacroRow(label: localizedWidgetString("widget.fat"), grams: entry.snapshot.fatGrams, color: MacroPalette.fat)
+        VStack(spacing: 4) {
+            WidgetTitle(title: localizedWidgetString("widget.macro.name"))
+            HStack(spacing: 8) {
+                if !typeSize.isAccessibilitySize {
+                    MacroRing(snapshot: entry.snapshot, size: 44, strokeWidth: 5)
+                        .accessibilityHidden(true)
+                }
+                metric
             }
+            Spacer(minLength: 0)
+            macroRows
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var mediumBody: some View {
-        GeometryReader { geo in
-            let isCompact = geo.size.width < 310
-            let ringSize: CGFloat = isCompact ? 82 : 95
-            let hSpacing: CGFloat = isCompact ? 14 : 28
-            let buttonColumnWidth: CGFloat = isCompact ? 26 : 32
-
-            HStack(spacing: hSpacing) {
-                MacroRingWithLabel(
-                    snapshot: entry.snapshot,
-                    ringSize: ringSize,
-                    strokeWidth: 7,
-                    numberFontSize: isCompact ? 18 : 20
-                )
-
-                VStack(alignment: .leading, spacing: 20) {
-                    MacroRow(label: localizedWidgetString("widget.protein"), grams: entry.snapshot.proteinGrams, color: MacroPalette.protein)
-                    MacroRow(label: localizedWidgetString("widget.carbs"), grams: entry.snapshot.carbsGrams, color: MacroPalette.carbs)
-                    MacroRow(label: localizedWidgetString("widget.fat"), grams: entry.snapshot.fatGrams, color: MacroPalette.fat)
+        VStack(spacing: 4) {
+            WidgetTitle(title: localizedWidgetString("widget.macro.name"))
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    if !typeSize.isAccessibilitySize {
+                        MacroRing(snapshot: entry.snapshot, size: 44, strokeWidth: 5)
+                            .accessibilityHidden(true)
+                    }
+                    metric
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Rectangle()
-                    .fill(Color.secondary.opacity(0.25))
-                    .frame(width: 1)
-                    .frame(maxHeight: .infinity)
-
-                VStack(spacing: 8) {
-                    ActionButton(
-                        icon: "camera",
-                        destination: URL(string: "sparkyfitnessmobile://meal-photo")!,
-                        accessibilityLabel: localizedWidgetString("widget.meal_photo")
-                    )
-                    ActionButton(
-                        icon: "magnifyingglass",
-                        destination: URL(string: "sparkyfitnessmobile://search")!,
-                        accessibilityLabel: localizedWidgetString("widget.search_food")
-                    )
-                    ActionButton(
-                        icon: "barcode.viewfinder",
-                        destination: URL(string: "sparkyfitnessmobile://scan")!,
-                        accessibilityLabel: localizedWidgetString("widget.scan_barcode")
-                    )
-                }
-                .frame(width: buttonColumnWidth)
-                .frame(maxHeight: .infinity)
+                .frame(width: 132)
+                macroRows
+                    .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxHeight: .infinity)
+            WidgetShortcuts()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -305,7 +249,7 @@ struct macroWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: MacroProvider()) { entry in
             macroWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(for: .widget) { WidgetSurface() }
         }
         .configurationDisplayName("widget.macro.name")
         .description("widget.macro.description")

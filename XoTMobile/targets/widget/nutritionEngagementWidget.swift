@@ -98,44 +98,48 @@ private struct NutritionEngagementView: View {
                     .widgetURL(photoURL)
             case .accessoryCircular:
                 Link(destination: photoURL) {
-                    VStack(spacing: 1) {
-                        Image(systemName: "camera.fill")
-                    }
-                }.accessibilityLabel(localizedWidgetString("widget.meal_photo"))
+                    WidgetAccessorySymbol(icon: "camera.fill")
+                }.tint(.primary).accessibilityLabel(localizedWidgetString("widget.meal_photo"))
             case .accessoryRectangular:
                 Link(destination: photoURL) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Label(localizedWidgetString("widget.nutrition.name"), systemImage: "camera.fill")
+                        WidgetTitle(title: localizedWidgetString("widget.nutrition.name"), markSize: 16)
                         Text(localizedWidgetString("widget.nutrition.photo"))
                             .font(.caption).lineLimit(1)
                     }
-                }.accessibilityLabel(localizedWidgetString("widget.meal_photo"))
+                }.foregroundStyle(.primary)
+                    .accessibilityLabel(localizedWidgetString("widget.meal_photo"))
             default:
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(localizedWidgetString("widget.nutrition.name"))
-                        .font(.headline)
-                    Text(status).font(.subheadline).lineLimit(2)
+                VStack(alignment: .leading, spacing: 6) {
+                    WidgetTitle(title: localizedWidgetString("widget.nutrition.name"))
+                    Text(status).font(.caption).lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .modifier(WidgetTextStyle(secondary: true))
                     Spacer(minLength: 0)
                     if family == .systemMedium {
                         HStack(spacing: 12) {
                             Link(destination: photoURL) {
                                 Label(localizedWidgetString("widget.nutrition.photo"), systemImage: "camera.fill")
+                                    .modifier(WidgetActionStyle())
                             }
                             Link(destination: searchURL) {
                                 Label(localizedWidgetString("widget.nutrition.search"), systemImage: "magnifyingglass")
+                                    .modifier(WidgetActionStyle())
                             }
-                        }.font(.caption).labelStyle(.titleAndIcon)
+                        }.labelStyle(.titleAndIcon)
                     } else {
                         Link(destination: photoURL) {
                             Label(localizedWidgetString("widget.nutrition.photo"), systemImage: "camera.fill")
+                                    .modifier(WidgetActionStyle())
                         }.font(.caption)
                     }
                 }
-                .padding()
+                .modifier(WidgetTextStyle())
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
                 .widgetURL(photoURL)
             }
         }
-        .containerBackground(.fill.tertiary, for: .widget)
+        .containerBackground(for: .widget) { WidgetSurface() }
     }
 }
 

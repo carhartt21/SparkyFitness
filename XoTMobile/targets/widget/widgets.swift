@@ -85,6 +85,7 @@ struct Provider: TimelineProvider {
 }
 
 private struct CalorieRing: View {
+    @Environment(\.widgetRenderingMode) private var mode
     let progress: Double
     let size: CGFloat
     let strokeWidth: CGFloat
@@ -93,53 +94,20 @@ private struct CalorieRing: View {
         ZStack {
             Circle()
                 .stroke(
-                    Color.secondary.opacity(0.2),
+                    widgetColor(WidgetPalette.track, mode: mode).opacity(mode == .fullColor ? 1 : 0.15),
                     style: StrokeStyle(lineWidth: strokeWidth)
                 )
             Circle()
                 .trim(from: 0, to: CGFloat(progress))
                 .stroke(
-                    Color("AccentColor"),
+                    widgetColor(WidgetPalette.energy, mode: mode),
                     style: StrokeStyle(lineWidth: strokeWidth, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
+                .modifier(WidgetNeonStroke(color: WidgetPalette.energy))
+                .widgetAccentable()
         }
         .frame(width: size, height: size)
-    }
-}
-
-private struct RingWithLabel: View {
-    let snapshot: CalorieSnapshot
-    let ringSize: CGFloat
-    let strokeWidth: CGFloat
-    let numberFontSize: CGFloat
-
-    private var remainingText: String {
-        guard snapshot.hasData else { return "-" }
-        return localizedNumberString(snapshot.remaining)
-    }
-
-    var body: some View {
-        CalorieRing(progress: snapshot.progress, size: ringSize, strokeWidth: strokeWidth)
-            .overlay(
-                VStack(spacing: 0) {
-                    Text(remainingText)
-                        .font(.system(size: numberFontSize, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.6)
-                        .lineLimit(1)
-                    Text(localizedWidgetString("widget.kcal_left"))
-                        .font(.system(size: numberFontSize * 0.58))
-                        .foregroundStyle(.secondary)
-                }
-                .padding(.horizontal, strokeWidth)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(
-                    String(
-                        format: localizedWidgetString("widget.a11y.kcal_left"),
-                        remainingText
-                    )
-                )
-            )
     }
 }
 
@@ -154,14 +122,14 @@ private struct StatBlock: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(label)
-                .font(.system(size: 15))
-                .foregroundStyle(.secondary)
+                .font(.caption2)
+                .modifier(WidgetTextStyle(secondary: true))
                 .lineLimit(1)
                 .minimumScaleFactor(0.6)
             Spacer(minLength: 0)
             Text(valueText)
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundStyle(.primary)
+                .font(.caption.weight(.semibold))
+                .monospacedDigit()
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
         }
@@ -178,9 +146,8 @@ struct ActionButton: View {
     var body: some View {
         Link(destination: destination) {
             Image(systemName: icon)
-                .font(.system(size: 18, weight: .medium))
-                .foregroundStyle(Color("AccentColor"))
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .font(.body.weight(.semibold))
+                .modifier(WidgetActionStyle())
                 .contentShape(Rectangle())
         }
         .accessibilityLabel(accessibilityLabel)
@@ -189,33 +156,40 @@ struct ActionButton: View {
 
 struct widgetEntryView: View {
     @Environment(\.widgetFamily) private var family
+    @Environment(\.dynamicTypeSize) private var typeSize
     var entry: Provider.Entry
-
-    private var dashboardURL: URL? {
-        URL(string: "sparkyfitnessmobile://")
-    }
 
     var body: some View {
         Group {
-            switch family {
-            case .systemSmall:
-                smallBody
-            default:
-                mediumBody
-            }
+            if family == .systemSmall { smallBody } else { mediumBody }
         }
-        .widgetURL(dashboardURL)
+        .modifier(WidgetTextStyle())
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+        .widgetURL(URL(string: "sparkyfitnessmobile://"))
+    }
+
+    private var remainingText: String {
+        entry.snapshot.hasData ? localizedNumberString(entry.snapshot.remaining) : "-"
+    }
+
+    private var metric: some View {
+        WidgetMetric(value: remainingText, label: localizedWidgetString("widget.kcal_left"),
+            accessibilityText: String(format: localizedWidgetString("widget.a11y.kcal_left"), remainingText),
+            compact: family == .systemSmall)
     }
 
     private var smallBody: some View {
-        VStack(spacing: 8) {
-            RingWithLabel(
-                snapshot: entry.snapshot,
-                ringSize: 80,
-                strokeWidth: 8,
-                numberFontSize: 18
-            )
-            VStack(spacing: 3) {
+        VStack(spacing: 4) {
+            WidgetTitle(title: localizedWidgetString("widget.calorie.name"))
+            HStack(spacing: 8) {
+                if !typeSize.isAccessibilitySize {
+                    CalorieRing(progress: entry.snapshot.progress, size: 44, strokeWidth: 5)
+                        .accessibilityHidden(true)
+                }
+                metric
+            }
+            Spacer(minLength: 0)
+            VStack(spacing: 2) {
                 StatBlock(label: localizedWidgetString("widget.food"), value: entry.snapshot.food)
                 StatBlock(label: localizedWidgetString("widget.burned"), value: entry.snapshot.burned)
             }
@@ -224,54 +198,28 @@ struct widgetEntryView: View {
     }
 
     private var mediumBody: some View {
-        GeometryReader { geo in
-            let isCompact = geo.size.width < 310
-            let ringSize: CGFloat = isCompact ? 82 : 95
-            let hSpacing: CGFloat = isCompact ? 14 : 28
-            let buttonColumnWidth: CGFloat = isCompact ? 26 : 32
-
-            HStack(spacing: hSpacing) {
-                RingWithLabel(
-                    snapshot: entry.snapshot,
-                    ringSize: ringSize,
-                    strokeWidth: 7,
-                    numberFontSize: isCompact ? 18 : 20
-                )
-
-                VStack(alignment: .leading, spacing: 20) {
+        VStack(spacing: 4) {
+            WidgetTitle(title: localizedWidgetString("widget.calorie.name"))
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    if !typeSize.isAccessibilitySize {
+                        CalorieRing(progress: entry.snapshot.progress, size: 44, strokeWidth: 5)
+                            .accessibilityHidden(true)
+                    }
+                    metric
+                }
+                .frame(width: 132)
+                VStack(spacing: 3) {
                     StatBlock(label: localizedWidgetString("widget.goal"), value: entry.snapshot.goal)
                     StatBlock(label: localizedWidgetString("widget.food"), value: entry.snapshot.food)
                     StatBlock(label: localizedWidgetString("widget.burned"), value: entry.snapshot.burned)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-                Rectangle()
-                    .fill(Color.secondary.opacity(0.25))
-                    .frame(width: 1)
-                    .frame(maxHeight: .infinity)
-
-                VStack(spacing: 8) {
-                    ActionButton(
-                        icon: "camera",
-                        destination: URL(string: "sparkyfitnessmobile://meal-photo")!,
-                        accessibilityLabel: localizedWidgetString("widget.meal_photo")
-                    )
-                    ActionButton(
-                        icon: "magnifyingglass",
-                        destination: URL(string: "sparkyfitnessmobile://search")!,
-                        accessibilityLabel: localizedWidgetString("widget.search_food")
-                    )
-                    ActionButton(
-                        icon: "barcode.viewfinder",
-                        destination: URL(string: "sparkyfitnessmobile://scan")!,
-                        accessibilityLabel: localizedWidgetString("widget.scan_barcode")
-                    )
-                }
-                .frame(width: buttonColumnWidth)
-                .frame(maxHeight: .infinity)
+                .frame(maxWidth: .infinity)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .frame(maxHeight: .infinity)
+            WidgetShortcuts()
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -281,7 +229,7 @@ struct widget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: Provider()) { entry in
             widgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+                .containerBackground(for: .widget) { WidgetSurface() }
         }
         .configurationDisplayName("widget.calorie.name")
         .description("widget.calorie.description")
