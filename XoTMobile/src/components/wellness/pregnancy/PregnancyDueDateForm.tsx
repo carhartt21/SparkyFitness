@@ -1,3 +1,4 @@
+import { useAppLocale } from '../../../localization';
 import React, { useMemo, useRef, useState } from 'react';
 import { Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -128,10 +129,8 @@ const PregnancyDueDateForm: React.FC<PregnancyDueDateFormProps> = ({
   form,
   children,
 }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const calendarRef = useRef<CalendarSheetRef>(null);
 
   return (

@@ -28,6 +28,30 @@ test("active German mobile and web catalogs pass the copy scan", () => {
   assert.deepEqual(auditGermanCopy(), []);
 });
 
+test("rejects partially translated phone and Watch copy", () => {
+  for (const surface of ["mobile", "watch", "watch-widget"]) {
+    for (const text of [
+      "Typ Barcode Instead",
+      "Use Gestern",
+      "Nein matching exercises found",
+      "Mahlzeit plan updated",
+      "Passkey registered successfully!",
+    ]) {
+      assert.ok(
+        checkGermanCopy(text, { surface }).includes(
+          "possible English fragment",
+        ),
+      );
+    }
+    assert.deepEqual(
+      checkGermanCopy("Protein, Timer, App, Health Connect und {{meal}}", {
+        surface,
+      }),
+      [],
+    );
+  }
+});
+
 test("allows du only in approved notification keys and still rejects mixed English", () => {
   const notification = {
     surface: "mobile",

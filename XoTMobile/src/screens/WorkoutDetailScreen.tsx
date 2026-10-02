@@ -36,7 +36,7 @@ import {
   canReorderDraftExercises,
   exerciseFromSnapshot,
 } from '../utils/workoutSession';
-import { formatLocalizedNumber } from '../localization';
+import { useAppLocale, formatLocalizedNumber } from '../localization';
 import {
   useDeleteWorkout,
   useUpdateWorkout,
@@ -84,10 +84,8 @@ import { canEditGroupedWorkout } from '@workspace/shared';
 type Props = RootStackScreenProps<'WorkoutDetail'>;
 
 const WorkoutDetailScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const [session, setSession] = useState(route.params.session);
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();

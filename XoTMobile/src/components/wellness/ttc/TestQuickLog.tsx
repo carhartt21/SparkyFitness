@@ -1,3 +1,4 @@
+import { useAppLocale } from '../../../localization';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
@@ -73,10 +74,8 @@ function getTestTypeLabel(
 }
 
 const TestQuickLog: React.FC<TestQuickLogProps> = ({ date }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const [accentColor] = useCSSVariable(['--color-accent-primary']) as [string];
   const [testType, setTestType] = useState<TestType>('opk');
 

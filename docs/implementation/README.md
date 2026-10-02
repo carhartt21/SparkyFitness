@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v40 localization and release preparation](v40-localization-release-2026-10-03.md): phone/Watch German corrections, regression gates, simulator evidence and release verification.
+
 - [v39 owner-review corrective plan](v39-review-corrective-plan-2026-10-02.md) and [results](v39-review-corrective-results-2026-10-02.md): activity labels/skip, category overview and localized Watch daily goals; physical-device checks remain separate.
 - [Mobile wellness navigation](wellness-more-navigation-2026-10-02.md): logging from More, selected-day entries in Diary, and simulator evidence.
 

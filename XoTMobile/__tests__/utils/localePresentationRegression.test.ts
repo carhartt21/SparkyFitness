@@ -3,6 +3,8 @@ import { formatLocalizedNumber, getAppLocale } from '../../src/localization';
 import { buildWeightTooltipText } from '../../src/components/WeightLineChart';
 import { buildNutrientTooltipText } from '../../src/components/NutrientBarChart';
 import { buildBBTTooltipText } from '../../src/components/wellness/BBTLineChart';
+import { formatDate } from '../../src/utils/dateUtils';
+import { formatDateToTimeLabel } from '../../src/utils/entryTimeDisplay';
 
 describe('repository-wide locale-aware presentation regression', () => {
   beforeAll(async () => {
@@ -11,6 +13,28 @@ describe('repository-wide locale-aware presentation regression', () => {
 
   afterEach(async () => {
     await i18n.changeLanguage('en');
+  });
+
+  test('German dates, decimal input and 24-hour times follow the selected language', async () => {
+    await i18n.changeLanguage('de');
+    expect(getAppLocale()).toBe('de-DE');
+    expect(formatLocalizedNumber(130.5)).toBe('130,5');
+    expect(formatDate('2026-10-03', getAppLocale())).toContain('Okt.');
+    expect(
+      formatDateToTimeLabel(
+        new Date(2026, 9, 3, 15, 29),
+        'h:mm A',
+        getAppLocale()
+      )
+    ).toBe('15:29');
+    expect(i18n.t('foodScan.barcode.typeInstead')).toBe('Barcode eingeben');
+    expect(i18n.t('mealPlans.weekdaysShort.tuesday')).toBe('Di');
+    expect(i18n.t('measurements.fields.bodyWaterPercentage')).toBe(
+      'Körperwasser (%)'
+    );
+    expect(i18n.t('notifications.actions.logAsTaken')).toBe(
+      'Als eingenommen erfassen'
+    );
   });
 
   describe('formatLocalizedNumber (shared by HydrationGauge / CalorieRingCard / Diary / MacroCard)', () => {

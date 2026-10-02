@@ -1,3 +1,4 @@
+import { useAppLocale } from '../../localization';
 import React, { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, Switch, TextInput } from 'react-native';
@@ -11,10 +12,8 @@ import CalendarSheet, { type CalendarSheetRef } from '../CalendarSheet';
 import { getTodayDate, formatDate } from '../../utils/dateUtils';
 
 const CycleHistoryList: React.FC = () => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { cycles, createCycle, deleteCycle } = useCycleHistory();
   const maxCycleLength = cycles.reduce(
     (max, c) => Math.max(max, c.cycle_length || 0),

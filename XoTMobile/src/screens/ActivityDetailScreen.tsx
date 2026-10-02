@@ -43,7 +43,7 @@ import CalendarSheet, {
 } from '../components/CalendarSheet';
 import { normalizeDate, formatDate, formatDateLabel } from '../utils/dateUtils';
 import { distanceFromKm, weightFromKg } from '../utils/unitConversions';
-import { formatLocalizedNumber } from '../localization';
+import { useAppLocale, formatLocalizedNumber } from '../localization';
 import Toast from 'react-native-toast-message';
 import { addLog } from '../services/LogService';
 import type { RootStackScreenProps } from '../types/navigation';
@@ -57,10 +57,8 @@ type EditableField =
   'name' | 'duration' | 'calories' | 'distance' | 'avgHeartRate' | 'notes';
 
 const ActivityDetailScreen: React.FC<Props> = ({ navigation, route }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const [session, setSession] = useState(route.params.session);
   const queryClient = useQueryClient();
   const insets = useSafeAreaInsets();

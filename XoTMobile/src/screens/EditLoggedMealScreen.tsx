@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React, {
   useCallback,
   useEffect,
@@ -98,10 +99,8 @@ const EditLoggedMealScreen: React.FC<EditLoggedMealScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { foodEntryMealId, initialMeal } = route.params;
   const insets = useSafeAreaInsets();
   const usesNativeHeader = useNativeIOSHeadersActive();

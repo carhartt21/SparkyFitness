@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ActivityIndicator } from 'react-native';
@@ -86,7 +87,7 @@ const formatEntrySummary = (
   );
   const parts: string[] = [];
   if (duration > 0) parts.push(`${Math.round(duration)} min`);
-  if (calories > 0) parts.push(`${Math.round(calories)} cal`);
+  if (calories > 0) parts.push(`${Math.round(calories)} kcal`);
   return parts.length > 0 ? parts.join(' · ') : null;
 };
 
@@ -98,10 +99,8 @@ const SessionCard: React.FC<{
   modality?: ExerciseModality;
   bestSet?: ExerciseSetStats | null;
 }> = ({ session, exerciseId, weightUnit, distanceUnit, modality, bestSet }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   // The history endpoint filters at the session level, so a preset session
   // still carries every exercise it contains — show only this exercise's sets.
   const entries =

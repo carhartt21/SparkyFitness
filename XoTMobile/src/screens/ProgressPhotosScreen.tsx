@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -115,7 +116,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const usesNativeHeader = useNativeIOSHeadersActive();
-  const dateLocale = i18n.language.startsWith('pl') ? 'pl-PL' : 'en-US';
+  const dateLocale = useAppLocale();
   const [accentPrimary, mutedColor] = useCSSVariable([
     '--color-accent-primary',
     '--color-icon-decorative',

@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Text, TouchableOpacity } from 'react-native';
@@ -12,10 +13,8 @@ interface DateSelectRowProps {
 
 /** Tappable "Date <label> v" row that opens the caller's calendar sheet. */
 const DateSelectRow: React.FC<DateSelectRowProps> = ({ date, onPress }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const [textPrimary] = useCSSVariable(['--color-text-primary']) as [string];
 
   return (

@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -120,10 +121,8 @@ const ExerciseDetailScreen: React.FC<ExerciseDetailScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { item, updatedItem, hideWorkoutActions, selectionReturnKey } =
     route.params;
   const insets = useSafeAreaInsets();

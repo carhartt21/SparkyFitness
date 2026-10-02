@@ -38,6 +38,15 @@ describe('locale-less presentation guard', () => {
   }
   walk(srcRoot);
 
+  test('never routes all non-Polish app languages to English dates', () => {
+    const violations = files.filter((file) =>
+      /language(?:\.toLowerCase\(\))?\.startsWith\(['"]pl['"]\)\s*\?\s*['"]pl-PL['"]\s*:\s*['"]en-US['"]/.test(
+        fs.readFileSync(file, 'utf8')
+      )
+    );
+    expect(violations.map((file) => path.relative(srcRoot, file))).toEqual([]);
+  });
+
   test('forbids implicit-locale toLocale* calls outside per-line exceptions', () => {
     const forbidden = new Set([
       '.toLocaleString()',
