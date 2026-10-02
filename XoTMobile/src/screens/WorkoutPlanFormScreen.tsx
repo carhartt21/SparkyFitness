@@ -1,6 +1,6 @@
 import { plannedActivityLabel } from '../components/tracking/trackingLabels';
 import { useRef, useState } from 'react';
-import { Switch, Text, View } from 'react-native';
+import { Keyboard, Pressable, Switch, Text, View } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
 import {
@@ -11,6 +11,11 @@ import {
 import FormScreenChrome from '../components/FormScreenChrome';
 import FormInput from '../components/FormInput';
 import BottomSheetPicker from '../components/BottomSheetPicker';
+import CalendarSheet, {
+  type CalendarSheetRef,
+} from '../components/CalendarSheet';
+import Icon from '../components/Icon';
+import { useCSSVariable } from 'uniwind';
 import NeonButton from '../components/ui/NeonButton';
 import { useWorkoutPlans } from '../hooks/useWorkoutPlans';
 import { useWorkoutPresets } from '../hooks/useWorkoutPresets';
@@ -36,6 +41,9 @@ export default function WorkoutPlanFormScreen({
     initial?.start_date.slice(0, 10) ?? getTodayDate()
   );
   const [endDate, setEndDate] = useState(initial?.end_date?.slice(0, 10) ?? '');
+  const startCalendar = useRef<CalendarSheetRef>(null);
+  const endCalendar = useRef<CalendarSheetRef>(null);
+  const iconColor = useCSSVariable('--color-text-secondary') as string;
   const [active, setActive] = useState(initial?.is_active ?? true);
   const [assignments, setAssignments] = useState<WorkoutPlanAssignment[]>(
     initial?.assignments ?? []
@@ -112,6 +120,18 @@ export default function WorkoutPlanFormScreen({
   }));
   const nullableNumber = (value: string) =>
     value.trim() ? parseDecimalInput(value) : null;
+  const dateLabel = (day: string) => {
+    const [year, month, date] = day.split('-').map(Number);
+    return new Intl.DateTimeFormat(locale, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    }).format(new Date(year, month - 1, date));
+  };
+  const openCalendar = (calendar: React.RefObject<CalendarSheetRef | null>) => {
+    Keyboard.dismiss();
+    calendar.current?.present();
+  };
   return (
     <FormScreenChrome
       title={t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
@@ -140,24 +160,66 @@ export default function WorkoutPlanFormScreen({
       <Text className="text-text-primary">
         {t('weeklyPlan.startDate', { defaultValue: 'Start date' })}
       </Text>
-      <FormInput
-        value={startDate}
-        onChangeText={setStartDate}
-        placeholder={t('weeklyPlan.dateFormat', { defaultValue: 'YYYY-MM-DD' })}
+      <Pressable
+        testID="weekly-plan-start-date"
+        onPress={() => openCalendar(startCalendar)}
+        accessibilityRole="button"
         accessibilityLabel={t('weeklyPlan.startDate', {
           defaultValue: 'Start date',
         })}
-      />
+        accessibilityValue={{ text: dateLabel(startDate) }}
+        className="min-h-12 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-3 py-3"
+      >
+        <Text className="text-base text-text-primary">
+          {dateLabel(startDate)}
+        </Text>
+        <Icon name="calendar" size={20} color={iconColor} />
+      </Pressable>
       <Text className="text-text-primary">
         {t('weeklyPlan.endDate', { defaultValue: 'End date (optional)' })}
       </Text>
-      <FormInput
-        value={endDate}
-        onChangeText={setEndDate}
-        placeholder={t('weeklyPlan.dateFormat', { defaultValue: 'YYYY-MM-DD' })}
+      <Pressable
+        testID="weekly-plan-end-date"
+        onPress={() => openCalendar(endCalendar)}
+        accessibilityRole="button"
         accessibilityLabel={t('weeklyPlan.endDate', {
           defaultValue: 'End date (optional)',
         })}
+        accessibilityValue={{
+          text: endDate
+            ? dateLabel(endDate)
+            : t('weeklyPlan.noEndDate', { defaultValue: 'No end date' }),
+        }}
+        className="min-h-12 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-3 py-3"
+      >
+        <Text className="text-base text-text-primary">
+          {endDate
+            ? dateLabel(endDate)
+            : t('weeklyPlan.noEndDate', { defaultValue: 'No end date' })}
+        </Text>
+        <Icon name="calendar" size={20} color={iconColor} />
+      </Pressable>
+      {endDate ? (
+        <Pressable
+          testID="weekly-plan-clear-end-date"
+          onPress={() => setEndDate('')}
+          accessibilityRole="button"
+          className="min-h-11 justify-center self-start"
+        >
+          <Text className="text-accent-primary">
+            {t('weeklyPlan.clearEndDate', { defaultValue: 'Remove end date' })}
+          </Text>
+        </Pressable>
+      ) : null}
+      <CalendarSheet
+        ref={startCalendar}
+        selectedDate={startDate}
+        onSelectDate={setStartDate}
+      />
+      <CalendarSheet
+        ref={endCalendar}
+        selectedDate={endDate || startDate}
+        onSelectDate={setEndDate}
       />
       <View className="flex-row items-center justify-between gap-4">
         <Text className="flex-1 text-text-primary">

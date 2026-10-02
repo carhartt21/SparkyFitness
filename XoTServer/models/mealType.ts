@@ -1,18 +1,33 @@
 import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
+import type { MealTypeIcon } from '@workspace/shared';
+type MealTypeWrite = {
+  name?: string;
+  sort_order?: number;
+  is_visible?: boolean;
+  show_in_quick_log?: boolean;
+  default_time?: string | null;
+  icon_key?: MealTypeIcon | null;
+};
+interface MealTypeRow {
+  id: string;
+  name: string;
+  sort_order: number;
+  user_id: string | null;
+  [key: string]: unknown;
+}
 /**
  * Creates a new custom meal type for a specific user.
  * @param {Object} data - { name: string, sort_order: number }
  * @param {string} userId - The UUID of the authenticated user
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function createMealType(data: any, userId: any) {
-  log(
-    'info',
-    `createMealType in mealType.js: data: ${JSON.stringify(data)}, userId: ${userId}`
-  );
+async function createMealType(
+  data: MealTypeWrite & { name: string },
+  userId: string
+) {
   const client = await getClient(userId);
   try {
+    await client.query('BEGIN');
     const sortOrder = data.sort_order !== undefined ? data.sort_order : 100;
     const result = await client.query(
       `INSERT INTO meal_types (name, user_id, sort_order, is_visible, default_time)
@@ -20,8 +35,17 @@ async function createMealType(data: any, userId: any) {
        RETURNING *`,
       [data.name, userId, sortOrder, data.default_time ?? null]
     );
-    return result.rows[0];
+    const created = result.rows[0] as MealTypeRow;
+    if (data.icon_key !== undefined) {
+      await client.query(
+        'INSERT INTO user_meal_visibilities (user_id, meal_type_id, icon_key) VALUES ($1, $2, $3)',
+        [userId, created.id, data.icon_key]
+      );
+    }
+    await client.query('COMMIT');
+    return { ...created, icon_key: data.icon_key ?? null };
   } catch (error) {
+    await client.query('ROLLBACK');
     log('error', 'Error creating meal type:', error);
     throw error;
   } finally {
@@ -33,8 +57,7 @@ async function createMealType(data: any, userId: any) {
  * This includes System Defaults (user_id is NULL) AND User Custom types.
  * Ordered by sort_order.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getAllMealTypes(userId: any) {
+async function getAllMealTypes(userId: string) {
   log('debug', `getAllMealTypes in mealType.js for userId: ${userId}`);
   const client = await getClient(userId);
   try {
@@ -43,6 +66,7 @@ async function getAllMealTypes(userId: any) {
          mt.id,
          mt.name,
          mt.purpose,
+         umv.icon_key,
          COALESCE(umv.sort_order_override, mt.sort_order) AS sort_order,
          COALESCE(umv.name_override, mt.name) AS display_name,
          mt.user_id,
@@ -66,8 +90,7 @@ async function getAllMealTypes(userId: any) {
  * Fetches a single meal type by ID.
  * Ensures the user has access to it (it's either theirs or a system default).
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getMealTypeById(mealTypeId: any, userId: any) {
+async function getMealTypeById(mealTypeId: string, userId: string) {
   const client = await getClient(userId);
   try {
     const result = await client.query(
@@ -75,6 +98,7 @@ async function getMealTypeById(mealTypeId: any, userId: any) {
          mt.id,
          mt.name,
          mt.purpose,
+         umv.icon_key,
          mt.user_id,
          mt.created_at,
          COALESCE(umv.name_override, mt.name) AS display_name,
@@ -94,17 +118,28 @@ async function getMealTypeById(mealTypeId: any, userId: any) {
     client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function updateMealType(mealTypeId: any, data: any, userId: any) {
-  log(
-    'info',
-    `updateMealType in mealType.js: id: ${mealTypeId}, data: ${JSON.stringify(data)}`
-  );
+async function updateMealType(
+  mealTypeId: string,
+  data: MealTypeWrite,
+  userId: string
+) {
   const client = await getClient(userId);
   try {
     await client.query('BEGIN');
-    //console.log(data);
-    //console.log(data.is_visible);
+    const owner = await client.query(
+      'SELECT user_id FROM meal_types WHERE id = $1 AND (user_id = $2 OR user_id IS NULL)',
+      [mealTypeId, userId]
+    );
+    if (owner.rows.length === 0)
+      throw new Error('Meal type not found or access denied.');
+    if (data.icon_key !== undefined) {
+      await client.query(
+        `INSERT INTO user_meal_visibilities (user_id, meal_type_id, icon_key)
+        VALUES ($1, $2, $3) ON CONFLICT (user_id, meal_type_id)
+        DO UPDATE SET icon_key = EXCLUDED.icon_key`,
+        [userId, mealTypeId, data.icon_key]
+      );
+    }
     if (
       data.is_visible !== undefined ||
       data.show_in_quick_log !== undefined ||
@@ -131,13 +166,6 @@ async function updateMealType(mealTypeId: any, data: any, userId: any) {
       );
     }
     if (data.name !== undefined || data.sort_order !== undefined) {
-      const owner = await client.query(
-        'SELECT user_id FROM meal_types WHERE id = $1 AND (user_id = $2 OR user_id IS NULL)',
-        [mealTypeId, userId]
-      );
-      if (owner.rows.length === 0) {
-        throw new Error('Meal type not found or access denied.');
-      }
       if (owner.rows[0].user_id === null) {
         await client.query(
           `INSERT INTO user_meal_visibilities

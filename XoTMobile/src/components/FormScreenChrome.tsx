@@ -130,6 +130,7 @@ const FormScreenChrome: React.FC<FormScreenChromeProps> = ({
         className="flex-1"
         contentContainerClassName="px-4 pt-4 pb-20 gap-4"
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         bottomOffset={20}
         contentInsetAdjustmentBehavior={
           usesNativeHeader ? 'automatic' : undefined

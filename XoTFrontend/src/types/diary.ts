@@ -31,6 +31,7 @@ export interface DayData {
 }
 
 export interface MealTypeDefinition {
+  icon_key?: import('@workspace/shared').MealTypeIcon | null;
   purpose?: 'regular' | 'import';
   id: string;
   name: string;

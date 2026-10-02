@@ -1,4 +1,6 @@
+import type { MealTypeIcon } from '@workspace/shared';
 export interface MealType {
+  icon_key?: MealTypeIcon | null;
   purpose?: 'regular' | 'import';
   id: string;
   name: string;

@@ -126,7 +126,7 @@ const MealSection: React.FC<MealSectionProps> = ({
   const systemConfig = group.isSystem
     ? MEAL_CONFIG[group.name.toLowerCase()]
     : undefined;
-  const icon = systemConfig?.icon ?? 'meal-snack';
+  const icon = group.iconKey ?? systemConfig?.icon ?? 'meal-snack';
   // Accent per system meal, echoing the reference's sun/lunch/snack/moon cues.
   const iconColor =
     (group.isSystem &&

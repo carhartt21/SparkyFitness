@@ -6,6 +6,11 @@ import type { WorkoutPlanTemplate } from '../../src/types/workoutPlans';
 type Props = React.ComponentProps<typeof WorkoutPlanFormScreen>;
 const mockMutateAsync = jest.fn();
 const goBack = jest.fn();
+const mockCalendars: {
+  selectedDate: string;
+  onSelectDate: (date: string) => void;
+}[] = [];
+const mockPresentCalendar = jest.fn();
 const plan: WorkoutPlanTemplate = {
   id: '10',
   user_id: 'synthetic-owner',
@@ -59,6 +64,25 @@ jest.mock('../../src/components/FormScreenChrome', () => {
   };
 });
 jest.mock('../../src/components/BottomSheetPicker', () => () => null);
+jest.mock('../../src/components/CalendarSheet', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef(
+      (
+        props: { selectedDate: string; onSelectDate: (date: string) => void },
+        ref: React.Ref<unknown>
+      ) => {
+        mockCalendars.push(props);
+        React.useImperativeHandle(ref, () => ({
+          present: mockPresentCalendar,
+          dismiss: jest.fn(),
+        }));
+        return null;
+      }
+    ),
+  };
+});
 
 function show(initial: WorkoutPlanTemplate = plan) {
   return render(
@@ -70,8 +94,43 @@ function show(initial: WorkoutPlanTemplate = plan) {
 }
 
 beforeEach(() => {
+  mockCalendars.length = 0;
   jest.clearAllMocks();
   mockMutateAsync.mockResolvedValue({ id: '10' });
+});
+
+it('opens calendar controls instead of a date keyboard and saves selected calendar days', async () => {
+  const screen = show();
+  fireEvent.press(screen.getByTestId('weekly-plan-start-date'));
+  expect(mockPresentCalendar).toHaveBeenCalledTimes(1);
+  act(() => mockCalendars.slice(-2)[0].onSelectDate('2026-10-08'));
+  act(() => mockCalendars.slice(-2)[1].onSelectDate('2026-10-14'));
+  fireEvent.press(screen.getByTestId('save-plan'));
+  await waitFor(() => expect(goBack).toHaveBeenCalled());
+  expect(mockMutateAsync).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({
+        start_date: '2026-10-08',
+        end_date: '2026-10-14',
+      }),
+    })
+  );
+});
+
+it('clears an optional end date and rejects an end before the start without losing input', async () => {
+  const screen = show({ ...plan, end_date: '2026-10-10' });
+  act(() => mockCalendars.slice(-2)[1].onSelectDate('2026-10-01'));
+  fireEvent.press(screen.getByTestId('save-plan'));
+  expect(mockMutateAsync).not.toHaveBeenCalled();
+  expect(screen.getByRole('alert')).toBeTruthy();
+  fireEvent.press(screen.getByTestId('weekly-plan-clear-end-date'));
+  fireEvent.press(screen.getByTestId('save-plan'));
+  await waitFor(() => expect(goBack).toHaveBeenCalled());
+  expect(mockMutateAsync).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({ end_date: null }),
+    })
+  );
 });
 
 it('preserves decimal-comma distance while typing and saves its actual number', async () => {

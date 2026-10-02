@@ -847,7 +847,10 @@
       "unknown": "Noch kein Wert erfasst"
     },
     "completedTitle": "Alle Erfassungsaufgaben abgeschlossen",
-    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung."
+    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung.",
+    "previewUnavailable": "Die Aufgaben konnten nicht geladen werden.",
+    "previewStale": "Gespeicherte Aufgaben. Aktualisieren, um neue Änderungen zu sehen.",
+    "previewComplete": "Alle anstehenden Aufgaben sind geklärt."
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
@@ -2118,7 +2121,9 @@
     "createdPartial": "Erstellt, aber einige Einstellungen konnten nicht gespeichert werden.",
     "visible": "{{name}} anzeigen",
     "failedDelete": "Mahlzeitenkategorie konnte nicht gelöscht werden.",
-    "loadFailed": "Mahlzeitenkategorien konnten nicht geladen werden."
+    "loadFailed": "Mahlzeitenkategorien konnten nicht geladen werden.",
+    "add": "Mahlzeitenart hinzufügen",
+    "defaultTime": "Standardzeit für {{name}}{{time}}"
   },
   "mealPlans": {
     "duplicateInactive": "Die Kopie ist inaktiv, sodass Sie sie zunächst überprüfen können.",
@@ -2222,7 +2227,8 @@
       "retryDescription": "Wenn kein Ergebnis gefunden wird, versuchen Sie es automatisch mit Open Food Facts."
     },
     "mealTypes": {
-      "subtitle": "Eigene Mahlzeitenkategorien hinzufügen, bearbeiten, sortieren oder löschen"
+      "subtitle": "Eigene Mahlzeitenkategorien hinzufügen, bearbeiten, sortieren oder löschen",
+      "title": "Mahlzeitenarten"
     }
   },
   "workoutComplete": {
@@ -3139,7 +3145,8 @@
     "glycemicIndexVeryHigh": "Sehr hoch",
     "alcohol": "Alkohol",
     "glycemicIndexMedium": "Mittel",
-    "glycemicIndexHigh": "Hoch"
+    "glycemicIndexHigh": "Hoch",
+    "sugars": "Zucker"
   },
   "duration": {
     "seconds": "Sekunden"
@@ -3293,7 +3300,9 @@
   },
   "foodNutrition": {
     "hideExtra": "Weitere Nährstoffe ausblenden ▴",
-    "showMore": "Weitere Nährstoffe anzeigen ▾"
+    "showMore": "Weitere Nährstoffe anzeigen ▾",
+    "unitUnavailable": "Einheit unbekannt",
+    "availabilityHint": "Die Werte beziehen sich auf die gewählte Menge. — bedeutet unbekannt, nicht 0."
   },
   "weeklyPlan": {
     "title": "Wöchentlicher Trainingsplan",
@@ -3339,9 +3348,33 @@
       "rest": "Ruhetag"
     },
     "dateFormat": "JJJJ-MM-TT",
-    "timeFormat": "SS:mm"
+    "timeFormat": "SS:mm",
+    "noEndDate": "Kein Enddatum",
+    "clearEndDate": "Enddatum entfernen"
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."
+  },
+  "mealTypeForm": {
+    "icon": "Symbol",
+    "defaultIcon": "Standardsymbol verwenden",
+    "drinkIcon": "Getränk",
+    "foodIcon": "Lebensmittel",
+    "groupIcon": "Mahlzeitengruppe",
+    "createTitle": "Mahlzeitenart hinzufügen",
+    "editTitle": "Mahlzeitenart bearbeiten",
+    "quickLog": "Schnelleingabe",
+    "defaultTime": "Standardzeit",
+    "delete": "Mahlzeitenart löschen",
+    "namePlaceholder": "z. B. Mittagessen 2.0",
+    "accessibility": {
+      "name": "Name der Mahlzeitenart",
+      "quickLog": "Schnelleingabe für {{name}}",
+      "defaultTime": "Standardzeit für {{name}}{{time}}",
+      "cancelCreate": "Mahlzeitenart verwerfen",
+      "create": "Mahlzeitenart erstellen",
+      "save": "Mahlzeitenart speichern",
+      "delete": "Mahlzeitenart löschen"
+    }
   }
 }

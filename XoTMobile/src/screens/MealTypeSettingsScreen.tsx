@@ -13,6 +13,7 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  useWindowDimensions,
   type AccessibilityActionEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -81,6 +82,8 @@ const CustomMealTypeRow: React.FC<{
   mt: MealType;
   index: number;
   totalRows: number;
+  rowHeight: number;
+  stacked: boolean;
   t: ReturnType<typeof useTranslation>['t'];
   onEdit: (mt: MealType) => void;
   onTime: (mt: MealType) => void;
@@ -97,6 +100,8 @@ const CustomMealTypeRow: React.FC<{
   mt,
   index,
   totalRows,
+  rowHeight,
+  stacked,
   t,
   onEdit,
   onTime,
@@ -141,7 +146,7 @@ const CustomMealTypeRow: React.FC<{
       key={mt.id}
       testID={`meal-type-${mt.user_id === null ? 'system' : 'custom'}-${mt.id}`}
       className="flex-row items-center bg-surface border-b border-border/40"
-      style={[previewStyle, { height: ROW_HEIGHT }]}
+      style={[previewStyle, { height: rowHeight }]}
     >
       <GestureDetector gesture={dragGesture}>
         <View
@@ -169,36 +174,56 @@ const CustomMealTypeRow: React.FC<{
           <Icon name="reorder-handle" size={22} color={textMuted} />
         </View>
       </GestureDetector>
-      <TouchableOpacity
-        className="flex-1 py-3 flex-shrink flex-row items-center gap-2"
-        onPress={() => onEdit(mt)}
-        activeOpacity={0.6}
-        accessibilityLabel={t('mealTypeSettings.edit', {
-          defaultValue: 'Edit {{name}}',
-          name: getMealTypeDisplayLabel(mt, t),
-        })}
-        testID={`edit-custom-${mt.id}`}
-      >
-        {mt.user_id === null ? (
-          <Icon
-            name={MEAL_CONFIG[mt.name.toLowerCase()]?.icon ?? 'meal-snack'}
-            size={20}
-            color={textSecondary}
+      <View className="min-w-0 flex-1">
+        <TouchableOpacity
+          className="min-h-11 py-2 flex-row items-center gap-2"
+          onPress={() => onEdit(mt)}
+          accessibilityRole="button"
+          activeOpacity={0.6}
+          accessibilityLabel={t('mealTypeSettings.edit', {
+            defaultValue: 'Edit {{name}}',
+            name: getMealTypeDisplayLabel(mt, t),
+          })}
+          testID={`edit-custom-${mt.id}`}
+        >
+          {mt.user_id === null || mt.icon_key ? (
+            <Icon
+              name={
+                mt.icon_key ??
+                (mt.user_id === null
+                  ? MEAL_CONFIG[mt.name.toLowerCase()]?.icon
+                  : undefined) ??
+                'meal-snack'
+              }
+              size={20}
+              color={textSecondary}
+            />
+          ) : null}
+          <Text
+            className="flex-1 text-base text-text-primary font-medium"
+            numberOfLines={1}
+          >
+            {getMealTypeDisplayLabel(mt, t)}
+          </Text>
+        </TouchableOpacity>
+        {stacked ? (
+          <MealTypeTimeCell
+            mealType={mt}
+            onPress={() => onTime(mt)}
+            textSecondary={textSecondary}
+            t={t}
+            stacked
           />
         ) : null}
-        <Text
-          className="text-base text-text-primary font-medium"
-          numberOfLines={1}
-        >
-          {getMealTypeDisplayLabel(mt, t)}
-        </Text>
-      </TouchableOpacity>
-      <MealTypeTimeCell
-        mealType={mt}
-        onPress={() => onTime(mt)}
-        textSecondary={textSecondary}
-        t={t}
-      />
+      </View>
+      {!stacked ? (
+        <MealTypeTimeCell
+          mealType={mt}
+          onPress={() => onTime(mt)}
+          textSecondary={textSecondary}
+          t={t}
+        />
+      ) : null}
       <View className="pr-4 pl-1">
         <Switch
           value={mt.is_visible}
@@ -526,7 +551,13 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
     [orderedTypes]
   );
 
-  const { strides, offsets } = useReorderRowGeometry(unifiedRows.length);
+  const { fontScale } = useWindowDimensions();
+  const stacked = fontScale > 1.25;
+  const rowHeight = Math.max(ROW_HEIGHT, Math.ceil(ROW_HEIGHT * fontScale));
+  const { strides, offsets } = useReorderRowGeometry(
+    unifiedRows.length,
+    rowHeight
+  );
   const activeDragIndex = useSharedValue(-1);
   const panY = useSharedValue(0);
   const committingTranslate = useSharedValue(0);
@@ -655,6 +686,7 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
       name: string;
       defaultTime: string;
       showInQuickLog: boolean;
+      iconKey?: MealType['icon_key'];
     }) => {
       setIsCreating(true);
       const nextSort =
@@ -664,6 +696,7 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
           name: values.name,
           sort_order: nextSort,
           default_time: values.defaultTime || null,
+          icon_key: values.iconKey ?? null,
         });
         const followUps: { id: string; data: Partial<Omit<MealType, 'id'>> }[] =
           [];
@@ -731,6 +764,7 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
       nameChanged?: boolean;
       defaultTime: string;
       showInQuickLog: boolean;
+      iconKey?: MealType['icon_key'];
     }) => {
       if (!editingType) return;
       mutateMealType(
@@ -740,6 +774,7 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
             ? { name: values.name }
             : {}),
           default_time: values.defaultTime || null,
+          icon_key: values.iconKey ?? null,
           // is_visible intentionally omitted: Visibility is owned by the
           // main-list Switch, so a plain edit never overwrites server state.
           show_in_quick_log: values.showInQuickLog,
@@ -859,6 +894,8 @@ const MealTypeSettingsScreen: React.FC<MealTypeSettingsScreenProps> = () => {
                   mt={row.mt}
                   index={index}
                   totalRows={unifiedRows.length}
+                  rowHeight={rowHeight}
+                  stacked={stacked}
                   onEdit={openEdit}
                   onTime={openTimePicker}
                   onMove={moveMealType}
@@ -912,12 +949,14 @@ const MealTypeTimeCell: React.FC<{
   onPress: () => void;
   textSecondary: string;
   t: ReturnType<typeof useTranslation>['t'];
-}> = ({ mealType, onPress, textSecondary, t }) => {
+  stacked?: boolean;
+}> = ({ mealType, onPress, textSecondary, t, stacked = false }) => {
   const time = toHourMinute(mealType.default_time);
   return (
     <TouchableOpacity
       onPress={onPress}
-      className="px-3 py-3"
+      className="min-h-11 justify-center px-3"
+      style={{ maxWidth: stacked ? undefined : 120 }}
       accessibilityRole="button"
       accessibilityLabel={t('mealTypeSettings.defaultTime', {
         defaultValue: 'Default time for {{name}}{{time}}',
@@ -930,7 +969,8 @@ const MealTypeTimeCell: React.FC<{
     >
       <Text
         className="text-sm text-text-secondary"
-        style={{ minWidth: 44, textAlign: 'right' }}
+        numberOfLines={1}
+        style={{ minWidth: 44, textAlign: stacked ? 'left' : 'right' }}
       >
         {time || t('mealTypeSettings.notSet', { defaultValue: 'Not set' })}
       </Text>

@@ -1,12 +1,8 @@
 import {
-  plannedActivityLabel,
-  progressGoalLabel,
   nutritionGoalLabel,
   progressDomainLabel,
 } from '../components/tracking/trackingLabels';
-import { useMealTypes } from '../hooks/useMealTypes';
-import { getMealTypeDisplayLabel } from '../utils/mealNutrition';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
 import { AccessibilityInfo, Modal, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -24,32 +20,19 @@ import GlowCard from '../components/ui/GlowCard';
 import NeonButton from '../components/ui/NeonButton';
 import StatusView from '../components/StatusView';
 import Icon, { type IconName } from '../components/Icon';
-import { useDailyProgress } from '../hooks/useDailyTracking';
-import { useMedicationEntries } from '../hooks/useMedications';
-import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
+import { useProjectedDailyProgress } from '../hooks/useProjectedDailyProgress';
+import {
+  useProgressActions,
+  PROGRESS_DOMAIN_ORDER,
+} from '../hooks/useProgressActions';
 import { useServerConnection } from '../hooks';
 import { usePreferences } from '../hooks/usePreferences';
 import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import { formatLocalizedNumber, useAppLocale } from '../localization';
 import { formatDate, getTodayDate } from '../utils/dateUtils';
-import { activeLocalSupplementStatus } from '../utils/medications';
-import {
-  overlayLocalSupplementResponses,
-  type LocalSupplementResponse,
-} from '../utils/dailyProgressOverlay';
 import type { RootStackParamList } from '../types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DailyProgress'>;
-
-const DOMAIN_ORDER: DailyProgressDomain[] = [
-  'checkin',
-  'habit',
-  'measurement',
-  'supplement',
-  'meal',
-  'goal',
-  'workout',
-];
 
 const DOMAIN_ICON: Record<DailyProgressDomain, IconName> = {
   checkin: 'daily-checkin',
@@ -66,7 +49,6 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const scale = useNeonScale();
   const isFocused = useIsFocused();
   const locale = useAppLocale();
-  const { mealTypes } = useMealTypes();
   const previousProgress = useRef<{
     date: string;
     percent: number | null;
@@ -91,25 +73,8 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   ]) as [string, string];
   const [date, setDate] = useState(route.params?.date ?? getTodayDate());
   const { isConnected } = useServerConnection();
-  const progressQuery = useDailyProgress(date, { enabled: isConnected });
-  const entriesQuery = useMedicationEntries({
-    fromDate: date,
-    toDate: date,
-    enabled: isConnected,
-  });
-  const { bySchedule } = usePlannedSupplementActions(date, entriesQuery.data);
-
-  const progress = useMemo(() => {
-    if (!progressQuery.data) return null;
-    const responses: LocalSupplementResponse[] = [];
-    for (const [scheduleId, action] of bySchedule) {
-      const status = activeLocalSupplementStatus(action);
-      if (status && action.syncState !== 'synced') {
-        responses.push({ scheduleId, status, occurredAt: action.occurredAt });
-      }
-    }
-    return overlayLocalSupplementResponses(progressQuery.data, responses);
-  }, [progressQuery.data, bySchedule]);
+  const progressQuery = useProjectedDailyProgress(date, isConnected);
+  const progress = progressQuery.progress;
 
   useEffect(() => {
     if (!progress || !isFocused) return;
@@ -176,67 +141,9 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
     }
   };
 
-  const itemLabel = (item: DailyProgressItem) => {
-    if (item.domain === 'workout' && item.activity_type)
-      return plannedActivityLabel(t, item.activity_type);
-    if (item.domain === 'goal') return progressGoalLabel(t, item.label);
-    if (item.domain === 'meal') {
-      const type = mealTypes.find((type) => type.id === item.reference_id);
-      return type ? getMealTypeDisplayLabel(type, t) : item.label;
-    }
-    if (item.domain === 'checkin')
-      return t('progress.checkinItem', { defaultValue: 'Daily check-in' });
-    if (item.domain === 'measurement' && item.label === 'weight') {
-      return t('progress.weighIn', { defaultValue: 'Weigh-in' });
-    }
-    if (item.domain === 'measurement') {
-      return t('progress.measurement', { defaultValue: 'Measurement' });
-    }
-    return item.label;
-  };
-
-  const openItem = (item: DailyProgressItem) => {
-    switch (item.domain) {
-      case 'checkin':
-        return navigation.navigate('DailyCheckIn', { date });
-      case 'habit':
-        return navigation.navigate('Habits', {
-          date,
-          habitId: item.reference_id ?? undefined,
-        });
-      case 'supplement':
-        return navigation.navigate('Supplements', {
-          date,
-          scheduleId: item.reference_id ?? undefined,
-        });
-      case 'measurement':
-        return navigation.navigate('MeasurementsAdd', {
-          date,
-          measurementKey: item.label,
-        });
-      case 'workout':
-        return navigation.navigate('WorkoutPlans', {
-          date,
-          assignmentId: item.reference_id ?? undefined,
-        });
-      case 'goal':
-        if (item.label === 'hydration') return setHydrationVisible(true);
-        return item.label === 'activity_duration'
-          ? navigation.navigate('ExerciseReview', { date })
-          : navigation.navigate('DailyNutritionDetails', { date });
-      case 'meal':
-        return navigation.navigate('MealTypeDetail', {
-          date,
-          mealTypeId: item.reference_id ?? undefined,
-          mealLabel: itemLabel(item),
-        });
-      default:
-        return navigation.navigate('Tabs', {
-          screen: 'Diary',
-          params: { selectedDate: date },
-        });
-    }
-  };
+  const { itemLabel, openItem } = useProgressActions(date, () =>
+    setHydrationVisible(true)
+  );
 
   const stage = progressionStage(progress?.percent ?? null);
   const stageColor =
@@ -318,7 +225,7 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
             </Text>
           </GlowCard>
 
-          {DOMAIN_ORDER.map((domain) => {
+          {PROGRESS_DOMAIN_ORDER.map((domain) => {
             const items = progress.items.filter(
               (item) => item.domain === domain
             );

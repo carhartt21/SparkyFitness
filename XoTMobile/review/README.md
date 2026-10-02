@@ -71,3 +71,17 @@ menu rows follow the device language. Old native binaries need rebuilding.
 ## Meal actions from Goals
 
 `--interactions --meal-status-review --case '390-de-dark|390-de-light|430-de-large'` opens an empty synthetic meal from Daily Progress, taps to complete it, long-presses to select “No meal,” returns to the refreshed Goals row, and reopens the meal to verify its state. The control must expose a 44×44-point target. The scenario enables meal tracking only within the isolated fixture and accepts validated, in-memory status writes scoped to the selected date. Normal fixtures continue rejecting these writes. It checks native navigation, German empty copy, action-sheet accessibility and cache refresh; it does not verify persistence against a production database or across app restarts.
+
+## v38 corrections
+
+```sh
+node scripts/review-ios.mjs \
+  --app /absolute/path/to/DevelopmentSimulator.app \
+  --output /tmp/xot-v38-review-unique-run \
+  --case '^(390-de-dark|390-de-light|430-de-large)$' \
+  --interactions --v38-review
+```
+
+This checks the compact goal action, a pending task's real destination, fractional and unknown micronutrients, note draft retention after interactive keyboard dismissal, meal icon selection/save/reopening, and localized weekly-plan calendar controls. It captures the meal-settings row before editing to expose accessibility-text layout regressions. Enlarged-text screens scroll controls into view; a partially visible element's XCTest `isHittable` alone does not prove its center is above the keyboard. The fixture is isolated and resets for every case: native saves prove cache/UI behavior, not server persistence.
+
+For database-backed meal-icon persistence, start the isolated web stack and run `XOT_VISUAL_URL=http://localhost:<isolated-web-port> node scripts/review-meal-type-icons.mjs` from `XoTFrontend/`. It creates, reloads, edits and resets a synthetic custom meal, checks omission-preserving and invalid-value API behavior, captures desktop/narrow pickers, then deletes its synthetic meal. It accepts loopback only. Normal startup applies the additive icon migration; production and cross-account permission checks remain separate gates.

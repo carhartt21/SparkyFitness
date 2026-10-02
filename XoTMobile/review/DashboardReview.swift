@@ -42,6 +42,115 @@ final class DashboardReview: XCTestCase {
     capture("meal-empty-reopened", app)
   }
 
+  /// Focused v38 review: production controls with isolated synthetic transport.
+  func testV38Corrections() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    XCTAssertTrue(app.buttons["dashboard-edit-goal"].exists)
+    let progress = app.buttons["dashboard-progress-open"]
+    XCTAssertTrue(progress.waitForExistence(timeout: 15))
+    XCTAssertGreaterThanOrEqual(progress.frame.height, 44)
+    capture("v38-dashboard", app)
+    let nextTask = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dashboard-next-")).firstMatch
+    for _ in 0..<6 { if nextTask.isHittable { break }; dashboard.swipeUp() }
+    XCTAssertTrue(nextTask.isHittable); nextTask.tap()
+    capture("v38-next-task-destination", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 10))
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<6 { if food.isHittable { break }; dashboard.swipeUp() }
+    XCTAssertTrue(food.isHittable)
+    food.tap()
+    let search = app.textFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 15))
+    search.tap(); search.typeText("Review yogurt")
+    let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt with berries and toasted pumpkin seeds")).firstMatch
+    XCTAssertTrue(result.waitForExistence(timeout: 20)); result.tap()
+    let options = app.buttons["food-entry-more-options"]
+    for _ in 0..<10 { if options.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(options.isHittable); options.tap()
+    let moreNutrients = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Weitere Nährstoffe anzeigen")).firstMatch
+    for _ in 0..<6 { if moreNutrients.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(moreNutrients.waitForExistence(timeout: 10)); moreNutrients.tap()
+    let magnesium = app.staticTexts["Magnesium"].firstMatch
+    for _ in 0..<8 { if magnesium.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(magnesium.isHittable)
+    XCTAssertTrue(app.staticTexts["Vitamin B12"].firstMatch.exists)
+    capture("v38-nutrients", app)
+    let note = app.textViews.firstMatch
+    for _ in 0..<8 { if note.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(note.isHittable); note.tap()
+    note.typeText("Synthetic retained draft")
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+    capture("v38-note-keyboard", app)
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.4)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.72)))
+    let keyboardGone = NSPredicate { _, _ in !app.keyboards.firstMatch.exists }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: keyboardGone, object: app)], timeout: 10), .completed)
+    XCTAssertTrue((note.value as? String ?? "").contains("Synthetic retained draft"))
+    capture("v38-note-dismissed", app)
+    app.buttons["food-entry-add-cancel"].tap()
+    let close = app.buttons.matching(NSPredicate(format: "label IN %@", ["Schließen", "Close"])).firstMatch
+    XCTAssertTrue(close.waitForExistence(timeout: 10)); close.tap()
+    for _ in 0..<10 { if app.buttons["open-settings"].isHittable { break }; app.swipeDown() }
+    app.buttons["open-settings"].tap()
+    let foodSettings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Essen")).firstMatch
+    for _ in 0..<8 { if foodSettings.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(foodSettings.isHittable); foodSettings.tap()
+    let mealSettings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Mahlzeitenarten")).firstMatch
+    XCTAssertTrue(mealSettings.waitForExistence(timeout: 10)); mealSettings.tap()
+    let edit = app.buttons["edit-custom-review-custom-meal"]
+    XCTAssertTrue(edit.waitForExistence(timeout: 10))
+    capture("v38-meal-settings", app)
+    edit.tap()
+    let icon = app.descendants(matching: .any)["meal-icon-water"]
+    XCTAssertTrue(icon.waitForExistence(timeout: 10))
+    XCTAssertGreaterThanOrEqual(icon.frame.height, 44); XCTAssertGreaterThanOrEqual(icon.frame.width, 44)
+    icon.tap(); capture("v38-meal-icon-picker", app)
+    let save = app.buttons["Mahlzeitenart speichern"]
+    for _ in 0..<5 { if save.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(save.isHittable); save.tap()
+    XCTAssertTrue(edit.waitForExistence(timeout: 10))
+    edit.tap(); capture("v38-meal-icon-reopened", app)
+    // Use the visible save action; the backdrop's accessibility frame includes
+    // covered content and cannot serve as a reliable large-text dismiss target.
+    for _ in 0..<5 { if save.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(save.isHittable); save.tap()
+    let sheetDismissed = NSPredicate { _, _ in !app.buttons["Mahlzeitenart speichern"].exists }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: sheetDismissed, object: app)], timeout: 10), .completed)
+    for _ in 0..<4 {
+      if app.buttons["Mehr"].exists { break }
+      app.buttons["Zurück"].firstMatch.tap()
+      Thread.sleep(forTimeInterval: 0.5)
+    }
+    let more = app.buttons["Mehr"]
+    XCTAssertTrue(more.waitForExistence(timeout: 10)); more.tap()
+    let plans = app.descendants(matching: .any)["more-training-plans"]
+    for _ in 0..<6 { if plans.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(plans.isHittable); plans.tap()
+    let editPlan = app.buttons["Bearbeiten"].firstMatch
+    XCTAssertTrue(editPlan.waitForExistence(timeout: 10)); editPlan.tap()
+    let name = app.textFields["weekly-plan-name"]
+    XCTAssertTrue(name.waitForExistence(timeout: 10)); name.tap()
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+    let start = app.buttons["weekly-plan-start-date"]
+    // At accessibility sizes the date row is below the keyboard. Drag the
+    // form's visible content to dismiss it rather than tapping through it.
+    if start.frame.maxY >= app.keyboards.firstMatch.frame.minY {
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.35)).press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.8, dy: 0.68)))
+      XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: keyboardGone, object: app)], timeout: 10), .completed)
+    }
+    for _ in 0..<6 { if start.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(start.isHittable); start.tap()
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: keyboardGone, object: app)], timeout: 10), .completed)
+    capture("v38-plan-calendar", app)
+    app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.1)).tap()
+    XCTAssertTrue(start.waitForExistence(timeout: 10))
+    capture("v38-plan-date-controls", app)
+  }
+
   func testFoodDetailsLayout() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

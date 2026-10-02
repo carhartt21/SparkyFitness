@@ -84,21 +84,22 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 
 ### Food & Nutrition (Tier 2/3: Owner-Write, Delegate-Read/Write)
 
-| Table                            | Purpose                                                                               |
-| -------------------------------- | ------------------------------------------------------------------------------------- |
-| `foods`                          | Custom food items created by user                                                     |
-| `bls4_foods`                     | Imported, read-only Max Rubner-Institut BLS 4.0 reference foods and source provenance |
-| `food_variants`                  | Serving size options for foods, including saved portions with label, weight and order |
-| `food_entries`                   | Logged meals/calories for the day                                                     |
-| `food_last_servings`             | Last hand-logged amount and unit per user and food (quick add)                        |
-| `food_entry_meals`               | Meal details associated with logged entries                                           |
-| `meals`                          | Custom meal templates                                                                 |
-| `meal_foods`                     | Ingredients assigned to meals                                                         |
-| `meal_types`                     | Custom meal type definitions (breakfast, lunch, etc.)                                 |
-| `meal_plans`                     | Weekly meal planning schedules                                                        |
-| `meal_plan_templates`            | Reusable meal plan templates (supports multiple active plans per user)                |
-| `meal_plan_template_assignments` | Scheduled meal templates to calendar                                                  |
-| `meal_plan_assignment_sets`      | Sets within assigned meal plans                                                       |
+| Table                            | Purpose                                                                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `foods`                          | Custom food items created by user                                                                                                    |
+| `bls4_foods`                     | Imported, read-only Max Rubner-Institut BLS 4.0 reference foods and source provenance                                                |
+| `food_variants`                  | Serving size options for foods, including saved portions with label, weight and order                                                |
+| `food_entries`                   | Logged meals/calories for the day                                                                                                    |
+| `food_last_servings`             | Last hand-logged amount and unit per user and food (quick add)                                                                       |
+| `food_entry_meals`               | Meal details associated with logged entries                                                                                          |
+| `meals`                          | Custom meal templates                                                                                                                |
+| `meal_foods`                     | Ingredients assigned to meals                                                                                                        |
+| `meal_types`                     | Custom meal type definitions (breakfast, lunch, etc.)                                                                                |
+| `user_meal_visibilities`         | Per-account visibility, ordering, display names, default times, quick-log and semantic meal icons; retains diary sharing permissions |
+| `meal_plans`                     | Weekly meal planning schedules                                                                                                       |
+| `meal_plan_templates`            | Reusable meal plan templates (supports multiple active plans per user)                                                               |
+| `meal_plan_template_assignments` | Scheduled meal templates to calendar                                                                                                 |
+| `meal_plan_assignment_sets`      | Sets within assigned meal plans                                                                                                      |
 
 ### Exercise & Workouts (Tier 2/3: Owner-Write, Delegate-Read/Write)
 
@@ -184,7 +185,6 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | `profiles`                            | User full name, height, display metrics                                                     |
 | `user_preferences`                    | Unit, formatting, and chart display preferences                                             |
 | `user_nutrient_display_preferences`   | Nutrient column display preferences                                                         |
-| `user_meal_visibilities`              | Visibility settings for meals                                                               |
 | `user_goals`                          | Active daily calorie/macro goals                                                            |
 | `user_custom_nutrients`               | Custom nutrient definitions                                                                 |
 | `user_nutrient_goal_preferences`      | Per-user minimum/maximum/target goal direction override per nutrient (predefined or custom) |

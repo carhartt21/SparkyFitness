@@ -2910,7 +2910,9 @@
   },
   "foodNutrition": {
     "hideExtra": "Hide extra nutrients ▴",
-    "showMore": "Show more nutrients ▾"
+    "showMore": "Show more nutrients ▾",
+    "unitUnavailable": "Unit unavailable",
+    "availabilityHint": "Amounts refer to the selected quantity. — means unavailable, not zero."
   },
   "diarySummary": {
     "remaining": "remaining",
@@ -4657,7 +4659,12 @@
       "create": "Create meal type",
       "save": "Save meal type",
       "delete": "Delete Meal Type"
-    }
+    },
+    "icon": "Icon",
+    "defaultIcon": "Use default icon",
+    "drinkIcon": "Drink",
+    "foodIcon": "Food",
+    "groupIcon": "Meal group"
   },
   "activityAdd": {
     "fields": {
@@ -6039,7 +6046,10 @@
       "unknown": "No value recorded"
     },
     "completedTitle": "Your tracking tasks are complete",
-    "completedHint": "You have recorded or reviewed every applicable task for today. This reflects tracking, not a health score."
+    "completedHint": "You have recorded or reviewed every applicable task for today. This reflects tracking, not a health score.",
+    "previewUnavailable": "Tasks could not be loaded.",
+    "previewStale": "Saved tasks. Refresh to check recent changes.",
+    "previewComplete": "All applicable tasks are resolved."
   },
   "habits": {
     "targetLabel": "Target {{value}} {{unit}}",
@@ -6409,7 +6419,9 @@
       "rest": "Rest day"
     },
     "dateFormat": "YYYY-MM-DD",
-    "timeFormat": "HH:mm"
+    "timeFormat": "HH:mm",
+    "noEndDate": "No end date",
+    "clearEndDate": "Remove end date"
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Could not save the plan. Your changes are still here. Try again."

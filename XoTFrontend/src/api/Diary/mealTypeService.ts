@@ -2,6 +2,7 @@ import { MealTypeDefinition } from '@/types/diary';
 import { apiCall } from '../api';
 
 interface MealTypeUpdate {
+  icon_key?: import('@workspace/shared').MealTypeIcon | null;
   name?: string;
   sort_order?: number;
   is_visible?: boolean;
@@ -17,6 +18,7 @@ export const getMealTypes = async (): Promise<MealTypeDefinition[]> => {
 };
 
 export const createMealType = async (data: {
+  icon_key?: import('@workspace/shared').MealTypeIcon | null;
   name: string;
   sort_order: number;
   default_time?: string | null;

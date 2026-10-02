@@ -24,6 +24,8 @@ export interface FoodDisplayValues {
   fat: number;
   fiber?: number;
   saturatedFat?: number;
+  monounsaturatedFat?: number;
+  polyunsaturatedFat?: number;
   sodium?: number;
   sugars?: number;
   transFat?: number;
@@ -208,6 +210,8 @@ export function foodInfoToDisplayValues(item: FoodInfoItem): FoodDisplayValues {
     fat: item.fat,
     fiber: item.fiber,
     saturatedFat: item.saturatedFat,
+    monounsaturatedFat: item.monounsaturatedFat,
+    polyunsaturatedFat: item.polyunsaturatedFat,
     sodium: item.sodium,
     sugars: item.sugars,
     transFat: item.transFat,
@@ -236,6 +240,8 @@ export function unitVariantToDisplayValues(
     fat: variant.fat,
     fiber: variant.dietary_fiber,
     saturatedFat: variant.saturated_fat,
+    monounsaturatedFat: variant.monounsaturated_fat,
+    polyunsaturatedFat: variant.polyunsaturated_fat,
     sodium: variant.sodium,
     sugars: variant.sugars,
     transFat: variant.trans_fat,
@@ -262,6 +268,8 @@ export function foodInfoToUnitVariant(item: FoodInfoItem): FoodUnitVariant {
     carbs: item.carbs,
     fat: item.fat,
     saturated_fat: item.saturatedFat,
+    monounsaturated_fat: item.monounsaturatedFat,
+    polyunsaturated_fat: item.polyunsaturatedFat,
     trans_fat: item.transFat,
     cholesterol: item.cholesterol,
     sodium: item.sodium,
@@ -334,6 +342,8 @@ export function externalVariantToUnitVariant(
     fat: variant.fat,
     saturated_fat: variant.saturated_fat,
     trans_fat: variant.trans_fat,
+    monounsaturated_fat: variant.monounsaturated_fat,
+    polyunsaturated_fat: variant.polyunsaturated_fat,
     cholesterol: variant.cholesterol,
     sodium: variant.sodium,
     potassium: variant.potassium,
@@ -346,6 +356,7 @@ export function externalVariantToUnitVariant(
     caffeine_mg: variant.caffeine_mg,
     water_ml: variant.water_ml,
     alcohol_g: variant.alcohol_g,
+    custom_nutrients: variant.custom_nutrients ?? null,
   };
 }
 
@@ -548,6 +559,8 @@ export function buildLocalVariantOptions(
       fat: base.fat,
       fiber: base.dietary_fiber,
       saturatedFat: base.saturated_fat,
+      monounsaturatedFat: base.monounsaturated_fat,
+      polyunsaturatedFat: base.polyunsaturated_fat,
       sodium: base.sodium,
       sugars: base.sugars,
       transFat: base.trans_fat,
@@ -577,6 +590,7 @@ export function buildExternalVariantOptions(
       id: `ext-${index}`,
       food_id: '',
       dietary_fiber: variant.fiber,
+      custom_nutrients: variant.custom_nutrients ?? undefined,
     })
   );
 
@@ -603,6 +617,8 @@ export function buildExternalVariantOptions(
         fat: base.fat,
         fiber: base.dietary_fiber,
         saturatedFat: base.saturated_fat,
+        monounsaturatedFat: base.monounsaturated_fat,
+        polyunsaturatedFat: base.polyunsaturated_fat,
         sodium: base.sodium,
         sugars: base.sugars,
         transFat: base.trans_fat,
@@ -940,6 +956,8 @@ export function applyDisplayValuesToFoodInfo(
     fat: displayValues.fat,
     fiber: displayValues.fiber,
     saturatedFat: displayValues.saturatedFat,
+    monounsaturatedFat: displayValues.monounsaturatedFat,
+    polyunsaturatedFat: displayValues.polyunsaturatedFat,
     sodium: displayValues.sodium,
     sugars: displayValues.sugars,
     transFat: displayValues.transFat,

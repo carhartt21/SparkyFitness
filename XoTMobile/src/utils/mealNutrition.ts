@@ -9,6 +9,7 @@ import { calculateCustomNutrientTotals } from '../services/api/foodEntriesApi';
 export type MealTypeKey = string;
 
 export interface MealGroup {
+  iconKey?: MealType['icon_key'];
   mealTypeId: string | null;
   name: string;
   sortOrder: number;
@@ -163,6 +164,7 @@ export function groupFoodEntriesByMealType(
         entries: group.entries,
         isSystem: mt.user_id === null,
         displayName: mt.display_name,
+        iconKey: mt.icon_key,
       });
     }
   }

@@ -868,7 +868,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             navigation.navigate('ExerciseReview', { date: selectedDate })
           }
         />
-        {quickActions}
         {dailyProgressCardVisible && (
           <DailyProgressCard
             date={selectedDate}
@@ -876,11 +875,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             onOpenProgress={() =>
               navigation.navigate('DailyProgress', { date: selectedDate })
             }
-            onOpenCheckin={() =>
-              navigation.navigate('DailyCheckIn', { date: selectedDate })
-            }
+            onOpenHydration={() => setHydrationDetailsVisible(true)}
           />
         )}
+        {quickActions}
         {/* Macros Section — driven by nutrient display preferences (summary/mobile).
             Only the 4 core macros (with goals) and user-defined custom nutrients are
             shown here. Other enabled nutrients (sodium, sugars, etc.) belong in a

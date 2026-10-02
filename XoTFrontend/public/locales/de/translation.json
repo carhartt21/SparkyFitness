@@ -5664,7 +5664,18 @@
     "edit": "Bearbeiten Sie {{name}}",
     "moveDown": "Verschieben Sie {{name}} nach unten",
     "moveUp": "Verschieben Sie {{name}} nach oben",
-    "reorderError": "Die Essenskategorien konnten nicht neu angeordnet werden."
+    "reorderError": "Die Essenskategorien konnten nicht neu angeordnet werden.",
+    "icon": "Symbol",
+    "defaultIcon": "Standardsymbol verwenden",
+    "icons": {
+      "meal-breakfast": "Frühstück",
+      "meal-lunch": "Mittagessen",
+      "meal-dinner": "Abendessen",
+      "meal-snack": "Snack",
+      "food": "Lebensmittel",
+      "water": "Getränk",
+      "meal": "Mahlzeitengruppe"
+    }
   },
   "measurements": {
     "errorLoadingBodyFat": "Das letzte Körperfett konnte nicht geladen werden.",

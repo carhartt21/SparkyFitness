@@ -2742,7 +2742,7 @@
     "cholesterol": "Cholesterin",
     "sodium": "Natrium",
     "potassium": "Kalium",
-    "sugars": "Zuckers",
+    "sugars": "Zucker",
     "vitaminA": "Vitamin A",
     "vitaminC": "Vitamin C",
     "calcium": "Calcium",
@@ -2763,7 +2763,9 @@
   },
   "foodNutrition": {
     "hideExtra": "Weitere Nährstoffe ausblenden ▴",
-    "showMore": "Weitere Nährstoffe anzeigen ▾"
+    "showMore": "Weitere Nährstoffe anzeigen ▾",
+    "unitUnavailable": "Einheit unbekannt",
+    "availabilityHint": "Die Werte beziehen sich auf die gewählte Menge. — bedeutet unbekannt, nicht 0."
   },
   "diarySummary": {
     "remaining": "verbleibend",
@@ -3331,7 +3333,7 @@
     "failedDelete": "Mahlzeitenkategorie konnte nicht gelöscht werden.",
     "failedReorder": "Fehler beim reorder meal types.",
     "capacity": "Es können keine weiteren Essensarten platziert werden {{gap}}.",
-    "add": "meal type hinzufügen",
+    "add": "Mahlzeitenart hinzufügen",
     "createdPartial": "Erstellt, aber einige Einstellungen konnten nicht gespeichert werden.",
     "created": "Mahlzeit Typ created",
     "failedCreate": "Fehler beim create meal type.",
@@ -3340,7 +3342,7 @@
     "loading": "Wird geladen meal types...",
     "loadFailed": "Mahlzeitenkategorien konnten nicht geladen werden.",
     "empty": "Nein meal types found",
-    "defaultTime": "Standard Zeit für {{name}}{{time}}",
+    "defaultTime": "Standardzeit für {{name}}{{time}}",
     "notSet": "Nicht festgelegt"
   },
   "mealPlans": {
@@ -3895,7 +3897,7 @@
       "updateFailed": "Fehler beim update setting.."
     },
     "mealTypes": {
-      "title": "Mahlzeit Types",
+      "title": "Mahlzeitenarten",
       "subtitle": "Eigene Mahlzeitenkategorien hinzufügen, bearbeiten, sortieren oder löschen"
     },
     "netCarbs": {
@@ -4382,24 +4384,29 @@
     }
   },
   "mealTypeForm": {
-    "createTitle": "Meal Type hinzufügen",
-    "editTitle": "Bearbeiten Mahlzeit Typ",
+    "createTitle": "Mahlzeitenart hinzufügen",
+    "editTitle": "Mahlzeitenart bearbeiten",
     "name": "Name",
-    "namePlaceholder": "e.g. Mittagessen 2.0",
-    "quickLog": "Quick eintragen",
-    "defaultTime": "Standard Zeit",
+    "namePlaceholder": "z. B. Mittagessen 2.0",
+    "quickLog": "Schnelleingabe",
+    "defaultTime": "Standardzeit",
     "notSet": "Nicht festgelegt",
     "create": "Erstellen",
-    "delete": "Meal Type löschen",
+    "delete": "Mahlzeitenart löschen",
     "accessibility": {
-      "name": "Mahlzeit Typ Name",
-      "quickLog": "Quick eintragen {{name}}",
-      "defaultTime": "Standard Zeit für {{name}}{{time}}",
-      "cancelCreate": "Abbrechen create meal Typ",
-      "create": "Create meal Typ",
-      "save": "Speichern meal Typ",
-      "delete": "Meal Type löschen"
-    }
+      "name": "Name der Mahlzeitenart",
+      "quickLog": "Schnelleingabe für {{name}}",
+      "defaultTime": "Standardzeit für {{name}}{{time}}",
+      "cancelCreate": "Mahlzeitenart verwerfen",
+      "create": "Mahlzeitenart erstellen",
+      "save": "Mahlzeitenart speichern",
+      "delete": "Mahlzeitenart löschen"
+    },
+    "icon": "Symbol",
+    "defaultIcon": "Standardsymbol verwenden",
+    "drinkIcon": "Getränk",
+    "foodIcon": "Lebensmittel",
+    "groupIcon": "Mahlzeitengruppe"
   },
   "activityAdd": {
     "fields": {
@@ -6050,7 +6057,10 @@
       "unknown": "Noch kein Wert erfasst"
     },
     "completedTitle": "Alle Erfassungsaufgaben abgeschlossen",
-    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung."
+    "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung.",
+    "previewUnavailable": "Die Aufgaben konnten nicht geladen werden.",
+    "previewStale": "Gespeicherte Aufgaben. Aktualisieren, um neue Änderungen zu sehen.",
+    "previewComplete": "Alle anstehenden Aufgaben sind geklärt."
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
@@ -6420,7 +6430,9 @@
       "rest": "Ruhetag"
     },
     "dateFormat": "JJJJ-MM-TT",
-    "timeFormat": "SS:mm"
+    "timeFormat": "SS:mm",
+    "noEndDate": "Kein Enddatum",
+    "clearEndDate": "Enddatum entfernen"
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."

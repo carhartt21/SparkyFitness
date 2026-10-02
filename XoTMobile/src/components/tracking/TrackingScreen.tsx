@@ -79,6 +79,9 @@ export default function TrackingScreen({
         <ScrollView
           className="flex-1"
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
           contentContainerStyle={{
             paddingTop: insets.top + 8,
             paddingHorizontal: 16,

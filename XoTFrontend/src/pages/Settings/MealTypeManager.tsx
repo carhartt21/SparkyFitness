@@ -38,6 +38,9 @@ import { MealTypeDefinition } from '@/types/diary';
 import { useQueryClient } from '@tanstack/react-query';
 import DeleteMealTypeDialog from './DeleteMealTypeDialog';
 import type { PendingMealTypeDeletion } from './DeleteMealTypeDialog';
+import MealTypeIconPicker from './MealTypeIconPicker';
+import MealTypeIcon from '@/pages/Diary/MealTypeIcon';
+import type { MealTypeIcon as MealIconKey } from '@workspace/shared';
 
 const MealTypeManager = () => {
   const { t } = useTranslation();
@@ -49,6 +52,7 @@ const MealTypeManager = () => {
     useState<MealTypeDefinition | null>(null);
 
   const [newName, setNewName] = useState('');
+  const [newIcon, setNewIcon] = useState<MealIconKey | null>(null);
   const [newDefaultTime, setNewDefaultTime] = useState<string>('');
 
   const [pendingDeletion, setPendingDeletion] =
@@ -68,8 +72,10 @@ const MealTypeManager = () => {
       name: newName.trim(),
       sort_order: Math.max(0, ...mealTypes.map((item) => item.sort_order)) + 10,
       default_time: newDefaultTime || null,
+      icon_key: newIcon,
     });
     setNewName('');
+    setNewIcon(null);
     setNewDefaultTime('');
     setIsAddDialogOpen(false);
   };
@@ -84,6 +90,7 @@ const MealTypeManager = () => {
           ? { name: newName.trim() }
           : {}),
         default_time: newDefaultTime || null,
+        icon_key: newIcon,
       },
     });
 
@@ -139,6 +146,7 @@ const MealTypeManager = () => {
 
   const openEditDialog = (item: MealTypeDefinition) => {
     setEditingMealType(item);
+    setNewIcon(item.icon_key ?? null);
     setNewName(getDisplayName(item));
     setNewDefaultTime(toHourMinute(item.default_time) || '');
     setIsEditDialogOpen(true);
@@ -174,7 +182,17 @@ const MealTypeManager = () => {
           <h3 className="text-lg font-medium">
             {t('mealTypeManager.title', 'Meal Categories')}
           </h3>
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+          <Dialog
+            open={isAddDialogOpen}
+            onOpenChange={(open) => {
+              if (open) {
+                setNewName('');
+                setNewIcon(null);
+                setNewDefaultTime('');
+              }
+              setIsAddDialogOpen(open);
+            }}
+          >
             <DialogTrigger asChild>
               <Button size="sm">
                 <Plus className="w-4 h-4 mr-2" />
@@ -194,6 +212,7 @@ const MealTypeManager = () => {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
+                <MealTypeIconPicker value={newIcon} onChange={setNewIcon} />
                 <div className="space-y-2">
                   <Label>{t('mealTypeManager.nameLabel', 'Name')}</Label>
                   <Input
@@ -253,7 +272,13 @@ const MealTypeManager = () => {
               >
                 <div className="flex items-center gap-3">
                   <div className="flex flex-col">
-                    <span className="font-medium">{getDisplayName(item)}</span>
+                    <span className="flex items-center gap-2 font-medium">
+                      <MealTypeIcon
+                        icon={item.icon_key ?? 'meal-snack'}
+                        className="h-5 w-5"
+                      />
+                      {getDisplayName(item)}
+                    </span>
                   </div>
                   {isSystem && (
                     <Badge variant="secondary" className="text-xs">
@@ -389,6 +414,7 @@ const MealTypeManager = () => {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            <MealTypeIconPicker value={newIcon} onChange={setNewIcon} />
             <div className="space-y-2">
               <Label>{t('mealTypeManager.nameLabel', 'Name')}</Label>
               <Input

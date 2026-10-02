@@ -697,7 +697,18 @@
     "moveDown": "Verschieben Sie {{name}} nach unten",
     "moveUp": "Verschieben Sie {{name}} nach oben",
     "reorderError": "Die Essenskategorien konnten nicht neu angeordnet werden.",
-    "addDesc": "Eine neue Mahlzeitenkategorie erstellen (z. B. vor dem Training)."
+    "addDesc": "Eine neue Mahlzeitenkategorie erstellen (z. B. vor dem Training).",
+    "icon": "Symbol",
+    "defaultIcon": "Standardsymbol verwenden",
+    "icons": {
+      "meal-breakfast": "Frühstück",
+      "meal-lunch": "Mittagessen",
+      "meal-dinner": "Abendessen",
+      "meal-snack": "Snack",
+      "food": "Lebensmittel",
+      "water": "Getränk",
+      "meal": "Mahlzeitengruppe"
+    }
   },
   "providers": {
     "bls4Attribution": "Daten zur Lebensmittelzusammensetzung: Max Rubner-Institut (2025), Bundeslebensmittelschlüssel 4.0. Werte pro 100 g essbarer Portion.",

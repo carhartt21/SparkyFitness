@@ -31,6 +31,10 @@ export const reviewFood: FoodItem = {
     carbs: 15,
     fat: 5,
     dietary_fiber: 2,
+    monounsaturated_fat: 0.125,
+    polyunsaturated_fat: 0,
+    iron: 0.04,
+    custom_nutrients: { Magnesium: 0.25, 'Vitamin B12': '<LOD' },
   },
 };
 
@@ -77,8 +81,7 @@ export const reviewVariants = [
   },
 ];
 
-const clone = (entries: FoodEntry[]): FoodEntry[] =>
-  JSON.parse(JSON.stringify(entries));
+const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 /** In-memory simulator fixture. Never imports a network or persistence client. */
 export function createNutritionFixture(scenario: string) {
@@ -87,6 +90,19 @@ export function createNutritionFixture(scenario: string) {
       .foodEntries
   );
   let nextId = 1;
+  const mealTypes = [
+    ...(reviewResponse('/api/meal-types', scenario) as object[]),
+    {
+      id: 'review-custom-meal',
+      name: 'Synthetic snack',
+      user_id: 'review-user',
+      sort_order: 20,
+      is_visible: true,
+      show_in_quick_log: false,
+      created_at: '2026-01-01T00:00:00Z',
+      icon_key: null as string | null,
+    },
+  ];
   let waterMl = scenario === 'empty' ? 0 : summaryFixture.waterIntake;
   const waterLog: WaterIntakeLogEntry[] = [];
   const waterOperations = new Set<string>();
@@ -130,6 +146,31 @@ export function createNutritionFixture(scenario: string) {
       if (url.origin !== 'https://ui-review.invalid')
         throw new Error('Review blocked network origin');
       const path = url.pathname.replace(/\/$/, '');
+      if (scenario === 'v38-review') {
+        if (method === 'GET' && path.startsWith('/api/v2/tracking/')) {
+          const response = trackingReviewResponse(
+            path,
+            'populated',
+            reviewDate
+          );
+          if (response !== undefined) return clone(response);
+        }
+        if (method === 'GET' && path === '/api/custom-nutrients')
+          return [
+            { id: 'review-magnesium', name: 'Magnesium', unit: 'mg' },
+            { id: 'review-b12', name: 'Vitamin B12', unit: 'µg' },
+          ];
+        if (method === 'GET' && path === '/api/meal-types')
+          return clone(mealTypes);
+        if (method === 'PUT' && path === '/api/meal-types/review-custom-meal') {
+          const update = JSON.parse(body ?? '{}') as {
+            icon_key?: string | null;
+          };
+          const meal = mealTypes[1] as { icon_key: string | null };
+          if ('icon_key' in update) meal.icon_key = update.icon_key ?? null;
+          return clone(mealTypes[1]);
+        }
+      }
       if (scenario === 'meal-status') {
         if (method === 'PUT' && path === '/api/v2/tracking/meal-status') {
           const data = setMealDayStatusRequestSchema.parse(

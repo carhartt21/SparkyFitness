@@ -14,6 +14,11 @@ import {
   type NutrientDisplayItem,
 } from '../types/foodInfo';
 import { localizeNutrientKey } from '../utils/nutrientLocalization';
+import {
+  buildCustomNutrientRows,
+  formatNutrientAmount,
+  type CustomNutrientDisplayRow,
+} from '../utils/nutrientDisplay';
 import type { FoodDisplayValues } from '../utils/foodDetails';
 import NutritionMacroCard, {
   type NutritionGoalPercentages,
@@ -51,7 +56,6 @@ export const FoodNutritionHeader: React.FC<FoodNutritionHeaderProps> = ({
   calorieGoal,
 }) => {
   const scale = (value: number) => value * servings;
-
   return (
     <View className="gap-4">
       <View>
@@ -107,7 +111,6 @@ export const FoodNutrientBreakdown: React.FC<FoodNutrientBreakdownProps> = ({
   const [showMoreNutrients, setShowMoreNutrients] = useState(false);
 
   const { t } = useTranslation();
-  const scale = (value: number) => value * servings;
   const localizedNutrientLabel = (label: string) =>
     localizeNutrientKey(t, label);
   // Gate the Total Carbs row injection on the same condition NutritionMacroCard
@@ -126,55 +129,27 @@ export const FoodNutrientBreakdown: React.FC<FoodNutrientBreakdownProps> = ({
       [values, useNetCarbs, t]
     );
 
-  // Build custom nutrient rows: show ALL user-defined custom nutrients (from defs),
-  // using values from the prop when available and 0 otherwise. Also include any
-  // prop values not covered by the current user definitions.
-  const customNutrientRows = useMemo((): NutrientDisplayItem[] => {
-    const rows: NutrientDisplayItem[] = [];
-    const seen = new Set<string>();
+  const customNutrientRows = useMemo(
+    () => buildCustomNutrientRows(customNutrients, customNutrientDefs),
+    [customNutrients, customNutrientDefs]
+  );
 
-    for (const def of customNutrientDefs) {
-      const rawValue = customNutrients?.[def.name];
-      const value =
-        rawValue == null
-          ? 0
-          : typeof rawValue === 'number'
-            ? rawValue
-            : parseFloat(String(rawValue));
-      rows.push({
-        label: def.name,
-        value: isNaN(value) ? 0 : value,
-        unit: def.unit,
-      });
-      seen.add(def.name);
-    }
-
-    if (customNutrients) {
-      for (const [name, rawValue] of Object.entries(customNutrients)) {
-        if (seen.has(name)) continue;
-        const value =
-          typeof rawValue === 'number'
-            ? rawValue
-            : parseFloat(String(rawValue));
-        if (isNaN(value)) continue;
-        rows.push({ label: name, value, unit: '' });
-      }
-    }
-
-    return rows;
-  }, [customNutrients, customNutrientDefs]);
-
-  const renderRow = (nutrient: NutrientDisplayItem, showBorder: boolean) => (
+  const renderRow = (
+    nutrient: NutrientDisplayItem | CustomNutrientDisplayRow,
+    showBorder: boolean
+  ) => (
     <View
       key={nutrient.label}
       className={`flex-row justify-between py-1 ${showBorder ? 'border-b border-border-subtle' : ''}`}
     >
-      <Text className="text-text-secondary text-sm">
+      <Text className="text-text-secondary text-sm flex-1 pr-3">
         {localizedNutrientLabel(nutrient.label)}
       </Text>
       <Text className="text-text-primary text-sm">
-        {Math.round(scale(nutrient.value))}
-        {nutrient.unit}
+        {formatNutrientAmount(nutrient.value, nutrient.unit, servings)}
+        {nutrient.value != null && !nutrient.unit
+          ? ` · ${t('foodNutrition.unitUnavailable', { defaultValue: 'Unit unavailable' })}`
+          : null}
       </Text>
     </View>
   );
@@ -186,7 +161,7 @@ export const FoodNutrientBreakdown: React.FC<FoodNutrientBreakdownProps> = ({
 
   return (
     <Animated.View className="gap-4" layout={layoutTransition}>
-      {primaryNutrients.length > 0 ? (
+      {primaryNutrients.length > 0 || hasAdditional ? (
         <Animated.View className="rounded-xl" layout={layoutTransition}>
           {primaryNutrients.map((nutrient, index) => {
             const isLastVisible =
@@ -212,6 +187,15 @@ export const FoodNutrientBreakdown: React.FC<FoodNutrientBreakdownProps> = ({
             </Animated.View>
           ) : null}
         </Animated.View>
+      ) : null}
+
+      {hasAdditional ? (
+        <Text className="text-xs text-text-secondary">
+          {t('foodNutrition.availabilityHint', {
+            defaultValue:
+              'Amounts refer to the selected quantity. — means unavailable, not zero.',
+          })}
+        </Text>
       ) : null}
 
       {hasAdditional ? (

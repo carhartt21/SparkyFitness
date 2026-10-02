@@ -1,6 +1,8 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
-import FoodNutritionSummary from '../../src/components/FoodNutritionSummary';
+import { fireEvent, render } from '@testing-library/react-native';
+import FoodNutritionSummary, {
+  FoodNutrientBreakdown,
+} from '../../src/components/FoodNutritionSummary';
 
 jest.mock('../../src/hooks', () => ({
   useServerConnection: jest.fn(() => ({ isConnected: true, isLoading: false })),
@@ -71,7 +73,7 @@ describe('FoodNutritionSummary — Total Carbs row', () => {
       );
       expect(getByText('Total Carbs')).toBeTruthy();
       // 30g raw carbs * 1 serving = 30g
-      expect(getByText('30g')).toBeTruthy();
+      expect(getByText('30 g')).toBeTruthy();
     });
 
     it('scales the Total Carbs row value by servings (servings>1)', () => {
@@ -86,7 +88,7 @@ describe('FoodNutritionSummary — Total Carbs row', () => {
       expect(getByText('Total Carbs')).toBeTruthy();
       // 30g raw carbs * 2.5 servings = 75g
       // Previously this row was double-scaled (would have shown 187g)
-      expect(getByText('75g')).toBeTruthy();
+      expect(getByText('75 g')).toBeTruthy();
     });
 
     it('scales fiber, sugars, and the new Total Carbs row consistently', () => {
@@ -108,11 +110,11 @@ describe('FoodNutritionSummary — Total Carbs row', () => {
         />
       );
       // Fiber 8 * 2 = 16g
-      expect(getByText('16g')).toBeTruthy();
+      expect(getByText('16 g')).toBeTruthy();
       // Sugars 5 * 2 = 10g
-      expect(getByText('10g')).toBeTruthy();
+      expect(getByText('10 g')).toBeTruthy();
       // Total Carbs 30 * 2 = 60g (this was 187g under the double-scaling bug)
-      expect(getByText('60g')).toBeTruthy();
+      expect(getByText('60 g')).toBeTruthy();
     });
   });
 
@@ -131,4 +133,26 @@ describe('FoodNutritionSummary — Total Carbs row', () => {
       expect(queryByText('Total Carbs')).toBeNull();
     });
   });
+});
+
+it('renders additional-only custom rows and preserves fractional amounts after quantity scaling', () => {
+  const screen = render(
+    <FoodNutrientBreakdown
+      values={{
+        servingSize: 100,
+        servingUnit: 'g',
+        calories: 50,
+        protein: 1,
+        carbs: 5,
+        fat: 1,
+        iron: 0.125,
+      }}
+      servings={2}
+      customNutrients={{ 'Personal nutrient': 0.5 }}
+    />
+  );
+  fireEvent.press(screen.getByText('Show more nutrients ▾'));
+  expect(screen.getByText('0.25 mg')).toBeTruthy();
+  expect(screen.getByText('Personal nutrient')).toBeTruthy();
+  expect(screen.getByText(/Unit unavailable/)).toBeTruthy();
 });

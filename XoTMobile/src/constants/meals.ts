@@ -1,8 +1,30 @@
-import { pickMealTypeForTime } from '@workspace/shared';
+import { pickMealTypeForTime, type MealTypeIcon } from '@workspace/shared';
 import type { IconName } from '../components/Icon';
 import type { MealType } from '../types/mealTypes';
 
 export const MEAL_TYPES = ['breakfast', 'lunch', 'dinner', 'snacks'] as const;
+
+export function mealIconLabel(
+  t: (key: string, options: { defaultValue: string }) => string,
+  icon: MealTypeIcon
+): string {
+  switch (icon) {
+    case 'meal-breakfast':
+      return t('mealTypes.breakfast', { defaultValue: 'Breakfast' });
+    case 'meal-lunch':
+      return t('mealTypes.lunch', { defaultValue: 'Lunch' });
+    case 'meal-dinner':
+      return t('mealTypes.dinner', { defaultValue: 'Dinner' });
+    case 'meal-snack':
+      return t('mealTypes.snacks', { defaultValue: 'Snacks' });
+    case 'water':
+      return t('mealTypeForm.drinkIcon', { defaultValue: 'Drink' });
+    case 'food':
+      return t('mealTypeForm.foodIcon', { defaultValue: 'Food' });
+    case 'meal':
+      return t('mealTypeForm.groupIcon', { defaultValue: 'Meal group' });
+  }
+}
 
 export interface MealConfig {
   label: string;

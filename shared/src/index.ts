@@ -73,6 +73,7 @@ export * from "./schemas/database/MealPlanTemplateAssignments.zod.ts";
 export * from "./schemas/database/MealPlanTemplates.zod.ts";
 export * from "./schemas/database/Meals.zod.ts";
 export * from "./schemas/database/MealTypes.zod.ts";
+export * from "./schemas/api/MealTypeIcons.api.zod.ts";
 export * from "./schemas/database/MedicationEntries.zod.ts";
 export * from "./schemas/database/PlannedSupplementActions.zod.ts";
 export * from "./schemas/api/PlannedSupplementAction.api.zod.ts";

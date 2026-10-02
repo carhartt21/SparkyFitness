@@ -7,7 +7,13 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatLocalizedNumber } from '../localization';
-import { View, Text, TouchableOpacity, Pressable } from 'react-native';
+import {
+  Platform,
+  View,
+  Text,
+  TouchableOpacity,
+  Pressable,
+} from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Button from '../components/ui/Button';
 import Animated, {
@@ -55,6 +61,10 @@ import {
   buildNutrientDisplayList,
 } from '../types/foodInfo';
 import { getNetCarbsValue } from '../utils/nutrientUtils';
+import {
+  buildCustomNutrientRows,
+  formatNutrientAmount,
+} from '../utils/nutrientDisplay';
 import type { FoodVariantDetail } from '../types/foods';
 import type { FoodEntry } from '../types/foodEntries';
 import type {
@@ -123,6 +133,8 @@ const entryToDisplayValues = (entry: FoodEntry) => ({
   fat: entry.fat ?? 0,
   fiber: entry.dietary_fiber,
   saturatedFat: entry.saturated_fat,
+  monounsaturatedFat: entry.monounsaturated_fat,
+  polyunsaturatedFat: entry.polyunsaturated_fat,
   transFat: entry.trans_fat,
   sodium: entry.sodium,
   sugars: entry.sugars,
@@ -382,6 +394,8 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
           fat: variant.fat,
           fiber: variant.dietary_fiber,
           saturatedFat: variant.saturated_fat,
+          monounsaturatedFat: variant.monounsaturated_fat,
+          polyunsaturatedFat: variant.polyunsaturated_fat,
           transFat: variant.trans_fat,
           sodium: variant.sodium,
           sugars: variant.sugars,
@@ -444,37 +458,10 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   const { customNutrients: customNutrientDefs } = useCustomNutrients({
     enabled: isConnected,
   });
-  const customNutrientRows = useMemo(() => {
-    const rows: { label: string; value: number; unit: string }[] = [];
-    const seen = new Set<string>();
-    for (const def of customNutrientDefs) {
-      const rawValue = selectedCustomNutrients?.[def.name];
-      const value =
-        rawValue == null
-          ? 0
-          : typeof rawValue === 'number'
-            ? rawValue
-            : parseFloat(String(rawValue));
-      rows.push({
-        label: def.name,
-        value: isNaN(value) ? 0 : value,
-        unit: def.unit,
-      });
-      seen.add(def.name);
-    }
-    if (selectedCustomNutrients) {
-      for (const [name, rawValue] of Object.entries(selectedCustomNutrients)) {
-        if (seen.has(name)) continue;
-        const value =
-          typeof rawValue === 'number'
-            ? rawValue
-            : parseFloat(String(rawValue));
-        if (isNaN(value)) continue;
-        rows.push({ label: name, value, unit: '' });
-      }
-    }
-    return rows;
-  }, [customNutrientDefs, selectedCustomNutrients]);
+  const customNutrientRows = useMemo(
+    () => buildCustomNutrientRows(selectedCustomNutrients, customNutrientDefs),
+    [customNutrientDefs, selectedCustomNutrients]
+  );
 
   const displayValues = useMemo(() => {
     if (!adjustedValues) return activeVariant;
@@ -489,6 +476,8 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
       fat: parseDecimalInput(adjustedValues.fat) || 0,
       fiber: parseOptional(adjustedValues.fiber),
       saturatedFat: parseOptional(adjustedValues.saturatedFat),
+      monounsaturatedFat: activeVariant.monounsaturatedFat,
+      polyunsaturatedFat: activeVariant.polyunsaturatedFat,
       sodium: parseOptional(adjustedValues.sodium),
       sugars: parseOptional(adjustedValues.sugars),
       transFat: parseOptional(adjustedValues.transFat),
@@ -683,6 +672,8 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
       fat: displayValues.fat,
       dietary_fiber: displayValues.fiber,
       saturated_fat: displayValues.saturatedFat,
+      monounsaturated_fat: displayValues.monounsaturatedFat,
+      polyunsaturated_fat: displayValues.polyunsaturatedFat,
       sodium: displayValues.sodium,
       sugars: displayValues.sugars,
       trans_fat: displayValues.transFat,
@@ -803,6 +794,8 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
       payload.carbs = displayValues.carbs;
       payload.fat = displayValues.fat;
       payload.saturated_fat = displayValues.saturatedFat;
+      payload.monounsaturated_fat = displayValues.monounsaturatedFat;
+      payload.polyunsaturated_fat = displayValues.polyunsaturatedFat;
       payload.sodium = displayValues.sodium;
       payload.dietary_fiber = displayValues.fiber;
       payload.sugars = displayValues.sugars;
@@ -924,10 +917,15 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   const hasAdditional =
     additionalNutrients.length > 0 || customNutrientRows.length > 0;
   const showAdditionalRows = showMoreNutrients && hasAdditional;
-  const renderNutrientValue = (value: number, unit: string) =>
-    isEditing
-      ? `${Math.round(scaled(value))}${unit}`
-      : `${Math.round(scaledValue(value, entry))}${unit}`;
+  const renderNutrientValue = (value: number | null, unit: string) =>
+    formatNutrientAmount(
+      value == null
+        ? null
+        : isEditing
+          ? scaled(value)
+          : scaledValue(value, entry),
+      unit
+    );
   const getLocalizedNutrientLabel = (label: string): string => {
     switch (label) {
       case 'Fiber':
@@ -1017,6 +1015,7 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
           paddingBottom: insets.bottom + 16 + activeWorkoutBarPadding,
         }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         bottomOffset={20}
       >
         <Animated.View layout={LinearTransition.duration(300)}>
@@ -1285,7 +1284,7 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
             layout={LinearTransition.duration(300)}
             className="my-2 gap-2"
           >
-            {(primaryNutrients.length > 0 || customNutrientRows.length > 0) && (
+            {(primaryNutrients.length > 0 || hasAdditional) && (
               <View className="rounded-xl">
                 {primaryNutrients.map((nutrient, index) => {
                   const isLastVisible =
@@ -1303,6 +1302,9 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
                       </Text>
                       <Text className="text-text-primary text-sm">
                         {renderNutrientValue(nutrient.value, nutrient.unit)}
+                        {nutrient.value != null && !nutrient.unit
+                          ? ` · ${t('foodNutrition.unitUnavailable', { defaultValue: 'Unit unavailable' })}`
+                          : null}
                       </Text>
                     </View>
                   );
@@ -1328,6 +1330,9 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
                         </Text>
                         <Text className="text-text-primary text-sm">
                           {renderNutrientValue(nutrient.value, nutrient.unit)}
+                          {nutrient.value != null && !nutrient.unit
+                            ? ` · ${t('foodNutrition.unitUnavailable', { defaultValue: 'Unit unavailable' })}`
+                            : null}
                         </Text>
                       </View>
                     ))}
@@ -1345,6 +1350,9 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
                         </Text>
                         <Text className="text-text-primary text-sm">
                           {renderNutrientValue(nutrient.value, nutrient.unit)}
+                          {nutrient.value != null && !nutrient.unit
+                            ? ` · ${t('foodNutrition.unitUnavailable', { defaultValue: 'Unit unavailable' })}`
+                            : null}
                         </Text>
                       </View>
                     ))}

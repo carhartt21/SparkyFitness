@@ -28,6 +28,8 @@ export interface CreateFoodEntryPayload {
   carbs?: number;
   fat?: number;
   saturated_fat?: number;
+  monounsaturated_fat?: number;
+  polyunsaturated_fat?: number;
   sodium?: number;
   dietary_fiber?: number;
   sugars?: number;
@@ -80,6 +82,8 @@ export interface UpdateFoodEntryPayload {
   carbs?: number;
   fat?: number;
   saturated_fat?: number;
+  monounsaturated_fat?: number;
+  polyunsaturated_fat?: number;
   sodium?: number;
   dietary_fiber?: number;
   sugars?: number;

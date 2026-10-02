@@ -1,3 +1,5 @@
+import { externalFoodItemToFoodInfo } from '../../src/types/foodInfo';
+import { buildExternalUnitVariants } from '../../src/utils/foodDetails';
 import {
   _transformOpenFoodFactsProduct as transformOpenFoodFactsProduct,
   _searchOpenFoodFacts as searchOpenFoodFacts,
@@ -1531,6 +1533,40 @@ describe('externalFoodSearchApi', () => {
     };
 
     describe('transformNormalizedFood', () => {
+      test('retains additional and custom nutrients through selection and unit adapters', () => {
+        const variant = {
+          serving_size: 100,
+          serving_unit: 'g',
+          serving_description: '100 g',
+          calories: 70,
+          protein: 1,
+          carbs: 3,
+          fat: 5,
+          monounsaturated_fat: 0.125,
+          polyunsaturated_fat: 0,
+          custom_nutrients: { Magnesium: 0.25, 'Vitamin B12': '<LOD' },
+        };
+        const result = transformNormalizedFood(
+          {
+            name: 'Synthetic food',
+            brand: null,
+            is_custom: false,
+            default_variant: variant,
+            variants: [variant],
+          },
+          'bls'
+        );
+        const info = externalFoodItemToFoodInfo(result);
+        const units = buildExternalUnitVariants(result.variants);
+        expect(info.monounsaturatedFat).toBe(0.125);
+        expect(info.polyunsaturatedFat).toBe(0);
+        expect(info.customNutrients).toEqual(variant.custom_nutrients);
+        expect(units[0]).toMatchObject({
+          monounsaturated_fat: 0.125,
+          polyunsaturated_fat: 0,
+          custom_nutrients: variant.custom_nutrients,
+        });
+      });
       test('carries the provider photo through to the search row', () => {
         // Regression: provider results rendered a placeholder icon on mobile
         // while web showed the photo. The server sends image_url, but this

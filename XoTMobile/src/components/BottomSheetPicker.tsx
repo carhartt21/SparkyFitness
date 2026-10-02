@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
+  Keyboard,
   Text,
   TouchableOpacity,
   StyleSheet,
@@ -136,6 +137,7 @@ function BottomSheetPicker<T extends string | number>({
   );
 
   const handleOpen = useCallback(() => {
+    Keyboard.dismiss();
     bottomSheetRef.current?.present();
   }, []);
 
@@ -217,6 +219,7 @@ function BottomSheetPicker<T extends string | number>({
       )}
 
       <BottomSheetModal
+        accessible={false}
         ref={bottomSheetRef}
         snapPoints={snapPoints}
         enableDynamicSizing={enableDynamic}

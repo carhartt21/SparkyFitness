@@ -8,6 +8,7 @@ import React, {
 import { useTranslation } from 'react-i18next';
 import {
   BackHandler,
+  Keyboard,
   Platform,
   Pressable,
   StyleSheet,
@@ -105,6 +106,7 @@ const ActionSheet = React.forwardRef<ActionSheetRef, ActionSheetProps>(
     }, [clearScheduledPresent]);
 
     const presentSheet = useCallback(() => {
+      Keyboard.dismiss();
       if (isDismissingRef.current) {
         pendingPresentRef.current = true;
         return;

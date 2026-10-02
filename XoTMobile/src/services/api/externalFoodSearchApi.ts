@@ -546,6 +546,8 @@ export function _transformNormalizedFood(
     carbs: v.carbs,
     fat: v.fat,
     saturated_fat: v.saturated_fat,
+    monounsaturated_fat: v.monounsaturated_fat,
+    polyunsaturated_fat: v.polyunsaturated_fat,
     sodium: v.sodium,
     fiber: v.dietary_fiber,
     sugars: v.sugars,
@@ -559,6 +561,7 @@ export function _transformNormalizedFood(
     alcohol_g: v.alcohol_g,
     vitamin_a: v.vitamin_a,
     vitamin_c: v.vitamin_c,
+    custom_nutrients: v.custom_nutrients,
   });
 
   // FoodEntryAddScreen selects ext-0 (first variant) by default. Prefer the

@@ -12,6 +12,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Keyboard,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -180,6 +181,7 @@ const FoodUnitSelectorSheet: React.FC<FoodUnitSelectorSheetProps> = ({
   }, []);
 
   const handleOpen = useCallback(() => {
+    Keyboard.dismiss();
     if (
       isDismissingRef.current ||
       isOpenRef.current ||

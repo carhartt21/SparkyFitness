@@ -69,6 +69,7 @@ export const useUpdateMealTypeMutation = () => {
         is_visible?: boolean;
         show_in_quick_log?: boolean;
         default_time?: string | null;
+        icon_key?: import('@workspace/shared').MealTypeIcon | null;
       };
     }) => updateMealType(id, data),
     onSuccess: () => {

@@ -35,6 +35,20 @@ export const EXTRA_NUTRIENT_FIELDS = [
   { key: 'sugars', label: 'Sugars', unit: 'g' },
   // i18n-audit-ignore-next-line hardcoded-ui-text -- canonical English metadata; rendered labels are localized at presentation.
   { key: 'saturatedFat', label: 'Saturated Fat', unit: 'g' },
+  {
+    key: 'monounsaturatedFat',
+    // i18n-audit-ignore-next-line hardcoded-ui-text -- canonical metadata; presentation localizes the label.
+    label: 'Monounsaturated Fat',
+    unit: 'g',
+    additional: true,
+  },
+  {
+    key: 'polyunsaturatedFat',
+    // i18n-audit-ignore-next-line hardcoded-ui-text -- canonical metadata; presentation localizes the label.
+    label: 'Polyunsaturated Fat',
+    unit: 'g',
+    additional: true,
+  },
   // i18n-audit-ignore-next-line hardcoded-ui-text -- canonical English metadata; rendered labels are localized at presentation.
   { key: 'transFat', label: 'Trans Fat', unit: 'g' },
   // i18n-audit-ignore-next-line hardcoded-ui-text -- canonical English metadata; rendered labels are localized at presentation.
@@ -86,7 +100,7 @@ export function buildNutrientDisplayList(
   const additional: NutrientDisplayItem[] = [];
   for (const field of EXTRA_NUTRIENT_FIELDS) {
     const value = source[field.key];
-    if (value == null) continue;
+    if (value == null || !Number.isFinite(value)) continue;
     const item: NutrientDisplayItem = {
       label: options.t
         ? localizeNutrientKey(options.t, field.key)
@@ -149,6 +163,8 @@ export interface FoodInfoItem {
   fat: number;
   fiber?: number;
   saturatedFat?: number;
+  monounsaturatedFat?: number;
+  polyunsaturatedFat?: number;
   sodium?: number;
   sugars?: number;
   transFat?: number;
@@ -207,6 +223,8 @@ export const foodItemToFoodInfo = (
   fat: item.default_variant.fat,
   fiber: item.default_variant.dietary_fiber,
   saturatedFat: item.default_variant.saturated_fat,
+  monounsaturatedFat: item.default_variant.monounsaturated_fat,
+  polyunsaturatedFat: item.default_variant.polyunsaturated_fat,
   sodium: item.default_variant.sodium,
   sugars: item.default_variant.sugars,
   transFat: item.default_variant.trans_fat,
@@ -245,6 +263,8 @@ export const externalFoodItemToFoodInfo = (
   fat: item.fat,
   fiber: item.fiber,
   saturatedFat: item.saturated_fat,
+  monounsaturatedFat: item.monounsaturated_fat,
+  polyunsaturatedFat: item.polyunsaturated_fat,
   sodium: item.sodium,
   sugars: item.sugars,
   transFat: item.trans_fat,
@@ -257,6 +277,7 @@ export const externalFoodItemToFoodInfo = (
   caffeineMg: item.caffeine_mg,
   waterMl: item.water_ml,
   alcoholG: item.alcohol_g,
+  customNutrients: item.custom_nutrients ?? null,
   externalVariants: item.variants,
   provider_verified: item.provider_verified,
   images: item.images ?? null,

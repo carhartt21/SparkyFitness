@@ -6,7 +6,6 @@ import EnergyGauge from './EnergyGauge';
 import Icon, { type IconName } from './Icon';
 import GlowCard from './ui/GlowCard';
 import IconBadge from './ui/IconBadge';
-import NeonButton from './ui/NeonButton';
 import { formatLocalizedNumber } from '../localization';
 
 interface StatRowProps {
@@ -142,7 +141,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
       })}
       className="p-4 mb-3"
     >
-      <View className="mb-2 flex-row items-start gap-3">
+      <View className="mb-2 min-h-11 flex-row items-center gap-3">
         <Icon name="flame" size={24} color={flame} />
         <View className="flex-1">
           <Text
@@ -152,24 +151,19 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
           >
             {t('dashboard.calories', { defaultValue: 'Calories' })}
           </Text>
-          <Text
-            className="text-xs text-text-secondary"
-            maxFontSizeMultiplier={1.8}
-          >
-            {t('dashboard.caloriesSubtitle', {
-              defaultValue: 'From logged food and activity',
-            })}
-          </Text>
         </View>
         {onEditGoal ? (
-          <NeonButton
+          <Pressable
             testID="dashboard-edit-goal"
-            variant="outline"
-            size="sm"
-            icon="target"
-            label={t('dashboard.editGoal', { defaultValue: 'Edit goal' })}
+            accessibilityRole="button"
+            accessibilityLabel={t('dashboard.editGoal', {
+              defaultValue: 'Edit goal',
+            })}
+            className="min-h-11 min-w-11 items-center justify-center rounded-xl active:opacity-70"
             onPress={onEditGoal}
-          />
+          >
+            <Icon name="target" size={22} color={neutral} />
+          </Pressable>
         ) : null}
       </View>
       <View

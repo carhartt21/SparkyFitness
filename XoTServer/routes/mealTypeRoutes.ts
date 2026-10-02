@@ -18,7 +18,10 @@ import {
 import { log } from '../config/logging.js';
 import { authenticate } from '../middleware/authMiddleware.js';
 import checkPermissionMiddleware from '../middleware/checkPermissionMiddleware.js';
-import { isEntryTimeString } from '@workspace/shared';
+import {
+  isEntryTimeString,
+  mealTypeIconSettingSchema,
+} from '@workspace/shared';
 const router = express.Router();
 router.use(authenticate);
 /**
@@ -151,6 +154,11 @@ router.get('/:id', async (req, res) => {
  *                 type: integer
  *                 description: The sort order for the meal type.
  *                 nullable: true
+ *               icon_key:
+ *                 type: string
+ *                 nullable: true
+ *                 enum: [meal-breakfast, meal-lunch, meal-dinner, meal-snack, food, water, meal]
+ *                 description: Per-account icon choice. Null resets it; omission preserves the current setting.
  *               default_time:
  *                 type: string
  *                 description: Default time of day (HH:MM, 24h) used to prefill diary entry times for this meal.
@@ -173,6 +181,11 @@ router.get('/:id', async (req, res) => {
  */
 router.post('/', async (req, res) => {
   try {
+    const iconSetting = mealTypeIconSettingSchema.safeParse(req.body);
+    if (!iconSetting.success)
+      return res
+        .status(400)
+        .json({ error: 'icon_key must be a supported meal icon or null.' });
     const userId = req.userId;
     const { name, sort_order, default_time } = req.body;
     if (!name) {
@@ -188,7 +201,7 @@ router.post('/', async (req, res) => {
         .json({ error: 'default_time must be in HH:MM (24h) format.' });
     }
     const newMealType = await createMealType(
-      { name, sort_order, default_time },
+      { name, sort_order, default_time, ...iconSetting.data },
       userId
     );
     res.status(201).json(newMealType);
@@ -239,6 +252,11 @@ router.post('/', async (req, res) => {
  *               show_in_quick_log:
  *                 type: boolean
  *                 description: Whether this meal type appears in the quick food log menu.
+ *               icon_key:
+ *                 type: string
+ *                 nullable: true
+ *                 enum: [meal-breakfast, meal-lunch, meal-dinner, meal-snack, food, water, meal]
+ *                 description: Per-account icon choice. Null resets it; omission preserves the current setting.
  *               default_time:
  *                 type: string
  *                 description: Per-user default time of day (HH:MM, 24h) used to prefill diary entry times. Null clears it.
@@ -261,6 +279,11 @@ router.post('/', async (req, res) => {
  */
 router.put('/:id', async (req, res) => {
   try {
+    const iconSetting = mealTypeIconSettingSchema.safeParse(req.body);
+    if (!iconSetting.success)
+      return res
+        .status(400)
+        .json({ error: 'icon_key must be a supported meal icon or null.' });
     const userId = req.userId;
     const { id } = req.params;
     const { name, sort_order, is_visible, show_in_quick_log } = req.body;
@@ -298,6 +321,7 @@ router.put('/:id', async (req, res) => {
     const updatedMealType = await updateMealType(
       id,
       {
+        ...iconSetting.data,
         name,
         sort_order,
         is_visible,

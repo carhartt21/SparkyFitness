@@ -483,6 +483,7 @@ const Diary = () => {
                 foodEntryMeals ?? [],
                 effectiveGoals
               ),
+              icon_key: mealTypeObj.icon_key,
               selectedDate: selectedDate,
             }}
             totals={getMealTotals(

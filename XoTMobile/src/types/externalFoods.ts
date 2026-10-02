@@ -1,4 +1,5 @@
 export interface ExternalFoodVariant {
+  custom_nutrients?: Record<string, string | number> | null;
   serving_size: number;
   serving_unit: string;
   serving_description: string;
@@ -7,6 +8,8 @@ export interface ExternalFoodVariant {
   carbs: number;
   fat: number;
   saturated_fat?: number;
+  monounsaturated_fat?: number;
+  polyunsaturated_fat?: number;
   sodium?: number;
   fiber?: number;
   sugars?: number;
@@ -35,6 +38,7 @@ export interface PaginatedExternalFoodSearchResult {
 }
 
 export interface ExternalFoodItem {
+  custom_nutrients?: Record<string, string | number> | null;
   id: string;
   name: string;
   brand: string | null;
@@ -47,6 +51,8 @@ export interface ExternalFoodItem {
   carbs: number;
   fat: number;
   saturated_fat?: number;
+  monounsaturated_fat?: number;
+  polyunsaturated_fat?: number;
   sodium?: number;
   fiber?: number;
   sugars?: number;

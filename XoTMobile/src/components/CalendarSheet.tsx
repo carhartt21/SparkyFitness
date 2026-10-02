@@ -6,7 +6,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Platform, Pressable, Text, View } from 'react-native';
+import {
+  Keyboard,
+  Platform,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import DateTimePicker, { type DateType } from 'react-native-ui-datepicker';
@@ -74,6 +81,14 @@ const CalendarContent = ({
   showDailyProgress = false,
   onOpenProgress,
 }: CalendarContentProps) => {
+  const { fontScale } = useWindowDimensions();
+  // The picker has fixed row heights by default. Grow the grid alongside text
+  // so weekday captions and six weeks remain separate, with 44-point day cells.
+  const weekdaysHeight = Math.max(25, Math.ceil(12 * fontScale * 1.4 + 8));
+  const containerHeight = Math.max(
+    300,
+    weekdaysHeight + 6 * Math.max(44, Math.ceil(16 * fontScale * 1.3 + 12))
+  );
   const { appLocale, presentation } = useCalendarPresentation();
   const { t } = useTranslation();
   const neon = useNeonScale();
@@ -229,6 +244,7 @@ const CalendarContent = ({
       >
         <Pressable
           onPress={() => shiftVisible(-1)}
+          className="min-h-11 min-w-11 items-center justify-center"
           hitSlop={12}
           accessibilityLabel={prevLabel}
         >
@@ -236,6 +252,7 @@ const CalendarContent = ({
         </Pressable>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Pressable
+            className="min-h-11 justify-center"
             onPress={() => {
               if (pickerView === 'month') {
                 // Toggling the month caption off returns to the day grid.
@@ -269,6 +286,7 @@ const CalendarContent = ({
             {' '}
           </Text>
           <Pressable
+            className="min-h-11 justify-center"
             onPress={() => {
               if (pickerView === 'year') {
                 // Toggling the year caption off returns to the day grid.
@@ -294,6 +312,7 @@ const CalendarContent = ({
         </View>
         <Pressable
           onPress={() => shiftVisible(1)}
+          className="min-h-11 min-w-11 items-center justify-center"
           hitSlop={12}
           accessibilityLabel={nextLabel}
         >
@@ -302,6 +321,8 @@ const CalendarContent = ({
       </View>
       <DateTimePicker
         mode="single"
+        containerHeight={containerHeight}
+        weekdaysHeight={weekdaysHeight}
         date={selectedDateValue}
         onChange={handleChange}
         month={visible.month}
@@ -448,7 +469,10 @@ const CalendarSheet = React.forwardRef<CalendarSheetRef, CalendarSheetProps>(
     const renderBackdrop = useSheetBackdrop();
 
     useImperativeHandle(ref, () => ({
-      present: () => bottomSheetRef.current?.present(),
+      present: () => {
+        Keyboard.dismiss();
+        bottomSheetRef.current?.present();
+      },
       dismiss: () => bottomSheetRef.current?.dismiss(),
     }));
     useEffect(() => {

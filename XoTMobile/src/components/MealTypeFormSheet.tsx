@@ -2,6 +2,8 @@ import { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Platform,
+  Keyboard,
+  Pressable,
   Text,
   TextInput,
   TouchableOpacity,
@@ -9,14 +11,18 @@ import {
 } from 'react-native';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
-import { toHourMinute } from '@workspace/shared';
+import {
+  toHourMinute,
+  MEAL_TYPE_ICON_KEYS,
+  type MealTypeIcon,
+} from '@workspace/shared';
 import MealTypeTimeWheel from './MealTypeTimeWheel';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import Switch from './ui/Switch';
 import Button from './ui/Button';
 import Icon from './Icon';
 import type { MealType } from '../types/mealTypes';
-import { getLocalizedMealLabel } from '../constants/meals';
+import { getLocalizedMealLabel, mealIconLabel } from '../constants/meals';
 import type { MealTypeTimePickerSheetRef } from './MealTypeTimePickerSheet';
 
 export interface MealTypeFormSheetRef {
@@ -26,6 +32,7 @@ export interface MealTypeFormSheetRef {
 }
 
 export interface MealTypeFormValues {
+  iconKey?: MealTypeIcon | null;
   name: string;
   nameChanged?: boolean;
   defaultTime: string;
@@ -77,12 +84,14 @@ const MealTypeFormSheet = forwardRef<
   ) => {
     const { t } = useTranslation();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const [surfaceBg, textMuted, textSecondary, iconDanger] = useCSSVariable([
-      '--color-surface',
-      '--color-text-muted',
-      '--color-text-secondary',
-      '--color-icon-danger',
-    ]) as [string, string, string, string];
+    const [surfaceBg, textMuted, textSecondary, iconDanger, accent] =
+      useCSSVariable([
+        '--color-surface',
+        '--color-text-muted',
+        '--color-text-secondary',
+        '--color-icon-danger',
+        '--color-accent-primary',
+      ]) as [string, string, string, string, string];
 
     const [values, setValues] = useState<MealTypeFormValues>({
       name: '',
@@ -97,6 +106,7 @@ const MealTypeFormSheet = forwardRef<
 
     useImperativeHandle(ref, () => ({
       presentCreate: () => {
+        Keyboard.dismiss();
         setMode('create');
         // The inline wheel always shows a concrete time (current time when no
         // default is set); initialize the form to EXACTLY what the wheel
@@ -106,6 +116,7 @@ const MealTypeFormSheet = forwardRef<
         const hh = String(now.getHours()).padStart(2, '0');
         const mm = String(now.getMinutes()).padStart(2, '0');
         setValues({
+          iconKey: null,
           name: '',
           defaultTime: `${hh}:${mm}`,
           showInQuickLog: false,
@@ -114,6 +125,7 @@ const MealTypeFormSheet = forwardRef<
         bottomSheetRef.current?.present();
       },
       presentEdit: (mealType) => {
+        Keyboard.dismiss();
         setMode('edit');
         const label =
           mealType.display_name && mealType.display_name !== mealType.name
@@ -127,6 +139,7 @@ const MealTypeFormSheet = forwardRef<
                 )
               : mealType.name;
         setValues({
+          iconKey: mealType.icon_key ?? null,
           name: label,
           defaultTime: toHourMinute(mealType.default_time) || '',
           showInQuickLog: mealType.show_in_quick_log,
@@ -151,6 +164,7 @@ const MealTypeFormSheet = forwardRef<
     const handleSave = () => {
       if (!canSave) return;
       const payload: MealTypeFormValues = {
+        iconKey: values.iconKey ?? null,
         name: values.name.trim(),
         nameChanged: values.name.trim() !== originalName,
         defaultTime: values.defaultTime,
@@ -162,6 +176,7 @@ const MealTypeFormSheet = forwardRef<
 
     return (
       <BottomSheetModal
+        accessible={false}
         ref={bottomSheetRef}
         enableDynamicSizing
         enableContentPanningGesture={Platform.OS !== 'android'}
@@ -173,7 +188,13 @@ const MealTypeFormSheet = forwardRef<
           setValues({ name: '', defaultTime: '', showInQuickLog: false });
         }}
       >
-        <BottomSheetScrollView contentContainerClassName="px-5 pb-safe-or-8">
+        <BottomSheetScrollView
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
+          keyboardShouldPersistTaps="handled"
+          contentContainerClassName="px-5 pb-safe-or-8"
+        >
           <Text className="text-text-primary text-lg font-semibold text-center mb-4">
             {mode === 'create'
               ? t('mealTypeForm.createTitle', { defaultValue: 'Add Meal Type' })
@@ -200,6 +221,45 @@ const MealTypeFormSheet = forwardRef<
           />
 
           {/* Quick log */}
+          <Text className="text-sm font-semibold text-text-primary mb-2">
+            {t('mealTypeForm.icon', { defaultValue: 'Icon' })}
+          </Text>
+          <View className="flex-row flex-wrap gap-2 mb-2">
+            {MEAL_TYPE_ICON_KEYS.map((key) => (
+              <Pressable
+                key={key}
+                testID={`meal-icon-${key}`}
+                accessibilityRole="radio"
+                accessibilityLabel={mealIconLabel(t, key)}
+                accessibilityState={{ selected: values.iconKey === key }}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setValues((previous) => ({ ...previous, iconKey: key }));
+                }}
+                className="min-h-12 min-w-12 items-center justify-center rounded-xl border"
+                style={{
+                  borderColor: values.iconKey === key ? accent : textMuted,
+                  backgroundColor:
+                    values.iconKey === key ? surfaceBg : 'transparent',
+                }}
+              >
+                <Icon name={key} size={24} color={textSecondary} />
+              </Pressable>
+            ))}
+          </View>
+          <Pressable
+            onPress={() =>
+              setValues((previous) => ({ ...previous, iconKey: null }))
+            }
+            accessibilityRole="button"
+            className="min-h-11 justify-center self-start mb-2"
+          >
+            <Text className="text-sm text-text-secondary">
+              {t('mealTypeForm.defaultIcon', {
+                defaultValue: 'Use default icon',
+              })}
+            </Text>
+          </Pressable>
           <View className="flex-row justify-between items-center py-3 border-t border-border-subtle">
             <Text className="text-base font-medium text-text-primary flex-shrink">
               {t('mealTypeForm.quickLog', { defaultValue: 'Quick log' })}

@@ -80,10 +80,12 @@ const MOBILE_NUTRIENT_LABEL_OVERRIDES: Record<
   dietary_fiber: { label: 'nutrition.fiber', defaultLabel: 'Fiber' },
 };
 
+import MealTypeIcon from './MealTypeIcon';
 interface MealCardProps {
   meal: {
     name: string;
     type: string;
+    icon_key?: import('@workspace/shared').MealTypeIcon | null;
     entries: (FoodEntry | FoodEntryMeal)[];
     targetCalories?: number;
     selectedDate: string;
@@ -294,7 +296,13 @@ const MealCard = ({
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2">
-              <CardTitle className="text-lg sm:text-xl dark:text-slate-300">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl dark:text-slate-300">
+                {meal.icon_key ? (
+                  <MealTypeIcon
+                    icon={meal.icon_key}
+                    className="h-5 w-5 shrink-0"
+                  />
+                ) : null}
                 {meal.name}
               </CardTitle>
               <span className="text-xs sm:text-sm text-gray-500">

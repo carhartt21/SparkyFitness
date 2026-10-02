@@ -39,6 +39,12 @@ authenticated user, including a delegate, can search it. Importing a BLS food
 into a personal library and logging it still follow the existing food-library
 and diary permissions; this catalogue adds no access to another person's logs.
 
+Meal-type icon choices are stored alongside each account's existing meal visibility,
+ordering and default-time settings. They retain the diary sharing policy: diary
+managers can write these settings, and diary managers or report viewers can read
+them. Choosing or resetting an icon does not change meal IDs or historical food
+entries and does not grant new sharing permissions.
+
 ---
 
 FDDB historical imports preserve nutrition snapshots without creating food-library items. Only the account owner may create these unlinked imported entries. After import, the existing diary and report permissions govern viewing and editing the preserved history.
@@ -57,6 +63,7 @@ Certain tables contain private user data that is **never** accessible to any fam
 - Connected assistant authorizations and tokens (`oauth*` and `jwks` tables). Only the account owner can approve an MCP connection; the authentication service stores and revokes its credentials.
 
 An assistant connected with your MCP read permission can read actual saved weight and custom measurement values alongside your measurement reminder status. These reads are restricted to your authenticated account and the requested day; they do not switch to a shared profile or grant access to another person's reminders. Missing readings remain absent.
+
 - Cycle & Pregnancy hub data (`cycle_settings`, `cycle_daily_entries`, `cycles`, `user_cycle_display_preferences`, `cycle_test_entries`, `pregnancies`, `pregnancy_kick_sessions`, `pregnancy_contractions`, `pregnancy_photos`, `pregnancy_checklist_state`, `health_appointments` tables) — this reproductive-health data is **never** shared or delegated, even with `can_view_reports`. It is strictly owner-only. Bump photo _files_ are owner-only too: they are excluded from the public uploads URLs and can only be fetched through an authenticated request by their owner.
 
 ### 2. Tier 2: Read-Only Profile & Settings Data

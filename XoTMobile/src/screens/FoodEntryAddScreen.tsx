@@ -2163,6 +2163,9 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             paddingBottom: Math.max(insets.bottom, 12) + 96,
           }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={
+            Platform.OS === 'ios' ? 'interactive' : 'on-drag'
+          }
           bottomOffset={96}
         >
           {/* The hero stays pinned behind the cards; this spacer lets the
@@ -3029,7 +3032,8 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               actions={[
                 {
                   key: 'add',
-                  label: addLabel,
+                  label: addButtonLabel,
+                  accessibilityLabel: addLabel,
                   onPress: handleAddPress,
                   disabled:
                     addDisabled || isActionPending || isPhotoCompletionPending,

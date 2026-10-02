@@ -254,6 +254,44 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     jest.clearAllMocks();
   });
 
+  it('submits a custom icon, restores the saved choice and allows a default reset', async () => {
+    let saved = { ...customMealTypes[0], icon_key: 'water' as string | null };
+    const updateSpy = jest
+      .spyOn(mealTypesApi, 'updateMealType')
+      .mockImplementation(async (_id, payload) => {
+        saved = { ...saved, ...payload };
+        return saved;
+      });
+    const view = renderScreen({
+      fetchMock: async () => [...systemMealTypes, saved],
+    });
+    await view.findByText('Pre-Workout');
+    await openEditSheet(view, 'Pre-Workout');
+    expect(
+      view.getByTestId('meal-icon-water').props.accessibilityState.selected
+    ).toBe(true);
+    fireEvent.press(view.getByTestId('meal-icon-food'));
+    fireEvent.press(view.getByLabelText('Save meal type'));
+    await waitFor(() =>
+      expect(updateSpy).toHaveBeenCalledWith(
+        saved.id,
+        expect.objectContaining({ icon_key: 'food' })
+      )
+    );
+    await openEditSheet(view, 'Pre-Workout');
+    expect(
+      view.getByTestId('meal-icon-food').props.accessibilityState.selected
+    ).toBe(true);
+    fireEvent.press(view.getByText('Use default icon'));
+    fireEvent.press(view.getByLabelText('Save meal type'));
+    await waitFor(() =>
+      expect(updateSpy).toHaveBeenLastCalledWith(
+        saved.id,
+        expect.objectContaining({ icon_key: null })
+      )
+    );
+  });
+
   it('renders ONE unified list — anchors interleaved with customs, no separate sections', async () => {
     const { findByText, queryByText, getByText } = renderScreen();
     expect(await findByText('Pre-Workout')).toBeTruthy();

@@ -12,6 +12,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useWindowDimensions,
   type TextInput,
 } from 'react-native';
 import {
@@ -193,6 +194,7 @@ export function SetCellInput({
 export interface SetAccessoryAction {
   key: string;
   label: string;
+  accessibilityLabel?: string;
   onPress: () => void;
   /** Heavier weight for the primary action (e.g. Log). */
   bold?: boolean;
@@ -202,6 +204,7 @@ export interface SetAccessoryAction {
 /** Floating rounded-rectangle button: Liquid Glass on iOS 26+, themed chrome chip elsewhere. */
 function AccessoryChromeButton({
   label,
+  accessibilityLabel,
   onPress,
   bold,
   disabled,
@@ -209,6 +212,7 @@ function AccessoryChromeButton({
   chromeBorder,
 }: {
   label: string;
+  accessibilityLabel?: string;
   onPress: () => void;
   bold?: boolean;
   disabled?: boolean;
@@ -220,6 +224,8 @@ function AccessoryChromeButton({
       style={createLiquidGlassChromeStyle(chromeBorder, {
         marginHorizontal: 0,
         marginBottom: 0,
+        maxWidth: '100%',
+        flexShrink: 1,
         // The chrome default's elevation 8 renders as a heavy shadow blob under
         // these small keyboard buttons on Android; 2 is enough lift.
         ...(Platform.OS === 'android' ? { elevation: 2 } : null),
@@ -231,7 +237,7 @@ function AccessoryChromeButton({
         disabled={disabled}
         accessibilityRole="button"
         accessibilityState={{ disabled: Boolean(disabled) }}
-        accessibilityLabel={label}
+        accessibilityLabel={accessibilityLabel ?? label}
         hitSlop={HIT_SLOP}
         style={{
           minHeight: 44,
@@ -246,6 +252,7 @@ function AccessoryChromeButton({
             color: accentPrimary,
             fontWeight: bold ? '700' : '600',
             fontSize: 16,
+            textAlign: 'center',
           }}
         >
           {label}
@@ -269,6 +276,8 @@ export function SetInputAccessoryBar({
   actions: SetAccessoryAction[];
 }) {
   const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const stacked = fontScale > 1.25;
   const [accentPrimary, chromeBorder] = useCSSVariable([
     '--color-accent-primary',
     '--color-chrome-border',
@@ -277,9 +286,10 @@ export function SetInputAccessoryBar({
   return (
     <View
       style={{
-        flexDirection: 'row',
+        flexDirection: stacked ? 'column' : 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
+        alignItems: stacked ? 'stretch' : 'center',
+        gap: 8,
         paddingHorizontal: 12,
         paddingTop: 4,
         paddingBottom: 8,
@@ -291,11 +301,20 @@ export function SetInputAccessoryBar({
         accentPrimary={accentPrimary}
         chromeBorder={chromeBorder}
       />
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+      <View
+        style={{
+          flexDirection: stacked ? 'column' : 'row',
+          alignItems: stacked ? 'stretch' : 'center',
+          flexShrink: 1,
+          minWidth: 0,
+          gap: 8,
+        }}
+      >
         {actions.map((action) => (
           <AccessoryChromeButton
             key={action.key}
             label={action.label}
+            accessibilityLabel={action.accessibilityLabel}
             onPress={action.onPress}
             bold={action.bold}
             disabled={action.disabled}

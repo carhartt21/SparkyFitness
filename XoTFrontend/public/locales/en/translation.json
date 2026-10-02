@@ -5690,7 +5690,18 @@
     "hideFromDiary": "Hide from Diary",
     "showInDiary": "Show in Diary",
     "hideFromQuickLog": "Hide from Quick Food Log",
-    "showInQuickLog": "Show in Quick Food Log"
+    "showInQuickLog": "Show in Quick Food Log",
+    "icon": "Icon",
+    "defaultIcon": "Use default icon",
+    "icons": {
+      "meal-breakfast": "Breakfast",
+      "meal-lunch": "Lunch",
+      "meal-dinner": "Dinner",
+      "meal-snack": "Snack",
+      "food": "Food",
+      "water": "Drink",
+      "meal": "Meal group"
+    }
   },
   "measurements": {
     "errorLoadingBmr": "Failed to load most recent BMR.",
