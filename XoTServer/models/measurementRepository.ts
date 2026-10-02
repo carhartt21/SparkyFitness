@@ -1,15 +1,13 @@
+import { getHydrationSourceTotals } from './hydrationSourceRepository.js';
 import type { PoolClient } from 'pg';
 import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
-import foodRepository from './foodMisc.js';
-import preferenceRepository from './preferenceRepository.js';
 // @ts-expect-error TS(7016): Could not find a declaration file for module 'pg-f... Remove this comment to see the full error message
 import format from 'pg-format';
 import {
   resolveBackgroundStepCalories,
   isDayString,
   isValidTimeZone,
-  localDateToDay,
   todayInZone,
 } from '@workspace/shared';
 
@@ -2172,84 +2170,14 @@ async function getWaterTotalsByDateRange(
   userId: string,
   startDate?: string,
   endDate?: string
-) {
-  const client = await getClient(userId);
-  try {
-    let query = `
-      SELECT TO_CHAR(entry_date, 'YYYY-MM-DD') as entry_date, SUM(water_ml) as total_ml
-      FROM water_intake_entries
-      WHERE user_id = $1
-    `;
-    const queryParams: unknown[] = [userId];
-    let paramIdx = 2;
-
-    if (startDate) {
-      query += ` AND entry_date >= $${paramIdx}`;
-      queryParams.push(startDate);
-      paramIdx++;
-    }
-    if (endDate) {
-      query += ` AND entry_date <= $${paramIdx}`;
-      queryParams.push(endDate);
-      paramIdx++;
-    }
-
-    query += ' GROUP BY entry_date ORDER BY entry_date ASC';
-
-    const result = await client.query(query, queryParams);
-    const rows = result.rows;
-
-    // Same opt-in gate as hydrationTotalsService.resolveWaterTotalsForDate
-    // (#1557, #1629), applied per-date here so the chatbot's water history
-    // and reports.trends agree with the Diary for an opted-in user.
-    const preferences = await preferenceRepository.getUserPreferences(userId);
-    if (!preferences?.add_food_water_to_intake || !startDate || !endDate) {
-      return rows;
-    }
-
-    const foodRows: Array<{
-      entry_date: string | Date;
-      food_ml: string | number;
-    }> = await foodRepository.getFoodDerivedWaterMlByDateRange(
-      userId,
-      startDate,
-      endDate
-    );
-    // entry_date rows to a plain YYYY-MM-DD key regardless of whether pg
-    // handed back a Date (raw column) or a string (TO_CHAR above).
-    // localDateToDay, not toISOString: pg parses a `date` column to local
-    // midnight, so converting through UTC lands on the previous day for every
-    // negative-offset zone -- food water would be credited to the wrong day.
-    const toDateKey = (value: string | Date): string =>
-      typeof value === 'string' ? value.slice(0, 10) : localDateToDay(value);
-
-    const foodMlByDate = new Map<string, number>(
-      foodRows.map((row) => [
-        toDateKey(row.entry_date),
-        Number(row.food_ml) || 0,
-      ])
-    );
-
-    const rowsTyped: Array<{
-      entry_date: string | Date;
-      total_ml: string | number;
-    }> = rows;
-    const mergedByDate = new Map<string, number>(
-      rowsTyped.map((row) => [
-        toDateKey(row.entry_date),
-        Number(row.total_ml) || 0,
-      ])
-    );
-    for (const [entryDate, foodMl] of foodMlByDate) {
-      mergedByDate.set(entryDate, (mergedByDate.get(entryDate) || 0) + foodMl);
-    }
-
-    return Array.from(mergedByDate.entries())
-      .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
-      .map(([entry_date, total_ml]) => ({ entry_date, total_ml }));
-  } finally {
-    client.release();
-  }
+): Promise<
+  Array<{ entry_date: string | Date; total_ml: string | number | null }>
+> {
+  const rows = await getHydrationSourceTotals(userId, startDate, endDate);
+  return rows.map((row) => ({
+    entry_date: row.entry_date,
+    total_ml: row.water_ml,
+  }));
 }
 
 export default {

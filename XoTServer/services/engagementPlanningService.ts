@@ -10,9 +10,7 @@ import {
   type EngagementFacts,
   type EngagementPlanSlot,
 } from '@workspace/shared';
-import measurementRepository from '../models/measurementRepository.js';
-import foodRepository from '../models/foodMisc.js';
-import preferenceRepository from '../models/preferenceRepository.js';
+import { getHydrationDayDetails } from './hydrationTotalsService.js';
 import { getClient } from '../db/poolManager.js';
 import { loadUserTimezone } from '../utils/timezoneLoader.js';
 import { getEngagementSettingsV2 } from './engagementService.js';
@@ -52,14 +50,19 @@ export async function engagementPlanForUser(userId: string, now = new Date()) {
     listMealStatuses(userId, day),
     getMobilitySnapshot(userId, day, day),
   ]);
-  const [waterTotal, waterPreferences] = await Promise.all([
-    measurementRepository.getWaterIntakeByDate(userId, day),
-    preferenceRepository.getUserPreferences(userId),
-  ]);
-  const foodWater = waterPreferences?.add_food_water_to_intake
-    ? await foodRepository.getFoodDerivedWaterMlForDate(userId, day)
-    : 0;
-  const effectiveWater = Number(waterTotal?.water_ml ?? 0) + foodWater;
+  const hydration = await getHydrationDayDetails(userId, day);
+  const effectiveWater = hydration.totals.water_ml;
+  const latestDrink =
+    hydration.entries
+      .filter(
+        (entry) =>
+          entry.counts_toward_goal &&
+          (entry.water_ml ?? 0) > 0 &&
+          entry.logged_at
+      )
+      .map((entry) => entry.logged_at!)
+      .sort()
+      .at(-1) ?? null;
   const client: PoolClient = await getClient(userId, userId);
   let facts: EngagementFacts;
   try {
@@ -68,8 +71,6 @@ export async function engagementPlanForUser(userId: string, now = new Date()) {
       (SELECT jsonb_agg(entry_time) FROM food_entries WHERE user_id=$1 AND entry_date=$2) AS food_times,
       (SELECT jsonb_agg(consumed_at) FROM nutrition_captures WHERE user_id=$1 AND entry_date=$2) AS capture_times,
       (SELECT count(*) FROM nutrition_captures WHERE user_id=$1 AND entry_date=$2 AND completion_state='incomplete') AS photos,
-      (SELECT max(logged_at) FROM water_intake_entries WHERE user_id=$1 AND entry_date=$2 AND water_ml>0) AS latest_drink,
-      (SELECT sum(water_ml * COALESCE(hydration_factor,1)) FROM water_intake_entries WHERE user_id=$1 AND entry_date=$2) AS water,
       (SELECT water_goal_ml FROM user_goals WHERE user_id=$1 AND (goal_date<=$2 OR goal_date IS NULL) ORDER BY goal_date DESC NULLS LAST,updated_at DESC LIMIT 1) AS goal,
       EXISTS(SELECT 1 FROM engagement_subject_states WHERE user_id=$1 AND started_at >= $3 AND started_at < $4) AS movement_started,
       EXISTS(SELECT 1 FROM health_context_periods WHERE user_id=$1 AND pause_discretionary_reminders AND start_date<=$2 AND (end_date IS NULL OR end_date>=$2)) AS paused`,
@@ -79,8 +80,6 @@ export async function engagementPlanForUser(userId: string, now = new Date()) {
       food_times: Array<string | null> | null;
       capture_times: string[] | null;
       photos: string;
-      latest_drink: Date | null;
-      water: string | null;
       goal: number | null;
       movement_started: boolean;
       paused: boolean;
@@ -103,7 +102,7 @@ export async function engagementPlanForUser(userId: string, now = new Date()) {
         .filter((time): time is string => !!time),
       pendingPhotoCount: Number(row.photos),
       water: {
-        latestAt: row.latest_drink?.toISOString() ?? null,
+        latestAt: latestDrink,
         goalMet: row.goal === null ? null : effectiveWater >= Number(row.goal),
       },
       movementStarted: row.movement_started,

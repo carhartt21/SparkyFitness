@@ -1,117 +1,91 @@
 import { vi, beforeEach, describe, expect, it } from 'vitest';
-import hydrationTotalsService from '../services/hydrationTotalsService.js';
-import measurementRepository from '../models/measurementRepository.js';
-import foodRepository from '../models/foodMisc.js';
-import preferenceRepository from '../models/preferenceRepository.js';
-
-vi.mock('../models/measurementRepository.js');
-vi.mock('../models/foodMisc.js');
-vi.mock('../models/preferenceRepository.js');
-
-describe('hydrationTotalsService.resolveWaterTotalsForDate', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+import hydrationTotalsService, {
+  getHydrationDayDetails,
+} from '../services/hydrationTotalsService.js';
+import {
+  getHydrationSourceEntries,
+  getHydrationSourceTotals,
+} from '../models/hydrationSourceRepository.js';
+vi.mock('../models/hydrationSourceRepository.js');
+vi.mock('../utils/timezoneLoader.js', () => ({
+  loadUserTimezone: async () => 'Europe/Berlin',
+}));
+const totals = {
+  water_ml: 1250,
+  manual_ml: 250,
+  ledger_ml: 250,
+  food_ml: 1000,
+  drink_ml: 500,
+  supplement_ml: 500,
+  solid_food_ml: 160,
+  unknown_count: 1,
+};
+describe('hydration totals', () => {
+  beforeEach(() => vi.clearAllMocks());
+  it('uses the unified drink total independently of the obsolete food-water preference', async () => {
+    vi.mocked(getHydrationSourceTotals).mockResolvedValue([
+      { entry_date: '2026-10-02', ...totals },
+    ]);
+    expect(
+      await hydrationTotalsService.resolveWaterTotalsForDate(
+        'u',
+        'u',
+        '2026-10-02'
+      )
+    ).toMatchObject(totals);
   });
-
-  it('excludes food-derived water when the user has not opted in (default)', async () => {
-    // @ts-expect-error TS(2339): mock helper
-    measurementRepository.getWaterIntakeByDate.mockResolvedValue({
-      water_ml: '250',
-      manual_ml: '250',
-    });
-    // @ts-expect-error TS(2339): mock helper
-    preferenceRepository.getUserPreferences.mockResolvedValue({
-      add_food_water_to_intake: false,
-    });
-
-    const result = await hydrationTotalsService.resolveWaterTotalsForDate(
-      'user-1',
-      'user-1',
-      '2026-09-05'
+  it('preserves the acting identity for delegated RLS reads', async () => {
+    vi.mocked(getHydrationSourceTotals).mockResolvedValue([]);
+    await hydrationTotalsService.resolveWaterTotalsForDate(
+      'owner',
+      'delegate',
+      '2026-10-02'
     );
-
-    expect(result).toEqual({
-      water_ml: 250,
-      manual_ml: 250,
-      ledger_ml: 250,
-      food_ml: 0,
-    });
-    expect(foodRepository.getFoodDerivedWaterMlForDate).not.toHaveBeenCalled();
-  });
-
-  it('folds food-derived water into the total when the preference is on', async () => {
-    // @ts-expect-error TS(2339): mock helper
-    measurementRepository.getWaterIntakeByDate.mockResolvedValue({
-      water_ml: '250',
-      manual_ml: '250',
-    });
-    // @ts-expect-error TS(2339): mock helper
-    preferenceRepository.getUserPreferences.mockResolvedValue({
-      add_food_water_to_intake: true,
-    });
-    // @ts-expect-error TS(2339): mock helper
-    foodRepository.getFoodDerivedWaterMlForDate.mockResolvedValue(500);
-
-    const result = await hydrationTotalsService.resolveWaterTotalsForDate(
-      'user-1',
-      'user-1',
-      '2026-09-05'
-    );
-
-    expect(result).toEqual({
-      water_ml: 750,
-      manual_ml: 250,
-      ledger_ml: 250,
-      food_ml: 500,
-    });
-    expect(foodRepository.getFoodDerivedWaterMlForDate).toHaveBeenCalledWith(
-      'user-1',
-      '2026-09-05'
+    expect(getHydrationSourceTotals).toHaveBeenCalledWith(
+      'owner',
+      '2026-10-02',
+      '2026-10-02',
+      'delegate'
     );
   });
-
-  it('degrades to 0 food_ml when the food-derived water query fails', async () => {
-    // @ts-expect-error TS(2339): mock helper
-    measurementRepository.getWaterIntakeByDate.mockResolvedValue({
-      water_ml: '250',
-      manual_ml: '250',
-    });
-    // @ts-expect-error TS(2339): mock helper
-    preferenceRepository.getUserPreferences.mockResolvedValue({
-      add_food_water_to_intake: true,
-    });
-    // @ts-expect-error TS(2339): mock helper
-    foodRepository.getFoodDerivedWaterMlForDate.mockRejectedValue(
-      new Error('DB error')
-    );
-
-    const result = await hydrationTotalsService.resolveWaterTotalsForDate(
-      'user-1',
-      'user-1',
-      '2026-09-05'
-    );
-
-    expect(result.food_ml).toBe(0);
-    expect(result.water_ml).toBe(250);
+  it('returns zero recorded intake for an empty day', async () => {
+    vi.mocked(getHydrationSourceTotals).mockResolvedValue([]);
+    expect(
+      await hydrationTotalsService.resolveWaterTotalsForDate(
+        'u',
+        'u',
+        '2026-10-02'
+      )
+    ).toMatchObject({ water_ml: 0 });
   });
-
-  it('handles no ledger rows and no preferences row gracefully', async () => {
-    // @ts-expect-error TS(2339): mock helper
-    measurementRepository.getWaterIntakeByDate.mockResolvedValue(undefined);
-    // @ts-expect-error TS(2339): mock helper
-    preferenceRepository.getUserPreferences.mockResolvedValue(null);
-
-    const result = await hydrationTotalsService.resolveWaterTotalsForDate(
-      'user-1',
-      'user-1',
-      '2026-09-05'
+  it('does not turn a failed source query into zero intake', async () => {
+    vi.mocked(getHydrationSourceTotals).mockRejectedValue(
+      new Error('unavailable')
     );
-
-    expect(result).toEqual({
-      water_ml: 0,
-      manual_ml: 0,
-      ledger_ml: 0,
-      food_ml: 0,
-    });
+    await expect(
+      hydrationTotalsService.resolveWaterTotalsForDate('u', 'u', '2026-10-02')
+    ).rejects.toThrow('unavailable');
+  });
+  it('builds details and totals from the same read, keeping unknown content unknown', async () => {
+    vi.mocked(getHydrationSourceEntries).mockResolvedValue([
+      {
+        id: 'f',
+        entry_date: '2026-10-02',
+        kind: 'food',
+        name: 'Unknown',
+        water_ml: null,
+        logged_at: null,
+        source: 'manual',
+        water_entry_id: null,
+        food_entry_id: 'f',
+        medication_id: null,
+        amount_basis: 'unknown',
+        counts_toward_goal: false,
+      },
+    ]);
+    const result = await getHydrationDayDetails('u', '2026-10-02');
+    expect(result.totals).toMatchObject({ water_ml: 0, unknown_count: 1 });
+    expect(result.entries[0]?.water_ml).toBeNull();
+    expect(getHydrationSourceTotals).not.toHaveBeenCalled();
   });
 });

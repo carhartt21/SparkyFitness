@@ -76,3 +76,40 @@ export const waterIntakeLogEntrySchema = z.object({
   hydration_factor: z.number().nullable().optional(),
 });
 export type WaterIntakeLogEntry = z.infer<typeof waterIntakeLogEntrySchema>;
+
+/** Included drinking water plus separately reported solid-food water. */
+export const hydrationSourceTotalsSchema = z.object({
+  water_ml: z.number(),
+  manual_ml: z.number(),
+  ledger_ml: z.number(),
+  /** Legacy field: included water derived from food/supplement snapshots, not solids. */
+  food_ml: z.number(),
+  exportable_food_ml: z.number().optional(),
+  drink_ml: z.number(),
+  supplement_ml: z.number(),
+  solid_food_ml: z.number(),
+  unknown_count: z.number().int().nonnegative(),
+});
+export type HydrationSourceTotals = z.infer<typeof hydrationSourceTotalsSchema>;
+export const hydrationSourceEntrySchema = z.object({
+  id: z.string(),
+  entry_date: z.iso.date(),
+  kind: z.enum(["water", "drink", "supplement", "food", "imported"]),
+  name: z.string().nullable(),
+  water_ml: z.number().nullable(),
+  logged_at: z.string().nullable(),
+  source: z.string().nullable(),
+  water_entry_id: z.string().nullable(),
+  food_entry_id: z.string().nullable(),
+  medication_id: z.string().nullable(),
+  amount_basis: z.enum(["recorded", "volume", "unknown", "daily_total"]),
+  counts_toward_goal: z.boolean(),
+});
+export type HydrationSourceEntry = z.infer<typeof hydrationSourceEntrySchema>;
+export const hydrationDayDetailsSchema = z.object({
+  date: z.iso.date(),
+  timezone: z.string(),
+  totals: hydrationSourceTotalsSchema,
+  entries: z.array(hydrationSourceEntrySchema),
+});
+export type HydrationDayDetails = z.infer<typeof hydrationDayDetailsSchema>;

@@ -11,7 +11,9 @@ Grants live in `family_access.access_permissions` (JSONB booleans: `can_manage_d
 - **Inheritance:** a `reports`/`can_view_reports` (or `calorie`) grant adds *read* on `mood`, `goals`, `exercise`, `fasting`, `sleep`, `water`, `symptoms`; write types are not inherited.
 - **Owner-only:** cycle/pregnancy are **not** delegatable (no `checkPermissionMiddleware`; RLS restricts to owner — `routes/v2/cycleRoutes.ts`). There is no `cycle` permission.
 
-Test: `tests/permissionUtils.test.ts`.
+The combined hydration source history (`GET /api/v2/measurements/water-intake/:date/details`) is also owner-only: it includes supplement identities alongside food and water records. `requireSelfActor` runs before the projection. Existing aggregate water endpoints retain their permissions and RLS actor context; do not expose this detailed projection through a delegated water/check-in route.
+
+Test: `tests/permissionUtils.test.ts` and `tests/waterIntakeRoutes.test.ts`.
 
 ## Domain → Permission Mapping
 

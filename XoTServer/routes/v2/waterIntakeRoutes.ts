@@ -1,3 +1,6 @@
+import { z } from 'zod/v4';
+import { requireSelfActor } from '../../middleware/requireSelfMiddleware.js';
+import { getHydrationDayDetails } from '../../services/hydrationTotalsService.js';
 import express, { RequestHandler } from 'express';
 import {
   UpsertWaterIntakeBodySchema,
@@ -830,6 +833,43 @@ router.post('/water-intake/manual-actions', async (req, res, next) => {
     next(error);
   }
 });
+
+// Source identities include supplement entries, so this combined view is owner-only.
+/**
+ * @swagger
+ * /v2/measurements/water-intake/{date}/details:
+ *   get:
+ *     summary: Owner-only hydration sources and reconciled daily totals
+ *     description: Drinks count toward the goal; solid-food water is informational. Includes supplement snapshot water, so delegated access is prohibited.
+ *     tags: [Wellness & Metrics]
+ *     security:
+ *       - cookieAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: date
+ *         required: true
+ *         schema: { type: string, format: date }
+ *     responses:
+ *       200: { description: HydrationDayDetails, including unknown nutrient values as null. }
+ *       400: { description: Invalid calendar date. }
+ *       403: { description: Delegated access is not allowed. }
+ */
+router.get(
+  '/water-intake/:date/details',
+  requireSelfActor,
+  async (req, res, next) => {
+    try {
+      const parsed = z.object({ date: z.iso.date() }).safeParse(req.params);
+      if (!parsed.success) {
+        res.status(400).json({ error: 'Invalid date' });
+        return;
+      }
+      res.json(await getHydrationDayDetails(req.userId, parsed.data.date));
+    } catch (error) {
+      next(error);
+    }
+  }
+);
 
 router.get('/water-intake/entry/:id', getWaterIntakeEntryHandler);
 router.get('/water-intake/:date/log', getWaterIntakeLogHandler);

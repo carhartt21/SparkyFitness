@@ -1,57 +1,92 @@
-import measurementRepository from '../models/measurementRepository.js';
-import foodRepository from '../models/foodMisc.js';
-import preferenceRepository from '../models/preferenceRepository.js';
-import { log } from '../config/logging.js';
+import type {
+  HydrationDayDetails,
+  HydrationSourceTotals,
+  HydrationSourceEntry,
+} from '@workspace/shared';
+import {
+  getHydrationSourceEntries,
+  getHydrationSourceTotals,
+} from '../models/hydrationSourceRepository.js';
+import { loadUserTimezone } from '../utils/timezoneLoader.js';
 
-interface WaterTotals {
-  water_ml: number;
-  manual_ml: number;
-  ledger_ml: number;
-  food_ml: number;
-}
+const EMPTY_TOTALS: HydrationSourceTotals = {
+  water_ml: 0,
+  manual_ml: 0,
+  ledger_ml: 0,
+  food_ml: 0,
+  exportable_food_ml: 0,
+  drink_ml: 0,
+  supplement_ml: 0,
+  solid_food_ml: 0,
+  unknown_count: 0,
+};
 
-/**
- * Single owner of the water-total formula (#1557, #1629): the ledger total
- * (water_intake_entries, all sources) plus food-derived water when the user
- * has opted in via add_food_water_to_intake. food_ml is always 0 for an
- * opted-out user, so this is a strict superset of the pre-Phase-4 behavior.
- *
- * _actingUserId is accepted (not used below) to keep this call's signature
- * stable for callers that need it for permission checks upstream -- the
- * repository reads here are already scoped to targetUserId via RLS.
- */
+/** Drinks count; solid-food water is informational. Repository failures must not become zero. */
 async function resolveWaterTotalsForDate(
   targetUserId: string,
-  _actingUserId: string,
+  actingUserId: string,
   date: string
-): Promise<WaterTotals> {
-  const [ledgerResult, preferences] = await Promise.all([
-    measurementRepository.getWaterIntakeByDate(targetUserId, date),
-    preferenceRepository.getUserPreferences(targetUserId),
+): Promise<
+  Pick<
+    HydrationSourceTotals,
+    'water_ml' | 'manual_ml' | 'ledger_ml' | 'food_ml' | 'exportable_food_ml'
+  >
+> {
+  const rows = await getHydrationSourceTotals(
+    targetUserId,
+    date,
+    date,
+    actingUserId
+  );
+  return rows[0] ?? { ...EMPTY_TOTALS };
+}
+
+export function summarizeHydrationEntries(
+  entries: HydrationSourceEntry[]
+): HydrationSourceTotals {
+  const totals = { ...EMPTY_TOTALS };
+  for (const entry of entries) {
+    if (entry.water_ml === null) {
+      totals.unknown_count++;
+      continue;
+    }
+    const ml = entry.water_ml;
+    if (entry.counts_toward_goal) totals.water_ml += ml;
+    const ledger =
+      entry.kind === 'water' ||
+      entry.kind === 'imported' ||
+      entry.water_entry_id !== null;
+    if (ledger) {
+      totals.ledger_ml += ml;
+      if (entry.source === 'manual') totals.manual_ml += ml;
+    }
+    if (
+      (entry.kind === 'drink' || entry.kind === 'supplement') &&
+      entry.water_entry_id === null
+    ) {
+      totals.food_ml += ml;
+      if (entry.source === 'manual' || entry.source === null)
+        totals.exportable_food_ml = (totals.exportable_food_ml ?? 0) + ml;
+    }
+    if (entry.kind === 'drink') totals.drink_ml += ml;
+    if (entry.kind === 'supplement') totals.supplement_ml += ml;
+    if (entry.kind === 'food') totals.solid_food_ml += ml;
+  }
+  return totals;
+}
+export async function getHydrationDayDetails(
+  userId: string,
+  date: string
+): Promise<HydrationDayDetails> {
+  const [entries, timezone] = await Promise.all([
+    getHydrationSourceEntries(userId, date),
+    loadUserTimezone(userId),
   ]);
-
-  const ledgerMl = parseFloat(ledgerResult?.water_ml) || 0;
-  const manualMl = parseFloat(ledgerResult?.manual_ml) || 0;
-
-  const includeFoodWater = Boolean(preferences?.add_food_water_to_intake);
-  const foodMl = includeFoodWater
-    ? await foodRepository
-        .getFoodDerivedWaterMlForDate(targetUserId, date)
-        .catch((error: unknown) => {
-          log(
-            'warn',
-            `Food-derived water fetch failed for user ${targetUserId} on ${date}, defaulting to 0:`,
-            error
-          );
-          return 0;
-        })
-    : 0;
-
   return {
-    water_ml: ledgerMl + foodMl,
-    manual_ml: manualMl,
-    ledger_ml: ledgerMl,
-    food_ml: foodMl,
+    date,
+    timezone,
+    totals: summarizeHydrationEntries(entries),
+    entries,
   };
 }
 

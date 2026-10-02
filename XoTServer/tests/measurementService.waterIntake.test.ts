@@ -11,6 +11,9 @@ vi.mock('../models/waterContainerRepository');
 // have to be mocked here too.
 vi.mock('../models/preferenceRepository');
 vi.mock('../models/foodMisc');
+vi.mock('../models/hydrationSourceRepository.js', () => ({
+  getHydrationSourceTotals: vi.fn(async () => []),
+}));
 describe('Measurement Service - Water Intake', () => {
   beforeEach(() => {
     vi.clearAllMocks();

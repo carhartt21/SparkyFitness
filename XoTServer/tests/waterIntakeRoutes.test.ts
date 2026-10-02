@@ -1,3 +1,4 @@
+import { getHydrationDayDetails } from '../services/hydrationTotalsService.js';
 import { vi, beforeEach, describe, expect, it } from 'vitest';
 // @ts-expect-error TS(7016): Could not find a declaration file for module 'supe... Remove this comment to see the full error message
 import request from 'supertest';
@@ -22,6 +23,7 @@ vi.mock('../services/containerWaterActionService.js', () => ({
     }
   },
 }));
+vi.mock('../services/hydrationTotalsService.js');
 vi.mock('../services/measurementService.js', () => ({
   default: {
     getWaterIntakeEntryById: vi.fn(),
@@ -48,6 +50,9 @@ vi.mock('../middleware/onBehalfOfMiddleware.js', () => ({
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const injectUser = (req: any, res: any, next: any) => {
   req.userId = 'test-user-id';
+  req.originalUserId = req.headers['x-review-delegate']
+    ? 'delegate'
+    : 'test-user-id';
   next();
 };
 const app = express();
@@ -71,6 +76,20 @@ const containerAction = {
 describe('Water Intake Routes (v2)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+  it('rejects delegated hydration details before reading supplement identities', async () => {
+    const response = await request(app)
+      .get('/api/v2/measurements/water-intake/2026-10-02/details')
+      .set('x-review-delegate', 'yes');
+    expect(response.statusCode).toBe(403);
+    expect(getHydrationDayDetails).not.toHaveBeenCalled();
+  });
+  it('validates the hydration history day before querying', async () => {
+    const response = await request(app).get(
+      '/api/v2/measurements/water-intake/not-a-day/details'
+    );
+    expect(response.statusCode).toBe(400);
+    expect(getHydrationDayDetails).not.toHaveBeenCalled();
   });
   describe('POST /api/v2/measurements/water-intake/container-actions', () => {
     it('passes a valid operation through and returns its result', async () => {

@@ -191,6 +191,9 @@ export async function getDailySummary({
           manual_ml: parseFloat(String(waterResult.manual_ml)) || 0,
           ledger_ml: parseFloat(String(waterResult.ledger_ml)) || 0,
           food_ml: parseFloat(String(waterResult.food_ml)) || 0,
+          ...(waterResult.exportable_food_ml === undefined
+            ? {}
+            : { exportable_food_ml: waterResult.exportable_food_ml }),
         }
       : null,
     stepCalories,

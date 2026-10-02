@@ -106,6 +106,8 @@ export const waterIntakeBreakdownSchema = z.object({
   manual_ml: z.number(),
   ledger_ml: z.number(),
   food_ml: z.number(),
+  /** Manual derived water only; imported nutrition must not be exported back. */
+  exportable_food_ml: z.number().optional(),
 });
 
 export type WaterIntakeBreakdown = z.infer<typeof waterIntakeBreakdownSchema>;
