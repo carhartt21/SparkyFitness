@@ -355,6 +355,7 @@ export type RootStackParamList = {
   MedicationsList: undefined;
   DailyCheckIn: { date?: string } | undefined;
   Habits: { date?: string; habitId?: string } | undefined;
+  Wellness: { date?: string } | undefined;
   HabitsManage: undefined;
   HabitForm: { habitId?: string } | undefined;
   Supplements: { date?: string; scheduleId?: string } | undefined;

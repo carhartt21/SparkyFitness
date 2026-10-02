@@ -6890,6 +6890,8 @@
     "history": "Verlauf · letzte 30 Tage",
     "historyEmpty": "In diesem Zeitraum wurden keine Wellness-Aktivitäten erfasst.",
     "saveFailed": "Die Aktivität konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
-    "removeFailed": "Die Aktivität konnte nicht entfernt werden. Bitte versuchen Sie es erneut."
+    "removeFailed": "Die Aktivität konnte nicht entfernt werden. Bitte versuchen Sie es erneut.",
+    "offlineTitle": "Wellness benötigt eine Serververbindung",
+    "offlineSubtitle": "Eine Serververbindung ist erforderlich, um Wellness-Aktivitäten anzusehen und zu erfassen."
   }
 }

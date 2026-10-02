@@ -48,9 +48,10 @@ The corresponding web persistence check runs with `XOT_VISUAL_URL=http://localho
 ## Wellness logging tour
 
 `--interactions --wellness-tour --case '390-de-dark|390-de-light|430-de-large'`
-opens Diary, checks the Sauna preset's 44-point target, logs it for the selected
-calendar day, expands history, and undoes that day's entry. Each case captures
-empty, logged, history and after-undo states. `review/wellnessFixture.ts` accepts
+opens More → Wellness, checks the Sauna preset's 44-point target, logs it for
+the selected calendar day and expands history. It then returns to Diary, verifies
+that the recorded entry appears without creation controls, and undoes that day's
+entry. Each case captures More, empty, logged, history, Diary and after-undo states. `review/wellnessFixture.ts` accepts
 only schema-validated wellness creations and completion/removal writes for known
 synthetic activity IDs. It preserves other routine fixtures and resets per run.
 This checks native behavior against memory; server persistence and real RLS are

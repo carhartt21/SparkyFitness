@@ -44,6 +44,7 @@ import type { RootStackParamList, TabParamList } from '../types/navigation';
 import TabScreenHeader from '../components/TabScreenHeader';
 import ScreenBackground from '../components/ui/ScreenBackground';
 import { useNeonScale } from '../components/tracking/useNeonScale';
+import { useDiaryDateStore } from '../stores/diaryDateStore';
 
 type LibraryScreenProps = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'More'>,
@@ -64,6 +65,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const usesNativeTabs = useNativeIOSTabsActive();
   const accentColor = useCSSVariable('--color-accent-primary') as string;
   const neon = useNeonScale();
+  const selectedDate = useDiaryDateStore((state) => state.selectedDate);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { isNavigationLocked, runNavigationAction } =
     useNavigationActionGuard(navigation);
@@ -375,6 +377,20 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
               runNavigationAction(() => navigation.navigate('TrackingSettings'))
             }
             className="w-[48%] mb-3"
+          />
+          <CreateTile
+            testID="more-wellness"
+            icon="wellness"
+            color={accentColor}
+            title={t('wellness.title', { defaultValue: 'Wellness' })}
+            subtitle={t('wellness.log', { defaultValue: 'Log activity' })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() =>
+                navigation.navigate('Wellness', { date: selectedDate })
+              )
+            }
+            className="w-full mb-3"
           />
         </View>
 

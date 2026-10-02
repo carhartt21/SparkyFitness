@@ -6879,6 +6879,8 @@
     "history": "History · last 30 days",
     "historyEmpty": "No wellness activities recorded in this period.",
     "saveFailed": "Could not save the activity. Please try again.",
-    "removeFailed": "Could not remove the activity. Please try again."
+    "removeFailed": "Could not remove the activity. Please try again.",
+    "offlineTitle": "Wellness needs your server",
+    "offlineSubtitle": "Connect to your server to see and log wellness activities."
   }
 }

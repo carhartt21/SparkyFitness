@@ -656,8 +656,13 @@ final class DashboardReview: XCTestCase {
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
     XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
-    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
-    diary.tap()
+    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch
+    more.tap()
+    let wellness = app.descendants(matching: .any)["more-wellness"]
+    for _ in 0..<6 { if wellness.exists && wellness.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(wellness.waitForExistence(timeout: 10))
+    capture("wellness-more", app)
+    wellness.tap()
     let sauna = app.buttons.matching(NSPredicate(format: "label IN %@", ["Log Sauna", "Sauna erfassen"])).firstMatch
     XCTAssertTrue(sauna.waitForExistence(timeout: 10))
     for _ in 0..<12 {
@@ -678,9 +683,19 @@ final class DashboardReview: XCTestCase {
     for _ in 0..<5 { if history.isHittable { break }; app.swipeUp() }
     history.tap()
     capture("wellness-history", app)
-    for _ in 0..<5 { if undo.isHittable { break }; app.swipeDown() }
+    app.buttons["wellness-back"].tap()
+    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
+    diary.tap()
+    XCTAssertTrue(undo.waitForExistence(timeout: 10))
+    for _ in 0..<10 { if undo.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(undo.isHittable)
+    XCTAssertFalse(sauna.exists)
+    XCTAssertFalse(app.textFields["wellness-name"].exists)
+    capture("wellness-diary", app)
     undo.tap()
-    XCTAssertTrue(sauna.waitForExistence(timeout: 10))
+    let disappeared = NSPredicate(format: "exists == false")
+    expectation(for: disappeared, evaluatedWith: undo)
+    waitForExpectations(timeout: 10)
     capture("wellness-after-undo", app)
   }
 

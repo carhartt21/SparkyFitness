@@ -1,5 +1,9 @@
 # Wellness activity logging
 
+The [mobile navigation follow-up](wellness-more-navigation-2026-10-02.md) moves
+logging to More → Wellness and retains recorded entries in Diary. The original
+feature implementation and its verification below describe the initial surface.
+
 ## Behavior and surface decisions
 
 The Diary records an activity and calendar day in both web and mobile. Sauna,
