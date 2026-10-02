@@ -27,8 +27,6 @@ export const WaterTrackingSettings = () => {
     setWaterDisplayUnit,
     addExerciseWaterToGoal,
     setAddExerciseWaterToGoal,
-    addFoodWaterToIntake,
-    setAddFoodWaterToIntake,
   } = usePreferences();
   const [localWaterUnit, setLocalWaterUnit] = useState(water_display_unit);
 
@@ -135,30 +133,12 @@ export const WaterTrackingSettings = () => {
           />
         </div>
         <Separator />
-        <div className="flex items-center justify-between py-2">
-          <div className="space-y-0.5">
-            <Label htmlFor="add-food-water-to-intake">
-              {t(
-                'settings.waterTracking.addFoodWater',
-                'Count water from food toward your intake'
-              )}
-            </Label>
-            <p className="text-sm text-muted-foreground">
-              {t(
-                'settings.waterTracking.addFoodWaterHint',
-                "Folds a logged food's water content into your daily water total, unless it's already counted by a linked container."
-              )}
-            </p>
-          </div>
-          <Switch
-            id="add-food-water-to-intake"
-            checked={addFoodWaterToIntake}
-            onCheckedChange={(checked) => {
-              setAddFoodWaterToIntake(checked);
-              saveAllPreferences({ addFoodWaterToIntake: checked });
-            }}
-          />
-        </div>
+        <p className="py-2 text-sm text-muted-foreground">
+          {t(
+            'settings.waterTracking.sourcePolicy',
+            'Drinks and declared water in supplement drinks count toward your goal. Water in solid foods appears only in the hydration details.'
+          )}
+        </p>
         <Separator />
         <WaterContainerManager />
       </AccordionContent>

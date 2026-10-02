@@ -1178,7 +1178,7 @@
     "addWater": "Wasser hinzufügen",
     "selectContainer": "{{container}} auswählen",
     "perContainer": "{{value}} {{unit}} pro Trinkgefäß",
-    "waterFromFood": "Davon {{value}} {{unit}} aus Lebensmitteln",
+    "waterFromFood": "Enthält {{value}} {{unit}} aus Getränken und Supplementen",
     "chooseWaterContainer": "Trinkgefäß für die Schnellerfassung auswählen",
     "quickAddDrinks": "Schnell erfassen",
     "logDrink": "{{drink}} erfassen",
@@ -2748,7 +2748,7 @@
     "calcium": "Calcium",
     "iron": "Eisen",
     "caffeine": "Koffein",
-    "waterContent": "Wasser Content",
+    "waterContent": "Wassergehalt",
     "alcohol": "Alkohol",
     "glycemicIndex": "Glykämischer Index",
     "totalCarbs": "Gesamt Kohlenhydrate",
@@ -6443,5 +6443,28 @@
   "timeSheet": {
     "hours": "Stunden",
     "minutes": "Minuten"
+  },
+  "hydrationDetails": {
+    "policy": "Getränke und angegebenes Wasser in Supplement-Getränken zählen zum Trinkziel. Wasser aus festen Lebensmitteln wird separat angezeigt.",
+    "recorded": "Für das Trinkziel erfasst",
+    "goal": "Ziel: {{value}}",
+    "solidFood": "Wasser aus festen Lebensmitteln",
+    "solidFoodNote": "Nur zur Information. Zählt nicht zum Trinkziel.",
+    "unknown": "Wassergehalt unbekannt",
+    "noTime": "Tageseintrag · Uhrzeit unbekannt",
+    "volumeEstimate": "Aus dem Getränkevolumen geschätzt",
+    "detailsOnly": "Nur in den Details",
+    "sources": {
+      "water": "Erfasstes Wasser",
+      "drink": "Getränke",
+      "supplement": "Supplement-Getränke",
+      "food": "Feste Lebensmittel",
+      "imported": "Importiertes Wasser"
+    },
+    "history": "Quellen und Verlauf",
+    "openSupplement": "Supplement öffnen",
+    "openDiary": "Im Tagebuch ansehen",
+    "unknownNote_one": "Bei {{count}} Eintrag ist der Wassergehalt unbekannt.",
+    "unknownNote_other": "Bei {{count}} Einträgen ist der Wassergehalt unbekannt."
   }
 }

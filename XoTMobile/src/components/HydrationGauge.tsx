@@ -25,7 +25,7 @@ interface QuickAddPreset extends ContainerOption {
 }
 
 /**
- * `full` renders everything in one card. The Dashboard pairs a `tile` (totals,
+ * `full` renders everything in one card. The Dashboard uses `full`. Compact clients may use `tile` (totals,
  * cups, log buttons) with an `options` card (sync state, containers, presets),
  * which renders nothing when there is nothing to show.
  */
@@ -309,7 +309,8 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
           {!!fromFoodMl && fromFoodMl > 0 ? (
             <Text className="text-xs text-text-secondary mt-1">
               {t('dashboard.waterFromFood', {
-                defaultValue: 'Includes {{value}} {{unit}} from food',
+                defaultValue:
+                  'Includes {{value}} {{unit}} from drinks and supplements',
                 value: formatVolumeForUnit(
                   volumeFromMl(fromFoodMl, unit),
                   unit

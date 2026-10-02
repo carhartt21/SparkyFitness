@@ -3166,7 +3166,8 @@
     "alcohol": "Alkohol",
     "glycemicIndexMedium": "Mittel",
     "glycemicIndexHigh": "Hoch",
-    "sugars": "Zucker"
+    "sugars": "Zucker",
+    "waterContent": "Wassergehalt"
   },
   "duration": {
     "seconds": "Sekunden"
@@ -3235,7 +3236,8 @@
     "checkConnection": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
     "loggedOnly": "Basierend auf erfassten Einträgen. Der Tag kann unvollständig sein.",
     "offlineEmpty": "Für diesen Tag ist auf diesem Gerät noch keine Zusammenfassung gespeichert. Stellen Sie die Verbindung wieder her, um sie zu laden.",
-    "retrySavedWaterFailed": "Die gespeicherten Getränke konnten nicht synchronisiert werden. Versuchen Sie es erneut."
+    "retrySavedWaterFailed": "Die gespeicherten Getränke konnten nicht synchronisiert werden. Versuchen Sie es erneut.",
+    "waterFromFood": "Enthält {{value}} {{unit}} aus Getränken und Supplementen"
   },
   "importHistory": {
     "paused": {
@@ -3401,5 +3403,28 @@
   "timeSheet": {
     "hours": "Stunden",
     "minutes": "Minuten"
+  },
+  "hydrationDetails": {
+    "policy": "Getränke und angegebenes Wasser in Supplement-Getränken zählen zum Trinkziel. Wasser aus festen Lebensmitteln wird separat angezeigt.",
+    "recorded": "Für das Trinkziel erfasst",
+    "goal": "Ziel: {{value}}",
+    "solidFood": "Wasser aus festen Lebensmitteln",
+    "solidFoodNote": "Nur zur Information. Zählt nicht zum Trinkziel.",
+    "unknown": "Wassergehalt unbekannt",
+    "noTime": "Tageseintrag · Uhrzeit unbekannt",
+    "volumeEstimate": "Aus dem Getränkevolumen geschätzt",
+    "detailsOnly": "Nur in den Details",
+    "sources": {
+      "water": "Erfasstes Wasser",
+      "drink": "Getränke",
+      "supplement": "Supplement-Getränke",
+      "food": "Feste Lebensmittel",
+      "imported": "Importiertes Wasser"
+    },
+    "history": "Quellen und Verlauf",
+    "openSupplement": "Supplement öffnen",
+    "openDiary": "Im Tagebuch ansehen",
+    "unknownNote_one": "Bei {{count}} Eintrag ist der Wassergehalt unbekannt.",
+    "unknownNote_other": "Bei {{count}} Einträgen ist der Wassergehalt unbekannt."
   }
 }

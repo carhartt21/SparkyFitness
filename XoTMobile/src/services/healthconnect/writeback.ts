@@ -206,7 +206,10 @@ const buildHydrationRecords = async (
     if (record) records.push(record);
   }
 
-  const foodMl = summary.waterIntakeBreakdown?.food_ml ?? 0;
+  const foodMl =
+    summary.waterIntakeBreakdown?.exportable_food_ml ??
+    summary.waterIntakeBreakdown?.food_ml ??
+    0;
   let deferred = false;
   if (foodMl > 0) {
     const remainder = waterMlToHydrationRecord(date, foodMl, version);

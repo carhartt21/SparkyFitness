@@ -339,3 +339,6 @@ export const dailyProgressRangeQueryKey = (
   startDate: string,
   endDate: string
 ) => ['dailyProgress', 'range', startDate, endDate] as const;
+
+export const hydrationDetailsQueryKey = (date: string) =>
+  ['waterIntakeLog', date, 'details'] as const;

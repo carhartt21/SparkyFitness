@@ -402,7 +402,8 @@
     "waterTracking": {
       "addFoodWaterHint": "Rechnet den Wassergehalt eines erfassten Lebensmittels in Ihre tägliche Wasseraufnahme ein, sofern dieser nicht bereits durch ein verknüpftes Trinkgefäß berücksichtigt wurde.",
       "addExerciseWater": "Wasserverlust durch Training zum Tagesziel hinzufügen",
-      "addFoodWater": "Wasser aus Lebensmitteln zur Flüssigkeitsaufnahme zählen"
+      "addFoodWater": "Wasser aus Lebensmitteln zur Flüssigkeitsaufnahme zählen",
+      "sourcePolicy": "Getränke und angegebenes Wasser in Supplement-Getränken zählen zum Trinkziel. Wasser aus festen Lebensmitteln wird nur in den Details angezeigt."
     },
     "familyAccess": {
       "description": "Zugriff auf Ihre Daten für Familienmitglieder verwalten",
@@ -543,7 +544,8 @@
       "nextContainer": "Nächster Trinkbehälter",
       "noGoal": "Kein Trinkziel festgelegt",
       "previousContainer": "Vorheriger Trinkbehälter",
-      "removeWater": "Wasser entfernen"
+      "removeWater": "Wasser entfernen",
+      "fromFood": "Enthält {{volume}} {{unit}} aus Getränken und Supplementen"
     },
     "pastDateWarning": "Sie fügen Lebensmittel für ein vergangenes Datum hinzu.",
     "futureDateWarning": "Sie fügen Lebensmittel für ein zukünftiges Datum hinzu.",
@@ -639,7 +641,10 @@
     "respirationDescLow": "Ihre Atemfrequenz liegt unter dem üblichen Bereich.",
     "respirationDescNormal": "Ihre Atemfrequenz liegt im üblichen Bereich.",
     "respirationDescElevated": "Ihre Atemfrequenz ist erhöht.",
-    "medicationsTab": "Medikamente & Ergänzungsmittel"
+    "medicationsTab": "Medikamente & Ergänzungsmittel",
+    "foodDiaryExportHeaders": {
+      "waterContent": "Wassergehalt (ml)"
+    }
   },
   "sleepHealth": {
     "dailyTrend": "Trend",
@@ -1170,5 +1175,8 @@
       "other": "Andere Aktivität",
       "rest": "Ruhetag"
     }
+  },
+  "nutrition": {
+    "waterContent": "Wassergehalt"
   }
 }

@@ -943,7 +943,7 @@
     "logWater": "Log water",
     "selectContainer": "Select {{container}}",
     "perContainer": "{{value}} {{unit}} per container",
-    "waterFromFood": "Includes {{value}} {{unit}} from food",
+    "waterFromFood": "Includes {{value}} {{unit}} from drinks and supplements",
     "waterAwaitingSync": "{{value}} {{unit}} awaiting sync",
     "waterNeedsAttention": "{{value}} {{unit}} needs attention",
     "waterDrinksAwaitingSync_one": "{{count}} drink awaiting sync",
@@ -6432,5 +6432,28 @@
   "timeSheet": {
     "hours": "Hours",
     "minutes": "Minutes"
+  },
+  "hydrationDetails": {
+    "policy": "Drinks and declared water in supplement drinks count toward your goal. Water in solid foods is shown separately.",
+    "recorded": "Recorded toward your goal",
+    "goal": "Goal: {{value}}",
+    "solidFood": "Water in solid foods",
+    "solidFoodNote": "Informational only. Not included in your hydration goal.",
+    "unknown": "Water content unknown",
+    "noTime": "Daily record · time unavailable",
+    "volumeEstimate": "Estimated from drink volume",
+    "detailsOnly": "Details only",
+    "sources": {
+      "water": "Logged water",
+      "drink": "Drinks",
+      "supplement": "Supplement drinks",
+      "food": "Solid food",
+      "imported": "Imported water"
+    },
+    "history": "Sources and history",
+    "openSupplement": "Open supplement",
+    "openDiary": "View in diary",
+    "unknownNote_one": "{{count}} entry has no known water content.",
+    "unknownNote_other": "{{count}} entries have no known water content."
   }
 }

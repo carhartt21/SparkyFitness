@@ -333,6 +333,83 @@ export function createNutritionFixture(scenario: string) {
         return { water_ml: waterMl };
       }
       if (method === 'GET') {
+        if (
+          /^\/api\/v2\/measurements\/water-intake\/[^/]+\/details$/.test(path)
+        ) {
+          const base = {
+            entry_date: reviewDate,
+            source: 'manual',
+            water_entry_id: null,
+            food_entry_id: null,
+            medication_id: null,
+            amount_basis: 'recorded' as const,
+            counts_toward_goal: true,
+          };
+          return {
+            date: reviewDate,
+            timezone: 'Europe/Berlin',
+            totals: {
+              water_ml: waterMl,
+              manual_ml: waterMl - 750,
+              ledger_ml: waterMl - 750,
+              food_ml: 750,
+              drink_ml: 250,
+              supplement_ml: 500,
+              solid_food_ml: 160,
+              unknown_count: 1,
+            },
+            entries: [
+              {
+                ...base,
+                id: 'review-water',
+                kind: 'water',
+                name: 'Glass',
+                water_ml: waterMl - 750,
+                logged_at: `${reviewDate}T08:00:00Z`,
+                water_entry_id: 'review-water',
+              },
+              {
+                ...base,
+                id: 'review-drink',
+                kind: 'drink',
+                name: 'Energy Drink',
+                water_ml: 250,
+                logged_at: `${reviewDate}T10:00:00Z`,
+                food_entry_id: 'review-drink',
+              },
+              {
+                ...base,
+                id: 'review-supplement',
+                kind: 'supplement',
+                name: 'Elektrolyte',
+                water_ml: 500,
+                logged_at: `${reviewDate}T11:00:00Z`,
+                medication_id: 'review-supplement',
+              },
+              {
+                ...base,
+                id: 'review-food',
+                kind: 'food',
+                name: 'Apfel',
+                water_ml: 160,
+                logged_at: `${reviewDate}T09:00:00Z`,
+                food_entry_id: 'review-food',
+                counts_toward_goal: false,
+              },
+              {
+                ...base,
+                id: 'review-unknown',
+                kind: 'food',
+                name: 'Unbekannter Wassergehalt',
+                water_ml: null,
+                logged_at: null,
+                amount_basis: 'unknown',
+                counts_toward_goal: false,
+              },
+            ],
+          };
+        }
+
         if (path === `/api/v2/measurements/water-intake/${reviewDate}/log`)
           return waterLog.map((entry) => ({ ...entry }));
         if (path === '/api/exercise-stats/review') {

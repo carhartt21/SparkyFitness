@@ -32,7 +32,7 @@ export function useHydrationRange({
         millilitersByDay.set(entry.entry_date, entry.water_ml);
       }
 
-      // A day with no logged water genuinely means zero drunk, so every day in the
+      // A day without entries means zero recorded, not confirmed zero consumed. Each day in the
       // window gets a bar rather than being omitted the way a missing weigh-in is.
       const hydrationData: HydrationDataPoint[] = [];
       for (let dayOffset = 0; dayOffset < days; dayOffset++) {

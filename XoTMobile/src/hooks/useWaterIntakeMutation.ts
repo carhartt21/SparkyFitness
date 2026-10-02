@@ -220,6 +220,7 @@ export function useWaterIntakeMutation({
       });
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['waterIntakeRange'] });
       queryClient.invalidateQueries({ queryKey: dailySummaryQueryKey(date) });
       // The itemized log backs hydration reminders and the watch's log view.
       queryClient.invalidateQueries({ queryKey: waterIntakeLogQueryKey(date) });
@@ -283,6 +284,7 @@ export function useWaterIntakeMutation({
       void queryClient.invalidateQueries({
         queryKey: dailySummaryQueryKey(date),
       });
+      void queryClient.invalidateQueries({ queryKey: ['waterIntakeRange'] });
       void queryClient.invalidateQueries({
         queryKey: waterIntakeLogQueryKey(date),
       });

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { useAppLocale } from '../localization';
 import { useTranslation } from 'react-i18next';
 import { CartesianChart, Line } from 'victory-native';
@@ -42,6 +42,7 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const locale = useAppLocale();
+  const { fontScale } = useWindowDimensions();
   const { preferences } = usePreferences();
   const [accentColor, dangerColor, textMuted] = useCSSVariable([
     '--color-accent-primary',
@@ -171,8 +172,14 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
           : t('caffeine.anytimeSafe', { defaultValue: 'Any time' });
 
   return (
-    <View className="bg-surface rounded-2xl border border-border-subtle p-4 my-2">
-      <Text className="text-text-primary text-lg font-semibold mb-2">
+    <View
+      testID="caffeine-card"
+      className="bg-surface rounded-2xl border border-border-subtle p-4 my-2"
+    >
+      <Text
+        testID="caffeine-title"
+        className="text-text-primary text-lg font-semibold mb-2"
+      >
         {t('caffeine.title', { defaultValue: 'Active Caffeine' })}
       </Text>
       <Text className="text-text-secondary text-sm mb-3">
@@ -191,7 +198,11 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
           })}
         </Text>
       )}
-      <View className="flex-row justify-between mb-3">
+      <View
+        className={
+          fontScale > 1.3 ? 'gap-3 mb-3' : 'flex-row justify-between gap-2 mb-3'
+        }
+      >
         <View>
           <Text className="text-text-muted text-xs">
             {windowMs?.isToday
@@ -226,7 +237,7 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
         </View>
         <View>
           <Text className="text-text-muted text-xs">
-            {t('caffeine.lastDose', { defaultValue: 'Last dose by' })}
+            {t('caffeine.lastDose', { defaultValue: 'Additional dose by' })}
           </Text>
           <Text className="text-text-primary text-2xl font-bold">
             {cutoffText}
@@ -239,9 +250,20 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
           data={chartData}
           xKey="t"
           yKeys={['mg', 'threshold']}
+          domain={{ x: windowMs ? [windowMs.start, windowMs.end] : undefined }}
           domainPadding={{ left: 10, right: 10, top: 12 }}
           xAxis={{
             font,
+            tickValues: windowMs
+              ? [
+                  windowMs.start,
+                  Math.round(
+                    (windowMs.start + (windowMs.end - windowMs.start) / 2) /
+                      60000
+                  ) * 60000,
+                  windowMs.end,
+                ]
+              : undefined,
             tickCount: 3,
             labelColor: textMuted,
             formatXLabel: (value: number) =>
@@ -277,7 +299,13 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
       </View>
 
       {/* The plot carries two series and no axis legend, so name them. */}
-      <View className="flex-row justify-center items-center gap-4 mt-1">
+      <View
+        className={
+          fontScale > 1.3
+            ? 'gap-2 mt-2'
+            : 'flex-row flex-wrap justify-center items-center gap-4 mt-1'
+        }
+      >
         <View className="flex-row items-center gap-1.5">
           <View
             style={{ width: 14, height: 2, backgroundColor: accentColor }}

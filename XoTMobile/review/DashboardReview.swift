@@ -1,6 +1,32 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  func testHydrationSources() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    let details = app.buttons["dashboard-hydration-details"]
+    for _ in 0..<10 { if details.isHittable { break }; dashboard.swipeUp(velocity: .slow) }
+    XCTAssertTrue(details.isHittable)
+    XCTAssertFalse(app.otherElements["hydration-options"].exists)
+    if details.frame.minY > 250 { dashboard.swipeUp(velocity: .slow) }
+    capture("hydration-full-card", app)
+    details.tap()
+    XCTAssertTrue(app.staticTexts["Für das Trinkziel erfasst"].waitForExistence(timeout: 15))
+    capture("hydration-sources-top", app)
+    app.swipeUp()
+    capture("hydration-sources-history", app)
+    app.swipeUp()
+    capture("hydration-sources-bottom", app)
+    app.buttons["hydration-details-close"].tap()
+    let caffeine = app.descendants(matching: .any)["caffeine-title"]
+    for _ in 0..<12 { if caffeine.isHittable { break }; dashboard.swipeUp(velocity: .slow) }
+    XCTAssertTrue(caffeine.exists)
+    capture("caffeine-selected-day", app)
+  }
+
   /// Exercise the dense nutrient columns with ordinary and long calorie values.
   func testFoodMacroColumns() throws {
     continueAfterFailure = false

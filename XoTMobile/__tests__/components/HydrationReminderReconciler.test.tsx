@@ -45,6 +45,7 @@ jest.mock('../../src/hooks/useManualWaterActions', () => ({
 }));
 jest.mock('../../src/services/api/measurementsApi', () => ({
   fetchWaterIntakeLog: jest.fn(),
+  fetchHydrationDetails: jest.fn(async () => ({ entries: [] })),
 }));
 
 const mockUseDailySummary = useDailySummary as jest.MockedFunction<

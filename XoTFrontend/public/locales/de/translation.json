@@ -179,7 +179,8 @@
       "addExerciseWaterHint": "Erhöht das tägliche Trinkziel aufgrund des geschätzten Flüssigkeitsverlusten durch Aktivitäten.",
       "liters": "Liter",
       "addFoodWater": "Wasser aus Lebensmitteln zur Flüssigkeitsaufnahme zählen",
-      "addFoodWaterHint": "Rechnet den Wassergehalt eines erfassten Lebensmittels in Ihre tägliche Wasseraufnahme ein, sofern dieser nicht bereits durch ein verknüpftes Trinkgefäß berücksichtigt wurde."
+      "addFoodWaterHint": "Rechnet den Wassergehalt eines erfassten Lebensmittels in Ihre tägliche Wasseraufnahme ein, sofern dieser nicht bereits durch ein verknüpftes Trinkgefäß berücksichtigt wurde.",
+      "sourcePolicy": "Getränke und angegebenes Wasser in Supplement-Getränken zählen zum Trinkziel. Wasser aus festen Lebensmitteln wird nur in den Details angezeigt."
     },
     "nutrientDisplay": {
       "title": "Nährwertanzeige",
@@ -2698,7 +2699,7 @@
       "deletedError": "Entfernen des Getränks fehlgeschlagen",
       "editTime": "Klicken um die Zeit zu ändern",
       "noManualToRemove": "Nur manuell erfasste Wassermengen können entfernt werden",
-      "fromFood": "Enthält {{volume}} {{unit}} aus Lebensmitteln",
+      "fromFood": "Enthält {{volume}} {{unit}} aus Getränken und Supplementen",
       "linkedFoodRemovedTitle": "Lebensmitteleintrag entfernt",
       "linkedFoodRemoved": "Der verknüpfte Lebensmitteleintrag wurde ebenfalls aus Ihrem Ernährungstagebuch entfernt.",
       "linkedDrink": "Mit einem Lebensmitteleintrag verknüpft",

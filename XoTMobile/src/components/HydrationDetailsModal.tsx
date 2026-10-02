@@ -1,5 +1,9 @@
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../types/navigation';
 import {
   Modal,
+  useWindowDimensions,
   Platform,
   Pressable,
   ScrollView,
@@ -10,8 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
-import { fetchWaterIntakeLog } from '../services/api/measurementsApi';
-import { waterIntakeLogQueryKey } from '../hooks/queryKeys';
+import { fetchHydrationDetails } from '../services/api/measurementsApi';
+import { hydrationDetailsQueryKey } from '../hooks/queryKeys';
 import { formatDate } from '../utils/dateUtils';
 import { useAppLocale } from '../localization';
 import {
@@ -21,30 +25,52 @@ import {
 } from '../utils/unitConversions';
 import Icon from './Icon';
 
-/** Read-only itemized ledger; the dashboard retains the server's reconciled total. */
+/** Unified snapshot-backed hydration history; solid-food water is informational. */
 export default function HydrationDetailsModal({
   visible,
   date,
   unit,
   onClose,
+  goal,
   onConfigure,
 }: {
   visible: boolean;
   date: string;
   unit: string;
+  goal?: number;
   onClose: () => void;
   onConfigure: () => void;
 }) {
   const { t } = useTranslation();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
   const locale = useAppLocale();
+  const { fontScale } = useWindowDimensions();
   const color = useCSSVariable('--color-text-primary') as string;
   const query = useQuery({
-    queryKey: waterIntakeLogQueryKey(date),
-    queryFn: () => fetchWaterIntakeLog(date),
+    queryKey: hydrationDetailsQueryKey(date),
+    queryFn: () => fetchHydrationDetails(date),
     enabled: visible,
     staleTime: 0,
   });
+  const volume = (ml: number) =>
+    `${formatVolumeForUnit(volumeFromMl(ml, unit), unit)} ${WATER_UNIT_LABELS[unit] ?? unit}`;
+  const sourceLabels = {
+    water: t('hydrationDetails.sources.water', {
+      defaultValue: 'Logged water',
+    }),
+    drink: t('hydrationDetails.sources.drink', { defaultValue: 'Drinks' }),
+    supplement: t('hydrationDetails.sources.supplement', {
+      defaultValue: 'Supplement drinks',
+    }),
+    food: t('hydrationDetails.sources.food', { defaultValue: 'Solid food' }),
+    imported: t('hydrationDetails.sources.imported', {
+      defaultValue: 'Imported water',
+    }),
+  };
+  const sourceLabel = (kind: keyof typeof sourceLabels) => sourceLabels[kind];
+  const entries = query.data?.entries ?? [];
   return (
     <Modal
       visible={visible}
@@ -82,12 +108,87 @@ export default function HydrationDetailsModal({
           <Text className="text-base text-text-secondary">
             {formatDate(date, locale)}
           </Text>
+          {query.data && (
+            <View className="bg-surface border border-border-subtle rounded-xl p-4 gap-3">
+              <Text className="text-sm text-text-secondary">
+                {t('hydrationDetails.recorded', {
+                  defaultValue: 'Recorded toward your goal',
+                })}
+              </Text>
+              <Text className="text-3xl font-bold text-text-primary">
+                {volume(query.data.totals.water_ml)}
+              </Text>
+              {!!goal && goal > 0 && (
+                <Text className="text-sm text-text-secondary">
+                  {t('hydrationDetails.goal', {
+                    defaultValue: 'Goal: {{value}}',
+                    value: volume(goal),
+                  })}
+                </Text>
+              )}
+              {(['water', 'drink', 'supplement', 'imported'] as const).map(
+                (kind) => {
+                  const rows = entries.filter((entry) => entry.kind === kind);
+                  if (!rows.length) return null;
+                  return (
+                    <View
+                      key={kind}
+                      className={
+                        fontScale > 1.3
+                          ? 'gap-1'
+                          : 'flex-row justify-between gap-3'
+                      }
+                    >
+                      <Text className="text-base text-text-secondary flex-1">
+                        {sourceLabel(kind)}
+                      </Text>
+                      <Text className="text-base text-text-primary">
+                        {volume(
+                          rows.reduce(
+                            (sum, entry) => sum + (entry.water_ml ?? 0),
+                            0
+                          )
+                        )}
+                      </Text>
+                    </View>
+                  );
+                }
+              )}
+            </View>
+          )}
           <Text className="text-sm text-text-secondary">
-            {t('dashboard.hydrationLedgerNote', {
+            {t('hydrationDetails.policy', {
               defaultValue:
-                'Recorded drinks for this day. Water from food and older daily totals may not have individual drink entries.',
+                'Drinks and declared water in supplement drinks count toward your goal. Water in solid foods is shown separately.',
             })}
           </Text>
+          {query.data && (
+            <View className="bg-surface rounded-xl p-4 gap-2">
+              <Text className="text-base font-semibold text-text-primary">
+                {t('hydrationDetails.solidFood', {
+                  defaultValue: 'Water in solid foods',
+                })}
+              </Text>
+              <Text className="text-lg text-text-primary">
+                {volume(query.data.totals.solid_food_ml)}
+              </Text>
+              <Text className="text-sm text-text-secondary">
+                {t('hydrationDetails.solidFoodNote', {
+                  defaultValue:
+                    'Informational only. Not included in your hydration goal.',
+                })}
+              </Text>
+              {query.data.totals.unknown_count > 0 && (
+                <Text className="text-sm text-text-secondary">
+                  {t('hydrationDetails.unknownNote', {
+                    defaultValue:
+                      '{{count}} entries have no known water content.',
+                    count: query.data.totals.unknown_count,
+                  })}
+                </Text>
+              )}
+            </View>
+          )}
           {query.isPending && (
             <Text className="text-text-secondary">
               {t('common.loading', { defaultValue: 'Loading...' })}
@@ -111,40 +212,98 @@ export default function HydrationDetailsModal({
               </Pressable>
             </View>
           )}
-          {query.isSuccess && query.data.length === 0 && (
+          {query.isSuccess && entries.length === 0 && (
             <Text className="text-text-secondary">
               {t('dashboard.noRecordedDrinks', {
                 defaultValue: 'No individual drinks recorded for this day.',
               })}
             </Text>
           )}
+          {query.isSuccess && entries.length > 0 && (
+            <Text
+              accessibilityRole="header"
+              className="text-lg font-semibold text-text-primary"
+            >
+              {t('hydrationDetails.history', {
+                defaultValue: 'Sources and history',
+              })}
+            </Text>
+          )}
           {query.isSuccess &&
-            query.data.map((entry) => (
-              <View key={entry.id} className="bg-surface rounded-xl p-4 gap-1">
+            entries.map((entry) => (
+              <View
+                key={entry.id}
+                className="bg-surface border border-border-subtle rounded-xl p-4 gap-2"
+              >
+                <View className="flex-row gap-2 items-center">
+                  <Icon
+                    name={entry.kind === 'food' ? 'food' : 'water'}
+                    size={18}
+                    color={color}
+                  />
+                  <Text className="text-xs text-text-secondary">
+                    {sourceLabel(entry.kind)}
+                  </Text>
+                </View>
                 <Text className="text-lg font-semibold text-text-primary">
-                  {formatVolumeForUnit(
-                    volumeFromMl(entry.water_ml, unit),
-                    unit
-                  )}{' '}
-                  {WATER_UNIT_LABELS[unit] ?? unit}
+                  {entry.water_ml === null
+                    ? t('hydrationDetails.unknown', {
+                        defaultValue: 'Water content unknown',
+                      })
+                    : volume(entry.water_ml)}
                 </Text>
                 <Text className="text-base text-text-primary">
-                  {entry.container_name ??
+                  {entry.name ??
                     t('dashboard.water', { defaultValue: 'Water' })}
                 </Text>
                 <Text className="text-sm text-text-secondary">
-                  {new Date(entry.logged_at).toLocaleTimeString(locale, {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    hourCycle: 'h23',
-                  })}{' '}
-                  ·{' '}
-                  {entry.source === 'manual'
-                    ? t('dashboard.waterSourceManual', {
-                        defaultValue: 'Manually logged',
+                  {entry.logged_at
+                    ? new Date(entry.logged_at).toLocaleTimeString(locale, {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hourCycle: 'h23',
+                        timeZone: query.data.timezone,
                       })
-                    : entry.source}
+                    : t('hydrationDetails.noTime', {
+                        defaultValue: 'Daily record \u00b7 time unavailable',
+                      })}{' '}
+                  · {sourceLabel(entry.kind)}
+                  {entry.amount_basis === 'volume'
+                    ? ` · ${t('hydrationDetails.volumeEstimate', { defaultValue: 'Estimated from drink volume' })}`
+                    : ''}
+                  {!entry.counts_toward_goal
+                    ? ` · ${t('hydrationDetails.detailsOnly', { defaultValue: 'Details only' })}`
+                    : ''}
                 </Text>
+                {(entry.food_entry_id || entry.medication_id) && (
+                  <Pressable
+                    accessibilityRole="button"
+                    className="min-h-11 flex-row items-center justify-between gap-2"
+                    onPress={() => {
+                      onClose();
+                      if (entry.medication_id)
+                        navigation.navigate('MedicationDetail', {
+                          medicationId: entry.medication_id,
+                        });
+                      else
+                        navigation.navigate('Tabs', {
+                          screen: 'Diary',
+                          params: { selectedDate: date },
+                        });
+                    }}
+                  >
+                    <Text className="text-sm font-semibold text-text-link">
+                      {entry.medication_id
+                        ? t('hydrationDetails.openSupplement', {
+                            defaultValue: 'Open supplement',
+                          })
+                        : t('hydrationDetails.openDiary', {
+                            defaultValue: 'View in diary',
+                          })}
+                    </Text>
+                    <Icon name="chevron-forward" size={18} color={color} />
+                  </Pressable>
+                )}
               </View>
             ))}
           <Pressable

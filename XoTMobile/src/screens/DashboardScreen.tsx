@@ -642,7 +642,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     );
     // Macronutrients and Hydration share a row at ordinary text sizes, as in
     // the reference; larger text stacks them at full width.
-    const pairSummaries = fontScale <= 1.3 && hydrationCardVisible;
     const macrosCard =
       summaryNutrients.length > 0
         ? (() => {
@@ -662,7 +661,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             return (
               <GlowCard
                 glowColor={cardGlow}
-                className={pairSummaries ? 'p-3 flex-1' : 'p-3 mb-3'}
+                className="p-3 mb-3"
                 testID="dashboard-macros"
               >
                 <Pressable
@@ -682,8 +681,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
                     <Text
                       className="text-[15px] font-semibold text-text-primary"
                       maxFontSizeMultiplier={1.8}
-                      numberOfLines={pairSummaries ? 1 : undefined}
-                      adjustsFontSizeToFit={pairSummaries}
                       minimumFontScale={0.8}
                     >
                       {t('dashboard.macronutrients', {
@@ -888,90 +885,10 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             meal still has macros to show. Gating on food rows alone hid the card while the
             ring above it displayed the supplement's calories. */}
 
-        {pairSummaries ? (
-          <View className="flex-row mb-3" style={{ gap: 10 }}>
-            {macrosCard}
-            <HydrationGauge
-              variant="tile"
-              onDetails={() => setHydrationDetailsVisible(true)}
-              consumed={summary.waterConsumed}
-              goal={summary.waterGoal}
-              fromFoodMl={summary.waterFromFood}
-              pendingMl={manualWater.pendingMl}
-              attentionMl={manualWater.attentionMl}
-              pendingContainerCount={manualWater.pendingContainerCount}
-              attentionContainerCount={manualWater.attentionContainerCount}
-              pendingStorageError={manualWater.storageError}
-              onRetryAttention={retrySavedWater}
-              retryingAttention={retryingSavedWater}
-              unit={waterDisplayUnit}
-              containerVolume={servingVolume}
-              linkedPressLabel={linkedPressLabel}
-              onConfigure={
-                isContainersLoaded && !activeWaterContainer
-                  ? () => navigation.navigate('WaterContainers')
-                  : undefined
-              }
-              onIncrement={isContainersLoaded ? incrementWater : undefined}
-              onDecrement={isContainersLoaded ? decrementWater : undefined}
-              disableDecrement={summary.waterConsumed <= 0}
-              containers={waterContainers}
-              activeContainerId={activeWaterContainer?.id}
-              onSelectContainer={selectWaterContainer}
-              quickAddPresets={quickAddOptions}
-              onQuickAdd={
-                isContainersLoaded
-                  ? (id: number) => logWaterPreset(id)
-                  : undefined
-              }
-            />
-          </View>
-        ) : (
-          <>
-            {macrosCard}
-            {hydrationCardVisible && (
-              <View className="mb-3">
-                <HydrationGauge
-                  variant="tile"
-                  onDetails={() => setHydrationDetailsVisible(true)}
-                  consumed={summary.waterConsumed}
-                  goal={summary.waterGoal}
-                  fromFoodMl={summary.waterFromFood}
-                  pendingMl={manualWater.pendingMl}
-                  attentionMl={manualWater.attentionMl}
-                  pendingContainerCount={manualWater.pendingContainerCount}
-                  attentionContainerCount={manualWater.attentionContainerCount}
-                  pendingStorageError={manualWater.storageError}
-                  onRetryAttention={retrySavedWater}
-                  retryingAttention={retryingSavedWater}
-                  unit={waterDisplayUnit}
-                  containerVolume={servingVolume}
-                  linkedPressLabel={linkedPressLabel}
-                  onConfigure={
-                    isContainersLoaded && !activeWaterContainer
-                      ? () => navigation.navigate('WaterContainers')
-                      : undefined
-                  }
-                  onIncrement={isContainersLoaded ? incrementWater : undefined}
-                  onDecrement={isContainersLoaded ? decrementWater : undefined}
-                  disableDecrement={summary.waterConsumed <= 0}
-                  containers={waterContainers}
-                  activeContainerId={activeWaterContainer?.id}
-                  onSelectContainer={selectWaterContainer}
-                  quickAddPresets={quickAddOptions}
-                  onQuickAdd={
-                    isContainersLoaded
-                      ? (id: number) => logWaterPreset(id)
-                      : undefined
-                  }
-                />
-              </View>
-            )}
-          </>
-        )}
+        {macrosCard}
         {hydrationCardVisible && (
           <HydrationGauge
-            variant="options"
+            variant="full"
             onDetails={() => setHydrationDetailsVisible(true)}
             consumed={summary.waterConsumed}
             goal={summary.waterGoal}
@@ -1016,6 +933,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
         />
         <HydrationDetailsModal
           visible={hydrationDetailsVisible}
+          goal={summary.waterGoal}
           date={selectedDate}
           unit={waterDisplayUnit}
           onClose={() => setHydrationDetailsVisible(false)}

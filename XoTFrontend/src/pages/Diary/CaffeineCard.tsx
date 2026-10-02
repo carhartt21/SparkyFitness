@@ -25,14 +25,6 @@ import {
   thresholdCrossingTime,
 } from '@workspace/shared';
 
-/** Local HH:MM for an instant, in the viewer's own zone. */
-const clockLabel = (instant: string | number) =>
-  new Date(instant).toLocaleTimeString([], {
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  });
-
 interface CaffeineCardProps {
   date: string;
   userId?: string | null;
@@ -59,6 +51,13 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
 
   const timeZone =
     data?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const clockLabel = (instant: string | number) =>
+    new Date(instant).toLocaleTimeString([], {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone,
+    });
   const windowMs = useMemo(
     () =>
       data ? caffeineDisplayWindow(data.bedtime_at, nowMs, timeZone) : null,

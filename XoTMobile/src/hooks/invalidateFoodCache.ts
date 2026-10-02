@@ -14,6 +14,8 @@ export function invalidateFoodCache(
   queryClient: QueryClient,
   entryDate?: string
 ) {
+  void queryClient.invalidateQueries({ queryKey: ['waterIntakeLog'] });
+  void queryClient.invalidateQueries({ queryKey: ['waterIntakeRange'] });
   void queryClient.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
   if (entryDate) {
     void queryClient.invalidateQueries({

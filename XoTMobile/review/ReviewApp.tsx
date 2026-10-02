@@ -104,7 +104,7 @@ export default function ReviewApp() {
         hiddenHealthTrends: ['steps', 'weight', 'sleep', 'hydration'],
         notificationsEnabled: config.scenario === 'notifications',
         fastingEnabled: false,
-        caffeineCardVisible: false,
+        caffeineCardVisible: config.scenario === 'hydration-review',
         cycleCardVisible: false,
         medicationsCardVisible: false,
         progressPhotosCardVisible: false,

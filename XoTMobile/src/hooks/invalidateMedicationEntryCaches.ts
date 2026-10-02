@@ -23,6 +23,8 @@ import {
 export function invalidateMedicationEntryCaches(
   queryClient: QueryClient
 ): void {
+  void queryClient.invalidateQueries({ queryKey: ['waterIntakeLog'] });
+  void queryClient.invalidateQueries({ queryKey: ['waterIntakeRange'] });
   void queryClient.invalidateQueries({ queryKey: caffeineActiveRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: medicationEntriesQueryKey() });
   void queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });

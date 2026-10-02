@@ -329,8 +329,8 @@ const writeNutritionForDate = async (
 
 /**
  * #1939, #1557: export one real-timestamped sample per manually-logged drink,
- * plus (if the user opted in to add_food_water_to_intake) one synthetic
- * noon-anchored sample for the water folded in from logged food, which has
+ * plus one synthetic
+ * noon-anchored sample for manual drink/supplement water, which has
  * no ledger row of its own. Per-entry export makes the "only export what we
  * didn't import" guard explicit on the write side too — imported (non-manual
  * source) ledger rows are never re-exported, matching the read-side
@@ -356,7 +356,10 @@ const buildHydrationDescriptors = async (
     });
   }
 
-  const foodMl = summary.waterIntakeBreakdown?.food_ml ?? 0;
+  const foodMl =
+    summary.waterIntakeBreakdown?.exportable_food_ml ??
+    summary.waterIntakeBreakdown?.food_ml ??
+    0;
   let deferred = false;
   if (foodMl > 0) {
     const remainder = waterMlToSample(date, foodMl);

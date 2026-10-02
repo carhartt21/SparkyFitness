@@ -345,6 +345,24 @@ describe('writebackPhase', () => {
     );
   });
 
+  it('does not export imported drink nutrition back to its health provider', async () => {
+    prefs({ writebackHydrationEnabled: true });
+    mockSummary.mockResolvedValue({
+      foodEntries: [],
+      waterIntake: 300,
+      waterIntakeBreakdown: {
+        water_ml: 300,
+        manual_ml: 0,
+        ledger_ml: 0,
+        food_ml: 300,
+        exportable_food_ml: 0,
+      },
+    });
+    mockWaterLog.mockResolvedValue([]);
+    await writebackPhase(['2026-06-01']);
+    expect(mockSaveQuantity).not.toHaveBeenCalled();
+  });
+
   it('folds food-derived water into one synthetic noon-anchored sample (#1557, #1629)', async () => {
     prefs({ writebackHydrationEnabled: true });
     mockSummary.mockResolvedValue({

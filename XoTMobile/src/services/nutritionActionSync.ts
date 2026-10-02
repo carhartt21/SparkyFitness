@@ -244,6 +244,8 @@ async function reconcilePass(
         return { processed, nextDelayMs: null };
       }
       await deps.markSynced(identity, action.clientOperationId, serverId);
+      void queryClient?.invalidateQueries({ queryKey: ['waterIntakeLog'] });
+      void queryClient?.invalidateQueries({ queryKey: ['waterIntakeRange'] });
       void queryClient?.invalidateQueries({
         queryKey: dailySummaryRootQueryKey,
       });

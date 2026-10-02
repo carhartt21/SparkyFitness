@@ -129,7 +129,7 @@ export function reviewResponse(path: string, scenario: string): unknown {
   if (path === '/api/identity/profiles')
     return { id: 'review-user', full_name: 'Review Account' };
   if (path === '/api/water-containers')
-    return scenario === 'hydration-options'
+    return ['hydration-options', 'hydration-review'].includes(scenario)
       ? [
           {
             id: 1,
@@ -163,7 +163,24 @@ export function reviewResponse(path: string, scenario: string): unknown {
         ]
       : [];
   if (path === '/api/v2/nutrition/caffeine/active')
-    return { active_mg: 0, events: [], series: [] };
+    return {
+      timezone: 'Europe/Berlin',
+      half_life_hours: 5,
+      target_bedtime: '23:00',
+      bedtime_at: `${reviewDate}T21:00:00Z`,
+      doses: [
+        { at: '2026-09-24T08:00:00Z', mg: 150, name: 'Older coffee' },
+        { at: `${reviewDate}T10:00:00Z`, mg: 80, name: 'Energy drink' },
+      ],
+      active_mg_now: 30,
+      at_bedtime_mg: 18,
+      latest_safe_dose_time: '16:00',
+      cutoff_state: 'by',
+      bedtime_headroom_mg: 32,
+      cutoff_dose_mg: 80,
+      threshold_mg: 50,
+      has_estimated_times: false,
+    };
   if (
     [
       '/api/custom-nutrients',

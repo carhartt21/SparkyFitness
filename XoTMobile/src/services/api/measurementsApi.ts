@@ -15,6 +15,7 @@ import type {
   UpdateWaterContainerBody,
   DrinkPresetCatalogEntry,
   WaterIntakeLogEntry,
+  HydrationDayDetails,
   ContainerWaterActionBody,
   ContainerWaterActionResponse,
 } from '@workspace/shared';
@@ -506,3 +507,12 @@ export const deleteWaterIntakeLogEntry = async (id: string): Promise<void> => {
     method: 'DELETE',
   });
 };
+
+export const fetchHydrationDetails = (
+  date: string
+): Promise<HydrationDayDetails> =>
+  apiFetch<HydrationDayDetails>({
+    endpoint: `/api/v2/measurements/water-intake/${date}/details`,
+    serviceName: 'Measurements API',
+    operation: 'fetch hydration details',
+  });

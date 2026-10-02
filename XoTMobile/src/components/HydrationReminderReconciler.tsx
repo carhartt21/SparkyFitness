@@ -11,8 +11,14 @@ import {
   useHydrationReminderReconciler,
 } from '../hooks/useHydrationReminder';
 import { useManualWaterActions } from '../hooks/useManualWaterActions';
-import { waterIntakeLogQueryKey } from '../hooks/queryKeys';
-import { fetchWaterIntakeLog } from '../services/api/measurementsApi';
+import {
+  waterIntakeLogQueryKey,
+  hydrationDetailsQueryKey,
+} from '../hooks/queryKeys';
+import {
+  fetchWaterIntakeLog,
+  fetchHydrationDetails,
+} from '../services/api/measurementsApi';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import { getTodayDate } from '../utils/dateUtils';
 import {
@@ -139,8 +145,24 @@ const HydrationReminderReconciler: React.FC<{
     enabled: queriesEnabled,
   });
 
+  const { data: hydrationDetails, refetch: refetchDetails } = useQuery({
+    queryKey: [...hydrationDetailsQueryKey(today), identityScope],
+    queryFn: () => fetchHydrationDetails(today),
+    enabled: queriesEnabled,
+  });
   const localWater = useManualWaterActions(today, logEntries ?? null);
-  const lastLoggedAt = localWater.latestLoggedAt;
+  const drinkTimes = (hydrationDetails?.entries ?? [])
+    .filter(
+      (entry) =>
+        entry.counts_toward_goal && (entry.water_ml ?? 0) > 0 && entry.logged_at
+    )
+    .map((entry) => Date.parse(entry.logged_at!))
+    .filter(Number.isFinite);
+  const latestMs = Math.max(
+    localWater.latestLoggedAt?.getTime() ?? 0,
+    ...drinkTimes
+  );
+  const lastLoggedAt = latestMs > 0 ? new Date(latestMs) : null;
   const lastLoggedAtMs = lastLoggedAt?.getTime() ?? null;
   const waterMl = (summary?.waterConsumed ?? 0) + localWater.pendingMl;
   const waterGoalMl = summary?.waterGoal ?? null;
@@ -211,7 +233,8 @@ const HydrationReminderReconciler: React.FC<{
     if (!queriesEnabled) return;
     void refetchSummary();
     void refetchLog();
-  }, [queriesEnabled, refetchSummary, refetchLog]);
+    void refetchDetails();
+  }, [queriesEnabled, refetchSummary, refetchLog, refetchDetails]);
 
   useHydrationReminderReconciler({
     localRemindersAllowed,
