@@ -2,7 +2,12 @@ import { render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DiaryScreen from '../../src/screens/DiaryScreen';
 import { useDailySummary } from '../../src/hooks';
-import { EMPTY_SUPPLEMENT_TOTALS } from '@workspace/shared';
+import {
+  EMPTY_SUPPLEMENT_TOTALS,
+  type Habit,
+  type HabitLog,
+} from '@workspace/shared';
+import { habitsQueryKey, habitLogsQueryKey } from '../../src/hooks/queryKeys';
 import {
   createTestQueryClient,
   createQueryWrapper,
@@ -143,8 +148,15 @@ function summary(supplementTotals: typeof EMPTY_SUPPLEMENT_TOTALS) {
   } as unknown as ReturnType<typeof useDailySummary>;
 }
 
-const renderDiary = () => {
-  const Wrapper = createQueryWrapper(createTestQueryClient());
+const renderDiary = (activity?: { habit: Habit; log: HabitLog }) => {
+  const client = createTestQueryClient();
+  if (activity) {
+    client.setQueryData(habitsQueryKey(true), [activity.habit]);
+    client.setQueryData(habitLogsQueryKey('2026-08-12', '2026-08-12'), [
+      activity.log,
+    ]);
+  }
+  const Wrapper = createQueryWrapper(client);
   return render(
     <Wrapper>
       <SafeAreaProvider
@@ -197,5 +209,36 @@ describe('DiaryScreen on a supplement-only day', () => {
     renderDiary();
 
     expect(screen.getByText('No entries recorded for this day')).toBeTruthy();
+  });
+
+  it('does not call the day empty when only a wellness activity was logged', () => {
+    mockUseDailySummary.mockReturnValue(summary(EMPTY_SUPPLEMENT_TOTALS));
+    renderDiary({
+      habit: {
+        id: 'wellness-sauna',
+        name: 'Sauna',
+        category: 'wellness',
+        habit_type: 'completion',
+        description: null,
+        unit: null,
+        target: null,
+        step: null,
+        days: [],
+        reminder_time: null,
+        active: true,
+        sort_order: 0,
+        icon: null,
+        created_at: '',
+        updated_at: '',
+      },
+      log: {
+        habit_id: 'wellness-sauna',
+        entry_date: '2026-08-12',
+        value: 1,
+        notes: null,
+        updated_at: '',
+      },
+    });
+    expect(screen.queryByText('No entries recorded for this day')).toBeNull();
   });
 });

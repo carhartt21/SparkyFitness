@@ -83,6 +83,26 @@ const self = appFor({ userId: 'owner', authenticatedUserId: 'owner' });
 const delegate = appFor({ userId: 'owner', authenticatedUserId: 'family' });
 
 describe('daily tracking routes', () => {
+  it('accepts a dated wellness completion under the existing check-in permission', async () => {
+    vi.mocked(repo.createHabit).mockResolvedValue({ id: 'wellness' } as Awaited<
+      ReturnType<typeof repo.createHabit>
+    >);
+    const response = await request(delegate)
+      .post('/api/v2/tracking/habits')
+      .send({
+        name: 'Sauna',
+        category: 'wellness',
+        habit_type: 'completion',
+        days: [],
+      });
+    expect(response.status).toBe(201);
+    expect(repo.createHabit).toHaveBeenCalledWith(
+      'owner',
+      'family',
+      expect.objectContaining({ category: 'wellness', days: [] })
+    );
+    expect(permissionCalls).toEqual(['checkin']);
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     permissionCalls.length = 0;

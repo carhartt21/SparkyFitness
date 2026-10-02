@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 `@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
 
@@ -55,3 +55,7 @@ The nutrient source inventory lives in `src/nutrients/blsComponentManifest.ts` (
 ## Reviewed MCP recommendations
 
 - `src/schemas/api/{Coaching,MealPlanning}.api.zod.ts`, database `{Coaching,MealPlanning}.zod.ts`, `src/coaching/` and `src/fddb/` define coaching trust/action contracts, scheduling, confirmed outcomes, shared client/editor behavior and FDDB presentation. Engagement v3 adds coaching kinds; v1/v2 schemas remain strict. Validate all consuming packages.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.

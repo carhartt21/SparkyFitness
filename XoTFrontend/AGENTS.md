@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 X on Track Frontend is the React web app for the X on Track monorepo. Use this file as the primary guide for work inside `XoTFrontend/`.
 
@@ -143,3 +143,7 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Reviewed MCP recommendations
 
 - `src/pages/Coaching/`, `src/hooks/Coaching/` and `src/api/Coaching/` own `/coaching`, review/edit/preview, owner schedule/credentials and explicit planned-meal consumption. Keep API/query imports in hooks; invalidate every dependent library/plan/diary family after acceptance. FDDB cards are read-only and empty imports are omitted before dashboard layout.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `shared/src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.

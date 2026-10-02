@@ -4,7 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import Toast from 'react-native-toast-message';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { habitDayState, isHabitDue, type Habit } from '@workspace/shared';
+import {
+  habitDayState,
+  isHabitDue,
+  isWellnessActivity,
+  type Habit,
+} from '@workspace/shared';
 import TrackingScreen from '../components/tracking/TrackingScreen';
 import TrackingSummaryCard from '../components/tracking/TrackingSummaryCard';
 import HabitRow from '../components/tracking/HabitRow';
@@ -74,7 +79,11 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
   const logsQuery = useHabitLogs(startDate, date, { enabled: isConnected });
   const logHabit = useLogHabit(startDate, date);
 
-  const habits = useMemo(() => habitsQuery.data ?? [], [habitsQuery.data]);
+  const habits = useMemo(
+    () =>
+      (habitsQuery.data ?? []).filter((habit) => !isWellnessActivity(habit)),
+    [habitsQuery.data]
+  );
   const logs = useMemo(() => logsQuery.data ?? [], [logsQuery.data]);
   const dueHabits = habits.filter((habit) => isHabitDue(habit, date));
   const todaysLogs = new Map(

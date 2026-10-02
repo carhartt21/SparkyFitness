@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 This is the repo-root monorepo guide for X on Track. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -190,3 +190,7 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Reviewed MCP recommendations
 
 - Coaching recommendations use owner app-session review and selected-domain proposal-only MCP credentials. Start at `docs/src/developer/mcp/recommendations.md`; never replace review with direct health-data writes. `XOT_COACHING_ENABLED` gates the cross-package rollout.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `shared/src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.

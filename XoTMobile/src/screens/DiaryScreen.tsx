@@ -5,6 +5,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   hasSupplementNutrition,
+  wellnessEntries,
   type MealDayStatusValue,
 } from '@workspace/shared';
 import Toast from 'react-native-toast-message';
@@ -17,6 +18,7 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
+import WellnessCard from '../components/tracking/WellnessCard';
 import {
   Alert,
   Pressable,
@@ -107,6 +109,8 @@ import {
 import { projectPhotoCompletions } from '../utils/projectPhotoCompletions';
 import {
   useMealTrackingStatus,
+  useHabits,
+  useHabitLogs,
   useSetMealStatus,
 } from '../hooks/useDailyTracking';
 import MealCoverageLine from '../components/tracking/MealCoverageLine';
@@ -127,6 +131,16 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const { data: familyUsers = [] } = useFamilyUsers({ enabled: isConnected });
   const hasFamilyDiaries = isConnected && familyUsers.length > 0;
   const selectedDate = useDiaryDateStore((s) => s.selectedDate);
+  const wellnessHabits = useHabits({
+    includeInactive: true,
+    enabled: isConnected,
+  });
+  const wellnessLogs = useHabitLogs(selectedDate, selectedDate, {
+    enabled: isConnected,
+  });
+  const hasWellnessActivity =
+    wellnessEntries(wellnessHabits.data ?? [], wellnessLogs.data ?? []).length >
+    0;
   const mealStatusQuery = useMealTrackingStatus(selectedDate, {
     enabled: isConnected,
   });
@@ -590,6 +604,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       !hasSupplementNutrition(summary?.supplementTotals) && //A logged supplement is something the user recorded for this day, so the day is not empty even with no food, exercise or measurement.
       summary?.exerciseEntries.length === 0 &&
       !hasAnyMeasurement &&
+      !hasWellnessActivity &&
       // A progress photo is something the user recorded for this day, so it
       // defeats the empty state exactly as a logged supplement does. Gated on
       // the load like sleep above: ungated, a day with photos flashes the empty
@@ -609,6 +624,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     pendingPhotoDiaryEntries,
     remotePhotoCaptures,
     hasAnyMeasurement,
+    hasWellnessActivity,
     isPhotosLoading,
     dayPhotos,
     naps,
@@ -804,6 +820,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             customNutrients={customNutrients}
           />
         )}
+        {isConnected && <WellnessCard date={selectedDate} />}
         <PendingNutritionActions
           actions={localFoodActions}
           storageError={nutritionStorageError}

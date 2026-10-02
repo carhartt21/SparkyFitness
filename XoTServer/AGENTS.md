@@ -339,3 +339,7 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Reviewed MCP recommendations
 
 - `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `models/coachingRepository.ts`, and `services/coaching{Run,Evidence,Planning,Review,Maintenance,Credential}Service.ts` implement owner-only leased proposals, frozen evidence, preview/activation and outcomes. `services/mealPlanOccurrenceService.ts` owns prompt occurrences and explicit consumption receipts; `tools/coachingRunner.ts` is the external Mac subscription runner. Agents never approve or log intake. See `../docs/src/developer/mcp/recommendations.md`.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `shared/src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.

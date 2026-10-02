@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import type { Habit } from '@workspace/shared';
+import { isWellnessActivity, type Habit } from '@workspace/shared';
 import TrackingScreen from '../components/tracking/TrackingScreen';
 import { habitIcon } from '../components/tracking/habitIcons';
 import { useNeonScale } from '../components/tracking/useNeonScale';
@@ -28,7 +28,9 @@ const HabitsManageScreen: React.FC<Props> = ({ navigation }) => {
   ]) as [string, string, string];
   const habitsQuery = useHabits({ includeInactive: true });
   const { update } = useHabitMutations();
-  const habits = habitsQuery.data ?? [];
+  const habits = (habitsQuery.data ?? []).filter(
+    (habit) => !isWellnessActivity(habit)
+  );
   const weekdays = localizedWeekdayLabels(t);
 
   const scheduleLabel = (habit: Habit) =>

@@ -2,6 +2,7 @@ import { z } from "zod";
 import {
   dailyCheckinStateSchema,
   habitTypeSchema,
+  habitCategorySchema,
   healthContextKindSchema,
   mealDayStatusValueSchema,
   measurementKeySchema,
@@ -142,13 +143,17 @@ export type HealthContextPeriod = z.infer<
 // --- Habits ---------------------------------------------------------------
 
 const habitFields = {
+  category: habitCategorySchema.optional(),
   name: z.string().trim().min(1).max(50),
   habit_type: habitTypeSchema,
   description: z.string().trim().max(300).nullable().optional(),
   unit: z.string().trim().max(50).nullable().optional(),
   target: z.number().positive().nullable().optional(),
   step: z.number().positive().nullable().optional(),
-  days: weekdays.nullable().optional(),
+  days: z
+    .union([weekdays, z.array(weekdaySchema).length(0)])
+    .nullable()
+    .optional(),
   reminder_time: clockTime.nullable().optional(),
   active: z.boolean().optional(),
   sort_order: z.number().int().optional(),
@@ -158,11 +163,35 @@ const habitFields = {
 function validHabit(
   value: {
     habit_type?: string;
+    category?: string;
+    days?: number[] | null;
+    reminder_time?: string | null;
+    unit?: string | null;
     target?: number | null;
     step?: number | null;
   },
   ctx: z.RefinementCtx,
 ) {
+  if (value.category === "wellness") {
+    if (
+      value.habit_type !== "completion" ||
+      value.unit != null ||
+      value.reminder_time != null ||
+      (value.days != null && value.days.length > 0)
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["category"],
+        message: "Wellness activities are unscheduled completion logs.",
+      });
+    }
+  } else if (value.days?.length === 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["days"],
+      message: "Choose at least one weekday.",
+    });
+  }
   if (
     value.habit_type === "completion" &&
     (value.target != null || value.step != null)
@@ -181,12 +210,14 @@ export const createHabitRequestSchema = z
 /** The habit type is fixed at creation; existing logs depend on it. */
 export const updateHabitRequestSchema = z
   .object(habitFields)
-  .omit({ habit_type: true })
+  .omit({ habit_type: true, category: true })
   .partial();
 export type CreateHabitRequest = z.infer<typeof createHabitRequestSchema>;
 export type UpdateHabitRequest = z.infer<typeof updateHabitRequestSchema>;
 
 export const habitResponseSchema = z.object({
+  // Optional while older servers/fixtures still omit the category.
+  category: habitCategorySchema.optional(),
   id: z.uuid(),
   name: z.string(),
   habit_type: habitTypeSchema,

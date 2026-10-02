@@ -175,10 +175,14 @@ export function discretionaryRemindersPaused(
 // --- Habits -----------------------------------------------------------------
 
 export function isHabitDue(
-  habit: Pick<Habit, "active" | "days">,
+  habit: Pick<Habit, "active" | "days" | "category">,
   day: string,
 ): boolean {
-  return habit.active && scheduledOn(habit.days, day);
+  return (
+    habit.category !== "wellness" &&
+    habit.active &&
+    scheduledOn(habit.days, day)
+  );
 }
 
 export type HabitDayState =

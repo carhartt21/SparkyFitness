@@ -636,6 +636,39 @@ final class DashboardReview: XCTestCase {
   }
 
   /// Visual tour of the other primary surfaces for design review captures.
+  func testWellnessLogging() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
+    diary.tap()
+    let sauna = app.buttons.matching(NSPredicate(format: "label IN %@", ["Log Sauna", "Sauna erfassen"])).firstMatch
+    XCTAssertTrue(sauna.waitForExistence(timeout: 10))
+    for _ in 0..<12 {
+      if sauna.isHittable { break }
+      let above = sauna.frame.midY < app.frame.midY
+      let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: above ? 0.45 : 0.7))
+      let end = app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: above ? 0.7 : 0.45))
+      start.press(forDuration: 0.05, thenDragTo: end)
+    }
+    XCTAssertTrue(sauna.isHittable)
+    XCTAssertGreaterThanOrEqual(sauna.frame.height, 44)
+    capture("wellness-empty", app)
+    sauna.tap()
+    let undo = app.buttons.matching(NSPredicate(format: "label IN %@", ["Remove Sauna from this day", "Sauna für diesen Tag entfernen"])).firstMatch
+    XCTAssertTrue(undo.waitForExistence(timeout: 10))
+    capture("wellness-logged", app)
+    let history = app.buttons.matching(NSPredicate(format: "label IN %@", ["History · last 30 days", "Verlauf · letzte 30 Tage"])).firstMatch
+    for _ in 0..<5 { if history.isHittable { break }; app.swipeUp() }
+    history.tap()
+    capture("wellness-history", app)
+    for _ in 0..<5 { if undo.isHittable { break }; app.swipeDown() }
+    undo.tap()
+    XCTAssertTrue(sauna.waitForExistence(timeout: 10))
+    capture("wellness-after-undo", app)
+  }
+
   func testScreenTour() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

@@ -160,6 +160,41 @@ checkinRouter.delete(
   })
 );
 
+/**
+ * @openapi
+ * /v2/tracking/habits:
+ *   get:
+ *     summary: List routine habits and wellness activity definitions
+ *     tags: [Tracking]
+ *     description: Check-in read permission required. Wellness definitions have category wellness, completion type, an empty days array and no reminder. include_inactive retains archived definitions for history.
+ *     parameters:
+ *       - in: query
+ *         name: include_inactive
+ *         schema: { type: boolean, default: false }
+ *     responses:
+ *       '200': { description: Array of habit definitions including their category }
+ *       '403': { description: Check-in read permission required }
+ *   post:
+ *     summary: Create a routine habit or reusable wellness activity
+ *     tags: [Tracking]
+ *     description: Check-in write permission required. Wellness names are reused within the account; no activity is logged by creating a definition. Wellness activities cannot have a schedule, reminder, unit, target or step.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [name, habit_type]
+ *             properties:
+ *               name: { type: string, minLength: 1, maxLength: 50 }
+ *               habit_type: { type: string, enum: [completion, count] }
+ *               category: { type: string, enum: [habit, wellness], default: habit }
+ *               days: { type: array, nullable: true, items: { type: integer, minimum: 0, maximum: 6 } }
+ *     responses:
+ *       '201': { description: Created or reused habit definition }
+ *       '400': { description: Invalid habit or wellness configuration }
+ *       '403': { description: Check-in write permission required }
+ */
 checkinRouter.get(
   '/habits',
   handle(async (req, res) => {
@@ -196,6 +231,52 @@ checkinRouter.delete(
   })
 );
 
+/**
+ * @openapi
+ * /v2/tracking/habit-logs:
+ *   get:
+ *     summary: Read dated habit and wellness activity logs
+ *     tags: [Tracking]
+ *     parameters:
+ *       - in: query
+ *         name: start_date
+ *         required: true
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: end_date
+ *         required: true
+ *         schema: { type: string, format: date }
+ *       - in: query
+ *         name: habit_id
+ *         schema: { type: string, format: uuid }
+ *     responses:
+ *       '200': { description: Latest explicit value per activity and calendar day; missing days are absent }
+ *       '403': { description: Check-in read permission required }
+ * /v2/tracking/habits/{id}/logs:
+ *   put:
+ *     summary: Save or clear one activity's selected calendar day
+ *     tags: [Tracking]
+ *     description: Wellness uses true to log an activity and null to undo that day. Other history is preserved. These records do not create exercise calories or health-platform workouts.
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string, format: uuid }
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [entry_date, value]
+ *             properties:
+ *               entry_date: { type: string, format: date }
+ *               value: { nullable: true, oneOf: [{ type: boolean }, { type: number, minimum: 0 }] }
+ *     responses:
+ *       '200': { description: Saved log or null after undo }
+ *       '400': { description: Invalid date or value }
+ *       '403': { description: Check-in write permission required }
+ */
 checkinRouter.get(
   '/habit-logs',
   handle(async (req, res) => {

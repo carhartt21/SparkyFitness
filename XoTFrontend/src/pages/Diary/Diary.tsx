@@ -7,6 +7,7 @@ import { usePreferences } from '@/contexts/PreferencesContext';
 import DayNavigator from '@/components/DayNavigator';
 import NutritionSummaryCard, { DayTotals } from './NutritionSummaryCard';
 import DailyProgress from './DailyProgress';
+import WellnessCard from './WellnessCard';
 import WaterIntake from './WaterIntake';
 import CaffeineCard from './CaffeineCard';
 import MealCard from './MealCard';
@@ -761,6 +762,8 @@ const Diary = () => {
           </CardContent>
         </Card>
       )}
+
+      <WellnessCard date={selectedDate} />
 
       {/* Food Unit Selector Dialog */}
       {selectedFood && (

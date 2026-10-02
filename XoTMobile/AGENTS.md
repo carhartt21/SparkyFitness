@@ -394,3 +394,7 @@ The shared native registry covers 27 vitamins/minerals. Collection, permission p
 ## Reviewed MCP recommendations
 
 - `src/screens/CoachingScreen.tsx`, `src/hooks/useCoaching.ts` and `src/components/coaching/` implement the owner inbox, preview/acceptance and explicit prompt-meal logging. Identity guards bind requests/cache to account and server. The root `Coaching` deep link is opened by Engagement v3 pushes; taps do not complete anything. `useMealTypes` excludes FDDB for writable choices; opt into read-only types only for diary/detail presentation.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `shared/src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.
