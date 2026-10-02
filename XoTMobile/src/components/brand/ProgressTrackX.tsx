@@ -23,6 +23,8 @@ interface ProgressTrackXProps {
   size?: number;
   light?: boolean;
   showValue?: boolean;
+  /** Frame the unchanged track tightly when paired with a full-size chart. */
+  fit?: 'canvas' | 'track';
 }
 
 export default function ProgressTrackX({
@@ -32,6 +34,7 @@ export default function ProgressTrackX({
   size = 120,
   light = false,
   showValue = true,
+  fit = 'canvas',
 }: ProgressTrackXProps) {
   const target = normalizeProgress(progress);
   const [animated] = React.useState(() => new Animated.Value(target ?? 0));
@@ -104,7 +107,10 @@ export default function ProgressTrackX({
       <Svg
         width={size}
         height={size}
-        viewBox={progressionXGeometry.viewBox}
+        // Crop only the reference canvas padding; paths/reveal stay canonical.
+        viewBox={
+          fit === 'track' ? '52 52 216 216' : progressionXGeometry.viewBox
+        }
         accessible={false}
       >
         <Defs>

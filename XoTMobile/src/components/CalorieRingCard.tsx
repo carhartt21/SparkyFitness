@@ -1,11 +1,12 @@
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import EnergyGauge from './EnergyGauge';
 import Icon, { type IconName } from './Icon';
-import GlowCard from './ui/GlowCard';
-import IconBadge from './ui/IconBadge';
+import DashboardSummaryCard, {
+  DashboardSummaryRow,
+} from './ui/DashboardSummaryCard';
 import { formatLocalizedNumber } from '../localization';
 
 interface StatRowProps {
@@ -29,56 +30,32 @@ const StatRow: React.FC<StatRowProps> = ({
   testID,
   last,
 }) => {
-  const chevron = useCSSVariable('--color-text-muted') as string;
   const shown = value == null ? '—' : formatLocalizedNumber(Math.round(value));
-  const content = (
-    <>
-      <IconBadge icon={icon} color={color} size={38} />
-      <View className="flex-1">
-        <Text
-          className="text-xs text-text-secondary"
-          maxFontSizeMultiplier={1.8}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.75}
-        >
-          {label}
-        </Text>
-        <Text
-          className="text-lg font-bold text-text-primary"
-          maxFontSizeMultiplier={1.6}
-        >
-          {shown}
-          {value == null ? null : (
-            <Text className="text-xs font-medium text-text-secondary">
-              {' '}
-              {unit}
-            </Text>
-          )}
-        </Text>
-      </View>
-      {onPress ? (
-        <Icon name="chevron-forward" size={14} color={chevron} />
-      ) : null}
-    </>
-  );
-  const className = `min-h-14 flex-row items-center gap-3 py-2 ${
-    last ? '' : 'border-b border-border-subtle'
-  }`;
-  return onPress ? (
-    <Pressable
-      testID={testID}
-      accessibilityRole="button"
-      accessibilityLabel={`${label}: ${shown} ${value == null ? '' : unit}`.trim()}
+  return (
+    <DashboardSummaryRow
+      icon={icon}
+      color={color}
       onPress={onPress}
-      className={`${className} active:opacity-70`}
+      testID={testID}
+      last={last}
+      accessibilityLabel={`${label}: ${shown} ${value == null ? '' : unit}`.trim()}
     >
-      {content}
-    </Pressable>
-  ) : (
-    <View testID={testID} className={className}>
-      {content}
-    </View>
+      <Text className="text-xs text-text-secondary" maxFontSizeMultiplier={1.8}>
+        {label}
+      </Text>
+      <Text
+        className="text-lg font-bold text-text-primary"
+        maxFontSizeMultiplier={1.6}
+      >
+        {shown}
+        {value == null ? null : (
+          <Text className="text-xs font-medium text-text-secondary">
+            {' '}
+            {unit}
+          </Text>
+        )}
+      </Text>
+    </DashboardSummaryRow>
   );
 };
 
@@ -110,14 +87,10 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   onBurnedPress,
 }) => {
   const { t } = useTranslation();
-  const { fontScale, width } = useWindowDimensions();
-  const expanded = fontScale > 1.3;
-  const [flame, food, burn, neutral, cardGlow] = useCSSVariable([
-    '--color-activity-energy',
+  const [food, burn, neutral] = useCSSVariable([
     '--color-action-food',
     '--color-neon-green',
     '--color-text-secondary',
-    '--color-card-glow',
   ]) as string[];
 
   const hasGoal = calorieGoal > 0;
@@ -131,32 +104,15 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
     ? Math.round(remainingCalories - (calorieGoal - caloriesConsumed))
     : 0;
   const kcal = t('dashboard.kcal', { defaultValue: 'kcal' });
-  const gaugeSize = Math.min(168, Math.max(132, Math.round(width * 0.4)));
 
   return (
-    <GlowCard
-      glowColor={cardGlow}
+    <DashboardSummaryCard
+      testID="dashboard-energy"
+      title={t('dashboard.calories', { defaultValue: 'Calories' })}
       accessibilityLabel={t('dashboard.dailyEnergy', {
         defaultValue: 'Daily energy',
       })}
-      className="p-4 mb-3"
-    >
-      <View className="mb-1 flex-row items-center gap-3">
-        <Icon name="flame" size={24} color={flame} />
-        <View className="flex-1">
-          <Text
-            className="text-lg font-semibold text-text-primary"
-            accessibilityRole="header"
-            maxFontSizeMultiplier={1.8}
-          >
-            {t('dashboard.calories', { defaultValue: 'Calories' })}
-          </Text>
-        </View>
-      </View>
-      <View
-        style={{ flexDirection: expanded ? 'column' : 'row', gap: 12 }}
-        className={expanded ? 'items-center' : 'items-start'}
-      >
+      renderVisual={({ size: gaugeSize, stacked: expanded, trackColor }) => (
         <View className="items-center">
           <View className="items-center justify-center">
             {!expanded && (
@@ -164,6 +120,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
                 progress={hasGoal ? progressPercent : 0}
                 size={gaugeSize}
                 strokeWidth={14}
+                trackColor={trackColor}
               />
             )}
             <View
@@ -215,55 +172,56 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
             </Pressable>
           ) : null}
         </View>
-        <View style={expanded ? { width: '100%' } : { flex: 1 }}>
-          <StatRow
-            testID="dashboard-energy-consumed"
-            icon="food"
-            color={food}
-            label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
-            value={caloriesConsumed}
-            unit={kcal}
-            onPress={onConsumedPress}
-          />
-          <StatRow
-            testID="dashboard-energy-burned"
-            icon="flame"
-            color={burn}
-            label={
-              burnedIncludesBmr
-                ? t('dashboard.totalExpenditure', {
-                    defaultValue: 'Total expenditure',
-                  })
-                : t('dashboard.activityBurned', {
-                    defaultValue: 'Activity burned',
-                  })
-            }
-            value={caloriesBurned}
-            unit={kcal}
-            onPress={onBurnedPress}
-          />
-          <StatRow
-            testID="dashboard-energy-goal"
-            icon="target"
-            color={neutral}
-            label={t('dashboard.target', { defaultValue: 'Base target' })}
-            value={hasGoal ? calorieGoal : null}
-            unit={kcal}
-            onPress={onEditGoal}
-            last
-          />
-        </View>
-      </View>
-      {balanceAdjustment !== 0 && (
-        <Text className="mt-2 text-center text-xs text-text-secondary">
-          {t('dashboard.balanceAdjustment', {
-            defaultValue: 'Allowance adjustment',
-          })}{' '}
-          {balanceAdjustment > 0 ? '+' : '−'}
-          {formatLocalizedNumber(Math.abs(balanceAdjustment))} {kcal}
-        </Text>
       )}
-    </GlowCard>
+      footer={
+        balanceAdjustment !== 0 ? (
+          <Text className="mt-2 text-center text-xs text-text-secondary">
+            {t('dashboard.balanceAdjustment', {
+              defaultValue: 'Allowance adjustment',
+            })}{' '}
+            {balanceAdjustment > 0 ? '+' : '−'}
+            {formatLocalizedNumber(Math.abs(balanceAdjustment))} {kcal}
+          </Text>
+        ) : null
+      }
+    >
+      <StatRow
+        testID="dashboard-energy-consumed"
+        icon="food"
+        color={food}
+        label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
+        value={caloriesConsumed}
+        unit={kcal}
+        onPress={onConsumedPress}
+      />
+      <StatRow
+        testID="dashboard-energy-burned"
+        icon="flame"
+        color={burn}
+        label={
+          burnedIncludesBmr
+            ? t('dashboard.totalExpenditure', {
+                defaultValue: 'Total expenditure',
+              })
+            : t('dashboard.activityBurned', {
+                defaultValue: 'Activity burned',
+              })
+        }
+        value={caloriesBurned}
+        unit={kcal}
+        onPress={onBurnedPress}
+      />
+      <StatRow
+        testID="dashboard-energy-goal"
+        icon="target"
+        color={neutral}
+        label={t('dashboard.target', { defaultValue: 'Base target' })}
+        value={hasGoal ? calorieGoal : null}
+        unit={kcal}
+        onPress={onEditGoal}
+        last
+      />
+    </DashboardSummaryCard>
   );
 };
 

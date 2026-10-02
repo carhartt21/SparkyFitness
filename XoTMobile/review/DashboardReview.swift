@@ -1,6 +1,72 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Compare the two production summary cards using isolated task/energy data.
+  func testSummaryCards() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    let energyVisual = app.descendants(matching: .any)["dashboard-energy-visual"]
+    let energyRows = app.descendants(matching: .any)["dashboard-energy-rows"]
+    XCTAssertTrue(energyVisual.waitForExistence(timeout: 15))
+    XCTAssertTrue(energyRows.exists)
+    // RN may expose this text through a grouped Other element, not StaticText.
+    let balance = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@ OR label BEGINSWITH %@", "1.400", "1,400")).firstMatch
+    if !balance.exists {
+      let tree = XCTAttachment(string: app.debugDescription)
+      tree.name = "summary-accessibility-diagnostic"
+      tree.lifetime = .keepAlways
+      add(tree)
+    }
+    XCTAssertTrue(balance.exists)
+    XCTAssertTrue(app.descendants(matching: .any)["dashboard-daily-progress-count"].exists)
+    let visualFrame = energyVisual.frame
+    let rowsFrame = energyRows.frame
+    capture("summary-energy", app)
+    let goal = app.buttons["dashboard-edit-goal"]
+    XCTAssertTrue(goal.exists)
+    XCTAssertGreaterThanOrEqual(goal.frame.width, 44)
+    XCTAssertGreaterThanOrEqual(goal.frame.height, 44)
+
+    let nextTasks = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "dashboard-next-", "dashboard-next-day"))
+    let lastTask = nextTasks.element(boundBy: 2)
+    for _ in 0..<7 {
+      if lastTask.exists && lastTask.isHittable && lastTask.frame.maxY < app.frame.maxY - 100 { break }
+      dashboard.swipeUp()
+    }
+    XCTAssertEqual(nextTasks.count, 3)
+    XCTAssertTrue(lastTask.isHittable)
+    let progressVisual = app.descendants(matching: .any)["dashboard-daily-progress-visual"]
+    let progressRows = app.descendants(matching: .any)["dashboard-daily-progress-rows"]
+    XCTAssertTrue(progressVisual.exists)
+    XCTAssertTrue(progressRows.exists)
+    XCTAssertEqual(visualFrame.minX, progressVisual.frame.minX, accuracy: 2)
+    XCTAssertEqual(visualFrame.width, progressVisual.frame.width, accuracy: 2)
+    XCTAssertEqual(rowsFrame.minX, progressRows.frame.minX, accuracy: 2)
+    XCTAssertEqual(rowsFrame.width, progressRows.frame.width, accuracy: 2)
+    let stacked = rowsFrame.minY >= visualFrame.maxY
+    if !stacked {
+      XCTAssertEqual(rowsFrame.height, progressRows.frame.height, accuracy: 2)
+      XCTAssertEqual(visualFrame.height, progressVisual.frame.height, accuracy: 2)
+    }
+    for task in nextTasks.allElementsBoundByIndex {
+      XCTAssertGreaterThanOrEqual(task.frame.height, 64)
+      XCTAssertGreaterThanOrEqual(task.frame.width, 44)
+      XCTAssertGreaterThanOrEqual(task.frame.minX, 0)
+      XCTAssertLessThanOrEqual(task.frame.maxX, app.frame.maxX)
+    }
+    let measurement = XCTAttachment(string: "Energy visual: \(visualFrame), rows: \(rowsFrame); task visual: \(progressVisual.frame), rows: \(progressRows.frame); stacked: \(stacked)")
+    measurement.name = "summary-layout-measurement"
+    measurement.lifetime = .keepAlways
+    add(measurement)
+    capture("summary-progress", app)
+    nextTasks.firstMatch.tap()
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.waitForExistence(timeout: 10))
+    capture("summary-task-destination", app)
+  }
+
   func testMealGoalStatus() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

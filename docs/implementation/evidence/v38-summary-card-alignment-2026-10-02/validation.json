@@ -1,0 +1,135 @@
+{
+  "baseRevision": "bb008b096ccfdb75841371dc6fc06e9414bb2b25",
+  "uiSourceSha256": {
+    "XoTMobile/src/components/CalorieRingCard.tsx": "4a1044c2421513128921ddec9623b54b8ef4b50d63f7d12f39172efce20cff80",
+    "XoTMobile/src/components/DailyProgressCard.tsx": "e39228fb5cfa64231894476c5ab79bb307139a796f46d695e3f21b8aa186782f",
+    "XoTMobile/src/components/EnergyGauge.tsx": "fc30ca6fafb8cf609b136aec739c6cfc469f2d316eae06f0cf6dd149f13bef1d",
+    "XoTMobile/src/components/brand/ProgressTrackX.tsx": "bf6d200911e045fa2202fd9124e6defc59583faedee93ad2ff7de65af72c5c6d",
+    "XoTMobile/src/components/ui/DashboardSummaryCard.tsx": "9dc7508832773245904bc4f7cfb08c09f53ab00723a93279939fc92b74f7dece",
+    "shared/src/brand/progressionX.geometry.json": "1d43cd399e2338259ac9ed8f0760f68b1cf2823d42284764a7dde9488eacdb56"
+  },
+  "jest": {
+    "passed": 25,
+    "suitesPassed": 7,
+    "log": "xot-summary-cards-tests.log"
+  },
+  "reviewRuntimeTests": {
+    "passed": 3
+  },
+  "mobileValidate": "passed",
+  "productionIosJavaScriptExport": "passed; normal entry point without review transport",
+  "layoutDetector": {
+    "unexplainedFindings": 0
+  },
+  "nativeCases": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "after-390-de-dark-energy.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "390x844",
+      "captures": {
+        "task-destination": "after-390-de-dark-task-destination.png",
+        "progress": "after-390-de-dark-progress.png",
+        "measurement": "390-de-dark-measurement.txt",
+        "energy": "after-390-de-dark-energy.png"
+      },
+      "sourceRun": "xot-summary-cards-native-verified"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "after-390-de-light-energy.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "390x844",
+      "captures": {
+        "progress": "after-390-de-light-progress.png",
+        "measurement": "390-de-light-measurement.txt",
+        "energy": "after-390-de-light-energy.png"
+      },
+      "sourceRun": "xot-summary-cards-native-verified"
+    },
+    {
+      "name": "430-en-dark",
+      "language": "en",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "nativeTabs": false,
+      "screenshot": "after-430-en-dark-energy.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "430x932",
+      "captures": {
+        "progress": "after-430-en-dark-progress.png",
+        "measurement": "430-en-dark-measurement.txt",
+        "energy": "after-430-en-dark-energy.png"
+      },
+      "sourceRun": "xot-summary-cards-wide-verified"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "screenshot": "after-430-de-large-energy.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "430x932",
+      "captures": {
+        "progress": "after-430-de-large-progress.png",
+        "measurement": "430-de-large-measurement.txt",
+        "energy": "after-430-de-large-energy.png"
+      },
+      "sourceRun": "xot-summary-cards-wide-verified"
+    }
+  ],
+  "baseline": {
+    "source": "v38-ui-refinements-2026-10-02 evidence",
+    "unchangedCardSourcesThrough": "bb008b096",
+    "data": "isolated synthetic records",
+    "path": "../v38-ui-refinements-2026-10-02/after-*.png (already committed; not duplicated)"
+  },
+  "failedAttempts": [
+    {
+      "run": "xot-summary-cards-review",
+      "result": "native task count was 4; selector included next-day control. First render also exposed task-column overflow, corrected by bounded width."
+    },
+    {
+      "run": "xot-summary-cards-confirm",
+      "result": "OCR read gauge balance as 100), so render smoke failed before native checks. Displayed balance visually intact."
+    },
+    {
+      "run": "xot-summary-cards-native-final",
+      "result": "role-scoped StaticText query did not find RN grouped balance text. Replaced with native accessibility-label predicate."
+    },
+    {
+      "run": "xot-summary-cards-native-verified",
+      "result": "390 cases pass; enlarged initial viewport had tasks below the fold, so headline OCR gate failed. Scoped smoke to visible energy content; native gate still asserts balance and scrolls to tasks."
+    }
+  ],
+  "unverified": [
+    "physical device",
+    "Android rendering",
+    "new signed native archive",
+    "production persistence"
+  ],
+  "release": "not merged, deployed or published"
+}

@@ -1,9 +1,10 @@
-import { Pressable, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, Text } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import ProgressTrackX from './brand/ProgressTrackX';
-import GlowCard from './ui/GlowCard';
-import Icon from './Icon';
+import DashboardSummaryCard, {
+  DashboardSummaryRow,
+} from './ui/DashboardSummaryCard';
 import { progressTaskIcon } from './tracking/progressTaskIcons';
 import { useHabits } from '../hooks/useDailyTracking';
 import { useProjectedDailyProgress } from '../hooks/useProjectedDailyProgress';
@@ -26,13 +27,7 @@ export default function DailyProgressCard({
   onOpenHydration,
 }: DailyProgressCardProps) {
   const { t } = useTranslation();
-  const [secondary, accent] = useCSSVariable([
-    '--color-text-secondary',
-    '--color-accent-primary',
-  ]) as string[];
-  const { width, fontScale } = useWindowDimensions();
-  const stacked = fontScale > 1.3;
-  const markSize = Math.min(144, Math.max(112, Math.round(width * 0.32)));
+  const accent = useCSSVariable('--color-accent-primary') as string;
   const query = useProjectedDailyProgress(date, enabled);
   const habits = useHabits({
     enabled:
@@ -44,10 +39,10 @@ export default function DailyProgressCard({
   const progress = query.progress;
   if (!progress)
     return (
-      <GlowCard testID="dashboard-daily-progress" className="mb-3 p-3">
-        <Text className="text-base font-semibold text-text-primary">
-          {t('progress.title', { defaultValue: 'Daily Progress' })}
-        </Text>
+      <DashboardSummaryCard
+        testID="dashboard-daily-progress"
+        title={t('progress.title', { defaultValue: 'Daily Progress' })}
+      >
         <Text className="mt-1 text-sm text-text-secondary">
           {query.isError
             ? t('progress.previewUnavailable', {
@@ -66,50 +61,36 @@ export default function DailyProgressCard({
             </Text>
           </Pressable>
         ) : null}
-      </GlowCard>
+      </DashboardSummaryCard>
     );
   const next = nextProgressTasks(progress.items);
   return (
-    <GlowCard testID="dashboard-daily-progress" className="mb-3 p-4">
-      <Pressable
-        testID="dashboard-progress-open"
-        accessibilityRole="button"
-        onPress={onOpenProgress}
-        accessibilityLabel={t('progress.cardA11y', {
-          defaultValue:
-            'Daily Progress: {{completed}} of {{applicable}} tasks complete',
-          completed: progress.completed,
-          applicable: progress.applicable,
-        })}
-        className="min-h-11 flex-row items-center gap-3"
-      >
-        <Text
-          className="flex-1 text-base font-semibold text-text-primary"
-          accessibilityRole="header"
-        >
-          {t('progress.title', { defaultValue: 'Daily Progress' })}
-        </Text>
-        <Icon name="chevron-forward" size={18} color={secondary} />
-      </Pressable>
-      <View
-        style={{
-          flexDirection: stacked ? 'column' : 'row',
-          gap: 12,
-          alignItems: stacked ? 'center' : 'flex-start',
-        }}
-      >
-        <View className="items-center gap-1">
+    <DashboardSummaryCard
+      testID="dashboard-daily-progress"
+      title={t('progress.title', { defaultValue: 'Daily Progress' })}
+      openTestID="dashboard-progress-open"
+      onOpen={onOpenProgress}
+      accessibilityLabel={t('progress.cardA11y', {
+        defaultValue:
+          'Daily Progress: {{completed}} of {{applicable}} tasks complete',
+        completed: progress.completed,
+        applicable: progress.applicable,
+      })}
+      renderVisual={({ size, light }) => (
+        <>
           <ProgressTrackX
             progress={progress.percent}
             label={t('progress.xLabel', { defaultValue: 'Daily Progress' })}
             unknownLabel={t('progress.nothingApplies', {
               defaultValue: 'No tasks today',
             })}
-            size={markSize}
+            size={size}
+            light={light}
+            fit="track"
             showValue={false}
           />
           <Text
-            className="text-sm text-text-secondary"
+            className="min-h-6 text-center text-sm text-text-secondary"
             testID="dashboard-daily-progress-count"
           >
             {progress.applicable > 0
@@ -122,48 +103,39 @@ export default function DailyProgressCard({
                   defaultValue: 'No tasks today',
                 })}
           </Text>
-        </View>
-        <View style={stacked ? { width: '100%' } : { flex: 1, minWidth: 0 }}>
-          {next.length ? (
-            next.map((item) => (
-              <Pressable
-                key={item.id}
-                testID={`dashboard-next-${item.id}`}
-                accessibilityRole="button"
-                onPress={() => openItem(item)}
-                accessibilityLabel={itemLabel(item)}
-                className="min-h-11 flex-row items-center gap-2 py-2 active:opacity-70"
-              >
-                <Icon
-                  name={progressTaskIcon(item, habits.data ?? [])}
-                  size={18}
-                  color={accent}
-                />
-                <Text
-                  className="flex-1 text-sm text-text-primary"
-                  numberOfLines={stacked ? undefined : 2}
-                >
-                  {itemLabel(item)}
-                </Text>
-                <Icon name="chevron-forward" size={14} color={secondary} />
-              </Pressable>
-            ))
-          ) : progress.applicable > 0 ? (
-            <Text className="py-2 text-sm text-text-secondary">
-              {t('progress.previewComplete', {
-                defaultValue: 'All applicable tasks are resolved.',
-              })}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-      {query.isError ? (
-        <Text className="mt-2 text-xs text-text-secondary">
-          {t('progress.previewStale', {
-            defaultValue: 'Saved tasks. Refresh to check recent changes.',
+        </>
+      )}
+      footer={
+        query.isError ? (
+          <Text className="mt-2 text-xs text-text-secondary">
+            {t('progress.previewStale', {
+              defaultValue: 'Saved tasks. Refresh to check recent changes.',
+            })}
+          </Text>
+        ) : null
+      }
+    >
+      {next.length ? (
+        next.map((item, index) => (
+          <DashboardSummaryRow
+            key={item.id}
+            testID={`dashboard-next-${item.id}`}
+            onPress={() => openItem(item)}
+            accessibilityLabel={itemLabel(item)}
+            icon={progressTaskIcon(item, habits.data ?? [])}
+            color={accent}
+            last={index === next.length - 1}
+          >
+            <Text className="text-sm text-text-primary">{itemLabel(item)}</Text>
+          </DashboardSummaryRow>
+        ))
+      ) : progress.applicable > 0 ? (
+        <Text className="py-2 text-sm text-text-secondary">
+          {t('progress.previewComplete', {
+            defaultValue: 'All applicable tasks are resolved.',
           })}
         </Text>
       ) : null}
-    </GlowCard>
+    </DashboardSummaryCard>
   );
 }

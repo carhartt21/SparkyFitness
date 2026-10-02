@@ -46,6 +46,8 @@ interface EnergyGaugeProps {
   progress: number;
   size: number;
   strokeWidth: number;
+  /** Optional neutral baseline when paired with another progress visual. */
+  trackColor?: string;
 }
 
 /**
@@ -57,6 +59,7 @@ export default function EnergyGauge({
   progress,
   size,
   strokeWidth,
+  trackColor,
 }: EnergyGaugeProps) {
   const glowing = useGlowTheme();
   const [track, red, yellow, green] = useCSSVariable([
@@ -102,7 +105,7 @@ export default function EnergyGauge({
       </Defs>
       <Path
         d={trackPath}
-        stroke={track}
+        stroke={trackColor ?? track}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         fill="none"
