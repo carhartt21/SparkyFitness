@@ -83,6 +83,33 @@ export async function readActivityPlanningData(
      WHERE s.user_id=$1 AND p.local_day BETWEEN $2 AND $3`,
     [userId, from, to]
   );
+  // Categories of the planned exercises, so a plan row is classified like a
+  // logged one ("Pull Workout" in Strength is strength, not "other"). Read
+  // live: snapshots predate this field, and RLS limits it to visible rows.
+  const plannedExerciseIds = [
+    ...new Set(
+      versions.rows.flatMap((row) =>
+        (Array.isArray(row.assignments) ? row.assignments : []).flatMap(
+          (assignment: {
+            exerciseId?: string | null;
+            exercises?: { exerciseId?: string }[];
+          }) => [
+            ...(assignment.exerciseId ? [assignment.exerciseId] : []),
+            ...(assignment.exercises ?? []).flatMap((exercise) =>
+              exercise.exerciseId ? [exercise.exerciseId] : []
+            ),
+          ]
+        )
+      )
+    ),
+  ];
+  const categories =
+    plannedExerciseIds.length > 0
+      ? await client.query<{ id: string; category: string | null }>(
+          'SELECT id::text, category FROM exercises WHERE id = ANY($1::uuid[])',
+          [plannedExerciseIds]
+        )
+      : { rows: [] };
   // pg's textual timestamptz uses a space; normalize at the database boundary.
   const timestamp = (value: unknown): string | null =>
     value === null || value === undefined
@@ -112,6 +139,9 @@ export async function readActivityPlanningData(
     mobilitySessions: z
       .array(mobilitySessionRecordSchema)
       .parse(mobilitySessions.rows),
+    exerciseCategories: Object.fromEntries(
+      categories.rows.map((row) => [row.id, row.category])
+    ) as Record<string, string | null>,
   };
 }
 export type ActivityPlanningData = Awaited<

@@ -10,7 +10,11 @@ import { projectActivityPlanning } from '../services/activityPlanningProjection.
 import type { ActivityPlanningData } from '../models/activityPlanningRepository.js';
 const DAY = '2026-10-01';
 const owner = randomUUID();
-import { activityData, activityEntry } from './fixtures/activityPlanning.js';
+import {
+  activityData,
+  activityEntry,
+  exerciseId,
+} from './fixtures/activityPlanning.js';
 const project = (rows: ActivityPlanningData, from = DAY, to = DAY) =>
   projectActivityPlanning(rows, from, to, 'Europe/Berlin', DAY);
 describe('activity planning completion truth', () => {
@@ -37,6 +41,33 @@ describe('activity planning completion truth', () => {
       'other'
     )
   );
+  it('classifies a planned exercise by its category when the name says nothing', () => {
+    const rows = activityData();
+    const assignment = rows.versions[0]!.assignments[0]!;
+    assignment.label = 'Pull Workout — Back & Biceps';
+    assignment.exercises = [
+      {
+        exerciseId,
+        name: 'Pull Workout — Back & Biceps',
+        expectedSets: 2,
+        sets: [],
+      },
+    ];
+    expect(project(rows).occurrences[0]?.activity_type).toBe('other');
+    rows.exerciseCategories = { [exerciseId]: 'Strength' };
+    expect(project(rows).occurrences[0]?.activity_type).toBe('strength');
+    // A preset mixing categories keeps the name-based classification.
+    const second = randomUUID();
+    assignment.exercises.push({
+      exerciseId: second,
+      name: 'Easy jog',
+      expectedSets: 1,
+      sets: [],
+    });
+    rows.exerciseCategories[second] = 'Cardio';
+    expect(project(rows).occurrences[0]?.activity_type).toBe('other');
+  });
+
   it('keeps prefills pending, partial sets started and complete sets confirmed', () => {
     const rows = activityData();
     rows.entries = [activityEntry()];

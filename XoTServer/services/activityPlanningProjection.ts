@@ -10,6 +10,7 @@ import {
 import type {
   ActivityPlanningData,
   PlanningEntry,
+  PlanVersion,
 } from '../models/activityPlanningRepository.js';
 
 const recordedActivity = (row: PlanningEntry) =>
@@ -259,6 +260,7 @@ export function projectActivityPlanning(
             ? (assignment.activityType as (typeof ACTIVITY_SPORTS)[number])
             : classifyActivitySport({
                 exerciseName: assignment.label ?? version.plan_name,
+                category: sharedCategory(assignment, data.exerciseCategories),
               }).sport,
           optional: assignment.isOptional ?? false,
           state: skipped
@@ -399,4 +401,23 @@ export function projectActivityPlanning(
       })),
     note: 'Counts describe scheduled activities, not all exercise volume or a health score. Classification from names is inferred. Only confirmed records resolve tasks; unsynced phone/Watch activity is absent. Earlier prescriptions without snapshots are unknown. Sequential plans are not dated weekly tasks.',
   };
+}
+
+/**
+ * The category every planned exercise of an assignment shares, or null when
+ * they differ or are unknown — a mixed preset falls back to its name.
+ */
+function sharedCategory(
+  assignment: PlanVersion['assignments'][number],
+  categories: Record<string, string | null> | undefined
+): string | null {
+  const ids = [
+    ...(assignment.exerciseId ? [assignment.exerciseId] : []),
+    ...(assignment.exercises ?? []).map((exercise) => exercise.exerciseId),
+  ];
+  const found = [...new Set(ids)].map((id) =>
+    categories?.[id]?.trim().toLowerCase()
+  );
+  if (found.length === 0 || found.some((category) => !category)) return null;
+  return new Set(found).size === 1 ? (found[0] ?? null) : null;
 }
