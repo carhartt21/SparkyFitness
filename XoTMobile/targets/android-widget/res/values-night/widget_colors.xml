@@ -11,4 +11,5 @@
     <color name="xot_widget_protein">#57b9f8</color>
     <color name="xot_widget_carbs">#b59cff</color>
     <color name="xot_widget_fat">#f5b647</color>
+    <color name="xot_widget_action_outline">#3814e89a</color>
 </resources>

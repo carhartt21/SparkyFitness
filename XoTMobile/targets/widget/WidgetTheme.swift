@@ -54,15 +54,42 @@ struct WidgetActionStyle: ViewModifier {
             .font(.caption.weight(.semibold))
             .lineLimit(1).minimumScaleFactor(0.7)
             .foregroundStyle(mode == .fullColor ? WidgetPalette.accent : .primary)
+            .padding(.horizontal, 6)
             .frame(maxWidth: .infinity, minHeight: 44)
             .background {
                 if mode == .fullColor {
                     RoundedRectangle(cornerRadius: 12).fill(WidgetPalette.raised)
                         .overlay(RoundedRectangle(cornerRadius: 12)
-                            .strokeBorder(WidgetPalette.accent.opacity(0.35), lineWidth: 1))
+                            .strokeBorder(WidgetPalette.accent.opacity(0.22), lineWidth: 1))
                 }
             }
             .widgetAccentable()
+    }
+}
+
+/// Keep the localized unit outside the visualization, where it can wrap.
+struct WidgetMetric: View {
+    let value: String
+    let label: String
+    let accessibilityText: String
+    var compact = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 1) {
+            Text(value)
+                .font(compact ? .title3.bold() : .title2.bold())
+                .monospacedDigit()
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            Text(label)
+                .font(.caption2)
+                .modifier(WidgetTextStyle(secondary: true))
+                .lineLimit(2)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityText)
     }
 }
 

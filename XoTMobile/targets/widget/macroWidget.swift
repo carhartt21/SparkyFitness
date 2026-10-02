@@ -138,41 +138,6 @@ private struct MacroRing: View {
     }
 }
 
-private struct MacroRingWithLabel: View {
-    let snapshot: MacroSnapshot
-    let ringSize: CGFloat
-    let strokeWidth: CGFloat
-    let numberFontSize: CGFloat
-
-    private var centerText: String {
-        guard snapshot.hasData else { return "-" }
-        return localizedNumberString(snapshot.caloriesConsumed)
-    }
-
-    var body: some View {
-        MacroRing(snapshot: snapshot, size: ringSize, strokeWidth: strokeWidth)
-            .overlay(
-                VStack(spacing: 0) {
-                    Text(centerText)
-                        .font(.system(size: numberFontSize, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.6)
-                        .lineLimit(1)
-                    Text(localizedWidgetString("widget.kcal"))
-                        .font(.caption2)
-                        .modifier(WidgetTextStyle(secondary: true))
-                }
-                .padding(.horizontal, strokeWidth)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(
-                    String(
-                        format: localizedWidgetString("widget.a11y.kcal"),
-                        centerText
-                    )
-                )
-            )
-    }
-}
-
 private struct MacroRow: View {
     @Environment(\.widgetRenderingMode) private var mode
     let label: String
@@ -222,42 +187,54 @@ struct macroWidgetEntryView: View {
         .widgetURL(URL(string: "sparkyfitnessmobile://"))
     }
 
+    private var caloriesText: String {
+        entry.snapshot.hasData ? localizedNumberString(entry.snapshot.caloriesConsumed) : "-"
+    }
+
+    private var metric: some View {
+        WidgetMetric(value: caloriesText, label: localizedWidgetString("widget.kcal"),
+            accessibilityText: String(format: localizedWidgetString("widget.a11y.kcal"), caloriesText),
+            compact: family == .systemSmall)
+    }
+
+    private var macroRows: some View {
+        VStack(spacing: 2) {
+            MacroRow(label: localizedWidgetString("widget.protein"), grams: entry.snapshot.proteinGrams, color: WidgetPalette.protein)
+            MacroRow(label: localizedWidgetString("widget.carbs"), grams: entry.snapshot.carbsGrams, color: WidgetPalette.carbs)
+            MacroRow(label: localizedWidgetString("widget.fat"), grams: entry.snapshot.fatGrams, color: WidgetPalette.fat)
+        }
+    }
+
     private var smallBody: some View {
-        VStack(spacing: 3) {
+        VStack(spacing: 4) {
             WidgetTitle(title: localizedWidgetString("widget.macro.name"))
-            if !typeSize.isAccessibilitySize {
-                MacroRingWithLabel(snapshot: entry.snapshot, ringSize: 52, strokeWidth: 6, numberFontSize: 17)
-            } else {
-                Text(entry.snapshot.hasData ? localizedNumberString(entry.snapshot.caloriesConsumed) : "-")
-                    .font(.title3.bold()).monospacedDigit()
-                Text(localizedWidgetString("widget.kcal")).font(.caption2)
+            HStack(spacing: 8) {
+                if !typeSize.isAccessibilitySize {
+                    MacroRing(snapshot: entry.snapshot, size: 44, strokeWidth: 5)
+                        .accessibilityHidden(true)
+                }
+                metric
             }
-            VStack(spacing: 2) {
-                MacroRow(label: localizedWidgetString("widget.protein"), grams: entry.snapshot.proteinGrams, color: WidgetPalette.protein)
-                MacroRow(label: localizedWidgetString("widget.carbs"), grams: entry.snapshot.carbsGrams, color: WidgetPalette.carbs)
-                MacroRow(label: localizedWidgetString("widget.fat"), grams: entry.snapshot.fatGrams, color: WidgetPalette.fat)
-            }
+            Spacer(minLength: 0)
+            macroRows
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var mediumBody: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 14) {
-                if !typeSize.isAccessibilitySize {
-                    MacroRingWithLabel(snapshot: entry.snapshot, ringSize: 70, strokeWidth: 6, numberFontSize: 19)
-                }
-                VStack(alignment: .leading, spacing: 3) {
-                    WidgetTitle(title: localizedWidgetString("widget.macro.name"))
-                    if typeSize.isAccessibilitySize {
-                        Text((entry.snapshot.hasData ? localizedNumberString(entry.snapshot.caloriesConsumed) : "-") + " " + localizedWidgetString("widget.kcal"))
-                            .font(.caption.weight(.semibold)).monospacedDigit()
+        VStack(spacing: 4) {
+            WidgetTitle(title: localizedWidgetString("widget.macro.name"))
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    if !typeSize.isAccessibilitySize {
+                        MacroRing(snapshot: entry.snapshot, size: 44, strokeWidth: 5)
+                            .accessibilityHidden(true)
                     }
-                    MacroRow(label: localizedWidgetString("widget.protein"), grams: entry.snapshot.proteinGrams, color: WidgetPalette.protein)
-                MacroRow(label: localizedWidgetString("widget.carbs"), grams: entry.snapshot.carbsGrams, color: WidgetPalette.carbs)
-                MacroRow(label: localizedWidgetString("widget.fat"), grams: entry.snapshot.fatGrams, color: WidgetPalette.fat)
+                    metric
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(width: 132)
+                macroRows
+                    .frame(maxWidth: .infinity)
             }
             .frame(maxHeight: .infinity)
             WidgetShortcuts()

@@ -169,6 +169,7 @@ for (const [variant, colors] of [
 ${Object.entries(colors)
   .map(([role, hex]) => `    <color name="xot_widget_${role}">${hex}</color>`)
   .join('\n')}
+    <color name="xot_widget_action_outline">#38${colors.accent.slice(1)}</color>
 </resources>
 `
   );

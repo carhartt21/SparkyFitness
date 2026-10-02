@@ -111,41 +111,6 @@ private struct CalorieRing: View {
     }
 }
 
-private struct RingWithLabel: View {
-    let snapshot: CalorieSnapshot
-    let ringSize: CGFloat
-    let strokeWidth: CGFloat
-    let numberFontSize: CGFloat
-
-    private var remainingText: String {
-        guard snapshot.hasData else { return "-" }
-        return localizedNumberString(snapshot.remaining)
-    }
-
-    var body: some View {
-        CalorieRing(progress: snapshot.progress, size: ringSize, strokeWidth: strokeWidth)
-            .overlay(
-                VStack(spacing: 0) {
-                    Text(remainingText)
-                        .font(.system(size: numberFontSize, weight: .bold, design: .rounded))
-                        .minimumScaleFactor(0.6)
-                        .lineLimit(1)
-                    Text(localizedWidgetString("widget.kcal_left"))
-                        .font(.caption2)
-                        .modifier(WidgetTextStyle(secondary: true))
-                }
-                .padding(.horizontal, strokeWidth)
-                .accessibilityElement(children: .combine)
-                .accessibilityLabel(
-                    String(
-                        format: localizedWidgetString("widget.a11y.kcal_left"),
-                        remainingText
-                    )
-                )
-            )
-    }
-}
-
 private struct StatBlock: View {
     let label: String
     let value: Double
@@ -203,16 +168,27 @@ struct widgetEntryView: View {
         .widgetURL(URL(string: "sparkyfitnessmobile://"))
     }
 
+    private var remainingText: String {
+        entry.snapshot.hasData ? localizedNumberString(entry.snapshot.remaining) : "-"
+    }
+
+    private var metric: some View {
+        WidgetMetric(value: remainingText, label: localizedWidgetString("widget.kcal_left"),
+            accessibilityText: String(format: localizedWidgetString("widget.a11y.kcal_left"), remainingText),
+            compact: family == .systemSmall)
+    }
+
     private var smallBody: some View {
-        VStack(spacing: 3) {
+        VStack(spacing: 4) {
             WidgetTitle(title: localizedWidgetString("widget.calorie.name"))
-            if !typeSize.isAccessibilitySize {
-                RingWithLabel(snapshot: entry.snapshot, ringSize: 62, strokeWidth: 6, numberFontSize: 17)
-            } else {
-                Text(entry.snapshot.hasData ? localizedNumberString(entry.snapshot.remaining) : "-")
-                    .font(.title3.bold()).monospacedDigit()
-                Text(localizedWidgetString("widget.kcal_left")).font(.caption2)
+            HStack(spacing: 8) {
+                if !typeSize.isAccessibilitySize {
+                    CalorieRing(progress: entry.snapshot.progress, size: 44, strokeWidth: 5)
+                        .accessibilityHidden(true)
+                }
+                metric
             }
+            Spacer(minLength: 0)
             VStack(spacing: 2) {
                 StatBlock(label: localizedWidgetString("widget.food"), value: entry.snapshot.food)
                 StatBlock(label: localizedWidgetString("widget.burned"), value: entry.snapshot.burned)
@@ -222,22 +198,23 @@ struct widgetEntryView: View {
     }
 
     private var mediumBody: some View {
-        VStack(spacing: 6) {
-            HStack(spacing: 14) {
-                if !typeSize.isAccessibilitySize {
-                    RingWithLabel(snapshot: entry.snapshot, ringSize: 70, strokeWidth: 6, numberFontSize: 19)
-                }
-                VStack(alignment: .leading, spacing: 3) {
-                    WidgetTitle(title: localizedWidgetString("widget.calorie.name"))
-                    if typeSize.isAccessibilitySize {
-                        Text((entry.snapshot.hasData ? localizedNumberString(entry.snapshot.remaining) : "-") + " " + localizedWidgetString("widget.kcal_left"))
-                            .font(.caption.weight(.semibold)).monospacedDigit()
+        VStack(spacing: 4) {
+            WidgetTitle(title: localizedWidgetString("widget.calorie.name"))
+            HStack(spacing: 12) {
+                HStack(spacing: 8) {
+                    if !typeSize.isAccessibilitySize {
+                        CalorieRing(progress: entry.snapshot.progress, size: 44, strokeWidth: 5)
+                            .accessibilityHidden(true)
                     }
+                    metric
+                }
+                .frame(width: 132)
+                VStack(spacing: 3) {
                     StatBlock(label: localizedWidgetString("widget.goal"), value: entry.snapshot.goal)
                     StatBlock(label: localizedWidgetString("widget.food"), value: entry.snapshot.food)
-                StatBlock(label: localizedWidgetString("widget.burned"), value: entry.snapshot.burned)
+                    StatBlock(label: localizedWidgetString("widget.burned"), value: entry.snapshot.burned)
                 }
-                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(maxWidth: .infinity)
             }
             .frame(maxHeight: .infinity)
             WidgetShortcuts()

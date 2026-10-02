@@ -60,11 +60,17 @@ const fixture = fs.readFileSync(
   'utf8'
 );
 const swift = path.join(temporary, 'Preview.swift');
-// WidgetKit's family environment is read-only outside a host; adapt only the
-// environment key for this temporary fixture. Production render bodies stay intact.
+// Family and Reduce Transparency are read-only outside their OS host. Adapt
+// those keys for this fixture; render bodies stay intact. This checks their
+// layout branches, not OS accessibility setting delivery or WidgetKit hosting.
 fs.writeFileSync(
   swift,
-  source.replaceAll('\\.widgetFamily', '\\.previewWidgetFamily') + fixture
+  source
+    .replaceAll('\\.widgetFamily', '\\.previewWidgetFamily')
+    .replaceAll(
+      '\\.accessibilityReduceTransparency',
+      '\\.previewReduceTransparency'
+    ) + fixture
 );
 for (const locale of ['en', 'de']) {
   const directory = path.join(app, `${locale}.lproj`);
@@ -162,8 +168,10 @@ try {
     : [
         ['after-dark', []],
         ['after-light', ['light']],
+        ['after-de-normal', []],
         ['after-de-large', ['large']],
         ['after-tinted-empty', ['tinted', 'empty']],
+        ['after-reduced-transparency', ['opaque']],
       ];
   for (const [name, flags] of captures) {
     const german = name.includes('de-') || name.includes('empty');

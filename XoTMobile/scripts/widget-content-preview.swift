@@ -2,6 +2,8 @@
 // Does not host WidgetKit or exercise timeline and deep-link behavior.
 private struct PreviewWidgetFamilyKey: EnvironmentKey { static let defaultValue: WidgetFamily = .systemMedium }
 extension EnvironmentValues { var previewWidgetFamily: WidgetFamily { get { self[PreviewWidgetFamilyKey.self] } set { self[PreviewWidgetFamilyKey.self] = newValue } } }
+private struct PreviewReduceTransparencyKey: EnvironmentKey { static let defaultValue = false }
+extension EnvironmentValues { var previewReduceTransparency: Bool { get { self[PreviewReduceTransparencyKey.self] } set { self[PreviewReduceTransparencyKey.self] = newValue } } }
 
 @main struct WidgetPreviewApp: App {
     var body: some Scene { WindowGroup { Gallery() } }
@@ -30,6 +32,7 @@ private struct Gallery: View {
         .padding(32)
         .environment(\.widgetRenderingMode, mode)
         .environment(\.dynamicTypeSize, args.contains("large") ? .accessibility1 : .large)
+        .environment(\.previewReduceTransparency, args.contains("opaque"))
         .preferredColorScheme(args.contains("light") ? .light : .dark)
         .frame(maxWidth:.infinity,maxHeight:.infinity)
         .background(args.contains("light") ? Color(red:0.965,green:0.941,blue:0.89) : Color(red:0.008,green:0.047,blue:0.063))
