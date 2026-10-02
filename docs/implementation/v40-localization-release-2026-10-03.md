@@ -29,7 +29,7 @@ The release also includes the previously reviewed v39 owner corrections: categor
 The final checks passed. Earlier failures were corrected before release: the CommonJS native-test importer could not evaluate an eager `import.meta` CLI path, and one exercise-history test expected the old `cal` label. No tests were disabled.
 
 - Phone `pnpm run validate`: passed, including type/lint, source/locale audits, German copy, native resources, geometry/assets and formatting.
-- Web and server `pnpm run validate`: passed. Broad server tests were omitted under the owner's standing instruction; server runtime code is unchanged in this batch.
+- Web and server `pnpm run validate`: passed. Broad server tests were omitted under the owner's standing instruction; the localization correction changes no server runtime code. The inherited v39 correction forwards optional activity metadata through the shared daily-progress projection; a server rollout is needed for that metadata to become live.
 - Root German overlay/copy regression tests: 10 passed; overlay freshness and `git diff --check`: passed.
 - Phone full Jest suite: **542 suites / 7,663 tests passed**, no failed or skipped suites (143 seconds).
 - German phone simulator matrix: dark/light at 390×844 and accessibility text at 430×932; all three render and native interaction cases passed. Navigation, category destination, food selection, numeric/text keyboard, save and refreshed summaries used isolated synthetic transport. Screenshots were visually inspected.
@@ -43,4 +43,16 @@ Prepare a clean committed main revision and follow [the TestFlight runbook](../.
 
 Physical phone/Watch delivery, paired-device exactly-once round trips, hosted complications, VoiceOver, notification receipt/actions and native permission dialogs remain device checks. User-defined habit/food names can be English by design. Programmatic coverage and inspected representative screens are not proof that every possible personal record fits at every text size.
 
-Signed build, submission and Apple processing results will be recorded separately once observed.
+## Confirmed TestFlight publication
+
+Released **1.7.2 (40)** from clean, pushed main `cdb1a345b6e9a65f3a5532c47ef90a19dc2692cb`. The frozen workspace install and repository-layout/overlay checks passed at that exact source. The main merge has the same source tree as the validated release branch and introduced no conflicts.
+
+- [EAS cloud build](https://expo.dev/accounts/ilmtech/projects/personalbest/builds/ff58b010-18a9-4b56-9496-13e83fcabbad): **FINISHED**.
+- [Automatic Apple submission](https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/de80dddb-c76c-48ed-af8a-3a39ebd35ca4): **FINISHED**, no submission error.
+- [App Store Connect TestFlight](https://appstoreconnect.apple.com/apps/6803564460/testflight/ios): build 40 **VALID**, internal state **IN_BETA_TESTING**; verified through Apple's API. External beta review was not requested.
+- Downloaded the production IPA and verified all five signed targets: matching 1.7.2/build 40, correct team, retained `group.com.cg.phi`, production push on the phone, and HealthKit on phone/Watch. Inspected the actual German permission resources (5), Watch catalog (145) and complication catalog (16).
+- IPA SHA-256: `7344dce9466f9a1e0edb30da3e1a4e1fe5b8a7264bf6326a5f3b91a37f24a259`.
+
+[Machine release result](evidence/v40-localization-2026-10-03/release-results.json) and [binary verification](evidence/v40-localization-2026-10-03/ipa-verification.json) contain the observed result without credentials or personal data. The release package is private and retains the IPA/logs and duplicate-attempt guard. No GitHub workflow run was observed for the main merge; the local checks listed above and the cloud native build did run. No production server/web rollout was performed in this phone/Watch release task.
+
+Publication confirms binary delivery, not the remaining physical-device checks above.

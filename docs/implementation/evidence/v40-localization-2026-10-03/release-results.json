@@ -1,0 +1,14 @@
+{
+  "observedAtUtc": "2026-10-02T23:02:40.210210+00:00",
+  "sourceCommit": "cdb1a345b6e9a65f3a5532c47ef90a19dc2692cb",
+  "appVersion": "1.7.2",
+  "build": "40",
+  "buildId": "ff58b010-18a9-4b56-9496-13e83fcabbad",
+  "buildStatus": "FINISHED",
+  "submissionId": "de80dddb-c76c-48ed-af8a-3a39ebd35ca4",
+  "submissionStatus": "FINISHED",
+  "appleBuildId": "58dffa64-7746-4ab4-91e8-1b605f14fe7d",
+  "processingState": "VALID",
+  "internalBuildState": "IN_BETA_TESTING",
+  "ipaSha256": "7344dce9466f9a1e0edb30da3e1a4e1fe5b8a7264bf6326a5f3b91a37f24a259"
+}
