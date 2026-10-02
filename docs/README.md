@@ -23,3 +23,7 @@ The docs header/hero image `src/public/logo.png` mirrors `XoTFrontend/public/ima
 ## Build and review
 
 From the repository root, install the pinned workspace dependencies with `pnpm install --frozen-lockfile` (or filter to `xot-docs...` for docs-only work). From `docs/` run `pnpm run build`; VitePress checks internal dead links while rendering. Use `pnpm run preview` to inspect navigation, tables and code examples on desktop and narrow screens. Build output under `.vitepress/dist/` is not source and must not be committed.
+
+## Historical implementation plans
+
+- [Live workout and Watch roadmap](plans/live-strength-workout-watch-sync.md), with current implementation status separated from outstanding device gates.
