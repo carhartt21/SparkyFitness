@@ -5965,7 +5965,7 @@
     "title": "Active Caffeine",
     "activeNow": "Active now",
     "atBedtime": "At {{time}}",
-    "lastDose": "Last dose by",
+    "lastDose": "Additional dose by",
     "cutoffPassed": "Too late",
     "cutoffOver": "Over",
     "anytimeSafe": "Any time",
@@ -5975,7 +5975,9 @@
     "legendCurve": "Active caffeine",
     "legendThreshold": "{{threshold}}mg threshold",
     "unitMg": "mg",
-    "previousDoses": "Residual from earlier entries"
+    "previousDoses": "Residual from earlier entries",
+    "dayEnd": "At day end",
+    "refreshError": "Caffeine data could not be refreshed."
   },
   "insights": {
     "subtitle": "Trends from your data.",

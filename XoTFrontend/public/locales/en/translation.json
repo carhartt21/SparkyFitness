@@ -3062,7 +3062,8 @@
       "legendDose": "Logged dose",
       "legendEstimated": "Assumed time",
       "legendCutoff": "Last {{dose}}mg dose {{time}}",
-      "empty": "No caffeine logged for this day."
+      "empty": "No caffeine logged for this day.",
+      "dayEnd": "At day end"
     },
     "exercise": "Exercise",
     "widgets": {

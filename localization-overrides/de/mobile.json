@@ -3113,7 +3113,10 @@
     "estimatedTimes": "Einige Dosiszeiten wurden geschätzt",
     "crossingNote": "Ab {{time}} wieder unter {{threshold}} mg",
     "underThreshold": "Bleibt heute Nacht unter {{threshold}} mg",
-    "previousDoses": "Restmenge aus früheren Einträgen"
+    "previousDoses": "Restmenge aus früheren Einträgen",
+    "dayEnd": "Am Tagesende",
+    "refreshError": "Die Koffeindaten konnten nicht aktualisiert werden.",
+    "lastDose": "Weitere Dosis bis"
   },
   "cycleSymptoms": {
     "title": "Symptome",

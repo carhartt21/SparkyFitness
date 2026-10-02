@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useAppLocale } from '../localization';
 import { useTranslation } from 'react-i18next';
 import { CartesianChart, Line } from 'victory-native';
@@ -8,16 +8,14 @@ import { useCSSVariable } from 'uniwind';
 import {
   activeCaffeineAt,
   caffeineCurve,
+  caffeineDisplayWindow,
   thresholdCrossingTime,
 } from '@workspace/shared';
 import type { CaffeineActiveResponse } from '@workspace/shared';
 import { makeChartFont, CHART_LABEL_FONT_SIZE } from './charts/chartFormatting';
 import LineSeriesMark from './charts/LineSeriesMark';
 import { usePreferences } from '../hooks/usePreferences';
-import {
-  formatDateToTimeLabel,
-  formatTimeLabel,
-} from '../utils/entryTimeDisplay';
+import { formatTimeLabel } from '../utils/entryTimeDisplay';
 
 const font = makeChartFont(CHART_LABEL_FONT_SIZE);
 
@@ -25,6 +23,8 @@ type CaffeineCardProps = {
   kinetics: CaffeineActiveResponse | undefined;
   nowMs: number;
   isLoading: boolean;
+  isError?: boolean;
+  onRetry?: () => void;
 };
 
 /**
@@ -37,6 +37,8 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
   kinetics,
   nowMs,
   isLoading,
+  isError = false,
+  onRetry,
 }) => {
   const { t } = useTranslation();
   const locale = useAppLocale();
@@ -47,42 +49,30 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
     '--color-text-muted',
   ]) as [string, string, string];
 
+  const timeZone =
+    kinetics?.timezone ||
+    preferences?.timezone ||
+    Intl.DateTimeFormat().resolvedOptions().timeZone;
+
   const clockLabel = (value: number | string | Date) => {
     const d = value instanceof Date ? value : new Date(value);
-    const time = formatDateToTimeLabel(d, preferences?.time_format);
-    return `${new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' }).format(d)} ${time}`;
+    const time = new Intl.DateTimeFormat(locale, {
+      timeZone,
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+    }).format(d);
+    return `${new Intl.DateTimeFormat(locale, { timeZone, day: '2-digit', month: '2-digit' }).format(d)} ${time}`;
   };
 
-  const bedtimeMs = kinetics ? new Date(kinetics.bedtime_at).getTime() : 0;
-
-  // The plotted window belongs to the day on screen, and the wall clock must
-  // never widen it: the card renders for whatever date the dashboard shows, so
-  // on a past day `nowMs` sits outside the window and stretching the range to
-  // reach it walked the whole span at 15-minute steps with no cap.
-  const windowMs = useMemo(() => {
-    if (!kinetics || kinetics.doses.length === 0) return null;
-    const firstDoseMs = kinetics.doses.reduce(
-      (earliest, dose) => Math.min(earliest, new Date(dose.at).getTime()),
-      Number.POSITIVE_INFINITY
-    );
-    const end = bedtimeMs + 2 * 60 * 60 * 1000;
-    // `bedtime_at` sits on the date being viewed, so the 24 hours before it are
-    // that day. Only a clock inside them belongs on this chart; anything else
-    // is a different day and must not drag the window across to meet it.
-    const nowBelongsToDay =
-      nowMs >= bedtimeMs - 24 * 60 * 60 * 1000 && nowMs <= end;
-    const doseStart = firstDoseMs - 60 * 60 * 1000;
-    return {
-      start: nowBelongsToDay ? Math.min(doseStart, nowMs) : doseStart,
-      end,
-      nowBelongsToDay,
-    };
-  }, [kinetics, bedtimeMs, nowMs]);
-
-  // "Now" on the day being viewed, otherwise that day's edge, so the active
-  // figure describes the day on screen rather than this instant.
-  const referenceMs =
-    windowMs && !windowMs.nowBelongsToDay ? windowMs.end : nowMs;
+  const windowMs = useMemo(
+    () =>
+      kinetics
+        ? caffeineDisplayWindow(kinetics.bedtime_at, nowMs, timeZone)
+        : null,
+    [kinetics, nowMs, timeZone]
+  );
+  const referenceMs = windowMs?.reference ?? nowMs;
 
   const chartData = useMemo(() => {
     if (!kinetics || kinetics.doses.length === 0 || !windowMs) return [];
@@ -100,7 +90,7 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
     }));
   }, [kinetics, windowMs]);
 
-  const crossingAt = useMemo(
+  const lastCrossingAt = useMemo(
     () =>
       kinetics
         ? thresholdCrossingTime(
@@ -111,6 +101,41 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
         : null,
     [kinetics]
   );
+
+  // A past crossing outside this day is not a current-day projection.
+  const crossingAt =
+    lastCrossingAt && windowMs && Date.parse(lastCrossingAt) >= windowMs.start
+      ? lastCrossingAt
+      : null;
+
+  if (isError) {
+    return (
+      <View
+        className="bg-surface rounded-2xl border border-border-subtle p-4 my-2"
+        testID="caffeine-error"
+      >
+        <Text className="text-text-primary text-lg font-semibold">
+          {t('caffeine.title', { defaultValue: 'Active Caffeine' })}
+        </Text>
+        <Text accessibilityRole="alert" className="text-text-secondary my-2">
+          {t('caffeine.refreshError', {
+            defaultValue: 'Caffeine data could not be refreshed.',
+          })}
+        </Text>
+        {onRetry && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onRetry}
+            className="min-h-11 justify-center"
+          >
+            <Text className="text-text-link">
+              {t('common.retry', { defaultValue: 'Retry' })}
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
 
   if (isLoading || !kinetics || kinetics.doses.length === 0) {
     // A caffeine card on a day with no caffeine is noise, not information.
@@ -125,9 +150,11 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
 
   // Below the display's 1 mg resolution, past residual alone is not useful.
   // Do not suppress a dose on the selected day or alter the underlying model.
-  const selectedDay = new Date(kinetics.bedtime_at).toDateString();
   const hasDoseOnSelectedDay = kinetics.doses.some(
-    (dose) => new Date(dose.at).toDateString() === selectedDay
+    (dose) =>
+      windowMs &&
+      Date.parse(dose.at) >= windowMs.start &&
+      Date.parse(dose.at) <= windowMs.end
   );
   if (!hasDoseOnSelectedDay && activeNowMg < 1) return null;
 
@@ -148,6 +175,14 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
       <Text className="text-text-primary text-lg font-semibold mb-2">
         {t('caffeine.title', { defaultValue: 'Active Caffeine' })}
       </Text>
+      <Text className="text-text-secondary text-sm mb-3">
+        {new Intl.DateTimeFormat(locale, {
+          timeZone,
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(new Date(kinetics.bedtime_at))}
+      </Text>
 
       {!hasDoseOnSelectedDay && (
         <Text className="text-text-secondary text-sm mb-2">
@@ -159,7 +194,9 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
       <View className="flex-row justify-between mb-3">
         <View>
           <Text className="text-text-muted text-xs">
-            {t('caffeine.activeNow', { defaultValue: 'Active now' })}
+            {windowMs?.isToday
+              ? t('caffeine.activeNow', { defaultValue: 'Active now' })
+              : t('caffeine.dayEnd', { defaultValue: 'At day end' })}
           </Text>
           <Text className="text-text-primary text-2xl font-bold">
             {Math.round(activeNowMg)}
@@ -205,9 +242,15 @@ const CaffeineCard: React.FC<CaffeineCardProps> = ({
           domainPadding={{ left: 10, right: 10, top: 12 }}
           xAxis={{
             font,
-            tickCount: 2,
+            tickCount: 3,
             labelColor: textMuted,
-            formatXLabel: (value: number) => clockLabel(value),
+            formatXLabel: (value: number) =>
+              new Intl.DateTimeFormat(locale, {
+                timeZone,
+                hour: '2-digit',
+                minute: '2-digit',
+                hourCycle: 'h23',
+              }).format(value),
           }}
           yAxis={[{ font, tickCount: 4, labelColor: textMuted }]}
         >

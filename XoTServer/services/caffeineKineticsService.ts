@@ -119,6 +119,7 @@ export async function getActiveCaffeineKinetics(
     half_life_hours: halfLifeHours,
     target_bedtime: targetBedtime,
     bedtime_at: bedtimeAt,
+    timezone: tz,
     doses,
     active_mg_now: activeMgNow,
     at_bedtime_mg: atBedtimeMg,

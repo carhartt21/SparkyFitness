@@ -2631,7 +2631,8 @@
       "legendDose": "Erfasste Dosis",
       "legendEstimated": "Angenommene Zeit",
       "legendCutoff": "Letzte Dosis von {{dose}} mg um {{time}}",
-      "empty": "Für diesen Tag wurde kein Koffein protokolliert."
+      "empty": "Für diesen Tag wurde kein Koffein protokolliert.",
+      "dayEnd": "Am Tagesende"
     },
     "addFood": "Lebensmittel hinzufügen",
     "noMealTypeForQuickAdd": "Wählen Sie zuerst eine Mahlzeit aus, um ein Lebensmittel hinzuzufügen.",

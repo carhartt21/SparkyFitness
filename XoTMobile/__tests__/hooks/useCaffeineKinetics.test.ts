@@ -1,4 +1,5 @@
 import { renderHook, waitFor, act } from '@testing-library/react-native';
+import { invalidateFoodCache } from '../../src/hooks/invalidateFoodCache';
 import { useCaffeineKinetics } from '../../src/hooks/useCaffeineKinetics';
 import { fetchActiveCaffeine } from '../../src/services/api/caffeineApi';
 import {
@@ -32,7 +33,7 @@ describe('useCaffeineKinetics', () => {
     queryClient.clear();
   });
 
-  test('fetches active caffeine kinetics and provides refetch function', async () => {
+  test('refreshes the active caffeine query after a food log invalidation', async () => {
     mockFetchActiveCaffeine.mockResolvedValue({
       half_life_hours: 5,
       target_bedtime: '22:30',
@@ -95,7 +96,7 @@ describe('useCaffeineKinetics', () => {
     });
 
     await act(async () => {
-      await result.current.refetch();
+      invalidateFoodCache(queryClient, testDate);
     });
 
     await waitFor(() => {

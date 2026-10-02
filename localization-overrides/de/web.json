@@ -508,7 +508,8 @@
     "goalsDelegateDescription": "Die kontoführende Person muss Tagesziele festlegen, bevor diese Ansicht verfügbar ist.",
     "openGoals": "Ziele öffnen",
     "caffeine": {
-      "empty": "Für diesen Tag wurde kein Koffein protokolliert."
+      "empty": "Für diesen Tag wurde kein Koffein protokolliert.",
+      "dayEnd": "Am Tagesende"
     },
     "calculateExplanation": {
       "assumedInputs": "Diese Vorschau verwendet angenommene Werte für {{inputs}}. Erfassen Sie diese Messwerte im Check-in und in den Profileinstellungen, um eine persönliche Berechnung zu erhalten.",

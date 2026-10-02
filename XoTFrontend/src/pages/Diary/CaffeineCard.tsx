@@ -20,6 +20,7 @@ import {
 import {
   activeCaffeineAt,
   caffeineCurve,
+  caffeineDisplayWindow,
   caffeineCutoff,
   thresholdCrossingTime,
 } from '@workspace/shared';
@@ -56,41 +57,15 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
   // render, and the card returns null on a day with no caffeine.
   const bedtimeMs = data ? new Date(data.bedtime_at).getTime() : 0;
 
-  // The plotted window belongs to the day on screen: an hour before its first
-  // dose to two hours past its bedtime, so the curve shows where it is heading
-  // rather than stopping at the moment of most interest.
-  //
-  // The wall clock must never widen it. This card renders for whatever date the
-  // diary is showing, and the server answers for that date, so on a past day
-  // `Date.now()` sits outside the window entirely -- stretching the range to
-  // reach it drew a curve from that day's first coffee to this instant, and
-  // caffeineCurve steps the whole span at 10-minute intervals with no cap. A
-  // year-old dose meant ~52k points and a hung chart.
-  const windowMs = useMemo(() => {
-    if (!data || data.doses.length === 0) return null;
-    const firstDoseMs = data.doses.reduce(
-      (earliest, dose) => Math.min(earliest, new Date(dose.at).getTime()),
-      Number.POSITIVE_INFINITY
-    );
-    const end = bedtimeMs + 2 * 60 * 60 * 1000;
-    // `bedtime_at` sits on the date being viewed, so the 24 hours before it are
-    // that day. Only a clock inside them belongs on this chart; anything else
-    // is a different day and must not drag the window across to meet it.
-    const nowBelongsToDay =
-      nowMs >= bedtimeMs - 24 * 60 * 60 * 1000 && nowMs <= end;
-    const doseStart = firstDoseMs - 60 * 60 * 1000;
-    return {
-      start: nowBelongsToDay ? Math.min(doseStart, nowMs) : doseStart,
-      end,
-      nowBelongsToDay,
-    };
-  }, [data, bedtimeMs, nowMs]);
-
-  // "Now" on the day being viewed, otherwise that day's edge -- so the decay
-  // figure and the cutoff describe the day on screen rather than this instant.
-  const referenceMs =
-    windowMs && !windowMs.nowBelongsToDay ? windowMs.end : nowMs;
-  const nowIsInWindow = windowMs?.nowBelongsToDay ?? false;
+  const timeZone =
+    data?.timezone || Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const windowMs = useMemo(
+    () =>
+      data ? caffeineDisplayWindow(data.bedtime_at, nowMs, timeZone) : null,
+    [data, nowMs, timeZone]
+  );
+  const referenceMs = windowMs?.reference ?? nowMs;
+  const nowIsInWindow = windowMs?.isToday ?? false;
 
   const chart = useMemo(() => {
     if (!data || !windowMs) return [];
@@ -121,7 +96,7 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
   }, [data, referenceMs]);
 
   // Recomputed from the same doses, so the words and the curve cannot drift.
-  const crossingAt = useMemo(
+  const lastCrossingAt = useMemo(
     () =>
       data
         ? thresholdCrossingTime(
@@ -132,6 +107,11 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
         : null,
     [data]
   );
+
+  const crossingAt =
+    lastCrossingAt && windowMs && Date.parse(lastCrossingAt) >= windowMs.start
+      ? lastCrossingAt
+      : null;
 
   if (isLoading) {
     return (
@@ -257,7 +237,9 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
           {/* Active Now */}
           <div className="flex flex-col p-3 rounded-lg bg-amber-50/50 dark:bg-amber-950/20 border border-amber-200/50 dark:border-amber-900/40">
             <span className="text-xs text-muted-foreground">
-              {t('diary.caffeine.activeNow', 'Active Now')}
+              {nowIsInWindow
+                ? t('diary.caffeine.activeNow', 'Active Now')
+                : t('diary.caffeine.dayEnd', 'At day end')}
             </span>
             <div className="flex items-baseline gap-1 mt-1">
               <span className="text-2xl font-bold text-amber-700 dark:text-amber-300">
@@ -420,25 +402,32 @@ export const CaffeineCard = ({ date, userId }: CaffeineCardProps) => {
               {/* A dose whose time was assumed rather than logged is drawn
                   hollow: the payload carries that per dose, and the card used
                   to say so only once, for the whole day. */}
-              {doses.map((dose, idx) => {
-                const doseMs = new Date(dose.at).getTime();
-                return (
-                  <ReferenceDot
-                    // Time plus amount is not unique: the same drink logged
-                    // twice at the same minute collides. Index it, as the dose
-                    // list below already does.
-                    key={`${dose.at}-${idx}`}
-                    x={doseMs}
-                    y={activeCaffeineAt(doses, doseMs, half_life_hours)}
-                    r={4}
-                    fill={dose.is_estimated ? 'transparent' : '#d97706'}
-                    stroke="#d97706"
-                    strokeWidth={dose.is_estimated ? 1.5 : 1}
-                    strokeDasharray={dose.is_estimated ? '2 2' : '0'}
-                    ifOverflow="extendDomain"
-                  />
-                );
-              })}
+              {doses
+                .filter(
+                  (dose) =>
+                    windowMs &&
+                    Date.parse(dose.at) >= windowMs.start &&
+                    Date.parse(dose.at) <= windowMs.end
+                )
+                .map((dose, idx) => {
+                  const doseMs = new Date(dose.at).getTime();
+                  return (
+                    <ReferenceDot
+                      // Time plus amount is not unique: the same drink logged
+                      // twice at the same minute collides. Index it, as the dose
+                      // list below already does.
+                      key={`${dose.at}-${idx}`}
+                      x={doseMs}
+                      y={activeCaffeineAt(doses, doseMs, half_life_hours)}
+                      r={4}
+                      fill={dose.is_estimated ? 'transparent' : '#d97706'}
+                      stroke="#d97706"
+                      strokeWidth={dose.is_estimated ? 1.5 : 1}
+                      strokeDasharray={dose.is_estimated ? '2 2' : '0'}
+                      ifOverflow="extendDomain"
+                    />
+                  );
+                })}
             </AreaChart>
           </ResponsiveContainer>
           {/* Every mark on the plot is named here rather than labelled in

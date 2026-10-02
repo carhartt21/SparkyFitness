@@ -11,6 +11,8 @@ export const caffeineActiveResponseSchema = z.object({
   half_life_hours: z.number(),
   target_bedtime: z.string(),
   bedtime_at: z.string(),
+  /** Account timezone; optional for servers released before the daily chart window. */
+  timezone: z.string().optional(),
   doses: z.array(caffeineDoseSchema),
   active_mg_now: z.number(),
   at_bedtime_mg: z.number(),

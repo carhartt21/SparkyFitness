@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react-native';
+import { render, screen, fireEvent } from '@testing-library/react-native';
 import CaffeineCard from '../../src/components/CaffeineCard';
 import type { CaffeineActiveResponse } from '@workspace/shared';
 
@@ -129,6 +129,42 @@ describe('CaffeineCard (mobile)', () => {
       />
     );
     expect(screen.getByText(copy)).toBeTruthy();
+  });
+
+  it('does not label an old crossing as today after a new small drink', () => {
+    render(
+      <CaffeineCard
+        kinetics={{
+          ...baseKinetics,
+          timezone: 'Europe/Berlin',
+          bedtime_at: '2026-10-02T20:30:00Z',
+          doses: [
+            { at: '2026-09-30T20:26:00Z', mg: 150 },
+            { at: '2026-10-02T12:30:00Z', mg: 32 },
+          ],
+        }}
+        nowMs={Date.parse('2026-10-02T13:00:00Z')}
+        isLoading={false}
+      />
+    );
+    expect(screen.queryByText(/Back under/)).toBeNull();
+    expect(screen.getByText(/Stays under/)).toBeTruthy();
+  });
+
+  it('offers retry instead of presenting a failed refresh as current data', () => {
+    const retry = jest.fn();
+    render(
+      <CaffeineCard
+        kinetics={baseKinetics}
+        nowMs={NOW}
+        isLoading={false}
+        isError
+        onRetry={retry}
+      />
+    );
+    expect(screen.queryByTestId('caffeine-chart')).toBeNull();
+    fireEvent.press(screen.getByText('Retry'));
+    expect(retry).toHaveBeenCalledTimes(1);
   });
 
   it('renders nothing on a day with no caffeine', () => {

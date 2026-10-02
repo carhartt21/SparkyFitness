@@ -5762,7 +5762,7 @@
     "title": "Aktives Koffein",
     "activeNow": "Jetzt aktiv",
     "atBedtime": "um {{time}}",
-    "lastDose": "Letzte Dosis von",
+    "lastDose": "Weitere Dosis bis",
     "cutoffPassed": "Zu spät",
     "cutoffOver": "darüber",
     "anytimeSafe": "Jederzeit",
@@ -5772,7 +5772,9 @@
     "legendCurve": "Aktives Koffein",
     "legendThreshold": "{{threshold}}mg Grenzwert",
     "unitMg": "mg",
-    "previousDoses": "Restmenge aus früheren Einträgen"
+    "previousDoses": "Restmenge aus früheren Einträgen",
+    "dayEnd": "Am Tagesende",
+    "refreshError": "Die Koffeindaten konnten nicht aktualisiert werden."
   },
   "mobility": {
     "title": "Geführte Mobilität",

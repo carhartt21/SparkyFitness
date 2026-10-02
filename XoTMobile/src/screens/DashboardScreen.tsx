@@ -422,6 +422,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     kinetics: caffeineKinetics,
     nowMs: caffeineNowMs,
     isLoading: isCaffeineLoading,
+    isError: isCaffeineError,
     refetch: refetchCaffeine,
   } = useCaffeineKinetics(selectedDate, caffeineCardVisible);
   const askSparkyVisible = useAppPreferencesStore((s) => s.askSparkyVisible);
@@ -1067,6 +1068,8 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             kinetics={caffeineKinetics}
             nowMs={caffeineNowMs}
             isLoading={isCaffeineLoading}
+            isError={isCaffeineError}
+            onRetry={() => void refetchCaffeine()}
           />
         )}
 
