@@ -1,0 +1,46 @@
+{
+  "revision": "e30017f8646c6c4678615f7cdb50201a19dbe011",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval."
+}

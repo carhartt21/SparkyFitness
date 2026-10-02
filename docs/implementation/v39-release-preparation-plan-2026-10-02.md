@@ -2,6 +2,10 @@
 
 Reviewed on 2026-10-02. This is a preparation and integration plan, not release approval. No PR, Todoist task, branch, deployment or mobile publication was changed during this review. The intended result is one tested main revision, with each open PR either merged or explicitly superseded, and a fresh release package pinned to that revision.
 
+## Execution status
+
+The owner authorized execution after this review. See [integration results and validation](v39-integration-results-2026-10-02.md) for the completed merge work, actual tests, rollout boundaries and remaining device checks. The inventory below records the pre-execution snapshot.
+
 ## Current state
 
 - Fetched `origin`; local and remote main are `899ac67bc`. The local deployment lock records that revision for both web and server. The recorded EAS build is 1.7.2 (38), finished, from the same revision. These are release records, not a new live container or Apple availability check.

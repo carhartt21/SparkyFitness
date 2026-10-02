@@ -1,0 +1,1 @@
+Action bar bottom: 587.0; OS keyboard panel top: 587.0; key-region top: 631.0; Done frame: (12.33333334326744, 436.6666463315487, 405.33331298828125, 66.6666259765625)

@@ -31,8 +31,12 @@ Watch/WidgetKit code is included for internal testing; real paired Watch offline
 
 ## Visual review
 
-The reviewed German web captures preserve legible numeric hierarchy, nutrient colors, full-width narrow cards and accessible logging destinations. Sidebar long labels truncate without horizontal overflow. Selected follow-up polish: the longer medication/supplement navigation label still truncates on desktop; no destination is lost. Native capture/interaction results are being finalized before release. Synthetic fixture successes do not establish live-account or physical-device acceptance.
+The reviewed German web captures preserve legible numeric hierarchy, nutrient colors, full-width narrow cards and accessible logging destinations. Sidebar long labels truncate without horizontal overflow. Selected follow-up polish: the longer medication/supplement navigation label still truncates on desktop; no destination is lost. Native German render/interaction checks passed for UI refinements and caffeine/hydration at 390×844 dark/light and 430×932 enlarged text. The action bar bottom exactly met the OS keyboard panel top (zero-point gap) for both numeric and note keyboards in all three configurations. The hydration tests log/read back fixture water, keep food-water details separate, and check the caffeine day window. Twenty-nine standalone Watch health protocol assertions passed. Synthetic fixture successes do not establish live-account or physical-device acceptance.
 
 ## Repository preservation
 
 Dirty older worktrees and the separately edited deployment checkout are retained. The integration preserves ancestry of included feature branches. No backup branch, unaccounted worktree or historical reference was deleted to make the inventory appear clean. The fresh v39 release package will pin one final main commit, archive checksum, eleven migration filenames and the observed healthy v38 image IDs; it retains encrypted off-host backup and duplicate-upload guards.
+
+## Final readiness decision
+
+All three package validation wrappers passed on the integrated application source; full mobile/web and the relevant targeted follow-up tests passed. The production web/docs builds and normal iOS export passed. Included PR ancestry is preserved for #1, #2, #4, #6 and #7; #5 is superseded rather than merged twice. The branch is ready for the authorized internal TestFlight/private-server cycle with the explicit disabled rollout gates and physical-device limitations above. Release completion and Apple processing must be recorded separately; this readiness record is not a claim of deployment or TestFlight availability.
