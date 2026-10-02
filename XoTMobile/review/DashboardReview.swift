@@ -928,6 +928,12 @@ final class DashboardReview: XCTestCase {
     dashboard.swipeDown()
     let food = app.buttons["dashboard-food"]
     XCTAssertTrue(food.waitForExistence(timeout: 10))
+    // Summary cards can grow with task counts and text size; find the actions
+    // rather than assuming that three downward swipes leave them visible.
+    for _ in 0..<8 {
+      if food.isHittable && food.frame.maxY < app.frame.maxY - 140 { break }
+      dashboard.swipeUp(velocity: .slow)
+    }
     XCTAssertTrue(food.isHittable)
     XCTAssertGreaterThanOrEqual(food.frame.height, 44)
     XCTAssertGreaterThanOrEqual(food.frame.width, 44)
@@ -937,6 +943,7 @@ final class DashboardReview: XCTestCase {
       XCTAssertGreaterThanOrEqual(action.frame.height, 44)
       XCTAssertGreaterThanOrEqual(action.frame.width, 44)
     }
+    capture("dashboard-quick-actions", app)
     app.buttons["dashboard-water"].tap()
     let hydrationDetails = app.buttons["dashboard-hydration-details"]
     for _ in 0..<4 {

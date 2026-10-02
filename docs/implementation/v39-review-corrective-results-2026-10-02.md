@@ -85,3 +85,14 @@ signed entitlements, every scrolled Watch row/dialog and a new full native archi
 were not verified. The phone screenshots use isolated in-memory responses and an
 existing simulator native binary; they do not exercise the new native event bridge.
 Keep the five owner-review items available for that device acceptance.
+
+## Quick-action label follow-up — 2026-10-03
+
+Removed the Scan tile's “Food label” / “Etikett” subheading. All four Dashboard
+quick actions now use the same icon-and-label layout; destinations are unchanged.
+Mobile `validate`, six Dashboard component tests and the German 390×844 native
+Dashboard interaction check passed. The initial native run assumed the actions
+were near the top; adaptive scrolling corrected that harness assumption. The final
+[synthetic capture](evidence/v39-review-corrections-2026-10-02/390-de-dark-quick-actions-aligned.png)
+was visually inspected and confirms aligned labels. Other sizes/themes were not
+rendered again for this narrow label removal.
