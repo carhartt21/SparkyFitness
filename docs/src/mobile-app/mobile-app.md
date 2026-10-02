@@ -1,22 +1,32 @@
 # X on Track mobile app
 
-The iPhone and Android app supports food and workout logging, Apple Health or Health Connect synchronization, and connection to a self-hosted server over HTTPS. The iPhone build also includes an Apple Watch companion, widgets, and Live Activities.
+X on Track supports food and workout logging, local saves, Apple Health or Health Connect synchronization, and a connection to your server over HTTPS. The iPhone build includes an Apple Watch companion, widgets and Live Activities.
 
-The X on Track identity is implemented in the development app. A production-resolution logo master, signed release build, and physical-device acceptance pass are still required before publishing it as X on Track. The app currently retains its existing bundle identifiers and deep-link schemes so installed data and integrations survive the name change.
+## Install and connect
 
-## Development and self-hosted testing
+The owner app is distributed through its internal TestFlight program. Use the owner's invitation and release notes; the upstream store links below are a different application. Availability of a newly uploaded build depends on Apple processing and tester assignment, not just build success.
 
-Use a server with a trusted HTTPS URL. The app can connect through a secure development tunnel when testing locally. Plain HTTP is not a supported mobile connection. Complete the first-run server connection and sign-in flow, then verify a saved entry remains after a cold launch.
+Install an update over the existing X on Track app without deleting it to retain local entries and settings. Sign in to the same server/account, then check a previous entry and sync status. The app retains its bundle IDs, deep-link schemes and sharing identifiers so branding changes do not create a new data container. The iOS identifier `com.cg.phi` is a signing/compatibility identifier, not the product name; a build with it replaces an app already using that identifier.
 
-The development iOS bundle identifier is `com.cg.phi`; this is a compatibility and signing identifier, not the public product name. Installing a new development build with that identifier replaces any app already installed under it. The production identifiers are intentionally unchanged in the source configuration.
+Use a trusted **HTTPS server URL** for the first-run connection and sign-in. A secure Expo tunnel loads a development app's JavaScript; it is not the nutrition/workout API server. Do not enter an Expo development-server URL into the account's server-connection field. Localhost on your Mac is not localhost on the phone.
+
+Open the app after an update to refresh shared widget data and reconcile local reminders. Install/open the paired Watch companion separately through the iPhone Watch app when needed.
+
+## Guides
+
+- [Weekly training plans](/features/exercises/weekly-planning): schedule whole activities and presets without recording them as completed.
+- [MCP-based training](/features/exercises/mcp-training): assistant reads, preset changes, mobility planning and current limits.
+- [Notifications and reminders](/features/settings/notifications): permissions, optional quota, remote delivery and intake follow-ups.
+- [Widgets, Watch complications and Live Activities](/mobile-app/widgets-live-activities): place widgets and enable active-session presentation.
+- [Proxy setup](/mobile-app/proxy-setup) and [Troubleshooting](/mobile-app/troubleshooting): server connection and diagnostic checks.
+
+For maintainers, the [TestFlight release runbook](https://github.com/carhartt21/SparkyFitness/blob/main/XoTMobile/docs/testflight-release.md) covers cloud builds, the local fallback, signing/export and upload verification. Current deployment/build results belong in dated release records, not this evergreen guide.
 
 ## Upstream store builds
 
-The following are **SparkyFitness upstream builds** and must not be presented as X on Track downloads:
+The following are **SparkyFitness upstream builds**, not X on Track downloads. Follow upstream instructions for their identifiers, screenshots and release schedule:
 
 - [Upstream iOS App Store listing](https://apps.apple.com/us/app/sparkyfitness/id6757314392)
 - [Upstream TestFlight program](https://testflight.apple.com/join/9Yz8PzpR)
 - [Upstream Android releases](https://github.com/CodeWithCJ/SparkyFitness/releases)
 - [Upstream Google Play beta](https://play.google.com/store/apps/details?id=com.SparkyApps.SparkyFitnessMobile)
-
-The upstream APK filename `XoTMobile.apk` and package ID are technical release identifiers. Use the upstream documentation for those builds; their screenshots and release schedule do not verify the X on Track app.

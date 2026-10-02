@@ -53,14 +53,14 @@ These are list prices, so treat them as a ceiling. Most people don't need all fo
 These are the projects most people compare SparkyFitness against when they want to keep their health data off someone else's servers.
 
 ::: warning
-**One thing to get straight first: SparkyFitness is source-available, not open source.** Our [licence](https://github.com/CodeWithCJ/SparkyFitness/blob/main/LICENSE) is free for personal and self-hosted use but restricts commercial hosting — [here's why](/faq#general-project-questions). Everything else in this table is properly OSI-licensed. If that matters to you, it matters more than any row below.
+**One thing to get straight first: SparkyFitness is source-available, not open source.** Our [licence](https://github.com/CodeWithCJ/SparkyFitness/blob/main/LICENSE) is free for personal and self-hosted use but restricts commercial hosting — [license and upstream attribution](/faq#what-license-and-support-channels-apply). Everything else in this table is properly OSI-licensed. If that matters to you, it matters more than any row below.
 :::
 | | **SparkyFitness** | wger | OpenNutriTracker | Waistline | FoodYou | FitTrackee |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: |
 | **Ownership & Licensing** | | | | | | |
 | Self-hostable server | ✅ | ✅ | 🟡 food-DB backend only | ❌ | ❌ | ✅ |
 | Licence | Source-available, non-commercial | AGPL-3.0 | GPL-3.0 | GPL-3.0 | GPL-3.0 | AGPL-3.0 |
-| OSI-approved open source | ❌ [why](/faq#general-project-questions) | ✅ | ✅ | ✅ | ✅ | ✅ |
+| OSI-approved open source | ❌ [license](/faq#what-license-and-support-channels-apply) | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Usable with no account at all | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
 | Free of subscription fees | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | First-party telemetry documented | None found | None found | None found | None found | None found | None found |

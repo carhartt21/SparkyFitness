@@ -2,6 +2,8 @@
 
 This batch addresses the seven v37 review findings and the owner's clarified weekly-planning requirement. The baseline is the shipped v37 source, `663895d8c`. Work takes place on `feat/v37-corrections-20261001`; unrelated worktrees and draft features remain intact.
 
+**Execution update, 2026-10-02:** the verified batch was merged to `main` as `899ac67bc` and deployed to the private production server. Mobile build/upload and Apple availability are separate release states, recorded in the private release package. The original release sequence below is retained as the plan at review time; it is not a pending merge instruction. Current usage is documented in [Weekly training plans](../src/features/exercises/weekly-planning.md), [MCP-based training](../src/features/exercises/mcp-training.md) and [Notifications](../src/features/settings/notifications.md).
+
 ## Evidence and scope
 
 | Priority | Finding                                                      | Verified evidence                                                                                                                                                | Correction and acceptance                                                                                                                                                                                                                                   |

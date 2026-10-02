@@ -1,172 +1,34 @@
-# AI Assistant & MCP Server
+# MCP server and connected assistants
 
-X on Track includes a powerful **Model Context Protocol (MCP)** server. This allows you to connect advanced AI assistants (like Claude Desktop, Cursor, or custom AI clients) directly to your personal health data securely.
+An MCP connection lets an external assistant call X on Track's existing data tools. Use it to read recorded food, exercise and daily tracking, or explicitly authorize supported writes. The assistant receives the data returned by its tools; a successful connection is not proof that every feature in the app has an MCP tool.
 
-When you enable the MCP Server, your AI assistant transforms into a **Personal Health Intelligence** layer that can read your health logs, track your progress, and provide hyper-personalized coaching based on your actual data.
+For practical workflows, start with [MCP-based training](/features/exercises/mcp-training) and [MCP notification updates](/features/settings/notifications#mcp-notification-updates).
 
----
+## Choose the connection
 
-## 🛠 Available Tools & Capabilities
+| Connection            | Endpoint       | Access                                                                                                                                                  |
+| --------------------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| MCP read-only API key | `/mcp`         | Reviewed query tools only. This key cannot authenticate normal protected REST routes.                                                                   |
+| Full API key          | `/mcp`         | Full registry, including mixed read/write management tools. Use only when the integration needs this access.                                            |
+| Account OAuth         | `/mcp/chatgpt` | Reviewed reads with `mcp:read`; selected food, exercise, water, mobility and notification writes with `mcp:write`. Requires server OAuth configuration. |
 
-The AI assistant can perform the following actions across different health domains. Tools that convert units use your **Unit Preferences**; read-only measurement reminder status returns weight in kg and custom values in their configured unit, explicitly named in the response.
+Both use Streamable HTTP. The server exposes POST endpoints; opening the URL in a browser is not a connection test. Tool names beginning with `sparky_` remain compatibility identifiers. X on Track is the product name; do not rename a tool when configuring a client.
 
-### 🥗 Nutrition & Food
+## Connect with OAuth
 
-Track your diet, manage meals, and analyze your nutritional intake.
+In an OAuth-capable MCP client's connection settings, enter `https://<your-host>/mcp/chatgpt`. Start authorization, sign in to X on Track, and review the requested read/write scopes. OAuth uses the account authorization flow, not an application API key pasted into a Bearer header.
 
-| Feature                | Tool Action                         | Example Prompt                                                                  |
-| :--------------------- | :---------------------------------- | :------------------------------------------------------------------------------ |
-| **Log Food**           | `log_food`                          | "I just had a 250g steak and a salad."                                          |
-| **Quick Add**          | `log_external_food` / `create_food` | "Quick add my restaurant tasting menu, ~1200 kcal — don't save it to my foods." |
-| **Meal Templates**     | `log_meal`                          | "Log my 'Standard Breakfast' for today."                                        |
-| **Water Tracking**     | `log_water`                         | "I drank 500ml of water."                                                       |
-| **Daily Diary**        | `list_diary`                        | "What have I eaten today?"                                                      |
-| **Copy Entries**       | `copy_from_yesterday`               | "Copy my breakfast from yesterday to today."                                    |
-| **Nutrition Analysis** | `get_nutritional_summary`           | "Give me a breakdown of my macros for the last 7 days."                         |
+Client menus and supported scopes vary. Use that client's current connection instructions and inspect its returned tool list after authorization. If an authorization link expires, start a new flow instead of reusing the old browser URL. After a server update, refresh/reconnect the client and start a fresh conversation if its tool schemas remain cached.
 
-::: info
-**Quick Add** mirrors the checkbox in the web and mobile food forms: the food is logged to your diary for that date but stays out of your food list, search, favorites, and recents. It applies to whichever path the assistant already uses — `log_external_food` for a match from a provider such as OpenFoodFacts or USDA, `create_food` for a custom or homemade food — so asking for Quick Add never costs you the verified provider nutrition. It applies only to foods being added for the first time: if the food is already in your food list, it stays there and the assistant tells you Quick Add was not applied, because hiding it would remove a food you already rely on. Ask for it explicitly ("quick add", "don't save this to my foods"); otherwise foods the assistant creates are saved to your list as usual.
-:::
+Review and disconnect assistants in **web Settings → Connected assistants**. Revocation blocks subsequent requests even if a signed access token has not expired. Supported writes can apply immediately when called; there is no general second approval inbox inside X on Track. Individual tools can require confirmation, such as preset updates/deletes.
 
-### 🏋️ Exercise & Fitness
+If the endpoint returns `mcp_oauth_not_configured`, the administrator must configure OAuth and its proxy routes. See [Assistant access and notification delivery](/developer/engagement-delivery).
 
-Manage your workouts, track strength progress, and use presets.
+## Connect with an API key
 
-| Feature               | Tool Action             | Example Prompt                                         |
-| :-------------------- | :---------------------- | :----------------------------------------------------- |
-| **Log Workout**       | `log_exercise`          | "Log 3 sets of Bench Press at 80kg for 10 reps."       |
-| **Workout Presets**   | `log_workout_preset`    | "Start my 'Leg Day' workout."                          |
-| **Exercise Details**  | `get_exercise_details`  | "How do I perform a Bulgarian Split Squat?"            |
-| **Progress Tracking** | `get_exercise_progress` | "Show me my Bench Press progress over the last month." |
-| **Search Library**    | `search_exercises`      | "Find some advanced chest exercises using dumbbells."  |
+Create a key in **web Settings → API Key Management**. Prefer **MCP read-only** for inspection. Send it as `Authorization: Bearer <API_KEY>` to `https://<your-host>/mcp`, using your client's supported secure credential mechanism. Never put a live key into a committed configuration, prompt or diagnostic screenshot.
 
-### 📈 Biometrics & Check-ins
-
-Monitor your weight, sleep, mood, and daily habits.
-
-| Feature            | Tool Action                   | Example Prompt                                  |
-| :----------------- | :---------------------------- | :---------------------------------------------- |
-| **Daily Wizard**   | `sparky_daily_checkin_wizard` | "I'm ready for my daily check-in."              |
-| **Weight & Body**  | `log_biometrics`              | "My weight is 185 lbs today."                   |
-| **Sleep & Mood**   | `log_sleep`, `log_mood`       | "I slept 7 hours and feel like an 8/10."        |
-| **Fasting Status** | `get_fasting_status`          | "Am I still in my fasting window?"              |
-| **Weight History** | `get_biometrics_history`      | "Show me my weight trend for the last 30 days." |
-| **Custom Metrics** | `log_custom_metric`           | "My blood pressure was 120/80 today."           |
-
-### 📋 Goals, Habits & Reports
-
-Set targets and get consolidated performance reviews.
-
-- **Habit Tracking** (`sparky_manage_habits`): "Did I take my vitamins today?"
-- **Goal Management** (`sparky_manage_goals`): "Set a new weight goal of 175 lbs by July."
-- **Weekly Reports** (`sparky_get_report`): "Give me a weekly performance summary."
-- **Profile Settings** (`sparky_manage_profile`): "Change my energy unit to kJ."
-
-### 📅 Daily tracking (read-only)
-
-These tools only read. Logging habits, completing check-ins, changing health context, recording measurements or supplement intake, and marking meals are done in the apps.
-
-- **Daily check-in** (`sparky_get_daily_checkin`, `sparky_list_daily_checkins`): answers with their versioned meanings; a missing day is not recorded, never low.
-- **Health context** (`sparky_list_health_context_periods`): user-declared injury, illness and vacation periods. They are declarations, not diagnoses.
-- **Habits** (`sparky_list_habits`, `sparky_get_habit_history`): an explicit 0 is a record; days without a record are omitted.
-- **Measurement reminders** (`sparky_get_measurement_reminder_status`): due state plus `measurement_recorded`, the actual saved `value`, `unit`, `measurement_id`, `recorded_at` and `source` for the requested day. Weight is a number in kg; custom values retain their stored text and configured unit. Missing readings return `false` and null value fields; an older reading is never substituted. Zero is a recorded value. Weight source is null because the measurement table does not retain provider provenance. Only configured reminders are included; this is not a full measurement history endpoint.
-- **Meal status** (`sparky_get_meal_tracking_status`).
-- **Daily Progress** (`sparky_get_daily_progress`, `sparky_get_daily_status_context`): completed and applicable explicit tasks with each item's reason and a version. It is not a health score.
-- **Supplements** (`sparky_list_supplements`, `sparky_get_supplement`, `sparky_list_supplement_entries`): only items marked as supplements; medications are never returned.
-
-Ranges are limited to 92 days, or 31 days for a read-only MCP key.
-
-For an actual weigh-in value, call `sparky_get_measurement_reminder_status` with the requested date and read its `value` and `unit` fields. Daily Progress's `measurement_recorded` reason confirms task completion; its item timestamp alone is not the weight. Ask for a fresh measurement-tool call when a conversation contains an earlier status-only result.
-
----
-
-## Weekly activity planning (read-only)
-
-- `xot_get_activity_planning`: explicit `start_date` and `end_date`, at most 31
-  account-local calendar days. Includes scheduled workout/mobility occurrences,
-  saved diary sessions, completion reasons and weekly counts. Each top-level array
-  uses the same `limit` (1–50) and `offset` (0–1000); use the returned counts to
-  request another page. Summaries cover the full requested range.
-- `xot_get_workout_plans`: saved prescriptions effective on `date` (today by
-  default), including exercises and sets. Duration is seconds, distance km,
-  weight kg. Older snapshots may lack detail. Sequential plans are shown without
-  assigning invented weekdays.
-- `sparky_get_daily_progress` and `sparky_get_daily_status_context` accept
-  `include_activity: true` to include version 2 activity tasks. The default keeps
-  version 1 tracking behavior for existing clients.
-- `sparky_get_goal_snapshot` also returns `target_exercise_duration_minutes` and
-  `target_exercise_calories_burned`, when saved, in minutes and kcal.
-
-These reads never activate a plan, create a diary entry or record calories. A
-similar activity name is not completion evidence. Phone/Watch activity must be
-synced before it appears. The app owner reviews and explicitly links an imported
-or manual diary session, skips an activity or undoes that decision in the overview.
-The broader consent-based coaching/proposal workflow remains separate.
-
-## 🕵️ AI Personalization (The "Health Detective")
-
-Because the AI has access to all these tools, it can do things a standard app cannot:
-
-- **Correlation Detection**: "I noticed your sleep quality is 20% better on days you finish your last meal before 7 PM."
-- **Smart Planning**: "Based on your current weight trend and yesterday's activity, I recommend increasing your protein by 20g today."
-- **Inventory Logic**: "You've logged Greek Yogurt 5 times this week. Should I add it to your high-protein shopping list?"
-
----
-
-## 🔐 Security & Privacy
-
-1.  **User Isolation (RLS)**: Normal MCP tools are restricted by PostgreSQL **Row Level Security**, scoped to the user authenticated by the API key. The AI can _only_ see data belonging to that user.
-2.  **Admin-Only Dev Tools**: A small set of optional developer/debugging tools is **off by default**. They require an admin API key, plus either the **Admin > System Settings** toggle or the `DEV_TOOLS_ENABLED=true` environment variable, which forces them on regardless of the stored setting. These tools intentionally run with elevated database access (the owner pool, bypassing Row Level Security), so leave them disabled unless you are actively debugging.
-3.  **MCP read-only keys**: A key created with **MCP read-only** access works only at `/mcp`. It cannot create a normal API session or authenticate to protected REST routes. The MCP server publishes only reviewed query tools for this key; write-capable and admin tools are unavailable. Use **Full API access** only when an integration needs to change data.
-4.  **Local First**: If you run X on Track locally, your data never leaves your infrastructure until you send it to your chosen AI provider (e.g., Anthropic or OpenAI).
-
-## 🚀 Getting Started
-
-The MCP server is served **in-process** by the main X on Track server. The existing API-key endpoint is `POST /mcp`. When the administrator enables OAuth, `POST /mcp/chatgpt` offers a separate, account-authorized connection for ChatGPT and other compatible MCP clients. It exposes reviewed read tools and selected food, exercise, water, and notification write tools only when the account grants `mcp:write`. Direct writes requested through those tools do not require a second in-app confirmation. Connected assistants can be reviewed and disconnected in web Settings; disconnection blocks the signed token immediately.
-
-### 1. Generate an API Key
-
-Go to **Settings → Developer & Integrations → API Key Management** in the web UI and generate an **MCP read-only** key. You'll pass it as a **Bearer Token** in the `Authorization` header. Existing full-access keys continue to expose the full MCP tool set.
-
-### 2. Find Your MCP Endpoint
-
-- **Production**: `https://<your-host>/mcp` (the production nginx config proxies `/mcp` to the server).
-- **Local dev**: `http://localhost:8080/mcp` — the frontend Vite dev proxy forwards `/mcp` to the server. Hitting the server port directly at `http://localhost:3010/mcp` also works.
-- **OAuth assistant connection, when enabled**: `https://<your-host>/mcp/chatgpt`. Connect from an OAuth-capable MCP client and approve the requested read/write scopes on the web login page. No API key needs to be pasted into the client.
-
-### 3. Configure Your Client
-
-**ChatGPT desktop / local Codex custom MCP connection**
-
-1. Open **Plugins → MCPs → Add** and choose **Streamable HTTP**.
-2. Name the server `x-on-track` and enter `https://<your-host>/mcp/chatgpt`.
-3. Leave **Bearer token env var** and **Headers** empty for OAuth. Save and restart the connection, then select **Authenticate/Authorize** in the server list. OAuth does not require an authentication dropdown in the add-server form.
-4. Sign in to your X on Track account and review the permissions. An existing browser session can skip the sign-in prompt.
-5. Start a new local Work/Codex conversation and check `/mcp` for the connected server and its tools. The connection and credentials are shared with Codex clients using the same local host configuration. If needed, `codex mcp login x-on-track` starts the sign-in flow from the CLI.
-
-This saves a server on the local Codex host; it does not publish X on Track to the Plugins Directory or install a personal plugin for hosted ChatGPT chats. ChatGPT web does not read the host's local MCP configuration. A successful browser message, “Authentication complete,” confirms authentication; verify tool availability separately in the conversation that will use the connection. Searching the plugin directory by the application name does not test a directly configured MCP connection.
-
-The server must have OAuth enabled and its discovery/authentication routes must be reachable through the public ingress. Browser login continuation and consent return a Better Auth JSON redirect (`url`), which the app follows to the next signed authorization page or the registered client callback. If an earlier attempt expired, begin a new authorization from the client instead of reusing the old browser URL. See the [official desktop MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=app).
-
-For an API-key connection in the same desktop form, use `https://<your-host>/mcp` and an `Authorization` header with `Bearer <MCP_READ_ONLY_KEY>`. The **Bearer token env var** field is a variable name whose value is read from the client environment; it is not a field for pasting the token. Account OAuth tokens and application API keys use separate endpoints.
-
-**Personal remote MCP plugin for hosted ChatGPT chats**
-
-Where your account or workspace offers custom remote connections:
-
-1. Open ChatGPT on the web, then **Settings → Plugins → Browse directory**. The Settings page manages installed plugins and permissions; connection creation is reached through the directory.
-2. Use the directory's available **Add / + / Create** control and create a connection named `X on Track` with MCP URL `https://<your-host>/mcp/chatgpt`.
-3. Complete account authorization and review the tools discovered from the server.
-4. Find the new connection under **Personal** plugins and install it with the plus button.
-5. Start a new **Work** chat and select the personal plugin using the available tools menu or mention picker. Ask it to read today's nutrition summary and confirm that it calls a server tool.
-
-Public directory publication is not required for this personal connection. Account/workspace permissions can affect availability. Follow the [official personal-plugin quickstart](https://developers.openai.com/plugins/quickstart) and [connection testing guide](https://developers.openai.com/plugins/deploy/connect-chatgpt). If a chat has no tools from the connection, a prompt naming X on Track cannot grant access; check the connection's installation, authentication and availability in that chat.
-
-Some official guides first require **Settings → Security and login → Developer mode**. Follow that step if your connection UI requires it. The owner's personal Pro account showed no Developer mode switch, but the hosted connection worked after opening **Browse directory**. A missing switch alone therefore does not establish that custom connections are unavailable. The [official Developer mode guide](https://developers.openai.com/api/docs/guides/developer-mode) lists Pro, Plus, Business, Enterprise and Education as eligible; account/workspace policies and visible setup controls can differ. If the directory offers no creation control, inspect the actual UI and account availability rather than changing the X on Track server.
-
-After a server update changes tool descriptions or schemas, use the connection's **Refresh** action in ChatGPT Plugins, where available, then start a new conversation and retry the affected tool. A successful authorization does not establish that the chat has refreshed tool metadata. See the [official connection testing and metadata refresh guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
-
-**HTTP / remote-capable clients** (Cursor and other clients that support streamable HTTP) point directly at `/mcp` with an `Authorization: Bearer <API_KEY>` header:
+A remote-capable client's configuration has this general shape; replace the placeholder locally and follow the client's credential-storage conventions:
 
 ```json
 {
@@ -181,38 +43,48 @@ After a server update changes tool descriptions or schemas, use the connection's
 }
 ```
 
-**stdio-only clients** (such as the classic Claude Desktop config) can't talk HTTP directly. Use the off-the-shelf [`mcp-remote`](https://www.npmjs.com/package/mcp-remote) bridge. The key goes in an `env` block, and the header uses the no-space `Authorization:${AUTH_HEADER}` form — `mcp-remote`'s documented workaround for clients that mangle spaces in header arguments (e.g. Claude Desktop on Windows, Cursor):
+Local development can use `http://localhost:8080/mcp` through Vite or `http://localhost:3010/mcp` directly. These local addresses are not reachable from a hosted assistant or phone merely because they work in the Mac's browser. Use a trusted HTTPS server URL for remote connections. An API key and an OAuth token belong to their respective endpoints; they are not interchangeable.
 
-```json
-{
-  "mcpServers": {
-    "x-on-track": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "mcp-remote",
-        "https://<your-host>/mcp",
-        "--header",
-        "Authorization:${AUTH_HEADER}"
-      ],
-      "env": { "AUTH_HEADER": "Bearer <API_KEY>" }
-    }
-  }
-}
-```
+## Available workflows
 
-_Note: for a local-dev server over plain HTTP, add `--allow-http` to the args and use `http://localhost:8080/mcp` (or `http://localhost:3010/mcp` to hit the server directly) — `mcp-remote` refuses non-HTTPS URLs otherwise._
+| Workflow                                | Current surface                                                                                                | Important boundary                                                                                                                                                             |
+| --------------------------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Food search, diary and nutrition        | Reviewed `sparky_*` food reads; `sparky_manage_food` with write access                                         | Preserve provider identity, units and saved snapshots. Quick Add logs a newly created/imported food without adding it to the library; it does not hide an existing saved food. |
+| Exercise history and presets            | Reviewed exercise reads; `sparky_manage_exercise` with write access                                            | `log_workout_preset` records diary entries; it does not start a live phone/Watch workout.                                                                                      |
+| Weekly training plans                   | Full-key `sparky_manage_workout_plans` lists/inspects/deletes templates                                        | Create/update in the app; current text output does not fully describe activity-first assignments.                                                                              |
+| Mobility                                | `xot_get_mobility`, write-capable `xot_update_mobility`                                                        | Revisioned plans/results, not exercise calories or Apple Health workouts.                                                                                                      |
+| Notifications                           | OAuth `xot_get_notification_settings`, write-capable `xot_update_notification_settings`, `xot_act_on_reminder` | Phone activation/permission first; account settings do not configure local intake follow-ups.                                                                                  |
+| Coaching, reports and legacy management | Full API-key registry and configured in-app Trackbot tools                                                     | These are not all published by the reviewed OAuth/read-only surface. Inspect tools rather than assuming availability.                                                          |
 
-**Open WebUI client** (e.g. for locally hosted Ollama, Llama.cpp, etc.)
+The full registry's management actions and schemas are described in the [developer tool guides](/developer/mcp/exercise). A tool's presence depends on the endpoint, permission and registry/profile selection. A read action nested inside a write-capable management tool is not exposed to read-only credentials.
 
-1.  In Open WebUI, click your name in the bottom left and open the **Admin Panel → Settings**.
-2.  Scroll down to the Tools section and select **Integrations**.
-3.  Add a new connection:
-    - Type: MCP Streamable HTTP (click 'OpenAPI' to change the option)
-    - URL: The MCP url from above
-    - Auth: Bearer
-    - API Key: The API key from above
-4.  Save the options and refresh the web page. You can enable it on new chats through the Integration option.
+## Daily tracking reads
+
+Reviewed tools include:
+
+- `sparky_get_daily_checkin` and `sparky_list_daily_checkins`: draft/completed/skipped state and answers with versioned meanings. A missing day is unrecorded.
+- `sparky_list_health_context_periods`: user-declared injury, illness and vacation context, not diagnoses.
+- `sparky_list_habits` and `sparky_get_habit_history`: recorded values; an explicit zero is a record, whereas an omitted day is unknown.
+- `sparky_get_measurement_reminder_status`: configured reminders plus actual saved value/unit, ID, timestamp and available source for the requested day. Weight is numeric kg; custom values retain stored text/unit. Absent values are null, and older readings are not substituted. Weight provider provenance is unavailable.
+- `sparky_get_meal_tracking_status`: explicit meal states.
+- `sparky_get_daily_progress` and `sparky_get_daily_status_context`: versioned applicable tasks and reasons, not a health score. The current MCP projection uses the legacy progress version; use the app for the expanded activity/hydration objectives.
+- `sparky_list_supplements`, `sparky_get_supplement`, `sparky_list_supplement_entries`: items classified as supplements; medications are excluded.
+
+Use the apps for daily check-in completion, explicit meal-state changes and the current daily-tracking configuration. Do not mistake a legacy biometrics/mood log for completion of the versioned daily check-in questionnaire.
+
+Daily-tracking range tools allow up to 92 days on the full registry and 31 days on reviewed connections. Reviewed exercise-diary ranges allow seven days; other reads have their own paging limits. For an actual weigh-in, read `value` and `unit` from the measurement tool rather than treating a Daily Progress completion timestamp as the weight.
+
+## Verify reads and writes
+
+Ask the assistant to show the date range, units, record identifiers and missing-data limits behind its answer. Tool summaries are observations, not confirmed health conclusions or evidence that incomplete food logging is a deficit.
+
+Before replacing a preset, read its full exercise list; replacements must retain every exercise that should remain. After a write, reread the relevant diary/settings/record and inspect the app. If a logging request times out, check whether it succeeded before retrying: not every write has an idempotency key.
+
+## Privacy and administration
+
+Normal tools operate as the authenticated owner with owner-scoped database access. External assistant/provider processing follows that client's settings; self-hosting X on Track does not prevent data you deliberately send to a third-party assistant from leaving your infrastructure.
+
+Admin debugging tools are separate and off by default. They require an admin full-access API key plus the system toggle or `DEV_TOOLS_ENABLED=true`; they use elevated database access. Keep them disabled outside active debugging. Read-only API keys and account OAuth do not expose those tools.
 
 ## Scheduled proposals with owner review
 

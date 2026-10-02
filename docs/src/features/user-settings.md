@@ -1,3 +1,17 @@
-# User Settings
+# Settings
 
-X on Track provides comprehensive user settings to personalize your experience, manage preferences, and configure various aspects of the application. Details on available settings will be added in the future.
+Settings group account/server status, tracking preferences, integrations and app presentation. Mobile and web share account data but also have device-specific options; changing a server setting is not the same as granting a phone permission.
+
+| Area                        | What it controls                                                                                                                        | Guide                                                                                                          |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Account and server          | Connection, sign-in and active account. Use the same account to retain access to your synced history.                                   | [Mobile connection](/mobile-app/mobile-app)                                                                    |
+| Food and nutrition          | Serving/import preferences, nutrient display and calorie/activity adjustment policy.                                                    | [Preferences](/features/settings/preferences), [Calculation settings](/features/settings/calculation-settings) |
+| Daily tracking              | Check-in reminders, habits, measurement reminders and explicit daily tasks.                                                             | [Check-in](/features/check-in)                                                                                 |
+| Training                    | Saved workouts and whole-session weekly plans. Plans are separate from recorded history.                                                | [Weekly training plans](/features/exercises/weekly-planning)                                                   |
+| Notifications               | Optional reminder schedule/quota, phone permission, remote handoff and local intake/timer alerts.                                       | [Notifications](/features/settings/notifications)                                                              |
+| Widgets and Live Activities | Manual widget placement and active-session presentation permissions.                                                                    | [Widgets guide](/mobile-app/widgets-live-activities)                                                           |
+| Health sync                 | Read/write categories and platform permission for Apple Health or Health Connect. Notification permission does not grant Health access. | [Mobile app](/mobile-app/mobile-app), [Health Connect](/features/settings/google-health)                       |
+| Providers and imports       | Existing food/exercise integrations and account export import.                                                                          | [External providers](/features/settings/external-providers), [FDDB import](/features/settings/fddb-import)     |
+| Connected assistants        | API keys or OAuth consent, with different read/write surfaces. OAuth assistants can be disconnected in web Settings.                    | [MCP connection guide](/features/mcp-server)                                                                   |
+
+For a setting changed from another device or assistant, reopen/refresh its screen before making another edit. A failed save or revision conflict is not confirmation that the new setting persisted; verify it after a fresh read.
