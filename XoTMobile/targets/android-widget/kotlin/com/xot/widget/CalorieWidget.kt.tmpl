@@ -6,14 +6,11 @@ import android.net.Uri
 import android.os.Build
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
-import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.GlanceAppWidget
@@ -32,24 +29,14 @@ import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
-import androidx.glance.layout.size
 import androidx.glance.layout.width
-import androidx.glance.text.FontWeight
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
 import androidx.glance.state.PreferencesGlanceStateDefinition
 import {{APPLICATION_ID}}.R
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import org.json.JSONObject
 
-/**
- * Classic base composition, unchanged from the pre-localization calorie widget
- * (22415819): one-line localized kcal heading, 8dp progress bar, and the
- * 32dp search/scan action row, with a flexible spacer between progress and
- * actions. Only strings, accessibility labels and number formatting follow the
- * app/system language; geometry, footprint and behavior are untouched.
- */
+/** Nutrition values retain their snapshot semantics; the X is static brand artwork. */
 class CalorieWidget : GlanceAppWidget() {
 
     override val stateDefinition = PreferencesGlanceStateDefinition
@@ -100,70 +87,29 @@ class CalorieWidget : GlanceAppWidget() {
         Box(
             modifier = GlanceModifier
                 .fillMaxSize()
-                .background(GlanceTheme.colors.surface)
+                .background(ImageProvider(R.drawable.widget_surface))
                 .appWidgetBackgroundCornerRadius()
-                .padding(12.dp)
+                .padding(8.dp)
                 .clickable(actionStartActivity(openAppIntent)),
         ) {
             Column(modifier = GlanceModifier.fillMaxSize()) {
-                Text(
-                    text = remainingText,
-                    style = TextStyle(
-                        color = GlanceTheme.colors.onSurface,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                    ),
-                    maxLines = 1,
-                    modifier = GlanceModifier.fillMaxWidth(),
-                )
-                Spacer(modifier = GlanceModifier.height(8.dp))
+                WidgetHeader(text = remainingText)
+                Spacer(modifier = GlanceModifier.height(4.dp))
                 LinearProgressIndicator(
                     progress = progress,
                     modifier = GlanceModifier
                         .fillMaxWidth()
-                        .height(8.dp),
-                    color = GlanceTheme.colors.primary,
-                    backgroundColor = GlanceTheme.colors.surfaceVariant,
+                        .height(4.dp),
+                    color = WidgetPalette.energy,
+                    backgroundColor = WidgetPalette.track,
                 )
                 Spacer(modifier = GlanceModifier.defaultWeight())
-                Row(
-                    modifier = GlanceModifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Box(
-                        modifier = GlanceModifier
-                            .defaultWeight()
-                            .height(32.dp)
-                            .clickable(actionStartActivity(searchIntent)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Image(
-                            provider = ImageProvider(R.drawable.ic_widget_search),
-                            contentDescription = searchFoodLabel,
-                            colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
-                            modifier = GlanceModifier.size(24.dp),
-                        )
-                    }
-                    Box(
-                        modifier = GlanceModifier
-                            .width(1.dp)
-                            .height(24.dp)
-                            .background(GlanceTheme.colors.surfaceVariant),
-                    ) {}
-                    Box(
-                        modifier = GlanceModifier
-                            .defaultWeight()
-                            .height(32.dp)
-                            .clickable(actionStartActivity(scanIntent)),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        Image(
-                            provider = ImageProvider(R.drawable.ic_widget_scan),
-                            contentDescription = scanBarcodeLabel,
-                            colorFilter = ColorFilter.tint(GlanceTheme.colors.primary),
-                            modifier = GlanceModifier.size(24.dp),
-                        )
-                    }
+                Row(modifier = GlanceModifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    WidgetActionButton(intent = searchIntent, icon = R.drawable.ic_widget_search,
+                        contentDescription = searchFoodLabel, modifier = GlanceModifier.defaultWeight())
+                    Spacer(modifier = GlanceModifier.width(8.dp))
+                    WidgetActionButton(intent = scanIntent, icon = R.drawable.ic_widget_scan,
+                        contentDescription = scanBarcodeLabel, modifier = GlanceModifier.defaultWeight())
                 }
             }
         }

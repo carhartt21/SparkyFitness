@@ -493,50 +493,20 @@ describe('Android widget localization contract', () => {
       }
     });
 
-    it('keeps the classic calorie composition (one-line heading, progress, actions)', () => {
-      const src = fs.readFileSync(
-        path.join(KOTLIN_ROOT, 'CalorieWidget.kt.tmpl'),
-        'utf8'
-      );
-      // Classic structure: 12dp padding, one-line bold 18sp heading, 8dp gap +
-      // 8dp progress, flexible spacer, then the 32dp action row with 24dp
-      // icons and a 24dp divider.
-      expect(src).toMatch(/\.padding\(12\.dp\)/);
-      expect(src).toMatch(/fontSize = 18\.sp/);
-      expect(src).toMatch(/maxLines = 1/);
-      expect(src).toMatch(/\.height\(8\.dp\)/);
-      expect(src).toMatch(/GlanceModifier\.defaultWeight\(\)/);
-      expect(src).toMatch(/\.height\(32\.dp\)/);
-      expect(src).toMatch(/\.size\(24\.dp\)/);
-      expect(src).toMatch(/\.height\(24\.dp\)/);
-      // Actions are always part of the classic default; no height-based hiding.
-      expect(src).toMatch(/R\.drawable\.ic_widget_search/);
-      expect(src).toMatch(/R\.drawable\.ic_widget_scan/);
-    });
-
-    it('keeps the classic macro composition (centered content block, inline rows, actions)', () => {
-      const src = fs.readFileSync(
+    it('keeps the nutrition header, data rows and both shortcuts available', () => {
+      for (const file of ['CalorieWidget.kt.tmpl', 'MacroWidget.kt.tmpl']) {
+        const src = fs.readFileSync(path.join(KOTLIN_ROOT, file), 'utf8');
+        expect(src).toMatch(/R\.drawable\.ic_widget_search/);
+        expect(src).toMatch(/R\.drawable\.ic_widget_scan/);
+        expect(src).toMatch(/WidgetHeader\(/);
+        expect(src).not.toMatch(/if \(showActions\)/);
+      }
+      const macro = fs.readFileSync(
         path.join(KOTLIN_ROOT, 'MacroWidget.kt.tmpl'),
         'utf8'
       );
-      // Classic container strategy: Box centers a CONTENT-SIZED column.
-      expect(src).toMatch(/contentAlignment = Alignment\.Center/);
-      expect(src).toMatch(
-        /Column\(modifier = GlanceModifier\.fillMaxWidth\(\)\)/
-      );
-      expect(src).not.toMatch(
-        /Column\(modifier = GlanceModifier\.fillMaxSize\(\)\)/
-      );
-      // The kcal header and all macro rows are always rendered.
-      expect(src).toMatch(/CalorieHeader\(/);
-      expect(src).toMatch(/MacroRows\(/);
-      // Rows stay inline: colored dot + label + value on one line.
-      expect(src).toMatch(/R\.string\.widget_grams/);
-      // The action row is always rendered in the classic footprint.
-      expect(src).toMatch(/R\.drawable\.ic_widget_search/);
-      expect(src).toMatch(/R\.drawable\.ic_widget_scan/);
-      expect(src).toMatch(/\.height\(40\.dp\)/);
-      expect(src).not.toMatch(/if \(showActions\)/);
+      expect(macro).toMatch(/MacroRows\(/);
+      expect(macro).toMatch(/R\.string\.widget_grams/);
     });
   });
 

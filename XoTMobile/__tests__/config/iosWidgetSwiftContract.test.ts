@@ -124,7 +124,8 @@ describe('iOS WidgetKit Swift contract', () => {
 
     it('opens the capture-first camera from both calorie and macro widgets', () => {
       for (const file of ['widgets.swift', 'macroWidget.swift']) {
-        const source = readSwift(file);
+        expect(readSwift(file)).toContain('WidgetShortcuts()');
+        const source = readSwift('WidgetTheme.swift');
         expect(source).toContain('sparkyfitnessmobile://meal-photo');
         expect(source).toContain('localizedWidgetString("widget.meal_photo")');
       }
@@ -205,7 +206,8 @@ describe('iOS WidgetKit Swift contract', () => {
   describe('icon-only action accessibility', () => {
     it('exposes localized accessibility labels on both icon-only action buttons', () => {
       for (const file of ['widgets.swift', 'macroWidget.swift']) {
-        const src = readSwift(file);
+        expect(readSwift(file)).toContain('WidgetShortcuts()');
+        const src = readSwift('WidgetTheme.swift');
         expect(src).toMatch(
           /accessibilityLabel: localizedWidgetString\("widget\.search_food"\)/
         );
