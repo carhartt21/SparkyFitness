@@ -212,6 +212,9 @@ const ActionSheet = React.forwardRef<ActionSheetRef, ActionSheetProps>(
     return (
       <BottomSheetModal
         ref={modalRef}
+        // The default groups the sheet into one accessibility element,
+        // hiding its action rows from VoiceOver and native UI automation.
+        accessible={false}
         enableDynamicSizing
         maxDynamicContentSize={windowHeight * 0.8}
         backdropComponent={renderBackdrop}
@@ -224,6 +227,7 @@ const ActionSheet = React.forwardRef<ActionSheetRef, ActionSheetProps>(
         <BottomSheetScrollView contentContainerClassName="pb-safe-or-5">
           <View className="px-4 py-4 border-b border-border-subtle">
             <Text
+              accessibilityRole="header"
               numberOfLines={1}
               className="text-lg font-semibold text-center text-text-primary px-8"
             >

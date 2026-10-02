@@ -4438,15 +4438,15 @@
   },
   "mealTypeDetail": {
     "states": {
-      "noServer": "Nein Server configured",
+      "noServer": "Kein Server eingerichtet",
       "noServerHint": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um den Nährwert Ihrer Mahlzeiten anzuzeigen.",
-      "loading": "Wird geladen meal…",
+      "loading": "Mahlzeit wird geladen…",
       "loadFailed": "Mahlzeit konnte nicht geladen werden.",
-      "noFoods": "Nein {{meal}} foods",
-      "noFoodsHint": "{{date}} hat für diese Mahlzeit keine Lebensmittel protokolliert."
+      "noFoods": "Noch keine Lebensmittel für {{meal}} erfasst",
+      "noFoodsHint": "Für diese Mahlzeit wurden noch keine Lebensmittel erfasst ({{date}})."
     },
     "labels": {
-      "foods": "Ernährungs"
+      "foods": "Lebensmittel"
     },
     "accessibility": {
       "addFood": "Lebensmittel hinzufügen",
@@ -6149,7 +6149,9 @@
     "saveFailed": "Der Mahlzeitenstatus konnte nicht gespeichert werden.",
     "coverageIncomplete_one": "{{count}} unvollständig",
     "coverageIncomplete_other": "{{count}} unvollständig",
-    "hint": "Gedrückt halten, um einen bestimmten Status auszuwählen."
+    "hint": "Gedrückt halten, um einen bestimmten Status auszuwählen.",
+    "loading": "Status wird geladen…",
+    "loadFailed": "Der Mahlzeitenstatus konnte nicht geladen werden."
   },
   "checkin": {
     "completedToast": "Check-in gespeichert",

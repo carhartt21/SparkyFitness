@@ -2,6 +2,7 @@ import {
   createNutritionFixture,
   reviewFood,
 } from '../../review/nutritionFixture';
+import type { DailyProgress, MealTrackingStatus } from '@workspace/shared';
 import type { DailySummaryApiResponse } from '../../src/services/api/dailySummaryApi';
 
 const url = (path: string) => new URL(`https://ui-review.invalid${path}`);
@@ -16,6 +17,49 @@ const payload = {
 };
 
 describe('isolated nutrition review fixture', () => {
+  it('keeps meal-status writes isolated by day and refreshes the Goals projection', () => {
+    const fixture = createNutritionFixture('meal-status');
+    const mealId = 'b3333333-3333-4333-8333-333333333333';
+    const getStatus = (date: string) =>
+      fixture.respond(
+        url(`/api/v2/tracking/meal-status/${date}`),
+        'GET'
+      ) as MealTrackingStatus;
+    const original = getStatus('2026-09-26');
+    expect(original.meals[0].state).toBe('pending');
+    fixture.respond(
+      url('/api/v2/tracking/meal-status'),
+      'PUT',
+      JSON.stringify({
+        entry_date: '2026-09-26',
+        meal_type_id: mealId,
+        status: 'skipped',
+      })
+    );
+    expect(getStatus('2026-09-26').meals[0].state).toBe('skipped');
+    expect(original.meals[0].state).toBe('pending');
+    expect(getStatus('2026-09-27').meals[0].state).toBe('pending');
+    const progress = fixture.respond(
+      url('/api/v2/tracking/daily-progress/2026-09-26'),
+      'GET'
+    ) as DailyProgress;
+    expect(progress.items.find((item) => item.domain === 'meal')).toMatchObject(
+      { reference_id: mealId, state: 'complete', reason: 'meal_skipped' }
+    );
+    expect(fixture.snapshot()).toHaveLength(1);
+    expect(() =>
+      createNutritionFixture('populated').respond(
+        url('/api/v2/tracking/meal-status'),
+        'PUT',
+        JSON.stringify({
+          entry_date: '2026-09-26',
+          meal_type_id: mealId,
+          status: 'skipped',
+        })
+      )
+    ).toThrow('Unconfigured');
+  });
+
   it('serves disabled engagement settings without sending real notifications', () => {
     const fixture = createNutritionFixture('populated');
     expect(

@@ -1,0 +1,18 @@
+{
+  "base_revision": "899ac67bc7f8a897179a87cf29fe378f2f7b99a0",
+  "branch": "fix/meal-goal-actions-20261002",
+  "mobile_validate": "passed",
+  "focused_jest": {
+    "suites": 4,
+    "tests": 42,
+    "failed": 0
+  },
+  "simulator_interactions": {
+    "cases": 3,
+    "passed": 3
+  },
+  "backend_tests": "not run; no backend changes",
+  "production_persistence": "unverified",
+  "physical_device": "not tested",
+  "publication": "not performed"
+}

@@ -67,3 +67,7 @@ menu rows follow the device language. Old native binaries need rebuilding.
 ## Food detail layout matrix
 
 `--interactions --food-details-review` opens a synthetic search result and captures its amount controls, saved portions and expanded nutrition details. It also runs the light 390-point and German enlarged-text 430-point cases. The test checks that scrolling from the quantity field preserves the amount, while holding before dragging changes it. It opens Food Edit, checks the title stays between Cancel and Save, and captures the serving editor and preview. Controls may scroll into view; quantity/options and the add-serving icon have 44-point targets. It does not save in this mode. Use the default interaction flow separately for portion/save/edit/delete and keyboard-note acknowledgements.
+
+## Meal actions from Goals
+
+`--interactions --meal-status-review --case '390-de-dark|390-de-light|430-de-large'` opens an empty synthetic meal from Daily Progress, taps to complete it, long-presses to select “No meal,” returns to the refreshed Goals row, and reopens the meal to verify its state. The control must expose a 44×44-point target. The scenario enables meal tracking only within the isolated fixture and accepts validated, in-memory status writes scoped to the selected date. Normal fixtures continue rejecting these writes. It checks native navigation, German empty copy, action-sheet accessibility and cache refresh; it does not verify persistence against a production database or across app restarts.

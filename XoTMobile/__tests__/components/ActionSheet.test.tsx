@@ -14,6 +14,7 @@ const mockModal: {
   present: jest.Mock;
   dismiss: jest.Mock;
   props: {
+    accessible?: boolean;
     onAnimate?: (from: number, to: number) => void;
     onDismiss?: () => void;
   } | null;
@@ -98,6 +99,13 @@ function fireDismissed() {
 }
 
 describe('ActionSheet', () => {
+  it('keeps individual action rows exposed instead of grouping the entire sheet', () => {
+    const view = renderSheet();
+    expect(mockModal.props?.accessible).toBe(false);
+    expect(view.getByRole('button', { name: 'View exercise' })).toBeTruthy();
+    expect(view.getByRole('header', { name: 'Bench Press' })).toBeTruthy();
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockModal.props = null;

@@ -6,6 +6,7 @@ import {
   type HabitLog,
   type MedicationDetail,
   type MedicationEntry,
+  type MealTrackingStatus,
 } from '@workspace/shared';
 
 // Synthetic daily tracking records for the UI review. Names, amounts and
@@ -242,7 +243,8 @@ function checkin(date: string, today: string): DailyCheckin | null {
 export function trackingReviewResponse(
   path: string,
   scenario: string,
-  today: string
+  today: string,
+  mealStatus?: MealTrackingStatus
 ): unknown {
   const populated = scenario === 'populated';
   if (path === '/api/v2/medications') return populated ? SUPPLEMENTS : [];
@@ -250,7 +252,11 @@ export function trackingReviewResponse(
     return populated ? supplementEntries(today) : [];
   if (!path.startsWith('/api/v2/tracking/')) return undefined;
   const rest = path.slice('/api/v2/tracking/'.length);
-  if (rest === 'preferences') return DEFAULT_DAILY_TRACKING_PREFERENCES;
+  if (rest === 'preferences')
+    return {
+      ...DEFAULT_DAILY_TRACKING_PREFERENCES,
+      ...(mealStatus ? { include_meals: true } : {}),
+    };
   if (rest === 'context-periods') return [];
   if (rest === 'measurement-reminders') return [];
   if (rest === 'habits') return populated ? HABITS : [];
@@ -260,6 +266,7 @@ export function trackingReviewResponse(
     return populated ? checkin(rest.slice('checkins/'.length), today) : null;
   if (rest.startsWith('meal-status/')) {
     const date = rest.slice('meal-status/'.length);
+    if (mealStatus) return mealStatus;
     return {
       entry_date: date,
       meals: [],
@@ -277,7 +284,10 @@ export function trackingReviewResponse(
     const date = rest.slice('daily-progress/'.length);
     return buildDailyProgress({
       date,
-      preferences: DEFAULT_DAILY_TRACKING_PREFERENCES,
+      preferences: {
+        ...DEFAULT_DAILY_TRACKING_PREFERENCES,
+        ...(mealStatus ? { include_meals: true } : {}),
+      },
       goals: populated
         ? [
             {
@@ -338,7 +348,7 @@ export function trackingReviewResponse(
             recorded_at: null,
           }))
         : [],
-      meals: [],
+      meals: mealStatus?.meals ?? [],
     });
   }
   return undefined;

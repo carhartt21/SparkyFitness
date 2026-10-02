@@ -1,5 +1,24 @@
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import {
+  act,
+  cleanupAsync,
+  fireEvent,
+  render,
+  waitFor,
+} from '@testing-library/react-native';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { createTestQueryClient } from '../hooks/queryTestUtils';
+import Toast from 'react-native-toast-message';
+import type { MealTrackingStatus } from '@workspace/shared';
+import i18n, { initializeI18n } from '../../src/localization/i18n';
+import {
+  getMealTrackingStatus,
+  setMealDayStatus,
+} from '../../src/services/api/dailyTrackingApi';
+import {
+  dailyProgressQueryKey,
+  mealTrackingStatusQueryKey,
+} from '../../src/hooks/queryKeys';
 import MealTypeDetailScreen from '../../src/screens/MealTypeDetailScreen';
 import {
   useDailySummary,
@@ -31,6 +50,43 @@ jest.mock('../../src/hooks', () => ({
   useServerConnection: jest.fn(),
   useMealTypes: jest.fn(),
 }));
+
+jest.mock('../../src/services/api/dailyTrackingApi', () => ({
+  ...jest.requireActual('../../src/services/api/dailyTrackingApi'),
+  getMealTrackingStatus: jest.fn(),
+  setMealDayStatus: jest.fn(),
+}));
+jest.mock('../../src/hooks/useRefetchOnFocus', () => ({
+  useRefetchOnFocus: jest.fn(),
+}));
+jest.mock('../../src/components/ActionSheet', () => {
+  const ReactModule = require('react');
+  const { Pressable, Text } = require('react-native');
+  return ReactModule.forwardRef(
+    (
+      {
+        items,
+      }: { items: { key: string; label: string; onPress: () => void }[] },
+      ref: React.Ref<unknown>
+    ) => {
+      const [visible, setVisible] = ReactModule.useState(false);
+      ReactModule.useImperativeHandle(ref, () => ({
+        present: () => setVisible(true),
+      }));
+      return visible
+        ? items.map((item) => (
+            <Pressable
+              key={item.key}
+              testID={`status-option-${item.key}`}
+              onPress={item.onPress}
+            >
+              <Text>{item.label}</Text>
+            </Pressable>
+          ))
+        : null;
+    }
+  );
+});
 
 jest.mock('../../src/hooks/usePreferences', () => ({
   usePreferences: jest.fn(),
@@ -196,7 +252,35 @@ const setSummary = (foodEntries: FoodEntry[]) => {
   } as never);
 };
 
-const renderScreen = (params: ScreenProps['route']['params']) => {
+const mockGetStatus = jest.mocked(getMealTrackingStatus);
+const mockSetStatus = jest.mocked(setMealDayStatus);
+const clients: QueryClient[] = [];
+const statusFor = (
+  date: string,
+  state: MealTrackingStatus['meals'][number]['state'] = 'pending'
+): MealTrackingStatus => ({
+  entry_date: date,
+  meals: mealTypes.map((meal) => ({
+    meal_type_id: meal.id,
+    name: meal.name,
+    state,
+    logged_item_count: 0,
+    updated_at: null,
+  })),
+  coverage: {
+    total: 3,
+    resolved: state === 'pending' ? 0 : 3,
+    complete: state === 'complete' ? 3 : 0,
+    skipped: state === 'skipped' ? 3 : 0,
+    incomplete: state === 'incomplete' ? 3 : 0,
+    pending: state === 'pending' ? 3 : 0,
+  },
+});
+
+const renderScreen = (
+  params: ScreenProps['route']['params'],
+  seeded = true
+) => {
   mockUseMealTypes.mockReturnValue({
     mealTypes,
     defaultMealTypeId: 'sys-b',
@@ -213,21 +297,50 @@ const renderScreen = (params: ScreenProps['route']['params']) => {
     copyMeal: jest.fn(),
     isPending: false,
   } as never);
-  return render(
-    <MealTypeDetailScreen
-      navigation={mockNavigation}
-      route={{ key: 'MealTypeDetail-key', name: 'MealTypeDetail', params }}
-    />
+  const queryClient = createTestQueryClient({
+    queries: { retry: false, gcTime: Infinity },
+    mutations: { retry: false },
+  });
+  clients.push(queryClient);
+  if (seeded)
+    queryClient.setQueryData(
+      mealTrackingStatusQueryKey(params.date),
+      statusFor(params.date)
+    );
+  const view = render(
+    <QueryClientProvider client={queryClient}>
+      <MealTypeDetailScreen
+        navigation={mockNavigation}
+        route={{ key: 'MealTypeDetail-key', name: 'MealTypeDetail', params }}
+      />
+    </QueryClientProvider>
   );
+  return { ...view, queryClient };
 };
 
 describe('MealTypeDetailScreen', () => {
-  beforeEach(() => {
+  beforeEach(async () => {
+    await act(async () => {
+      await initializeI18n('en');
+      await i18n.changeLanguage('en');
+    });
     jest.clearAllMocks();
+    mockGetStatus.mockImplementation(async (date) => statusFor(date));
+    mockSetStatus.mockImplementation(async (body) =>
+      statusFor(body.entry_date, body.status ?? 'pending')
+    );
     setSummary([
       entry('1', 'custom-pw', 'Pre-Workout'),
       entry('2', 'sys-b', 'breakfast'),
     ]);
+  });
+
+  afterEach(async () => {
+    await cleanupAsync();
+    clients.splice(0).forEach((client) => client.clear());
+    await act(async () => {
+      await i18n.changeLanguage('en');
+    });
   });
 
   it('filters entries by canonical meal type id and renders the literal custom label', () => {
@@ -294,7 +407,7 @@ describe('MealTypeDetailScreen', () => {
       mealTypeId: 'custom-pw',
       mealType: 'Pre-Workout',
     });
-    fireEvent.press(view.getByLabelText('Add Food'));
+    fireEvent.press(view.getAllByLabelText('Add Food')[0]);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('FoodSearch', {
       date: '2026-01-01',
       mealTypeId: 'custom-pw',
@@ -307,10 +420,153 @@ describe('MealTypeDetailScreen', () => {
       mealTypeId: 'gone-id',
       mealType: 'Old Custom',
     });
-    fireEvent.press(view.getByLabelText('Add Food'));
+    fireEvent.press(view.getAllByLabelText('Add Food')[0]);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('FoodSearch', {
       date: '2026-01-01',
       mealTypeId: undefined,
     });
+  });
+
+  it('saves the selected day and canonical meal, updates shared status and invalidates Goals', async () => {
+    const date = '2026-01-01';
+    const view = renderScreen({ date, mealTypeId: 'custom-pw' });
+    view.queryClient.setQueryData(dailyProgressQueryKey(date), {
+      marker: 'cached-goals',
+    });
+    fireEvent.press(view.getByTestId('meal-status-control'));
+    await waitFor(() =>
+      expect(mockSetStatus).toHaveBeenCalledWith({
+        entry_date: date,
+        meal_type_id: 'custom-pw',
+        status: 'complete',
+      })
+    );
+    await waitFor(() =>
+      expect(
+        view.getByTestId('meal-status-control').props.accessibilityLabel
+      ).toContain('Complete')
+    );
+    expect(
+      view.queryClient.getQueryData<MealTrackingStatus>(
+        mealTrackingStatusQueryKey(date)
+      )?.meals[1].state
+    ).toBe('complete');
+    expect(
+      view.queryClient.getQueryState(dailyProgressQueryKey(date))?.isInvalidated
+    ).toBe(true);
+  });
+
+  it('lets an empty meal be skipped with a long press and keeps its Add Food destination', async () => {
+    setSummary([]);
+    const view = renderScreen({ date: '2026-01-01', mealTypeId: 'sys-b' });
+    expect(view.getByText('No foods logged for Breakfast')).toBeTruthy();
+    fireEvent(view.getByTestId('meal-status-control'), 'longPress');
+    expect(mockSetStatus).not.toHaveBeenCalled();
+    fireEvent.press(view.getByTestId('status-option-skipped'));
+    await waitFor(() =>
+      expect(mockSetStatus).toHaveBeenCalledWith({
+        entry_date: '2026-01-01',
+        meal_type_id: 'sys-b',
+        status: 'skipped',
+      })
+    );
+    fireEvent.press(view.getByText('Add Food'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('FoodSearch', {
+      date: '2026-01-01',
+      mealTypeId: 'sys-b',
+    });
+  });
+
+  it('renders natural German empty copy and preserves a custom meal name', async () => {
+    await act(async () => {
+      await i18n.changeLanguage('de');
+    });
+    setSummary([]);
+    const view = renderScreen({ date: '2026-01-01', mealTypeId: 'custom-pw' });
+    expect(
+      view.getByText('Noch keine Lebensmittel für Pre-Workout erfasst')
+    ).toBeTruthy();
+    expect(
+      view.getByText(
+        /Für diese Mahlzeit wurden noch keine Lebensmittel erfasst/
+      )
+    ).toBeTruthy();
+    expect(
+      view.getByTestId('meal-status-control').props.accessibilityLabel
+    ).toContain('Pre-Workout');
+    expect(view.queryByTestId('nutrition-summary')).toBeNull();
+  });
+
+  it('shows unknown status during loading, then recovers from a read error with Retry', async () => {
+    let rejectRead: (reason: Error) => void = () => {};
+    mockGetStatus.mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          rejectRead = reject;
+        })
+    );
+    const view = renderScreen(
+      { date: '2026-01-01', mealTypeId: 'sys-b' },
+      false
+    );
+    expect(view.getByText('Loading status…')).toBeTruthy();
+    expect(view.queryByTestId('meal-status-control')).toBeNull();
+    await act(async () => {
+      rejectRead(new Error('offline'));
+    });
+    await waitFor(() =>
+      expect(view.getByText('Could not load the meal status.')).toBeTruthy()
+    );
+    expect(view.queryByTestId('meal-status-control')).toBeNull();
+    fireEvent.press(view.getByText('Retry'));
+    await waitFor(() =>
+      expect(view.getByTestId('meal-status-control')).toBeTruthy()
+    );
+    expect(mockSetStatus).not.toHaveBeenCalled();
+  });
+
+  it('blocks duplicate taps during saving and leaves the last persisted state after failure', async () => {
+    let rejectSave: (reason: Error) => void = () => {};
+    mockSetStatus.mockImplementationOnce(
+      () =>
+        new Promise((_, reject) => {
+          rejectSave = reject;
+        })
+    );
+    const view = renderScreen({ date: '2026-01-01', mealTypeId: 'sys-b' });
+    fireEvent.press(view.getByTestId('meal-status-control'));
+    await waitFor(() =>
+      expect(
+        view.getByTestId('meal-status-control').props.accessibilityState
+          .disabled
+      ).toBe(true)
+    );
+    fireEvent.press(view.getByTestId('meal-status-control'));
+    expect(mockSetStatus).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      rejectSave(new Error('offline'));
+    });
+    await waitFor(() =>
+      expect(Toast.show).toHaveBeenCalledWith({
+        type: 'error',
+        text1: 'Could not save the meal status.',
+      })
+    );
+    expect(
+      view.queryClient.getQueryData<MealTrackingStatus>(
+        mealTrackingStatusQueryKey('2026-01-01')
+      )?.meals[0].state
+    ).toBe('pending');
+  });
+
+  it('does not offer a status write for a historical meal without an active identity', () => {
+    const view = renderScreen({
+      date: '2026-01-01',
+      mealTypeId: 'gone-id',
+      mealType: 'Gone Meal',
+    });
+    expect(view.queryByTestId('meal-status-control')).toBeNull();
+    expect(mockGetStatus).not.toHaveBeenCalled();
+    expect(mockSetStatus).not.toHaveBeenCalled();
   });
 });

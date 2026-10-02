@@ -4700,7 +4700,7 @@
       "noServerHint": "Configure your server connection in Settings to view meal nutrition.",
       "loading": "Loading meal…",
       "loadFailed": "Failed to load meal",
-      "noFoods": "No {{meal}} foods",
+      "noFoods": "No foods logged for {{meal}}",
       "noFoodsHint": "{{date}} has no foods logged for this meal."
     },
     "labels": {
@@ -6138,7 +6138,9 @@
     "hint": "Touch and hold to choose a specific status.",
     "saveFailed": "Could not save the meal status.",
     "coverageIncomplete_one": "{{count}} incomplete",
-    "coverageIncomplete_other": "{{count}} incomplete"
+    "coverageIncomplete_other": "{{count}} incomplete",
+    "loading": "Loading status…",
+    "loadFailed": "Could not load the meal status."
   },
   "checkin": {
     "completedToast": "Check-in saved",

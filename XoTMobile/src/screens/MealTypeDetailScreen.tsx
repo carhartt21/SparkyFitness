@@ -1,6 +1,14 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { RefreshControl, ScrollView, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from 'react-native';
+import Toast from 'react-native-toast-message';
+import type { MealDayStatusValue } from '@workspace/shared';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import FoodNutritionSummary from '../components/FoodNutritionSummary';
@@ -12,9 +20,15 @@ import CopyMealSheet, {
 } from '../components/CopyMealSheet';
 import SwipeableFoodRow from '../components/SwipeableFoodRow';
 import StatusView from '../components/StatusView';
+import MealStatusControl from '../components/tracking/MealStatusControl';
+import Button from '../components/ui/Button';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
 import { useDailySummary, useServerConnection, useMealTypes } from '../hooks';
 import { useCopyFoodEntries } from '../hooks/useCopyFoodEntries';
+import {
+  useMealTrackingStatus,
+  useSetMealStatus,
+} from '../hooks/useDailyTracking';
 import { usePreferences } from '../hooks/usePreferences';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
@@ -81,6 +95,31 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
         : resolvedType.name
       : getHistoricalMealTypeLabel(mealTypeName, t));
 
+  const mealStatusQuery = useMealTrackingStatus(date, {
+    enabled: isConnected && Boolean(resolvedType),
+  });
+  const { refetch: refetchMealStatus } = mealStatusQuery;
+  const setMealStatus = useSetMealStatus(date);
+  const trackedMeal = mealStatusQuery.data?.meals.find(
+    (meal) => meal.meal_type_id === resolvedType?.id
+  );
+
+  const onSetMealStatus = (status: MealDayStatusValue | null) => {
+    if (!trackedMeal || setMealStatus.isPending) return;
+    setMealStatus.mutate(
+      { entry_date: date, meal_type_id: trackedMeal.meal_type_id, status },
+      {
+        onError: () =>
+          Toast.show({
+            type: 'error',
+            text1: t('mealStatus.saveFailed', {
+              defaultValue: 'Could not save the meal status.',
+            }),
+          }),
+      }
+    );
+  };
+
   const entries = useMemo(
     () =>
       filterFoodEntriesByMealTypeId(
@@ -113,9 +152,65 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await refetch();
-    setRefreshing(false);
-  }, [refetch]);
+    try {
+      await Promise.all([
+        refetch(),
+        ...(resolvedType ? [refetchMealStatus()] : []),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch, resolvedType, refetchMealStatus]);
+
+  const renderMealStatus = () => {
+    // Historical/aggregate groups have no current meal identity to update.
+    // Do not show an invented "pending" state while the read is unavailable.
+    if (
+      !resolvedType ||
+      (!trackedMeal && !mealStatusQuery.isPending && !mealStatusQuery.isError)
+    )
+      return null;
+
+    return (
+      <View className="flex-row items-center gap-3 rounded-xl bg-surface p-4">
+        <View className="min-w-0 flex-1 gap-1">
+          <Text className="text-base font-semibold text-text-primary">
+            {t('mealStatus.title', {
+              defaultValue: '{{meal}} status',
+              meal: label,
+            })}
+          </Text>
+          <Text className="text-sm text-text-secondary">
+            {mealStatusQuery.isError
+              ? t('mealStatus.loadFailed', {
+                  defaultValue: 'Could not load the meal status.',
+                })
+              : mealStatusQuery.isPending
+                ? t('mealStatus.loading', {
+                    defaultValue: 'Loading status…',
+                  })
+                : t('mealStatus.hint', {
+                    defaultValue: 'Touch and hold to choose a specific status.',
+                  })}
+          </Text>
+        </View>
+        {mealStatusQuery.isError ? (
+          <Button variant="secondary" onPress={() => mealStatusQuery.refetch()}>
+            {t('common.retry', { defaultValue: 'Retry' })}
+          </Button>
+        ) : mealStatusQuery.isPending ? (
+          <ActivityIndicator color={accentColor} />
+        ) : trackedMeal ? (
+          <MealStatusControl
+            mealLabel={label}
+            state={trackedMeal.state}
+            onChange={onSetMealStatus}
+            busy={setMealStatus.isPending || mealStatusQuery.isFetching}
+          />
+        ) : null}
+      </View>
+    );
+  };
 
   const renderContent = () => {
     if (!isConnectionLoading && !isConnected) {
@@ -172,24 +267,6 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
       );
     }
 
-    if (entries.length === 0) {
-      return (
-        <StatusView
-          icon="food"
-          iconTone="muted"
-          iconSize={64}
-          title={t('mealTypeDetail.states.noFoods', {
-            defaultValue: 'No {{meal}} foods',
-            meal: label.toLowerCase(),
-          })}
-          subtitle={t('mealTypeDetail.states.noFoodsHint', {
-            defaultValue: '{{date}} has no foods logged for this meal.',
-            date: formatDateLabel(date, t, dateLocale),
-          })}
-        />
-      );
-    }
-
     return (
       <ScrollView
         className="flex-1"
@@ -206,46 +283,77 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
           />
         }
       >
-        <FoodNutritionSummary
-          name={label}
-          brand={
-            targetCalories > 0
-              ? `${formatDateLabel(date, t, dateLocale)} · ${t('mealTypeDetail.targetCalories', { defaultValue: 'Target: {{calories}} kcal', calories: targetCalories })}`
-              : formatDateLabel(date, t, dateLocale)
-          }
-          values={nutrition.values}
-          showNetCarbs={showNetCarbs}
-          customNutrients={
-            Object.keys(nutrition.customNutrients).length > 0
-              ? nutrition.customNutrients
-              : null
-          }
-          calorieGoal={targetCalories > 0 ? targetCalories : undefined}
-        />
-
-        <View className="bg-surface rounded-xl p-4 shadow-sm">
-          <View className="flex-row items-center mb-3">
-            <Text className="text-base font-bold text-text-secondary flex-1">
-              {t('mealTypeDetail.labels.foods', { defaultValue: 'Foods' })}
-            </Text>
-            <Text className="text-xs text-text-muted font-medium">
-              {t('common.itemCount', {
-                defaultValue: '{{count}} items',
-                count: entries.length,
-              })}
-            </Text>
-          </View>
-          {entries.map((entry, index) => (
-            <SwipeableFoodRow
-              key={entry.id || index}
-              entry={entry}
-              nutrition={calculateEntryNutrition(entry)}
-              onAdjustServing={(foodEntry) =>
-                servingSheetRef.current?.present(foodEntry)
+        {renderMealStatus()}
+        {entries.length === 0 ? (
+          <StatusView
+            inline
+            icon="food"
+            iconTone="muted"
+            iconSize={64}
+            title={t('mealTypeDetail.states.noFoods', {
+              defaultValue: 'No foods logged for {{meal}}',
+              meal: label,
+            })}
+            subtitle={t('mealTypeDetail.states.noFoodsHint', {
+              defaultValue: '{{date}} has no foods logged for this meal.',
+              date: formatDateLabel(date, t, dateLocale),
+            })}
+            action={{
+              label: t('mealTypeDetail.accessibility.addFood', {
+                defaultValue: 'Add Food',
+              }),
+              onPress: () =>
+                navigation.navigate('FoodSearch', {
+                  date,
+                  mealTypeId: resolvedType?.id,
+                }),
+              variant: 'primary',
+            }}
+          />
+        ) : (
+          <>
+            <FoodNutritionSummary
+              name={label}
+              brand={
+                targetCalories > 0
+                  ? `${formatDateLabel(date, t, dateLocale)} · ${t('mealTypeDetail.targetCalories', { defaultValue: 'Target: {{calories}} kcal', calories: targetCalories })}`
+                  : formatDateLabel(date, t, dateLocale)
               }
+              values={nutrition.values}
+              showNetCarbs={showNetCarbs}
+              customNutrients={
+                Object.keys(nutrition.customNutrients).length > 0
+                  ? nutrition.customNutrients
+                  : null
+              }
+              calorieGoal={targetCalories > 0 ? targetCalories : undefined}
             />
-          ))}
-        </View>
+
+            <View className="bg-surface rounded-xl p-4 shadow-sm">
+              <View className="flex-row items-center mb-3">
+                <Text className="text-base font-bold text-text-secondary flex-1">
+                  {t('mealTypeDetail.labels.foods', { defaultValue: 'Foods' })}
+                </Text>
+                <Text className="text-xs text-text-muted font-medium">
+                  {t('common.itemCount', {
+                    defaultValue: '{{count}} items',
+                    count: entries.length,
+                  })}
+                </Text>
+              </View>
+              {entries.map((entry, index) => (
+                <SwipeableFoodRow
+                  key={entry.id || index}
+                  entry={entry}
+                  nutrition={calculateEntryNutrition(entry)}
+                  onAdjustServing={(foodEntry) =>
+                    servingSheetRef.current?.present(foodEntry)
+                  }
+                />
+              ))}
+            </View>
+          </>
+        )}
       </ScrollView>
     );
   };

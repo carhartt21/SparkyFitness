@@ -946,7 +946,9 @@
     "hint": "Gedrückt halten, um einen bestimmten Status auszuwählen.",
     "saveFailed": "Der Mahlzeitenstatus konnte nicht gespeichert werden.",
     "coverageIncomplete_one": "{{count}} unvollständig",
-    "coverageIncomplete_other": "{{count}} unvollständig"
+    "coverageIncomplete_other": "{{count}} unvollständig",
+    "loading": "Status wird geladen…",
+    "loadFailed": "Der Mahlzeitenstatus konnte nicht geladen werden."
   },
   "checkin": {
     "completedToast": "Check-in gespeichert",
@@ -2424,12 +2426,18 @@
   "mealTypeDetail": {
     "states": {
       "noServerHint": "Konfigurieren Sie Ihre Serververbindung in den Einstellungen, um den Nährwert Ihrer Mahlzeiten anzuzeigen.",
-      "noFoodsHint": "{{date}} hat für diese Mahlzeit keine Lebensmittel protokolliert.",
-      "loadFailed": "Mahlzeit konnte nicht geladen werden."
+      "noFoodsHint": "Für diese Mahlzeit wurden noch keine Lebensmittel erfasst ({{date}}).",
+      "loadFailed": "Mahlzeit konnte nicht geladen werden.",
+      "noServer": "Kein Server eingerichtet",
+      "loading": "Mahlzeit wird geladen…",
+      "noFoods": "Noch keine Lebensmittel für {{meal}} erfasst"
     },
     "accessibility": {
       "copyMeal": "Mahlzeit auf einen anderen Tag kopieren",
       "addFood": "Lebensmittel hinzufügen"
+    },
+    "labels": {
+      "foods": "Lebensmittel"
     }
   },
   "workoutPresetDetail": {

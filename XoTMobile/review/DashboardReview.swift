@@ -1,6 +1,47 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  func testMealGoalStatus() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch
+    more.tap()
+    let goals = app.descendants(matching: .any)["more-daily-progress"]
+    for _ in 0..<4 { if goals.exists && goals.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(goals.waitForExistence(timeout: 10))
+    goals.tap()
+    let meal = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "daily-progress-item-meal:")).firstMatch
+    for _ in 0..<4 { if meal.exists && meal.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(meal.waitForExistence(timeout: 10))
+    capture("meal-goals-before", app)
+    meal.tap()
+    let status = app.buttons["meal-status-control"]
+    XCTAssertTrue(status.waitForExistence(timeout: 10))
+    XCTAssertGreaterThanOrEqual(status.frame.height, 44)
+    XCTAssertGreaterThanOrEqual(status.frame.width, 44)
+    capture("meal-empty-pending", app)
+    status.tap()
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "meal-status-control", "Abgeschlossen")).firstMatch.waitForExistence(timeout: 10))
+    capture("meal-empty-complete", app)
+    status.press(forDuration: 0.7)
+    let skip = app.buttons["action-sheet-item-skipped"]
+    XCTAssertTrue(skip.waitForExistence(timeout: 10))
+    capture("meal-status-choices", app)
+    skip.tap()
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "meal-status-control", "Keine Mahlzeit")).firstMatch.waitForExistence(timeout: 10))
+    capture("meal-empty-skipped", app)
+    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch
+    back.tap()
+    XCTAssertTrue(meal.waitForExistence(timeout: 10))
+    XCTAssertTrue(meal.label.contains("Abgeschlossen"))
+    capture("meal-goals-updated", app)
+    meal.tap()
+    XCTAssertTrue(app.buttons.matching(NSPredicate(format: "identifier == %@ AND label CONTAINS %@", "meal-status-control", "Keine Mahlzeit")).firstMatch.waitForExistence(timeout: 10))
+    capture("meal-empty-reopened", app)
+  }
+
   func testFoodDetailsLayout() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

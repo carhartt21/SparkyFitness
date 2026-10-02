@@ -1,7 +1,12 @@
-import { trackingProgressRange } from './trackingFixture';
+import {
+  trackingProgressRange,
+  trackingReviewResponse,
+} from './trackingFixture';
 import {
   containerWaterActionBodySchema,
   type WaterIntakeLogEntry,
+  type MealTrackingStatus,
+  setMealDayStatusRequestSchema,
 } from '@workspace/shared';
 import type { FoodItem } from '../src/types/foods';
 import type { FoodEntry } from '../src/types/foodEntries';
@@ -86,6 +91,38 @@ export function createNutritionFixture(scenario: string) {
   const waterLog: WaterIntakeLogEntry[] = [];
   const waterOperations = new Set<string>();
 
+  // This scenario exercises the real meal-status hooks without a real account.
+  // Kept per selected day, so navigation cannot leak status across dates.
+  const mealDays = new Map<string, MealTrackingStatus>();
+  const lunchId = 'b3333333-3333-4333-8333-333333333333';
+  const mealDay = (date: string): MealTrackingStatus => {
+    let day = mealDays.get(date);
+    if (!day) {
+      day = {
+        entry_date: date,
+        meals: [
+          {
+            meal_type_id: lunchId,
+            name: 'lunch',
+            state: 'pending',
+            logged_item_count: 0,
+            updated_at: null,
+          },
+        ],
+        coverage: {
+          total: 1,
+          resolved: 0,
+          complete: 0,
+          skipped: 0,
+          incomplete: 0,
+          pending: 1,
+        },
+      };
+      mealDays.set(date, day);
+    }
+    return day;
+  };
+
   const snapshot = () => clone(entries);
   return {
     snapshot,
@@ -93,6 +130,54 @@ export function createNutritionFixture(scenario: string) {
       if (url.origin !== 'https://ui-review.invalid')
         throw new Error('Review blocked network origin');
       const path = url.pathname.replace(/\/$/, '');
+      if (scenario === 'meal-status') {
+        if (method === 'PUT' && path === '/api/v2/tracking/meal-status') {
+          const data = setMealDayStatusRequestSchema.parse(
+            JSON.parse(body ?? '{}')
+          );
+          if (data.meal_type_id !== lunchId)
+            throw new Error('Unknown review meal');
+          const day = mealDay(data.entry_date);
+          day.meals[0].state = data.status ?? 'pending';
+          day.meals[0].updated_at = data.status
+            ? `${data.entry_date}T12:00:00Z`
+            : null;
+          const state = day.meals[0].state;
+          day.coverage = {
+            total: 1,
+            resolved: state === 'pending' ? 0 : 1,
+            complete: state === 'complete' ? 1 : 0,
+            skipped: state === 'skipped' ? 1 : 0,
+            incomplete: state === 'incomplete' ? 1 : 0,
+            pending: state === 'pending' ? 1 : 0,
+          };
+          return JSON.parse(JSON.stringify(day));
+        }
+        if (method === 'GET' && path === '/api/meal-types')
+          return [
+            ...(reviewResponse(path, scenario) as object[]),
+            {
+              id: lunchId,
+              name: 'lunch',
+              user_id: null,
+              sort_order: 1,
+              is_visible: true,
+              show_in_quick_log: true,
+              created_at: '2026-01-01T00:00:00Z',
+            },
+          ];
+        if (method === 'GET' && path.startsWith('/api/v2/tracking/')) {
+          const date = path.split('/').at(-1)!;
+          const response = trackingReviewResponse(
+            path,
+            scenario,
+            reviewDate,
+            mealDay(date)
+          );
+          if (response !== undefined)
+            return JSON.parse(JSON.stringify(response));
+        }
+      }
       if (method === 'GET' && path === '/api/v2/mobility')
         return {
           routines: [],
