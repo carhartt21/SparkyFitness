@@ -76,6 +76,8 @@ const NATIVE_TABS_ROUTE_EXCLUSIONS = {
     'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
   Habits:
     'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  Wellness:
+    'Root-stack wellness logging screen with its own date bar and back button, presented above the tab host.',
   HabitsManage:
     'Root-stack habit list editor with its own back button, presented above the tab host.',
   HabitForm:

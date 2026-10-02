@@ -73,6 +73,7 @@ import PregnancySetupScreen from '../screens/PregnancySetupScreen';
 import MedicationsListScreen from '../screens/MedicationsListScreen';
 import DailyCheckInScreen from '../screens/DailyCheckInScreen';
 import HabitsScreen from '../screens/HabitsScreen';
+import WellnessScreen from '../screens/WellnessScreen';
 import HabitsManageScreen from '../screens/HabitsManageScreen';
 import HabitFormScreen from '../screens/HabitFormScreen';
 import SupplementsScreen from '../screens/SupplementsScreen';
@@ -469,6 +470,9 @@ export const SafeDailyCheckIn = withErrorBoundary(
   { canGoBack: true }
 );
 export const SafeHabits = withErrorBoundary(HabitsScreen, 'Habits', {
+  canGoBack: true,
+});
+export const SafeWellness = withErrorBoundary(WellnessScreen, 'Wellness', {
   canGoBack: true,
 });
 export const SafeHabitsManage = withErrorBoundary(

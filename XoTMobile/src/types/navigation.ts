@@ -355,12 +355,18 @@ export type RootStackParamList = {
   MedicationsList: undefined;
   DailyCheckIn: { date?: string } | undefined;
   Habits: { date?: string; habitId?: string } | undefined;
+  Wellness: { date?: string } | undefined;
   HabitsManage: undefined;
   HabitForm: { habitId?: string } | undefined;
   Supplements: { date?: string; scheduleId?: string } | undefined;
   HealthContext: undefined;
   HealthContextForm: { periodId?: string } | undefined;
-  DailyProgress: { date?: string } | undefined;
+  DailyProgress:
+    | {
+        date?: string;
+        domain?: import('@workspace/shared').DailyProgressDomain;
+      }
+    | undefined;
   TrackingSettings: undefined;
   MedicationDetail: { medicationId: string };
   MedicationForm: { medicationId?: string; supplement?: boolean };

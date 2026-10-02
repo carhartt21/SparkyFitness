@@ -616,9 +616,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           {
             key: 'scan',
             label: t('dashboard.quickScan', { defaultValue: 'Scan' }),
-            sublabel: t('dashboard.quickScanDetail', {
-              defaultValue: 'Food label',
-            }),
             icon: 'scan' as const,
             color: scanActionColor,
             onPress: () =>
@@ -629,7 +626,6 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
             testID={`dashboard-${action.key}`}
             key={action.key}
             label={action.label}
-            sublabel={action.sublabel}
             icon={action.icon}
             color={action.color}
             onPress={action.onPress}

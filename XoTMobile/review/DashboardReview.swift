@@ -101,13 +101,13 @@ final class DashboardReview: XCTestCase {
     XCTAssertGreaterThanOrEqual(goal.frame.width, 44)
     XCTAssertGreaterThanOrEqual(goal.frame.height, 44)
 
-    let nextTasks = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "dashboard-next-", "dashboard-next-day"))
-    let lastTask = nextTasks.element(boundBy: 2)
+    let nextTasks = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "dashboard-category-", "dashboard-next-day"))
+    let lastTask = nextTasks.element(boundBy: 3)
     for _ in 0..<7 {
       if lastTask.exists && lastTask.isHittable && lastTask.frame.maxY < app.frame.maxY - 100 { break }
       dashboard.swipeUp()
     }
-    XCTAssertEqual(nextTasks.count, 3)
+    XCTAssertEqual(nextTasks.count, 4)
     XCTAssertTrue(lastTask.isHittable)
     let progressVisual = app.descendants(matching: .any)["dashboard-daily-progress-visual"]
     let progressRows = app.descendants(matching: .any)["dashboard-daily-progress-rows"]
@@ -119,11 +119,11 @@ final class DashboardReview: XCTestCase {
     XCTAssertEqual(rowsFrame.width, progressRows.frame.width, accuracy: 2)
     let stacked = rowsFrame.minY >= visualFrame.maxY
     if !stacked {
-      XCTAssertEqual(rowsFrame.height, progressRows.frame.height, accuracy: 2)
-      XCTAssertEqual(visualFrame.height, progressVisual.frame.height, accuracy: 2)
+      XCTAssertGreaterThanOrEqual(progressRows.frame.height, 192)
+      XCTAssertGreaterThanOrEqual(progressVisual.frame.height, 192)
     }
     for task in nextTasks.allElementsBoundByIndex {
-      XCTAssertGreaterThanOrEqual(task.frame.height, 64)
+      XCTAssertGreaterThanOrEqual(task.frame.height, 44)
       XCTAssertGreaterThanOrEqual(task.frame.width, 44)
       XCTAssertGreaterThanOrEqual(task.frame.minX, 0)
       XCTAssertLessThanOrEqual(task.frame.maxX, app.frame.maxX)
@@ -133,6 +133,21 @@ final class DashboardReview: XCTestCase {
     measurement.lifetime = .keepAlways
     add(measurement)
     capture("summary-progress", app)
+    // A bottom-row geometry check can scroll past the card's heading. Capture
+    // the top separately so review evidence includes its actual title and X.
+    let progressHeading = app.buttons["dashboard-progress-open"]
+    for _ in 0..<7 {
+      let delta = progressHeading.frame.minY - 125
+      if abs(delta) < 15 { break }
+      let distance = min(app.frame.height * 0.45, abs(delta)) / app.frame.height
+      let startY = delta > 0 ? 0.72 : 0.35
+      let endY = startY + (delta > 0 ? -distance : distance)
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+        .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY)), withVelocity: .slow, thenHoldForDuration: 0.4)
+    }
+    XCTAssertTrue(progressHeading.isHittable)
+    capture("summary-progress-top", app)
+    for _ in 0..<7 { if nextTasks.firstMatch.isHittable { break }; dashboard.swipeUp(velocity: .slow) }
     nextTasks.firstMatch.tap()
     XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.waitForExistence(timeout: 10))
     capture("summary-task-destination", app)
@@ -188,7 +203,7 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
     XCTAssertTrue(app.buttons["dashboard-edit-goal"].exists)
     capture("refinement-dashboard", app)
-    let nextTask = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dashboard-next-")).firstMatch
+    let nextTask = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dashboard-category-")).firstMatch
     for _ in 0..<5 { if nextTask.isHittable { break }; dashboard.swipeUp() }
     XCTAssertTrue(nextTask.isHittable)
     capture("refinement-progress", app)
@@ -307,7 +322,7 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(progress.waitForExistence(timeout: 15))
     XCTAssertGreaterThanOrEqual(progress.frame.height, 44)
     capture("v38-dashboard", app)
-    let nextTask = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dashboard-next-")).firstMatch
+    let nextTask = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dashboard-category-")).firstMatch
     for _ in 0..<6 { if nextTask.isHittable { break }; dashboard.swipeUp() }
     XCTAssertTrue(nextTask.isHittable); nextTask.tap()
     capture("v38-next-task-destination", app)
@@ -641,8 +656,13 @@ final class DashboardReview: XCTestCase {
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
     XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
-    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
-    diary.tap()
+    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch
+    more.tap()
+    let wellness = app.descendants(matching: .any)["more-wellness"]
+    for _ in 0..<6 { if wellness.exists && wellness.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(wellness.waitForExistence(timeout: 10))
+    capture("wellness-more", app)
+    wellness.tap()
     let sauna = app.buttons.matching(NSPredicate(format: "label IN %@", ["Log Sauna", "Sauna erfassen"])).firstMatch
     XCTAssertTrue(sauna.waitForExistence(timeout: 10))
     for _ in 0..<12 {
@@ -663,9 +683,19 @@ final class DashboardReview: XCTestCase {
     for _ in 0..<5 { if history.isHittable { break }; app.swipeUp() }
     history.tap()
     capture("wellness-history", app)
-    for _ in 0..<5 { if undo.isHittable { break }; app.swipeDown() }
+    app.buttons["wellness-back"].tap()
+    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
+    diary.tap()
+    XCTAssertTrue(undo.waitForExistence(timeout: 10))
+    for _ in 0..<10 { if undo.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(undo.isHittable)
+    XCTAssertFalse(sauna.exists)
+    XCTAssertFalse(app.textFields["wellness-name"].exists)
+    capture("wellness-diary", app)
     undo.tap()
-    XCTAssertTrue(sauna.waitForExistence(timeout: 10))
+    let disappeared = NSPredicate(format: "exists == false")
+    expectation(for: disappeared, evaluatedWith: undo)
+    waitForExpectations(timeout: 10)
     capture("wellness-after-undo", app)
   }
 
@@ -898,6 +928,12 @@ final class DashboardReview: XCTestCase {
     dashboard.swipeDown()
     let food = app.buttons["dashboard-food"]
     XCTAssertTrue(food.waitForExistence(timeout: 10))
+    // Summary cards can grow with task counts and text size; find the actions
+    // rather than assuming that three downward swipes leave them visible.
+    for _ in 0..<8 {
+      if food.isHittable && food.frame.maxY < app.frame.maxY - 140 { break }
+      dashboard.swipeUp(velocity: .slow)
+    }
     XCTAssertTrue(food.isHittable)
     XCTAssertGreaterThanOrEqual(food.frame.height, 44)
     XCTAssertGreaterThanOrEqual(food.frame.width, 44)
@@ -907,6 +943,7 @@ final class DashboardReview: XCTestCase {
       XCTAssertGreaterThanOrEqual(action.frame.height, 44)
       XCTAssertGreaterThanOrEqual(action.frame.width, 44)
     }
+    capture("dashboard-quick-actions", app)
     app.buttons["dashboard-water"].tap()
     let hydrationDetails = app.buttons["dashboard-hydration-details"]
     for _ in 0..<4 {

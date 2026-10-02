@@ -108,6 +108,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
   return (
     <DashboardSummaryCard
       testID="dashboard-energy"
+      headingIcon="flame"
       title={t('dashboard.calories', { defaultValue: 'Calories' })}
       accessibilityLabel={t('dashboard.dailyEnergy', {
         defaultValue: 'Daily energy',

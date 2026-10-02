@@ -1,3 +1,7 @@
+import { completeWatchProgress } from '../services/watchProgressActions';
+import { getDailyProgress, listHabits } from '../services/api/dailyTrackingApi';
+import { buildWatchProgressItems } from '../utils/watchProgressItems';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -19,6 +23,7 @@ import WatchConnectivity, {
   type WatchWorkoutSetOperationPayload,
   type WatchTimerPayload,
   type WatchFoodLogPayload,
+  type WatchProgressActionPayload,
 } from '../../modules/watch-connectivity';
 import {
   fetchFoodLastServing,
@@ -36,6 +41,10 @@ import {
   deleteWaterIntakeLogEntry,
 } from '../services/api/measurementsApi';
 import {
+  dailyProgressRootQueryKey,
+  habitsRootQueryKey,
+  habitLogsRootQueryKey,
+  mealTrackingStatusQueryKey,
   measurementsQueryKey,
   measurementsRangeQueryKey,
   dailySummaryQueryKey,
@@ -681,6 +690,31 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         currentWorkoutState === activeWorkoutState
           ? workoutSnapshot
           : buildWatchWorkoutSnapshot(currentWorkoutState);
+      const watchProgress = await queryClient
+        .fetchQuery({
+          queryKey: [
+            ...dailyProgressRootQueryKey,
+            'watch',
+            actionIdentity.serverConfigId,
+            actionIdentity.userId,
+            today,
+          ],
+          queryFn: () => getDailyProgress(today, actionIdentity),
+          staleTime: 30_000,
+        })
+        .catch(() => null);
+      const watchHabits = await queryClient
+        .fetchQuery({
+          queryKey: [
+            ...habitsRootQueryKey,
+            'watch',
+            actionIdentity.serverConfigId,
+            actionIdentity.userId,
+          ],
+          queryFn: () => listHabits(false, actionIdentity),
+          staleTime: 30_000,
+        })
+        .catch(() => null);
       const context: WatchContextPayload = {
         // Keeps consecutive pushes distinct — see the field's own comment.
         // Without it an unchanged day pushes an identical dictionary, which
@@ -721,6 +755,17 @@ export function useWatchCheckInBridge(enabled: boolean): void {
             : null,
         timers,
         ...figures,
+        dailyProgressCompleted: watchProgress?.completed ?? null,
+        dailyProgressApplicable: watchProgress?.applicable ?? null,
+        dailyProgressPercent: watchProgress?.percent ?? null,
+        dailyProgressItems: watchProgress
+          ? buildWatchProgressItems(
+              watchProgress.items,
+              watchHabits ?? [],
+              buildWatchMealTypes(mealTypes, t),
+              t
+            )
+          : [],
       };
 
       // A response fetched under a departed account must never be relabelled
@@ -1057,6 +1102,47 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     []
   );
 
+  const handleProgressAction = useCallback(
+    async (payload: WatchProgressActionPayload) => {
+      if (!WatchConnectivity) return;
+      const ok = await completeWatchProgress(payload);
+      // The immediate message can be lost or arrive while the Watch is asleep.
+      // Repeat the acknowledgement in the existing scoped application context.
+      if (await isCurrentWatchActionScope(payload.scope)) {
+        if (ok) {
+          ackedClientIdsRef.current = [
+            ...ackedClientIdsRef.current.filter(
+              (id) => id !== payload.clientId
+            ),
+            payload.clientId,
+          ].slice(-20);
+          failedClientIdsRef.current = failedClientIdsRef.current.filter(
+            (id) => id !== payload.clientId
+          );
+        } else {
+          failedClientIdsRef.current = [
+            ...failedClientIdsRef.current.filter(
+              (id) => id !== payload.clientId
+            ),
+            payload.clientId,
+          ].slice(-20);
+        }
+      }
+      await WatchConnectivity.sendAck(payload.clientId, ok);
+      await Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: dailyProgressRootQueryKey,
+        }),
+        queryClient.invalidateQueries({ queryKey: habitLogsRootQueryKey }),
+        queryClient.invalidateQueries({
+          queryKey: mealTrackingStatusQueryKey(payload.entryDate),
+        }),
+      ]);
+      await pushContextRef.current();
+    },
+    []
+  );
+
   // A tap accepted while the API was offline stays queued on the Watch. When
   // the app-scope outbox later settles it, deliver the acknowledgement without
   // requiring another Watch tap or a foregrounded water screen.
@@ -1270,6 +1356,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     handleWaterDelete,
     handleWorkoutSetOperation,
     handleFoodLog,
+    handleProgressAction,
     handleThumbnailRequest,
     pushContext,
     catchUpToToday,
@@ -1281,6 +1368,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       handleWaterDelete,
       handleWorkoutSetOperation,
       handleFoodLog,
+      handleProgressAction,
       handleThumbnailRequest,
       pushContext,
       catchUpToToday,
@@ -1360,6 +1448,12 @@ export function useWatchCheckInBridge(enabled: boolean): void {
         }
       }
     );
+    const progressSub = WatchConnectivity.addListener(
+      'onProgressAction',
+      (payload) => {
+        onEvent(handlersRef.current.handleProgressAction)(payload);
+      }
+    );
     const foodLogSub = WatchConnectivity.addListener('onFoodLog', (payload) => {
       onEvent(handlersRef.current.handleFoodLog)(payload);
     });
@@ -1405,6 +1499,7 @@ export function useWatchCheckInBridge(enabled: boolean): void {
       workoutLifecycleSub();
       thumbnailRequestSub.remove();
       foodLogSub.remove();
+      progressSub.remove();
       contextRequestSub.remove();
       reachabilitySub.remove();
       appStateSub.remove();

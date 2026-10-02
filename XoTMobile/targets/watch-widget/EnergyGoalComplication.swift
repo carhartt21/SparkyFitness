@@ -229,10 +229,11 @@ struct EnergyGoalComplicationEntryView: View {
             .widgetURL(ComplicationLink.goals.url)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
-                "Calories \(percentText(entry.snapshot.calorieGoalProgress)) of goal. "
-                    + "Fat \(percentText(entry.snapshot.fatGoalProgress)), "
-                    + "carbs \(percentText(entry.snapshot.carbsGoalProgress)), "
-                    + "protein \(percentText(entry.snapshot.proteinGoalProgress)) of their goals."
+                ProgressCopy.text("energy.accessibility",
+                    percentText(entry.snapshot.calorieGoalProgress),
+                    percentText(entry.snapshot.fatGoalProgress),
+                    percentText(entry.snapshot.carbsGoalProgress),
+                    percentText(entry.snapshot.proteinGoalProgress))
             )
     }
 }
@@ -246,8 +247,8 @@ struct EnergyGoalComplication: Widget {
             EnergyGoalComplicationEntryView(entry: entry)
                 .containerBackground(.clear, for: .widget)
         }
-        .configurationDisplayName("Daily Energy Goal")
-        .description("Calories in the inner ring, fat/carbs/protein goal progress in the outer ring.")
+        .configurationDisplayName(ProgressCopy.text("energy.configuration"))
+        .description(ProgressCopy.text("energy.description"))
         .supportedFamilies([.accessoryCircular])
     }
 }

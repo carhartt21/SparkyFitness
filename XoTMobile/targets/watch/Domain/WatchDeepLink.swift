@@ -14,6 +14,7 @@ import Foundation
 /// Change one, change all three.
 enum WatchDeepLink: String {
     /// Daily Energy Goal complication → the Goals summary page.
+    case progress
     case goals
     /// Water intake complication → the Water page. `ContentView` maps this
     /// to `.water`; `WaterGoalComplication` produces it.

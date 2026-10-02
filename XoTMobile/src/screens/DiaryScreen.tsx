@@ -820,7 +820,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             customNutrients={customNutrients}
           />
         )}
-        {isConnected && <WellnessCard date={selectedDate} />}
+        {isConnected && <WellnessCard date={selectedDate} mode="diary" />}
         <PendingNutritionActions
           actions={localFoodActions}
           storageError={nutritionStorageError}

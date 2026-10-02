@@ -1,6 +1,23 @@
 import { NativeModule, requireOptionalNativeModule } from 'expo';
 import { Platform } from 'react-native';
 
+export interface WatchProgressActionPayload {
+  clientId: string;
+  scope: string;
+  entryDate: string;
+  itemId: string;
+  capturedAt: string;
+  expectedRecordedAt: string | null;
+}
+export interface WatchProgressItemPayload {
+  id: string;
+  label: string;
+  domain: string;
+  state: string;
+  canComplete: boolean;
+  recordedAt?: string;
+  icon: string;
+}
 /** A morning check-in captured on the Apple Watch. */
 export interface WatchCheckInPayload {
   /** Stable id generated on the watch, used to dedupe re-delivered transfers. */
@@ -308,6 +325,7 @@ export interface WatchContextPayload {
    * percent is null when no task applies, which the watch draws as a neutral
    * X; both counts absent means "not synced yet".
    */
+  dailyProgressItems?: WatchProgressItemPayload[];
   dailyProgressCompleted?: number | null;
   dailyProgressApplicable?: number | null;
   dailyProgressPercent?: number | null;
@@ -350,6 +368,7 @@ export type WatchConnectivityEvents = {
   onWorkoutSetOperation: (payload: WatchWorkoutSetOperationPayload) => void;
   onWorkoutHealth: (payload: WatchWorkoutHealthEvent) => void;
   onFoodLog: (payload: WatchFoodLogPayload) => void;
+  onProgressAction: (payload: WatchProgressActionPayload) => void;
   /** Thumbnail keys the watch has no picture for. */
   onThumbnailRequest: (payload: { keys: string[] }) => void;
 };

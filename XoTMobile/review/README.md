@@ -48,9 +48,10 @@ The corresponding web persistence check runs with `XOT_VISUAL_URL=http://localho
 ## Wellness logging tour
 
 `--interactions --wellness-tour --case '390-de-dark|390-de-light|430-de-large'`
-opens Diary, checks the Sauna preset's 44-point target, logs it for the selected
-calendar day, expands history, and undoes that day's entry. Each case captures
-empty, logged, history and after-undo states. `review/wellnessFixture.ts` accepts
+opens More → Wellness, checks the Sauna preset's 44-point target, logs it for
+the selected calendar day and expands history. It then returns to Diary, verifies
+that the recorded entry appears without creation controls, and undoes that day's
+entry. Each case captures More, empty, logged, history, Diary and after-undo states. `review/wellnessFixture.ts` accepts
 only schema-validated wellness creations and completion/removal writes for known
 synthetic activity IDs. It preserves other routine fixtures and resets per run.
 This checks native behavior against memory; server persistence and real RLS are
@@ -124,3 +125,25 @@ Use `--interactions --food-macro-review --case '^(390-de-dark|390-de-light|430-d
 ## Caffeine and hydration sources
 
 `--interactions --hydration-review` renders the selected-day caffeine curve with an older residual dose, opens the unified hydration card/details, and captures sources/history in German dark/light at 390×844 and enlarged text at 430×932. It asserts navigation and the absence of the separate options card. Source fixtures are synthetic and read-only; PostgreSQL reconciliation and owner-only authorization are covered separately in server tests.
+
+## Native Watch daily goals
+
+```sh
+node scripts/review-watch-goals.mjs --output /tmp/xot-watch-goals-review-unique
+```
+
+Requires the installed watchOS 26.2 simulator runtime and Xcode. The script builds
+actual `targets/watch` sources with a separate synthetic entrypoint, installs only
+`com.cg.phi.watchkitapp.review` on its dedicated `XOT UI Review Watch v39 corrections`
+simulator, runs 16 native assertions, and captures the German goals page. The fixture
+refuses any other bundle identifier. It checks unsupported actions, duplicate taps,
+account-scoped queue/replay, old-context compatibility and canonical X reveal states.
+It does not grant HealthKit permission, pair a phone, access a server, or publish a
+build. `results.json` records a source hash and these limits. Inspect the screenshot;
+native logic checks alone do not verify every scrolled row or confirmation dialog.
+
+The phone summary review now measures four compact **category** rows and opens their
+breakdown. It captures both the category card's top and its lower rows; at enlarged
+text they scroll separately. Category counts are not the daily progress denominator.
+Actual confirmations, phone undo, reconnect, midnight, account switch and signed
+complication delivery still require the paired-device release check.

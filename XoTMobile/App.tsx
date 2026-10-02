@@ -124,6 +124,7 @@ import {
   SafeMedicationScheduleForm,
   SafeDailyCheckIn,
   SafeHabits,
+  SafeWellness,
   SafeHabitsManage,
   SafeHabitForm,
   SafeSupplements,
@@ -1413,6 +1414,11 @@ function AppContent() {
             <Stack.Screen
               name="HabitsManage"
               component={SafeHabitsManage}
+              options={{ headerShown: false, gestureEnabled: true }}
+            />
+            <Stack.Screen
+              name="Wellness"
+              component={SafeWellness}
               options={{ headerShown: false, gestureEnabled: true }}
             />
             <Stack.Screen

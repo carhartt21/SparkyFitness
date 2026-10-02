@@ -1,0 +1,37 @@
+{
+  "syntheticEvidenceOnly": true,
+  "baseRevision": "bcb401c4a993589e9d8da80042d572ecc123a74c",
+  "implementationCommits": ["e2862af7f", "e88bf6107"],
+  "mobileFullSuite": {
+    "passed": true,
+    "suites": 539,
+    "tests": 7651,
+    "phase": "implementation before final small label/localization/ack-context corrections"
+  },
+  "mobileFinalFocused": {
+    "passed": true,
+    "suites": 8,
+    "tests": 33,
+    "scope": "category projection/navigation, optional skip/undo, Watch action receipt safety, locale and drawing parity"
+  },
+  "serverFinalFocused": {
+    "passed": true,
+    "files": 4,
+    "tests": 42,
+    "scope": "activity planning service/routes/projection and daily progress projection"
+  },
+  "validation": {
+    "mobile": "pass",
+    "server": "pass",
+    "frontend": "pass",
+    "docsBuild": "pass"
+  },
+  "native": {
+    "phoneBridgeSimulatorTypecheck": "pass",
+    "watchSimulatorCompileAndSyntheticAssertions": 16,
+    "watchComplicationSimulatorTypecheck": "pass"
+  },
+  "deviceChecks": "unverified: signed archive, actual WatchConnectivity/server round-trip, physical Watch, reconnect/restart/midnight/account-switch flows and accessibility traversal",
+  "blanketBackendSuite": "not run, per request",
+  "releaseActions": "no merge, publication or deployment in this batch"
+}

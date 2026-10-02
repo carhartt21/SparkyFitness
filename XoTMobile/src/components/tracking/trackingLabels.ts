@@ -167,6 +167,16 @@ export function plannedActivityLabel(t: TFunction, value: string): string {
       return t('weeklyPlan.activities.soccer', { defaultValue: 'Soccer' });
     case 'yoga':
       return t('weeklyPlan.activities.yoga', { defaultValue: 'Yoga' });
+    case 'mobility':
+      return t('activityPlanning.sport.mobility', { defaultValue: 'Mobility' });
+    case 'stretching':
+      return t('activityPlanning.sport.stretching', {
+        defaultValue: 'Stretching',
+      });
+    case 'fitness_equipment':
+      return t('activityPlanning.sport.fitness_equipment', {
+        defaultValue: 'Fitness equipment',
+      });
     case 'other':
       return t('weeklyPlan.activities.other', {
         defaultValue: 'Other activity',
@@ -178,6 +188,18 @@ export function plannedActivityLabel(t: TFunction, value: string): string {
         defaultValue: 'Other activity',
       });
   }
+}
+
+/** Translate type identifiers without replacing a personal plan/routine name. */
+export function progressActivityLabel(
+  t: TFunction,
+  label: string,
+  activityType: string
+): string {
+  return !label.trim() ||
+    label.trim().toLowerCase() === activityType.toLowerCase()
+    ? plannedActivityLabel(t, activityType)
+    : label;
 }
 
 export function progressGoalLabel(t: TFunction, value: string): string {
@@ -209,5 +231,29 @@ export function nutritionGoalLabel(t: TFunction, value: string): string {
       return t('nutrition.fat', { defaultValue: 'fat' });
     default:
       return value;
+  }
+}
+
+export function categoryStateLabel(
+  t: TFunction,
+  state: import('../../utils/progressCategories').ProgressCategoryState
+): string {
+  switch (state) {
+    case 'open':
+      return t('progress.categoryState.open', { defaultValue: 'Open' });
+    case 'partial':
+      return t('progress.categoryState.partial', {
+        defaultValue: 'Partly complete',
+      });
+    case 'complete':
+      return t('progress.categoryState.complete', { defaultValue: 'Complete' });
+    case 'skipped':
+      return t('progress.categoryState.skipped', { defaultValue: 'Skipped' });
+    case 'unknown':
+      return t('progress.categoryState.unknown', {
+        defaultValue: 'Review plan',
+      });
+    case 'optional':
+      return t('progress.categoryState.optional', { defaultValue: 'Optional' });
   }
 }

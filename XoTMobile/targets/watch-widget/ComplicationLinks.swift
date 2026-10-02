@@ -10,6 +10,7 @@ import Foundation
 /// targets/watch/expo-target.config.js, which registers the scheme).
 enum ComplicationLink: String {
     /// Daily Energy Goal → the Goals summary page.
+    case progress
     case goals
     /// Water intake → the Water page. Used by `WaterGoalComplication`.
     case water

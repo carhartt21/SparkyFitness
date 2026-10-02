@@ -1,3 +1,4 @@
+import { useAppLocale } from '../../localization';
 import React, { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity } from 'react-native';
@@ -36,7 +37,7 @@ const CycleCalendarGrid: React.FC<CycleCalendarGridProps> = ({
   settings,
   onMonthChange,
 }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const tokens = useWellnessTokens();
   const { preferences } = usePreferences();
   const firstDayOfWeek =
@@ -212,7 +213,7 @@ const CycleCalendarGrid: React.FC<CycleCalendarGridProps> = ({
   };
 
   const monthName = new Date(year, monthVal - 1, 1).toLocaleString(
-    i18n.language.toLowerCase().startsWith('pl') ? 'pl-PL' : 'en-US',
+    useAppLocale(),
     { month: 'long', year: 'numeric' }
   );
   const baseWeekdays = [

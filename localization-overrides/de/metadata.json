@@ -3,6 +3,7 @@
     "NSCameraUsageDescription": "X on Track verwendet Ihre Kamera, um Lebensmittel und Mahlzeiten zu fotografieren sowie Barcodes und Nährwertetiketten zu scannen.",
     "NSHealthShareUsageDescription": "X on Track liest Gesundheitsdaten wie Aktivität, Trainings und Körpermaße, um sie in der App anzuzeigen und mit Ihrem selbst gehosteten X on Track-Server zu synchronisieren.",
     "NSHealthUpdateUsageDescription": "X on Track überträgt Ernährung, Trinkmenge und abgeschlossene Trainings an Apple Health, wenn Sie die jeweilige Übertragung aktivieren.",
-    "NSLocalNetworkUsageDescription": "X on Track verbindet sich mit selbst gehosteten Servern in Ihrem lokalen Netzwerk."
+    "NSLocalNetworkUsageDescription": "X on Track verbindet sich mit selbst gehosteten Servern in Ihrem lokalen Netzwerk.",
+    "NSPhotoLibraryUsageDescription": "X on Track ermöglicht die Auswahl von Fotos aus Ihrer Mediathek für Lebensmittel, Mahlzeiten und Tagebucheinträge."
   }
 }

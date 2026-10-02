@@ -8,5 +8,11 @@
   "progress.title": "Tagesfortschritt",
   "progress.inline": "Tagesfortschritt %@",
   "progress.configuration": "Tagesfortschritt X",
-  "progress.description": "Das X zeigt den Fortschritt Ihrer heutigen Aufgaben wie auf der Übersicht."
+  "progress.description": "Das X zeigt den Fortschritt Ihrer heutigen Aufgaben wie auf der Übersicht.",
+  "water.configuration": "Trinkmenge",
+  "water.description": "Erfasste Trinkmenge im Verhältnis zum heutigen Ziel.",
+  "water.accessibility": "Trinkmenge: %d%% des heutigen Ziels.",
+  "energy.configuration": "Kalorien und Nährstoffe",
+  "energy.description": "Kalorien im inneren Ring, Fett, Kohlenhydrate und Protein im äußeren Ring.",
+  "energy.accessibility": "Kalorien %@ des Ziels. Fett %@, Kohlenhydrate %@, Protein %@ des jeweiligen Ziels."
 }

@@ -16,7 +16,7 @@ import { formatDate } from '../utils/dateUtils';
 import { babyWeek } from '@workspace/shared';
 import WombScene from './wellness/pregnancy/WombScene';
 import { localizeBabyWeek } from '../utils/pregnancyContentLocalization';
-import { formatLocalizedNumber } from '../localization';
+import { useAppLocale, formatLocalizedNumber } from '../localization';
 import CycleRing from './wellness/CycleRing';
 import { useWellnessTokens } from './wellness/theme/wellnessTokens';
 import type { CompositeNavigationProp } from '@react-navigation/native';
@@ -85,10 +85,8 @@ export const CycleCardRingContent: React.FC<{
   title: string;
   info: CycleRingContentInfo;
 }> = ({ title, info }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const tokens = useWellnessTokens();
   const [textAccent] = useCSSVariable(['--color-accent-primary']) as [string];
   const phaseName = (() => {

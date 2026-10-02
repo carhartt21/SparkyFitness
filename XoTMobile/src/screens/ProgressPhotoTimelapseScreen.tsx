@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React, {
   useCallback,
   useEffect,
@@ -18,7 +19,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { Image } from 'expo-image';
 import { useCSSVariable } from 'uniwind';
-import i18n from '../localization/i18n';
 import Icon from '../components/Icon';
 import SafeImage from '../components/SafeImage';
 import PhotoDayWeight from '../components/PhotoDayWeight';
@@ -81,7 +81,7 @@ const ProgressPhotoTimelapseScreen: React.FC<Props> = ({
 }) => {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
-  const dateLocale = i18n.language.startsWith('pl') ? 'pl-PL' : 'en-US';
+  const dateLocale = useAppLocale();
   const [accentPrimary, mutedColor, accentText] = useCSSVariable([
     '--color-accent-primary',
     '--color-icon-decorative',

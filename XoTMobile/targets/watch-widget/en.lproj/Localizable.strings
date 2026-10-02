@@ -8,3 +8,9 @@
 "progress.inline" = "Daily progress %@";
 "progress.configuration" = "Daily Progress X";
 "progress.description" = "The X fills as you complete today's tasks, like on the dashboard.";
+"water.configuration" = "Water Intake";
+"water.description" = "How much of today's water goal you've reached.";
+"water.accessibility" = "Water: %d%% of today's goal.";
+"energy.configuration" = "Daily Energy Goal";
+"energy.description" = "Calories in the inner ring, fat/carbs/protein goal progress in the outer ring.";
+"energy.accessibility" = "Calories %@ of goal. Fat %@, carbs %@, protein %@ of their goals.";

@@ -6,7 +6,7 @@ import React, {
   useCallback,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { formatLocalizedNumber } from '../localization';
+import { useAppLocale, formatLocalizedNumber } from '../localization';
 import {
   Platform,
   View,
@@ -153,10 +153,8 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   navigation,
   route,
 }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const [entry, setEntry] = useState(route.params.entry);
   const [createdVariantOverride, setCreatedVariantOverride] =
     useState<FoodUnitVariant | null>(null);

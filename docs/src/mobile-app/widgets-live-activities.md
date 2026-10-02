@@ -25,6 +25,25 @@ Install/open the companion using the iPhone Watch app, then edit a compatible wa
 
 Energy-goal and water complications use circular slots. **Daily Progress X** also supports rectangular, corner and inline slots where the face provides them. It represents completed applicable daily tasks, not a combined health score. If you still see only energy rings or water, check the selected complication and face slot and verify the installed companion is current.
 
+### Daily goals on the Watch
+
+The updated companion has a **Daily goals** page. Open the phone app to send its
+current-day task count and unfinished goals; tapping **Daily Progress X** opens
+this page. This requires matching updated phone and Watch builds. Older companions
+retain the nutrition overview and do not acquire a new page from a server update.
+
+Tap a completion habit or meal to review an explicit confirmation. Completing a
+meal changes its status only; it does not create food or calories. Counts,
+measurements, supplements and workouts that need more details direct you to the
+phone. The page does not automatically mark an intake or workout complete.
+
+A disconnected confirmation stays **Waiting for phone**. After reconnection, the
+phone validates the account, current day and source state before saving. If saving
+was uncertain, refresh and inspect the goal on the phone before confirming again.
+Old-day actions are not carried into today's progress. The list is bounded to 64
+unfinished goals; the full breakdown stays available on the phone. Unknown data and
+optional tasks are distinct from completed progress.
+
 The companion's live-workout screen is separate from a complication. Open an active phone workout to use the existing phone/Watch set and rest-timer synchronization.
 
 ## Android

@@ -17,6 +17,7 @@ interface SummaryVisualLayout {
 /** The energy and task summaries share their frame, columns and reading order. */
 export default function DashboardSummaryCard({
   title,
+  headingIcon,
   testID,
   accessibilityLabel,
   onOpen,
@@ -26,6 +27,7 @@ export default function DashboardSummaryCard({
   footer,
 }: {
   title: string;
+  headingIcon: IconName;
   testID: string;
   accessibilityLabel?: string;
   onOpen?: () => void;
@@ -46,14 +48,22 @@ export default function DashboardSummaryCard({
   const size = Math.min(168, Math.max(132, Math.round((available - 12) / 2)));
   const heading = (
     <>
-      <Text
-        accessibilityRole="header"
-        className="flex-1 text-lg font-semibold text-text-primary"
-        maxFontSizeMultiplier={1.8}
-      >
-        {title}
-      </Text>
-      {onOpen ? <Icon name="chevron-forward" size={18} color={muted} /> : null}
+      <View style={{ width: 18 }} />
+      <View className="flex-1 flex-row items-center justify-center gap-2">
+        <Icon name={headingIcon} size={18} color={muted} />
+        <Text
+          accessibilityRole="header"
+          className="shrink text-center text-lg font-semibold text-text-primary"
+          maxFontSizeMultiplier={1.8}
+        >
+          {title}
+        </Text>
+      </View>
+      {onOpen ? (
+        <Icon name="chevron-forward" size={18} color={muted} />
+      ) : (
+        <View style={{ width: 18 }} />
+      )}
     </>
   );
   return (
@@ -131,6 +141,7 @@ export function DashboardSummaryRow({
   accessibilityLabel,
   testID,
   last = false,
+  compact = false,
 }: {
   icon: IconName;
   color: string;
@@ -139,18 +150,19 @@ export function DashboardSummaryRow({
   accessibilityLabel: string;
   testID?: string;
   last?: boolean;
+  compact?: boolean;
 }) {
   const chevron = useCSSVariable('--color-text-muted') as string;
   const content = (
     <>
-      <IconBadge icon={icon} color={color} size={38} />
+      <IconBadge icon={icon} color={color} size={compact ? 28 : 38} />
       <View style={{ flex: 1, minWidth: 0 }}>{children}</View>
       {onPress ? (
         <Icon name="chevron-forward" size={14} color={chevron} />
       ) : null}
     </>
   );
-  const className = `min-h-16 flex-row items-center gap-2 py-2 ${last ? '' : 'border-b border-border-subtle'}`;
+  const className = `${compact ? 'min-h-12' : 'min-h-16'} flex-row items-center gap-2 py-2 ${last ? '' : 'border-b border-border-subtle'}`;
   return onPress ? (
     <Pressable
       testID={testID}

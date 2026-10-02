@@ -6051,7 +6051,26 @@
     "completedHint": "You have recorded or reviewed every applicable task for today. This reflects tracking, not a health score.",
     "previewUnavailable": "Tasks could not be loaded.",
     "previewStale": "Saved tasks. Refresh to check recent changes.",
-    "previewComplete": "All applicable tasks are resolved."
+    "previewComplete": "All applicable tasks are resolved.",
+    "categoryState": {
+      "open": "Open",
+      "partial": "Partly complete",
+      "complete": "Complete",
+      "skipped": "Skipped",
+      "optional": "Optional",
+      "unknown": "Review plan"
+    },
+    "allCategories_one": "All {{count}} categories",
+    "allCategories_other": "All {{count}} categories",
+    "optionalActivity": "Optional · does not count toward the daily goal",
+    "activitySaveFailed": "The status could not be saved. Refresh goals and try again.",
+    "categoryLabel": {
+      "supplement": "Supplements",
+      "workout": "Training"
+    },
+    "partialShort": "Partial",
+    "noCountedTasks": "No counted tasks",
+    "uncountedExplanation": "Items below do not count toward this day’s progress. Review them or choose what counts in Tracking settings."
   },
   "habits": {
     "targetLabel": "Target {{value}} {{unit}}",
@@ -6860,6 +6879,8 @@
     "history": "History · last 30 days",
     "historyEmpty": "No wellness activities recorded in this period.",
     "saveFailed": "Could not save the activity. Please try again.",
-    "removeFailed": "Could not remove the activity. Please try again."
+    "removeFailed": "Could not remove the activity. Please try again.",
+    "offlineTitle": "Wellness needs your server",
+    "offlineSubtitle": "Connect to your server to see and log wellness activities."
   }
 }

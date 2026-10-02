@@ -1,8 +1,7 @@
 import SwiftUI
 
-/// Router for the watch app. First run is a one-time gate; after that, Goals,
-/// Workout, Water, Food, Entry and Trend are pages the wearer swipes between — swiping is
-/// the only way to move between them, there is no button.
+/// Account sync gates new captures; weight entry is optional. Daily goals,
+/// nutrition, workout, water, food, entry and trend are swipeable pages.
 struct ContentView: View {
     /// Identifies a page; the cases are `.tag` values, nothing more.
     ///
@@ -10,7 +9,7 @@ struct ContentView: View {
     /// below, NOT by the order of these cases — a `.page`-style TabView lays
     /// its children out in body order. Reordering this enum alone changes
     /// nothing on screen, so change both together or neither.
-    private enum Page: Int { case goals, workout, water, food, entry, trend }
+    private enum Page: Int { case progress, goals, workout, water, food, entry, trend }
 
     @EnvironmentObject private var store: CheckInStore
     @EnvironmentObject private var session: WatchSessionManager
@@ -21,32 +20,24 @@ struct ContentView: View {
     /// return to an app that never went away.
     @Environment(\.scenePhase) private var scenePhase
 
-    /// Latches true the moment first-run completes this session, so a
-    /// mid-session context update from the phone can't flicker the gate back
-    /// on. `page` follows the same "nil until something explicit happens"
-    /// pattern so a fresh launch still lands on the right page.
-    @State private var didFirstRun = false
+    /// Explicit navigation wins over the default daily-goals page.
     @State private var page: Page?
 
     var body: some View {
         Group {
-            if !didFirstRun && store.needsFirstRunEntry && store.context.workout == nil && !store.canCaptureActions {
+            if store.needsFirstRunEntry && store.context.workout == nil && !store.canCaptureActions {
                 VStack(spacing: 8) {
-                    Text("Open X on Track on your phone to sync this Watch")
+                    Text(WatchCopy.text("watch.syncPhone"))
                         .font(.caption)
                         .multilineTextAlignment(.center)
-                    Button("Retry sync") { session.requestContext() }
-                }
-            } else if !didFirstRun && store.needsFirstRunEntry && store.context.workout == nil {
-                FirstRunEntryView { weight, bodyFat in
-                    guard let checkIn = store.capture(weightKg: weight, bodyFatPercentage: bodyFat) else { return }
-                    store.markState(session.send(checkIn), for: checkIn)
-                    didFirstRun = true
-                    page = .trend
+                    Button(WatchCopy.text("watch.retrySync")) { session.requestContext() }
                 }
             } else {
-                // This order is the swipe order: Goals ▸ Workout ▸ Water ▸ Food ▸ Entry ▸ Trend.
+                // Daily goals ▸ Nutrition ▸ Workout ▸ Water ▸ Food ▸ Entry ▸ Trend.
                 TabView(selection: Binding(get: { page ?? initialPage }, set: { page = $0 })) {
+                    DailyGoalsView()
+                        .tag(Page.progress)
+
                     GoalSummaryView()
                         .tag(Page.goals)
 
@@ -98,9 +89,7 @@ struct ContentView: View {
             guard let link = WatchDeepLink(url: url),
                   let requested = destination(for: link)
             else { return }
-            // Deliberately does not touch `didFirstRun`: if there is no seed
-            // weight yet, that one-time entry is still owed after the active
-            // workout ends.
+            // A complication opens its own destination without requiring weighing.
             page = requested
         }
     }
@@ -110,6 +99,8 @@ struct ContentView: View {
     /// somewhere wrong.
     private func destination(for link: WatchDeepLink) -> Page? {
         switch link {
+        case .progress:
+            return .progress
         case .goals:
             return .goals
         case .water:
@@ -121,7 +112,7 @@ struct ContentView: View {
     /// has not yet received its first weight check-in.
     private var initialPage: Page {
         if store.context.workout != nil { return .workout }
-        return store.isReplacingToday ? .goals : .entry
+        return .progress
     }
 }
 
@@ -159,28 +150,28 @@ struct FirstRunEntryView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 6) {
-                Text("First check-in")
+                Text(WatchCopy.text("watch.firstEntry"))
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                Text("Type today's numbers once — after this the Digital Crown starts from your last value.")
+                Text(WatchCopy.text("watch.firstEntryHint"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
 
-                TextField("Weight \(unit.suffix)", text: $weightText)
-                TextField("Body fat % (optional)", text: $bodyFatText)
+                TextField(WatchCopy.text("watch.weightUnit", unit.suffix), text: $weightText)
+                TextField(WatchCopy.text("watch.bodyFatOptional"), text: $bodyFatText)
 
                 if !weightText.isEmpty && parsedWeightKg == nil {
-                    Text("Enter a valid weight")
+                    Text(WatchCopy.text("watch.invalidWeight"))
                         .font(.caption2)
                         .foregroundStyle(.orange)
                 } else if !bodyFatIsValid {
-                    Text("Body fat must be 0–100%")
+                    Text(WatchCopy.text("watch.invalidFat"))
                         .font(.caption2)
                         .foregroundStyle(.orange)
                 }
 
-                Button("Save") {
+                Button(WatchCopy.text("watch.save")) {
                     guard let weightKg = parsedWeightKg, bodyFatIsValid else { return }
                     onSave(weightKg, parsedBodyFat)
                 }

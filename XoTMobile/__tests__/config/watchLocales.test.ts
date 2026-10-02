@@ -38,14 +38,50 @@ describe('Watch localization gate', () => {
       );
       fs.writeFileSync(
         path.join(fixture, 'targets/watch/NewCopy.swift'),
-        'WatchCopy.text("food.newLabel")'
+        'WatchCopy.text("food.newLabel")\nWatchCopy.text("workout.missing")\nText("Untranslated label")\nreturn "Untranslated status"\n.configurationDisplayName("Water Intake")\n.description("Untranslated description")'
       );
       expect(validateWatchLocales(fixture).errors).toEqual(
         expect.arrayContaining([
           'watch: missing German food.amount',
           'watch de:food.chooseHint placeholder mismatch',
           'watch: missing English food.newLabel',
+          'watch: missing English workout.missing',
+          'watch: hardcoded UI copy NewCopy.swift:3',
+          'watch: hardcoded UI copy NewCopy.swift:4',
+          'watch: hardcoded UI copy NewCopy.swift:5',
+          'watch: hardcoded UI copy NewCopy.swift:6',
         ])
+      );
+    } finally {
+      fs.rmSync(fixture, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects mixed German copy even when the key and placeholders exist', () => {
+    const fixture = fs.mkdtempSync(path.join(os.tmpdir(), 'xot-watch-copy-'));
+    try {
+      for (const target of ['watch', 'watch-widget']) {
+        fs.cpSync(
+          path.join(root, 'targets', target),
+          path.join(fixture, 'targets', target),
+          { recursive: true }
+        );
+      }
+      const catalog = path.join(
+        fixture,
+        'targets/watch/de.lproj/Localizable.strings'
+      );
+      fs.writeFileSync(
+        catalog,
+        fs
+          .readFileSync(catalog, 'utf8')
+          .replace(
+            '"workout.savedState" = "gespeichert, Warten auf Aktualisierung";',
+            '"workout.savedState" = "Saved auf dem iPhone";'
+          )
+      );
+      expect(validateWatchLocales(fixture).errors).toContain(
+        'watch: workout.savedState: possible English fragment'
       );
     } finally {
       fs.rmSync(fixture, { recursive: true, force: true });

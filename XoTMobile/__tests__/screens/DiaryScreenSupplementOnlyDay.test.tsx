@@ -240,5 +240,8 @@ describe('DiaryScreen on a supplement-only day', () => {
       },
     });
     expect(screen.queryByText('No entries recorded for this day')).toBeNull();
+    expect(screen.getByText('Sauna')).toBeTruthy();
+    expect(screen.queryByLabelText('Log Sauna')).toBeNull();
+    expect(screen.queryByLabelText('Custom activity')).toBeNull();
   });
 });

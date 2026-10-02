@@ -276,6 +276,7 @@ export interface DailyProgressItem {
   unit?: string;
   context_id?: string;
   activity_type?: string | null;
+  optional?: boolean;
   goal_summary?: Readonly<Record<string, number>>;
 }
 
@@ -628,6 +629,8 @@ export function withActivityProgress(
           id: row.id,
           domain: "activity" as const,
           label: row.label,
+          activity_type: row.activity_type,
+          optional: row.optional ?? false,
           date: row.date,
           applicable:
             row.state !== "excluded" &&

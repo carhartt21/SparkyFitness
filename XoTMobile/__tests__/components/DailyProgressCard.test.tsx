@@ -5,6 +5,7 @@ import type { DailyProgressItem } from '@workspace/shared';
 
 const mockRefetch = jest.fn();
 const mockOpenItem = jest.fn();
+const mockOpenCategory = jest.fn();
 let mockQuery: {
   progress: {
     items: DailyProgressItem[];
@@ -26,6 +27,7 @@ jest.mock('../../src/hooks/useProgressActions', () => ({
   useProgressActions: () => ({
     itemLabel: (item: DailyProgressItem) => item.label,
     openItem: mockOpenItem,
+    openCategory: mockOpenCategory,
   }),
 }));
 jest.mock('../../src/components/brand/ProgressTrackX', () => {
@@ -50,6 +52,8 @@ const task: DailyProgressItem = {
   reference_id: 'type-id',
   recorded_at: null,
   reason: 'synthetic',
+  date: '2026-09-29',
+  applicable: true,
 };
 beforeEach(() => {
   jest.clearAllMocks();
@@ -64,7 +68,7 @@ it('distinguishes loading and failed reads and offers a working retry', () => {
   fireEvent.press(view.getByText('Retry'));
   expect(mockRefetch).toHaveBeenCalledTimes(1);
 });
-it('opens the actual pending task and drops it from the preview after resolution', () => {
+it('opens a category and retains its completed state after resolution', () => {
   mockQuery.progress = {
     applicable: 1,
     completed: 0,
@@ -72,8 +76,9 @@ it('opens the actual pending task and drops it from the preview after resolution
     items: [task],
   };
   const view = render(<DailyProgressCard {...props} />);
-  fireEvent.press(view.getByLabelText(task.label));
-  expect(mockOpenItem).toHaveBeenCalledWith(task);
+  fireEvent.press(view.getByTestId('dashboard-category-meal'));
+  expect(mockOpenCategory).toHaveBeenCalledWith('meal');
+  expect(mockOpenItem).not.toHaveBeenCalled();
   fireEvent.press(view.getByTestId('dashboard-progress-open'));
   expect(props.onOpenProgress).toHaveBeenCalledTimes(1);
   mockQuery.progress = {
@@ -84,7 +89,7 @@ it('opens the actual pending task and drops it from the preview after resolution
   };
   view.rerender(<DailyProgressCard {...props} />);
   expect(view.queryByLabelText(task.label)).toBeNull();
-  expect(view.getByText('All applicable tasks are resolved.')).toBeTruthy();
+  expect(view.getByText('Complete')).toBeTruthy();
 });
 it('marks cached tasks as stale and keeps known zero distinct from no applicable tasks', () => {
   mockQuery = {
@@ -96,7 +101,7 @@ it('marks cached tasks as stale and keeps known zero distinct from no applicable
   expect(
     view.getByText('Saved tasks. Refresh to check recent changes.')
   ).toBeTruthy();
-  expect(view.getByLabelText(task.label)).toBeTruthy();
+  expect(view.getByTestId('dashboard-category-meal')).toBeTruthy();
   mockQuery.progress = {
     applicable: 0,
     completed: 0,

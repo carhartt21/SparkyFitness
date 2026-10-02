@@ -1,3 +1,4 @@
+import { useAppLocale } from '../../../localization';
 import React, { useMemo } from 'react';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -18,10 +19,8 @@ interface FertilityCardProps {
  * with client-side prediction fallback.
  */
 const FertilityCard: React.FC<FertilityCardProps> = ({ date }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const referenceDate = date ?? getTodayDate();
   const { fertility, isLoading } = useCycleFertility(referenceDate);
   const predictionData = useCyclePredictionData(referenceDate);

@@ -131,6 +131,10 @@ describe('activity planning completion truth', () => {
     const result = withActivityProgress(old, project(rows).occurrences);
     expect(result.items.map((item) => item.domain)).toEqual(['activity']);
     expect(result.applicable).toBe(0);
+    expect(result.items[0]).toMatchObject({
+      activity_type: 'running',
+      optional: true,
+    });
   });
   it('never fills missing exercises with duplicate/excess sets or separate sessions', () => {
     const rows = activityData();

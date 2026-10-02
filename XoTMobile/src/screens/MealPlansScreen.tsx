@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
@@ -47,7 +48,7 @@ function assignmentLabel(
 }
 
 const MealPlansScreen: React.FC<MealPlansScreenProps> = ({ navigation }) => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const usesNativeHeader = useNativeIOSHeadersActive();
   const [accentColor] = useCSSVariable(['--color-accent-primary']) as [string];
@@ -59,7 +60,7 @@ const MealPlansScreen: React.FC<MealPlansScreenProps> = ({ navigation }) => {
   const { duplicateMealPlanAsync, isPending: isDuplicating } =
     useDuplicateMealPlan();
   const { deleteMealPlanAsync, isPending: isDeleting } = useDeleteMealPlan();
-  const dateLocale = i18n.language.startsWith('pl') ? 'pl-PL' : 'en-US';
+  const dateLocale = useAppLocale();
   const weekdays = useMemo(
     () => [
       t('mealPlans.weekdaysShort.sunday', { defaultValue: 'Sun' }),

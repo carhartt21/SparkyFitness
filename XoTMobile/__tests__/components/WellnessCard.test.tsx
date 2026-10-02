@@ -33,14 +33,14 @@ const activity: Habit = {
 let habits: Habit[];
 let logs: HabitLog[];
 const date = '2026-10-01';
-const mount = () =>
+const mount = (mode: 'log' | 'diary' = 'log') =>
   render(
     <QueryClientProvider
       client={
         new QueryClient({ defaultOptions: { queries: { retry: false } } })
       }
     >
-      <WellnessCard date={date} />
+      <WellnessCard date={date} mode={mode} />
     </QueryClientProvider>
   );
 
@@ -71,7 +71,7 @@ beforeEach(() => {
   });
 });
 
-it('logs and undoes a preset on the diary date', async () => {
+it('logs and undoes a preset on the selected date', async () => {
   const screen = mount();
   fireEvent.press(await screen.findByLabelText('Log Sauna'));
   await waitFor(() =>
@@ -140,4 +140,57 @@ it('keeps the custom name available for retry after a failed request', async () 
     await screen.findByText('Could not save the activity. Please try again.')
   ).toBeTruthy();
   expect(screen.getByLabelText('Custom activity').props.value).toBe('Hot bath');
+});
+
+it('shows recorded entries and undo in Diary without logging controls or history', async () => {
+  habits = [activity];
+  logs = [{ habit_id: activity.id, entry_date: date, value: 1 }];
+  const screen = mount('diary');
+  await screen.findByText('Sauna');
+  expect(screen.queryByLabelText('Log Sauna')).toBeNull();
+  expect(screen.queryByLabelText('Custom activity')).toBeNull();
+  expect(screen.queryByText('History · last 30 days')).toBeNull();
+  expect(api.listHabitLogs).toHaveBeenCalledWith(date, date, undefined);
+  fireEvent.press(screen.getByLabelText('Remove Sauna from this day'));
+  await waitFor(() =>
+    expect(api.logHabit).toHaveBeenCalledWith('sauna', {
+      entry_date: date,
+      value: null,
+    })
+  );
+  await waitFor(() => expect(screen.queryByTestId('wellness-card')).toBeNull());
+});
+
+it('hides the Diary wellness card when only another day has an entry', async () => {
+  habits = [activity];
+  logs = [{ habit_id: activity.id, entry_date: '2026-09-30', value: 1 }];
+  const screen = mount('diary');
+  await waitFor(() => expect(screen.queryByTestId('wellness-card')).toBeNull());
+  expect(screen.queryByLabelText('Log Sauna')).toBeNull();
+});
+
+it('updates the day-specific Diary query after logging in More', async () => {
+  const client = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const screen = render(
+    <QueryClientProvider client={client}>
+      <WellnessCard date={date} mode="diary" />
+    </QueryClientProvider>
+  );
+  await waitFor(() => expect(screen.queryByTestId('wellness-card')).toBeNull());
+  screen.rerender(
+    <QueryClientProvider client={client}>
+      <WellnessCard date={date} mode="log" />
+    </QueryClientProvider>
+  );
+  fireEvent.press(await screen.findByLabelText('Log Sauna'));
+  await screen.findByLabelText('Remove Sauna from this day');
+  screen.rerender(
+    <QueryClientProvider client={client}>
+      <WellnessCard date={date} mode="diary" />
+    </QueryClientProvider>
+  );
+  await screen.findByText('Sauna');
+  expect(screen.queryByLabelText('Log Sauna')).toBeNull();
 });

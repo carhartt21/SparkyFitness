@@ -10,6 +10,7 @@ const SHIPPED = Object.keys(SHIPPED_LOCALES);
 
 const REQUIRED_IOS_KEYS = [
   'NSCameraUsageDescription',
+  'NSPhotoLibraryUsageDescription',
   'NSHealthShareUsageDescription',
   'NSHealthUpdateUsageDescription',
   'NSLocalNetworkUsageDescription',
@@ -22,6 +23,13 @@ function readMetadata(locale: string): { ios?: Record<string, string> } {
 }
 
 describe('native app locale resources', () => {
+  it('provides reviewed German for every source permission explanation', () => {
+    const german = readMetadata('de').ios ?? {};
+    for (const key of Object.keys(readMetadata(SOURCE_LOCALE).ios ?? {})) {
+      expect(german[key]).toEqual(expect.any(String));
+      expect(german[key].trim()).not.toBe('');
+    }
+  });
   it('ships Watch workout permission explanations in English and German', () => {
     for (const locale of ['en', 'de']) {
       const resource = fs.readFileSync(

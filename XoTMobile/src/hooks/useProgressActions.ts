@@ -3,24 +3,15 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useTranslation } from 'react-i18next';
 import type { DailyProgressDomain, DailyProgressItem } from '@workspace/shared';
 import {
-  plannedActivityLabel,
+  progressActivityLabel,
   progressGoalLabel,
 } from '../components/tracking/trackingLabels';
 import { getMealTypeDisplayLabel } from '../utils/mealNutrition';
 import { useMealTypes } from './useMealTypes';
 import type { RootStackParamList } from '../types/navigation';
 
-/** Check-in is an end-of-day reflection; it follows actionable daily tasks. */
-export const PROGRESS_DOMAIN_ORDER: DailyProgressDomain[] = [
-  'habit',
-  'measurement',
-  'supplement',
-  'meal',
-  'goal',
-  'workout',
-  'activity',
-  'checkin',
-];
+import { PROGRESS_DOMAIN_ORDER } from '../utils/progressCategories';
+export { PROGRESS_DOMAIN_ORDER };
 
 export function nextProgressTasks(
   items: readonly DailyProgressItem[],
@@ -44,8 +35,11 @@ export function useProgressActions(date: string, onHydration: () => void) {
   const { t } = useTranslation();
   const { mealTypes } = useMealTypes();
   const itemLabel = (item: DailyProgressItem): string => {
-    if (item.domain === 'workout' && item.activity_type)
-      return plannedActivityLabel(t, item.activity_type);
+    if (
+      (item.domain === 'workout' || item.domain === 'activity') &&
+      item.activity_type
+    )
+      return progressActivityLabel(t, item.label, item.activity_type);
     if (item.domain === 'goal') return progressGoalLabel(t, item.label);
     if (item.domain === 'meal') {
       const type = mealTypes.find((type) => type.id === item.reference_id);
@@ -108,5 +102,10 @@ export function useProgressActions(date: string, onHydration: () => void) {
         break;
     }
   };
-  return { itemLabel, openItem };
+  return {
+    itemLabel,
+    openItem,
+    openCategory: (domain: DailyProgressDomain) =>
+      navigation.navigate('DailyProgress', { date, domain }),
+  };
 }

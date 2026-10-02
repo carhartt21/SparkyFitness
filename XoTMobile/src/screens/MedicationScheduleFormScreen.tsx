@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React, { useState, useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -166,10 +167,8 @@ function baseFromSchedule(existing?: MedicationSchedule): FormState {
 const MedicationScheduleFormScreen: React.FC<
   MedicationScheduleFormScreenProps
 > = ({ route, navigation }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { medicationId, scheduleId } = route.params;
   const isEditing = !!scheduleId;
   const { preferences } = usePreferences();

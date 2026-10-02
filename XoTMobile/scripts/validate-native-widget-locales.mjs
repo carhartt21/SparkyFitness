@@ -8,6 +8,7 @@ import {
   localeFromAndroidDir,
   androidDirForLocale,
 } from './androidLocaleQualifiers.cjs';
+import { checkGermanCopy } from '../../scripts/audit-german-copy.mjs';
 
 // `%%` must be consumed first: otherwise in "50%% goal" the second `%` starts a
 // match, takes the space as a flag and `g` as the conversion, inventing a "% g"
@@ -45,7 +46,11 @@ export function parseIosStrings(content) {
   const values = new Map();
   const re = /"((?:\\.|[^"\\])*)"\s*=\s*"((?:\\.|[^"\\])*)"\s*;/g;
   let match;
-  while ((match = re.exec(content)) !== null) values.set(match[1], match[2]);
+  while ((match = re.exec(content)) !== null) {
+    if (values.has(match[1]))
+      throw new Error(`Duplicate iOS string key: ${match[1]}`);
+    values.set(match[1], match[2]);
+  }
   if (content.trim() && values.size === 0)
     throw new Error('iOS Localizable.strings has no parseable declarations');
   return values;
@@ -207,6 +212,11 @@ export function validateWatchLocales(root) {
     for (const key of maps.get('en').keys()) {
       if (!maps.get('de')?.get(key)?.trim())
         errors.push(`${target}: missing German ${key}`);
+      for (const reason of checkGermanCopy(maps.get('de')?.get(key) ?? '', {
+        surface: target,
+        key,
+      }))
+        errors.push(`${target}: ${key}: ${reason}`);
     }
     function inspect(directory) {
       for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
@@ -214,8 +224,28 @@ export function validateWatchLocales(root) {
         if (entry.isDirectory()) inspect(file);
         else if (entry.name.endsWith('.swift')) {
           const source = fs.readFileSync(file, 'utf8');
+          for (const [index, line] of source.split('\n').entries()) {
+            if (line.trimStart().startsWith('//')) continue;
+            const literal =
+              line.match(/return\s+"([^"\n]*[A-Za-z]{2}\s[^"\n]*)"/) ??
+              line.match(
+                /(?:Text|Button|Label|TextField|navigationTitle|accessibilityLabel|accessibilityHint|configurationDisplayName|description)\(\s*"([^"\n]+)"/
+              );
+            // Units/numerals and interpolated personal content are not static copy.
+            if (
+              literal &&
+              /[A-Za-z]{2}/.test(literal[1]) &&
+              !literal[1].includes('\\(') &&
+              !maps.get('en').has(literal[1]) &&
+              !/^\d+\s*(?:ml|g|kcal)$/.test(literal[1])
+            ) {
+              errors.push(
+                `${target}: hardcoded UI copy ${path.relative(directory, file)}:${index + 1}`
+              );
+            }
+          }
           for (const match of source.matchAll(
-            /"((?:food|progress)\.[A-Za-z]+)"/g
+            /"((?:food|progress|watch|workout|water|energy)\.[A-Za-z][A-Za-z0-9.]*)"/g
           )) {
             if (!maps.get('en').has(match[1]))
               errors.push(`${target}: missing English ${match[1]}`);

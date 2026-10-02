@@ -27,6 +27,7 @@ final class CheckInStore: ObservableObject {
     /// day-filtered pending totals to redraw even without a phone snapshot.
     @Published private(set) var localDay: String = CheckInDate.today()
     @Published private(set) var pendingQuickWaterActions: [PendingQuickWaterAction] = []
+    @Published private(set) var pendingProgressActions: [PendingProgressAction] = []
     @Published private(set) var pendingFoodActions: [PendingFoodLogAction] = []
     @Published private(set) var pendingWorkoutOperations: [WorkoutSetOperation] = []
 
@@ -36,6 +37,7 @@ final class CheckInStore: ObservableObject {
     private let lastCapturedKey = "sparky.watch.lastCaptured"
     private let pendingWaterKey = "sparky.watch.pendingWaterTaps"
     private let pendingQuickWaterKey = "personalbest.watch.pendingQuickWaterActions"
+    private let pendingProgressKey = "x-on-track.watch.pendingProgressActions"
     private let pendingFoodKey = "x-on-track.watch.pendingFoodActions"
     private let pendingWorkoutKey = "personalbest.watch.pendingWorkoutOperations"
 
@@ -217,6 +219,42 @@ final class CheckInStore: ObservableObject {
         pendingQuickWaterActions.filter {
             $0.state == .failed && $0.scope == context.actionScope
         }
+    }
+
+    // MARK: - Daily goals
+
+    func progressAction(for itemId: String) -> PendingProgressAction? {
+        pendingProgressActions.last {
+            $0.itemId == itemId && $0.entryDate == CheckInDate.today() && $0.scope == context.actionScope &&
+            ($0.state == .queued || $0.capturedAt > (context.generatedAt ?? .distantPast))
+        }
+    }
+
+    func captureProgress(_ item: WatchProgressItem) -> PendingProgressAction? {
+        guard let scope = context.actionScope, !scope.isEmpty,
+              context.dailyProgress?.isToday == true,
+              context.dailyProgress?.items?.contains(item) == true,
+              item.canComplete,
+              progressAction(for: item.id) == nil,
+              pendingProgressActions.filter({ $0.state != .saved }).count < 64 else { return nil }
+        let action = PendingProgressAction(id: UUID().uuidString, scope: scope,
+            entryDate: CheckInDate.today(), itemId: item.id, capturedAt: Date(),
+            expectedRecordedAt: item.recordedAt, state: .queued)
+        pendingProgressActions.append(action)
+        pendingProgressActions = pendingProgressActions.filter { $0.state == .queued } + pendingProgressActions.filter { $0.state != .queued }.suffix(20)
+        persist()
+        return action
+    }
+
+    func markProgress(_ id: String, _ state: SyncState) {
+        guard let index = pendingProgressActions.firstIndex(where: { $0.id == id }) else { return }
+        if pendingProgressActions[index].state == .saved && state == .failed { return }
+        pendingProgressActions[index].state = state
+        persist()
+    }
+
+    var queuedProgressActions: [PendingProgressAction] {
+        pendingProgressActions.filter { $0.state == .queued && $0.scope == context.actionScope && $0.entryDate == CheckInDate.today() }
     }
 
     // MARK: - Food shortcuts
@@ -428,6 +466,8 @@ final class CheckInStore: ObservableObject {
         for clientId in incoming.failedClientIds { markWaterTap(clientId, .failed) }
         for clientId in incoming.ackedClientIds { markQuickWater(clientId, .saved) }
         for clientId in incoming.failedClientIds { markQuickWater(clientId, .failed) }
+        for clientId in incoming.ackedClientIds { markProgress(clientId, .saved) }
+        for clientId in incoming.failedClientIds { markProgress(clientId, .failed) }
         for clientId in incoming.ackedClientIds { markFoodLog(clientId, .saved) }
         for clientId in incoming.failedClientIds { markFoodLog(clientId, .failed) }
         for clientId in incoming.ackedClientIds { markWorkoutOperation(clientId, .saved) }
@@ -577,6 +617,9 @@ final class CheckInStore: ObservableObject {
     /// Weight and body-fat history is deliberately left alone — unlike
     /// today's totals, it doesn't expire at midnight.
     func pruneStaleDayData() {
+        for index in pendingProgressActions.indices {
+            if pendingProgressActions[index].entryDate != CheckInDate.today() && pendingProgressActions[index].state == .queued { pendingProgressActions[index].state = .failed }
+        }
         guard clearStaleDayData() else { return }
         persist()
     }
@@ -624,6 +667,7 @@ final class CheckInStore: ObservableObject {
         if let data = try? encoder.encode(pendingQuickWaterActions) {
             defaults.set(data, forKey: pendingQuickWaterKey)
         }
+        if let data = try? encoder.encode(pendingProgressActions) { defaults.set(data, forKey: pendingProgressKey) }
         if let data = try? encoder.encode(pendingFoodActions) {
             defaults.set(data, forKey: pendingFoodKey)
         }
@@ -656,6 +700,8 @@ final class CheckInStore: ObservableObject {
            let decoded = try? decoder.decode([PendingQuickWaterAction].self, from: data) {
             pendingQuickWaterActions = decoded
         }
+        if let data = defaults.data(forKey: pendingProgressKey),
+           let decoded = try? decoder.decode([PendingProgressAction].self, from: data) { pendingProgressActions = decoded }
         if let data = defaults.data(forKey: pendingFoodKey),
            let decoded = try? decoder.decode([PendingFoodLogAction].self, from: data) {
             pendingFoodActions = decoded

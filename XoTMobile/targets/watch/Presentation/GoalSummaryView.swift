@@ -39,7 +39,7 @@ struct GoalSummaryView: View {
                             } else if timer.mode == "elapsed" {
                                 Text(timer.startedAt, style: .timer).font(.system(size: 11, design: .rounded)).monospacedDigit()
                             } else {
-                                Text("Paused").font(.system(size: 9)).foregroundStyle(.secondary)
+                                Text(WatchCopy.text("watch.paused")).font(.system(size: 9)).foregroundStyle(.secondary)
                             }
                         }
                         .accessibilityElement(children: .combine)
@@ -47,7 +47,7 @@ struct GoalSummaryView: View {
                 }
                 macroRows
                 if nutrition == nil {
-                    Text("Open X on Track on your phone to sync today's numbers.")
+                    Text(WatchCopy.text("watch.syncNutrition"))
                         .font(.system(size: 10))
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -65,9 +65,9 @@ struct GoalSummaryView: View {
     /// supporting numbers stay out of its way.
     private var headlineRow: some View {
         HStack(spacing: 2) {
-            statBlock(value: nutrition?.caloriesConsumed, label: "Eaten")
+            statBlock(value: nutrition?.caloriesConsumed, label: WatchCopy.text("watch.eaten"))
             calorieRing
-            statBlock(value: nutrition?.caloriesBurned, label: "Burned")
+            statBlock(value: nutrition?.caloriesBurned, label: WatchCopy.text("watch.burned"))
         }
     }
 
@@ -116,19 +116,19 @@ struct GoalSummaryView: View {
     }
 
     private var calorieCaption: String {
-        guard let nutrition, nutrition.caloriesRemaining < 0 else { return "Kcal left" }
-        return "Kcal over"
+        guard let nutrition, nutrition.caloriesRemaining < 0 else { return WatchCopy.text("watch.kcalLeft") }
+        return WatchCopy.text("watch.kcalOver")
     }
 
     /// Unsigned here even though the visible number is signed: "minus 254
     /// calories over goal" is worse spoken than written, and the words
     /// already say which side of the goal the wearer is on.
     private var calorieAccessibilityLabel: String {
-        guard let nutrition else { return "Calories not synced yet" }
+        guard let nutrition else { return WatchCopy.text("watch.caloriesUnknown") }
         let amount = whole(abs(nutrition.caloriesRemaining))
         return nutrition.caloriesRemaining < 0
-            ? "\(amount) calories over goal"
-            : "\(amount) calories left"
+            ? WatchCopy.text("watch.overA11y", amount)
+            : WatchCopy.text("watch.leftA11y", amount)
     }
 
     private func statBlock(value: Double?, label: String) -> some View {
@@ -153,9 +153,9 @@ struct GoalSummaryView: View {
     /// intentionally independent, since one is a list and the other a dial.
     private var macroRows: some View {
         VStack(spacing: 7) {
-            macroRow("Protein", nutrition?.protein, color: GoalPalette.protein)
-            macroRow("Carbs", nutrition?.carbs, color: GoalPalette.carbs)
-            macroRow("Fat", nutrition?.fat, color: GoalPalette.fat)
+            macroRow(WatchCopy.text("watch.protein"), nutrition?.protein, color: GoalPalette.protein)
+            macroRow(WatchCopy.text("watch.carbs"), nutrition?.carbs, color: GoalPalette.carbs)
+            macroRow(WatchCopy.text("watch.fat"), nutrition?.fat, color: GoalPalette.fat)
         }
     }
 
@@ -182,8 +182,8 @@ struct GoalSummaryView: View {
     }
 
     private func macroAccessibilityLabel(_ title: String, _ macro: MacroGoal?) -> String {
-        guard let macro else { return "\(title) not synced yet" }
-        return "\(title) \(whole(macro.consumed)) of \(whole(macro.goal)) grams"
+        guard let macro else { return WatchCopy.text("watch.macroUnknownA11y", title) }
+        return WatchCopy.text("watch.macroA11y", title, whole(macro.consumed), whole(macro.goal))
     }
 
     /// Gradient rather than a flat fill so a nearly-empty bar still shows its

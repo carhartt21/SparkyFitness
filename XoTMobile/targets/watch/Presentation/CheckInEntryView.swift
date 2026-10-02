@@ -84,8 +84,8 @@ struct CheckInEntryView: View {
     /// change out loud, so an implausible value can still be saved — just never
     /// unknowingly.
     private var saveLabel: String {
-        guard looksWrong, let delta = weightDelta, weightLooksWrong else { return "Save" }
-        return "Save \(String(format: "%+.1f", delta)) \(unit.suffix)"
+        guard looksWrong, let delta = weightDelta, weightLooksWrong else { return WatchCopy.text("watch.save") }
+        return WatchCopy.text("watch.saveDelta", String(format: "%+.1f", locale: Locale.current, delta), unit.suffix)
     }
 
     var body: some View {
@@ -122,7 +122,7 @@ struct CheckInEntryView: View {
         .onChange(of: unit) { seedIfNeeded() }
         .sheet(isPresented: $showTypeEntry) {
             TypedValueEntryView(
-                title: active == .weight ? "Weight (\(unit.suffix))" : "Body fat (%)",
+                title: active == .weight ? WatchCopy.text("watch.weightTitle", unit.suffix) : WatchCopy.text("watch.bodyFatTitle"),
                 initial: active == .weight ? weight : bodyFat,
                 range: typedEntryRange
             ) { typed in
@@ -137,7 +137,7 @@ struct CheckInEntryView: View {
         HStack(spacing: 4) {
             Text(CheckInDate.headerLabel(for: CheckInDate.today()))
             if store.isReplacingToday {
-                Text("· replacing").foregroundStyle(.orange)
+                Text(WatchCopy.text("watch.replacing")).foregroundStyle(.orange)
             }
         }
         .font(.caption2)
@@ -159,18 +159,18 @@ struct CheckInEntryView: View {
     }
 
     private var activeText: String {
-        String(format: "%.1f", active == .weight ? weight : bodyFat)
+        String(format: "%.1f", locale: Locale.current, active == .weight ? weight : bodyFat)
     }
 
     @ViewBuilder
     private var deltaLine: some View {
         if let delta = weightDelta, active == .weight {
-            Text("\(String(format: "%+.1f", delta)) \(unit.suffix) since last")
+            Text(WatchCopy.text("watch.weightDelta", String(format: "%+.1f", locale: Locale.current, delta), unit.suffix))
                 .font(weightLooksWrong ? .footnote.bold() : .caption2)
                 .foregroundStyle(weightLooksWrong ? .orange : .secondary)
                 .animation(.snappy, value: weightLooksWrong)
         } else if active == .bodyFat, let comparison = store.context.lastBodyFatPercentage, !bodyFatSkipped {
-            Text(String(format: "%+.1f %% since last", bodyFat - comparison))
+            Text(WatchCopy.text("watch.fatDelta", String(format: "%+.1f", locale: Locale.current, bodyFat - comparison)))
                 .font(bodyFatLooksWrong ? .footnote.bold() : .caption2)
                 .foregroundStyle(bodyFatLooksWrong ? .orange : .secondary)
         } else {
@@ -194,14 +194,14 @@ struct CheckInEntryView: View {
 
     private var inactiveText: String {
         if active == .weight {
-            return bodyFatSkipped ? "— %" : String(format: "%.1f %%", bodyFat)
+            return bodyFatSkipped ? "— %" : String(format: "%.1f %%", locale: Locale.current, bodyFat)
         }
-        return "\(String(format: "%.1f", weight)) \(unit.suffix)"
+        return "\(String(format: "%.1f", locale: Locale.current, weight)) \(unit.suffix)"
     }
 
     private var actionButton: some View {
         VStack(spacing: 2) {
-            Button(active == .weight ? "Next" : saveLabel) {
+            Button(active == .weight ? WatchCopy.text("watch.next") : saveLabel) {
                 if active == .weight {
                     withAnimation(.snappy) { active = .bodyFat }
                 } else {
@@ -216,7 +216,7 @@ struct CheckInEntryView: View {
             .disabled(active == .bodyFat && !store.canCaptureActions)
 
             if active == .bodyFat && !store.canCaptureActions {
-                Text("Open X on Track on your phone to sync before saving")
+                Text(WatchCopy.text("watch.syncBeforeSave"))
                     .font(.caption2)
                     .foregroundStyle(.secondary)
             }
@@ -225,7 +225,7 @@ struct CheckInEntryView: View {
             // field rather than sending null, so a previously recorded value for
             // the day is left intact rather than erased by the upsert.
             if active == .bodyFat {
-                Button("Skip body fat") {
+                Button(WatchCopy.text("watch.skipFat")) {
                     bodyFatSkipped = true
                     save()
                 }
@@ -356,10 +356,10 @@ struct TypedValueEntryView: View {
     var body: some View {
         VStack(spacing: 8) {
             Text(title).font(.caption).foregroundStyle(.secondary)
-            TextField("0.0", text: $text)
+            TextField(String(format: "%.1f", locale: Locale.current, 0.0), text: $text)
                 .font(.title3)
                 .multilineTextAlignment(.center)
-            Button("Set") {
+            Button(WatchCopy.text("watch.set")) {
                 guard let parsed else { return }
                 onCommit(parsed)
                 dismiss()
@@ -369,6 +369,6 @@ struct TypedValueEntryView: View {
             .disabled(parsed == nil)
         }
         .padding()
-        .onAppear { text = String(format: "%.1f", initial) }
+        .onAppear { text = String(format: "%.1f", locale: Locale.current, initial) }
     }
 }

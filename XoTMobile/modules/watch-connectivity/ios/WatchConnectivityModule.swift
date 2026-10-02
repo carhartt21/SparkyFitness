@@ -18,6 +18,7 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
     var onWaterDelete: (([String: Any]) -> Void)?
     var onWorkoutSetOperation: (([String: Any]) -> Void)?
     var onWorkoutHealth: (([String: Any]) -> Void)?
+    var onProgressAction: (([String: Any]) -> Void)?
     var onFoodLog: (([String: Any]) -> Void)?
     /// The watch asking for food pictures it has no file for.
     var onThumbnailRequest: (([String]) -> Void)?
@@ -45,6 +46,8 @@ private class WatchSessionDelegateHandler: NSObject, WCSessionDelegate {
             onWorkoutSetOperation?(payload)
         case "workoutHealth":
             onWorkoutHealth?(payload)
+        case "progressAction":
+            onProgressAction?(payload)
         case "foodLog":
             onFoodLog?(payload)
         case "thumbnailRequest":
@@ -115,6 +118,7 @@ public class WatchConnectivityModule: Module {
             "onWorkoutSetOperation",
             "onWorkoutHealth",
             "onFoodLog",
+            "onProgressAction",
             "onThumbnailRequest"
         )
 
@@ -184,6 +188,16 @@ public class WatchConnectivityModule: Module {
             }
             self.delegateHandler.onWorkoutHealth = { [weak self] payload in
                 self?.sendEvent("onWorkoutHealth", payload)
+            }
+            self.delegateHandler.onProgressAction = { [weak self] payload in
+                self?.sendEvent("onProgressAction", [
+                    "clientId": payload["clientId"] as? String ?? "",
+                    "scope": payload["scope"] as? String ?? "",
+                    "entryDate": payload["entryDate"] as? String ?? "",
+                    "itemId": payload["itemId"] as? String ?? "",
+                    "capturedAt": payload["capturedAt"] as? String ?? "",
+                    "expectedRecordedAt": payload["expectedRecordedAt"] as? String ?? NSNull(),
+                ])
             }
             self.delegateHandler.onFoodLog = { [weak self] payload in
                 var event: [String: Any] = [

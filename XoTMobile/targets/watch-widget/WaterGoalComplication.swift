@@ -166,7 +166,7 @@ struct WaterGoalComplicationEntryView: View {
             .widgetURL(ComplicationLink.water.url)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(
-                "Water \(Int((max(0, min(1, entry.snapshot.progress)) * 100).rounded()))% of goal."
+                ProgressCopy.text("water.accessibility", Int((max(0, min(1, entry.snapshot.progress)) * 100).rounded()))
             )
     }
 }
@@ -180,8 +180,8 @@ struct WaterGoalComplication: Widget {
             WaterGoalComplicationEntryView(entry: entry)
                 .containerBackground(.clear, for: .widget)
         }
-        .configurationDisplayName("Water Intake")
-        .description("How much of today's water goal you've reached.")
+        .configurationDisplayName(ProgressCopy.text("water.configuration"))
+        .description(ProgressCopy.text("water.description"))
         // Round only, matching the Daily Energy Goal complication.
         .supportedFamilies([.accessoryCircular])
     }

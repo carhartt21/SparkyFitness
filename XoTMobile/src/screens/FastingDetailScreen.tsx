@@ -1,3 +1,4 @@
+import { useAppLocale } from '../localization';
 import React, { useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, Pressable } from 'react-native';
@@ -50,10 +51,8 @@ const DetailRow: React.FC<{
 );
 
 const FastingDetailScreen: React.FC<Props> = ({ navigation }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { preferences } = usePreferences();
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');

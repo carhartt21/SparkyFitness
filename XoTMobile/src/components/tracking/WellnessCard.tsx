@@ -19,7 +19,17 @@ import GlowCard from '../ui/GlowCard';
 import NeonButton from '../ui/NeonButton';
 import Icon from '../Icon';
 
-export default function WellnessCard({ date }: { date: string }) {
+interface WellnessCardProps {
+  date: string;
+  mode: 'log' | 'diary';
+  className?: string;
+}
+
+export default function WellnessCard({
+  date,
+  mode,
+  className = 'mx-4 mb-3 p-4',
+}: WellnessCardProps) {
   const { t } = useTranslation();
   const locale = useAppLocale();
   const secondary = useCSSVariable('--color-text-secondary') as string;
@@ -29,7 +39,8 @@ export default function WellnessCard({ date }: { date: string }) {
   const [error, setError] = useState<'save' | 'remove' | null>(null);
   const inFlight = useRef(false);
   const habits = useHabits({ includeInactive: true });
-  const startDate = addDays(date, -29);
+  const canLog = mode === 'log';
+  const startDate = canLog ? addDays(date, -29) : date;
   const logs = useHabitLogs(startDate, date);
   const { create } = useHabitMutations();
   const log = useLogHabit(startDate, date);
@@ -91,22 +102,23 @@ export default function WellnessCard({ date }: { date: string }) {
     }
   };
 
+  // Diary shows recorded entries, without an empty logging form on every day.
+  if (!canLog && !loading && !failed && today.length === 0 && !error)
+    return null;
+
   return (
-    <GlowCard className="mx-4 mb-3 p-4" testID="wellness-card">
+    <GlowCard className={className} testID="wellness-card">
       <View className="mb-1 flex-row items-center gap-2">
         <Icon name="wellness" size={20} color={secondary} />
         <Text
           accessibilityRole="header"
           className="text-lg font-semibold text-text-primary"
         >
-          {t('wellness.title', { defaultValue: 'Wellness' })}
+          {canLog
+            ? t('wellness.log', { defaultValue: 'Log activity' })
+            : t('wellness.title', { defaultValue: 'Wellness' })}
         </Text>
       </View>
-      <Text className="mb-3 text-sm text-text-secondary">
-        {t('wellness.subtitle', {
-          defaultValue: 'Log an activity for this day.',
-        })}
-      </Text>
       {loading ? (
         <Text className="text-text-secondary">
           {t('wellness.loading', {
@@ -165,102 +177,106 @@ export default function WellnessCard({ date }: { date: string }) {
               })}
             </Text>
           )}
-          <View className="mb-4 flex-row flex-wrap gap-2">
-            {choices.map((choice) => {
-              const recorded = today.some(
-                (entry) => entry.name.toLowerCase() === choice.toLowerCase()
-              );
-              return (
-                <Pressable
-                  key={choice}
-                  accessibilityRole="button"
-                  accessibilityLabel={t('wellness.logActivity', {
-                    defaultValue: 'Log {{name}}',
-                    name: choice,
-                  })}
-                  accessibilityState={{
-                    disabled: blocked || recorded,
-                    selected: recorded,
-                  }}
-                  disabled={blocked || recorded}
-                  onPress={() => void record(choice)}
-                  className="min-h-12 max-w-full justify-center rounded-xl border border-border-subtle bg-raised px-3 py-2"
-                  style={{ opacity: blocked ? 0.5 : 1 }}
-                >
-                  <Text className="text-base text-text-primary">
-                    {choice}
-                    {recorded
-                      ? ` · ${t('wellness.recorded', { defaultValue: 'Logged' })}`
-                      : ''}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-          <Text className="mb-1 text-sm font-semibold text-text-primary">
-            {t('wellness.custom', { defaultValue: 'Custom activity' })}
-          </Text>
-          <TextInput
-            testID="wellness-name"
-            accessibilityLabel={t('wellness.custom', {
-              defaultValue: 'Custom activity',
-            })}
-            value={name}
-            onChangeText={setName}
-            maxLength={50}
-            editable={!saving}
-            placeholder={t('wellness.placeholder', {
-              defaultValue: 'Activity name',
-            })}
-            placeholderTextColor={secondary}
-            className="mb-2 min-h-12 rounded-xl border border-border-subtle bg-raised px-3 text-base text-text-primary"
-            onSubmitEditing={() => void record(name, true)}
-            returnKeyType="done"
-          />
-          <NeonButton
-            label={t('wellness.log', { defaultValue: 'Log activity' })}
-            variant="subtle"
-            disabled={blocked || !name.trim()}
-            loading={saving}
-            onPress={() => void record(name, true)}
-          />
-          <Pressable
-            accessibilityRole="button"
-            accessibilityState={{ expanded: showHistory }}
-            className="mt-3 min-h-11 justify-center border-t border-border-subtle py-3"
-            onPress={() => setShowHistory(!showHistory)}
-          >
-            <Text className="font-semibold text-accent-primary">
-              {t('wellness.history', {
-                defaultValue: 'History · last 30 days',
-              })}
-            </Text>
-          </Pressable>
-          {showHistory &&
-            (entries.length > 0 ? (
-              entries.map((entry) => (
-                <View
-                  key={`${entry.activityId}:${entry.date}`}
-                  className="mb-2 flex-row flex-wrap justify-between gap-x-3 gap-y-1"
-                >
-                  <Text className="shrink text-sm text-text-primary">
-                    {entry.name}
-                  </Text>
-                  <Text className="text-sm text-text-secondary">
-                    {new Date(`${entry.date}T12:00:00`).toLocaleDateString(
-                      locale
-                    )}
-                  </Text>
-                </View>
-              ))
-            ) : (
-              <Text className="text-sm text-text-secondary">
-                {t('wellness.historyEmpty', {
-                  defaultValue:
-                    'No wellness activities recorded in this period.',
+          {canLog && (
+            <>
+              <View className="mb-4 flex-row flex-wrap gap-2">
+                {choices.map((choice) => {
+                  const recorded = today.some(
+                    (entry) => entry.name.toLowerCase() === choice.toLowerCase()
+                  );
+                  return (
+                    <Pressable
+                      key={choice}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('wellness.logActivity', {
+                        defaultValue: 'Log {{name}}',
+                        name: choice,
+                      })}
+                      accessibilityState={{
+                        disabled: blocked || recorded,
+                        selected: recorded,
+                      }}
+                      disabled={blocked || recorded}
+                      onPress={() => void record(choice)}
+                      className="min-h-12 max-w-full justify-center rounded-xl border border-border-subtle bg-raised px-3 py-2"
+                      style={{ opacity: blocked ? 0.5 : 1 }}
+                    >
+                      <Text className="text-base text-text-primary">
+                        {choice}
+                        {recorded
+                          ? ` · ${t('wellness.recorded', { defaultValue: 'Logged' })}`
+                          : ''}
+                      </Text>
+                    </Pressable>
+                  );
                 })}
+              </View>
+              <Text className="mb-1 text-sm font-semibold text-text-primary">
+                {t('wellness.custom', { defaultValue: 'Custom activity' })}
               </Text>
-            ))}
+              <TextInput
+                testID="wellness-name"
+                accessibilityLabel={t('wellness.custom', {
+                  defaultValue: 'Custom activity',
+                })}
+                value={name}
+                onChangeText={setName}
+                maxLength={50}
+                editable={!saving}
+                placeholder={t('wellness.placeholder', {
+                  defaultValue: 'Activity name',
+                })}
+                placeholderTextColor={secondary}
+                className="mb-2 min-h-12 rounded-xl border border-border-subtle bg-raised px-3 text-base text-text-primary"
+                onSubmitEditing={() => void record(name, true)}
+                returnKeyType="done"
+              />
+              <NeonButton
+                label={t('wellness.log', { defaultValue: 'Log activity' })}
+                variant="subtle"
+                disabled={blocked || !name.trim()}
+                loading={saving}
+                onPress={() => void record(name, true)}
+              />
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ expanded: showHistory }}
+                className="mt-3 min-h-11 justify-center border-t border-border-subtle py-3"
+                onPress={() => setShowHistory(!showHistory)}
+              >
+                <Text className="font-semibold text-accent-primary">
+                  {t('wellness.history', {
+                    defaultValue: 'History · last 30 days',
+                  })}
+                </Text>
+              </Pressable>
+              {showHistory &&
+                (entries.length > 0 ? (
+                  entries.map((entry) => (
+                    <View
+                      key={`${entry.activityId}:${entry.date}`}
+                      className="mb-2 flex-row flex-wrap justify-between gap-x-3 gap-y-1"
+                    >
+                      <Text className="shrink text-sm text-text-primary">
+                        {entry.name}
+                      </Text>
+                      <Text className="text-sm text-text-secondary">
+                        {new Date(`${entry.date}T12:00:00`).toLocaleDateString(
+                          locale
+                        )}
+                      </Text>
+                    </View>
+                  ))
+                ) : (
+                  <Text className="text-sm text-text-secondary">
+                    {t('wellness.historyEmpty', {
+                      defaultValue:
+                        'No wellness activities recorded in this period.',
+                    })}
+                  </Text>
+                ))}
+            </>
+          )}
         </>
       )}
       {error && (

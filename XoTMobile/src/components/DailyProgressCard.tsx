@@ -5,13 +5,16 @@ import ProgressTrackX from './brand/ProgressTrackX';
 import DashboardSummaryCard, {
   DashboardSummaryRow,
 } from './ui/DashboardSummaryCard';
-import { progressTaskIcon } from './tracking/progressTaskIcons';
-import { useHabits } from '../hooks/useDailyTracking';
-import { useProjectedDailyProgress } from '../hooks/useProjectedDailyProgress';
 import {
-  nextProgressTasks,
-  useProgressActions,
-} from '../hooks/useProgressActions';
+  progressCategories,
+  PROGRESS_CATEGORY_ICONS,
+} from '../utils/progressCategories';
+import {
+  progressDomainLabel,
+  categoryStateLabel,
+} from './tracking/trackingLabels';
+import { useProjectedDailyProgress } from '../hooks/useProjectedDailyProgress';
+import { useProgressActions } from '../hooks/useProgressActions';
 
 interface DailyProgressCardProps {
   date: string;
@@ -19,7 +22,7 @@ interface DailyProgressCardProps {
   onOpenProgress: () => void;
   onOpenHydration: () => void;
 }
-/** A bounded preview of actual unresolved tasks, using the breakdown's actions. */
+/** A bounded category overview, with individual goals available in the breakdown. */
 export default function DailyProgressCard({
   date,
   enabled,
@@ -29,18 +32,14 @@ export default function DailyProgressCard({
   const { t } = useTranslation();
   const accent = useCSSVariable('--color-accent-primary') as string;
   const query = useProjectedDailyProgress(date, enabled);
-  const habits = useHabits({
-    enabled:
-      enabled &&
-      !!query.progress?.items.some((item) => item.domain === 'habit'),
-  });
-  const { itemLabel, openItem } = useProgressActions(date, onOpenHydration);
+  const { openCategory } = useProgressActions(date, onOpenHydration);
   if (!enabled) return null;
   const progress = query.progress;
   if (!progress)
     return (
       <DashboardSummaryCard
         testID="dashboard-daily-progress"
+        headingIcon="target"
         title={t('progress.title', { defaultValue: 'Daily Progress' })}
       >
         <Text className="mt-1 text-sm text-text-secondary">
@@ -63,10 +62,12 @@ export default function DailyProgressCard({
         ) : null}
       </DashboardSummaryCard>
     );
-  const next = nextProgressTasks(progress.items);
+  const categories = progressCategories(progress.items);
+  const next = categories.slice(0, 4);
   return (
     <DashboardSummaryCard
       testID="dashboard-daily-progress"
+      headingIcon="target"
       title={t('progress.title', { defaultValue: 'Daily Progress' })}
       openTestID="dashboard-progress-open"
       onOpen={onOpenProgress}
@@ -81,9 +82,15 @@ export default function DailyProgressCard({
           <ProgressTrackX
             progress={progress.percent}
             label={t('progress.xLabel', { defaultValue: 'Daily Progress' })}
-            unknownLabel={t('progress.nothingApplies', {
-              defaultValue: 'No tasks today',
-            })}
+            unknownLabel={
+              progress.items.length
+                ? t('progress.noCountedTasks', {
+                    defaultValue: 'No counted tasks',
+                  })
+                : t('progress.nothingApplies', {
+                    defaultValue: 'No tasks today',
+                  })
+            }
             size={size}
             light={light}
             fit="track"
@@ -99,43 +106,76 @@ export default function DailyProgressCard({
                   completed: progress.completed,
                   applicable: progress.applicable,
                 })
-              : t('progress.nothingApplies', {
-                  defaultValue: 'No tasks today',
-                })}
+              : progress.items.length
+                ? t('progress.noCountedTasks', {
+                    defaultValue: 'No counted tasks',
+                  })
+                : t('progress.nothingApplies', {
+                    defaultValue: 'No tasks today',
+                  })}
           </Text>
         </>
       )}
       footer={
-        query.isError ? (
-          <Text className="mt-2 text-xs text-text-secondary">
-            {t('progress.previewStale', {
-              defaultValue: 'Saved tasks. Refresh to check recent changes.',
-            })}
-          </Text>
-        ) : null
+        <>
+          {categories.length > next.length ? (
+            <Pressable
+              onPress={onOpenProgress}
+              accessibilityRole="button"
+              className="min-h-11 justify-center"
+            >
+              <Text className="text-xs text-accent-primary">
+                {t('progress.allCategories', {
+                  defaultValue: 'All {{count}} categories',
+                  count: categories.length,
+                })}
+              </Text>
+            </Pressable>
+          ) : null}
+          {query.isError ? (
+            <Text className="mt-2 text-xs text-text-secondary">
+              {t('progress.previewStale', {
+                defaultValue: 'Saved tasks. Refresh to check recent changes.',
+              })}
+            </Text>
+          ) : null}
+        </>
       }
     >
-      {next.length ? (
-        next.map((item, index) => (
+      {next.map((category, index) => {
+        const label =
+          category.domain === 'supplement'
+            ? t('progress.categoryLabel.supplement', {
+                defaultValue: 'Supplements',
+              })
+            : category.domain === 'workout'
+              ? t('progress.categoryLabel.workout', {
+                  defaultValue: 'Training',
+                })
+              : progressDomainLabel(t, category.domain);
+        const state = categoryStateLabel(t, category.state);
+        const compactState =
+          category.state === 'partial'
+            ? t('progress.partialShort', { defaultValue: 'Partial' })
+            : state;
+        return (
           <DashboardSummaryRow
-            key={item.id}
-            testID={`dashboard-next-${item.id}`}
-            onPress={() => openItem(item)}
-            accessibilityLabel={itemLabel(item)}
-            icon={progressTaskIcon(item, habits.data ?? [])}
+            key={category.domain}
+            compact
+            testID={`dashboard-category-${category.domain}`}
+            onPress={() => openCategory(category.domain)}
+            accessibilityLabel={`${label}: ${state}`}
+            icon={PROGRESS_CATEGORY_ICONS[category.domain]}
             color={accent}
             last={index === next.length - 1}
           >
-            <Text className="text-sm text-text-primary">{itemLabel(item)}</Text>
+            <Text className="text-sm font-medium text-text-primary">
+              {label}
+            </Text>
+            <Text className="text-xs text-text-secondary">{compactState}</Text>
           </DashboardSummaryRow>
-        ))
-      ) : progress.applicable > 0 ? (
-        <Text className="py-2 text-sm text-text-secondary">
-          {t('progress.previewComplete', {
-            defaultValue: 'All applicable tasks are resolved.',
-          })}
-        </Text>
-      ) : null}
+        );
+      })}
     </DashboardSummaryCard>
   );
 }

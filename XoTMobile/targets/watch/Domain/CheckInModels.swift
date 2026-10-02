@@ -114,7 +114,7 @@ private func formatWaterMl(_ ml: Double, unit: String) -> String {
         decimals = 0
         label = "ml"
     }
-    return "\(String(format: "%.\(decimals)f", converted))\(label)"
+    return "\(String(format: "%.\(decimals)f", locale: Locale.current, converted))\(label)"
 }
 
 /// One water container configured on the server — a tappable square on the
@@ -175,8 +175,29 @@ struct WaterSnapshot: Codable, Equatable {
     var isToday: Bool { day == CheckInDate.today() }
 }
 
+/// One unfinished task supplied by the phone.
+struct WatchProgressItem: Codable, Equatable, Identifiable {
+    let id: String
+    let label: String
+    let domain: String
+    let state: String
+    let canComplete: Bool
+    let recordedAt: String?
+    let icon: String
+}
+
+struct PendingProgressAction: Codable, Equatable, Identifiable {
+    let id: String
+    let scope: String
+    let entryDate: String
+    let itemId: String
+    let capturedAt: Date
+    let expectedRecordedAt: String?
+    var state: SyncState
+}
+
 /// Today's Daily Progress: the completed/applicable task count the phone's
-/// dashboard X is drawn from. Only relayed to the Progress X complication.
+/// dashboard X is drawn from. Shared by the Daily Goals screen and Progress X complication.
 ///
 /// `applicable == 0` is a real state — nothing applies today, drawn as a
 /// neutral X — distinct from the whole snapshot being nil ("not synced yet").
@@ -187,6 +208,7 @@ struct DailyProgressSnapshot: Codable, Equatable {
     /// 0...100, nil when no task applies.
     let percent: Double?
 
+    var items: [WatchProgressItem]? = nil
     var isToday: Bool { day == CheckInDate.today() }
 }
 
@@ -574,9 +596,9 @@ enum SyncState: String, Codable, Equatable {
 
     var label: String {
         switch self {
-        case .saved: return "Saved to X on Track"
-        case .queued: return "Saved on watch · sends near phone"
-        case .failed: return "Couldn't send · tap to retry"
+        case .saved: return WatchCopy.text("watch.saved")
+        case .queued: return WatchCopy.text("watch.queued")
+        case .failed: return WatchCopy.text("watch.failed")
         }
     }
 

@@ -1,0 +1,21 @@
+{
+  "revision": "607a09f3f85185808904ea659d98e6361c4b1fec",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "wellness-tour",
+      "logicalViewport": "390x844"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.",
+  "workingTreeChanges": true,
+  "note": "Captured with uncommitted wellness navigation changes on the reported base revision. Light case predates the final full-width More tile; the unchanged logging/Diary screens are retained."
+}

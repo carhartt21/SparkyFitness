@@ -3,6 +3,7 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import LibraryScreen from '../../src/screens/LibraryScreen';
+import { useDiaryDateStore } from '../../src/stores/diaryDateStore';
 import {
   useFoods,
   useMeals,
@@ -241,6 +242,15 @@ describe('LibraryScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('448')).toBeTruthy();
       expect(screen.getByText('17')).toBeTruthy();
+    });
+  });
+
+  it('opens wellness logging from More with the selected calendar day', () => {
+    const selectedDate = useDiaryDateStore.getState().selectedDate;
+    const screen = renderScreen();
+    fireEvent.press(screen.getByTestId('more-wellness'));
+    expect(navigation.navigate).toHaveBeenCalledWith('Wellness', {
+      date: selectedDate,
     });
   });
 

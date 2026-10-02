@@ -118,6 +118,7 @@ final class WatchSessionManager: NSObject, ObservableObject {
             sendWaterTap(tap)
         }
         sendQueuedQuickWaterActions()
+        for action in store.queuedProgressActions { sendProgress(action) }
         for action in store.queuedFoodActions { sendFoodLog(action) }
         sendNextWorkoutOperation()
         WorkoutHealthRecorder.shared.retryPending()
@@ -183,6 +184,11 @@ final class WatchSessionManager: NSObject, ObservableObject {
     func sendQuickWater(_ action: PendingQuickWaterAction) {
         guard action.scope == store.context.actionScope else { return }
         transfer(OutboundPayloads.manualWater(action))
+    }
+
+    func sendProgress(_ action: PendingProgressAction) {
+        guard action.scope == store.context.actionScope, action.entryDate == CheckInDate.today() else { return }
+        transfer(OutboundPayloads.progressAction(action))
     }
 
     func sendFoodLog(_ action: PendingFoodLogAction) {
@@ -398,6 +404,11 @@ final class WatchSessionManager: NSObject, ObservableObject {
         }
         if store.pendingQuickWaterActions.contains(where: { $0.id == ack.clientId }) {
             store.markQuickWater(ack.clientId, ack.ok ? .saved : .failed)
+            return
+        }
+        if store.pendingProgressActions.contains(where: { $0.id == ack.clientId }) {
+            store.markProgress(ack.clientId, ack.ok ? .saved : .failed)
+            requestContext()
             return
         }
         if store.pendingFoodActions.contains(where: { $0.id == ack.clientId }) {

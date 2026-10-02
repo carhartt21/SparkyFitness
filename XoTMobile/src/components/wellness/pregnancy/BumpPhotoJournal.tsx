@@ -1,3 +1,4 @@
+import { useAppLocale } from '../../../localization';
 import React, { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -31,10 +32,8 @@ const BumpPhotoJournal: React.FC<BumpPhotoJournalProps> = ({
   pregnancyId,
   currentWeek,
 }) => {
-  const { t, i18n: translationI18n } = useTranslation();
-  const dateLocale = translationI18n.language.startsWith('pl')
-    ? 'pl-PL'
-    : 'en-US';
+  const { t } = useTranslation();
+  const dateLocale = useAppLocale();
   const { photos, isLoading } = usePregnancyPhotos(pregnancyId);
   const { uploadAsync, isUploading, deleteAsync } =
     usePregnancyPhotoMutations();
