@@ -371,6 +371,7 @@ export async function deleteHealthContextPeriod(
 // --- Habits -----------------------------------------------------------------
 
 interface HabitRow {
+  habit_category: NonNullable<Habit['category']>;
   id: string;
   name: string;
   display_name: string | null;
@@ -386,7 +387,7 @@ interface HabitRow {
   habit_icon: string | null;
 }
 
-const HABIT_COLUMNS = `id, name, display_name, measurement_type, habit_type,
+const HABIT_COLUMNS = `id, name, display_name, measurement_type, habit_type, habit_category,
   habit_description, habit_target, habit_step, habit_days, habit_reminder_time,
   habit_active, habit_sort_order, habit_icon`;
 
@@ -395,6 +396,7 @@ const COMPLETION_UNIT = 'habit';
 
 function toHabit(row: HabitRow): Habit {
   return {
+    category: row.habit_category ?? 'habit',
     id: row.id,
     name: row.display_name || row.name,
     habit_type: row.habit_type,
@@ -450,37 +452,71 @@ export async function createHabit(
 ): Promise<Habit> {
   return withClient(userId, actorId, async (client) => {
     const count = body.habit_type === 'count';
+    const wellness = body.category === 'wellness';
+    if (wellness && count) {
+      throw new DailyTrackingError(
+        400,
+        'Wellness activities take completion logs.'
+      );
+    }
     // `name` is the stable category identifier (max 50) and must stay unique
     // enough for sync; the user-facing name lives in display_name.
-    const result = await client.query<HabitRow>(
-      `INSERT INTO custom_categories (
+    const insert = async (): Promise<Habit> => {
+      const result = await client.query<HabitRow>(
+        `INSERT INTO custom_categories (
          user_id, name, display_name, measurement_type, frequency, data_type,
          habit_type, habit_description, habit_target, habit_step, habit_days,
          habit_reminder_time, habit_active, habit_sort_order, habit_icon,
-         created_by_user_id, updated_by_user_id)
+         created_by_user_id, updated_by_user_id, habit_category)
        VALUES ($1, $2, $2, $3, 'Daily', $4, $5, $6, $7, $8, $9, $10, $11,
          COALESCE($12, (SELECT COALESCE(MAX(habit_sort_order) + 1, 0)
            FROM custom_categories WHERE user_id = $1 AND habit_type IS NOT NULL)),
-         $13, $14, $14)
+         $13, $14, $14, $15)
        RETURNING ${HABIT_COLUMNS}`,
-      [
-        userId,
-        body.name,
-        count ? body.unit?.trim() || 'count' : COMPLETION_UNIT,
-        count ? 'numeric' : 'boolean',
-        body.habit_type,
-        body.description || null,
-        count ? (body.target ?? null) : null,
-        count ? (body.step ?? null) : null,
-        body.days ?? null,
-        body.reminder_time ?? null,
-        body.active ?? true,
-        body.sort_order ?? null,
-        body.icon || null,
-        actorId,
-      ]
-    );
-    return toHabit(result.rows[0]);
+        [
+          userId,
+          body.name,
+          count ? body.unit?.trim() || 'count' : COMPLETION_UNIT,
+          count ? 'numeric' : 'boolean',
+          body.habit_type,
+          body.description || null,
+          count ? (body.target ?? null) : null,
+          count ? (body.step ?? null) : null,
+          wellness ? [] : (body.days ?? null),
+          wellness ? null : (body.reminder_time ?? null),
+          body.active ?? true,
+          body.sort_order ?? null,
+          body.icon || null,
+          actorId,
+          body.category ?? 'habit',
+        ]
+      );
+      return toHabit(result.rows[0]);
+    };
+    if (!wellness) return insert();
+    await client.query('BEGIN');
+    try {
+      // A lost response or simultaneous web/phone tap must reuse one definition.
+      await client.query(
+        'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+        [`wellness:${userId}:${body.name.normalize('NFC').toLowerCase()}`]
+      );
+      const existing = await client.query<HabitRow>(
+        `SELECT ${HABIT_COLUMNS} FROM custom_categories
+         WHERE user_id = $1 AND habit_category = 'wellness'
+           AND lower(normalize(COALESCE(display_name, name), NFC)) = lower(normalize($2, NFC))
+         ORDER BY created_at ASC LIMIT 1`,
+        [userId, body.name]
+      );
+      const activity = existing.rows[0]
+        ? toHabit(existing.rows[0])
+        : await insert();
+      await client.query('COMMIT');
+      return activity;
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    }
   });
 }
 
@@ -504,6 +540,21 @@ export async function updateHabit(
       );
     }
     const next = { ...current, ...body };
+    if (current.category === 'wellness') {
+      if (
+        next.days === null ||
+        next.days.length > 0 ||
+        next.reminder_time !== null ||
+        next.unit !== null
+      ) {
+        throw new DailyTrackingError(
+          400,
+          'Wellness activities are unscheduled completion logs.'
+        );
+      }
+    } else if (next.days?.length === 0) {
+      throw new DailyTrackingError(400, 'Choose at least one weekday.');
+    }
     const result = await client.query<HabitRow>(
       `UPDATE custom_categories SET
          display_name = $3, measurement_type = $4, habit_description = $5,
@@ -621,6 +672,12 @@ export async function logHabit(
     }
     await client.query('BEGIN');
     try {
+      if (habit.category === 'wellness') {
+        await client.query(
+          'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+          [`wellness-log:${habitId}:${date}`]
+        );
+      }
       await client.query(
         `DELETE FROM custom_measurements
          WHERE user_id = $1 AND category_id = $2 AND entry_date = $3`,

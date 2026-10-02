@@ -675,6 +675,8 @@ SELECT create_checkin_policy('check_in_photos');
 -- can_manage_diary to write, which blocked check-in delegates (e.g. the GLP-1
 -- daily check-in) from saving even though the route allowed them.
 SELECT create_checkin_policy('custom_categories');
+-- Wellness completion definitions and logs reuse these check-in policies;
+-- habit_category does not change ownership or delegated access.
 SELECT create_checkin_policy('custom_measurements');
 SELECT create_diary_policy('exercise_entries');
 -- Dated plan snapshots are readable alongside exercise reports. Only the

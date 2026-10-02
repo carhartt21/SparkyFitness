@@ -635,10 +635,8 @@ async function getLatestCheckInMeasurementsOnOrBeforeDate(
  * Active smart scale and health data syncs now land directly in check_in_measurements.bmr.
  */
 async function getExternalBmrForDate(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  userId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  date: any
+  userId: string,
+  date: string
 ): Promise<number | null> {
   const client = await getClient(userId); // User-specific operation
   try {
@@ -648,6 +646,7 @@ async function getExternalBmrForDate(
        JOIN custom_categories cc ON cm.category_id = cc.id
        WHERE cm.user_id = $1
          AND cc.name = 'basal_metabolic_rate'
+         AND cc.habit_category <> 'wellness'
          AND cm.entry_date = $2
        ORDER BY cm.updated_at DESC, cm.entry_timestamp DESC
        LIMIT 1`,
@@ -735,12 +734,11 @@ async function deleteCheckInMeasurements(id: any, userId: any) {
     client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getCustomCategories(userId: any) {
+async function getCustomCategories(userId: string) {
   const client = await getClient(userId); // User-specific operation
   try {
     const result = await client.query(
-      'SELECT id, name, display_name, frequency, measurement_type, data_type FROM custom_categories WHERE user_id = $1',
+      "SELECT id, name, display_name, frequency, measurement_type, data_type FROM custom_categories WHERE user_id = $1 AND habit_category <> 'wellness'",
       [userId]
     );
     return result.rows;
@@ -838,14 +836,10 @@ async function getCustomCategoryOwnerId(id: any, userId: any) {
 }
 
 async function getCustomMeasurementEntries(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  userId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  limit: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  orderBy: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  filterObj: any
+  userId: string,
+  limit: string | number | null | undefined,
+  orderBy: string | null | undefined,
+  filterObj: { category_id?: string; filter?: string } | null | undefined
 ) {
   // Renamed filter to filterObj
   const client = await getClient(userId); // User-specific operation
@@ -862,8 +856,9 @@ async function getCustomMeasurementEntries(
       FROM custom_measurements cm
       JOIN custom_categories cc ON cm.category_id = cc.id
       WHERE cm.user_id = $1 AND cm.value IS NOT NULL
+        AND cc.habit_category <> 'wellness'
     `;
-    const queryParams = [userId];
+    const queryParams: (string | number)[] = [userId];
     let paramIndex = 2;
     // RLS will handle filtering by user_id, but we keep it here for explicit filtering
     // in case RLS is disabled or for clarity.
@@ -901,7 +896,7 @@ async function getCustomMeasurementEntries(
     }
     if (limit) {
       query += ` LIMIT $${paramIndex}`;
-      queryParams.push(parseInt(limit, 10));
+      queryParams.push(parseInt(String(limit), 10));
       paramIndex++;
     }
     const result = await client.query(query, queryParams);
@@ -910,8 +905,7 @@ async function getCustomMeasurementEntries(
     client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getCustomMeasurementEntriesByDate(userId: any, date: any) {
+async function getCustomMeasurementEntriesByDate(userId: string, date: string) {
   const client = await getClient(userId); // User-specific operation
   try {
     const result = await client.query(
@@ -926,6 +920,7 @@ async function getCustomMeasurementEntriesByDate(userId: any, date: any) {
        FROM custom_measurements cm
        JOIN custom_categories cc ON cm.category_id = cc.id
        WHERE cm.user_id = $1 AND cm.entry_date = $2
+         AND cc.habit_category <> 'wellness'
        ORDER BY cm.entry_timestamp DESC`,
       [userId, date]
     );
@@ -965,6 +960,7 @@ async function getLatestManualCustomEntriesOnOrBeforeDate(
        JOIN custom_categories cc ON cm.category_id = cc.id
        WHERE cm.user_id = $1
          AND cm.entry_date <= $2
+         AND cc.habit_category <> 'wellness'
          AND cm.source = 'manual'
          AND cm.value IS NOT NULL
        ORDER BY cm.category_id, cm.entry_date DESC, cm.entry_timestamp DESC, cm.id DESC`,
@@ -997,6 +993,7 @@ async function getCustomMeasurementEntriesByDateRange(
        JOIN custom_categories cc ON cm.category_id = cc.id
        WHERE cm.user_id = $1
          AND cm.entry_date BETWEEN $2 AND $3
+         AND cc.habit_category <> 'wellness'
        ORDER BY cm.entry_date ASC, cm.entry_timestamp ASC, cm.id ASC`,
       [userId, startDate, endDate]
     );
@@ -1034,20 +1031,17 @@ async function getCheckInMeasurementsByDateRange(
   }
 }
 async function getCustomMeasurementsByDateRange(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  userId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  categoryId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  startDate: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  endDate: any,
-  source = null
+  userId: string,
+  categoryId: string,
+  startDate: string,
+  endDate: string,
+  source: string | null = null
 ) {
   const client = await getClient(userId); // User-specific operation
   try {
-    let query =
-      'SELECT category_id, entry_date AS date, entry_hour AS hour, value, entry_timestamp AS timestamp FROM custom_measurements WHERE user_id = $1 AND category_id = $2 AND entry_date BETWEEN $3 AND $4';
+    let query = `SELECT category_id, entry_date AS date, entry_hour AS hour, value, entry_timestamp AS timestamp
+       FROM custom_measurements WHERE user_id = $1 AND category_id = $2 AND entry_date BETWEEN $3 AND $4
+         AND EXISTS (SELECT 1 FROM custom_categories cc WHERE cc.id = category_id AND cc.habit_category <> 'wellness')`;
     const queryParams = [userId, categoryId, startDate, endDate];
     if (source) {
       query += ' AND source = $5';
@@ -1536,6 +1530,7 @@ async function getExternalBmrByDateRange(
        JOIN custom_categories cc ON cm.category_id = cc.id
        WHERE cm.user_id = $1
          AND cc.name = 'basal_metabolic_rate'
+         AND cc.habit_category <> 'wellness'
          AND cm.entry_date BETWEEN $2 AND $3
        ORDER BY cm.entry_date, cm.updated_at DESC, cm.entry_timestamp DESC`,
       [userId, startDate, endDate]

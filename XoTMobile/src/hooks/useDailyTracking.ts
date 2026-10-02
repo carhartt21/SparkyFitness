@@ -157,6 +157,8 @@ export function useHabitLogs(
 }
 
 function invalidateHabits(queryClient: QueryClient) {
+  void queryClient.invalidateQueries({ queryKey: ['customCategories'] });
+  void queryClient.invalidateQueries({ queryKey: ['customMeasurements'] });
   void queryClient.invalidateQueries({ queryKey: habitsRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: habitLogsRootQueryKey });
   invalidateProgress(queryClient);
@@ -226,6 +228,7 @@ export function useLogHabit(startDate: string, endDate: string) {
       if (context) queryClient.setQueryData(key, context.previous);
     },
     onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: ['customMeasurements'] });
       void queryClient.invalidateQueries({ queryKey: habitLogsRootQueryKey });
       invalidateProgress(queryClient);
     },

@@ -27,7 +27,7 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Isolation and limits
 
-`XOT_UI_REVIEW=1` changes only Metro's resolution of the entrypoint's `./App` import. Normal exports retain the production entrypoint. The review wrapper refuses release builds and physical devices, allows only the synthetic `ui-review.invalid` origin, supplies explicit GET fixtures, and accepts only enumerated in-memory nutrition mutations plus a timezone bootstrap response. Created IDs use `review-created-`; other writes and origins are rejected. Each scenario starts with a fresh fixture. Loopback audit events contain synthetic records only. No credentials or personal records belong in fixtures or committed screenshots. Do not set this variable in EAS/deployment profiles.
+`XOT_UI_REVIEW=1` changes only Metro's resolution of the entrypoint's `./App` import. Normal exports retain the production entrypoint. The review wrapper refuses release builds and physical devices, allows only the synthetic `ui-review.invalid` origin, supplies explicit GET fixtures, and accepts only enumerated in-memory nutrition and wellness mutations plus a timezone bootstrap response. Created IDs use `review-created-`; other writes and origins are rejected. Each scenario starts with a fresh fixture. Loopback audit events contain synthetic records only. No credentials or personal records belong in fixtures or committed screenshots. Do not set this variable in EAS/deployment profiles.
 
 The synthetic transport deliberately does not verify authentication, server persistence, offline mutation replay, HealthKit, Watch sync, camera permissions or physical-device performance. Search, portion, save, quantity edit and delete are tested against memory only; persistence across process restart and editing a note with the keyboard open remain unverified. An unpaired Watch warning is expected. The review preference set hides health trend series and optional modules; those require separate scenario coverage.
 
@@ -44,6 +44,23 @@ node --test review/runtime-check.test.mjs
 `--interactions --tracking-tour` opens Daily Check-In, Habits, Supplements, Daily Progress and Weekly Planning from More and captures top, lower and bottom views, including the weekly-plan editor. It also runs on `430-de-large` for Dynamic Type. `review/trackingFixture.ts` supplies synthetic habits, habit logs, supplements, configured objectives, planned sessions and check-ins for the populated scenario; the names are illustrations only. The tour proves navigation/rendering, not real backend persistence or physical-device synchronization.
 
 The corresponding web persistence check runs with `XOT_VISUAL_URL=http://localhost:<isolated-web-port> node scripts/review-weekly-plan.mjs` from `XoTFrontend/`. It accepts loopback demo servers only, creates a synthetic two-session plan, verifies failed-save input retention and reload persistence against the database, then removes its synthetic plan.
+
+## Wellness logging tour
+
+`--interactions --wellness-tour --case '390-de-dark|390-de-light|430-de-large'`
+opens Diary, checks the Sauna preset's 44-point target, logs it for the selected
+calendar day, expands history, and undoes that day's entry. Each case captures
+empty, logged, history and after-undo states. `review/wellnessFixture.ts` accepts
+only schema-validated wellness creations and completion/removal writes for known
+synthetic activity IDs. It preserves other routine fixtures and resets per run.
+This checks native behavior against memory; server persistence and real RLS are
+verified separately by the wellness browser script and PostgreSQL integration test.
+
+Run `scripts/review-wellness.mjs` from `XoTFrontend/` with `XOT_VISUAL_URL` set to
+the isolated loopback web URL. It accepts loopback demo
+servers only, uses synthetic names, verifies reload persistence, concurrent saves,
+day-specific undo, failed-save input retention and unchanged Daily Progress, then
+removes only wellness definitions it created.
 
 ## Launch-icon shortcuts
 

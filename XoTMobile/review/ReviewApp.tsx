@@ -13,6 +13,7 @@ import { rememberActiveNutritionUser } from '../src/services/nutritionIdentity';
 import { buildDailySummary } from '../src/services/dailySummaryService';
 import { reviewDate, summaryFixture } from './fixtures';
 import { createNutritionFixture } from './nutritionFixture';
+import { createWellnessReviewFixture } from './wellnessFixture';
 
 const transport = global.fetch;
 export default function ReviewApp() {
@@ -31,6 +32,7 @@ export default function ReviewApp() {
         nativeTabs?: boolean;
       };
       const fixture = createNutritionFixture(config.scenario);
+      const wellnessFixture = createWellnessReviewFixture(config.scenario);
       global.fetch = async (input, options) => {
         const url = new URL(
           typeof input === 'string'
@@ -50,7 +52,15 @@ export default function ReviewApp() {
             return new Response('{}', { status: 503 });
           if (options?.body !== undefined && typeof options.body !== 'string')
             throw new Error('Review only accepts JSON request bodies');
-          const result = fixture.respond(url, method, options?.body);
+          const wellnessResult = wellnessFixture.respond(
+            url,
+            method,
+            options?.body
+          );
+          const result =
+            wellnessResult === undefined
+              ? fixture.respond(url, method, options?.body)
+              : wellnessResult;
           if (method !== 'GET' || url.pathname === '/api/daily-summary') {
             await transport('http://127.0.0.1:43991/event', {
               method: 'POST',
@@ -59,6 +69,7 @@ export default function ReviewApp() {
                 method,
                 path: url.pathname,
                 entries: fixture.snapshot(),
+                wellness: wellnessFixture.snapshot(),
               }),
             });
           }

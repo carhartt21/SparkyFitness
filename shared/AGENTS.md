@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 `@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
 
@@ -30,7 +30,7 @@ _Last updated: 2026-10-01_
 ## Cross-Package Contract Rules
 
 - Changes to `src/schemas/api/` usually affect server routes and both frontend/mobile API clients.
-- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`), RLS policies, and the schema backup.
+- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`) and RLS policies. CI synchronizes the schema backup after merge; never regenerate it locally.
 - Timezone/day-string helpers prevent bugs; prefer them over `toISOString().split('T')[0]`.
 - Test any shared change from the consumer packages (`pnpm run validate` in XoTServer, XoTFrontend, and XoTMobile after modifying shared).
 
@@ -38,3 +38,7 @@ _Last updated: 2026-10-01_
 
 - Keep this package export-focused and schema-focused; logic that scales should live in consuming packages.
 - Never export stale or unfinished types; if a consumer is drafting code and needs a type not yet here, add it.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.

@@ -6411,5 +6411,28 @@
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Could not save the plan. Your changes are still here. Try again."
+  },
+  "wellness": {
+    "title": "Wellness",
+    "subtitle": "Log an activity for this day.",
+    "sauna": "Sauna",
+    "massage": "Massage",
+    "meditation": "Meditation",
+    "loading": "Loading wellness activities…",
+    "loadFailed": "Could not load wellness activities. Please try again.",
+    "retry": "Try again",
+    "logged": "Logged activities",
+    "empty": "No wellness activities logged for this day.",
+    "removeActivity": "Remove {{name}} from this day",
+    "undo": "Undo",
+    "logActivity": "Log {{name}}",
+    "recorded": "Logged",
+    "custom": "Custom activity",
+    "placeholder": "Activity name",
+    "log": "Log activity",
+    "history": "History · last 30 days",
+    "historyEmpty": "No wellness activities recorded in this period.",
+    "saveFailed": "Could not save the activity. Please try again.",
+    "removeFailed": "Could not remove the activity. Please try again."
   }
 }

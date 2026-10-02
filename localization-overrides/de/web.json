@@ -1158,5 +1158,28 @@
       "other": "Andere Aktivität",
       "rest": "Ruhetag"
     }
+  },
+  "wellness": {
+    "title": "Wellness",
+    "subtitle": "Aktivität für diesen Tag erfassen.",
+    "sauna": "Sauna",
+    "massage": "Massage",
+    "meditation": "Meditation",
+    "loading": "Wellness-Aktivitäten werden geladen…",
+    "loadFailed": "Wellness-Aktivitäten konnten nicht geladen werden. Bitte versuchen Sie es erneut.",
+    "retry": "Erneut versuchen",
+    "logged": "Erfasste Aktivitäten",
+    "empty": "Für diesen Tag wurden keine Wellness-Aktivitäten erfasst.",
+    "removeActivity": "{{name}} für diesen Tag entfernen",
+    "undo": "Rückgängig",
+    "logActivity": "{{name}} erfassen",
+    "recorded": "Erfasst",
+    "custom": "Eigene Aktivität",
+    "placeholder": "Name der Aktivität",
+    "log": "Aktivität erfassen",
+    "history": "Verlauf · letzte 30 Tage",
+    "historyEmpty": "In diesem Zeitraum wurden keine Wellness-Aktivitäten erfasst.",
+    "saveFailed": "Die Aktivität konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
+    "removeFailed": "Die Aktivität konnte nicht entfernt werden. Bitte versuchen Sie es erneut."
   }
 }

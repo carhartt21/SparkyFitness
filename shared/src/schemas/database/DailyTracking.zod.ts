@@ -6,7 +6,11 @@ import { z } from "zod";
 const day = z.iso.date();
 const rating = z.number().int().min(1).max(5);
 
-export const dailyCheckinStateSchema = z.enum(["draft", "completed", "skipped"]);
+export const dailyCheckinStateSchema = z.enum([
+  "draft",
+  "completed",
+  "skipped",
+]);
 export type DailyCheckinState = z.infer<typeof dailyCheckinStateSchema>;
 
 export const dailyCheckinDatabaseSchema = z.object({
@@ -31,7 +35,11 @@ export const dailyCheckinDatabaseSchema = z.object({
   updated_by_user_id: z.uuid().nullable(),
 });
 
-export const healthContextKindSchema = z.enum(["injury", "illness", "vacation"]);
+export const healthContextKindSchema = z.enum([
+  "injury",
+  "illness",
+  "vacation",
+]);
 export type HealthContextKind = z.infer<typeof healthContextKindSchema>;
 
 export const healthContextPeriodDatabaseSchema = z.object({
@@ -51,11 +59,14 @@ export const healthContextPeriodDatabaseSchema = z.object({
 export const habitTypeSchema = z.enum(["completion", "count"]);
 export type HabitType = z.infer<typeof habitTypeSchema>;
 
+export const habitCategorySchema = z.enum(["habit", "wellness"]);
+
 /** 0 = Sunday … 6 = Saturday, matching Date#getDay. */
 export const weekdaySchema = z.number().int().min(0).max(6);
 
 /** Habit configuration columns added to custom_categories. */
 export const habitColumnsDatabaseSchema = z.object({
+  habit_category: habitCategorySchema,
   habit_type: habitTypeSchema.nullable(),
   habit_description: z.string().nullable(),
   habit_target: z.coerce.number().nullable(),

@@ -398,19 +398,21 @@ try {
       renderSmokePassed: passed,
       nativeInteractionPassed: null,
       interactionScenario: process.argv.includes('--interactions')
-        ? process.argv.includes('--launch-icon-actions')
-          ? 'launch-icon-actions'
-          : process.argv.includes('--notification-tour')
-            ? 'notification-tour'
-            : process.argv.includes('--tracking-tour')
-              ? 'tracking-tour'
-              : process.argv.includes('--tour')
-                ? 'screen-tour'
-                : process.argv.includes('--dashboard-only')
-                  ? 'dashboard-alignment'
-                  : process.argv.includes('--food-details-review')
-                    ? 'food-details-layout'
-                    : 'food-entry-flow'
+        ? process.argv.includes('--wellness-tour')
+          ? 'wellness-tour'
+          : process.argv.includes('--launch-icon-actions')
+            ? 'launch-icon-actions'
+            : process.argv.includes('--notification-tour')
+              ? 'notification-tour'
+              : process.argv.includes('--tracking-tour')
+                ? 'tracking-tour'
+                : process.argv.includes('--tour')
+                  ? 'screen-tour'
+                  : process.argv.includes('--dashboard-only')
+                    ? 'dashboard-alignment'
+                    : process.argv.includes('--food-details-review')
+                      ? 'food-details-layout'
+                      : 'food-entry-flow'
         : null,
       logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
     });
@@ -429,10 +431,12 @@ try {
         '390-de-hydration-options',
         '430-en-hydration-options',
         // Dynamic Type coverage for the daily tracking screens.
-        ...(process.argv.includes('--food-details-review')
+        ...(process.argv.includes('--food-details-review') ||
+        process.argv.includes('--wellness-tour')
           ? ['390-de-light', '430-de-large']
           : []),
-        ...(process.argv.includes('--tracking-tour') ||
+        ...(process.argv.includes('--wellness-tour') ||
+        process.argv.includes('--tracking-tour') ||
         process.argv.includes('--notification-tour')
           ? ['430-de-large']
           : []),
@@ -444,7 +448,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

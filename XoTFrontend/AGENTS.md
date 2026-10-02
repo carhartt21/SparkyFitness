@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-01_
+_Last updated: 2026-10-02_
 
 X on Track Frontend is the React web app for the X on Track monorepo. Use this file as the primary guide for work inside `XoTFrontend/`.
 
@@ -123,3 +123,7 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.
+
+## Wellness activity logging
+
+Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `shared/src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.

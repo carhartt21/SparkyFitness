@@ -32,7 +32,15 @@ router.get('/withings/data', authenticate, async (req, res) => {
   try {
     const userId = req.user.id;
     const { startDate, endDate } = req.query; // Expecting YYYY-MM-DD format
-    if (!startDate || !endDate) {
+    if (typeof userId !== 'string') {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    if (
+      typeof startDate !== 'string' ||
+      typeof endDate !== 'string' ||
+      !startDate ||
+      !endDate
+    ) {
       return res.status(400).json({
         message: 'startDate and endDate are required query parameters.',
       });
@@ -69,7 +77,6 @@ router.get('/withings/data', authenticate, async (req, res) => {
             category.id,
             startDate,
             endDate,
-            // @ts-expect-error TS(2345): Argument of type '"withings"' is not assignable to... Remove this comment to see the full error message
             'withings'
           );
         if (category.name.includes('Blood Pressure')) {
