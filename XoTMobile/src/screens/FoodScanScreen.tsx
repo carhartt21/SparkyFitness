@@ -1126,7 +1126,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
           className="absolute bottom-0 left-0 right-0 items-center gap-4"
           style={{ paddingBottom: Math.max(insets.bottom + 8, 24) }}
         >
-          <View className="bg-black/50 rounded-lg mx-8 self-stretch">
+          <View className="mx-8 self-stretch">
             <SegmentedControl
               segments={scanSegments}
               activeKey={scanMode}
