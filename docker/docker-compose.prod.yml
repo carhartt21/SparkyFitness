@@ -76,6 +76,7 @@ services:
       # Setting any of these to 'true' here forces it on regardless of the
       # stored value; leaving them empty defers to the Admin UI.
       SPARKY_FITNESS_PUBLIC_API_DOCS: ${SPARKY_FITNESS_PUBLIC_API_DOCS:-}
+      XOT_COACHING_ENABLED: ${XOT_COACHING_ENABLED:-false}
       DEV_TOOLS_ENABLED: ${DEV_TOOLS_ENABLED:-}
       ALLOW_PRIVATE_NETWORK_AI: ${ALLOW_PRIVATE_NETWORK_AI:-}
       ALLOW_PRIVATE_NETWORK_FOOD_PROVIDERS: ${ALLOW_PRIVATE_NETWORK_FOOD_PROVIDERS:-}

@@ -146,6 +146,9 @@ describe('Database Schema ↔ Zod Parity', () => {
 
         // Find schema export name (e.g. sleepEntriesSchema or usersSchema or userSchema)
         const possibleNames = [
+          ...(table === 'coaching_settings'
+            ? ['coachingSettingsDatabaseSchema']
+            : []),
           `${camel}Schema`,
           `${pascal.charAt(0).toLowerCase() + pascal.slice(1)}Schema`,
         ];

@@ -211,3 +211,14 @@ export * from "./engagement/policy.ts";
 export * from "./engagement/notificationCopy.ts";
 
 export * from "./schemas/api/WorkoutPlans.api.zod.ts";
+export * from "./fddb/presentation.ts";
+export * from "./schemas/api/Coaching.api.zod.ts";
+export * from "./schemas/database/Coaching.zod.ts";
+export * from "./schemas/database/MealPlanning.zod.ts";
+export * from "./coaching/scheduling.ts";
+export * from "./coaching/outcomes.ts";
+export * from "./coaching/forms.ts";
+export * from "./coaching/tools.ts";
+export * from "./schemas/api/MealPlanning.api.zod.ts";
+
+export * from "./coaching/client.ts";

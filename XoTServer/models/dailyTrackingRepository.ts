@@ -34,13 +34,15 @@ export class DailyTrackingError extends Error {
 async function withClient<T>(
   userId: string,
   actorId: string | undefined,
-  task: (client: PoolClient) => Promise<T>
+  task: (client: PoolClient) => Promise<T>,
+  transactionClient?: PoolClient
 ): Promise<T> {
-  const client = await getClient(userId, actorId ?? null);
+  const client =
+    transactionClient ?? (await getClient(userId, actorId ?? null));
   try {
     return await task(client);
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 
@@ -446,14 +448,18 @@ async function readHabit(
 export async function createHabit(
   userId: string,
   actorId: string,
-  body: CreateHabitRequest
+  body: CreateHabitRequest,
+  transactionClient?: PoolClient
 ): Promise<Habit> {
-  return withClient(userId, actorId, async (client) => {
-    const count = body.habit_type === 'count';
-    // `name` is the stable category identifier (max 50) and must stay unique
-    // enough for sync; the user-facing name lives in display_name.
-    const result = await client.query<HabitRow>(
-      `INSERT INTO custom_categories (
+  return withClient(
+    userId,
+    actorId,
+    async (client) => {
+      const count = body.habit_type === 'count';
+      // `name` is the stable category identifier (max 50) and must stay unique
+      // enough for sync; the user-facing name lives in display_name.
+      const result = await client.query<HabitRow>(
+        `INSERT INTO custom_categories (
          user_id, name, display_name, measurement_type, frequency, data_type,
          habit_type, habit_description, habit_target, habit_step, habit_days,
          habit_reminder_time, habit_active, habit_sort_order, habit_icon,
@@ -463,73 +469,81 @@ export async function createHabit(
            FROM custom_categories WHERE user_id = $1 AND habit_type IS NOT NULL)),
          $13, $14, $14)
        RETURNING ${HABIT_COLUMNS}`,
-      [
-        userId,
-        body.name,
-        count ? body.unit?.trim() || 'count' : COMPLETION_UNIT,
-        count ? 'numeric' : 'boolean',
-        body.habit_type,
-        body.description || null,
-        count ? (body.target ?? null) : null,
-        count ? (body.step ?? null) : null,
-        body.days ?? null,
-        body.reminder_time ?? null,
-        body.active ?? true,
-        body.sort_order ?? null,
-        body.icon || null,
-        actorId,
-      ]
-    );
-    return toHabit(result.rows[0]);
-  });
+        [
+          userId,
+          body.name,
+          count ? body.unit?.trim() || 'count' : COMPLETION_UNIT,
+          count ? 'numeric' : 'boolean',
+          body.habit_type,
+          body.description || null,
+          count ? (body.target ?? null) : null,
+          count ? (body.step ?? null) : null,
+          body.days ?? null,
+          body.reminder_time ?? null,
+          body.active ?? true,
+          body.sort_order ?? null,
+          body.icon || null,
+          actorId,
+        ]
+      );
+      return toHabit(result.rows[0]);
+    },
+    transactionClient
+  );
 }
 
 export async function updateHabit(
   userId: string,
   actorId: string,
   id: string,
-  body: UpdateHabitRequest
+  body: UpdateHabitRequest,
+  transactionClient?: PoolClient
 ): Promise<Habit> {
-  return withClient(userId, actorId, async (client) => {
-    const current = toHabit(await readHabit(client, userId, id));
-    const count = current.habit_type === 'count';
-    if (
-      !count &&
-      ((body.target !== undefined && body.target !== null) ||
-        (body.step !== undefined && body.step !== null))
-    ) {
-      throw new DailyTrackingError(
-        400,
-        'Completion habits have no target or step.'
-      );
-    }
-    const next = { ...current, ...body };
-    const result = await client.query<HabitRow>(
-      `UPDATE custom_categories SET
+  return withClient(
+    userId,
+    actorId,
+    async (client) => {
+      const current = toHabit(await readHabit(client, userId, id));
+      const count = current.habit_type === 'count';
+      if (
+        !count &&
+        ((body.target !== undefined && body.target !== null) ||
+          (body.step !== undefined && body.step !== null))
+      ) {
+        throw new DailyTrackingError(
+          400,
+          'Completion habits have no target or step.'
+        );
+      }
+      const next = { ...current, ...body };
+      const result = await client.query<HabitRow>(
+        `UPDATE custom_categories SET
          display_name = $3, measurement_type = $4, habit_description = $5,
          habit_target = $6, habit_step = $7, habit_days = $8,
          habit_reminder_time = $9, habit_active = $10, habit_sort_order = $11,
          habit_icon = $12, updated_by_user_id = $13, updated_at = NOW()
        WHERE id = $1 AND user_id = $2
        RETURNING ${HABIT_COLUMNS}`,
-      [
-        id,
-        userId,
-        next.name,
-        count ? next.unit?.trim() || 'count' : COMPLETION_UNIT,
-        next.description || null,
-        count ? next.target : null,
-        count ? next.step : null,
-        next.days,
-        next.reminder_time,
-        next.active,
-        next.sort_order,
-        next.icon || null,
-        actorId,
-      ]
-    );
-    return toHabit(result.rows[0]);
-  });
+        [
+          id,
+          userId,
+          next.name,
+          count ? next.unit?.trim() || 'count' : COMPLETION_UNIT,
+          next.description || null,
+          count ? next.target : null,
+          count ? next.step : null,
+          next.days,
+          next.reminder_time,
+          next.active,
+          next.sort_order,
+          next.icon || null,
+          actorId,
+        ]
+      );
+      return toHabit(result.rows[0]);
+    },
+    transactionClient
+  );
 }
 
 /** Deletes the habit and its history (custom_measurements cascade). */
@@ -682,22 +696,26 @@ export async function listMeasurementReminders(
 
 export async function upsertMeasurementReminder(
   userId: string,
-  body: UpsertMeasurementReminderRequest
+  body: UpsertMeasurementReminderRequest,
+  transactionClient?: PoolClient
 ): Promise<MeasurementReminder> {
-  return withClient(userId, undefined, async (client) => {
-    if (body.measurement_key.startsWith('custom:')) {
-      const categoryId = body.measurement_key.slice('custom:'.length);
-      const owned = await client.query(
-        `SELECT 1 FROM custom_categories
+  return withClient(
+    userId,
+    undefined,
+    async (client) => {
+      if (body.measurement_key.startsWith('custom:')) {
+        const categoryId = body.measurement_key.slice('custom:'.length);
+        const owned = await client.query(
+          `SELECT 1 FROM custom_categories
          WHERE id = $1 AND user_id = $2 AND habit_type IS NULL`,
-        [categoryId, userId]
-      );
-      if (!owned.rows[0]) {
-        throw new DailyTrackingError(404, 'Measurement category not found.');
+          [categoryId, userId]
+        );
+        if (!owned.rows[0]) {
+          throw new DailyTrackingError(404, 'Measurement category not found.');
+        }
       }
-    }
-    const result = await client.query<ReminderRow>(
-      `INSERT INTO measurement_reminders (
+      const result = await client.query<ReminderRow>(
+        `INSERT INTO measurement_reminders (
          user_id, measurement_key, enabled, days, daypart, reminder_time,
          include_in_daily_progress)
        VALUES ($1, $2, $3, $4, COALESCE($5, 'morning'), COALESCE($6::time, '07:30'),
@@ -710,19 +728,21 @@ export async function upsertMeasurementReminder(
          include_in_daily_progress = COALESCE($7, measurement_reminders.include_in_daily_progress),
          updated_at = NOW()
        RETURNING ${REMINDER_COLUMNS}`,
-      [
-        userId,
-        body.measurement_key,
-        body.enabled,
-        body.days ?? null,
-        body.daypart ?? null,
-        body.reminder_time ?? null,
-        body.include_in_daily_progress ?? null,
-        body.days !== undefined,
-      ]
-    );
-    return toReminder(result.rows[0]);
-  });
+        [
+          userId,
+          body.measurement_key,
+          body.enabled,
+          body.days ?? null,
+          body.daypart ?? null,
+          body.reminder_time ?? null,
+          body.include_in_daily_progress ?? null,
+          body.days !== undefined,
+        ]
+      );
+      return toReminder(result.rows[0]);
+    },
+    transactionClient
+  );
 }
 
 export async function deleteMeasurementReminder(

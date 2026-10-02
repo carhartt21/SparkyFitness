@@ -81,6 +81,9 @@ const WorkoutPlaybackPage = lazyWithChunkRecovery(
 const GoalsSettings = lazyWithChunkRecovery(
   () => import('./pages/Goals/Goals')
 );
+const Coaching = lazyWithChunkRecovery(
+  () => import('./pages/Coaching/Coaching')
+);
 const Settings = lazyWithChunkRecovery(
   () => import('./pages/Settings/SettingsPage')
 );
@@ -410,6 +413,11 @@ const router = createBrowserRouter([
           {
             path: 'mobility',
             Component: Mobility,
+            ErrorBoundary: RouteErrorBoundary,
+          },
+          {
+            path: 'coaching',
+            Component: Coaching,
             ErrorBoundary: RouteErrorBoundary,
           },
           {

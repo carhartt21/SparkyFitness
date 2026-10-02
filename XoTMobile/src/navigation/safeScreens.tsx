@@ -19,6 +19,7 @@ import FoodScanScreen from '../screens/FoodScanScreen';
 import QuickMealPhotoScreen from '../screens/QuickMealPhotoScreen';
 import MovementBreakScreen from '../screens/MovementBreakScreen';
 import GuidedMobilityScreen from '../screens/GuidedMobilityScreen';
+import CoachingScreen from '../screens/CoachingScreen';
 import FoodPhotoIntroScreen from '../screens/FoodPhotoIntroScreen';
 import FoodsLibraryScreen from '../screens/FoodsLibraryScreen';
 import MealsLibraryScreen from '../screens/MealsLibraryScreen';
@@ -214,6 +215,9 @@ export const SafeGuidedMobility = withErrorBoundary(
   'GuidedMobility',
   { canGoBack: true }
 );
+export const SafeCoaching = withErrorBoundary(CoachingScreen, 'Coaching', {
+  canGoBack: true,
+});
 export const SafeFoodPhotoIntro = withErrorBoundary(
   FoodPhotoIntroScreen,
   'FoodPhotoIntro',

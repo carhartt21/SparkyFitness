@@ -81,6 +81,7 @@ const MOBILE_NUTRIENT_LABEL_OVERRIDES: Record<
 };
 
 interface MealCardProps {
+  readOnly?: boolean;
   meal: {
     name: string;
     type: string;
@@ -176,6 +177,7 @@ const MealCard = ({
   customNutrients = [], // Default to empty array
   mealStatus,
   onMealStatusChange,
+  readOnly = false,
 }: MealCardProps) => {
   const { t } = useTranslation();
   const {
@@ -194,7 +196,8 @@ const MealCard = ({
   const { lightboxProps, openLightbox } = useImageLightbox();
 
   // Check if food search is open to handle state changes
-  const isFoodSearchOpen = shouldOpenFoodSearch || internalFoodSearchOpen;
+  const isFoodSearchOpen =
+    !readOnly && (shouldOpenFoodSearch || internalFoodSearchOpen);
 
   const handleFoodSearchOpenChange = (open: boolean) => {
     setInternalFoodSearchOpen(open);
@@ -305,7 +308,7 @@ const MealCard = ({
                   )}`}
                 {getEnergyUnitString(energyUnit)}
               </span>
-              {mealStatus && onMealStatusChange ? (
+              {!readOnly && mealStatus && onMealStatusChange ? (
                 <MealStatusSelect
                   mealName={meal.name}
                   state={mealStatus}
@@ -313,122 +316,126 @@ const MealCard = ({
                 />
               ) : null}
             </div>
-            <div className="flex flex-wrap gap-2 sm:gap-4 justify-end">
-              <Dialog
-                open={isFoodSearchOpen}
-                onOpenChange={handleFoodSearchOpenChange}
-              >
-                <DialogTrigger asChild>
-                  <Button
-                    size="default"
-                    onClick={() =>
-                      debug(
-                        loggingLevel,
-                        `MealCard: Add Food button clicked for ${meal.name}.`
-                      )
-                    }
-                    title={t('mealCard.addFoodTo', 'Add Food to')}
-                  >
-                    <Utensils className="w-4 h-4" />
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>
-                      {t('mealCard.addFoodToMeal', {
-                        mealName: t(`common.${meal.type}`, meal.name),
-                        defaultValue: `Add Food to ${t(
-                          `common.${meal.type}`,
-                          meal.name
-                        )}`,
-                      })}
-                    </DialogTitle>
-                    <DialogDescription>
-                      {t('mealCard.searchFoodsForMeal', {
-                        mealName: t(
-                          `common.${meal.type}`,
-                          meal.name
-                        ).toLowerCase(),
-                        defaultValue: `Search for foods to add to your ${t(
-                          `common.${meal.type}`,
-                          meal.name
-                        ).toLowerCase()}.`,
-                      })}
-                      <br />
-                      <span className="text-red-500">
-                        {(selectedDateRelation === 'past' &&
-                          t(
-                            'foodDiary.pastDateWarning',
-                            'Warning: You are adding food entries for a past date.'
-                          )) ||
-                          (selectedDateRelation === 'future' &&
-                            t(
-                              'foodDiary.futureDateWarning',
-                              'Warning: You are adding food entries for a future date.'
-                            )) ||
-                          ''}
-                      </span>
-                    </DialogDescription>
-                  </DialogHeader>
-                  <EnhancedFoodSearch
-                    mealType={meal.type}
-                    startWithScanner={shouldOpenFoodSearch && startWithScanner}
-                    onFoodSelect={(item, type) => {
-                      if (type === 'food') {
+            {!readOnly && (
+              <div className="flex flex-wrap gap-2 sm:gap-4 justify-end">
+                <Dialog
+                  open={isFoodSearchOpen}
+                  onOpenChange={handleFoodSearchOpenChange}
+                >
+                  <DialogTrigger asChild>
+                    <Button
+                      size="default"
+                      onClick={() =>
                         debug(
                           loggingLevel,
-                          'MealCard: Food selected in search:',
-                          item
-                        );
-                        onFoodSelect(item as Food, meal.type);
-                      } else {
-                        debug(
-                          loggingLevel,
-                          'MealCard: Meal selected in search:',
-                          item
-                        );
-                        onFoodSelect(item as Meal, meal.type);
+                          `MealCard: Add Food button clicked for ${meal.name}.`
+                        )
                       }
-                    }}
-                  />
-                </DialogContent>
-              </Dialog>
-              {/* Existing clock icon would go here if it were part of this component */}
-              <Button
-                size="default"
-                onClick={() => onCopyClick(meal.type)}
-                title={t('diary.copyAllToDate', 'Copy entire day to date')}
-              >
-                <ClipboardCopy className="w-4 h-4" />
-              </Button>
-              <Button
-                size="default"
-                onClick={() => onCopyFamilyClick(meal.type)}
-                title={t('diary.copyFamilyTitle', 'Copy Food with Family')}
-              >
-                <Users className="w-4 h-4" />
-              </Button>
-              <Button
-                size="default"
-                onClick={handleCopyFromYesterday}
-                title={t(
-                  'diary.copyAllFromYesterday',
-                  'Copy all from yesterday'
-                )}
-              >
-                <History className="w-4 h-4" />
-              </Button>
-              <Button
-                size="default"
-                onClick={() => onConvertToMealClick(meal.type)}
-                title={t(
-                  'mealCreation.convertToMeal',
-                  'Create Meal from Diary'
-                )}
-              >
-                <PlusCircle className="w-4 h-4" />
-              </Button>
-            </div>
+                      title={t('mealCard.addFoodTo', 'Add Food to')}
+                    >
+                      <Utensils className="w-4 h-4" />
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>
+                        {t('mealCard.addFoodToMeal', {
+                          mealName: t(`common.${meal.type}`, meal.name),
+                          defaultValue: `Add Food to ${t(
+                            `common.${meal.type}`,
+                            meal.name
+                          )}`,
+                        })}
+                      </DialogTitle>
+                      <DialogDescription>
+                        {t('mealCard.searchFoodsForMeal', {
+                          mealName: t(
+                            `common.${meal.type}`,
+                            meal.name
+                          ).toLowerCase(),
+                          defaultValue: `Search for foods to add to your ${t(
+                            `common.${meal.type}`,
+                            meal.name
+                          ).toLowerCase()}.`,
+                        })}
+                        <br />
+                        <span className="text-red-500">
+                          {(selectedDateRelation === 'past' &&
+                            t(
+                              'foodDiary.pastDateWarning',
+                              'Warning: You are adding food entries for a past date.'
+                            )) ||
+                            (selectedDateRelation === 'future' &&
+                              t(
+                                'foodDiary.futureDateWarning',
+                                'Warning: You are adding food entries for a future date.'
+                              )) ||
+                            ''}
+                        </span>
+                      </DialogDescription>
+                    </DialogHeader>
+                    <EnhancedFoodSearch
+                      mealType={meal.type}
+                      startWithScanner={
+                        shouldOpenFoodSearch && startWithScanner
+                      }
+                      onFoodSelect={(item, type) => {
+                        if (type === 'food') {
+                          debug(
+                            loggingLevel,
+                            'MealCard: Food selected in search:',
+                            item
+                          );
+                          onFoodSelect(item as Food, meal.type);
+                        } else {
+                          debug(
+                            loggingLevel,
+                            'MealCard: Meal selected in search:',
+                            item
+                          );
+                          onFoodSelect(item as Meal, meal.type);
+                        }
+                      }}
+                    />
+                  </DialogContent>
+                </Dialog>
+                {/* Existing clock icon would go here if it were part of this component */}
+                <Button
+                  size="default"
+                  onClick={() => onCopyClick(meal.type)}
+                  title={t('diary.copyAllToDate', 'Copy entire day to date')}
+                >
+                  <ClipboardCopy className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="default"
+                  onClick={() => onCopyFamilyClick(meal.type)}
+                  title={t('diary.copyFamilyTitle', 'Copy Food with Family')}
+                >
+                  <Users className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="default"
+                  onClick={handleCopyFromYesterday}
+                  title={t(
+                    'diary.copyAllFromYesterday',
+                    'Copy all from yesterday'
+                  )}
+                >
+                  <History className="w-4 h-4" />
+                </Button>
+                <Button
+                  size="default"
+                  onClick={() => onConvertToMealClick(meal.type)}
+                  title={t(
+                    'mealCreation.convertToMeal',
+                    'Create Meal from Diary'
+                  )}
+                >
+                  <PlusCircle className="w-4 h-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -647,43 +654,45 @@ const MealCard = ({
                         </div>
                       )}
 
-                      <div className="mt-3 flex items-center gap-2 border-t pt-2">
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-9 w-9 text-muted-foreground"
-                          onClick={() => {
-                            debug(
-                              loggingLevel,
-                              'MealCard: Edit entry button clicked:',
-                              item.id
-                            );
-                            onEditEntry(item);
-                          }}
-                          title={t('common.edit', 'Edit')}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="icon"
-                          variant="ghost"
-                          className="h-9 w-9 text-muted-foreground"
-                          onClick={() => {
-                            debug(
-                              loggingLevel,
-                              'MealCard: Remove entry button clicked:',
-                              item.id
-                            );
-                            onRemoveEntry(
-                              item.id,
-                              isFoodEntryMeal ? 'foodEntryMeal' : 'foodEntry'
-                            );
-                          }}
-                          title={t('common.delete', 'Delete')}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      {!readOnly && (
+                        <div className="mt-3 flex items-center gap-2 border-t pt-2">
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-9 w-9 text-muted-foreground"
+                            onClick={() => {
+                              debug(
+                                loggingLevel,
+                                'MealCard: Edit entry button clicked:',
+                                item.id
+                              );
+                              onEditEntry(item);
+                            }}
+                            title={t('common.edit', 'Edit')}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            className="h-9 w-9 text-muted-foreground"
+                            onClick={() => {
+                              debug(
+                                loggingLevel,
+                                'MealCard: Remove entry button clicked:',
+                                item.id
+                              );
+                              onRemoveEntry(
+                                item.id,
+                                isFoodEntryMeal ? 'foodEntryMeal' : 'foodEntry'
+                              );
+                            }}
+                            title={t('common.delete', 'Delete')}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   );
                 }
@@ -768,40 +777,42 @@ const MealCard = ({
                         />
                       )}
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          debug(
-                            loggingLevel,
-                            'MealCard: Edit entry button clicked:',
-                            item.id
-                          );
-                          onEditEntry(item); // Pass the item directly
-                        }}
-                        title={t('common.edit', 'Edit')}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          debug(
-                            loggingLevel,
-                            'MealCard: Remove entry button clicked:',
-                            item.id
-                          );
-                          onRemoveEntry(
-                            item.id,
-                            isFoodEntryMeal ? 'foodEntryMeal' : 'foodEntry'
-                          );
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+                    {!readOnly && (
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            debug(
+                              loggingLevel,
+                              'MealCard: Edit entry button clicked:',
+                              item.id
+                            );
+                            onEditEntry(item); // Pass the item directly
+                          }}
+                          title={t('common.edit', 'Edit')}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            debug(
+                              loggingLevel,
+                              'MealCard: Remove entry button clicked:',
+                              item.id
+                            );
+                            onRemoveEntry(
+                              item.id,
+                              isFoodEntryMeal ? 'foodEntryMeal' : 'foodEntry'
+                            );
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                 );
               })}
@@ -863,7 +874,7 @@ const MealCard = ({
       </Card>
 
       {/* Edit Food Database Dialog */}
-      {editingFood && (
+      {!readOnly && editingFood && (
         <Dialog
           open={true}
           onOpenChange={(open) => !open && setEditingFood(null)}

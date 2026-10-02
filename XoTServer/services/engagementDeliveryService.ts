@@ -2,7 +2,7 @@ import {
   selectOptionalReminderSlots,
   ENGAGEMENT_NOTIFICATION_COPY,
   engagementQuietAt,
-  type EngagementReminderKindV2,
+  type EngagementReminderKindV3,
 } from '@workspace/shared';
 import {
   engagementPlanForUser,
@@ -14,7 +14,7 @@ import type { PoolClient } from 'pg';
 import { getClient, getSystemClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
 import { decrypt, ENCRYPTION_KEY } from '../security/encryption.js';
-type ReminderKind = EngagementReminderKindV2;
+type ReminderKind = EngagementReminderKindV3;
 
 type PushTicket = {
   status: 'ok' | 'error';
@@ -84,8 +84,19 @@ async function reserveForUser(userId: string, now: Date): Promise<void> {
     const occupied = [...spent, ...snoozes].map((row) =>
       row.scheduled_at.getTime()
     );
+    const capable = await client.query<{ kind: string }>(
+      "SELECT DISTINCT jsonb_array_elements_text(reminder_kinds) AS kind FROM engagement_devices WHERE user_id=$1 AND enabled AND delivery_owner='remote' AND protocol_version>=3",
+      [userId]
+    );
+    const v3Kinds = new Set(capable.rows.map((row) => row.kind));
     const available = plan.candidates.filter(
       (slot) =>
+        (!['coaching_digest', 'coaching_action'].includes(slot.kind) ||
+          v3Kinds.has(slot.kind)) &&
+        !(
+          slot.kind === 'coaching_digest' &&
+          spent.some((row) => row.kind === 'coaching_digest')
+        ) &&
         !existing.rows.some(
           (row) =>
             sameEngagementSlot(slot, row) &&
@@ -213,7 +224,7 @@ async function claimNextOccurrence(): Promise<ClaimedOccurrence | null> {
        JOIN engagement_settings s ON s.user_id = o.user_id AND s.remote_enabled AND s.revision=o.settings_revision
        LEFT JOIN user_preferences p ON p.user_id = o.user_id
        WHERE o.status = 'pending' AND o.delivery_owner = 'remote'
-         AND EXISTS (SELECT 1 FROM engagement_devices d WHERE d.user_id=o.user_id AND d.enabled AND d.delivery_owner='remote' AND d.reminder_kinds ? o.kind)
+         AND EXISTS (SELECT 1 FROM engagement_devices d WHERE d.user_id=o.user_id AND d.enabled AND d.delivery_owner='remote' AND d.reminder_kinds ? o.kind AND (o.kind NOT IN ('coaching_digest','coaching_action') OR d.protocol_version>=3))
          AND o.scheduled_at <= NOW() AND o.scheduled_at >= NOW() - INTERVAL '30 minutes'
        ORDER BY o.scheduled_at, o.id
        FOR UPDATE OF o SKIP LOCKED LIMIT 1`
@@ -236,7 +247,7 @@ async function claimNextOccurrence(): Promise<ClaimedOccurrence | null> {
     }
     const devices = await client.query(
       `SELECT installation_id, token_ciphertext, token_iv, token_tag,protocol_version,language
-       FROM engagement_devices WHERE user_id = $1 AND enabled = TRUE AND delivery_owner='remote' AND reminder_kinds ? $2`,
+       FROM engagement_devices WHERE user_id = $1 AND enabled = TRUE AND delivery_owner='remote' AND reminder_kinds ? $2 AND ($2 NOT IN ('coaching_digest','coaching_action') OR protocol_version>=3)`,
       [row.user_id, row.kind]
     );
     if (!devices.rows.length) {
@@ -342,7 +353,7 @@ export async function deliverEngagementOccurrences(): Promise<void> {
       try {
         const check = await guard.query(
           `SELECT 1 FROM engagement_devices d JOIN engagement_settings s ON s.user_id=d.user_id
-        WHERE d.user_id=$1 AND d.installation_id=$2 AND d.enabled AND d.delivery_owner='remote' AND d.reminder_kinds ? $3 AND s.remote_enabled AND s.revision=$4`,
+        WHERE d.user_id=$1 AND d.installation_id=$2 AND d.enabled AND d.delivery_owner='remote' AND d.reminder_kinds ? $3 AND ($3 NOT IN ('coaching_digest','coaching_action') OR d.protocol_version>=3) AND s.remote_enabled AND s.revision=$4`,
           [
             occurrence.userId,
             device.installationId,

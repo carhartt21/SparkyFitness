@@ -1,3 +1,4 @@
+import { maintainCoaching } from './services/coachingMaintenanceService.js';
 import path from 'path';
 import { emailLoginGuard } from './middleware/emailLoginGuard.js';
 
@@ -13,6 +14,7 @@ import { endPool } from './db/poolManager.js';
 import { log } from './config/logging.js';
 import { authenticate } from './middleware/authMiddleware.js';
 import { authenticateMcp } from './middleware/mcpAuthentication.js';
+import coachingRoutesV2 from './routes/v2/coachingRoutes.js';
 import { parseMcpBody } from './middleware/mcpBodyParser.js';
 import { rejectMcpReadOnlyCredential } from './middleware/rejectMcpReadOnlyCredential.js';
 import { requestLogger } from './middleware/requestLogger.js';
@@ -769,6 +771,7 @@ app.use('/api/water-containers', waterContainerRoutes);
 app.use('/api/v2/measurements', waterIntakeRoutesV2);
 app.use('/api/v2/engagement', engagementRoutesV2);
 app.use('/api/v2/mobility', mobilityRoutesV2);
+app.use('/api/v2/coaching', coachingRoutesV2);
 app.use('/api/v2/tracking', dailyTrackingRoutesV2);
 app.use('/api/v2/mcp/connections', mcpConnectionsRoutesV2);
 app.use('/api/v2/medications', medicationRoutesV2);
@@ -821,6 +824,13 @@ const scheduleSessionCleanup = async () => {
   });
 };
 const scheduleEngagementDelivery = () => {
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      await maintainCoaching();
+    } catch {
+      log('warn', '[Coaching] Maintenance cycle unavailable');
+    }
+  });
   cron.schedule('*/5 * * * *', async () => {
     try {
       await planEngagementOccurrences();

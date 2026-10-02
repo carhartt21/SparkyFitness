@@ -30,23 +30,26 @@ export class MobilityValidationError extends Error {}
 async function transaction<T>(
   userId: string,
   work: (client: PoolClient) => Promise<T>,
-  readOnly = false
+  readOnly = false,
+  transactionClient?: PoolClient
 ): Promise<T> {
-  const client: PoolClient = await getClient(userId, userId);
+  const client: PoolClient =
+    transactionClient ?? (await getClient(userId, userId));
   try {
-    await client.query(
-      readOnly ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN'
-    );
+    if (!transactionClient)
+      await client.query(
+        readOnly ? 'BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY' : 'BEGIN'
+      );
     if (!readOnly)
       await client.query(
         'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
         [`mobility:${userId}`]
       );
     const result = await work(client);
-    await client.query('COMMIT');
+    if (!transactionClient) await client.query('COMMIT');
     return result;
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (!transactionClient) await client.query('ROLLBACK');
     if (
       error &&
       typeof error === 'object' &&
@@ -58,7 +61,7 @@ async function transaction<T>(
       );
     throw error;
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 async function materialize(
@@ -182,226 +185,240 @@ export async function getMobilitySnapshot(
 export async function applyMobilityOperation(
   userId: string,
   operation: MobilityOperation,
-  provenance: MobilityProvenance = 'api'
+  provenance: MobilityProvenance = 'api',
+  transactionClient?: PoolClient
 ): Promise<MobilityOperationResult> {
   const fingerprint = createHash('sha256')
     .update(canonicalJson([operation, provenance]))
     .digest('hex');
   const timezone = await loadUserTimezone(userId);
-  return transaction(userId, async (client) => {
-    const receipt = await client.query<{
-      request_fingerprint: string;
-      result: MobilityOperationResult;
-    }>(
-      'SELECT request_fingerprint,result FROM mobility_operations WHERE user_id=$1 AND operation_id=$2',
-      [userId, operation.operationId]
-    );
-    if (receipt.rows[0]) {
-      // Existing API receipts used phone/web labels. Replaying them is read-only,
-      // while new writes are always attributed to the authenticated ingress.
-      const legacySources =
-        provenance === 'api' ? ['api', 'phone', 'web'] : [provenance];
-      const acceptedFingerprints = [
-        fingerprint,
-        ...legacySources.map((source) =>
-          createHash('sha256')
-            .update(JSON.stringify([operation, source]))
-            .digest('hex')
-        ),
-      ];
-      if (!acceptedFingerprints.includes(receipt.rows[0].request_fingerprint))
-        throw new MobilityConflictError(
-          'Operation ID belongs to another mutation.'
-        );
-      return receipt.rows[0].result;
-    }
-    // Receipts are retry metadata, not history; stale retries still meet record CAS.
-    await client.query(
-      `DELETE FROM mobility_operations WHERE user_id=$1 AND operation_id IN
+  return transaction(
+    userId,
+    async (client) => {
+      const receipt = await client.query<{
+        request_fingerprint: string;
+        result: MobilityOperationResult;
+      }>(
+        'SELECT request_fingerprint,result FROM mobility_operations WHERE user_id=$1 AND operation_id=$2',
+        [userId, operation.operationId]
+      );
+      if (receipt.rows[0]) {
+        // Existing API receipts used phone/web labels. Replaying them is read-only,
+        // while new writes are always attributed to the authenticated ingress.
+        const legacySources =
+          provenance === 'api' ? ['api', 'phone', 'web'] : [provenance];
+        const acceptedFingerprints = [
+          fingerprint,
+          ...legacySources.map((source) =>
+            createHash('sha256')
+              .update(JSON.stringify([operation, source]))
+              .digest('hex')
+          ),
+        ];
+        if (!acceptedFingerprints.includes(receipt.rows[0].request_fingerprint))
+          throw new MobilityConflictError(
+            'Operation ID belongs to another mutation.'
+          );
+        return receipt.rows[0].result;
+      }
+      // Receipts are retry metadata, not history; stale retries still meet record CAS.
+      await client.query(
+        `DELETE FROM mobility_operations WHERE user_id=$1 AND operation_id IN
       (SELECT operation_id FROM mobility_operations WHERE user_id=$1 AND created_at < now()-interval '90 days'
        ORDER BY created_at LIMIT 250)`,
-      [userId]
-    );
-    const invalidatedPlans = new Set<string>();
-    let changedPlanId: string | undefined;
-    const mutation = operation.mutation;
-    const kind = mutation.kind;
-    const tables = {
-      routine: 'mobility_routines',
-      schedule: 'mobility_schedules',
-      plan: 'mobility_plans',
-      session: 'mobility_sessions',
-      result: 'mobility_plans',
-    } as const;
-    const table: MobilityTable = tables[kind];
-    const id = mutation.kind === 'result' ? mutation.planId : mutation.data.id;
-    const before = await mobilityRow(client, userId, table, id);
-    if ((before?.revision ?? 0) !== operation.expectedRevision)
-      throw new MobilityConflictError('Mobility item changed elsewhere.');
-    const revision = (before?.revision ?? 0) + 1;
-    if (mutation.kind === 'result') {
-      if (!before || before.deleted)
-        throw new MobilityNotFoundError('Planned session not found.');
-      const plan = mobilityPlanSchema.parse(before.data);
-      invalidatedPlans.add(plan.id);
-      changedPlanId = plan.id;
-      if (plan.state !== 'planned')
-        throw new MobilityConflictError(
-          'Planned session is active or already resolved.'
-        );
-      if (!mobilityOutcomeIdsValid(plan.routine, mutation.data.outcomes))
-        throw new MobilityValidationError('Invalid step outcomes.');
-      // Missing outcomes stay unknown. A manual completion is not a workout/HealthKit entry.
-      const session = mobilitySessionSchema.parse({
-        id: randomUUID(),
-        routine: plan.routine,
-        planId: plan.id,
-        state: mutation.data.state === 'completed' ? 'finished' : 'cancelled',
-        phase: 'step',
-        stepIndex: 0,
-        phaseStartedAt: null,
-        elapsedSeconds: 0,
-        outcomes: mutation.data.outcomes,
-        startedAt: mutation.data.recordedAt,
-        endedAt: mutation.data.recordedAt,
-      });
-      await client.query(
-        'INSERT INTO mobility_sessions(user_id,id,plan_id,revision,data,provenance) VALUES($1,$2,$3,1,$4,$5)',
-        [userId, session.id, plan.id, session, provenance]
+        [userId]
       );
-      await client.query(
-        'UPDATE mobility_plans SET data=$3,revision=$4,updated_at=now() WHERE user_id=$1 AND id=$2',
-        [userId, id, { ...plan, state: mutation.data.state }, revision]
-      );
-    } else {
-      const data = mutation.data;
-      if (mutation.kind === 'schedule') {
-        const routine = await mobilityRow(
-          client,
-          userId,
-          'mobility_routines',
-          mutation.data.routineId
-        );
-        if (!routine || routine.deleted)
-          throw new MobilityNotFoundError('Routine not found.');
-      }
-      if (mutation.kind === 'routine') {
-        for (const step of mutation.data.steps)
-          if (step.exerciseId) {
-            const exercise = await client.query(
-              'SELECT id FROM exercises WHERE id=$1',
-              [step.exerciseId]
-            );
-            if (!exercise.rows[0])
-              throw new MobilityValidationError('Exercise is unavailable.');
-          }
-      }
-      if (mutation.kind === 'plan') {
-        if (before) {
-          const previous = mobilityPlanSchema.parse(before.data);
-          if (
-            mutation.deleted ||
-            previous.day !== mutation.data.day ||
-            previous.time !== mutation.data.time ||
-            previous.scheduleId !== mutation.data.scheduleId
-          )
-            invalidatedPlans.add(data.id);
-        }
-        if (mutation.data.scheduleId) {
-          const schedule = await mobilityRow(
-            client,
-            userId,
-            'mobility_schedules',
-            mutation.data.scheduleId
-          );
-          if (!schedule || schedule.deleted)
-            throw new MobilityNotFoundError('Schedule not found.');
-        }
-        if (before && mobilityPlanSchema.parse(before.data).state !== 'planned')
+      const invalidatedPlans = new Set<string>();
+      let changedPlanId: string | undefined;
+      const mutation = operation.mutation;
+      const kind = mutation.kind;
+      const tables = {
+        routine: 'mobility_routines',
+        schedule: 'mobility_schedules',
+        plan: 'mobility_plans',
+        session: 'mobility_sessions',
+        result: 'mobility_plans',
+      } as const;
+      const table: MobilityTable = tables[kind];
+      const id =
+        mutation.kind === 'result' ? mutation.planId : mutation.data.id;
+      const before = await mobilityRow(client, userId, table, id);
+      if ((before?.revision ?? 0) !== operation.expectedRevision)
+        throw new MobilityConflictError('Mobility item changed elsewhere.');
+      const revision = (before?.revision ?? 0) + 1;
+      if (mutation.kind === 'result') {
+        if (!before || before.deleted)
+          throw new MobilityNotFoundError('Planned session not found.');
+        const plan = mobilityPlanSchema.parse(before.data);
+        invalidatedPlans.add(plan.id);
+        changedPlanId = plan.id;
+        if (plan.state !== 'planned')
           throw new MobilityConflictError(
-            'Active and historical plans are immutable.'
+            'Planned session is active or already resolved.'
           );
-        if (mutation.data.state !== 'planned' || mutation.data.activeSessionId)
-          throw new MobilityValidationError(
-            'Use session or result operations to resolve plans.'
-          );
-        if (mutation.data.scheduleId && !before)
-          throw new MobilityValidationError(
-            'Recurring occurrences are generated by their schedule.'
-          );
-      }
-      if (mutation.kind === 'session') {
-        if (provenance === 'mcp')
-          throw new MobilityValidationError(
-            'Assistant writes require an explicit plan result; the session runner uses the authenticated API.'
-          );
-        if (before) {
-          const previous = mobilitySessionSchema.parse(before.data);
-          if (!mobilitySnapshotUnchanged(previous, mutation.data))
-            throw new MobilityConflictError('Session snapshots are immutable.');
-          if (
-            ['finished', 'cancelled'].includes(previous.state) &&
-            !mutation.deleted
-          )
-            throw new MobilityConflictError('Session is already closed.');
-        }
-        if (mutation.data.planId && !mutation.deleted) {
-          const row = await mobilityRow(
+        if (!mobilityOutcomeIdsValid(plan.routine, mutation.data.outcomes))
+          throw new MobilityValidationError('Invalid step outcomes.');
+        // Missing outcomes stay unknown. A manual completion is not a workout/HealthKit entry.
+        const session = mobilitySessionSchema.parse({
+          id: randomUUID(),
+          routine: plan.routine,
+          planId: plan.id,
+          state: mutation.data.state === 'completed' ? 'finished' : 'cancelled',
+          phase: 'step',
+          stepIndex: 0,
+          phaseStartedAt: null,
+          elapsedSeconds: 0,
+          outcomes: mutation.data.outcomes,
+          startedAt: mutation.data.recordedAt,
+          endedAt: mutation.data.recordedAt,
+        });
+        await client.query(
+          'INSERT INTO mobility_sessions(user_id,id,plan_id,revision,data,provenance) VALUES($1,$2,$3,1,$4,$5)',
+          [userId, session.id, plan.id, session, provenance]
+        );
+        await client.query(
+          'UPDATE mobility_plans SET data=$3,revision=$4,updated_at=now() WHERE user_id=$1 AND id=$2',
+          [userId, id, { ...plan, state: mutation.data.state }, revision]
+        );
+      } else {
+        const data = mutation.data;
+        if (mutation.kind === 'schedule') {
+          const routine = await mobilityRow(
             client,
             userId,
-            'mobility_plans',
-            mutation.data.planId
+            'mobility_routines',
+            mutation.data.routineId
           );
-          if (!row || row.deleted)
-            throw new MobilityNotFoundError('Planned session not found.');
-          const plan = mobilityPlanSchema.parse(row.data);
+          if (!routine || routine.deleted)
+            throw new MobilityNotFoundError('Routine not found.');
+        }
+        if (mutation.kind === 'routine') {
+          for (const step of mutation.data.steps)
+            if (step.exerciseId) {
+              const exercise = await client.query(
+                'SELECT id FROM exercises WHERE id=$1',
+                [step.exerciseId]
+              );
+              if (!exercise.rows[0])
+                throw new MobilityValidationError('Exercise is unavailable.');
+            }
+        }
+        if (mutation.kind === 'plan') {
+          if (before) {
+            const previous = mobilityPlanSchema.parse(before.data);
+            if (
+              mutation.deleted ||
+              previous.day !== mutation.data.day ||
+              previous.time !== mutation.data.time ||
+              previous.scheduleId !== mutation.data.scheduleId
+            )
+              invalidatedPlans.add(data.id);
+          }
+          if (mutation.data.scheduleId) {
+            const schedule = await mobilityRow(
+              client,
+              userId,
+              'mobility_schedules',
+              mutation.data.scheduleId
+            );
+            if (!schedule || schedule.deleted)
+              throw new MobilityNotFoundError('Schedule not found.');
+          }
           if (
-            (plan.state !== 'planned' && plan.activeSessionId !== data.id) ||
-            JSON.stringify(plan.routine) !==
-              JSON.stringify(mutation.data.routine)
+            before &&
+            mobilityPlanSchema.parse(before.data).state !== 'planned'
           )
             throw new MobilityConflictError(
-              'Plan is claimed, resolved or has a different snapshot.'
+              'Active and historical plans are immutable.'
             );
-          invalidatedPlans.add(plan.id);
-          changedPlanId = plan.id;
-          const state =
-            mutation.data.state === 'finished'
-              ? 'completed'
-              : mutation.data.state === 'cancelled'
-                ? 'cancelled'
-                : 'active';
-          await client.query(
-            'UPDATE mobility_plans SET data=$3,revision=revision+1,updated_at=now() WHERE user_id=$1 AND id=$2',
-            [userId, plan.id, { ...plan, state, activeSessionId: data.id }]
-          );
+          if (
+            mutation.data.state !== 'planned' ||
+            mutation.data.activeSessionId
+          )
+            throw new MobilityValidationError(
+              'Use session or result operations to resolve plans.'
+            );
+          if (mutation.data.scheduleId && !before)
+            throw new MobilityValidationError(
+              'Recurring occurrences are generated by their schedule.'
+            );
         }
-      }
-      const extra =
-        mutation.kind === 'schedule'
-          ? { name: 'routine_id', value: mutation.data.routineId }
-          : mutation.kind === 'plan'
-            ? {
-                name: 'schedule_id,local_day',
-                value: [mutation.data.scheduleId, mutation.data.day],
-              }
-            : mutation.kind === 'session'
+        if (mutation.kind === 'session') {
+          if (provenance === 'mcp')
+            throw new MobilityValidationError(
+              'Assistant writes require an explicit plan result; the session runner uses the authenticated API.'
+            );
+          if (before) {
+            const previous = mobilitySessionSchema.parse(before.data);
+            if (!mobilitySnapshotUnchanged(previous, mutation.data))
+              throw new MobilityConflictError(
+                'Session snapshots are immutable.'
+              );
+            if (
+              ['finished', 'cancelled'].includes(previous.state) &&
+              !mutation.deleted
+            )
+              throw new MobilityConflictError('Session is already closed.');
+          }
+          if (mutation.data.planId && !mutation.deleted) {
+            const row = await mobilityRow(
+              client,
+              userId,
+              'mobility_plans',
+              mutation.data.planId
+            );
+            if (!row || row.deleted)
+              throw new MobilityNotFoundError('Planned session not found.');
+            const plan = mobilityPlanSchema.parse(row.data);
+            if (
+              (plan.state !== 'planned' && plan.activeSessionId !== data.id) ||
+              JSON.stringify(plan.routine) !==
+                JSON.stringify(mutation.data.routine)
+            )
+              throw new MobilityConflictError(
+                'Plan is claimed, resolved or has a different snapshot.'
+              );
+            invalidatedPlans.add(plan.id);
+            changedPlanId = plan.id;
+            const state =
+              mutation.data.state === 'finished'
+                ? 'completed'
+                : mutation.data.state === 'cancelled'
+                  ? 'cancelled'
+                  : 'active';
+            await client.query(
+              'UPDATE mobility_plans SET data=$3,revision=revision+1,updated_at=now() WHERE user_id=$1 AND id=$2',
+              [userId, plan.id, { ...plan, state, activeSessionId: data.id }]
+            );
+          }
+        }
+        const extra =
+          mutation.kind === 'schedule'
+            ? { name: 'routine_id', value: mutation.data.routineId }
+            : mutation.kind === 'plan'
               ? {
-                  name: 'plan_id,provenance',
-                  value: [
-                    mutation.data.planId ?? null,
-                    before?.provenance ?? provenance,
-                  ],
+                  name: 'schedule_id,local_day',
+                  value: [mutation.data.scheduleId, mutation.data.day],
                 }
-              : null;
-      const extras = extra
-        ? Array.isArray(extra.value)
-          ? extra.value
-          : [extra.value]
-        : [];
-      const placeholders = extras.map((_, index) => `$${index + 7}`).join(',');
-      await client.query(
-        `INSERT INTO ${table}(user_id,id,revision,data,deleted,updated_at${extra ? ',' + extra.name : ''})
+              : mutation.kind === 'session'
+                ? {
+                    name: 'plan_id,provenance',
+                    value: [
+                      mutation.data.planId ?? null,
+                      before?.provenance ?? provenance,
+                    ],
+                  }
+                : null;
+        const extras = extra
+          ? Array.isArray(extra.value)
+            ? extra.value
+            : [extra.value]
+          : [];
+        const placeholders = extras
+          .map((_, index) => `$${index + 7}`)
+          .join(',');
+        await client.query(
+          `INSERT INTO ${table}(user_id,id,revision,data,deleted,updated_at${extra ? ',' + extra.name : ''})
         VALUES($1,$2,$3,$4,$5,$6${extra ? ',' + placeholders : ''}) ON CONFLICT(user_id,id) DO UPDATE SET
         revision=EXCLUDED.revision,data=EXCLUDED.data,deleted=EXCLUDED.deleted,updated_at=EXCLUDED.updated_at${
           extra
@@ -411,111 +428,114 @@ export async function applyMobilityOperation(
                 .join('')
             : ''
         }`,
-        [userId, id, revision, data, mutation.deleted, new Date(), ...extras]
-      );
-      if (mutation.kind === 'routine') {
-        const legacySchedule = await mobilityRow(
-          client,
-          userId,
-          'mobility_schedules',
-          id
+          [userId, id, revision, data, mutation.deleted, new Date(), ...extras]
         );
-        if (!legacySchedule && mutation.data.reminderTime) {
-          const schedule = mobilityScheduleSchema.parse({
-            id,
-            routineId: id,
-            time: mutation.data.reminderTime,
-            weekdays: [0, 1, 2, 3, 4, 5, 6],
-            startDay: instantToDay(new Date(), timezone),
-            endDay: null,
-            enabled: !mutation.deleted,
-          });
-          await client.query(
-            'INSERT INTO mobility_schedules(user_id,id,routine_id,revision,data) VALUES($1,$2,$2,1,$3)',
-            [userId, id, schedule]
+        if (mutation.kind === 'routine') {
+          const legacySchedule = await mobilityRow(
+            client,
+            userId,
+            'mobility_schedules',
+            id
           );
-        } else if (legacySchedule && before) {
-          const schedule = mobilityScheduleSchema.parse(legacySchedule.data);
-          const oldRoutine = mobilityRoutineSchema.parse(before.data);
-          // Do not overwrite an independently edited web schedule.
-          if (
-            schedule.time === oldRoutine.reminderTime &&
-            (oldRoutine.reminderTime !== mutation.data.reminderTime ||
-              mutation.deleted)
-          ) {
+          if (!legacySchedule && mutation.data.reminderTime) {
+            const schedule = mobilityScheduleSchema.parse({
+              id,
+              routineId: id,
+              time: mutation.data.reminderTime,
+              weekdays: [0, 1, 2, 3, 4, 5, 6],
+              startDay: instantToDay(new Date(), timezone),
+              endDay: null,
+              enabled: !mutation.deleted,
+            });
             await client.query(
-              'UPDATE mobility_schedules SET data=$3,revision=revision+1,updated_at=now() WHERE user_id=$1 AND id=$2',
-              [
-                userId,
-                id,
-                {
-                  ...schedule,
-                  time: mutation.data.reminderTime ?? schedule.time,
-                  enabled: !!mutation.data.reminderTime && !mutation.deleted,
-                },
-              ]
+              'INSERT INTO mobility_schedules(user_id,id,routine_id,revision,data) VALUES($1,$2,$2,1,$3)',
+              [userId, id, schedule]
             );
+          } else if (legacySchedule && before) {
+            const schedule = mobilityScheduleSchema.parse(legacySchedule.data);
+            const oldRoutine = mobilityRoutineSchema.parse(before.data);
+            // Do not overwrite an independently edited web schedule.
+            if (
+              schedule.time === oldRoutine.reminderTime &&
+              (oldRoutine.reminderTime !== mutation.data.reminderTime ||
+                mutation.deleted)
+            ) {
+              await client.query(
+                'UPDATE mobility_schedules SET data=$3,revision=revision+1,updated_at=now() WHERE user_id=$1 AND id=$2',
+                [
+                  userId,
+                  id,
+                  {
+                    ...schedule,
+                    time: mutation.data.reminderTime ?? schedule.time,
+                    enabled: !!mutation.data.reminderTime && !mutation.deleted,
+                  },
+                ]
+              );
+            }
           }
         }
-      }
-      if (mutation.kind === 'routine' || mutation.kind === 'schedule') {
-        // Only future unstarted generated occurrences are regenerated; exceptions,
-        // active sessions and historical snapshots remain untouched.
-        const today = instantToDay(new Date(), timezone);
-        const schedules = await mobilityRows(
-          client,
-          userId,
-          'mobility_schedules'
-        );
-        const affected =
-          mutation.kind === 'schedule'
-            ? [id]
-            : schedules
-                .filter(
-                  (row) =>
-                    mobilityScheduleSchema.parse(row.data).routineId === id
-                )
-                .map((row) => row.id);
-        const removed = await client.query<{ id: string }>(
-          `DELETE FROM mobility_plans WHERE user_id=$1 AND schedule_id=ANY($2::uuid[]) AND local_day>$3
+        if (mutation.kind === 'routine' || mutation.kind === 'schedule') {
+          // Only future unstarted generated occurrences are regenerated; exceptions,
+          // active sessions and historical snapshots remain untouched.
+          const today = instantToDay(new Date(), timezone);
+          const schedules = await mobilityRows(
+            client,
+            userId,
+            'mobility_schedules'
+          );
+          const affected =
+            mutation.kind === 'schedule'
+              ? [id]
+              : schedules
+                  .filter(
+                    (row) =>
+                      mobilityScheduleSchema.parse(row.data).routineId === id
+                  )
+                  .map((row) => row.id);
+          const removed = await client.query<{ id: string }>(
+            `DELETE FROM mobility_plans WHERE user_id=$1 AND schedule_id=ANY($2::uuid[]) AND local_day>$3
           AND data->>'state'='planned' AND revision=1 RETURNING id`,
-          [userId, affected, today]
-        );
-        removed.rows.forEach((row) => invalidatedPlans.add(row.id));
-        if (mutation.deleted) {
-          const deleted = await client.query<{ id: string }>(
-            "UPDATE mobility_plans SET deleted=true,revision=revision+1,updated_at=now() WHERE user_id=$1 AND schedule_id=ANY($2::uuid[]) AND local_day>=$3 AND data->>'state'='planned'",
             [userId, affected, today]
           );
-          deleted.rows.forEach((row) => invalidatedPlans.add(row.id));
-        }
-        await materialize(client, userId, today, addDays(today, 30));
-      }
-    }
-    const linked = changedPlanId
-      ? await mobilityRow(client, userId, 'mobility_plans', changedPlanId)
-      : undefined;
-    const result: MobilityOperationResult = {
-      revision,
-      ...(linked
-        ? {
-            plan: {
-              revision: linked.revision,
-              data: mobilityPlanSchema.parse(linked.data),
-              deleted: linked.deleted,
-            },
+          removed.rows.forEach((row) => invalidatedPlans.add(row.id));
+          if (mutation.deleted) {
+            const deleted = await client.query<{ id: string }>(
+              "UPDATE mobility_plans SET deleted=true,revision=revision+1,updated_at=now() WHERE user_id=$1 AND schedule_id=ANY($2::uuid[]) AND local_day>=$3 AND data->>'state'='planned'",
+              [userId, affected, today]
+            );
+            deleted.rows.forEach((row) => invalidatedPlans.add(row.id));
           }
-        : {}),
-    };
-    await client.query(
-      'INSERT INTO mobility_operations(user_id,operation_id,request_fingerprint,result) VALUES($1,$2,$3,$4)',
-      [userId, operation.operationId, fingerprint, result]
-    );
-    if (invalidatedPlans.size)
+          await materialize(client, userId, today, addDays(today, 30));
+        }
+      }
+      const linked = changedPlanId
+        ? await mobilityRow(client, userId, 'mobility_plans', changedPlanId)
+        : undefined;
+      const result: MobilityOperationResult = {
+        revision,
+        ...(linked
+          ? {
+              plan: {
+                revision: linked.revision,
+                data: mobilityPlanSchema.parse(linked.data),
+                deleted: linked.deleted,
+              },
+            }
+          : {}),
+      };
       await client.query(
-        "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND kind='mobility' AND status='pending' AND subject_id=ANY($2::text[])",
-        [userId, [...invalidatedPlans]]
+        'INSERT INTO mobility_operations(user_id,operation_id,request_fingerprint,result) VALUES($1,$2,$3,$4)',
+        [userId, operation.operationId, fingerprint, result]
       );
-    return result;
-  });
+      if (invalidatedPlans.size)
+        await client.query(
+          "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND kind='mobility' AND status='pending' AND subject_id=ANY($2::text[])",
+          [userId, [...invalidatedPlans]]
+        );
+      return result;
+    },
+    false,
+    transactionClient
+  );
 }

@@ -12,6 +12,7 @@ interface ApiCallOptions extends RequestInit {
   isFormData?: boolean; // New option to indicate if the body is FormData
   responseType?: 'json' | 'text' | 'blob'; // Add responseType option
   omitRequestBodyFromLogs?: boolean;
+  omitResponseBodyFromLogs?: boolean;
 }
 
 export class HttpApiError extends Error {
@@ -332,7 +333,7 @@ export async function apiCall<T = any>(
     logging.debug(
       userLoggingLevel,
       `API Call: Received JSON response from ${url}:`,
-      jsonResponse
+      options?.omitResponseBodyFromLogs ? '[response omitted]' : jsonResponse
     );
     //console.log(`API Call: Returning JSON response for ${url}:`, jsonResponse); // Added console.log
     return jsonResponse;

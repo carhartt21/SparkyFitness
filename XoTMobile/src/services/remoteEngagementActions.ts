@@ -3,7 +3,7 @@ import * as Notifications from 'expo-notifications';
 import { Linking } from 'react-native';
 import {
   engagementActionSchema,
-  engagementReminderKindV2Schema,
+  engagementReminderKindV3Schema,
   type EngagementAction,
 } from '@workspace/shared';
 import { apiFetch } from './api/apiClient';
@@ -136,6 +136,9 @@ function destination(kind: string): string {
       return 'sparkyfitnessmobile://habits';
     case 'weigh_in':
       return 'sparkyfitnessmobile://measurements';
+    case 'coaching_digest':
+    case 'coaching_action':
+      return 'sparkyfitnessmobile://coaching';
     case 'mobility':
       return 'sparkyfitnessmobile://guided-mobility';
     default:
@@ -152,8 +155,8 @@ export function initRemoteEngagementResponses(): void {
     const data = response.notification.request.content.data;
     if (
       !data ||
-      ![1, 2].includes(Number(data.remoteEngagementVersion)) ||
-      !engagementReminderKindV2Schema.safeParse(data.kind).success ||
+      ![1, 2, 3].includes(Number(data.remoteEngagementVersion)) ||
+      !engagementReminderKindV3Schema.safeParse(data.kind).success ||
       !engagementActionSchema.shape.occurrence_id.safeParse(data.occurrenceId)
         .success ||
       typeof data.userId !== 'string' ||
@@ -204,7 +207,7 @@ export function initRemoteEngagementResponses(): void {
     const response = Notifications.getLastNotificationResponse();
     if (
       !response ||
-      ![1, 2].includes(
+      ![1, 2, 3].includes(
         Number(
           response.notification.request.content.data?.remoteEngagementVersion
         )

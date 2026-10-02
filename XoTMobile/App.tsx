@@ -68,6 +68,7 @@ import {
   SafeQuickMealPhoto,
   SafeMovementBreak,
   SafeGuidedMobility,
+  SafeCoaching,
   SafeFoodPhotoIntro,
   SafeMealAdd,
   SafeFoodEntryView,
@@ -377,6 +378,7 @@ function AppContent() {
           DailyProgress: 'progress',
           MovementBreak: 'movement-break',
           GuidedMobility: 'guided-mobility',
+          Coaching: 'coaching',
           WorkoutPresetsLibrary: 'routines',
           WorkoutPlans: 'training-plans',
           FoodSearch: 'search',
@@ -836,6 +838,11 @@ function AppContent() {
                 }),
                 { headerBackButtonDisplayMode: 'minimal' }
               )}
+            />
+            <Stack.Screen
+              name="Coaching"
+              component={SafeCoaching}
+              options={{ headerShown: false }}
             />
             <Stack.Screen
               name="GuidedMobility"

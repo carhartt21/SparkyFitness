@@ -35,4 +35,10 @@ Verified through authorized server access after rollout:
 - Served login HTML and the `Auth`, `McpConsent` and `useMcpAuthorization` assets match the new image byte for byte.
 - API health and protected-resource metadata return 200; anonymous OAuth MCP returns 401 with the discovery challenge.
 
-The owner's live desktop OAuth round trip remains a manual acceptance check. Close the old authorization window, refresh the application and start a new authorization request; do not reuse a stale signed URL. Public client access remains subject to the site's Cloudflare rules.
+The owner subsequently confirmed that the desktop authorization callback displayed “Authentication complete. You may close this window.” This verifies the reported browser failure is resolved. Tool discovery and a read through that newly authorized connection remain separate acceptance checks. The existing API-key MCP connection successfully returned a nutrition summary; that does not verify the new OAuth connection.
+
+## Client availability clarification
+
+A later ChatGPT conversation searched the plugin directory and reported no X on Track plugin. The setup guide now distinguishes a directly configured desktop/local Codex MCP server from a personal remote MCP plugin created in ChatGPT web. Saving and authenticating a desktop server does not publish or install a hosted plugin, and directory search does not test that server connection. A personal hosted connection can use the existing `/mcp/chatgpt` endpoint without public directory publication. No additional runtime change was made for this documentation correction.
+
+The owner's personal Pro web interface showed no Developer mode switch in Security and login. Settings → Plugins displayed installed plugins and their permissions, with a Browse directory button. After following **Settings → Plugins → Browse directory**, the owner confirmed that the connection works. The guide now leads with this verified route and treats a Developer mode requirement as dependent on the available creation UI. This is owner-reported hosted acceptance; no hosted conversation tool trace was supplied.

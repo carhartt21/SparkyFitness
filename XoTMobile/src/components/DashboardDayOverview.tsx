@@ -44,7 +44,7 @@ export default function DashboardDayOverview({
   onOpenWater?: () => void;
 }) {
   const { t } = useTranslation();
-  const { mealTypes } = useMealTypes();
+  const { mealTypes } = useMealTypes({ includeReadOnly: true });
   const [link, green, food, training, hydration, secondary] = useCSSVariable([
     '--color-text-link',
     '--color-neon-green',

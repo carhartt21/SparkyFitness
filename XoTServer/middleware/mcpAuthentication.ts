@@ -6,10 +6,16 @@ import {
   MCP_READ_ONLY_KEY_CONFIG_ID,
   MCP_READ_ONLY_KEY_PREFIX,
 } from '../utils/mcpReadOnlyKey.js';
+import {
+  MCP_AGENT_KEY_CONFIG_ID,
+  MCP_AGENT_KEY_PREFIX,
+} from '../utils/mcpAgentKey.js';
+import { resolveCoachingAgent } from '../services/coachingRunService.js';
+import { CoachingForbiddenError } from '../models/coachingRepository.js';
 
 interface McpKeyVerification {
   valid: boolean;
-  key?: { configId?: string; referenceId?: string } | null;
+  key?: { id?: string; configId?: string; referenceId?: string } | null;
   error?: {
     code?: string;
     details?: { tryAgainIn?: number };
@@ -26,15 +32,21 @@ export const authenticateMcp: RequestHandler = async (req, res, next) => {
   const token = bearer ?? req.headers['x-api-key'];
   if (
     typeof token !== 'string' ||
-    !token.startsWith(MCP_READ_ONLY_KEY_PREFIX)
+    ![MCP_READ_ONLY_KEY_PREFIX, MCP_AGENT_KEY_PREFIX].some((prefix) =>
+      token.startsWith(prefix)
+    )
   ) {
     return authenticate(req, res, next);
   }
 
   try {
+    const isAgent = token.startsWith(MCP_AGENT_KEY_PREFIX);
+    const configId = isAgent
+      ? MCP_AGENT_KEY_CONFIG_ID
+      : MCP_READ_ONLY_KEY_CONFIG_ID;
     // @ts-expect-error Better Auth's plugin endpoints are missing from InferAPI.
     const result = (await auth.api.verifyApiKey({
-      body: { key: token, configId: MCP_READ_ONLY_KEY_CONFIG_ID },
+      body: { key: token, configId },
     })) as McpKeyVerification;
     if (!result.valid) {
       if (result.error?.code === 'RATE_LIMITED') {
@@ -60,9 +72,7 @@ export const authenticateMcp: RequestHandler = async (req, res, next) => {
       return res.status(401).json({ error: 'Authentication required.' });
     }
     const userId =
-      result.key?.configId === MCP_READ_ONLY_KEY_CONFIG_ID
-        ? result.key.referenceId
-        : undefined;
+      result.key?.configId === configId ? result.key.referenceId : undefined;
     if (!userId) {
       return res.status(401).json({ error: 'Authentication required.' });
     }
@@ -72,8 +82,20 @@ export const authenticateMcp: RequestHandler = async (req, res, next) => {
     req.userId = userId;
     req.user = { id: userId };
     req.mcpReadOnly = true;
+    req.credentialKind = isAgent ? 'mcp_agent' : 'mcp_read_only';
+    if (isAgent) {
+      if (!result.key?.id)
+        return res.status(401).json({ error: 'Authentication required.' });
+      const agent = await resolveCoachingAgent(userId, {
+        keyId: result.key.id,
+      });
+      req.mcpAgentId = agent.id;
+      req.mcpCredentialId = result.key.id;
+    }
     return dbContextStorage.run({ authenticatedUserId: userId }, next);
   } catch (error) {
+    if (error instanceof CoachingForbiddenError)
+      return res.status(403).json({ error: error.message });
     return next(error);
   }
 };

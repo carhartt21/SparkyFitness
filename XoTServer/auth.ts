@@ -21,6 +21,10 @@ import {
   MCP_READ_ONLY_KEY_CONFIG_ID,
   MCP_READ_ONLY_KEY_PREFIX,
 } from './utils/mcpReadOnlyKey.js';
+import {
+  MCP_AGENT_KEY_CONFIG_ID,
+  MCP_AGENT_KEY_PREFIX,
+} from './utils/mcpAgentKey.js';
 import { v4 } from 'uuid';
 import {
   emailOTP,
@@ -255,6 +259,12 @@ const apiKeyPlugin = apiKey(
         timeWindow: 60_000,
         maxRequests: 100,
       },
+    },
+    {
+      configId: MCP_AGENT_KEY_CONFIG_ID,
+      defaultPrefix: MCP_AGENT_KEY_PREFIX,
+      enableSessionForAPIKeys: false,
+      rateLimit: { enabled: true, timeWindow: 60_000, maxRequests: 100 },
     },
   ],
   {
@@ -858,6 +868,7 @@ const auth = betterAuth({
               'offline_access',
               'mcp:read',
               'mcp:write',
+              'mcp:propose',
             ],
             allowDynamicClientRegistration: true,
             allowUnauthenticatedClientRegistration: true,

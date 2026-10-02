@@ -30,7 +30,7 @@ _Last updated: 2026-10-01_
 ## Cross-Package Contract Rules
 
 - Changes to `src/schemas/api/` usually affect server routes and both frontend/mobile API clients.
-- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`), RLS policies, and the schema backup.
+- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`), RLS policies and downstream validation. CI creates the schema-backup sync PR; never regenerate or edit that backup locally.
 - Timezone/day-string helpers prevent bugs; prefer them over `toISOString().split('T')[0]`.
 - Test any shared change from the consumer packages (`pnpm run validate` in XoTServer, XoTFrontend, and XoTMobile after modifying shared).
 
@@ -38,3 +38,7 @@ _Last updated: 2026-10-01_
 
 - Keep this package export-focused and schema-focused; logic that scales should live in consuming packages.
 - Never export stale or unfinished types; if a consumer is drafting code and needs a type not yet here, add it.
+
+## Reviewed MCP recommendations
+
+- `src/schemas/api/{Coaching,MealPlanning}.api.zod.ts`, database `{Coaching,MealPlanning}.zod.ts`, `src/coaching/` and `src/fddb/` define coaching trust/action contracts, scheduling, confirmed outcomes, shared client/editor behavior and FDDB presentation. Engagement v3 adds coaching kinds; v1/v2 schemas remain strict. Validate all consuming packages.

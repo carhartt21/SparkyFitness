@@ -8,7 +8,8 @@ import type {
   EngagementSettingsV2,
   EngagementSettingsPatchV2,
   EngagementDeviceV2,
-  EngagementStatus,
+  EngagementDeviceV3,
+  EngagementStatusV3,
 } from '@workspace/shared';
 import { engagementSettingsV2Schema, instantToDay } from '@workspace/shared';
 import { getClient, getSystemClient } from '../db/poolManager.js';
@@ -65,13 +66,15 @@ function mapSettings(
 
 async function withUserClient<T>(
   userId: string,
-  task: (client: PoolClient) => Promise<T>
+  task: (client: PoolClient) => Promise<T>,
+  transactionClient?: PoolClient
 ): Promise<T> {
-  const client: PoolClient = await getClient(userId, userId);
+  const client: PoolClient =
+    transactionClient ?? (await getClient(userId, userId));
   try {
     return await task(client);
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 
@@ -103,116 +106,121 @@ export async function getEngagementSettings(
 /** Compare-and-swap updates prevent an old phone state replacing a newer web/MCP edit. */
 export async function patchEngagementSettings(
   userId: string,
-  patch: EngagementSettingsPatch | EngagementSettingsPatchV2
+  patch: EngagementSettingsPatch | EngagementSettingsPatchV2,
+  transactionClient?: PoolClient
 ): Promise<EngagementSettings> {
-  return withUserClient(userId, async (client) => {
-    await client.query('BEGIN');
-    try {
-      await client.query(
-        `INSERT INTO engagement_settings (user_id) VALUES ($1)
+  return withUserClient(
+    userId,
+    async (client) => {
+      if (!transactionClient) await client.query('BEGIN');
+      try {
+        await client.query(
+          `INSERT INTO engagement_settings (user_id) VALUES ($1)
          ON CONFLICT (user_id) DO NOTHING`,
-        [userId]
-      );
-      const before = await client.query(
-        'SELECT * FROM engagement_settings WHERE user_id = $1 FOR UPDATE',
-        [userId]
-      );
-      const current = mapSettings(before.rows[0] as Record<string, unknown>);
-      if (current.revision !== patch.expected_revision) {
-        throw new EngagementConflictError(
-          'Notification settings changed elsewhere.'
-        );
-      }
-      if (!current.remote_enabled && patch.remote_enabled === true) {
-        // Only the phone can begin remote ownership: it registers a fresh
-        // push token after permission and cancels its local optional alerts.
-        // A web/MCP change while the phone is closed must not double-deliver.
-        const prepared = await client.query(
-          `SELECT 1 FROM engagement_devices
-           WHERE user_id = $1 AND enabled = TRUE
-             AND last_seen_at > NOW() - INTERVAL '2 minutes' LIMIT 1`,
           [userId]
         );
-        if (!prepared.rows[0]) {
+        const before = await client.query(
+          'SELECT * FROM engagement_settings WHERE user_id = $1 FOR UPDATE',
+          [userId]
+        );
+        const current = mapSettings(before.rows[0] as Record<string, unknown>);
+        if (current.revision !== patch.expected_revision) {
           throw new EngagementConflictError(
-            'Enable remote reminders from the phone app first.'
+            'Notification settings changed elsewhere.'
           );
         }
-      }
-      const updated: EngagementSettings = { ...current };
-      for (const column of SETTINGS_COLUMNS) {
-        const value = patch[column];
-        if (value !== undefined) {
-          // Assignment is safe: each key is from a fixed, reviewed allowlist.
-          Object.assign(updated, { [column]: value });
+        if (!current.remote_enabled && patch.remote_enabled === true) {
+          // Only the phone can begin remote ownership: it registers a fresh
+          // push token after permission and cancels its local optional alerts.
+          // A web/MCP change while the phone is closed must not double-deliver.
+          const prepared = await client.query(
+            `SELECT 1 FROM engagement_devices
+           WHERE user_id = $1 AND enabled = TRUE
+             AND last_seen_at > NOW() - INTERVAL '2 minutes' LIMIT 1`,
+            [userId]
+          );
+          if (!prepared.rows[0]) {
+            throw new EngagementConflictError(
+              'Enable remote reminders from the phone app first.'
+            );
+          }
         }
-      }
-      updated.revision += 1;
-      const extended = mapSettingsV2(before.rows[0]);
-      const config = Object.fromEntries(
-        SCHEDULE_COLUMNS.map((column) => [
-          column,
-          column in patch
-            ? (patch[column as keyof typeof patch] ?? extended[column])
-            : extended[column],
-        ])
-      );
-      const dailyLimit =
-        'daily_limit' in patch && patch.daily_limit !== undefined
-          ? patch.daily_limit
-          : extended.daily_limit;
-      const merged = engagementSettingsV2Schema.parse({
-        ...extended,
-        ...updated,
-        ...config,
-        daily_limit: dailyLimit,
-      });
-      if (
-        merged.hydration_start >= merged.hydration_end ||
-        merged.meal_capture_start >= merged.meal_capture_end ||
-        merged.meal_capture_time < merged.meal_capture_start ||
-        merged.meal_capture_time >= merged.meal_capture_end
-      ) {
-        throw new EngagementConflictError(
-          'Reminder time must be inside its window; windows cannot cross midnight.'
+        const updated: EngagementSettings = { ...current };
+        for (const column of SETTINGS_COLUMNS) {
+          const value = patch[column];
+          if (value !== undefined) {
+            // Assignment is safe: each key is from a fixed, reviewed allowlist.
+            Object.assign(updated, { [column]: value });
+          }
+        }
+        updated.revision += 1;
+        const extended = mapSettingsV2(before.rows[0]);
+        const config = Object.fromEntries(
+          SCHEDULE_COLUMNS.map((column) => [
+            column,
+            column in patch
+              ? (patch[column as keyof typeof patch] ?? extended[column])
+              : extended[column],
+          ])
         );
-      }
-      const values = SETTINGS_COLUMNS.map((column) => updated[column]);
-      const setSql = SETTINGS_COLUMNS.map(
-        (column, index) => `${column} = $${index + 2}`
-      ).join(', ');
-      await client.query(
-        `UPDATE engagement_settings SET ${setSql}, revision = revision + 1,
+        const dailyLimit =
+          'daily_limit' in patch && patch.daily_limit !== undefined
+            ? patch.daily_limit
+            : extended.daily_limit;
+        const merged = engagementSettingsV2Schema.parse({
+          ...extended,
+          ...updated,
+          ...config,
+          daily_limit: dailyLimit,
+        });
+        if (
+          merged.hydration_start >= merged.hydration_end ||
+          merged.meal_capture_start >= merged.meal_capture_end ||
+          merged.meal_capture_time < merged.meal_capture_start ||
+          merged.meal_capture_time >= merged.meal_capture_end
+        ) {
+          throw new EngagementConflictError(
+            'Reminder time must be inside its window; windows cannot cross midnight.'
+          );
+        }
+        const values = SETTINGS_COLUMNS.map((column) => updated[column]);
+        const setSql = SETTINGS_COLUMNS.map(
+          (column, index) => `${column} = $${index + 2}`
+        ).join(', ');
+        await client.query(
+          `UPDATE engagement_settings SET ${setSql}, revision = revision + 1,
          updated_at = NOW() WHERE user_id = $1`,
-        [userId, ...values]
-      );
-      await client.query(
-        'UPDATE engagement_settings SET daily_limit=$2, schedule_config=$3, schedule_initialized=schedule_initialized OR $4 WHERE user_id=$1',
-        [
-          userId,
-          dailyLimit,
-          config,
-          SCHEDULE_COLUMNS.some((column) => column in patch),
-        ]
-      );
-      // A settings edit invalidates future reservations, never accepted or uncertain sends.
-      await client.query(
-        "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND status='pending'",
-        [userId]
-      );
-      await appendChange(client, userId, 'notification_settings', userId);
-      await client.query('COMMIT');
-      return updated;
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    }
-  });
+          [userId, ...values]
+        );
+        await client.query(
+          'UPDATE engagement_settings SET daily_limit=$2, schedule_config=$3, schedule_initialized=schedule_initialized OR $4 WHERE user_id=$1',
+          [
+            userId,
+            dailyLimit,
+            config,
+            SCHEDULE_COLUMNS.some((column) => column in patch),
+          ]
+        );
+        // A settings edit invalidates future reservations, never accepted or uncertain sends.
+        await client.query(
+          "UPDATE engagement_occurrences SET status='cancelled' WHERE user_id=$1 AND status='pending'",
+          [userId]
+        );
+        await appendChange(client, userId, 'notification_settings', userId);
+        if (!transactionClient) await client.query('COMMIT');
+        return updated;
+      } catch (error) {
+        if (!transactionClient) await client.query('ROLLBACK');
+        throw error;
+      }
+    },
+    transactionClient
+  );
 }
 
 export async function upsertEngagementDevice(
   userId: string,
-  device: EngagementDevice | EngagementDeviceV2
+  device: EngagementDevice | EngagementDeviceV2 | EngagementDeviceV3
 ): Promise<void> {
   const sealed = await encrypt(device.expo_push_token, ENCRYPTION_KEY);
   if (!sealed.encryptedText || !sealed.iv || !sealed.tag) {
@@ -257,29 +265,33 @@ export async function upsertEngagementDevice(
         tokenHash,
       ]
     );
-    if ('protocol_version' in device)
-      await client.query(
-        `UPDATE engagement_devices SET protocol_version=$3,reminder_kinds=$4,delivery_owner=$5,language=$6
+    await client.query(
+      `UPDATE engagement_devices SET
+      protocol_version=CASE WHEN $7 THEN $3 WHEN protocol_version<3 THEN protocol_version ELSE 1 END,
+      reminder_kinds=CASE WHEN $7 THEN $4::jsonb WHEN protocol_version<3 THEN reminder_kinds ELSE $4::jsonb END,
+      delivery_owner=CASE WHEN $7 THEN $5 ELSE delivery_owner END,
+      language=CASE WHEN $7 THEN $6 ELSE language END
       WHERE user_id=$1 AND installation_id=$2`,
-        [
-          userId,
-          device.installation_id,
-          'protocol_version' in device ? 2 : 1,
-          JSON.stringify(
-            'reminder_kinds' in device
-              ? device.reminder_kinds
-              : [
-                  'hydration',
-                  'meal_capture',
-                  'meal_review',
-                  'movement_break',
-                  'mobility',
-                ]
-          ),
-          'delivery_owner' in device ? device.delivery_owner : 'remote',
-          'language' in device ? device.language : null,
-        ]
-      );
+      [
+        userId,
+        device.installation_id,
+        'protocol_version' in device ? device.protocol_version : 1,
+        JSON.stringify(
+          'reminder_kinds' in device
+            ? device.reminder_kinds
+            : [
+                'hydration',
+                'meal_capture',
+                'meal_review',
+                'movement_break',
+                'mobility',
+              ]
+        ),
+        'delivery_owner' in device ? device.delivery_owner : 'remote',
+        'language' in device ? device.language : null,
+        'protocol_version' in device,
+      ]
+    );
     await client.query('COMMIT');
   } catch (error) {
     await client.query('ROLLBACK');
@@ -394,6 +406,11 @@ export async function applyEngagementAction(
         occurrence.status === 'cancelled'
       ) {
         throw new EngagementConflictError('Reminder already closed.');
+      }
+      if (action.action === 'snooze' && occurrence.kind === 'coaching_digest') {
+        throw new EngagementConflictError(
+          'A daily review digest cannot be snoozed. Open the recommendation inbox to review it.'
+        );
       }
       if (action.action === 'snooze' && !action.snooze_minutes) {
         throw new EngagementConflictError('Snooze duration is required.');
@@ -542,7 +559,7 @@ export async function getEngagementSettingsV2(
 }
 export async function getEngagementStatus(
   userId: string
-): Promise<EngagementStatus> {
+): Promise<EngagementStatusV3> {
   const settings = await getEngagementSettingsV2(userId);
   const timezone = await loadUserTimezone(userId);
   const day = instantToDay(new Date(), timezone);
@@ -561,7 +578,7 @@ export async function getEngagementStatus(
       "SELECT count(*) AS n FROM engagement_occurrences WHERE user_id=$1 AND local_day=$2 AND (status='pending' OR attempt_count>0)",
       [userId, day]
     );
-    let diagnostics: EngagementStatus['diagnostics'];
+    let diagnostics: EngagementStatusV3['diagnostics'];
     try {
       const { engagementPlanForUser } =
         await import('./engagementPlanningService.js');
@@ -598,8 +615,8 @@ export async function getEngagementStatus(
       });
       const slots = [...explicit, ...water];
       const grouped = new Map<
-        EngagementStatus['diagnostics'][number]['kind'],
-        EngagementStatus['diagnostics'][number]
+        EngagementStatusV3['diagnostics'][number]['kind'],
+        EngagementStatusV3['diagnostics'][number]
       >();
       for (const item of plan.diagnostics) {
         const existing = grouped.get(item.kind);
@@ -681,12 +698,12 @@ export async function getEngagementStatus(
       occurrences: occurrences.rows.map(
         (row: {
           id: string;
-          kind: EngagementStatus['occurrences'][number]['kind'];
+          kind: EngagementStatusV3['occurrences'][number]['kind'];
           subject_id: string;
           scheduled_at: Date;
           status: string;
           delivery_owner: 'local' | 'remote';
-          deliveries: EngagementStatus['occurrences'][number]['deliveries'];
+          deliveries: EngagementStatusV3['occurrences'][number]['deliveries'];
         }) => ({ ...row, scheduled_at: row.scheduled_at.toISOString() })
       ),
       diagnostics,

@@ -12,17 +12,24 @@ The coaching tools are designed to provide high-level insights into a user's hea
 ## Tools within Coach
 
 ### `sparky_get_health_summary`
+
 - **Description:** Get a summary of the user's health status (Nutrition, Fitness, Vitals) for a specific date range.
 - **Parameters:**
-    - `start_date` (string, YYYY-MM-DD): Start date for the summary.
-    - `end_date` (string, YYYY-MM-DD, optional): End date for the summary. Defaults to `start_date` if not provided.
+  - `start_date` (string, YYYY-MM-DD): Start date for the summary.
+  - `end_date` (string, YYYY-MM-DD, optional): End date for the summary. Defaults to `start_date` if not provided.
 
 ### `sparky_analyze_trends`
+
 - **Description:** Analyze weight trends vs. calorie intake to identify plateaus or progress. (Feature coming in full Phase 3 implementation!)
 - **Parameters:**
-    - `days` (number, optional): Number of days to analyze. Defaults to 7.
+  - `days` (number, optional): Number of days to analyze. Defaults to 7.
 
 ### `sparky_get_30_day_trends`
+
 - **Description:** Get comprehensive trends for the last 30 days including food, exercise, mood, sleep, and biometrics. This tool gathers aggregated data across these domains to provide a holistic view of the user's progress and patterns.
 - **Parameters:**
-    - `end_date` (string, YYYY-MM-DD, optional): End date for the 30-day period. Defaults to today.
+  - `end_date` (string, YYYY-MM-DD, optional): End date for the 30-day period. Defaults to today.
+
+## Owner-reviewed bidirectional workflow
+
+The legacy tools above are independent from the proposal-only `xot_*` workflow. Its six tools, selected-domain credentials, evidence/outcome rules and external subscription runner are documented in [Proposal and review MCP workflow](./recommendations.md). Agents stage proposals; only the owner app session activates them.

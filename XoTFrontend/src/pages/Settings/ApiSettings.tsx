@@ -334,15 +334,19 @@ export const ApiSettings = () => {
                       </span>
                     )}
                     <span className="text-[10px] bg-muted text-muted-foreground px-1.5 py-0.5 rounded border uppercase font-bold">
-                      {key.configId === 'mcp-read-only'
-                        ? t(
-                            'settings.apiKeyManagement.mcpReadOnly',
-                            'MCP read-only'
-                          )
-                        : t(
-                            'settings.apiKeyManagement.fullAccess',
-                            'Full API access'
-                          )}
+                      {key.configId === 'mcp-agent'
+                        ? t('coaching.proposalAccess', {
+                            defaultValue: 'Proposal-only connection',
+                          })
+                        : key.configId === 'mcp-read-only'
+                          ? t(
+                              'settings.apiKeyManagement.mcpReadOnly',
+                              'MCP read-only'
+                            )
+                          : t(
+                              'settings.apiKeyManagement.fullAccess',
+                              'Full API access'
+                            )}
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">

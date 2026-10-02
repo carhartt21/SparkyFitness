@@ -2,6 +2,33 @@ import mealPlanTemplateRepository from '../models/mealPlanTemplateRepository.js'
 import foodRepository from '../models/foodRepository.js';
 import { log } from '../config/logging.js';
 import { resolveTemplateStartDay } from '../utils/timezoneLoader.js';
+import type { PoolClient } from 'pg';
+import type { CoachingAction } from '@workspace/shared';
+
+/** Forward-only prompt revisions preserve every existing food diary row. */
+export async function applyReviewedMealPlan(
+  client: PoolClient,
+  userId: string,
+  action: Extract<CoachingAction, { kind: 'meal_plan' }>
+) {
+  if (action.templateId)
+    await client.query(
+      "UPDATE meal_plans p SET state='cancelled',updated_at=now() FROM meal_plan_template_versions v WHERE p.user_id=$1 AND p.template_version_id=v.id AND v.user_id=p.user_id AND v.template_id=$2 AND p.plan_date>=$3 AND p.state='planned'",
+      [userId, action.templateId, action.effectiveDay]
+    );
+  return action.templateId
+    ? mealPlanTemplateRepository.updateMealPlanTemplate(
+        action.templateId,
+        { ...action.definition, user_id: userId },
+        client,
+        action.effectiveDay
+      )
+    : mealPlanTemplateRepository.createMealPlanTemplate(
+        { ...action.definition, user_id: userId },
+        client,
+        action.effectiveDay
+      );
+}
 
 export interface MealPlanAssignmentData {
   id?: string;
@@ -20,10 +47,11 @@ export interface MealPlanTemplateData {
   id?: string;
   user_id?: string;
   plan_name: string;
-  description?: string;
+  description?: string | null;
   start_date?: Date | string;
   end_date?: Date | string | null;
   is_active?: boolean;
+  entry_mode?: 'prefill' | 'prompt';
   assignments?: MealPlanAssignmentData[];
   day_presets?: MealPlanAssignmentData[];
   currentClientDate?: string;
@@ -40,7 +68,7 @@ async function createMealPlanTemplate(
       user_id: userId,
     });
     log('info', 'createMealPlanTemplate service - newPlan created:', newPlan);
-    if (newPlan.is_active) {
+    if (newPlan.is_active && newPlan.entry_mode !== 'prompt') {
       log(
         'info',
         `createMealPlanTemplate service - New plan is active, creating food entries from template ${newPlan.id}`
@@ -118,13 +146,20 @@ async function updateMealPlanTemplate(
       'info',
       `updateMealPlanTemplate service - Deleting old food entries for template ${planId}`
     );
-    await foodRepository.deleteFoodEntriesByTemplateId(planId, userId, today);
+    const existing = await mealPlanTemplateRepository.getMealPlanTemplateById(
+      planId,
+      userId
+    );
+    if (existing?.entry_mode !== 'prompt')
+      await foodRepository.deleteFoodEntriesByTemplateId(planId, userId, today);
     const updatedPlan = await mealPlanTemplateRepository.updateMealPlanTemplate(
       planId,
-      { ...planData, user_id: userId }
+      { ...planData, user_id: userId },
+      undefined,
+      today
     );
     log('info', 'updateMealPlanTemplate service - updatedPlan:', updatedPlan);
-    if (updatedPlan.is_active) {
+    if (updatedPlan.is_active && updatedPlan.entry_mode !== 'prompt') {
       log(
         'info',
         `updateMealPlanTemplate service - Updated plan is active, creating food entries from template ${updatedPlan.id}`
@@ -163,7 +198,12 @@ async function deleteMealPlanTemplate(
       'info',
       `deleteMealPlanTemplate service - Deleting food entries for template ${planId} starting from ${today}`
     );
-    await foodRepository.deleteFoodEntriesByTemplateId(planId, userId, today);
+    const existing = await mealPlanTemplateRepository.getMealPlanTemplateById(
+      planId,
+      userId
+    );
+    if (existing?.entry_mode !== 'prompt')
+      await foodRepository.deleteFoodEntriesByTemplateId(planId, userId, today);
     return await mealPlanTemplateRepository.deleteMealPlanTemplate(
       planId,
       userId

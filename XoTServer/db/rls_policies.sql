@@ -76,6 +76,17 @@ BEGIN
     'engagement_deliveries',
     'engagement_action_receipts',
     'engagement_change_events',
+    'coaching_settings',
+    'coaching_agents',
+    'coaching_runs',
+    'coaching_snapshots',
+    'coaching_proposals',
+    'coaching_actions',
+    'coaching_events',
+    'coaching_operations',
+    'coaching_previews',
+    'meal_plan_template_versions',
+    'meal_plan_log_receipts',
     'jwks',
     'oauthClient',
     'oauthResource',
@@ -604,6 +615,17 @@ SELECT create_owner_policy('engagement_occurrences');
 SELECT create_owner_policy('engagement_deliveries');
 SELECT create_owner_policy('engagement_action_receipts');
 SELECT create_owner_policy('engagement_change_events');
+SELECT create_owner_policy('coaching_settings');
+SELECT create_owner_policy('coaching_agents');
+SELECT create_owner_policy('coaching_runs');
+SELECT create_owner_policy('coaching_snapshots');
+SELECT create_owner_policy('coaching_proposals');
+SELECT create_owner_policy('coaching_actions');
+SELECT create_owner_policy('coaching_events');
+SELECT create_owner_policy('coaching_operations');
+SELECT create_owner_policy('coaching_previews');
+SELECT create_owner_policy('meal_plan_template_versions');
+SELECT create_owner_policy('meal_plan_log_receipts');
 SELECT create_owner_policy('user_oidc_links');
 SELECT create_owner_policy('sparky_chat_history');
 

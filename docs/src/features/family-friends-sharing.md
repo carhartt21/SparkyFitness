@@ -104,3 +104,7 @@ If someone else still uses the item — they have logged it, or it sits in their
 A meal's ingredient list can link another reusable meal (e.g. a sauce or side) instead of a plain food. Linking a sub-meal into a parent meal requires the same library access to the sub-meal that reading it directly would require — you cannot link a sub-meal you cannot otherwise view. This check applies independently of, and in addition to, owning the parent meal.
 
 Mobility history remains private to its owner. The phone retains the latest 100 sessions for local display; this retention does not delete older server history. Only explicit session deletion creates a server tombstone. Browsing mobility plans, including past dates, does not create new plans.
+
+## Agent recommendation access
+
+Recommendation schedules, connections, retained evidence, decisions and accepted coaching commitments are owner-only. Family/delegated diary access does not grant review or approval. Proposal-only MCP agents read only their selected wellness domains and cannot activate actions. Accepted changes follow the existing sharing rules in their canonical diary, habit or plan domain.

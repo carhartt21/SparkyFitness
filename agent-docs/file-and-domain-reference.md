@@ -94,7 +94,7 @@ Paths are relative to each package root. `—` means that layer does not exist f
 
 | Feature               | Backend                                                                                                                              | Frontend                                 | Mobile                                                                                                 | Shared                                     |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| **Chat** (Trackbot)     | `routes/chatRoutes.ts` `routes/mcpRoutes.ts`, `services/chatService.ts`, `ai/tools/`                                                 | `pages/Chat/` `api/Chatbot/` `hooks/AI/` | `screens/ChatScreen.tsx` `services/api/chatApi.ts` `hooks/useChatHistory.ts`                           | — (no Chat API schema)                     |
+| **Chat** (Trackbot)   | `routes/chatRoutes.ts` `routes/mcpRoutes.ts`, `services/chatService.ts`, `ai/tools/`                                                 | `pages/Chat/` `api/Chatbot/` `hooks/AI/` | `screens/ChatScreen.tsx` `services/api/chatApi.ts` `hooks/useChatHistory.ts`                           | — (no Chat API schema)                     |
 | **AI Photo Estimate** | `routes/checkInPhotoRoutes.ts` + food-photo route, `services/foodPhotoEstimationService.ts` `services/checkInPhotoService.ts`, `ai/` | `pages/Foods/` (photo flow)              | `screens/FoodPhoto*Screen.tsx` `services/api/externalFoodSearchApi.ts` `hooks/useEstimateFoodPhoto.ts` | `schemas/api/FoodPhotoEstimate.api.zod.ts` |
 
 ---
@@ -115,17 +115,17 @@ Paths are relative to each package root. `—` means that layer does not exist f
 
 ## Cross-Cutting Code (Not Domain-Specific)
 
-| System                     | Location                                                                                                            | Purpose                                                                                                         |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Database & RLS**         | `XoTServer/db/`                                                                                           | Migrations, `rls_policies.sql`, pool management                                                                 |
+| System                     | Location                                                                                        | Purpose                                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Database & RLS**         | `XoTServer/db/`                                                                                 | Migrations, `rls_policies.sql`, pool management                                                                 |
 | **Auth Framework**         | `XoTServer/auth.ts` `XoTServer/middleware/authMiddleware.ts`                                    | Better Auth config, session handling                                                                            |
 | **Permissions**            | `XoTServer/middleware/checkPermissionMiddleware.ts` `XoTServer/utils/permissionUtils.ts`        | Family access, delegation logic                                                                                 |
-| **Shared Schemas**         | `shared/src/schemas/`                                                                                               | Database tables, API contracts (plus domain modules under `shared/src/medications/`, `shared/src/cycle/`, etc.) |
-| **Timezone Helpers**       | `shared/src/utils/` `XoTServer/utils/timezoneLoader.ts`                                                   | Day strings, UTC conversions                                                                                    |
-| **UI Primitives**          | `XoTFrontend/src/components/ui/`                                                                          | Buttons, forms, dialogs, etc.                                                                                   |
+| **Shared Schemas**         | `shared/src/schemas/`                                                                           | Database tables, API contracts (plus domain modules under `shared/src/medications/`, `shared/src/cycle/`, etc.) |
+| **Timezone Helpers**       | `shared/src/utils/` `XoTServer/utils/timezoneLoader.ts`                                         | Day strings, UTC conversions                                                                                    |
+| **UI Primitives**          | `XoTFrontend/src/components/ui/`                                                                | Buttons, forms, dialogs, etc.                                                                                   |
 | **React Query (frontend)** | client configured inline in `XoTFrontend/src/main.tsx`; keys in `XoTFrontend/src/api/keys/*.ts` | TanStack Query setup, cache keys                                                                                |
 | **React Query (mobile)**   | `XoTMobile/src/hooks/queryClient.ts` `XoTMobile/src/hooks/queryKeys.ts`                         | TanStack Query setup, cache keys                                                                                |
-| **Mobile Health Sync**     | `XoTMobile/src/services/` (Health Connect / HealthKit modules)                                            | Apple Health, Health Connect integration                                                                        |
+| **Mobile Health Sync**     | `XoTMobile/src/services/` (Health Connect / HealthKit modules)                                  | Apple Health, Health Connect integration                                                                        |
 
 ---
 
@@ -192,3 +192,10 @@ measured expenditure down.
 ## How AI Tools Use This
 
 Grep the feature name in this doc to narrow to the right package folders, then grep the same name inside those folders to open the actual files. The naming is intentionally **not** uniform, so confirm against the filesystem rather than assuming a `<feature>Service.ts` / `<feature>Repository.ts` file exists.
+
+## Owner-reviewed recommendations
+
+- Server: `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `models/coachingRepository.ts`, `services/coaching*Service.ts`, `services/mealPlanOccurrenceService.ts`.
+- Web: `src/pages/Coaching/`, `src/hooks/Coaching/`, `src/api/Coaching/`. Mobile: `CoachingScreen`, `useCoaching`, `components/coaching/`.
+- Shared: Coaching/MealPlanning schemas, `coaching/` policy/client/editor behavior and `fddb/presentation.ts`.
+- Setup, scope, retention and rollout: `docs/src/developer/mcp/recommendations.md`. The Mac runner is `XoTServer/tools/coachingRunner.ts`.

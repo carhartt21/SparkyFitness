@@ -13,6 +13,9 @@ declare global {
       user: Record<string, unknown>;
       /** Verified MCP-only credential; no REST session is created. */
       mcpReadOnly?: boolean;
+      credentialKind?: 'session' | 'api_key' | 'mcp_read_only' | 'mcp_agent';
+      mcpAgentId?: string;
+      mcpCredentialId?: string;
     }
   }
 }

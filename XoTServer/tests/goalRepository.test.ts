@@ -14,7 +14,7 @@ describe('goalRepository', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (getClient as any).mockResolvedValue(mockClient);
+    vi.mocked(getClient).mockResolvedValue(mockClient);
   });
 
   describe('upsertGoal', () => {
@@ -68,8 +68,13 @@ describe('goalRepository', () => {
 
       const result = await goalRepository.upsertGoal(goalData);
 
-      expect(mockClient.query).toHaveBeenCalledTimes(1);
-      const [sql, params] = mockClient.query.mock.calls[0];
+      expect(mockClient.query).toHaveBeenCalledTimes(4);
+      expect(mockClient.query.mock.calls[0]).toEqual(['BEGIN']);
+      expect(mockClient.query.mock.calls[1][0]).toContain(
+        'pg_advisory_xact_lock'
+      );
+      expect(mockClient.query.mock.calls[3]).toEqual(['COMMIT']);
+      const [sql, params] = mockClient.query.mock.calls[2];
 
       // Check positional params count ($1 through $35)
       expect(params).toHaveLength(35);

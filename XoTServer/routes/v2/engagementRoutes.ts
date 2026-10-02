@@ -6,6 +6,11 @@ import {
   engagementActionSchema,
   engagementDeviceSchema,
   engagementSettingsPatchSchema,
+  engagementDeviceV3Schema,
+  engagementSettingsV3Schema,
+  engagementStatusSchema,
+  engagementStatusV3Schema,
+  engagementReminderKindV2Schema,
 } from '@workspace/shared';
 import { requireSelfActor } from '../../middleware/requireSelfMiddleware.js';
 import {
@@ -27,12 +32,15 @@ router.use(requireSelfActor);
 
 router.get('/settings', async (req, res, next) => {
   try {
+    const result = await (
+      req.query.version === '2' || req.query.version === '3'
+        ? getEngagementSettingsV2
+        : getEngagementSettings
+    )(req.authenticatedUserId);
     res.json(
-      await (
-        req.query.version === '2'
-          ? getEngagementSettingsV2
-          : getEngagementSettings
-      )(req.authenticatedUserId)
+      req.query.version === '3'
+        ? engagementSettingsV3Schema.parse({ ...result, schema_version: 3 })
+        : result
     );
   } catch (error) {
     next(error);
@@ -41,7 +49,7 @@ router.get('/settings', async (req, res, next) => {
 
 router.patch('/settings', async (req, res, next) => {
   const parsed = (
-    req.query.version === '2'
+    req.query.version === '2' || req.query.version === '3'
       ? engagementSettingsPatchV2Schema
       : engagementSettingsPatchSchema
   ).safeParse(req.body);
@@ -55,9 +63,14 @@ router.patch('/settings', async (req, res, next) => {
       parsed.data
     );
     res.json(
-      req.query.version === '2'
-        ? await getEngagementSettingsV2(req.authenticatedUserId)
-        : legacy
+      req.query.version === '3'
+        ? engagementSettingsV3Schema.parse({
+            ...(await getEngagementSettingsV2(req.authenticatedUserId)),
+            schema_version: 3,
+          })
+        : req.query.version === '2'
+          ? await getEngagementSettingsV2(req.authenticatedUserId)
+          : legacy
     );
   } catch (error) {
     if (error instanceof EngagementConflictError) {
@@ -70,9 +83,11 @@ router.patch('/settings', async (req, res, next) => {
 
 router.put('/devices', async (req, res, next) => {
   const parsed = (
-    req.body?.protocol_version === 2
-      ? engagementDeviceV2Schema
-      : engagementDeviceSchema
+    req.body?.protocol_version === 3
+      ? engagementDeviceV3Schema
+      : req.body?.protocol_version === 2
+        ? engagementDeviceV2Schema
+        : engagementDeviceSchema
   ).safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: 'Invalid notification device.' });
@@ -125,7 +140,22 @@ router.put('/movement-starts/:id', async (req, res, next) => {
 
 router.get('/status', async (req, res, next) => {
   try {
-    res.json(await getEngagementStatus(req.authenticatedUserId));
+    const status = await getEngagementStatus(req.authenticatedUserId);
+    res.json(
+      req.query.version === '3'
+        ? engagementStatusV3Schema.parse(status)
+        : engagementStatusSchema.parse({
+            ...status,
+            occurrences: status.occurrences.filter(
+              (row) =>
+                engagementReminderKindV2Schema.safeParse(row.kind).success
+            ),
+            diagnostics: status.diagnostics.filter(
+              (row) =>
+                engagementReminderKindV2Schema.safeParse(row.kind).success
+            ),
+          })
+    );
   } catch (error) {
     next(error);
   }

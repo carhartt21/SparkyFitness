@@ -1,3 +1,5 @@
+import type { PoolClient } from 'pg';
+import type { UserGoalsInitializer } from '@workspace/shared';
 import { getClient } from '../db/poolManager.js';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 async function getGoalByDate(userId: any, selectedDate: any) {
@@ -107,10 +109,14 @@ async function getMostRecentGoalBeforeDate(userId: any, selectedDate: any) {
     client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function upsertGoal(goalData: any) {
-  const client = await getClient(goalData.user_id); // User-specific operation
+export type GoalWrite = Omit<UserGoalsInitializer, 'goal_date'> & {
+  goal_date?: Date | string | null;
+};
+async function upsertGoal(goalData: GoalWrite, transactionClient?: PoolClient) {
+  const client = transactionClient ?? (await getClient(goalData.user_id)); // User-specific operation
   try {
+    if (!transactionClient) await client.query('BEGIN');
+    await lockGoalState(client, goalData.user_id);
     const result = await client.query(
       `INSERT INTO user_goals (
         user_id, goal_date, calories, protein, carbs, fat, water_goal_ml,
@@ -197,15 +203,24 @@ async function upsertGoal(goalData: any) {
         goalData.alcohol_g,
       ]
     );
+    if (!transactionClient) await client.query('COMMIT');
     return result.rows[0];
+  } catch (error) {
+    if (!transactionClient) await client.query('ROLLBACK');
+    throw error;
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function deleteGoalsInRange(userId: any, startDate: any, endDate: any) {
+async function deleteGoalsInRange(
+  userId: string,
+  startDate: string,
+  endDate: string
+) {
   const client = await getClient(userId); // User-specific operation
   try {
+    await client.query('BEGIN');
+    await lockGoalState(client, userId);
     await client.query(
       `DELETE FROM user_goals
        WHERE user_id = $1
@@ -214,21 +229,30 @@ async function deleteGoalsInRange(userId: any, startDate: any, endDate: any) {
          AND goal_date IS NOT NULL`,
       [userId, startDate, endDate]
     );
+    await client.query('COMMIT');
     return true;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
   } finally {
     client.release();
   }
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function deleteDefaultGoal(userId: any) {
+async function deleteDefaultGoal(userId: string) {
   const client = await getClient(userId); // User-specific operation
   try {
+    await client.query('BEGIN');
+    await lockGoalState(client, userId);
     await client.query(
       `DELETE FROM user_goals
        WHERE user_id = $1 AND goal_date IS NULL`,
       [userId]
     );
+    await client.query('COMMIT');
     return true;
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
   } finally {
     client.release();
   }
@@ -269,3 +293,27 @@ export default {
   getGoalsInRange,
   getGoalTimeline,
 };
+
+/** Actual persisted goal row; no calculated or fallback defaults. */
+export async function readStoredGoal(
+  client: PoolClient,
+  userId: string,
+  day: string,
+  lock = false
+): Promise<GoalWrite | null> {
+  if (lock) await lockGoalState(client, userId);
+  const result = await client.query<GoalWrite>(
+    `SELECT * FROM user_goals WHERE user_id=$1 AND (goal_date <= $2 OR goal_date IS NULL) ORDER BY goal_date DESC NULLS LAST, updated_at DESC LIMIT 1 ${lock ? 'FOR UPDATE' : ''}`,
+    [userId, day]
+  );
+  return result.rows[0] ?? null;
+}
+
+async function lockGoalState(
+  client: PoolClient,
+  userId: string
+): Promise<void> {
+  await client.query('SELECT pg_advisory_xact_lock(hashtextextended($1,0))', [
+    `goals:${userId}`,
+  ]);
+}

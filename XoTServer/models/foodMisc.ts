@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { getClient, getSystemClient } from '../db/poolManager.js';
 import { FOOD_VARIANT_NUTRIENT_FIELDS } from '@workspace/shared';
 import type { FoodVariantNutrientField } from '@workspace/shared';
@@ -415,13 +416,19 @@ const FOOD_DERIVED_WATER_EXPR = `COALESCE(
   0
 )`;
 
-async function getFoodDerivedWaterMlForDate(userId: string, date: string) {
-  const client = await getClient(userId);
+async function getFoodDerivedWaterMlForDate(
+  userId: string,
+  date: string,
+  transactionClient?: PoolClient,
+  confirmedOnly = false
+) {
+  const client = transactionClient ?? (await getClient(userId));
   try {
     const result = await client.query(
       `SELECT COALESCE(SUM(${FOOD_DERIVED_WATER_EXPR}), 0) AS food_ml
        FROM food_entries fe
        WHERE fe.user_id = $1 AND fe.entry_date = $2
+         ${confirmedOnly ? 'AND fe.meal_plan_template_id IS NULL' : ''}
          AND NOT EXISTS (
            SELECT 1 FROM water_intake_entries wie WHERE wie.food_entry_id = fe.id
          )`,
@@ -429,7 +436,7 @@ async function getFoodDerivedWaterMlForDate(userId: string, date: string) {
     );
     return Number(result.rows[0]?.food_ml || 0);
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 

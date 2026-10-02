@@ -17,7 +17,7 @@ router.get('/', async (req, res, next) => {
       `SELECT c.id, c."clientId", COALESCE(NULLIF(o.name, ''), o."clientId") AS name,
               c.scopes, c."createdAt"
        FROM "oauthConsent" c JOIN "oauthClient" o ON o."clientId" = c."clientId"
-       WHERE c."userId" = $1 AND (c.scopes ? 'mcp:read' OR c.scopes ? 'mcp:write')
+       WHERE c."userId" = $1 AND (c.scopes ? 'mcp:read' OR c.scopes ? 'mcp:write' OR c.scopes ? 'mcp:propose')
        ORDER BY c."createdAt" DESC`,
       [req.authenticatedUserId]
     );
@@ -25,6 +25,7 @@ router.get('/', async (req, res, next) => {
       connections: result.rows.map((row: Record<string, unknown>) => ({
         id: row.id,
         name: row.name,
+        client_id: row.clientId,
         scopes: row.scopes,
         created_at: row.createdAt,
       })),
@@ -47,7 +48,7 @@ router.delete('/:id', async (req, res, next) => {
     await client.query('BEGIN');
     const consent = await client.query(
       `SELECT "clientId" FROM "oauthConsent"
-       WHERE id = $1 AND "userId" = $2 AND (scopes ? 'mcp:read' OR scopes ? 'mcp:write')
+       WHERE id = $1 AND "userId" = $2 AND (scopes ? 'mcp:read' OR scopes ? 'mcp:write' OR scopes ? 'mcp:propose')
        FOR UPDATE`,
       [id.data, req.authenticatedUserId]
     );

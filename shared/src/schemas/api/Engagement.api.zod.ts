@@ -124,3 +124,34 @@ export type EngagementReminderKindV2 = z.infer<
   typeof engagementReminderKindV2Schema
 >;
 export type EngagementStatus = z.infer<typeof engagementStatusSchema>;
+
+/** Coaching is explicit capability negotiation; v1/v2 shapes stay unchanged. */
+export const engagementReminderKindV3Schema = z.enum([
+  ...engagementReminderKindV2Schema.options,
+  "coaching_digest",
+  "coaching_action",
+]);
+export const engagementSettingsV3Schema = engagementSettingsV2Schema.extend({
+  schema_version: z.literal(3),
+});
+export const engagementDeviceV3Schema = engagementDeviceV2Schema.extend({
+  protocol_version: z.literal(3),
+  reminder_kinds: z.array(engagementReminderKindV3Schema).min(1),
+});
+export const engagementStatusV3Schema = engagementStatusSchema.extend({
+  occurrences: z.array(
+    engagementStatusSchema.shape.occurrences.element.extend({
+      kind: engagementReminderKindV3Schema,
+    }),
+  ),
+  diagnostics: z.array(
+    engagementStatusSchema.shape.diagnostics.element.extend({
+      kind: engagementReminderKindV3Schema,
+    }),
+  ),
+});
+export type EngagementDeviceV3 = z.infer<typeof engagementDeviceV3Schema>;
+export type EngagementReminderKindV3 = z.infer<
+  typeof engagementReminderKindV3Schema
+>;
+export type EngagementStatusV3 = z.infer<typeof engagementStatusV3Schema>;

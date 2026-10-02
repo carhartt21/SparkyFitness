@@ -452,3 +452,25 @@ WHERE tablename = 'table_name';
 `mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, and `mobility_operations` are Tier 1 owner-only records. Routines retain ordered step snapshots; recurring schedules materialize account-local dated plans. Session history stores explicit outcomes and provenance; missing outcomes remain unknown. Operation receipts provide replay protection and revisions protect concurrent phone/web/MCP edits. `/api/v2/mobility` does not create exercise diary entries or Apple Health workouts. Explicit history queries use the requested account-local date range and include active sessions. The default phone snapshot includes the latest 100 historical records regardless of age, preserving the existing local history window.
 
 `engagement_subject_states` stores owner-only idempotent movement-timer start hints, not health/activity records. Engagement v2 adds nullable reminder limits, schedule settings, device capability/language/ownership, and stable occurrence slots. Version 1 settings remain available to installed clients. Quiet hours, completion checks, cadence, deduplication and spacing still apply when the daily cap is unlimited.
+
+### Owner-reviewed agent recommendations
+
+| Table                         | Purpose                                                                     | Permission |
+| ----------------------------- | --------------------------------------------------------------------------- | ---------- |
+| `coaching_settings`           | Account-local schedule, selected domains, reconsidered topics               | Owner only |
+| `coaching_agents`             | Expiring/revocable owner-agent or OAuth-client binding                      | Owner only |
+| `coaching_runs`               | Coalesced review slots, bounded leases and failure metadata                 | Owner only |
+| `coaching_snapshots`          | Immutable frozen wellness projection, seven-day retention                   | Owner only |
+| `coaching_proposals`          | Impact-sorted pending/reviewed proposals and retained cited evidence        | Owner only |
+| `coaching_actions`            | Accepted commitments, canonical activation references and evidence outcomes | Owner only |
+| `coaching_events`             | Owner decisions, feedback and outcome audit trail                           | Owner only |
+| `coaching_operations`         | Request fingerprints and idempotent results                                 | Owner only |
+| `coaching_previews`           | Five-minute revision/action/reference fingerprint                           | Owner only |
+| `meal_plan_template_versions` | Immutable forward-effective meal definitions                                | Owner only |
+| `meal_plan_log_receipts`      | Exactly-once explicit consumption receipts                                  | Owner only |
+
+Schemas are exported from `shared/src/schemas/database/{Coaching,MealPlanning}.zod.ts`. `meal_plan_templates.entry_mode` defaults to legacy `prefill`; reviewed plans use `prompt`. `meal_plans` has nullable version/assignment IDs, state and an item snapshot for prompt occurrences. A plan never establishes intake. Historical diary entries and immutable versions survive future revisions. Nutrition is revalidated from the library on explicit consumption.
+
+All new tables have Tier 1 owner RLS and app-session-only review routes. Proposal credentials are bound to one owner/agent, selected domains and expiry. Raw snapshots expire after seven days and run/agent-operation metadata after 90 days; retained recommendation evidence/history is deleted by the owner. Engagement v3 adds coaching kinds and an index limiting digest attempts to one per owner/local day. See [the workflow](../developer/mcp/recommendations.md).
+
+Workout version ownership references Better Auth's public `user` table. Migration `20261001120000_workout_plan_version_owner_identity.sql` corrects the earlier reference to retired `auth.users` without changing the version contract, RLS, or retained diary records. Retention cleanup continues when coaching processing is disabled.

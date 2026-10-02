@@ -18,6 +18,7 @@ If a task also touches the server, mobile app, or `shared/`, read that package g
 - `@/*` maps to `src/`; `@workspace/shared` maps to `../shared/src/index.ts` (also in Jest via `moduleNameMapper`).
 - Dev server runs on port `8080` and proxies `/api`, `/mcp`, and `/uploads` to the backend on `3010`; `/health-data` is proxied with an `/api` prefix rewrite. Override the backend host with `VITE_BACKEND_HOST`.
 - PWA (`vite-plugin-pwa`) is enabled in production builds only.
+- `/coaching` contains owner-only recommendation review, commitments, schedules and proposal connections; prompt meals also appear in Diary/Dashboard.
 
 ## Verified Commands
 
@@ -49,6 +50,7 @@ Features are organized by domain across `src/pages/`, `src/api/`, and `src/hooks
 
 ## Source Map
 
+- `src/pages/Coaching/`, `src/hooks/Coaching/`, and `src/api/Coaching/` - scoped inbox, typed editors, mandatory before/after preview, connections and planned consumption. Editor behavior/contracts live in `@workspace/shared`.
 - `src/main.tsx` - app bootstrap; creates the shared `QueryClient` with global `QueryCache`/`MutationCache` handlers that render toasts from query/mutation `meta` (`errorTitle`, `errorMessage`, `successMessage`).
 - `src/App.tsx` - route registry via `createBrowserRouter`, plus `PrivateRoute` and `PermissionRoute` wrappers (permission-gated areas include `reports` and `admin`).
 - `src/pages/<Domain>/` - route screens by domain.
@@ -103,6 +105,7 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 
 ## Quick Routing
 
+- Recommendation or planned-meal issue: inspect `src/pages/Coaching/`, the shared coaching client/forms and `../docs/src/developer/mcp/recommendations.md`. Keep drafts, queries and mutations bound to the owner account.
 - Routing/navigation/permission issue: `src/App.tsx` (router, `PrivateRoute`, `PermissionRoute`) and `src/layouts/MainLayout.tsx`.
 - API/error-toast issue: `src/api/api.ts`, then the domain client in `src/api/<Domain>/`, then the query/mutation `meta` in the calling hook.
 - Auth/session issue: `src/lib/auth-client.ts`, `src/hooks/useAuth.tsx`, `src/pages/Auth/`, and the server's `auth.ts` if it crosses packages.
@@ -120,6 +123,10 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 
 ## Notification delivery and mobility planning
 
-Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
+Notification v1/v2 contracts and opt-in v3 coaching capabilities live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.
+
+## Reviewed MCP recommendations
+
+- `src/pages/Coaching/`, `src/hooks/Coaching/` and `src/api/Coaching/` own `/coaching`, review/edit/preview, owner schedule/credentials and explicit planned-meal consumption. Keep API/query imports in hooks; invalidate every dependent library/plan/diary family after acceptance. FDDB cards are read-only and empty imports are omitted before dashboard layout.

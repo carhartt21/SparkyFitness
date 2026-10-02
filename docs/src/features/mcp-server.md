@@ -113,17 +113,33 @@ Go to **Settings → Developer & Integrations → API Key Management** in the we
 
 ### 3. Configure Your Client
 
-**ChatGPT desktop custom MCP connection**
+**ChatGPT desktop / local Codex custom MCP connection**
 
 1. Open **Plugins → MCPs → Add** and choose **Streamable HTTP**.
 2. Name the server `x-on-track` and enter `https://<your-host>/mcp/chatgpt`.
 3. Leave **Bearer token env var** and **Headers** empty for OAuth. Save and restart the connection, then select **Authenticate/Authorize** in the server list. OAuth does not require an authentication dropdown in the add-server form.
 4. Sign in to your X on Track account and review the permissions. An existing browser session can skip the sign-in prompt.
-5. Start a new conversation and check `/mcp` for the connected server. The connection and credentials are shared with Codex clients using the same local host configuration. If needed, `codex mcp login x-on-track` starts the sign-in flow from the CLI.
+5. Start a new local Work/Codex conversation and check `/mcp` for the connected server and its tools. The connection and credentials are shared with Codex clients using the same local host configuration. If needed, `codex mcp login x-on-track` starts the sign-in flow from the CLI.
+
+This saves a server on the local Codex host; it does not publish X on Track to the Plugins Directory or install a personal plugin for hosted ChatGPT chats. ChatGPT web does not read the host's local MCP configuration. A successful browser message, “Authentication complete,” confirms authentication; verify tool availability separately in the conversation that will use the connection. Searching the plugin directory by the application name does not test a directly configured MCP connection.
 
 The server must have OAuth enabled and its discovery/authentication routes must be reachable through the public ingress. Browser login continuation and consent return a Better Auth JSON redirect (`url`), which the app follows to the next signed authorization page or the registered client callback. If an earlier attempt expired, begin a new authorization from the client instead of reusing the old browser URL. See the [official desktop MCP documentation](https://learn.chatgpt.com/docs/extend/mcp?surface=app).
 
 For an API-key connection in the same desktop form, use `https://<your-host>/mcp` and an `Authorization` header with `Bearer <MCP_READ_ONLY_KEY>`. The **Bearer token env var** field is a variable name whose value is read from the client environment; it is not a field for pasting the token. Account OAuth tokens and application API keys use separate endpoints.
+
+**Personal remote MCP plugin for hosted ChatGPT chats**
+
+Where your account or workspace offers custom remote connections:
+
+1. Open ChatGPT on the web, then **Settings → Plugins → Browse directory**. The Settings page manages installed plugins and permissions; connection creation is reached through the directory.
+2. Use the directory's available **Add / + / Create** control and create a connection named `X on Track` with MCP URL `https://<your-host>/mcp/chatgpt`.
+3. Complete account authorization and review the tools discovered from the server.
+4. Find the new connection under **Personal** plugins and install it with the plus button.
+5. Start a new **Work** chat and select the personal plugin using the available tools menu or mention picker. Ask it to read today's nutrition summary and confirm that it calls a server tool.
+
+Public directory publication is not required for this personal connection. Account/workspace permissions can affect availability. Follow the [official personal-plugin quickstart](https://developers.openai.com/plugins/quickstart) and [connection testing guide](https://developers.openai.com/plugins/deploy/connect-chatgpt). If a chat has no tools from the connection, a prompt naming X on Track cannot grant access; check the connection's installation, authentication and availability in that chat.
+
+Some official guides first require **Settings → Security and login → Developer mode**. Follow that step if your connection UI requires it. The owner's personal Pro account showed no Developer mode switch, but the hosted connection worked after opening **Browse directory**. A missing switch alone therefore does not establish that custom connections are unavailable. The [official Developer mode guide](https://developers.openai.com/api/docs/guides/developer-mode) lists Pro, Plus, Business, Enterprise and Education as eligible; account/workspace policies and visible setup controls can differ. If the directory offers no creation control, inspect the actual UI and account availability rather than changing the X on Track server.
 
 After a server update changes tool descriptions or schemas, use the connection's **Refresh** action in ChatGPT Plugins, where available, then start a new conversation and retry the affected tool. A successful authorization does not establish that the chat has refreshed tool metadata. See the [official connection testing and metadata refresh guide](https://developers.openai.com/plugins/deploy/connect-chatgpt).
 
@@ -174,3 +190,7 @@ _Note: for a local-dev server over plain HTTP, add `--allow-http` to the args an
     - Auth: Bearer
     - API Key: The API key from above
 4.  Save the options and refresh the web page. You can enable it on new chats through the Integration option.
+
+## Scheduled proposals with owner review
+
+For an external agent that periodically reads data and feeds back proposals for in-app review, use **Recommendations**, an `mcp-agent` key or explicit OAuth `mcp:propose` consent. This is separate from the direct-write tools above. See [Agent recommendations](./agent-recommendations.md) and [runner/tool setup](../developer/mcp/recommendations.md). ChatGPT/Codex connection alone does not schedule runs; the reference Mac runner uses saved Codex ChatGPT authentication and polls the server schedule.

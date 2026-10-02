@@ -1,3 +1,4 @@
+import PlannedMealsCard from '../components/coaching/PlannedMealsCard';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -292,7 +293,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     (date: string) => setSelectedDate(date),
     [setSelectedDate]
   );
-  const { mealTypes } = useMealTypes();
+  const { mealTypes } = useMealTypes({ includeReadOnly: true });
   const openMealTypeDetail = useCallback(
     (mealTypeId: string | null, mealTypeName: string, entries: FoodEntry[]) => {
       // Resolve the label from the canonical definition (ownership-aware); for
@@ -790,6 +791,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           />
         }
       >
+        <PlannedMealsCard day={selectedDate} />
         {(summary.foodEntries.length > 0 ||
           pendingPhotoDiaryEntries.length > 0 ||
           hasSupplementNutrition(summary.supplementTotals) ||
