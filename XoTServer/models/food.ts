@@ -54,6 +54,7 @@ export interface FoodInput extends NutrientFields {
   serving_size?: NutrientValue;
   serving_unit?: string | null;
   source?: string | null;
+  provider_dataset_sha256?: string | null;
   ai_confidence?: string | null;
   allergens?: string[] | null;
   traces?: string[] | null;
@@ -91,6 +92,7 @@ const DEFAULT_VARIANT_JSON_SQL = `
     'custom_nutrients', fv.custom_nutrients,
     'user_id', f.user_id,
     'source', fv.source,
+    'provider_dataset_sha256', fv.provider_dataset_sha256,
     'ai_confidence', fv.ai_confidence,
     'allergens', fv.allergens,
     'traces', fv.traces
@@ -269,8 +271,8 @@ async function createFoodWithClient(client: PoolClient, foodData: FoodInput) {
         saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat,
         cholesterol, sodium, potassium, dietary_fiber, sugars,
         vitamin_a, vitamin_c, calcium, iron, caffeine_mg, water_ml, alcohol_g, abv_percent, is_default, glycemic_index, custom_nutrients,
-        source, ai_confidence, allergens, traces, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, TRUE, $25, $26, $27, $28, $29, $30, now(), now()) RETURNING id`,
+        source, ai_confidence, allergens, traces, provider_dataset_sha256, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, TRUE, $25, $26, $27, $28, $29, $30, $31, now(), now()) RETURNING id`,
     [
       newFood.id,
       sanitizeNumeric(foodData.serving_size),
@@ -302,6 +304,7 @@ async function createFoodWithClient(client: PoolClient, foodData: FoodInput) {
       foodData.ai_confidence ?? null,
       foodData.allergens ?? null,
       foodData.traces ?? null,
+      foodData.provider_dataset_sha256 ?? null,
     ]
   );
   const newVariantId = variantResult.rows[0].id;
@@ -346,6 +349,7 @@ function buildDefaultVariantEcho(
     is_default: true,
     user_id: newFood.user_id,
     source: foodData.source ?? 'manual',
+    provider_dataset_sha256: foodData.provider_dataset_sha256 ?? null,
     ai_confidence: foodData.ai_confidence ?? null,
     custom_nutrients: foodData.custom_nutrients ?? {},
     allergens: foodData.allergens ?? null,
@@ -1419,6 +1423,7 @@ async function createFoodsInBulk(
             // but blank cell parses to 0 on the way in, which is not null and
             // so still overwrites -- clearing a value on purpose keeps working.
             `UPDATE food_variants SET
+                provider_dataset_sha256 = NULL,
                 is_default = $2,
                 calories = COALESCE($3, calories),
                 protein = COALESCE($4, protein),
@@ -1665,9 +1670,10 @@ async function findVisibleFoodByName(
 async function findFoodByProviderExternalId(
   userId: string,
   providerExternalId: string,
-  providerType: string
+  providerType: string,
+  transactionClient?: PoolClient
 ) {
-  const client = await getClient(userId);
+  const client = transactionClient ?? (await getClient(userId));
   try {
     const result = await client.query(
       // Deliberately NOT filtered by is_quick_food, unlike the discovery
@@ -1688,16 +1694,17 @@ async function findFoodByProviderExternalId(
     );
     return result.rows[0] || null;
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 
 async function updateFoodVariantNutrition(
   variantId: string,
   userId: string,
-  nutritionData: FoodVariantInput
+  nutritionData: FoodVariantInput,
+  transactionClient?: PoolClient
 ) {
-  const client = await getClient(userId);
+  const client = transactionClient ?? (await getClient(userId));
   try {
     // custom_nutrients is optional and COALESCE-guarded so existing callers
     // (e.g. health-data ingest) that omit it keep the stored value untouched.
@@ -1758,7 +1765,7 @@ async function updateFoodVariantNutrition(
       ]
     );
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 

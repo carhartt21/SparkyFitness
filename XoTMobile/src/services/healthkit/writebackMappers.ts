@@ -1,4 +1,10 @@
-import { isEntryTimeString } from '@workspace/shared';
+import { MICRONUTRIENT_SYNC_ENABLED } from '../shared/micronutrientFeature';
+import { micronutrientWriteback } from '../shared/micronutrientWriteback';
+import type { UserCustomNutrient } from '../api/customNutrientsApi';
+import {
+  isEntryTimeString,
+  NATIVE_MICRONUTRIENT_MAPPINGS,
+} from '@workspace/shared';
 import type {
   QuantitySampleForSaving,
   QuantityTypeIdentifierWriteable,
@@ -92,6 +98,23 @@ export const DIETARY_HK_MAP: Record<
 export const DIETARY_WRITE_IDENTIFIERS: QuantityTypeIdentifierWriteable[] = [
   DIETARY_ENERGY_IDENTIFIER,
   ...Object.values(DIETARY_HK_MAP).map((m) => m.identifier),
+  ...(MICRONUTRIENT_SYNC_ENABLED ? NATIVE_MICRONUTRIENT_MAPPINGS : [])
+    .filter(
+      (mapping) =>
+        !Object.values(DIETARY_HK_MAP).some(
+          (value) => value.identifier === mapping.healthKitIdentifier
+        )
+    )
+    .map((mapping) => mapping.healthKitIdentifier),
+];
+
+export const DIETARY_READ_IDENTIFIERS: QuantityTypeIdentifierWriteable[] = [
+  ...new Set([
+    ...DIETARY_WRITE_IDENTIFIERS,
+    ...(MICRONUTRIENT_SYNC_ENABLED ? NATIVE_MICRONUTRIENT_MAPPINGS : []).map(
+      (mapping) => mapping.healthKitIdentifier
+    ),
+  ]),
 ];
 
 // Default meal start times when an entry does not have a recorded entry_time.
@@ -185,7 +208,8 @@ export interface WaterSampleDescriptor {
  */
 export const foodEntryToNutrientSamples = (
   entry: FoodEntry,
-  now: Date = new Date()
+  now: Date = new Date(),
+  definitions: readonly UserCustomNutrient[] = []
 ): NutrientSampleDescriptor | null => {
   if (!entry.serving_size) return null; // 0 / null / undefined — can't scale
 
@@ -199,14 +223,19 @@ export const foodEntryToNutrientSamples = (
   const pushSample = (
     identifier: QuantityTypeIdentifierWriteable,
     unit: string,
-    value: number | undefined
+    value: number | undefined,
+    preservePrecision = false
   ): void => {
-    // Zero/absent values are omitted, not written as 0.
-    if (value != null && value > 0) {
+    // Explicit custom micronutrient zero is observed; legacy empty fields stay omitted.
+    if (
+      value != null &&
+      Number.isFinite(value) &&
+      (value > 0 || (preservePrecision && value === 0))
+    ) {
       samples.push({
         quantityType: identifier,
         unit,
-        quantity: tidyNumber(value),
+        quantity: preservePrecision ? value : tidyNumber(value),
         startDate: start,
         endDate: end,
       });
@@ -230,6 +259,10 @@ export const foodEntryToNutrientSamples = (
       entry.serving_size
     );
     pushSample(mapped.identifier, mapped.unit, value);
+  }
+
+  for (const quantity of micronutrientWriteback(entry, definitions)) {
+    pushSample(quantity.healthKitIdentifier, 'g', quantity.amount, true);
   }
 
   if (samples.length === 0) return null; // nothing positive to write

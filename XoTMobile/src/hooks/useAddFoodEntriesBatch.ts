@@ -1,3 +1,4 @@
+import { invalidateNutritionCaches } from './invalidateNutritionCaches';
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
@@ -163,6 +164,7 @@ export function useAddFoodEntriesBatch() {
 
         // Invalidate even with zero confirmed successes: an unknown outcome
         // (timeout/network/5xx) may still have committed server-side.
+        invalidateNutritionCaches(queryClient);
         if (date) {
           queryClient.invalidateQueries({
             queryKey: dailySummaryQueryKey(date),

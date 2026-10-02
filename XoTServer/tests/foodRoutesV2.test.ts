@@ -262,9 +262,8 @@ describe('GET /v2/foods/search/:providerType', () => {
 
   it('matches provider_nutrients into custom_nutrients and surfaces provider_nutrients', async () => {
     vi.mocked(customNutrientService.getCustomNutrients).mockResolvedValueOnce([
-      { name: 'Magnesium', aliases: ['Magnesium, Mg'] },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    ] as any);
+      { name: 'Magnesium', unit: 'mg', aliases: ['Magnesium, Mg'] },
+    ]);
     vi.mocked(searchProviderFoods).mockResolvedValue({
       foods: [
         {
@@ -286,6 +285,7 @@ describe('GET /v2/foods/search/:providerType', () => {
             is_default: true,
             custom_nutrients: null,
             provider_nutrients: { 'Magnesium, Mg': 18, Sodium: 600 },
+            provider_nutrient_units: { 'Magnesium, Mg': 'mg', Sodium: 'mg' },
           },
           variants: null,
         },

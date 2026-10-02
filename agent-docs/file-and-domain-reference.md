@@ -192,3 +192,7 @@ measured expenditure down.
 ## How AI Tools Use This
 
 Grep the feature name in this doc to narrow to the right package folders, then grep the same name inside those folders to open the actual files. The naming is intentionally **not** uniform, so confirm against the filesystem rather than assuming a `<feature>Service.ts` / `<feature>Repository.ts` file exists.
+
+### Micronutrient source coverage
+
+Shared `nutrients/blsComponentManifest.ts`, `nativeMicronutrientMappings.ts`, `catalogUnitConversion.ts` and `nutrientCoverage.ts` define source eligibility, units and coverage. Server `services/nutrientObservationService.ts` owns transactional binding; `models/nutrientCoverageRepository.ts` backs `/api/reports/nutrient-coverage`; `scripts/repair_bls_micronutrients.ts` is the bounded dry-run repair entrypoint. Web Reports and mobile `components/MicronutrientCoverage.tsx` use separate coverage API contracts. See `docs/implementation/micronutrient-coverage-rollout-2026-10-01.md` for historical replay and device gates.

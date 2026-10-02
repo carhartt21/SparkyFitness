@@ -57,6 +57,13 @@ export interface MicronutrientCatalogEntry {
 }
 
 export const MICRONUTRIENT_CATALOG: MicronutrientCatalogEntry[] = [
+  {
+    id: "chloride",
+    displayName: "Chloride",
+    unit: "mg",
+    rdi: null,
+    aliases: ["Chloride", "Chlorid"],
+  },
   // --- Fat-soluble vitamins ---
   {
     id: "vitamin_a",
@@ -410,7 +417,12 @@ export const MICRONUTRIENT_CATALOG: MicronutrientCatalogEntry[] = [
     displayName: "Caffeine",
     unit: "mg",
     rdi: null,
-    aliases: ["Caffeine", "Caffeine anhydrous", "Coffee caffeine", "caffeine_100g"],
+    aliases: [
+      "Caffeine",
+      "Caffeine anhydrous",
+      "Coffee caffeine",
+      "caffeine_100g",
+    ],
     // Already a first-class food_variants column (#1958): registering it here
     // with fixedField prevents a divergent user-created "Caffeine" custom
     // nutrient from shadowing the column, and feeds provider alias matching

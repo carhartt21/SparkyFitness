@@ -1,3 +1,4 @@
+import { DIETARY_READ_IDENTIFIERS } from './writebackMappers';
 import {
   enableBackgroundDelivery,
   disableBackgroundDelivery,
@@ -116,14 +117,10 @@ function resolveHKIdentifiers(recordType: string): string[] {
     ].filter(Boolean);
   }
 
-  // Nutrition has no single observable HK type — HEALTHKIT_TYPE_MAP['Nutrition'] is the
-  // writeback sentinel 'Nutrition', not a real type the native call would accept. Observe
-  // DietaryEnergyConsumed as a best-effort trigger: most foods include energy, so a new
-  // food typically trips it promptly. This is an optimization, NOT correctness — macro-only
-  // foods with no energy won't fire it and are instead caught by the daily delivery and the
-  // next foreground/manual sync (which use Nutrition's rolling lookback window).
+  // Observe every supported dietary quantity so micronutrient-only samples also
+  // schedule a sync. Read failures remain partial observations.
   if (recordType === 'Nutrition') {
-    return ['HKQuantityTypeIdentifierDietaryEnergyConsumed'];
+    return DIETARY_READ_IDENTIFIERS;
   }
 
   const identifier = HEALTHKIT_TYPE_MAP[recordType];

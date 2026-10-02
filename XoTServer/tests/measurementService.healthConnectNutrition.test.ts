@@ -25,27 +25,40 @@ vi.mock('../models/foodRepository', () => ({
   default: {
     findFoodByProviderExternalId: vi.fn(),
     updateFoodVariantNutrition: vi.fn(),
-    createFood: vi.fn(),
+    createFoodWithClient: vi.fn(),
     createFoodEntry: vi.fn(),
   },
+}));
+
+const { nutritionQuery, nutritionRelease } = vi.hoisted(() => ({
+  nutritionQuery: vi.fn(),
+  nutritionRelease: vi.fn(),
+}));
+vi.mock('../db/poolManager.js', () => ({
+  getClient: vi.fn(async () => ({
+    query: nutritionQuery,
+    release: nutritionRelease,
+  })),
+  getSystemClient: vi.fn(),
 }));
 
 describe('processHealthData Nutrition ingestion', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    nutritionQuery.mockResolvedValue({ rows: [] });
     // Sensible defaults so no awaited mock resolves to undefined; individual
     // tests override as needed. Default: no existing food (create path).
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue(
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue(
       null
     );
-    (foodRepository.updateFoodVariantNutrition as any).mockResolvedValue(
+    vi.mocked(foodRepository.updateFoodVariantNutrition).mockResolvedValue(
       undefined
     );
-    (foodRepository.createFood as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodWithClient).mockResolvedValue({
       id: 'food-default',
       default_variant_id: 'variant-default',
     });
-    (foodRepository.createFoodEntry as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodEntry).mockResolvedValue({
       id: 'entry-default',
     });
   });
@@ -69,14 +82,14 @@ describe('processHealthData Nutrition ingestion', () => {
   };
 
   it('creates a provider food + entry when no food matches by external id', async () => {
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue(
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue(
       null
     );
-    (foodRepository.createFood as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodWithClient).mockResolvedValue({
       id: 'food-1',
       default_variant_id: 'variant-1',
     });
-    (foodRepository.createFoodEntry as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodEntry).mockResolvedValue({
       id: 'entry-1',
     });
 
@@ -89,9 +102,10 @@ describe('processHealthData Nutrition ingestion', () => {
     expect(result).toBeDefined();
     // The food is tagged with the Health Connect provider so it is reused by
     // external id next time (and never matches a user-authored library food).
-    expect(foodRepository.createFood).toHaveBeenCalledTimes(1);
+    expect(foodRepository.createFoodWithClient).toHaveBeenCalledTimes(1);
     expect(foodRepository.updateFoodVariantNutrition).not.toHaveBeenCalled();
-    const createFoodArg = (foodRepository.createFood as any).mock.calls[0][0];
+    const createFoodArg = vi.mocked(foodRepository.createFoodWithClient).mock
+      .calls[0]![1];
     expect(createFoodArg).toMatchObject({
       name: 'Protein Strawberry pack',
       user_id: 'user-1',
@@ -108,7 +122,7 @@ describe('processHealthData Nutrition ingestion', () => {
     // The entry references the new food/variant, carries the source key for
     // idempotent upsert, and snapshots the consumed nutrients directly.
     expect(foodRepository.createFoodEntry).toHaveBeenCalledTimes(1);
-    const [entryData, actingUserId] = (foodRepository.createFoodEntry as any)
+    const [entryData, actingUserId] = vi.mocked(foodRepository.createFoodEntry)
       .mock.calls[0];
     expect(entryData).toMatchObject({
       user_id: 'user-1',
@@ -126,11 +140,11 @@ describe('processHealthData Nutrition ingestion', () => {
   });
 
   it('reuses an existing provider food and refreshes its variant nutrition', async () => {
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue({
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue({
       id: 'food-existing',
       default_variant_id: 'variant-existing',
     });
-    (foodRepository.createFoodEntry as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodEntry).mockResolvedValue({
       id: 'entry-2',
     });
 
@@ -141,10 +155,10 @@ describe('processHealthData Nutrition ingestion', () => {
     );
 
     // No new food; the existing variant is refreshed to the latest values.
-    expect(foodRepository.createFood).not.toHaveBeenCalled();
+    expect(foodRepository.createFoodWithClient).not.toHaveBeenCalled();
     expect(foodRepository.updateFoodVariantNutrition).toHaveBeenCalledTimes(1);
-    const [variantId, , nutrition] = (
-      foodRepository.updateFoodVariantNutrition as any
+    const [variantId, , nutrition] = vi.mocked(
+      foodRepository.updateFoodVariantNutrition
     ).mock.calls[0];
     expect(variantId).toBe('variant-existing');
     expect(nutrition).toMatchObject({
@@ -153,7 +167,8 @@ describe('processHealthData Nutrition ingestion', () => {
       sodium: 220,
     });
 
-    const entryData = (foodRepository.createFoodEntry as any).mock.calls[0][0];
+    const entryData = vi.mocked(foodRepository.createFoodEntry).mock
+      .calls[0][0];
     expect(entryData).toMatchObject({
       food_id: 'food-existing',
       variant_id: 'variant-existing',
@@ -162,7 +177,7 @@ describe('processHealthData Nutrition ingestion', () => {
   });
 
   it('snapshots consumed nutrients onto the entry so equal-named records do not collapse', async () => {
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue({
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue({
       id: 'food-banana',
       default_variant_id: 'variant-banana',
     });
@@ -183,14 +198,14 @@ describe('processHealthData Nutrition ingestion', () => {
     );
 
     // Each entry carries its own calories — they are not flattened to one value.
-    const calls = (foodRepository.createFoodEntry as any).mock.calls;
+    const calls = vi.mocked(foodRepository.createFoodEntry).mock.calls;
     expect(calls).toHaveLength(2);
     expect(calls[0][0]).toMatchObject({ source_id: 'hc-a', calories: 105 });
     expect(calls[1][0]).toMatchObject({ source_id: 'hc-b', calories: 60 });
   });
 
   it('gives each nameless record its own food keyed by source_id (no collapse)', async () => {
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue(
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue(
       null
     );
 
@@ -211,19 +226,20 @@ describe('processHealthData Nutrition ingestion', () => {
 
     // Each is looked up + created under its own source_id, not a shared
     // 'Health Connect food' row, and both are hidden quick foods.
-    const createCalls = (foodRepository.createFood as any).mock.calls;
+    const createCalls = vi.mocked(foodRepository.createFoodWithClient).mock
+      .calls;
     expect(createCalls).toHaveLength(2);
-    expect(createCalls[0][0]).toMatchObject({
+    expect(createCalls[0]![1]).toMatchObject({
       name: 'Health Connect food',
       provider_external_id: 'hc-x',
       is_quick_food: true,
     });
-    expect(createCalls[1][0]).toMatchObject({
+    expect(createCalls[1]![1]).toMatchObject({
       name: 'Health Connect food',
       provider_external_id: 'hc-y',
       is_quick_food: true,
     });
-    const lookups = (foodRepository.findFoodByProviderExternalId as any).mock
+    const lookups = vi.mocked(foodRepository.findFoodByProviderExternalId).mock
       .calls;
     expect(lookups[0][1]).toBe('hc-x');
     expect(lookups[1][1]).toBe('hc-y');
@@ -237,7 +253,7 @@ describe('processHealthData Nutrition ingestion', () => {
     );
 
     expect(foodRepository.findFoodByProviderExternalId).not.toHaveBeenCalled();
-    expect(foodRepository.createFood).not.toHaveBeenCalled();
+    expect(foodRepository.createFoodWithClient).not.toHaveBeenCalled();
     expect(foodRepository.createFoodEntry).not.toHaveBeenCalled();
     // The skip is surfaced to callers instead of vanishing from the response.
     expect(result.processed).toHaveLength(0);
@@ -254,7 +270,7 @@ describe('processHealthData Nutrition ingestion', () => {
     );
 
     expect(foodRepository.findFoodByProviderExternalId).not.toHaveBeenCalled();
-    expect(foodRepository.createFood).not.toHaveBeenCalled();
+    expect(foodRepository.createFoodWithClient).not.toHaveBeenCalled();
     expect(foodRepository.createFoodEntry).not.toHaveBeenCalled();
   });
 
@@ -270,27 +286,28 @@ describe('processHealthData Nutrition ingestion', () => {
       protein: 25,
     };
 
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue(
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue(
       null
     );
-    (foodRepository.createFood as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodWithClient).mockResolvedValue({
       id: 'food-hk-1',
       default_variant_id: 'variant-hk-1',
     });
-    (foodRepository.createFoodEntry as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodEntry).mockResolvedValue({
       id: 'entry-hk-1',
     });
 
     await measurementService.processHealthData([hkRecord], 'user-1', 'user-1');
 
     // Lookup uses the healthkit provider tag, not health_connect.
-    const [, , lookupProviderType] = (
-      foodRepository.findFoodByProviderExternalId as any
+    const [, , lookupProviderType] = vi.mocked(
+      foodRepository.findFoodByProviderExternalId
     ).mock.calls[0];
     expect(lookupProviderType).toBe('healthkit');
 
     // Created food is tagged healthkit; nameless record uses 'Apple Health food'.
-    const createFoodArg = (foodRepository.createFood as any).mock.calls[0][0];
+    const createFoodArg = vi.mocked(foodRepository.createFoodWithClient).mock
+      .calls[0]![1];
     expect(createFoodArg).toMatchObject({
       name: 'Apple Health food',
       provider_type: 'healthkit',
@@ -299,7 +316,7 @@ describe('processHealthData Nutrition ingestion', () => {
     });
 
     // Diary entry source is the healthkit provider tag.
-    const entryArg = (foodRepository.createFoodEntry as any).mock.calls[0][0];
+    const entryArg = vi.mocked(foodRepository.createFoodEntry).mock.calls[0][0];
     expect(entryArg).toMatchObject({
       source: 'healthkit',
       source_id: 'hk-corr-uuid-1',
@@ -317,31 +334,32 @@ describe('processHealthData Nutrition ingestion', () => {
       food_name: 'Oats',
     };
 
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue(
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue(
       null
     );
-    (foodRepository.createFood as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodWithClient).mockResolvedValue({
       id: 'food-hc-r',
       default_variant_id: 'variant-hc-r',
     });
-    (foodRepository.createFoodEntry as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodEntry).mockResolvedValue({
       id: 'entry-hc-r',
     });
 
     await measurementService.processHealthData([hcRecord], 'user-1', 'user-1');
 
-    const [, , lookupProviderType] = (
-      foodRepository.findFoodByProviderExternalId as any
+    const [, , lookupProviderType] = vi.mocked(
+      foodRepository.findFoodByProviderExternalId
     ).mock.calls[0];
     expect(lookupProviderType).toBe('health_connect');
 
-    const createFoodArg = (foodRepository.createFood as any).mock.calls[0][0];
+    const createFoodArg = vi.mocked(foodRepository.createFoodWithClient).mock
+      .calls[0]![1];
     expect(createFoodArg).toMatchObject({
       name: 'Oats',
       provider_type: 'health_connect',
     });
 
-    const entryArg = (foodRepository.createFoodEntry as any).mock.calls[0][0];
+    const entryArg = vi.mocked(foodRepository.createFoodEntry).mock.calls[0][0];
     expect(entryArg).toMatchObject({
       source: 'health_connect',
       source_id: 'hc-regression-1',
@@ -358,14 +376,14 @@ describe('processHealthData Nutrition ingestion', () => {
       calories: 50,
     };
 
-    (foodRepository.findFoodByProviderExternalId as any).mockResolvedValue(
+    vi.mocked(foodRepository.findFoodByProviderExternalId).mockResolvedValue(
       null
     );
-    (foodRepository.createFood as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodWithClient).mockResolvedValue({
       id: 'food-unk',
       default_variant_id: 'variant-unk',
     });
-    (foodRepository.createFoodEntry as any).mockResolvedValue({
+    vi.mocked(foodRepository.createFoodEntry).mockResolvedValue({
       id: 'entry-unk',
     });
 
@@ -375,18 +393,19 @@ describe('processHealthData Nutrition ingestion', () => {
       'user-1'
     );
 
-    const [, , lookupProviderType] = (
-      foodRepository.findFoodByProviderExternalId as any
+    const [, , lookupProviderType] = vi.mocked(
+      foodRepository.findFoodByProviderExternalId
     ).mock.calls[0];
     expect(lookupProviderType).toBe('health_connect');
 
-    const createFoodArg = (foodRepository.createFood as any).mock.calls[0][0];
+    const createFoodArg = vi.mocked(foodRepository.createFoodWithClient).mock
+      .calls[0]![1];
     expect(createFoodArg).toMatchObject({
       name: 'Health Connect food',
       provider_type: 'health_connect',
     });
 
-    const entryArg = (foodRepository.createFoodEntry as any).mock.calls[0][0];
+    const entryArg = vi.mocked(foodRepository.createFoodEntry).mock.calls[0][0];
     expect(entryArg).toMatchObject({
       source: 'health_connect',
     });

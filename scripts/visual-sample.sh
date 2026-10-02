@@ -5,9 +5,9 @@ repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 state_dir="$repo_dir/.visual-sample"
 db_dir="$state_dir/postgres"
 env_file="$state_dir/config.env"
-db_port=${XOT_VISUAL_DB_PORT:-55432}
-server_port=${XOT_VISUAL_SERVER_PORT:-3010}
-frontend_port=${XOT_VISUAL_FRONTEND_PORT:-8080}
+db_port="${XOT_VISUAL_DB_PORT:-${VISUAL_SAMPLE_DB_PORT:-55432}}"
+server_port="${XOT_VISUAL_SERVER_PORT:-${VISUAL_SAMPLE_SERVER_PORT:-3010}}"
+frontend_port="${XOT_VISUAL_FRONTEND_PORT:-${VISUAL_SAMPLE_FRONTEND_PORT:-8080}}"
 
 require_command() {
   command -v "$1" >/dev/null 2>&1 || {

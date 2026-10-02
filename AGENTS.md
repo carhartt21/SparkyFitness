@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-09-30_
+_Last updated: 2026-10-01_
 
 This is the repo-root monorepo guide for X on Track. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -77,7 +77,7 @@ Cheap ways to learn things:
 - Prefer the shared timezone helpers from `@workspace/shared` and `XoTServer/utils/timezoneLoader.ts` for day-string logic. Avoid `toISOString().split('T')[0]` for user-facing or business-logic dates.
 - Keep `YYYY-MM-DD` values as calendar-day strings until you reach a database or external API boundary that needs UTC instants.
 - Auth or API contract changes usually need a quick check in both web and mobile because they share the same backend.
-- Frontend local dev runs on `8080` and proxies `/api`, `/mcp`, and `/uploads` to the server on `3010`. Its `/health-data` proxy rewrites to `/api/health-data`; server APIs remain rooted at `/api`. `VITE_BACKEND_HOST` changes the backend host.
+- Frontend local dev runs on `8080` and proxies `/api`, `/mcp`, and `/uploads` to the server on `3010`. Its `/health-data` proxy rewrites to `/api/health-data`; server APIs remain rooted at `/api`. `VITE_BACKEND_HOST` changes the backend host; `VITE_BACKEND_PORT` selects an isolated server port (default `3010`).
 - Server runtime secrets are usually sourced from repo-root `.env`, commonly created from `docker/.env.example`. The server can also load secret files via `XoTServer/utils/secretLoader.ts`.
 - Keep `.env`, `.localenv`, `private/`, signing credentials, and `.visual-sample/` out of git and deployment artifacts. Never copy a live secret into a test fixture or documentation.
 - Extract shared logic on the **second** duplication ("rule of two"), not the third - duplicated logic drifts as different sessions edit each copy. Extract _behavior_, not coincidental shape. See `agent-docs/anti-patterns.md`.

@@ -15,7 +15,7 @@ import {
 } from '@/api/keys/diary';
 import { checkInKeys, sleepKeys } from '@/api/keys/checkin';
 import { chatbotKeys } from '@/api/keys/ai';
-import { foodKeys, mealKeys } from '@/api/keys/meals';
+import { foodKeys, mealKeys, customNutrientsKeys } from '@/api/keys/meals';
 import { userAiConfigKeys } from '@/api/keys/admin';
 import { goalKeys } from '@/api/keys/goals';
 import { reportKeys } from '@/api/keys/reports';
@@ -59,6 +59,9 @@ export const useFoodEntryInvalidation = () => {
   const queryClient = useQueryClient();
 
   return useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: customNutrientsKeys.all });
+    queryClient.invalidateQueries({ queryKey: ['preferences', 'nutrients'] });
+    queryClient.invalidateQueries({ queryKey: goalKeys.all });
     queryClient.invalidateQueries({ queryKey: foodEntryMealKeys.all });
     queryClient.invalidateQueries({ queryKey: foodEntryKeys.all });
     queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });

@@ -1,3 +1,7 @@
+import type { PoolClient } from 'pg';
+import { getClient } from '../db/poolManager.js';
+import { getBlsFoodDetails } from '../integrations/bls/blsFoodService.js';
+import { resolveNutrientQuantities } from './nutrientObservationService.js';
 import foodRepository from '../models/foodRepository.js';
 import preferenceService from './preferenceService.js';
 import externalProviderService from './externalProviderService.js';
@@ -205,7 +209,16 @@ function deriveAlcoholGramsIfMissing<
 
 async function createFood(authenticatedUserId: string, foodData: FoodInput) {
   try {
-    if (foodData.barcode) {
+    if (foodData.provider_type === 'bls4' && !foodData.provider_external_id)
+      throw Object.assign(new Error('A BLS source code is required'), {
+        status: 400,
+      });
+    if (foodData.provider_type === 'bls4' && foodData.shared_with_public)
+      throw Object.assign(
+        new Error('Catalog-bound imports must remain private'),
+        { status: 400 }
+      );
+    if (foodData.barcode && foodData.provider_type !== 'bls4') {
       const existingFood = await foodRepository.findFoodByBarcode(
         foodData.barcode,
         authenticatedUserId
@@ -234,7 +247,69 @@ async function createFood(authenticatedUserId: string, foodData: FoodInput) {
         );
       }
     }
-    const processedFoodData = deriveAlcoholGramsIfMissing(foodData);
+    if (foodData.provider_type === 'bls4' && foodData.provider_external_id) {
+      if (foodData.shared_with_public)
+        throw Object.assign(
+          new Error('Catalog-bound imports must remain private'),
+          { status: 400 }
+        );
+      const source = await getBlsFoodDetails(
+        authenticatedUserId,
+        foodData.provider_external_id
+      );
+      if (!source)
+        throw Object.assign(new Error('BLS food unavailable'), { status: 404 });
+      const client: PoolClient = await getClient(
+        authenticatedUserId,
+        authenticatedUserId
+      );
+      try {
+        await client.query('BEGIN');
+        const resolved = await resolveNutrientQuantities(
+          client,
+          authenticatedUserId,
+          process.env.MICRONUTRIENT_IMPORT_ENABLED === 'false'
+            ? []
+            : (source.default_variant.nutrient_quantities ?? [])
+        );
+        const variant = {
+          ...source.default_variant,
+          ...resolved.fixed,
+          custom_nutrients: resolved.custom,
+        };
+        const created = await foodRepository.createFoodWithClient(client, {
+          name: foodData.name,
+          brand: source.brand,
+          provider_type: 'bls4',
+          provider_external_id: foodData.provider_external_id,
+          provider_verified: true,
+          is_custom: false,
+          is_quick_food: foodData.is_quick_food,
+          images: foodData.images,
+          ...variant,
+          user_id: authenticatedUserId,
+          shared_with_public: false,
+        });
+        await client.query('COMMIT');
+        log('info', 'BLS micronutrient import completed', {
+          mapped: source.default_variant.nutrient_quantities?.length ?? 0,
+          persisted:
+            Object.keys(resolved.custom).length +
+            Object.keys(resolved.fixed).length,
+          ...source.default_variant.provider_nutrient_diagnostics,
+        });
+        return created;
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    }
+    const processedFoodData = deriveAlcoholGramsIfMissing({
+      ...foodData,
+      provider_dataset_sha256: null,
+    });
     const newFood = await foodRepository.createFood({
       ...processedFoodData,
       glycemic_index: processedFoodData.glycemic_index || null,

@@ -1,3 +1,6 @@
+jest.mock('../../src/hooks/useNutrientCoverage', () => ({
+  useNutrientCoverage: () => ({ data: {}, isPending: false, isError: false }),
+}));
 import { render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DailyNutritionDetailsScreen from '../../src/screens/DailyNutritionDetailsScreen';

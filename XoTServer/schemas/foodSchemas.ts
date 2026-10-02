@@ -1,3 +1,4 @@
+import { healthNutrientQuantitySchema } from '@workspace/shared';
 import { z } from 'zod/v4';
 
 // Providers use primary language codes (de, en, ...), not regional locales.
@@ -49,6 +50,30 @@ export const FoodVariantSchema = z.object({
   // provider's EXACT label (e.g. "Magnesium, Mg"). Surfaced to the client so
   // users can see what a provider calls each nutrient and add it as a custom
   // nutrient alias. Transient/import-only; never persisted.
+  nutrient_quantities: z.array(healthNutrientQuantitySchema).max(27).optional(),
+  provider_nutrient_diagnostics: z
+    .object({
+      qualified: z.number().int().nonnegative(),
+      blocked: z.number().int().nonnegative(),
+      unsupported: z.number().int().nonnegative(),
+      conversionFailed: z.number().int().nonnegative(),
+    })
+    .optional(),
+  provider_components: z
+    .array(
+      z.object({
+        code: z.string(),
+        label: z.string(),
+        unit: z.string(),
+        status: z.enum(['supported', 'blocked', 'out_of_scope']),
+        value: z.number().finite().optional(),
+        qualifier: z.string().optional(),
+      })
+    )
+    .max(138)
+    .optional(),
+  provider_dataset_sha256: z.string().nullable().optional(),
+  provider_nutrient_qualifiers: z.record(z.string(), z.string()).optional(),
   provider_nutrients: z.record(z.string(), z.number()).optional(),
   // Unit per provider field (same label keys as provider_nutrients), for
   // providers that report units (USDA, OFF). Used to prefill a custom

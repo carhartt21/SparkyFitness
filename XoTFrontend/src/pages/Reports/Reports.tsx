@@ -1,3 +1,4 @@
+import MicronutrientCoverage from './MicronutrientCoverage';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FastingReport } from '@/pages/Reports/FastingReport';
@@ -219,6 +220,11 @@ const Reports = () => {
                 goals={goalData}
               />
             </ChartErrorBoundary>
+            <MicronutrientCoverage
+              startDate={startDate}
+              endDate={endDate}
+              userId={activeUserId}
+            />
             <div className="grid gap-6 xl:grid-cols-2">
               <ChartErrorBoundary>
                 <HydrationTrendChart

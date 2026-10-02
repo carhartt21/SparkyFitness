@@ -1,3 +1,4 @@
+import { invalidateNutritionCaches } from './invalidateNutritionCaches';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   caffeineActiveRootQueryKey,
@@ -26,6 +27,7 @@ export function invalidateMedicationEntryCaches(
   void queryClient.invalidateQueries({ queryKey: ['waterIntakeLog'] });
   void queryClient.invalidateQueries({ queryKey: ['waterIntakeRange'] });
   void queryClient.invalidateQueries({ queryKey: caffeineActiveRootQueryKey });
+  invalidateNutritionCaches(queryClient);
   void queryClient.invalidateQueries({ queryKey: medicationEntriesQueryKey() });
   void queryClient.invalidateQueries({ queryKey: medicationsRootQueryKey });
   void queryClient.invalidateQueries({ queryKey: dailySummaryRootQueryKey });

@@ -1,3 +1,4 @@
+import MicronutrientCoverage from '../components/MicronutrientCoverage';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -557,6 +558,7 @@ const DailyNutritionDetailsScreen: React.FC<
             {displayGroups.customItems.map(renderNutrientRow)}
           </View>
         )}
+        <MicronutrientCoverage date={date} enabled={isConnected} />
       </ScrollView>
     </View>
   );

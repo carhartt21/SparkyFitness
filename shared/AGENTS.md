@@ -16,6 +16,7 @@ _Last updated: 2026-10-01_
 - `src/schemas/api/` - API request/response contracts (`*api.zod.ts`).
 - `src/schemas/api/DailyTracking.api.zod.ts` - daily tracking REST contracts plus the separate MCP-only measurement reminder status response (recorded flag, saved value, explicit unit and row provenance); do not widen the reminder configuration REST response with these fields.
 - `src/schemas/api/Engagement.api.zod.ts` and `src/schemas/database/{Engagement,McpOAuth}.zod.ts` - notification delivery/action contracts and auth-owned MCP OAuth table shapes.
+- `src/schemas/api/HealthNutrition.api.zod.ts` and `src/nutrients/healthNutritionObservation.ts` define the bounded micronutrient observation contract and per-source-record replay behavior. Partial observations preserve unobserved values; authoritative observations clear only their covered catalog IDs and require trusted source evidence at ingestion. Native adapters and server persistence use partial observations. Trusted BLS imports resolve source quantities separately; client-asserted authoritative native observations are rejected.
 - `src/constants/` - shared constants and enums (exercises, nutrients, meal types, fasting protocols, medication schedules, cycle phases, etc.).
 - `src/utils/` - timezone helpers (`todayInZone`, `instantToDay`, `dayToUtcRange`, `compareDays`, `addDays`, `isDayString`), cycle/menstruation helpers, and unit/calculation utilities.
 - `src/ai/`, `src/cycle/`, `src/medications/`, `src/mood/` - domain-specific helpers.
@@ -30,11 +31,14 @@ _Last updated: 2026-10-01_
 ## Cross-Package Contract Rules
 
 - Changes to `src/schemas/api/` usually affect server routes and both frontend/mobile API clients.
-- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`), RLS policies, and the schema backup.
+- Changes to `src/schemas/database/` require a matching migration in the server (`XoTServer/db/migrations/`), RLS policies, and shared consumer validation. CI regenerates the schema backup after merge; never edit or regenerate it locally.
 - Timezone/day-string helpers prevent bugs; prefer them over `toISOString().split('T')[0]`.
 - Test any shared change from the consumer packages (`pnpm run validate` in XoTServer, XoTFrontend, and XoTMobile after modifying shared).
 
 ## Working Rules
 
+- Nutrient imports must use `convertNutrientAmount` and leave failed conversions unmapped. Missing/unknown units and substance-specific IU conversions cannot fall back to raw numbers. Preserve small converted amounts rather than rounding to a fixed decimal count.
 - Keep this package export-focused and schema-focused; logic that scales should live in consuming packages.
 - Never export stale or unfinished types; if a consumer is drafting code and needs a type not yet here, add it.
+
+The nutrient source inventory lives in `src/nutrients/blsComponentManifest.ts` (138 pinned headers, explicit supported/blocked/out-of-scope classifications) and `nativeMicronutrientMappings.ts` (27 categories). `catalogUnitConversion.ts` permits vitamin-D IU conversion only with explicit catalog identity. `nutrientCoverage.ts` separates nullable recorded totals from known/eligible counts; unknown days never become zero in averages. Database mirrors include retained catalog identities and BLS variant dataset provenance.

@@ -1,3 +1,4 @@
+import { invalidateNutritionCaches } from './invalidateNutritionCaches';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   dailyProgressRootQueryKey,
@@ -12,6 +13,7 @@ const measurementsRangeQueryFamily = ['measurementsRange'] as const;
 const exerciseHistoryQueryFamily = ['exerciseHistory'] as const;
 
 export function refreshHealthSyncCache(queryClient: QueryClient) {
+  invalidateNutritionCaches(queryClient);
   void queryClient.invalidateQueries({ queryKey: dailySummaryQueryFamily });
   void queryClient.invalidateQueries({ queryKey: measurementsQueryFamily });
   void queryClient.invalidateQueries({

@@ -1,8 +1,38 @@
+import { z } from 'zod';
+import { getNutrientCoverage } from '../models/nutrientCoverageRepository.js';
 import express from 'express';
 import { authenticate } from '../middleware/authMiddleware.js';
 import reportService from '../services/reportService.js';
 import { canAccessUserData } from '../utils/permissionUtils.js';
 const router = express.Router();
+// Keep coverage separate from legacy dynamic numeric trend keys.
+router.get('/nutrient-coverage', authenticate, async (req, res, next) => {
+  const parsed = z
+    .object({
+      startDate: z.iso.date(),
+      endDate: z.iso.date(),
+      userId: z.uuid().optional(),
+    })
+    .safeParse(req.query);
+  if (!parsed.success || parsed.data.startDate > parsed.data.endDate)
+    return res.status(400).json({ error: 'A valid date range is required' });
+  const target = parsed.data.userId ?? req.userId;
+  const actor = req.authenticatedUserId ?? req.userId;
+  try {
+    if (!(await canAccessUserData(target, 'reports', actor)))
+      return res.status(403).json({ error: 'Forbidden' });
+    return res.json(
+      await getNutrientCoverage(
+        target,
+        actor,
+        parsed.data.startDate,
+        parsed.data.endDate
+      )
+    );
+  } catch (error) {
+    next(error);
+  }
+});
 /**
  * @swagger
  * /reports:

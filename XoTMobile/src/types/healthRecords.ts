@@ -1,3 +1,4 @@
+import type { HealthNutritionObservation } from '@workspace/shared';
 import { HealthMetric } from '../HealthMetrics';
 import { SleepStageEvent } from './mobileHealthData';
 import type { RecordSyncError } from '../services/api/healthDataApi';
@@ -271,6 +272,7 @@ export type SparkyMealType = 'breakfast' | 'lunch' | 'dinner' | 'snacks';
  */
 export interface TransformedNutritionEntry extends RecordTimezoneMetadata {
   type: 'Nutrition';
+  nutrient_observation?: HealthNutritionObservation;
   source: typeof HEALTHKIT_SOURCE | typeof HEALTH_CONNECT_SOURCE;
   /** Stable Health Connect record id, used for idempotent re-sync. */
   source_id?: string;

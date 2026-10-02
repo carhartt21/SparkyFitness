@@ -1,9 +1,9 @@
 import { addDays } from '@workspace/shared';
+import { invalidateNutritionCaches } from './invalidateNutritionCaches';
 import type { QueryClient } from '@tanstack/react-query';
 import {
   caffeineActiveQueryKey,
   caffeineActiveRootQueryKey,
-  dailyProgressRootQueryKey,
   dailySummaryQueryKey,
   dailySummaryRootQueryKey,
   foodsQueryKey,
@@ -16,7 +16,16 @@ export function invalidateFoodCache(
 ) {
   void queryClient.invalidateQueries({ queryKey: ['waterIntakeLog'] });
   void queryClient.invalidateQueries({ queryKey: ['waterIntakeRange'] });
-  void queryClient.invalidateQueries({ queryKey: dailyProgressRootQueryKey });
+  invalidateNutritionCaches(queryClient);
+  for (const queryKey of [
+    ['foodSearch'],
+    ['foodsLibrary'],
+    ['favorites'],
+    ['foodVariants'],
+    ['meals'],
+    ['mealPlans'],
+  ])
+    void queryClient.invalidateQueries({ queryKey });
   if (entryDate) {
     void queryClient.invalidateQueries({
       queryKey: dailySummaryQueryKey(entryDate),

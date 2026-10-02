@@ -194,8 +194,8 @@ async function createFoodEntry(
     let mealTypeId = entryData.meal_type_id;
     if (!mealTypeId && entryData.meal_type) {
       const typeRes = await client.query(
-        'SELECT id FROM meal_types WHERE LOWER(name) = LOWER($1)',
-        [entryData.meal_type]
+        'SELECT id FROM meal_types WHERE LOWER(name) = LOWER($1) AND (user_id = $2 OR user_id IS NULL) ORDER BY user_id NULLS LAST LIMIT 1',
+        [entryData.meal_type, entryData.user_id]
       );
       if (typeRes.rows.length > 0) {
         mealTypeId = typeRes.rows[0].id;

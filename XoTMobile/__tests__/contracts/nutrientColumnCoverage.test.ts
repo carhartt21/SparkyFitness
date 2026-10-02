@@ -51,6 +51,12 @@ interface Omission {
 
 const DELIBERATE_OMISSIONS: Omission[] = [
   {
+    file: /^components\/MicronutrientCoverage\.tsx$/,
+    columns: TRACKED_COLUMNS,
+    reason:
+      'Coverage lists the 27 native vitamin and mineral categories; caffeine, water and alcohol are outside that catalog.',
+  },
+  {
     file: /^types\/goals\.ts$/,
     columns: ['water_ml'],
     reason:

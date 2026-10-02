@@ -1,3 +1,4 @@
+import { fetchCustomNutrients } from '../api/customNutrientsApi';
 import {
   saveCorrelationSample,
   saveQuantitySample,
@@ -254,6 +255,12 @@ const writeNutritionForDate = async (
   version: number
 ): Promise<void> => {
   const entries = await resolveCollapsedFoodEntries(date, summary.foodEntries);
+  const definitions = entries.some(
+    (entry) =>
+      !entry.source && Object.keys(entry.custom_nutrients ?? {}).length > 0
+  )
+    ? await fetchCustomNutrients()
+    : [];
 
   // A user can authorize energy but deny, say, sodium. A correlation containing an
   // unauthorized sample fails the WHOLE correlation, so filter each entry's samples to
@@ -266,7 +273,7 @@ const writeNutritionForDate = async (
   // from a provider — re-exporting them would duplicate that provider's own data.
   const descriptors = entries
     .filter((e) => !e.source)
-    .map((entry) => foodEntryToNutrientSamples(entry))
+    .map((entry) => foodEntryToNutrientSamples(entry, new Date(), definitions))
     .filter((d): d is NutrientSampleDescriptor => d !== null)
     .map((d) => ({
       ...d,
@@ -287,6 +294,11 @@ const writeNutritionForDate = async (
       nutritionUuidsKey(date)
     )) ?? {};
   const failedDeletes = await deleteTrackedByType(previous);
+  if (Object.keys(failedDeletes).length > 0) {
+    // Do not create replacements while old samples still exist.
+    await saveHealthPreference(nutritionUuidsKey(date), failedDeletes);
+    return;
+  }
 
   const tracked: Record<string, string[]> = {};
   // A failed delete means an old sample still exists in HealthKit, so the date isn't fully

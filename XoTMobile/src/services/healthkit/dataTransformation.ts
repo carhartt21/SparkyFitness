@@ -1,3 +1,9 @@
+import { MICRONUTRIENT_SYNC_ENABLED } from '../shared/micronutrientFeature';
+import {
+  NATIVE_MICRONUTRIENT_MAPPINGS,
+  convertNutrientAmount,
+  type HealthNutrientQuantity,
+} from '@workspace/shared';
 import { addLog } from '../LogService';
 import { attachWorkoutTelemetry } from '../shared/workoutTelemetryPayload';
 import {
@@ -539,10 +545,31 @@ const DIRECT_TRANSFORMERS: Record<string, DirectTransformer> = {
     };
 
     let hasNutrient = false;
+    const quantities = new Map<string, HealthNutrientQuantity>();
     for (const obj of objects) {
       // A Food correlation may contain CategorySamples too — skip anything that isn't a
       // dietary quantity sample before mapping.
       if (!obj || typeof obj.quantityType !== 'string') continue;
+      const micronutrient = NATIVE_MICRONUTRIENT_MAPPINGS.find(
+        (mapping) => mapping.healthKitIdentifier === obj.quantityType
+      );
+      if (
+        MICRONUTRIENT_SYNC_ENABLED &&
+        micronutrient &&
+        typeof obj.quantity === 'number' &&
+        typeof obj.unit === 'string'
+      ) {
+        const amount = convertNutrientAmount(obj.quantity, obj.unit, 'g');
+        if (amount !== null) {
+          const previous = quantities.get(micronutrient.catalogId)?.amount ?? 0;
+          quantities.set(micronutrient.catalogId, {
+            catalogId: micronutrient.catalogId,
+            amount: previous + amount,
+            unit: 'g',
+          });
+          hasNutrient = true;
+        }
+      }
       const mapped = mapDietarySample({
         quantityType: obj.quantityType,
         quantity: obj.quantity as number,
@@ -554,7 +581,12 @@ const DIRECT_TRANSFORMERS: Record<string, DirectTransformer> = {
       hasNutrient = true;
     }
 
-    if (!hasNutrient) return; // no recognized positive nutrients — drop the entry
+    if (quantities.size)
+      entry.nutrient_observation = {
+        mode: 'partial',
+        quantities: [...quantities.values()],
+      };
+    if (!hasNutrient) return; // no recognized nutrients — drop the entry
     output.push(entry);
   },
 

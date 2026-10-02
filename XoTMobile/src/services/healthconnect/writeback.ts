@@ -1,3 +1,4 @@
+import { fetchCustomNutrients } from '../api/customNutrientsApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   insertRecords,
@@ -155,13 +156,21 @@ const writeNutritionForDate = async (
   version: number
 ): Promise<void> => {
   const entries = await resolveCollapsedFoodEntries(date, summary.foodEntries);
+  const definitions = entries.some(
+    (entry) =>
+      !entry.source && Object.keys(entry.custom_nutrients ?? {}).length > 0
+  )
+    ? await fetchCustomNutrients()
+    : [];
 
   // Only write entries that originated in Sparky. Entries with a `source` were
   // imported from a provider (e.g. Health Connect itself) — re-exporting them
   // would duplicate that provider's own data back into HC.
   const records = entries
     .filter((e) => !e.source)
-    .map((entry) => foodEntryToNutritionRecord(entry, version))
+    .map((entry) =>
+      foodEntryToNutritionRecord(entry, version, new Date(), definitions)
+    )
     .filter((r): r is NonNullable<typeof r> => r !== null);
 
   const signature = recordsSignature(records);

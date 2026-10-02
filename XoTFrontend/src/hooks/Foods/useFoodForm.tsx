@@ -403,23 +403,19 @@ export function useCustomFoodForm({
         ] of pendingProviderMatchesRef.current) {
           const providerValue = Number(next.provider_nutrients?.[label]);
           if (!Number.isFinite(providerValue) || providerValue <= 0) continue;
-          // Convert the provider amount into the nutrient's unit when both are
-          // known and compatible; otherwise keep the provider's raw value.
+          // Leave incompatible or missing units unmapped, matching the server.
           const providerUnit = next.provider_nutrient_units?.[label];
           const converted = convertNutrientAmount(
             providerValue,
             providerUnit,
             unit
           );
-          const value =
-            converted === null
-              ? providerValue
-              : Math.round(converted * 1e6) / 1e6;
+          if (converted === null) continue;
           next = {
             ...next,
             custom_nutrients: {
               ...next.custom_nutrients,
-              [name]: value,
+              [name]: converted,
             },
             // A concrete provider value counts as a manual edit for AI rows.
             ...(next.source === 'ai_estimate'

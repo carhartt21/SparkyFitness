@@ -1,3 +1,5 @@
+import { micronutrientWriteback } from '../shared/micronutrientWriteback';
+import type { UserCustomNutrient } from '../api/customNutrientsApi';
 import { isEntryTimeString } from '@workspace/shared';
 import {
   RecordingMethod,
@@ -146,7 +148,8 @@ const recordInterval = (
 export const foodEntryToNutritionRecord = (
   entry: FoodEntry,
   clientRecordVersion: number,
-  now: Date = new Date()
+  now: Date = new Date(),
+  definitions: readonly UserCustomNutrient[] = []
 ): NutritionRecord | null => {
   if (!entry.serving_size) return null; // 0 / null / undefined — can't scale
 
@@ -193,6 +196,12 @@ export const foodEntryToNutritionRecord = (
     }
   }
 
+  for (const quantity of micronutrientWriteback(entry, definitions)) {
+    record[quantity.healthConnectField] = {
+      value: quantity.amount,
+      unit: 'grams',
+    };
+  }
   return record as unknown as NutritionRecord;
 };
 

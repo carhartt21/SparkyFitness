@@ -1,5 +1,5 @@
 import express from 'express';
-import { isLogLevelEnabled, log } from '../../config/logging.js';
+import { log } from '../../config/logging.js';
 import measurementService from '../../services/measurementService.js';
 import { loadUserTimezone } from '../../utils/timezoneLoader.js';
 import { instantToDay } from '@workspace/shared';
@@ -15,7 +15,7 @@ router.post('/', checkPermissionMiddleware('diary'), async (req, res, next) => {
   } else if (typeof req.body === 'object' && req.body !== null) {
     healthDataArray.push(req.body);
   } else {
-    log('error', 'Received unexpected body format:', req.body);
+    log('error', 'Received unexpected health data body format');
     return res.status(400).json({
       error: 'Invalid request body format. Expected JSON object or array.',
     });
@@ -41,16 +41,8 @@ router.post('/', checkPermissionMiddleware('diary'), async (req, res, next) => {
     'info',
     `Incoming health data: ${healthDataArray.length} record(s), types: ${recordTypes.join(', ')}`
   );
-  // A workout sync carries a full GPS track and heart-rate series, so the
-  // stringify is guarded rather than passed as an argument: arguments are
-  // evaluated before log() gets to drop them.
-  if (isLogLevelEnabled('debug')) {
-    log(
-      'debug',
-      'Incoming health data JSON:',
-      JSON.stringify(healthDataArray, null, 2)
-    );
-  }
+
+  const startedAt = performance.now();
   try {
     // Backwards compatibility (issue #1903): clients on the seconds-based set
     // model send X-Workout-Model-Version: 2 (or higher). Older clients omit the
@@ -62,9 +54,14 @@ router.post('/', checkPermissionMiddleware('diary'), async (req, res, next) => {
 
       req.userId,
 
-      req.userId,
+      req.authenticatedUserId ?? req.userId,
       { legacyWorkoutSetMinutes: workoutModelVersion < 2 }
     );
+    log('info', 'Health upload batch completed', {
+      records: healthDataArray.length,
+      payloadBytes: Buffer.byteLength(JSON.stringify(healthDataArray)),
+      durationMs: Math.round(performance.now() - startedAt),
+    });
     res.status(200).json(result);
   } catch (error) {
     next(error);
