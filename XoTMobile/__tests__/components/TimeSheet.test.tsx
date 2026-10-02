@@ -31,7 +31,20 @@ describe('TimeSheet', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .spyOn(
+        jest.requireActual<typeof import('react-native')>('react-native'),
+        'useWindowDimensions'
+      )
+      .mockReturnValue({
+        width: 390,
+        height: 844,
+        scale: 3,
+        fontScale: 1,
+      });
   });
+
+  afterEach(() => jest.restoreAllMocks());
 
   it('uses 24-hour presentation (use12Hours=false) when preferences set time_format to HH:mm', () => {
     mockedUsePreferences.mockReturnValue({

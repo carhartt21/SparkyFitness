@@ -6421,9 +6421,14 @@
     "dateFormat": "YYYY-MM-DD",
     "timeFormat": "HH:mm",
     "noEndDate": "No end date",
-    "clearEndDate": "Remove end date"
+    "clearEndDate": "Remove end date",
+    "clearTime": "Remove session time"
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Could not save the plan. Your changes are still here. Try again."
+  },
+  "timeSheet": {
+    "hours": "Hours",
+    "minutes": "Minutes"
   }
 }

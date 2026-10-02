@@ -7,11 +7,19 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, View } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import DateTimePicker, { type DateType } from 'react-native-ui-datepicker';
 import Button from './ui/Button';
+import { PickerTrigger } from './BottomSheetPicker';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import { usePreferences } from '../hooks/usePreferences';
 import {
@@ -65,6 +73,7 @@ interface TimeSheetProps {
 const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
   ({ value, onSelectTime, timeFormat, commitOn = 'change' }, ref) => {
     const { t } = useTranslation();
+    const { fontScale, height } = useWindowDimensions();
     const { preferences } = usePreferences();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
 
@@ -86,10 +95,14 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
     // Seeded at present() so an open sheet doesn't re-seed to "now" on parent
     // re-renders while the value is still empty.
     const [displayed, setDisplayed] = useState('');
+    const [editingPart, setEditingPart] = useState<'hours' | 'minutes' | null>(
+      null
+    );
 
     useImperativeHandle(ref, () => ({
       present: () => {
         setDisplayed(dateToTimeString(timeStringToDate(value)));
+        setEditingPart(null);
         bottomSheetRef.current?.present();
       },
       dismiss: () => bottomSheetRef.current?.dismiss(),
@@ -97,16 +110,22 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
 
     const renderBackdrop = useSheetBackdrop();
 
+    const selectTime = useCallback(
+      (time: string) => {
+        setDisplayed(time);
+        if (commitOn === 'change') onSelectTime(time);
+      },
+      [commitOn, onSelectTime]
+    );
     const handleChange = useCallback(
       ({ date }: { date: DateType }) => {
         const js = dateTypeToDate(date);
         if (js && !Number.isNaN(js.getTime())) {
           const time = dateToTimeString(js);
-          setDisplayed(time);
-          if (commitOn === 'change') onSelectTime(time);
+          selectTime(time);
         }
       },
-      [commitOn, onSelectTime]
+      [selectTime]
     );
 
     const handleDone = useCallback(() => {
@@ -131,33 +150,113 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
       }),
       [accentPrimary, accentText, textPrimary, borderSubtle]
     );
+    const visibleTime = displayed || dateToTimeString(timeStringToDate(value));
+    const [hour, minute] = visibleTime.split(':').map(Number);
+    const hourLabel = t('timeSheet.hours', { defaultValue: 'Hours' });
+    const minuteLabel = t('timeSheet.minutes', { defaultValue: 'Minutes' });
 
     return (
       <BottomSheetModal
+        accessible={false}
         ref={bottomSheetRef}
-        enableDynamicSizing
-        enableContentPanningGesture={Platform.OS !== 'android'}
+        enableDynamicSizing={!editingPart}
+        snapPoints={editingPart ? [Math.min(height * 0.75, 680)] : undefined}
+        enableContentPanningGesture={
+          fontScale <= 1.25 && Platform.OS !== 'android'
+        }
         backdropComponent={renderBackdrop}
         containerComponent={sheetContainer}
         backgroundStyle={{ backgroundColor: surfaceBg }}
         handleIndicatorStyle={{ backgroundColor: textMuted }}
       >
         <BottomSheetView className="pb-safe-or-5 px-2">
-          <DateTimePicker
-            mode="single"
-            date={timeStringToDate(displayed || value)}
-            timePicker
-            initialView="time"
-            hideHeader
-            use12Hours={use12Hours}
-            onChange={handleChange}
-            styles={pickerStyles}
-            // The wheels render 5 rows of 44px; the default 300px container
-            // centers them inside ~80px of dead space.
-            containerHeight={220}
-          />
+          {fontScale > 1.25 ? (
+            editingPart ? (
+              <>
+                <Text className="px-4 pt-3 text-base font-semibold text-text-primary">
+                  {editingPart === 'hours' ? hourLabel : minuteLabel}
+                </Text>
+                <ScrollView
+                  testID="timesheet-options"
+                  style={{ height: Math.min(height * 0.4, 400) }}
+                >
+                  {Array.from(
+                    { length: editingPart === 'hours' ? 24 : 60 },
+                    (_, value) => {
+                      const selected =
+                        value === (editingPart === 'hours' ? hour : minute);
+                      const label = String(value).padStart(2, '0');
+                      return (
+                        <Pressable
+                          key={value}
+                          accessibilityRole="radio"
+                          accessibilityLabel={label}
+                          accessibilityState={{ selected }}
+                          onPress={() => {
+                            selectTime(
+                              editingPart === 'hours'
+                                ? `${label}:${visibleTime.slice(3)}`
+                                : `${visibleTime.slice(0, 2)}:${label}`
+                            );
+                            setEditingPart(null);
+                          }}
+                          className="min-h-11 border-b border-border-subtle px-4 py-3.5"
+                        >
+                          <Text
+                            className={`text-base text-text-primary ${selected ? 'font-semibold' : ''}`}
+                          >
+                            {label}
+                          </Text>
+                        </Pressable>
+                      );
+                    }
+                  )}
+                </ScrollView>
+              </>
+            ) : (
+              <View className="flex-row gap-3 px-2 py-3">
+                <View className="flex-1 gap-2">
+                  <Text className="text-base text-text-primary">
+                    {hourLabel}
+                  </Text>
+                  <PickerTrigger
+                    label={String(hour).padStart(2, '0')}
+                    accessibilityLabel={hourLabel}
+                    onPress={() => setEditingPart('hours')}
+                  />
+                </View>
+                <View className="flex-1 gap-2">
+                  <Text className="text-base text-text-primary">
+                    {minuteLabel}
+                  </Text>
+                  <PickerTrigger
+                    label={String(minute).padStart(2, '0')}
+                    accessibilityLabel={minuteLabel}
+                    onPress={() => setEditingPart('minutes')}
+                  />
+                </View>
+              </View>
+            )
+          ) : (
+            <DateTimePicker
+              mode="single"
+              date={timeStringToDate(displayed || value)}
+              timePicker
+              initialView="time"
+              hideHeader
+              use12Hours={use12Hours}
+              onChange={handleChange}
+              styles={pickerStyles}
+              // The wheels render 5 rows of 44px; the default 300px container
+              // centers them inside ~80px of dead space.
+              containerHeight={220}
+            />
+          )}
           <View className="px-2 pt-2">
-            <Button variant="primary" onPress={handleDone}>
+            <Button
+              variant="primary"
+              onPress={editingPart ? () => setEditingPart(null) : handleDone}
+            >
               {t('common.done', { defaultValue: 'Done' })}
             </Button>
           </View>

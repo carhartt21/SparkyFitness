@@ -86,3 +86,31 @@ The only schema change is additive `user_meal_visibilities.icon_key`. Standard s
 Additional BLS components are **not** mapped in this batch. The current source adapter exposes core values plus its existing supported micronutrients; retained raw fields do not automatically become display values, and vitamin A remains subject to the published source errata. The UI now displays supported values correctly but cannot manufacture missing source nutrients. A separate source-backed BLS mapping pass is the next improvement if broader live catalogue coverage is needed.
 
 Outstanding release checks: install the eventual TestFlight build on a physical iPhone, verify long-note/calendar/meal-icon behavior with real backend persistence, and recheck live provider micronutrient availability. HealthKit, Watch synchronization, offline outbox replay and signed native installation were not changed or physically retested. Production migration/deployment and TestFlight publication were not performed. Todoist task states were not changed.
+
+## Follow-up: constrained workout-plan time entry
+
+The owner requested the same type-appropriate input treatment for the planned
+session time. `WorkoutPlanTimeField` now opens the existing 24-hour `TimeSheet`
+instead of a text keyboard. Confirming selects canonical `HH:mm`; dismissing the
+picker leaves the previous value unchanged. An accessible 44-point clear action
+removes only that session's optional time. The screen's shared write schema still
+validates the saved plan. The web assignment form already uses `type="time"`
+and requires no parallel change. Reviewed German copy covers the new clear action
+and hour/minute labels.
+
+Native verification exposed an existing accessibility grouping defect in
+`TimeSheet`: its confirmation button was visible but absent from the accessible
+child controls. Following the same pattern as the meal editor, the modal now
+exposes its children individually. The repeatable v38 native scenario includes
+opening, confirming and clearing the time, plus captures of both states.
+Enlarged-text review also exposed clipped wheel digits. Above font scale 1.25,
+the shared sheet presents labelled hour/minute selectors and bounded option
+lists inside the same modal. This keeps the complete digits readable without
+a text keyboard or nested modal overlays.
+
+Nine relevant suites passed all 150 tests, including midnight, 23:59,
+dismissal preservation, optional clearing, preservation of other sessions and
+enlarged-text selection. These include food entry, meal editing, medication
+scheduling, notification settings and the shared meal time wheel. Mobile validation
+and the production iOS JavaScript export were rerun successfully. Simulator confirmation evidence is recorded separately in the
+evidence index; physical Android/iPhone verification remains a release check.

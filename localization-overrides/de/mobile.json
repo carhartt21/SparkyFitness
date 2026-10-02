@@ -3350,7 +3350,8 @@
     "dateFormat": "JJJJ-MM-TT",
     "timeFormat": "SS:mm",
     "noEndDate": "Kein Enddatum",
-    "clearEndDate": "Enddatum entfernen"
+    "clearEndDate": "Enddatum entfernen",
+    "clearTime": "Uhrzeit entfernen"
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."
@@ -3376,5 +3377,9 @@
       "save": "Mahlzeitenart speichern",
       "delete": "Mahlzeitenart löschen"
     }
+  },
+  "timeSheet": {
+    "hours": "Stunden",
+    "minutes": "Minuten"
   }
 }

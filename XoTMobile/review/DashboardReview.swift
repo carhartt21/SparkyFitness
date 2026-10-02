@@ -149,6 +149,75 @@ final class DashboardReview: XCTestCase {
     app.coordinate(withNormalizedOffset: CGVector(dx: 0.05, dy: 0.1)).tap()
     XCTAssertTrue(start.waitForExistence(timeout: 10))
     capture("v38-plan-date-controls", app)
+    verifyWorkoutPlanTime(app)
+  }
+
+  func testWorkoutPlanTime() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let more = app.buttons["Mehr"]
+    XCTAssertTrue(more.waitForExistence(timeout: 10)); more.tap()
+    let plans = app.descendants(matching: .any)["more-training-plans"]
+    for _ in 0..<6 { if plans.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(plans.isHittable); plans.tap()
+    let edit = app.buttons["Bearbeiten"].firstMatch
+    XCTAssertTrue(edit.waitForExistence(timeout: 10)); edit.tap()
+    verifyWorkoutPlanTime(app)
+  }
+
+  private func verifyWorkoutPlanTime(_ app: XCUIApplication) {
+    let time = app.buttons["weekly-plan-time"].firstMatch
+    for _ in 0..<12 { if time.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(time.isHittable)
+    XCTAssertGreaterThanOrEqual(time.frame.height, 44)
+    time.tap()
+    XCTAssertFalse(app.keyboards.firstMatch.exists)
+    let timeDone = app.buttons["Erledigt"].firstMatch
+    let hasTimeDone = timeDone.waitForExistence(timeout: 10)
+    capture("v38-plan-time-picker", app)
+    XCTAssertTrue(hasTimeDone)
+    let hours = app.buttons["Stunden"].firstMatch
+    let hasTimeSelectors = hours.exists
+    if hasTimeSelectors {
+      hours.tap()
+      let hour = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "08")).firstMatch
+      XCTAssertTrue(hour.waitForExistence(timeout: 10))
+      let options = app.descendants(matching: .any)["timesheet-options"].firstMatch
+      XCTAssertTrue(options.waitForExistence(timeout: 10))
+      scrollTimeOption(hour, in: options)
+      XCTAssertTrue(hour.isHittable); hour.tap()
+      XCTAssertTrue(timeDone.waitForExistence(timeout: 10))
+      app.buttons["Minuten"].firstMatch.tap()
+      let minute = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "05")).firstMatch
+      XCTAssertTrue(minute.waitForExistence(timeout: 10))
+      XCTAssertTrue(options.waitForExistence(timeout: 10))
+      scrollTimeOption(minute, in: options)
+      XCTAssertTrue(minute.isHittable); minute.tap()
+      XCTAssertTrue(timeDone.waitForExistence(timeout: 10))
+      capture("v38-plan-time-selected", app)
+    }
+    timeDone.tap()
+    let timeDismissed = NSPredicate { _, _ in !app.buttons["Erledigt"].exists }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: timeDismissed, object: app)], timeout: 10), .completed)
+    if hasTimeSelectors { XCTAssertEqual(time.value as? String, "08:05") }
+    let clearTime = app.buttons["weekly-plan-clear-time"].firstMatch
+    XCTAssertTrue(clearTime.waitForExistence(timeout: 10))
+    XCTAssertGreaterThanOrEqual(clearTime.frame.height, 44)
+    clearTime.tap()
+    XCTAssertFalse(clearTime.exists)
+    capture("v38-plan-time-controls", app)
+  }
+
+  private func scrollTimeOption(_ option: XCUIElement, in list: XCUIElement) {
+    for _ in 0..<12 {
+      if option.isHittable { return }
+      let below = option.frame.midY > list.frame.midY
+      let start = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: below ? 0.75 : 0.25))
+      let end = list.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: below ? 0.35 : 0.65))
+      start.press(forDuration: 0.1, thenDragTo: end)
+    }
   }
 
   func testFoodDetailsLayout() throws {

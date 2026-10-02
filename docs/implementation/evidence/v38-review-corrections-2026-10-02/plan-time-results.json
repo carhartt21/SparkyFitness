@@ -1,0 +1,50 @@
+{
+  "sourceBaseRevision": "d8ca78aaa0c32599fb1a00b80d018868d4c7e260",
+  "sourceState": "Uncommitted time-entry follow-up on feat/v38-review-corrections-20261002",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "plan-time-390-de-dark-render.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v38-corrections",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "screenshot": "plan-time-430-de-large-render.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v38-corrections",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "limitations": [
+    "Synthetic in-memory transport; confirms UI and cache updates, not backend persistence.",
+    "Physical iPhone/Android and signed native release checks not performed."
+  ],
+  "checks": {
+    "relatedTests": {
+      "suites": 9,
+      "passed": 150
+    },
+    "mobileValidate": "passed",
+    "productionIosJsExport": "passed"
+  },
+  "sourceHashes": {
+    "XoTMobile/src/components/WorkoutPlanTimeField.tsx": "165ce21cf6a97f213f19890a79f04680e94c3cbb964aae4bf68339aea98d6104",
+    "XoTMobile/src/components/TimeSheet.tsx": "28a0eed6cee9650559dbfa64e7c99163c7cd5338de2141e5c22b11c534ebd695",
+    "XoTMobile/review/DashboardReview.swift": "6998b29e9472c06a3de6815e36eb62aa22d212db8c6680ee456f96eb6074ffb9"
+  }
+}

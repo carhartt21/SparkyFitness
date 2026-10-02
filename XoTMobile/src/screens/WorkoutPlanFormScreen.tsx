@@ -10,6 +10,7 @@ import {
 } from '@workspace/shared';
 import FormScreenChrome from '../components/FormScreenChrome';
 import FormInput from '../components/FormInput';
+import WorkoutPlanTimeField from '../components/WorkoutPlanTimeField';
 import BottomSheetPicker from '../components/BottomSheetPicker';
 import CalendarSheet, {
   type CalendarSheetRef,
@@ -397,22 +398,9 @@ export default function WorkoutPlanFormScreen({
                     />
                   </View>
                 </View>
-                <Text className="text-text-secondary">
-                  {t('weeklyPlan.time', {
-                    defaultValue: 'Time (24-hour, optional)',
-                  })}
-                </Text>
-                <FormInput
-                  value={a.planned_time?.slice(0, 5) ?? ''}
-                  placeholder={t('weeklyPlan.timeFormat', {
-                    defaultValue: 'HH:mm',
-                  })}
-                  onChangeText={(value) =>
-                    update(index, { planned_time: value || null })
-                  }
-                  accessibilityLabel={t('weeklyPlan.time', {
-                    defaultValue: 'Time (24-hour, optional)',
-                  })}
+                <WorkoutPlanTimeField
+                  value={a.planned_time}
+                  onChange={(time) => update(index, { planned_time: time })}
                 />
                 <View className="flex-row items-center justify-between">
                   <Text className="text-text-primary">

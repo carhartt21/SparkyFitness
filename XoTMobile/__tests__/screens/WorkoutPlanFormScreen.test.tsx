@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import { Keyboard } from 'react-native';
 import WorkoutPlanFormScreen from '../../src/screens/WorkoutPlanFormScreen';
 import type { WorkoutPlanTemplate } from '../../src/types/workoutPlans';
 
@@ -11,6 +12,14 @@ const mockCalendars: {
   onSelectDate: (date: string) => void;
 }[] = [];
 const mockPresentCalendar = jest.fn();
+interface TimePickerProps {
+  value: string;
+  timeFormat: string;
+  commitOn: string;
+  onSelectTime: (time: string) => void;
+}
+const mockTimes: TimePickerProps[] = [];
+const mockPresentTime = jest.fn();
 const plan: WorkoutPlanTemplate = {
   id: '10',
   user_id: 'synthetic-owner',
@@ -83,6 +92,22 @@ jest.mock('../../src/components/CalendarSheet', () => {
     ),
   };
 });
+jest.mock('../../src/components/TimeSheet', () => {
+  const React = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: React.forwardRef(
+      (props: TimePickerProps, ref: React.Ref<unknown>) => {
+        mockTimes.push(props);
+        React.useImperativeHandle(ref, () => ({
+          present: mockPresentTime,
+          dismiss: jest.fn(),
+        }));
+        return null;
+      }
+    ),
+  };
+});
 
 function show(initial: WorkoutPlanTemplate = plan) {
   return render(
@@ -95,8 +120,76 @@ function show(initial: WorkoutPlanTemplate = plan) {
 
 beforeEach(() => {
   mockCalendars.length = 0;
+  mockTimes.length = 0;
   jest.clearAllMocks();
   mockMutateAsync.mockResolvedValue({ id: '10' });
+});
+
+it.each(['00:00', '23:59'])(
+  'opens a 24-hour time picker and saves selected time %s',
+  async (time) => {
+    const dismiss = jest.spyOn(Keyboard, 'dismiss');
+    const screen = show();
+    fireEvent.press(screen.getByTestId('weekly-plan-time'));
+    expect(dismiss).toHaveBeenCalled();
+    expect(mockPresentTime).toHaveBeenCalledTimes(1);
+    expect(mockTimes.at(-1)).toEqual(
+      expect.objectContaining({ timeFormat: 'HH:mm', commitOn: 'done' })
+    );
+    act(() => mockTimes.at(-1)!.onSelectTime(time));
+    fireEvent.press(screen.getByTestId('save-plan'));
+    await waitFor(() => expect(goBack).toHaveBeenCalledTimes(1));
+    expect(mockMutateAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          assignments: [expect.objectContaining({ planned_time: time })],
+        }),
+      })
+    );
+    dismiss.mockRestore();
+  }
+);
+
+it('preserves the existing time if the picker is dismissed without confirming', async () => {
+  const screen = show({
+    ...plan,
+    assignments: [{ ...plan.assignments![0], planned_time: '18:30:00' }],
+  });
+  fireEvent.press(screen.getByTestId('weekly-plan-time'));
+  expect(mockTimes.at(-1)?.value).toBe('18:30');
+  // Dismissal reports no selection in commitOn=done mode.
+  fireEvent.press(screen.getByTestId('save-plan'));
+  await waitFor(() => expect(goBack).toHaveBeenCalledTimes(1));
+  expect(mockMutateAsync).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({
+        assignments: [expect.objectContaining({ planned_time: '18:30:00' })],
+      }),
+    })
+  );
+});
+
+it('removes only the selected session time while preserving other planned sessions', async () => {
+  const screen = show({
+    ...plan,
+    assignments: [
+      { ...plan.assignments![0], planned_time: '18:30' },
+      { ...plan.assignments![0], id: '78', planned_time: '09:15' },
+    ],
+  });
+  fireEvent.press(screen.getAllByTestId('weekly-plan-clear-time')[0]);
+  fireEvent.press(screen.getByTestId('save-plan'));
+  await waitFor(() => expect(goBack).toHaveBeenCalledTimes(1));
+  expect(mockMutateAsync).toHaveBeenCalledWith(
+    expect.objectContaining({
+      data: expect.objectContaining({
+        assignments: [
+          expect.objectContaining({ id: '77', planned_time: null }),
+          expect.objectContaining({ id: '78', planned_time: '09:15' }),
+        ],
+      }),
+    })
+  );
 });
 
 it('opens calendar controls instead of a date keyboard and saves selected calendar days', async () => {

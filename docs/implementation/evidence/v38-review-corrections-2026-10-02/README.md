@@ -47,3 +47,17 @@ in this batch. Backend test suites were skipped as requested.
 
 Repeat commands and scenario boundaries are in the
 [mobile review README](../../../../XoTMobile/review/README.md#v38-corrections).
+
+## Workout-plan time follow-up
+
+The time field now opens a 24-hour picker and exposes a separate clear action.
+The enlarged-text presentation uses bounded hour/minute lists in one sheet.
+
+- Standard text: [picker](plan-time-390-de-dark-picker.png), [cleared field](plan-time-390-de-dark-controls.png).
+- Enlarged text: [picker](plan-time-430-de-large-picker.png), [08:05 selected](plan-time-430-de-large-selected.png), [cleared field](plan-time-430-de-large-controls.png).
+- [Results and source hashes](plan-time-results.json): native interaction checks passed at both sizes. The enlarged-text test scrolls both lists, confirms 08:05 in the form and clears it.
+
+The dedicated scenario is `--interactions --v38-review --workout-plan-time-review`.
+These captures are synthetic and were visually inspected. They precede the
+follow-up commit; source hashes identify the rendered implementation. The earlier
+batch's screenshots and results above are preserved.
