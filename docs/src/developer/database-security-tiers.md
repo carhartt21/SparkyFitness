@@ -213,7 +213,10 @@ Mobility reads use a read-only transaction; only definition changes and the expl
 
 Workout assignments also store a whole activity type or a saved preset, optional account-local time, duration/distance targets and an optional-session flag. They retain the existing parent ownership and RLS policies; no new sharing permission or completed-health-data table is introduced. Version ownership references Better Auth `public."user"`, matching templates. The activity-definition preparation endpoint is owner-only and creates a private library definition, never a diary completion or energy record.
 
+The forward prescription correction (`20261002120000_activity_coaching_prescriptions.sql`) captures this metadata in new immutable versions. It uses the existing invoker function and owner RLS, leaves historical versions unchanged, and grants no additional sharing access. Coaching evidence uses the same owner-scoped completion projection.
+
 Daily Progress version 2 reads configured daily goals, immutable dated workout snapshots and actual recording evidence through the owner-only tracking route. Legacy clients retain the version 1 projection. An intake target is context for reviewing nutrition, not an instruction to maximize consumption. Planned sets do not count as recorded training. `meal_types.purpose = import` hides an importer-owned destination from routine tasks while preserving its diary history.
+
 ## Coaching proposal and review domain
 
 `coaching_settings`, `coaching_agents`, `coaching_runs`, `coaching_snapshots`, `coaching_proposals`, `coaching_actions`, `coaching_events`, `coaching_operations`, `coaching_previews`, `meal_plan_template_versions`, and `meal_plan_log_receipts` are **Tier 1, owner-only**. Each has `user_id` ownership and all-command owner RLS. No family permission, delegate policy, public-library policy or global-read policy is granted. Existing diary sharing rules for `meal_plans` remain unchanged, but coaching occurrences and review routes explicitly use the owner app session.

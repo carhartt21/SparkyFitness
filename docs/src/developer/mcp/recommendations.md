@@ -21,11 +21,13 @@ Follow all snapshot, proposal, commitment and event cursors. Reads create no dat
 
 Every proposal includes a stable topic, selected domain, title/rationale, impact 1–5, benefit, effort, confidence, actual snapshot row IDs, account-local dates, units, honest coverage/limitations, a measurable success criterion, a strict typed action and expiry. Use planning IDs rather than invented library items. Adherence metrics use canonical ratios 0–1; success units are schema-validated. The server bounds coverage by cited recorded days and marks provider synchronization freshness unknown. Food zeros do not establish nutrient coverage; old template-generated foods are unconfirmed. Active calorie summaries already include workouts. Generic tasks have explicit owner completion; objectives and adherence use confirmed server evidence only.
 
+Workout adherence shares the Weekly activities projection: all saved exercise requirements must be met in one session, or actual duration/distance must meet every whole-activity target. Started sets, prefills and timers do not establish completion. Optional, rest and skipped sessions are excluded; unknown prescriptions reduce coverage rather than counting as failures. Today's sessions remain open. Only elapsed days with `completionBasis: "saved_prescription"` enter workout outcomes; older attendance-only snapshots are ignored. Reviewed workout actions retain activity type, optional status, local time and duration/distance targets without recording Diary activity.
+
 ## Mac subscription runner
 
 This reference runner uses the owner's **saved Codex ChatGPT login**. It does not use the app's AI provider, a server model worker or a paid API fallback. The server schedules work; the Mac polls every 15 minutes. It coalesces missed windows and resumes after sleep/network loss. Subscription availability and limits still apply; a quota/authentication failure publishes nothing.
 
-Requirements: installed Node, the pinned pnpm workspace dependencies, a recent Codex CLI supporting `--ignore-user-config`, `--ignore-rules`, `--strict-config` and `--ephemeral` (verified with 0.159.2), and a saved ChatGPT login. Verify `codex login status` reports ChatGPT. Login changes must be completed by the account owner. Model choice is explicit in the private runner configuration; use a model available to that login.
+Requirements: installed Node, the pinned pnpm workspace dependencies, a recent Codex CLI supporting `--ignore-user-config`, `--ignore-rules`, `--strict-config` and `--ephemeral` (verified with 0.160.0), and a saved ChatGPT login. Verify `codex login status` reports ChatGPT. Login changes must be completed by the account owner. Model choice is explicit in the private runner configuration; use a model available to that login.
 
 Create `~/Library/Application Support/XonTrack/coaching/config.json`, outside the repository, with directory mode 700 and file mode 600:
 

@@ -16,11 +16,9 @@ import { readStoredGoal } from '../models/goalRepository.js';
 import goalService from './goalService.js';
 import nutrientGoalPreferenceService from './nutrientGoalPreferenceService.js';
 import { sumFoodEntryCalories } from './calorieBalanceService.js';
-import {
-  aggregateWorkoutPlanAdherence,
-  type WorkoutPlanVersionRow,
-  type CompletedPlanAssignmentRow,
-} from './exerciseReviewService.js';
+import { readActivityPlanningData } from '../models/activityPlanningRepository.js';
+import { projectActivityPlanning } from './activityPlanningProjection.js';
+import { coachingWorkoutEvidence } from './coachingWorkoutEvidence.js';
 
 interface Projection {
   domain: CoachingDomain;
@@ -157,7 +155,10 @@ export async function collectCoachingEvidence(
               ? 'unconfirmed'
               : projection.kind === 'exercise' &&
                   value.workout_plan_origin_assignment_id &&
-                  Number(value.completed_set_count) === 0
+                  Number(value.completed_set_count) === 0 &&
+                  (value.source === 'Workout Plan' ||
+                    (Number(value.duration_minutes) <= 0 &&
+                      Number(value.distance) <= 0))
                 ? 'unconfirmed'
                 : 'confirmed',
           value,
@@ -414,62 +415,16 @@ export async function collectCoachingEvidence(
     }
   }
   if (domains.includes('activity')) {
-    const actualToday = instantToDay(
-      new Date(),
-      await loadUserTimezone(userId)
+    const timezone = await loadUserTimezone(userId);
+    const actualToday = instantToDay(new Date(), timezone);
+    const activity = projectActivityPlanning(
+      await readActivityPlanningData(client, userId, from, to),
+      from,
+      to,
+      timezone,
+      actualToday
     );
-    const versions = (
-      await client.query<WorkoutPlanVersionRow>(
-        'SELECT template_id,effective_from::text,start_date::text,end_date::text,is_active,assignments FROM workout_plan_template_versions WHERE user_id=$1 AND effective_from<=$2 ORDER BY template_id,effective_from,id',
-        [userId, to]
-      )
-    ).rows;
-    const completed = (
-      await client.query<CompletedPlanAssignmentRow>(
-        'SELECT DISTINCT e.entry_date::text,e.workout_plan_origin_assignment_id AS assignment_id FROM exercise_entries e WHERE e.user_id=$1 AND e.entry_date BETWEEN $2 AND $3 AND e.workout_plan_origin_assignment_id IS NOT NULL AND EXISTS(SELECT 1 FROM exercise_entry_sets s WHERE s.exercise_entry_id=e.id AND s.completed_at IS NOT NULL)',
-        [userId, from, to]
-      )
-    ).rows;
-    for (const templateId of new Set(
-      versions.map((version) => version.template_id)
-    ))
-      for (
-        let day = from;
-        day <= to && day < actualToday;
-        day = addDays(day, 1)
-      ) {
-        const adherence = aggregateWorkoutPlanAdherence(
-          versions.filter((version) => version.template_id === templateId),
-          completed,
-          day,
-          day,
-          actualToday
-        );
-        if (!adherence.eligibleScheduledSessions) continue;
-        rows.push(
-          coachingEvidenceRowSchema.parse({
-            id: `workout_adherence:${templateId}:${day}`,
-            domain: 'activity',
-            kind: 'workout_adherence',
-            day,
-            source: 'server',
-            observedAt: null,
-            confirmation: 'confirmed',
-            value: {
-              templateId,
-              ratio:
-                adherence.attendedScheduledSessions /
-                adherence.eligibleScheduledSessions,
-              eligible: adherence.eligibleScheduledSessions,
-              attended: adherence.attendedScheduledSessions,
-              unit: 'ratio',
-              knownSchedule: true,
-              limitation:
-                'Attendance requires an explicitly completed set. Scheduled entries and timer expiry are not completion.',
-            },
-          })
-        );
-      }
+    rows.push(...coachingWorkoutEvidence(activity.occurrences, actualToday));
   }
   for (const domain of domains) {
     const relevant = rows.filter(

@@ -189,9 +189,15 @@ export async function getDailyProgress(
   date: string,
   includeObjectives = false
 ): Promise<DailyProgress> {
-  return buildDailyProgress(
+  const base = buildDailyProgress(
     await getDailyProgressInput(userId, date, includeObjectives)
   );
+  return includeObjectives
+    ? withActivityProgress(
+        base,
+        (await getActivityPlanning(userId, date, date)).occurrences
+      )
+    : base;
 }
 
 interface ScheduleWithHistory {
@@ -305,7 +311,7 @@ export async function getDailyProgressRange(
         )
     );
 
-  const activity = includeActivity
+  const activity = includeObjectives
     ? await getActivityPlanning(userId, startDate, endDate)
     : null;
   const days: DailyProgressDay[] = [];

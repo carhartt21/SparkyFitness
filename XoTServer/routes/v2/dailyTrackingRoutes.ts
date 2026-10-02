@@ -383,7 +383,7 @@ ownerRouter.get(
         req.userId,
         range.start_date,
         range.end_date,
-        req.query.version === '2'
+        req.query.version === '2' || req.query.include_activity === 'true'
       )
     );
   })
@@ -396,16 +396,19 @@ ownerRouter.get(
     const progress = await getDailyProgress(
       req.userId,
       date,
-      req.query.version === '2'
+      req.query.version === '2' || req.query.include_activity === 'true'
     );
     res.json(
-      req.query.version === '2'
+      req.query.version === '2' || req.query.include_activity === 'true'
         ? progress
         : {
             ...summarizeDailyProgressItems(
               date,
               progress.items.filter(
-                (item) => item.domain !== 'goal' && item.domain !== 'workout'
+                (item) =>
+                  item.domain !== 'goal' &&
+                  item.domain !== 'workout' &&
+                  item.domain !== 'activity'
               )
             ),
             version: 1,

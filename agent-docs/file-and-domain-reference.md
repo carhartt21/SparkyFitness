@@ -206,6 +206,7 @@ Grep the feature name in this doc to narrow to the right package folders, then g
 ## Owner-reviewed recommendations
 
 - Server: `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `models/coachingRepository.ts`, `services/coaching*Service.ts`, `services/mealPlanOccurrenceService.ts`.
+- Workout outcomes: `services/coachingWorkoutEvidence.ts` uses `activityPlanningProjection.ts` and immutable prescriptions shared with Weekly activities/Daily Progress. Attendance-only evidence cannot establish completion.
 - Web: `src/pages/Coaching/`, `src/hooks/Coaching/`, `src/api/Coaching/`. Mobile: `CoachingScreen`, `useCoaching`, `components/coaching/`.
 - Shared: Coaching/MealPlanning schemas, `coaching/` policy/client/editor behavior and `fddb/presentation.ts`.
 - Setup, scope, retention and rollout: `docs/src/developer/mcp/recommendations.md`. The Mac runner is `XoTServer/tools/coachingRunner.ts`.

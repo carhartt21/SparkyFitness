@@ -32,7 +32,8 @@ export async function createCoachingCredential(
   const result: unknown = await auth.api.createApiKey({
     body: {
       userId,
-      name: agent.name,
+      // Agent display names allow 200 characters; credential labels allow 32.
+      name: agent.name.slice(0, 32),
       configId: MCP_AGENT_KEY_CONFIG_ID,
       expiresIn,
     },

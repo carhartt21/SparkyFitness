@@ -155,13 +155,15 @@ describe('coaching scheduling and confirmed outcomes', () => {
         row('workout_adherence', '2026-09-28', {
           templateId: 1,
           eligible: 2,
-          attended: 1,
+          completed: 1,
+          completionBasis: 'saved_prescription',
           ratio: 0.5,
         }),
         row('workout_adherence', '2026-09-30', {
           templateId: 1,
           eligible: 1,
-          attended: 1,
+          completed: 1,
+          completionBasis: 'saved_prescription',
           ratio: 1,
         }),
       ],

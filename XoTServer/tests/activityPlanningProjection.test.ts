@@ -48,6 +48,59 @@ describe('activity planning completion truth', () => {
     rows.entries = [];
     expect(project(rows).occurrences[0].state).toBe('pending');
   });
+  it('keeps whole-activity prefills pending and requires actual duration/distance targets', () => {
+    const rows = activityData();
+    Object.assign(rows.versions[0].assignments[0], {
+      exerciseId: null,
+      exercises: [],
+      activityType: 'running',
+      plannedDurationMinutes: 30,
+      plannedDistanceKm: 5,
+    });
+    rows.entries = [
+      activityEntry({
+        source: 'Workout Plan',
+        duration_minutes: 30,
+        distance: 5,
+      }),
+    ];
+    expect(project(rows).occurrences[0].state).toBe('pending');
+    rows.entries[0].source = 'manual';
+    rows.entries[0].duration_minutes = 20;
+    expect(project(rows).occurrences[0].state).toBe('started');
+    rows.entries[0].duration_minutes = 30;
+    expect(project(rows).occurrences[0]).toMatchObject({
+      state: 'complete',
+      reason: 'activity_targets_recorded',
+      activity_type: 'running',
+    });
+    rows.entries[0].distance = null;
+    expect(project(rows).occurrences[0].state).toBe('started');
+    expect(project(rows, DAY, DAY).records[0].confirmed).toBe(true);
+  });
+  it('omits rest and does not double-count optional or old workout tasks', () => {
+    const rows = activityData();
+    rows.versions[0].assignments[0].activityType = 'rest';
+    expect(project(rows).occurrences).toEqual([]);
+    rows.versions[0].assignments[0].activityType = 'weightlifting';
+    rows.versions[0].assignments[0].isOptional = true;
+    const old = summarizeDailyProgressItems(DAY, [
+      {
+        id: 'old',
+        domain: 'workout',
+        date: DAY,
+        label: 'Training',
+        state: 'complete',
+        applicable: true,
+        reference_id: '1',
+        recorded_at: null,
+        reason: 'recorded',
+      },
+    ]);
+    const result = withActivityProgress(old, project(rows).occurrences);
+    expect(result.items.map((item) => item.domain)).toEqual(['activity']);
+    expect(result.applicable).toBe(0);
+  });
   it('never fills missing exercises with duplicate/excess sets or separate sessions', () => {
     const rows = activityData();
     const second = randomUUID();
@@ -216,7 +269,11 @@ describe('activity planning completion truth', () => {
   });
   it('requires a surviving confirmed link and excludes skipped tasks', () => {
     const rows = activityData();
-    const actual = activityEntry({ origin_id: null });
+    const actual = activityEntry({
+      origin_id: null,
+      source: 'manual',
+      duration_minutes: 30,
+    });
     rows.entries = [actual];
     rows.resolutions = [
       {
@@ -247,7 +304,7 @@ describe('activity planning completion truth', () => {
     expect(result.summary[0].excluded).toBe(1);
   });
   it('preserves v1 and opts scheduled activity into v2', () => {
-    const base = summarizeDailyProgressItems(DAY, []);
+    const base = summarizeDailyProgressItems(DAY, [], 1);
     expect(base.version).toBe(1);
     expect(base.coverage).not.toHaveProperty('activity');
     const rows = activityData();

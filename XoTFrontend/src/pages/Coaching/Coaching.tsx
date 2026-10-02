@@ -96,7 +96,7 @@ function ProposalReview({
     >
       <div className="flex items-start justify-between gap-4">
         <h2 className="text-xl font-semibold">{proposal.title}</h2>
-        <Button variant="ghost" onClick={onClose}>
+        <Button variant="ghost" onClick={onClose} disabled={busy}>
           {t('coaching.close', { defaultValue: 'Close' })}
         </Button>
       </div>
@@ -146,14 +146,16 @@ function ProposalReview({
       <h3 className="font-semibold">
         {t('coaching.action', { defaultValue: 'Action details' })}
       </h3>
-      <ActionFields
-        value={draft}
-        action={parsed.success ? parsed.data : proposal.action}
-        onChange={(next) => {
-          setDraft(next);
-          setPreview(null);
-        }}
-      />
+      <fieldset disabled={busy} className="min-w-0">
+        <ActionFields
+          value={draft}
+          action={parsed.success ? parsed.data : proposal.action}
+          onChange={(next) => {
+            setDraft(next);
+            setPreview(null);
+          }}
+        />
+      </fieldset>
       {!parsed.success && (
         <p role="alert" className="text-destructive">
           {t('coaching.invalid', {

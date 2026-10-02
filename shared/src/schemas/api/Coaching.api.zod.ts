@@ -1,5 +1,9 @@
 import { z } from "zod";
 import {
+  workoutPlanActivityFieldsSchema,
+  workoutPlanAssignmentRequestSchema,
+} from "./WorkoutPlans.api.zod.ts";
+import {
   createHabitRequestSchema,
   upsertMeasurementReminderRequestSchema,
 } from "./DailyTracking.api.zod.ts";
@@ -213,6 +217,7 @@ export const coachingWorkoutSetSchema = z.strictObject({
 });
 export const coachingWorkoutAssignmentSchema = z
   .strictObject({
+    ...workoutPlanActivityFieldsSchema.shape,
     day_of_week: z.number().int().min(0).max(6).nullable(),
     session_index: z.number().int().min(0).max(100).nullable(),
     session_name: text.nullable(),
@@ -223,8 +228,8 @@ export const coachingWorkoutAssignmentSchema = z
   })
   .refine(
     (assignment) =>
-      Boolean(assignment.workout_preset_id) !== Boolean(assignment.exercise_id),
-    "Choose one exercise or preset.",
+      workoutPlanAssignmentRequestSchema.safeParse(assignment).success,
+    "Choose one activity, exercise or preset with valid targets.",
   );
 export const coachingWorkoutPlanSchema = z
   .strictObject({

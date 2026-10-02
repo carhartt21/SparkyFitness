@@ -615,7 +615,9 @@ export function withActivityProgress(
   return summarizeDailyProgressItems(
     progress.date,
     [
-      ...progress.items.filter((item) => item.domain !== "activity"),
+      ...progress.items.filter(
+        (item) => item.domain !== "activity" && item.domain !== "workout",
+      ),
       ...occurrences
         .filter((row) => row.date === progress.date)
         .map((row) => ({
@@ -624,7 +626,9 @@ export function withActivityProgress(
           label: row.label,
           date: row.date,
           applicable:
-            row.state !== "excluded" && row.reason !== "prescription_unknown",
+            row.state !== "excluded" &&
+            !row.optional &&
+            row.reason !== "prescription_unknown",
           state: row.state,
           reference_id: row.source_id,
           recorded_at: row.recorded_at,

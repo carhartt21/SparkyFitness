@@ -113,6 +113,8 @@ const numericFields = new Set([
   'before',
   'after',
   'quantity',
+  'planned_duration_minutes',
+  'planned_distance_km',
   'day_of_week',
   'session_index',
   'sort_order',

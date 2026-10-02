@@ -31,6 +31,8 @@ export const planningEntrySchema = z.object({
   first_confirmed_at: z.iso.datetime({ offset: true }).nullable(),
   exercise_id: z.uuid().nullable(),
   source: z.string().nullable(),
+  duration_minutes: z.coerce.number().nullable().optional(),
+  distance: z.coerce.number().nullable().optional(),
   category: z.string().nullable(),
   notes: z.string().nullable(),
   provider_name: z.string().nullable(),
@@ -56,7 +58,7 @@ export async function readActivityPlanningData(
       COALESCE(p.name,e.exercise_name) AS session_name,e.workout_plan_origin_assignment_id AS origin_id,
       COALESCE(s.set_count,0) AS set_count,COALESCE(s.completed_count,0) AS completed_count,
       COALESCE(s.last_completed,e.updated_at)::text AS recorded_at,s.first_completed::text AS first_confirmed_at,
-      e.exercise_id,e.source,e.category,e.notes,d.provider_name,d.detail_data
+      e.exercise_id,e.source,e.duration_minutes,e.distance,e.category,e.notes,d.provider_name,d.detail_data
      FROM exercise_entries e LEFT JOIN exercise_preset_entries p ON p.id=e.exercise_preset_entry_id AND p.user_id=e.user_id
      LEFT JOIN LATERAL (SELECT COUNT(*) AS set_count,COUNT(completed_at) AS completed_count,
        MAX(completed_at) AS last_completed,MIN(completed_at) AS first_completed FROM exercise_entry_sets WHERE exercise_entry_id=e.id) s ON TRUE

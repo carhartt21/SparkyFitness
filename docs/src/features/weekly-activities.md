@@ -16,6 +16,8 @@ planners. No automatic training program is generated.
    in one saved session cover every exercise in its saved prescription. Pending
    prefills, duplicate sessions and elapsed timers alone do not imply completion.
    Mobility requires completed outcomes for every routine step.
+   Whole activities require recorded duration/distance to meet every saved target
+   in one record. Optional sessions and rest days do not add required daily tasks.
 4. For an imported or manually logged session, choose an unassigned, confirmed
    Diary session on the same date and select **Link activity**. This records your
    explicit decision. A session cannot satisfy two scheduled activities.
@@ -27,6 +29,10 @@ Weekly counts describe scheduled tasks rather than all exercise volume. Each
 applicable daily task counts equally in Daily Progress; the X is not a health score.
 Partly confirmed routines remain started. Removing the linked record removes its
 completion evidence. If another device changes a decision, refresh and try again.
+
+The coach uses these same completion rules. Today's unfinished sessions remain
+open; only elapsed days contribute to adherence outcomes. Older attendance-only
+snapshots and missing prescriptions cannot establish a completed workout.
 
 ## History and privacy
 

@@ -7,7 +7,14 @@ import {
   type ActivityPlanningResponse,
   type ActivityRecord,
 } from '@workspace/shared';
-import type { ActivityPlanningData } from '../models/activityPlanningRepository.js';
+import type {
+  ActivityPlanningData,
+  PlanningEntry,
+} from '../models/activityPlanningRepository.js';
+
+const recordedActivity = (row: PlanningEntry) =>
+  row.source !== 'Workout Plan' &&
+  ((row.duration_minutes ?? 0) > 0 || (row.distance ?? 0) > 0);
 
 /** Pure projection: reads never generate plans, completion or diary rows. */
 export function projectActivityPlanning(
@@ -43,7 +50,7 @@ export function projectActivityPlanning(
     ],
     confirmed:
       rows[0].entry_date <= today &&
-      rows.some((row) => row.origin_id === null || row.completed_count > 0),
+      rows.some((row) => row.completed_count > 0 || recordedActivity(row)),
     linked_occurrence_id:
       data.resolutions.find(
         (row) =>
@@ -100,9 +107,9 @@ export function projectActivityPlanning(
                   (row) =>
                     row.entry_date === date &&
                     row.origin_id === assignmentId &&
-                    row.completed_count > 0
+                    (row.completed_count > 0 || recordedActivity(row))
                 )
-                .map((row) => row.first_confirmed_at)
+                .map((row) => row.first_confirmed_at ?? row.recorded_at)
                 .filter((at): at is string => at !== null)
                 .sort()[0]
             : undefined;
@@ -157,6 +164,7 @@ export function projectActivityPlanning(
             assignments.push({ version: current, assignment });
         }
       for (const { assignment, version } of assignments) {
+        if (assignment.activityType === 'rest') continue;
         const id = `workout:${templateId}:${assignment.id}:${date}`;
         const resolution = data.resolutions.find(
           (row) => row.occurrence_id === id
@@ -177,7 +185,7 @@ export function projectActivityPlanning(
         const recordIds = [
           ...new Set(confirmedEvidence.map((row) => row.record_id)),
         ];
-        const complete = Boolean(
+        const setsComplete = Boolean(
           prescribed?.length &&
           recordIds.some((recordId) =>
             (() => {
@@ -201,6 +209,30 @@ export function projectActivityPlanning(
             })()
           )
         );
+        const wholeActivity = Boolean(
+          assignment.activityType &&
+          !assignment.exerciseId &&
+          !assignment.workoutPresetId
+        );
+        const actualActivity = confirmedEvidence.filter(recordedActivity);
+        const activityComplete =
+          wholeActivity &&
+          actualActivity.some(
+            (row) =>
+              (assignment.plannedDurationMinutes === null ||
+                assignment.plannedDurationMinutes === undefined ||
+                (row.duration_minutes !== null &&
+                  row.duration_minutes !== undefined &&
+                  row.duration_minutes >= assignment.plannedDurationMinutes)) &&
+              (assignment.plannedDistanceKm === null ||
+                assignment.plannedDistanceKm === undefined ||
+                (row.distance !== null &&
+                  row.distance !== undefined &&
+                  row.distance >= assignment.plannedDistanceKm))
+          );
+        const complete = wholeActivity ? activityComplete : setsComplete;
+        const started =
+          completedSets > 0 || (wholeActivity && actualActivity.length > 0);
         const linked =
           resolution?.action === 'link' &&
           resolution.entry_id !== null &&
@@ -221,14 +253,19 @@ export function projectActivityPlanning(
           revision: resolution?.revision ?? 0,
           label: assignment.label ?? version.plan_name,
           plan_label: version.plan_name,
-          activity_type: classifyActivitySport({
-            exerciseName: assignment.label ?? version.plan_name,
-          }).sport,
+          activity_type: ACTIVITY_SPORTS.includes(
+            assignment.activityType as (typeof ACTIVITY_SPORTS)[number]
+          )
+            ? (assignment.activityType as (typeof ACTIVITY_SPORTS)[number])
+            : classifyActivitySport({
+                exerciseName: assignment.label ?? version.plan_name,
+              }).sport,
+          optional: assignment.isOptional ?? false,
           state: skipped
             ? 'excluded'
             : linked || complete
               ? 'complete'
-              : completedSets > 0
+              : started
                 ? 'started'
                 : 'pending',
           reason: skipped
@@ -236,10 +273,12 @@ export function projectActivityPlanning(
             : linked
               ? 'owner_linked_record'
               : complete
-                ? 'prescribed_sets_recorded'
-                : expectedSets === null
+                ? wholeActivity
+                  ? 'activity_targets_recorded'
+                  : 'prescribed_sets_recorded'
+                : expectedSets === null && !wholeActivity
                   ? 'prescription_unknown'
-                  : completedSets > 0
+                  : started
                     ? 'partial_or_unknown_prescription'
                     : resolution?.action === 'link'
                       ? 'linked_record_missing'
@@ -247,7 +286,7 @@ export function projectActivityPlanning(
           recorded_at:
             skipped || linked
               ? (resolution?.updated_at ?? null)
-              : complete || completedSets > 0
+              : complete || started
                 ? (evidence
                     .map((row) => row.recorded_at)
                     .filter((at): at is string => at !== null)
@@ -257,7 +296,11 @@ export function projectActivityPlanning(
           evidence_ids: linked
             ? linked.entry_ids
             : evidence
-                .filter((row) => row.completed_count > 0)
+                .filter(
+                  (row) =>
+                    row.completed_count > 0 ||
+                    (wholeActivity && recordedActivity(row))
+                )
                 .map((row) => row.id),
           expected_sets: expectedSets,
           completed_sets: completedSets,

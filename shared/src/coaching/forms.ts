@@ -1,3 +1,4 @@
+import { PLANNED_ACTIVITY_TYPES } from "../schemas/api/WorkoutPlans.api.zod.ts";
 import type { CoachingAction } from "../schemas/api/Coaching.api.zod.ts";
 import { coachingPlanningItemSchema } from "../schemas/api/Coaching.api.zod.ts";
 import type { z } from "zod";
@@ -19,6 +20,7 @@ export const coachingReferenceFields: Record<string, CoachingReferenceKind> = {
   workout_preset_id: "workout_preset",
 };
 export const coachingFieldOptions: Record<string, readonly string[]> = {
+  activity_type: PLANNED_ACTIVITY_TYPES,
   direction: ["minimum", "maximum", "exact"],
   habit_type: ["completion", "count"],
   cue: ["off", "haptic", "sound", "both"],
@@ -145,10 +147,25 @@ export function coachingChangeField(
       }),
     };
   }
+  if (field === "activity_type" && next)
+    return {
+      ...value,
+      [field]: next,
+      exercise_id: null,
+      workout_preset_id: null,
+      ...(next === "rest"
+        ? { planned_duration_minutes: null, planned_distance_km: null }
+        : {}),
+    };
   if (field === "exercise_id" && "workout_preset_id" in value && next)
-    return { ...value, [field]: next, workout_preset_id: null };
+    return {
+      ...value,
+      [field]: next,
+      workout_preset_id: null,
+      activity_type: null,
+    };
   if (field === "workout_preset_id" && "exercise_id" in value && next)
-    return { ...value, [field]: next, exercise_id: null };
+    return { ...value, [field]: next, exercise_id: null, activity_type: null };
   return { ...value, [field]: next };
 }
 export function coachingTemplateReference(
@@ -209,6 +226,11 @@ export const coachingFieldLabels: Record<string, string> = {
   session_name: "Session name",
   workout_preset_id: "Workout preset",
   exercise_id: "Exercise",
+  activity_type: "Activity type",
+  planned_duration_minutes: "Planned duration (minutes)",
+  planned_distance_km: "Planned distance (km)",
+  planned_time: "Planned time",
+  is_optional: "Optional session",
   sort_order: "Order",
   sets: "Sets",
   set_number: "Set number",
@@ -317,6 +339,11 @@ export function coachingNewArrayItem(
       session_index:
         action.definition.schedule_type === "sequential" ? 0 : null,
       session_name: null,
+      activity_type: "walking",
+      planned_duration_minutes: null,
+      planned_distance_km: null,
+      planned_time: null,
+      is_optional: false,
       workout_preset_id: null,
       exercise_id: null,
       sort_order: 0,

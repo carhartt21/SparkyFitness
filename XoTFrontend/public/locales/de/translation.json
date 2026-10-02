@@ -6852,7 +6852,12 @@
       "repetitions": "Wiederholungen",
       "kind": "Schritttyp",
       "step": "Zählschritt",
-      "icon": "Symbol"
+      "icon": "Symbol",
+      "activity_type": "Aktivitätsart",
+      "planned_duration_minutes": "Geplante Dauer (Minuten)",
+      "planned_distance_km": "Geplante Strecke (km)",
+      "planned_time": "Geplante Uhrzeit",
+      "is_optional": "Optionale Einheit"
     },
     "enableSchedule": "Zeitplan hinzufügen",
     "feedback": "Optionale Rückmeldung",
@@ -6885,7 +6890,7 @@
       "dropset": "Reduktionssatz",
       "failure": "Bis zur Ermüdung",
       "queued": "Ausstehend",
-      "running": "In Bearbeitung",
+      "running": "Laufen",
       "succeeded": "Abgeschlossen",
       "failed": "Fehlgeschlagen",
       "expired": "Abgelaufen",
@@ -6930,7 +6935,17 @@
       "timeout": "Auswertung hat zu lange gedauert",
       "invalid_output": "Auswertung konnte nicht validiert werden",
       "cancelled": "Abgebrochen",
-      "internal": "Auswertung fehlgeschlagen"
+      "internal": "Auswertung fehlgeschlagen",
+      "strength": "Krafttraining",
+      "cycling": "Radfahren",
+      "walking": "Gehen",
+      "hiking": "Wandern",
+      "swimming": "Schwimmen",
+      "rowing": "Rudern",
+      "soccer": "Fußball",
+      "yoga": "Yoga",
+      "other": "Andere Aktivität",
+      "rest": "Ruhetag"
     },
     "proposalAccess": "Verbindung für Vorschläge",
     "deleteConfirm": "Diese Empfehlung samt gespeicherten Belegen und Verlauf endgültig löschen? Tagebucheinträge und angenommene Einstellungen bleiben erhalten."

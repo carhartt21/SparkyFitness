@@ -26,20 +26,22 @@ export function useCoachingActions() {
   return api;
 }
 export function useCoachingEvidence(proposalId: string) {
-  const { activeUserId } = useActiveUser();
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
   return useQuery({
     queryKey: ['coaching', activeUserId, 'evidence', proposalId],
     queryFn: () => api.loadCoachingEvidence(proposalId),
+    enabled: !!activeUserId && !isActingOnBehalf,
   });
 }
 export function useCoachingPlanning(
   kind: CoachingReferenceKind,
   search: string
 ) {
-  const { activeUserId } = useActiveUser();
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
   return useInfiniteQuery({
     queryKey: ['coaching', activeUserId, 'choices', kind, search],
     initialPageParam: 0,
+    enabled: !!activeUserId && !isActingOnBehalf,
     queryFn: ({ pageParam }) =>
       api.loadCoachingPlanning(kind, search, pageParam),
     getNextPageParam: (page) => page.nextOffset ?? undefined,

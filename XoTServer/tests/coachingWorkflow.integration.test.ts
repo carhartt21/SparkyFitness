@@ -31,7 +31,10 @@ import {
   coachingReferenceState,
 } from '../services/coachingPlanningService.js';
 import workoutPlanRepository from '../models/workoutPlanTemplateRepository.js';
+import { applyReviewedWorkoutPlan } from '../services/workoutPlanTemplateService.js';
+import { getActivityPlanning } from '../services/activityPlanningService.js';
 import { collectCoachingEvidence } from '../services/coachingEvidenceService.js';
+import { createCoachingCredential } from '../services/coachingCredentialService.js';
 import { maintainCoachingOwner } from '../services/coachingMaintenanceService.js';
 import {
   getEngagementSettingsV2,
@@ -48,7 +51,8 @@ const enabled = process.env.XOT_COACHING_DB_TEST === '1';
 if (
   enabled &&
   (process.env.SPARKY_FITNESS_DB_HOST !== '127.0.0.1' ||
-    process.env.SPARKY_FITNESS_DB_PORT !== '55432' ||
+    process.env.SPARKY_FITNESS_DB_PORT !==
+      (process.env.XOT_COACHING_TEST_DB_PORT ?? '55432') ||
     process.env.SPARKY_FITNESS_DB_NAME !== 'sparkyfitness_visual')
 )
   throw new Error(
@@ -583,6 +587,18 @@ describe.skipIf(!enabled)('owner-only coaching workflow in PostgreSQL', () => {
       })
     ).rejects.toThrow();
   });
+  it('issues an expiring credential for a valid long agent display name', async () => {
+    const agent = await createCoachingAgent(alice, {
+      name: 'A valid owner-selected coaching agent display name',
+      domains: ['nutrition'],
+    });
+    const credential = await createCoachingCredential(alice, agent.id, 86400);
+    expect(credential.key).toMatch(/^xotagent_/);
+    expect(credential.agent.name).toBe(agent.name);
+    expect(credential.agent.expiresAt).not.toBeNull();
+    await revokeCoachingAgent(alice, agent.id);
+  });
+
   it('matches new table columns and owner RLS, and retains evidence when raw snapshots expire', async () => {
     const tables = {
       coaching_settings: sharedSchemas.coachingSettingsDatabaseSchema,
@@ -724,6 +740,80 @@ describe.skipIf(!enabled)('owner-only coaching workflow in PostgreSQL', () => {
     } finally {
       owner.release();
     }
+  });
+  it('accepts prompt-only whole activities and retains their prescription metadata', async () => {
+    const action = sharedSchemas.coachingActionSchema.parse({
+      kind: 'workout_plan',
+      templateId: null,
+      effectiveDay: today,
+      definition: {
+        plan_name: 'Synthetic whole activities',
+        description: '',
+        start_date: today,
+        end_date: null,
+        is_active: true,
+        schedule_type: 'weekly',
+        entry_mode: 'prompt',
+        assignments: [
+          {
+            day_of_week: sharedSchemas.dayOfWeek(today),
+            session_index: null,
+            session_name: 'Synthetic walk',
+            exercise_id: null,
+            workout_preset_id: null,
+            activity_type: 'walking',
+            planned_duration_minutes: 30,
+            planned_distance_km: 2,
+            planned_time: '17:30',
+            is_optional: true,
+            sort_order: 0,
+            sets: [],
+          },
+        ],
+      },
+    });
+    if (action.kind !== 'workout_plan')
+      throw new Error('Invalid synthetic action');
+    const owner = await getClient(alice, alice);
+    let templateId: number;
+    try {
+      await owner.query('BEGIN');
+      templateId = Number(
+        (await applyReviewedWorkoutPlan(owner, alice, action)).id
+      );
+      await owner.query('COMMIT');
+    } catch (error) {
+      await owner.query('ROLLBACK');
+      throw error;
+    } finally {
+      owner.release();
+    }
+    const projection = await getActivityPlanning(alice, today, today);
+    expect(
+      projection.workout_plans.find((plan) => plan.id === templateId)
+        ?.assignments[0]
+    ).toMatchObject({
+      activityType: 'walking',
+      plannedDurationMinutes: 30,
+      plannedDistanceKm: 2,
+      plannedTime: '17:30:00',
+      isOptional: true,
+    });
+    expect(
+      projection.occurrences.find((row) => row.source_id === String(templateId))
+    ).toMatchObject({
+      state: 'pending',
+      optional: true,
+      activity_type: 'walking',
+    });
+    expect(
+      (
+        await db.query<{ count: string }>(
+          'SELECT COUNT(*) FROM exercise_entries WHERE user_id=$1 AND workout_plan_origin_assignment_id IN (SELECT id FROM workout_plan_template_assignments WHERE template_id=$2)',
+          [alice, templateId]
+        )
+      ).rows[0].count
+    ).toBe('0');
   });
   it('owner history deletion removes cited evidence, decisions and payload-bearing retry receipts', async () => {
     await start();

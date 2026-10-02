@@ -6759,7 +6759,12 @@
       "repetitions": "Repetitions",
       "kind": "Step type",
       "step": "Count increment",
-      "icon": "Icon"
+      "icon": "Icon",
+      "activity_type": "Activity type",
+      "planned_duration_minutes": "Planned duration (minutes)",
+      "planned_distance_km": "Planned distance (km)",
+      "planned_time": "Planned time",
+      "is_optional": "Optional session"
     },
     "confirmConsumption": "Confirm and log consumption",
     "logged": "Consumption recorded",
@@ -6884,7 +6889,7 @@
       "dropset": "Drop set",
       "failure": "To failure",
       "queued": "Waiting",
-      "running": "In progress",
+      "running": "running",
       "succeeded": "Finished",
       "failed": "Failed",
       "expired": "Expired",
@@ -6929,7 +6934,17 @@
       "timeout": "Review timed out",
       "invalid_output": "Review could not be validated",
       "cancelled": "Cancelled",
-      "internal": "Review failed"
+      "internal": "Review failed",
+      "strength": "strength",
+      "cycling": "cycling",
+      "walking": "walking",
+      "hiking": "hiking",
+      "swimming": "swimming",
+      "rowing": "rowing",
+      "soccer": "soccer",
+      "yoga": "yoga",
+      "other": "other",
+      "rest": "rest"
     },
     "proposalAccess": "Proposal-only connection",
     "deleteConfirm": "Delete this recommendation and its retained evidence and history permanently? Diary entries and accepted configurations are kept."

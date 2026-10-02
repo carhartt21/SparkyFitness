@@ -96,7 +96,11 @@ describe('revision checked owner activity decisions', () => {
         })
       ).rejects.toBeInstanceOf(ActivityPlanningValidationError);
     }
-    const actual = activityEntry({ origin_id: null });
+    const actual = activityEntry({
+      origin_id: null,
+      source: 'manual',
+      duration_minutes: 30,
+    });
     const rows = activityData();
     rows.entries = [actual];
     rows.resolutions = [

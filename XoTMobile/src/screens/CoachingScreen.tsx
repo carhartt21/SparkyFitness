@@ -70,6 +70,7 @@ function Review({
   };
   const decide = (decision: 'accept' | 'decline') =>
     run(async () => {
+      if (decision === 'accept' && !preview) return;
       const fingerprint = JSON.stringify({ decision, preview, reason });
       if (operation.current?.fingerprint !== fingerprint)
         operation.current = { fingerprint, id: newUuid() };
@@ -166,6 +167,7 @@ function Review({
       <CoachingFields
         value={draft}
         action={parsed.success ? parsed.data : proposal.action}
+        readOnly={busy}
         api={api}
         scope={scope}
         onChange={(next) => {

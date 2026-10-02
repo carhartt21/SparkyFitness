@@ -33,6 +33,7 @@ export function evaluateCoachingOutcome(input: {
     string,
     { confirmed: number; total: number }
   >();
+  let unknownScheduled = 0;
   const end = input.to < input.today ? input.to : input.today;
   const habit = input.rows.find(
     (row) =>
@@ -50,6 +51,17 @@ export function evaluateCoachingOutcome(input: {
       days++;
   }
   for (const row of input.rows) {
+    if (
+      row.day &&
+      row.day >= input.from &&
+      row.day <= end &&
+      row.day < input.today &&
+      metric === "workout_completion" &&
+      row.kind === "workout_adherence" &&
+      String(object(row.value)["templateId"]) === success.subjectId &&
+      object(row.value)["completionBasis"] === "saved_prescription"
+    )
+      unknownScheduled += number(object(row.value)["unknown"]) ?? 0;
     if (
       !row.day ||
       row.day < input.from ||
@@ -107,10 +119,11 @@ export function evaluateCoachingOutcome(input: {
     } else if (
       metric === "workout_completion" &&
       row.kind === "workout_adherence" &&
-      String(data["templateId"]) === success.subjectId
+      String(data["templateId"]) === success.subjectId &&
+      data["completionBasis"] === "saved_prescription"
     ) {
       const scheduled = number(data["eligible"]),
-        completed = number(data["attended"]);
+        completed = number(data["completed"]);
       if (scheduled !== null && completed !== null && scheduled > 0)
         scheduledValues.set(row.id, { confirmed: completed, total: scheduled });
       value = number(data["ratio"]);
@@ -153,8 +166,9 @@ export function evaluateCoachingOutcome(input: {
   }
   const recorded = [...values.values()];
   const eligible = [...scheduledValues.values()];
+  const knownScheduled = eligible.reduce((sum, item) => sum + item.total, 0);
   const coverage = eligible.length
-    ? 1
+    ? knownScheduled / (knownScheduled + unknownScheduled)
     : days
       ? Math.min(1, values.size / days)
       : 0;

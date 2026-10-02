@@ -4,7 +4,6 @@ import {
   exerciseHistoryResetQueryKey,
   exerciseStatsQueryKeyRoot,
   suggestedExercisesQueryKey,
-  dailyProgressRootQueryKey,
   dailySummaryQueryKey,
   dailyProgressRootQueryKey,
 } from './queryKeys';

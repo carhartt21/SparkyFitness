@@ -6,7 +6,10 @@ import type {
 import { apiCall } from '@/api/api';
 
 export const getDailyProgress = (date: string): Promise<DailyProgress> =>
-  apiCall(`/v2/tracking/daily-progress/${date}?version=2&include_activity=true`, { method: 'GET' });
+  apiCall(
+    `/v2/tracking/daily-progress/${date}?version=2&include_activity=true`,
+    { method: 'GET' }
+  );
 
 export const getMealTrackingStatus = (
   date: string

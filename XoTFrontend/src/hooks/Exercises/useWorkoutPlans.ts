@@ -83,7 +83,7 @@ export const useCreateWorkoutPlanTemplateMutation = () => {
     }) => createWorkoutPlanTemplate(userId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutPlanKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['dailyProgress'] });
+      queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });
       queryClient.invalidateQueries({ queryKey: ['exerciseReview'] });
       queryClient.invalidateQueries({ queryKey: ['exerciseEntries'] });
       queryClient.invalidateQueries({ queryKey: ['dailyProgress', 'summary'] });
@@ -115,7 +115,7 @@ export const useUpdateWorkoutPlanTemplateMutation = () => {
     }) => updateWorkoutPlanTemplate(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutPlanKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['dailyProgress'] });
+      queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });
       queryClient.invalidateQueries({ queryKey: ['exerciseReview'] });
       queryClient.invalidateQueries({ queryKey: ['exerciseEntries'] });
       queryClient.invalidateQueries({ queryKey: ['dailyProgress', 'summary'] });
@@ -155,7 +155,7 @@ export const useDeleteWorkoutPlanTemplateMutation = () => {
     mutationFn: (id: string) => deleteWorkoutPlanTemplate(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: workoutPlanKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['dailyProgress'] });
+      queryClient.invalidateQueries({ queryKey: dailyProgressKeys.all });
       queryClient.invalidateQueries({ queryKey: ['exerciseReview'] });
       queryClient.invalidateQueries({ queryKey: ['exerciseEntries'] });
       queryClient.invalidateQueries({ queryKey: ['dailyProgress', 'summary'] });

@@ -17,8 +17,8 @@ If a task also touches `shared/`, the frontend, or the mobile app, read the rele
 
 `activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
 immutable Workout Plan versions and existing dated Mobility plans without writes.
-`include_activity=true` opts Daily Progress into version 2; preserve the default
-version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+`version=2` (or the legacy `include_activity=true` alias) opts Daily Progress into
+version 2; preserve the default HTTP version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
 activity queries under the Daily Progress family. See
 `docs/implementation/weekly-activity-goals-2026-10-01.md` and
 `docs/src/features/weekly-activities.md` for completion and history rules.
@@ -70,6 +70,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 ## Source Map
 
 - `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `services/coaching*Service.ts`, and `models/coachingRepository.ts` - owner review, scoped proposals and frozen evidence. `tools/coachingRunner{,Schema,Reads}.ts` owns the external subscription runner and read audit.
+- `services/coachingWorkoutEvidence.ts` consumes the same immutable-prescription activity projection as Daily Progress. Started sets are not completion; whole activities require actual saved targets, and optional/skipped/rest or unknown prescriptions do not become missed sessions. Legacy attendance-only snapshots cannot establish a completion outcome.
 - `index.ts` - real dev entrypoint; loads env, secrets, and preflight checks before booting the app
 - `XoTServer.ts` - Express app shell, route mounting, Swagger/ReDoc, cron setup, graceful shutdown
 - `auth.ts` - Better Auth configuration, plugins, session behavior, SSO provider syncing
