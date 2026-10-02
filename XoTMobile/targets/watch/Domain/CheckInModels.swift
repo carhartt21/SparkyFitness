@@ -381,6 +381,10 @@ struct WorkoutSetOperation: Codable, Equatable, Identifiable {
     let createdAt: Date
     var scope: String? = nil
     var state: SyncState
+    /// Values set on the Watch, in kg; nil when unchanged. Optional so
+    /// operations persisted by an earlier build still decode.
+    var weightKg: Double? = nil
+    var reps: Int? = nil
 }
 
 /// Everything the phone relays to the watch: what to seed the crown with, and

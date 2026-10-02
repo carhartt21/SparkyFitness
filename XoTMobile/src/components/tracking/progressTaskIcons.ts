@@ -24,6 +24,10 @@ export function progressTaskIcon(
         : item.label === 'activity_duration'
           ? 'exercise-running'
           : 'target';
+    case 'activity':
+      return item.id.startsWith('mobility:')
+        ? 'exercise-yoga'
+        : 'exercise-running';
     case 'workout':
       switch (item.activity_type) {
         case 'strength':

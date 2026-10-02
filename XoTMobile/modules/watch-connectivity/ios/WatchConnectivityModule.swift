@@ -163,7 +163,7 @@ public class WatchConnectivityModule: Module {
                 ])
             }
             self.delegateHandler.onWorkoutSetOperation = { [weak self] payload in
-                self?.sendEvent("onWorkoutSetOperation", [
+                var event: [String: Any] = [
                     "clientId": payload["clientId"] as? String ?? "",
                     "scope": payload["scope"] as? String ?? "",
                     "sessionId": payload["sessionId"] as? String ?? "",
@@ -171,7 +171,16 @@ public class WatchConnectivityModule: Module {
                     "setSignature": payload["setSignature"] as? String ?? "",
                     "expectedCompleted": payload["expectedCompleted"] as? Bool ?? false,
                     "completed": payload["completed"] as? Bool ?? false,
-                ])
+                ]
+                // Values edited on the watch; absent when it only toggled the
+                // checkmark, so the store can tell "no change" from zero.
+                if let weightKg = payload["weightKg"] as? Double {
+                    event["weightKg"] = weightKg
+                }
+                if let reps = payload["reps"] as? Int {
+                    event["reps"] = reps
+                }
+                self?.sendEvent("onWorkoutSetOperation", event)
             }
             self.delegateHandler.onWorkoutHealth = { [weak self] payload in
                 self?.sendEvent("onWorkoutHealth", payload)

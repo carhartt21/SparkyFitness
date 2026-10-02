@@ -132,6 +132,13 @@ export interface WatchWorkoutSetOperationPayload {
   setSignature: string;
   expectedCompleted: boolean;
   completed: boolean;
+  /**
+   * Values the wearer set on the Watch, applied before any completion
+   * change. Absent when the action only toggles the checkmark; an action
+   * with values may leave `completed` equal to `expectedCompleted`.
+   */
+  weightKg?: number;
+  reps?: number;
 }
 
 /** One water container configured on the server, as relayed to the watch. */

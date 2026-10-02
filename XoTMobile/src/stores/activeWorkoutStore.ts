@@ -51,7 +51,11 @@ import {
 import { fireSelectionHaptic, fireSuccessHaptic } from '../services/haptics';
 import { addLog } from '../services/LogService';
 import type { WatchWorkoutSetOperationPayload } from '../../modules/watch-connectivity';
-import { watchSetSignature } from '../utils/watchSetIdentity';
+import {
+  watchEditedSetSignature,
+  watchSetPatch,
+  watchSetSignature,
+} from '../utils/watchSetIdentity';
 
 const STORAGE_KEY = '@SparkyFitness/active-workout';
 
@@ -1531,10 +1535,15 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
 
       applyWatchSetOperation: (operation, activeServerConfigId) => {
         const state = get();
+        const patch = watchSetPatch(operation);
+        const changesCompletion =
+          operation.expectedCompleted !== operation.completed;
         if (
           !operation.clientId ||
           !operation.setKey ||
-          operation.expectedCompleted === operation.completed ||
+          patch === null ||
+          // An action either toggles completion, edits values, or both.
+          (!changesCompletion && !patch) ||
           !activeServerConfigId ||
           state.sourceServerConfigId !== activeServerConfigId ||
           state.sessionId !== operation.sessionId ||
@@ -1553,17 +1562,38 @@ export const useActiveWorkoutStore = create<ActiveWorkoutState>()(
           )
         );
         if (matches.length !== 1) return 'conflict';
-        const set = matches[0];
-        const setId = String(set.id);
-        if (watchSetSignature(set) !== operation.setSignature)
-          return 'conflict';
+        const target = matches[0];
+        const setId = String(target.id);
         const currentlyCompleted = state.completedSetIds[setId] != null;
-        // A crash can leave the server save ahead of the persisted operation
-        // ID. The requested end state is already true, so retrying must not
-        // complete the set a second time or restart its rest timer.
-        if (currentlyCompleted === operation.completed) return 'duplicate';
+        // A retry may see the edited signature after its save. Unedited fields
+        // must still match: another phone edit is a conflict, not a receipt.
+        const expectedSignature = watchEditedSetSignature(
+          operation.setSignature,
+          patch
+        );
+        if (expectedSignature === null) return 'conflict';
+        if (
+          currentlyCompleted === operation.completed &&
+          watchSetSignature(target) === expectedSignature
+        ) {
+          return 'duplicate';
+        }
+        if (watchSetSignature(target) !== operation.setSignature)
+          return 'conflict';
         if (currentlyCompleted !== operation.expectedCompleted)
           return 'conflict';
+        // Values first, so completing the set records (and PR-checks) the
+        // weight and reps the wearer entered.
+        if (patch) get().updateSetField(setId, patch);
+        if (!changesCompletion) {
+          set({
+            processedWatchOperationIds: [
+              ...(get().processedWatchOperationIds ?? []),
+              operation.clientId,
+            ],
+          });
+          return 'applied';
+        }
         if (operation.completed) get().completeSet(setId, operation.clientId);
         else get().uncompleteSet(setId, operation.clientId);
         return get().processedWatchOperationIds?.includes(operation.clientId)
