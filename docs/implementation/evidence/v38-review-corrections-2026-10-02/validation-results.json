@@ -1,0 +1,96 @@
+{
+  "branch": "feat/v38-review-corrections-20261002",
+  "date": "2026-10-02",
+  "data": "isolated synthetic fixtures and localhost demo database",
+  "checks": {
+    "frozenOfflineInstall": {
+      "passed": true,
+      "dependencyChanges": false
+    },
+    "fullMobileJest": {
+      "passed": true,
+      "suites": 525,
+      "tests": 7573,
+      "scope": "before final row/data-type/accessory/calendar corrections; final changes covered by focused tests and validate"
+    },
+    "focusedMobilePostCorrection": {
+      "passed": true,
+      "suites": 6,
+      "tests": 226
+    },
+    "mealSettingsAfterLargeTextCorrection": {
+      "passed": true,
+      "tests": 48
+    },
+    "newDateNutrientTaskRegressions": {
+      "passed": true,
+      "suites": 4,
+      "tests": 17
+    },
+    "finalAccessoryCalendarFoodPlanRegressions": {
+      "passed": true,
+      "suites": 4,
+      "tests": 110
+    },
+    "fullWebJest": {
+      "passed": true,
+      "suites": 167,
+      "tests": 1455
+    },
+    "mobileValidate": {
+      "passed": true,
+      "scope": "final source tree"
+    },
+    "webValidate": {
+      "passed": true
+    },
+    "serverValidate": {
+      "passed": true
+    },
+    "webProductionBuild": {
+      "passed": true
+    },
+    "productionIosHermesExport": {
+      "passed": true,
+      "scope": "final source tree without review flag; JavaScript export, not native archive"
+    },
+    "documentationBuild": {
+      "passed": true
+    },
+    "isolatedMigration": {
+      "passed": true,
+      "name": "20261002120000_meal_type_icon_settings.sql",
+      "metadata": [
+        "schema_migrations applied",
+        "icon_key text column",
+        "seven-key CHECK constraint",
+        "existing diary RLS policies"
+      ]
+    },
+    "nativeFocusedReview": {
+      "passed": true,
+      "cases": ["390-de-dark", "390-de-light", "430-de-large"],
+      "scope": "render smoke, native interaction assertions and visual inspection"
+    },
+    "webDatabaseBackedIcons": {
+      "passed": true,
+      "details": "create, reload, edit, omitted field preservation, invalid value rejection, reset"
+    },
+    "webDatabaseBackedWeeklyPlan": {
+      "passed": true,
+      "details": "create, reload, error-retains-input, targets reconcile, no horizontal overflow"
+    },
+    "backendTestSuites": {
+      "status": "skipped per user instruction"
+    }
+  },
+  "unverified": [
+    "physical iPhone and signed native build",
+    "Watch and HealthKit",
+    "live BLS/provider micronutrient coverage",
+    "cross-account authenticated authorization",
+    "offline outbox replay",
+    "production deployment and migration",
+    "TestFlight publication"
+  ]
+}

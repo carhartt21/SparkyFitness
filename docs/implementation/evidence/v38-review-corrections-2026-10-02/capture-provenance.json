@@ -1,0 +1,148 @@
+{
+  "synthetic": true,
+  "baselineRevision": "29ec1495bca711fabeec6217cfa2db089ce17c3f",
+  "after": "feat/v38-review-corrections-20261002 working tree before commit",
+  "date": "2026-10-02",
+  "captures": [
+    {
+      "file": "before-390-dashboard.png",
+      "capture": "baseline 29ec1495b, tracking dashboard",
+      "sha256": "ba81902ecb444b77b950c77726b87982a3bf717348e1689f8b1cdf30060b95e8"
+    },
+    {
+      "file": "before-390-weekly-plan.png",
+      "capture": "baseline 29ec1495b, weekly plan editor",
+      "sha256": "d3b4c2e7cf270025784e9aa3cfe75503e5f8c519ee7c77a8669278a45b6efb56"
+    },
+    {
+      "file": "390-de-dark-plan-date-controls.png",
+      "capture": "390-de-dark, v38-plan-date-controls",
+      "sha256": "63534688255130b3540ee733bc303ab6456f114fc2858c41126082db813b2892"
+    },
+    {
+      "file": "390-de-dark-plan-calendar.png",
+      "capture": "390-de-dark, v38-plan-calendar",
+      "sha256": "886a609646c7f3f24dc2c102b304dabbfa1e2290c61881e6b3f4474115302253"
+    },
+    {
+      "file": "390-de-dark-meal-icon-reopened.png",
+      "capture": "390-de-dark, v38-meal-icon-reopened",
+      "sha256": "85ddc90785037c21a9dea1899135efacd76d43c8d81de46b90a91e6114919f65"
+    },
+    {
+      "file": "390-de-dark-meal-icon-picker.png",
+      "capture": "390-de-dark, v38-meal-icon-picker",
+      "sha256": "336071d471778bf8d27f307d2b2bcb742b0380a309b9e320bde7d2570470fa3b"
+    },
+    {
+      "file": "390-de-dark-meal-settings.png",
+      "capture": "390-de-dark, v38-meal-settings",
+      "sha256": "688beb7b42538a6f57d9a8f3d25f45f1b89bac7367bf025b92f46804ff3e70fd"
+    },
+    {
+      "file": "390-de-dark-note-dismissed.png",
+      "capture": "390-de-dark, v38-note-dismissed",
+      "sha256": "7b1e5eb3a23ab49224ad6d8becad7b7a2ed7c7e3bae042c21c3d6a9c2f9e4e94"
+    },
+    {
+      "file": "390-de-dark-note-keyboard.png",
+      "capture": "390-de-dark, v38-note-keyboard",
+      "sha256": "51ac0947821f07d980e4227bee1f235b5e7efab753e09da4e7b2b1084c50c249"
+    },
+    {
+      "file": "390-de-dark-nutrients.png",
+      "capture": "390-de-dark, v38-nutrients",
+      "sha256": "7f973f4d22db23f1e8c231cbe1f98ded8751cfac215398dfcff3ec94a5ab256f"
+    },
+    {
+      "file": "390-de-dark-next-task-destination.png",
+      "capture": "390-de-dark, v38-next-task-destination",
+      "sha256": "6bfc8beb91fdd64afafa673adc68821fd536a7bc22535199a371cbc5fabd7c93"
+    },
+    {
+      "file": "390-de-dark-dashboard.png",
+      "capture": "390-de-dark, v38-dashboard",
+      "sha256": "34a123db66e0af7bcfbafa6ba6ddda61647dd1fd082819c38f633bf2735a564f"
+    },
+    {
+      "file": "390-de-dark.png",
+      "capture": "390-de-dark, render smoke capture",
+      "sha256": "952a3eae7bf1d731a6c05d51ce052fc655c80128583553d2cc3d8f52a2bcb4d9"
+    },
+    {
+      "file": "390-de-light-nutrients.png",
+      "capture": "390-de-light, v38-nutrients",
+      "sha256": "d18de341e32486a4e792873ffaafedef1d381782eec4f8abc05be11e9eed8c65"
+    },
+    {
+      "file": "390-de-light-dashboard.png",
+      "capture": "390-de-light, v38-dashboard",
+      "sha256": "129248aecc02b3ee2a470b299c12d9dca9cfab592abc61c1ca0e85f9780e0369"
+    },
+    {
+      "file": "390-de-light.png",
+      "capture": "390-de-light, render smoke capture",
+      "sha256": "9632a80fca22035ec4b105c8327d289503e00ecb749efdc4e256b9f8793d2f67"
+    },
+    {
+      "file": "430-de-large-plan-date-controls.png",
+      "capture": "430-de-large, v38-plan-date-controls",
+      "sha256": "136057603ea72fb34ac1a74d5cbb2ddca61e36e8fecc2111166b42cbaa0373c9"
+    },
+    {
+      "file": "430-de-large-plan-calendar.png",
+      "capture": "430-de-large, v38-plan-calendar",
+      "sha256": "e5d22054a8be60ef596eaa456b9d990b49c3e933aa0e6af9f5dd7420229e8288"
+    },
+    {
+      "file": "430-de-large-meal-icon-picker.png",
+      "capture": "430-de-large, v38-meal-icon-picker",
+      "sha256": "b4bca4a826f3d0d10bf7542be451f61e37232b7ce2cfe7f0aa8a952280a76ea5"
+    },
+    {
+      "file": "430-de-large-meal-settings.png",
+      "capture": "430-de-large, v38-meal-settings",
+      "sha256": "6b3ba0a94789d8f0f65da3254e6faabde2a3281ecf2f912e81212dc19b93a185"
+    },
+    {
+      "file": "430-de-large-note-keyboard.png",
+      "capture": "430-de-large, v38-note-keyboard",
+      "sha256": "dbc7054c50ee8a5502a3d5197e6ead73b2c802e093018eb9e18a95352eef866c"
+    },
+    {
+      "file": "430-de-large-nutrients.png",
+      "capture": "430-de-large, v38-nutrients",
+      "sha256": "2dc0881ff0eb1f3f01a4a52eb9de5deae7a0db47fc3cfbbbb4a5188b69222bee"
+    },
+    {
+      "file": "430-de-large-dashboard.png",
+      "capture": "430-de-large, v38-dashboard",
+      "sha256": "00c1e44b1a7302da79d51c6baa9da5dc4b6fc9b999c68e90c89d5f90b6da4b42"
+    },
+    {
+      "file": "430-de-large.png",
+      "capture": "430-de-large, render smoke capture",
+      "sha256": "01b18eec0dca0a63ab52dec18ad355b98581541de1e3adf8e347c955cf0f98a0"
+    },
+    {
+      "file": "web-meal-icon-picker-1280.png",
+      "capture": "isolated database-backed web review",
+      "sha256": "c0593bc531989f96caf7efab63a6b5956b808eee16fb20ed46cedd82c6561ef9"
+    },
+    {
+      "file": "web-meal-icon-picker-390.png",
+      "capture": "isolated database-backed web review",
+      "sha256": "af2e032e809d69fe41759e4243c0f4df03aaf0b59bd4bf7eccbc698e31110d67"
+    },
+    {
+      "file": "web-save-error-retains-input.png",
+      "capture": "isolated database-backed web review",
+      "sha256": "fdf7b90ecc896271af0c678b5c099760fe458d4cd62f4b812cd76b80d823a0c0"
+    },
+    {
+      "file": "web-saved-week.png",
+      "capture": "isolated database-backed web review",
+      "sha256": "79ee83daabc09aeb12999750eaa5b1916b6cc981a1566c12606ff7ed1d5592c8"
+    }
+  ]
+}

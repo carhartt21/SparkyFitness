@@ -1,0 +1,10 @@
+{
+  "synthetic": true,
+  "create": true,
+  "reload": true,
+  "edit": true,
+  "omittedPreserves": true,
+  "invalidRejected": true,
+  "reset": true,
+  "horizontalOverflow": false
+}
