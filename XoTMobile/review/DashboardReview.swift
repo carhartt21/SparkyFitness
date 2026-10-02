@@ -1,6 +1,51 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Exercise the dense nutrient columns with ordinary and long calorie values.
+  func testFoodMacroColumns() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<6 { if food.isHittable { break }; dashboard.swipeUp() }
+    XCTAssertTrue(food.isHittable); food.tap()
+    let search = app.textFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 15))
+    search.tap(); search.typeText("Review yogurt")
+    let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt with berries and toasted pumpkin seeds")).firstMatch
+    XCTAssertTrue(result.waitForExistence(timeout: 20)); result.tap()
+    let calories = app.descendants(matching: .any)["food-entry-highlight-calories"]
+    XCTAssertTrue(calories.waitForExistence(timeout: 15))
+    XCTAssertTrue(calories.label.contains("150 kcal"))
+    var previous: CGRect?
+    for key in ["calories", "fat", "carbs", "protein"] {
+      let cell = app.descendants(matching: .any)["food-entry-highlight-\(key)"]
+      XCTAssertTrue(cell.exists)
+      XCTAssertGreaterThanOrEqual(cell.frame.minX, 0)
+      XCTAssertLessThanOrEqual(cell.frame.maxX, app.frame.maxX)
+      if let prior = previous, abs(prior.minY - cell.frame.minY) < 2 {
+        XCTAssertGreaterThanOrEqual(cell.frame.minX, prior.maxX - 1)
+      }
+      previous = cell.frame
+    }
+    capture("food-macros-normal", app)
+    let wheel = app.descendants(matching: .any)["food-entry-amount-wheel"]
+    for _ in 0..<6 { if wheel.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(wheel.isHittable); wheel.tap()
+    let amount = app.textFields["food-entry-amount-input"]
+    XCTAssertTrue(amount.waitForExistence(timeout: 10))
+    replace(amount, with: "10000")
+    app.descendants(matching: .any)["keyboard-action-done"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let keyboardGone = NSPredicate { _, _ in !app.keyboards.firstMatch.exists }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: keyboardGone, object: app)], timeout: 10), .completed)
+    let scaled = NSPredicate { _, _ in calories.label.contains("15.000 kcal") || calories.label.contains("15,000 kcal") }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: scaled, object: app)], timeout: 10), .completed)
+    for _ in 0..<6 { if calories.frame.minY > 110 && calories.isHittable { break }; app.swipeDown() }
+    capture("food-macros-long-value", app)
+  }
+
   /// Compare the two production summary cards using isolated task/energy data.
   func testSummaryCards() throws {
     continueAfterFailure = false

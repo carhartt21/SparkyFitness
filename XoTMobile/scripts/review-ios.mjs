@@ -124,7 +124,8 @@ const cases = filteredCases.map((item) => ({
     : {}),
   ...(process.argv.includes('--v38-review') ||
   process.argv.includes('--ui-refinement-review') ||
-  process.argv.includes('--summary-cards-review')
+  process.argv.includes('--summary-cards-review') ||
+  process.argv.includes('--food-macro-review')
     ? { scenario: 'v38-review' }
     : {}),
   nativeTabs: process.argv.includes('--native-tabs'),
@@ -378,26 +379,28 @@ try {
       texts = JSON.parse(run(path.join(output, 'recognize'), [screenshot]));
       assertRuntimeClean(readFileSync(path.join(output, 'metro.log'), 'utf8'));
       const text = texts.map((t) => t.text).join('\n');
-      passed = process.argv.includes('--summary-cards-review')
-        ? // OCR sometimes joins the arc with the large balance digits. Check
-          // independent fixture content here; XCTest asserts the actual value
-          // and scrolls to tasks below the enlarged-text viewport.
-          /Calories|Kalorien/.test(text) && /600\s*kcal/.test(text)
-        : item.scenario === 'error'
-          ? /Server unavailable/.test(text)
-          : item.scenario === 'saved'
-            ? /Saved summary/.test(text) && /1[.,]400/.test(text)
-            : ([
-                'populated',
-                'hydration-options',
-                'notifications',
-                'meal-status',
-                'v38-review',
-              ].includes(item.scenario)
-                ? /1[.,]400/.test(text)
-                : item.scenario === 'empty'
-                  ? /2[.,]000/.test(text)
-                  : /300/.test(text)) && /kcal/.test(text);
+      passed =
+        process.argv.includes('--summary-cards-review') ||
+        process.argv.includes('--food-macro-review')
+          ? // OCR sometimes joins the arc with the large balance digits. Check
+            // independent fixture content here; XCTest asserts the actual value
+            // and scrolls to tasks below the enlarged-text viewport.
+            /Calories|Kalorien/.test(text) && /600\s*kcal/.test(text)
+          : item.scenario === 'error'
+            ? /Server unavailable/.test(text)
+            : item.scenario === 'saved'
+              ? /Saved summary/.test(text) && /1[.,]400/.test(text)
+              : ([
+                  'populated',
+                  'hydration-options',
+                  'notifications',
+                  'meal-status',
+                  'v38-review',
+                ].includes(item.scenario)
+                  ? /1[.,]400/.test(text)
+                  : item.scenario === 'empty'
+                    ? /2[.,]000/.test(text)
+                    : /300/.test(text)) && /kcal/.test(text);
       passed = passed && !/developer menu|Dev tools|Continue/.test(text);
       if (item.language === 'de')
         passed =
@@ -414,27 +417,29 @@ try {
       renderSmokePassed: passed,
       nativeInteractionPassed: null,
       interactionScenario: process.argv.includes('--interactions')
-        ? process.argv.includes('--summary-cards-review')
-          ? 'summary-cards'
-          : process.argv.includes('--ui-refinement-review')
-            ? 'ui-refinements'
-            : process.argv.includes('--v38-review')
-              ? 'v38-corrections'
-              : process.argv.includes('--meal-status-review')
-                ? 'meal-goal-status'
-                : process.argv.includes('--launch-icon-actions')
-                  ? 'launch-icon-actions'
-                  : process.argv.includes('--notification-tour')
-                    ? 'notification-tour'
-                    : process.argv.includes('--tracking-tour')
-                      ? 'tracking-tour'
-                      : process.argv.includes('--tour')
-                        ? 'screen-tour'
-                        : process.argv.includes('--dashboard-only')
-                          ? 'dashboard-alignment'
-                          : process.argv.includes('--food-details-review')
-                            ? 'food-details-layout'
-                            : 'food-entry-flow'
+        ? process.argv.includes('--food-macro-review')
+          ? 'food-macro-columns'
+          : process.argv.includes('--summary-cards-review')
+            ? 'summary-cards'
+            : process.argv.includes('--ui-refinement-review')
+              ? 'ui-refinements'
+              : process.argv.includes('--v38-review')
+                ? 'v38-corrections'
+                : process.argv.includes('--meal-status-review')
+                  ? 'meal-goal-status'
+                  : process.argv.includes('--launch-icon-actions')
+                    ? 'launch-icon-actions'
+                    : process.argv.includes('--notification-tour')
+                      ? 'notification-tour'
+                      : process.argv.includes('--tracking-tour')
+                        ? 'tracking-tour'
+                        : process.argv.includes('--tour')
+                          ? 'screen-tour'
+                          : process.argv.includes('--dashboard-only')
+                            ? 'dashboard-alignment'
+                            : process.argv.includes('--food-details-review')
+                              ? 'food-details-layout'
+                              : 'food-entry-flow'
         : null,
       logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
     });
@@ -457,7 +462,8 @@ try {
         process.argv.includes('--meal-status-review') ||
         process.argv.includes('--v38-review') ||
         process.argv.includes('--ui-refinement-review') ||
-        process.argv.includes('--summary-cards-review')
+        process.argv.includes('--summary-cards-review') ||
+        process.argv.includes('--food-macro-review')
           ? ['390-de-light', '430-de-large']
           : []),
         ...(process.argv.includes('--tracking-tour') ||
@@ -472,7 +478,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

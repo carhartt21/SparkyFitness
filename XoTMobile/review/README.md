@@ -99,3 +99,7 @@ For database-backed meal-icon persistence, start the isolated web stack and run 
 ## Paired dashboard summaries
 
 Use `--interactions --summary-cards-review --case '^(390-de-dark|390-de-light|430-de-large)$'` with a fresh output directory. This uses the existing isolated v38 fixture and runs only the energy/task summary review, without provider or keyboard flows. It measures matching visual/supporting columns, checks normal-size row and visual heights, verifies minimum touch targets and horizontal bounds, captures both cards and opens a real pending task destination. Enlarged text uses stacked layouts. The date navigator's next-day control is deliberately excluded from the task selector. Synthetic habit names remain literal fixture data; the capture is not a localization assertion about those names.
+
+## Food macro column fitting
+
+Use `--interactions --food-macro-review --case '^(390-de-dark|390-de-light|430-de-large)$'` with a fresh output directory. This opens the synthetic yogurt through real food search, checks the nutrient columns' horizontal bounds, captures 150 kcal, then edits an unsaved quantity draft to display 15,000 kcal. German formatting uses `15.000`. Inspect both captures for glyph containment: accessibility bounds alone cannot prove text fits. At enlarged text the existing two-column layout applies; the normal capture shows its first row and the long-value capture shows all four nutrients. This mode makes no saves and does not verify backend persistence.

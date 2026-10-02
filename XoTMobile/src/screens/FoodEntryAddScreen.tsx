@@ -2262,14 +2262,14 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                               percent,
                             })
                       }
-                      className={`min-w-0 items-center py-1 ${largeText ? 'w-1/2' : 'flex-1'} ${
+                      className={`min-w-0 items-center px-1 py-1 ${largeText ? 'w-1/2' : 'flex-1'} ${
                         (largeText ? index % 2 > 0 : index > 0)
                           ? 'border-l border-border-subtle'
                           : ''
                       }`}
                     >
                       <Text
-                        className="mb-1 text-sm text-text-secondary"
+                        className="mb-1 w-full text-center text-sm text-text-secondary"
                         testID={`food-entry-highlight-${nutrient.key}-label`}
                         numberOfLines={1}
                         adjustsFontSizeToFit
@@ -2278,13 +2278,17 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                         {nutrient.label}
                       </Text>
                       <Text
-                        className="text-xl font-bold"
+                        className="w-full text-center text-xl font-bold"
                         style={{ color: highlightColors[nutrient.key] }}
                         numberOfLines={1}
                         adjustsFontSizeToFit
                         minimumFontScale={0.7}
                       >
-                        {`${amount} ${nutrient.unit}`}
+                        {amount}
+                        <Text className="text-xs font-medium">
+                          {' '}
+                          {nutrient.unit}
+                        </Text>
                       </Text>
                       {/* The target marks the share of the daily goal; a tap
                         explains it. */}

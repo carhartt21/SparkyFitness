@@ -1,0 +1,68 @@
+{
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "food-macro-columns",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "food-macro-columns",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "food-macro-columns",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.",
+  "baseRevision": "7d25381f9a801b718148c8416954a0588ca5e13c",
+  "sourceSha256": {
+    "XoTMobile/src/screens/FoodEntryAddScreen.tsx": "f5fb0d0f84e74ccf405bcf6f3000f8c188a9a4c5eed7ab06e2b2ac403b1ae915",
+    "XoTMobile/review/DashboardReview.swift": "72dcd002ec702338cc3248768c2cad8f29e793a9c62970d4d7da3bd64ebe6143",
+    "XoTMobile/scripts/review-ios.mjs": "edb729f5d882bf9bcd27ef4a457bf4027093d91c110d71113c4f8f57f5a998c1"
+  },
+  "checks": {
+    "foodAddViewTests": {
+      "passed": 72,
+      "suites": 2
+    },
+    "mobileValidate": "passed",
+    "productionIosExport": "passed",
+    "reviewMarkersInProductionBundle": "absent",
+    "impeccableTypeScan": [],
+    "visualReview": "Normal and long calorie values remain inside their columns in all three cases."
+  },
+  "unverified": [
+    "Android",
+    "signed TestFlight",
+    "physical devices",
+    "backend persistence"
+  ]
+}
