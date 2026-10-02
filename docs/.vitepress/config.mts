@@ -86,6 +86,11 @@ export default defineConfig({
             link: "/features/family-friends-sharing",
           },
           { text: "MCP Server", link: "/features/mcp-server" },
+          { text: "Weekly Activities", link: "/features/weekly-activities" },
+          {
+            text: "Agent recommendations",
+            link: "/features/agent-recommendations",
+          },
           {
             text: "Settings & Integrations",
             link: "/features/settings/preferences",
@@ -152,7 +157,10 @@ export default defineConfig({
         {
           text: "Features Overview",
           items: [
-            { text: "Upstream Feature Comparison", link: "/features/comparison" },
+            {
+              text: "Upstream Feature Comparison",
+              link: "/features/comparison",
+            },
             { text: "Features Index", link: "/features/" },
             { text: "Check-in", link: "/features/check-in" },
             { text: "Reports", link: "/features/reports" },
@@ -167,6 +175,10 @@ export default defineConfig({
             { text: "AI Nutrition Assistant", link: "/features/ai-assistant" },
             { text: "Measurements", link: "/features/measurements" },
             { text: "MCP Server", link: "/features/mcp-server" },
+            {
+              text: "Agent recommendations",
+              link: "/features/agent-recommendations",
+            },
           ],
         },
         {
@@ -363,6 +375,10 @@ export default defineConfig({
             { text: "Exercise MCP", link: "/developer/mcp/exercise" },
             { text: "Check-in MCP", link: "/developer/mcp/checkin" },
             { text: "Coach MCP", link: "/developer/mcp/coach" },
+            {
+              text: "Proposal & review MCP",
+              link: "/developer/mcp/recommendations",
+            },
             { text: "Engagement MCP", link: "/developer/mcp/engagement" },
             { text: "Vision MCP", link: "/developer/mcp/vision" },
           ],

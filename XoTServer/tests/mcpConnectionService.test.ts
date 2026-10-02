@@ -19,12 +19,23 @@ describe('ChatGPT MCP connection revocation', () => {
       true
     );
     expect(query).toHaveBeenCalledWith(
-      expect.stringContaining("c.scopes ? 'mcp:read'"),
-      ['user-id', 'client-id']
+      expect.stringContaining('c.scopes ? $3'),
+      ['user-id', 'client-id', 'mcp:read']
     );
     expect(release).toHaveBeenCalledOnce();
   });
 
+  it('requires proposal consent independently of legacy direct-write access', async () => {
+    const query = vi.fn().mockResolvedValue({ rowCount: 0 });
+    mockGetSystemClient.mockResolvedValue({ query, release: vi.fn() } as never);
+    expect(await hasActiveMcpConsent('owner', 'client', 'mcp:propose')).toBe(
+      false
+    );
+    expect(query).toHaveBeenCalledWith(
+      expect.stringContaining('c.scopes ? $3'),
+      ['owner', 'client', 'mcp:propose']
+    );
+  });
   it('denies a disconnected client even if its signed token has not expired', async () => {
     const release = vi.fn();
     mockGetSystemClient.mockResolvedValue({

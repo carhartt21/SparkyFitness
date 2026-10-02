@@ -4,6 +4,7 @@ import type {
   FddbExtras,
   FddbImportResult,
 } from '@workspace/shared';
+import { FDDB_IMPORT_MEAL_TYPE } from '@workspace/shared';
 import foodRepository from '../models/foodRepository.js';
 import mealTypeRepository from '../models/mealType.js';
 import mealService from './mealService.js';
@@ -17,7 +18,7 @@ import {
   importFddbDiaryBatch,
 } from '../models/fddbImportRepository.js';
 
-const IMPORT_MEAL_TYPE = 'FDDB Import';
+const IMPORT_MEAL_TYPE = FDDB_IMPORT_MEAL_TYPE;
 
 interface MealTypeRecord {
   id: string;

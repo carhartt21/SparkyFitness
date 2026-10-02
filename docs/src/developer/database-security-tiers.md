@@ -203,10 +203,11 @@ nutrients and references are public, never diary records or account data.
 
 ### Notification v2 and mobility (Tier 1)
 
-| Tables                                                                                                  | Purpose                                                                             | Read       | Write      |
-| ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- | ---------- | ---------- |
-| `mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, `mobility_operations` | Private definitions, dated/session snapshots, CAS revisions and idempotent receipts | Owner-only | Owner-only |
-| `engagement_subject_states`                                                                             | Timer-start hints that suppress obsolete movement prompts; no health records        | Owner-only | Owner-only |
+| Tables                                                                                                  | Purpose                                                                                | Read           | Write                                                |
+| ------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | -------------- | ---------------------------------------------------- |
+| `mobility_routines`, `mobility_schedules`, `mobility_plans`, `mobility_sessions`, `mobility_operations` | Private definitions, dated/session snapshots, CAS revisions and idempotent receipts    | Owner-only     | Owner-only                                           |
+| `activity_plan_resolutions`                                                                             | Revision-checked workout skip/link/undo decisions; diary session evidence is exclusive | **Owner-Only** | No delegated access, including diary/reports readers |
+| `engagement_subject_states`                                                                             | Timer-start hints that suppress obsolete movement prompts; no health records           | Owner-only     | Owner-only                                           |
 
 No delegate sharing or global read policy applies. MCP access uses the authenticated owner; writes require the existing write scope and active consent. Scheduler system access is limited to notification processing.
 
@@ -216,6 +217,8 @@ Mobility reads use a read-only transaction; only definition changes and the expl
 
 Workout assignments also store a whole activity type or a saved preset, optional account-local time, duration/distance targets and an optional-session flag. They retain the existing parent ownership and RLS policies; no new sharing permission or completed-health-data table is introduced. Version ownership references Better Auth `public."user"`, matching templates. The activity-definition preparation endpoint is owner-only and creates a private library definition, never a diary completion or energy record.
 
+The forward prescription correction (`20261002120000_activity_coaching_prescriptions.sql`) captures this metadata in new immutable versions. It uses the existing invoker function and owner RLS, leaves historical versions unchanged, and grants no additional sharing access. Coaching evidence uses the same owner-scoped completion projection.
+
 Daily Progress version 2 reads configured daily goals, immutable dated workout snapshots and actual recording evidence through the owner-only tracking route. Legacy clients retain the version 1 projection. An intake target is context for reviewing nutrition, not an instruction to maximize consumption. Planned sets do not count as recorded training. `meal_types.purpose = import` hides an importer-owned destination from routine tasks while preserving its diary history.
 ### Micronutrient identity and native snapshots
 
@@ -224,3 +227,11 @@ Daily Progress version 2 reads configured daily goals, immutable dated workout s
 The native `food_entries` INSERT policy allows diary owners/delegates to log unlinked HealthKit/Health Connect snapshots with a bounded source ID, an owned or built-in meal type, and a one-serving consumed snapshot. It grants no library write permission. Reports retain existing report-read RLS, including countable supplement snapshots.
 
 `public.nutrient_key_is_reserved` is a narrowly scoped SECURITY DEFINER boolean guard. It checks retained food/variant, medication and goal keys without exposing values across RLS; the existing diary permission helper gates access and unauthorized calls return true. Its search path is restricted to `pg_catalog`, all relations are qualified, and the diary helper's identity calls are explicitly qualified. This prevents delegates from guessing an orphaned historical unit hidden by medication RLS. No user tables receive broader read grants. `food_variants.provider_dataset_sha256` stores repair provenance; editing imported variants clears it. Schema backup synchronization remains CI-owned.
+
+## Coaching proposal and review domain
+
+`coaching_settings`, `coaching_agents`, `coaching_runs`, `coaching_snapshots`, `coaching_proposals`, `coaching_actions`, `coaching_events`, `coaching_operations`, `coaching_previews`, `meal_plan_template_versions`, and `meal_plan_log_receipts` are **Tier 1, owner-only**. Each has `user_id` ownership and all-command owner RLS. No family permission, delegate policy, public-library policy or global-read policy is granted. Existing diary sharing rules for `meal_plans` remain unchanged, but coaching occurrences and review routes explicitly use the owner app session.
+
+MCP proposal keys and OAuth `mcp:propose` bindings may read selected wellness projections and stage proposals; they cannot review/approve, change live targets, or create health logs. The REST guard rejects MCP-only credentials before session handling, including mixed-key/cookie requests. Ordinary API keys are also excluded from review. Execute-time binding/scope/expiry/consent checks make revocation effective immediately. Legacy `mcp:write` is a distinct explicit consent.
+
+Only the scheduler enumerates owner IDs through system access, then processes each owner under app-role RLS. Reviews, canonical mutations, operation receipts and audit events share one transaction. Immutable snapshots/versions prevent retrospective rewrites; proposed actions are revalidated against current references at acceptance. Runtime secrets, lease credentials and external runner configuration never enter documentation or fixtures.

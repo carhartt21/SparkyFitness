@@ -1,3 +1,4 @@
+import { PlannedMealsCard } from '@/pages/Coaching/PlannedMealsCard';
 import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
@@ -63,7 +64,12 @@ import {
   useFoodEntries,
   useFoodEntryMeals,
 } from '@/hooks/Diary/useFoodEntries';
-import { todayInZone, prefillEntryTime } from '@workspace/shared';
+import {
+  todayInZone,
+  prefillEntryTime,
+  isFddbImportMeal,
+  shouldShowDiaryMeal,
+} from '@workspace/shared';
 import { useDailySummary } from '@/hooks/Diary/useDailyProgress';
 
 const Diary = () => {
@@ -404,6 +410,9 @@ const Diary = () => {
       ),
     [availableMealTypes, fetchedFoodEntries, foodEntryMeals]
   );
+  const editableMealTypes = visibleMealTypes.filter(
+    (meal) => !isFddbImportMeal(meal.name)
+  );
 
   // Some Garmin sync fields (e.g. lactate_threshold, fitness_age) can create a
   // daily_health_metrics row for a date even when none of the metrics this
@@ -470,12 +479,21 @@ const Diary = () => {
     });
 
     for (const mealTypeObj of visibleMealTypes) {
+      const mealData = getMealData(
+        mealTypeObj.name,
+        foodEntries,
+        foodEntryMeals ?? [],
+        effectiveGoals
+      );
+      if (!shouldShowDiaryMeal(mealTypeObj.name, mealData.entries.length))
+        continue;
       list.push({
         key: mealWidgetKey(mealTypeObj.id),
         title: mealTypeObj.name,
         icon: UtensilsCrossed,
         render: () => (
           <MealCard
+            readOnly={isFddbImportMeal(mealTypeObj.name)}
             meal={{
               ...getMealData(
                 mealTypeObj.name,
@@ -618,9 +636,9 @@ const Diary = () => {
           <div className="grid gap-2 sm:grid-cols-3">
             <Button
               className="min-h-12 justify-start gap-2 rounded-lg"
-              disabled={visibleMealTypes.length === 0}
+              disabled={editableMealTypes.length === 0}
               title={
-                visibleMealTypes.length === 0
+                editableMealTypes.length === 0
                   ? t(
                       'diary.noMealTypeForQuickAdd',
                       'Create a meal type to log food'
@@ -628,7 +646,7 @@ const Diary = () => {
                   : undefined
               }
               onClick={() => {
-                const firstMealType = visibleMealTypes[0];
+                const firstMealType = editableMealTypes[0];
                 if (firstMealType)
                   setOpenFoodSearchForMealType(firstMealType.name);
               }}
@@ -693,6 +711,7 @@ const Diary = () => {
         )}
       </div>
 
+      <PlannedMealsCard day={selectedDate} />
       {effectiveGoals && (
         <DiaryWidgetGrid
           widgets={widgets}

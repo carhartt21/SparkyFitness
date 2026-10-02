@@ -16,6 +16,10 @@ import { loadUserTimezone } from '../utils/timezoneLoader.js';
 import { getEngagementSettingsV2 } from './engagementService.js';
 import { getMobilitySnapshot } from './mobilityService.js';
 import {
+  coachingFeatureEnabled,
+  readCoachingSettings,
+} from './coachingRunService.js';
+import {
   getDailyTrackingPreferences,
   getDailyCheckin,
   listHabits,
@@ -108,6 +112,32 @@ export async function engagementPlanForUser(userId: string, now = new Date()) {
       movementStarted: row.movement_started,
       subjects: [],
     };
+    if (coachingFeatureEnabled()) {
+      const { settings: coaching } = await readCoachingSettings(client, userId);
+      const pending = await client.query(
+        "SELECT 1 FROM coaching_proposals WHERE user_id=$1 AND status='pending' AND expires_day>=$2 LIMIT 1",
+        [userId, day]
+      );
+      facts.subjects.push({
+        kind: 'coaching_digest',
+        id: 'inbox',
+        time: coaching.digestTime,
+        enabled: coaching.digestEnabled,
+        resolved: pending.rows.length === 0,
+      });
+      const actions = await client.query<{ id: string; time: string }>(
+        "SELECT id,data->>'reminderTime' AS time FROM coaching_actions WHERE user_id=$1 AND status='active' AND data->>'kind' IN ('task','objective') AND data->>'dueDay'=$2 AND data->>'reminderTime' IS NOT NULL",
+        [userId, day]
+      );
+      for (const action of actions.rows)
+        facts.subjects.push({
+          kind: 'coaching_action',
+          id: action.id,
+          time: action.time,
+          enabled: true,
+          resolved: false,
+        });
+    }
   } finally {
     client.release();
   }

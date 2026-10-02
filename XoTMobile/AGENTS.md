@@ -6,6 +6,16 @@ X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Hea
 
 This is the package guide for `XoTMobile/`. Work from this directory for mobile implementation and validation. If a task crosses into the backend, frontend, or `shared/`, read that package guide too before editing outside mobile.
 
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
+
 ## Scope And Style
 
 - TypeScript is strict. Keep changes type-safe and compiling cleanly.
@@ -90,6 +100,7 @@ npx expo prebuild --clean
 
 ## Source Map
 
+- `src/screens/CoachingScreen.tsx`, `src/components/coaching/`, and `src/hooks/useCoaching.ts` - owner recommendation inbox, typed review/preview, follow-up and prompt meal consumption. Engagement v3 taps open the owner inbox without logging or completing actions.
 - `src/components/ui/` - shared primitives: `Button`, sheet chrome, and the neon design system (`glow.ts`, `GlowCard`, `NeonButton`, `ActionTile`, `IconBadge`, `ScreenBackground`). Compose these for cards, capsule buttons and glows instead of restating classes; see `DESIGN.md` → Mobile neon component system.
 - `src/components/` - reusable UI, charts, settings rows, custom tab bar, add sheet, workout HUD, form chrome, library rows, diary rows, serving sheets, food/workout editors, fasting UI, writeback UI, and `ui/` primitives.
 - `src/components/auth/` - MFA UI shared by onboarding, setup, and reauth.
@@ -351,6 +362,7 @@ Guided mobility routines are separate from the movement-break timer. `src/servic
 
 ## Quick Routing
 
+- Recommendation review, prompt meals or coaching push: read `../docs/src/developer/mcp/recommendations.md`, then `CoachingScreen`, `useCoaching` and `remoteEngagementActions.ts`. Validate shared editor changes from web and server too.
 - Health sync bug: start at `healthConnectService.ts` or `.ios.ts`, then `services/healthconnect/` or `services/healthkit/`, `backgroundSyncService.ts`, `autoSyncCoordinator.ts`, `useSyncHealthData.ts`, `SyncScreen.tsx`, and `healthDataApi.ts`.
 - Health writeback bug: inspect `HealthDataWriteback`, `services/writeback.ts` / `.ios.ts`, platform writeback modules, mapper files, tracking storage, app permissions, and inbound source filters.
 - Food library/edit bug: inspect `LibraryScreen`, food library/detail/form/barcode screens, `FoodForm`, unit selector, food hooks, `foodsApi`, food unit types, and `foodDetails.ts`.
@@ -372,10 +384,13 @@ Guided mobility routines are separate from the movement-break timer. `src/servic
 
 ## Notification delivery and mobility planning
 
-Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
+Notification v1/v2 contracts and opt-in v3 coaching capabilities live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.
 
 ## Micronutrient synchronization
 
 The shared native registry covers 27 vitamins/minerals. Collection, permission probing, loose HealthKit reads, background delivery and bound custom-nutrient writeback use this registry; Health Connect unset zero remains unknown. `EXPO_PUBLIC_MICRONUTRIENT_SYNC_ENABLED=false` disables the expanded adapters at build time. Daily nutrition details show explicit known/eligible coverage through a separate report endpoint. Reuse Import History's resumable 30-day windows and Start Over for explicit replay after granting new permissions; stable source IDs upsert snapshots. `invalidateNutritionCaches.ts` keeps imported definitions, preferences, goals, daily values and coverage consistent. See the dated rollout record for physical-device checks.
+## Reviewed MCP recommendations
+
+- `src/screens/CoachingScreen.tsx`, `src/hooks/useCoaching.ts` and `src/components/coaching/` implement the owner inbox, preview/acceptance and explicit prompt-meal logging. Identity guards bind requests/cache to account and server. The root `Coaching` deep link is opened by Engagement v3 pushes; taps do not complete anything. `useMealTypes` excludes FDDB for writable choices; opt into read-only types only for diary/detail presentation.

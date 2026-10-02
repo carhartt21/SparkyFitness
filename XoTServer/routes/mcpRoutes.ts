@@ -17,6 +17,9 @@ import versionService from '../services/versionService.js';
 import chatService from '../services/chatService.js';
 import { TtlCache } from '../utils/ttlCache.js';
 import { isDevToolsEnabled } from '../models/globalSettingsRepository.js';
+import { registerCoachingTools } from '../ai/mcp/coachingAdapter.js';
+import { resolveCoachingAgent } from '../services/coachingRunService.js';
+import { normalizeMcpToolArguments } from '../utils/mcpArguments.js';
 
 const router = express.Router();
 
@@ -93,34 +96,6 @@ const mcpContextCache = new TtlCache<{
 const SERVER_VERSION = versionService.getAppVersion();
 
 /**
- * Recursively strips keys with null values from an object or array.
- * This is used to normalize optional parameters sent as null by LLM clients
- * (e.g. start_date: null) into undefined (omitted) so they satisfy Zod's .optional() validation.
- */
-function stripNulls(val: unknown): unknown {
-  if (Array.isArray(val)) {
-    return val.map((item: unknown) =>
-      item && typeof item === 'object' ? stripNulls(item) : item
-    );
-  }
-  if (val && typeof val === 'object') {
-    const obj = val as Record<string, unknown>;
-    const clean: Record<string, unknown> = {};
-    for (const key of Object.keys(obj)) {
-      const cleanedVal = obj[key];
-      if (cleanedVal !== null) {
-        clean[key] =
-          cleanedVal && typeof cleanedVal === 'object'
-            ? stripNulls(cleanedVal)
-            : cleanedVal;
-      }
-    }
-    return clean;
-  }
-  return val;
-}
-
-/**
  * Stateless StreamableHTTP MCP endpoint; auth has already run by here.
  *
  * Scope to authenticatedUserId (the logged-in actor) to match the in-process
@@ -154,8 +129,7 @@ router.post('/', async (req, res) => {
       }
     );
 
-    // Normalize null arguments to undefined (omitted) for tools/call requests.
-    // This prevents validation errors (MCP -32602) on optional schema fields.
+    // Preserve nullable coaching fields while retaining legacy placeholders.
     if (req.body) {
       const requests = Array.isArray(req.body) ? req.body : [req.body];
       for (const r of requests) {
@@ -168,7 +142,10 @@ router.post('/', async (req, res) => {
           r.params.arguments &&
           typeof r.params.arguments === 'object'
         ) {
-          r.params.arguments = stripNulls(r.params.arguments);
+          r.params.arguments = normalizeMcpToolArguments(
+            r.params.name,
+            r.params.arguments
+          );
         }
       }
     }
@@ -179,17 +156,29 @@ router.post('/', async (req, res) => {
     });
     // McpServer wraps the low-level Server as `.server`.
     mcpServer.server.onerror = (e) => log('error', '[MCP] server error', e);
-    registerRegistryTools(
-      mcpServer,
-      userId,
-      tz,
-      profile,
-      req.mcpReadOnly === true
-    );
+    if (req.mcpAgentId) {
+      const agentId = req.mcpAgentId;
+      registerCoachingTools(mcpServer, userId, agentId, async () => {
+        // Recheck the current connection, not a cached permission flag.
+        const current = await resolveCoachingAgent(userId, {
+          keyId: req.mcpCredentialId,
+        });
+        if (current.id !== agentId)
+          throw new Error('Agent credential was revoked.');
+      });
+    } else
+      registerRegistryTools(
+        mcpServer,
+        userId,
+        tz,
+        profile,
+        req.mcpReadOnly === true
+      );
     // Admin-only dev tools, off by default; gating at registration keeps them
     // out of non-admins' tools/list. authenticate already populated req.user.
     const devToolsAllowed =
       req.mcpReadOnly !== true &&
+      !req.mcpAgentId &&
       ((await isDevToolsEnabled()) ||
         process.env.DEV_TOOLS_ENABLED === 'true') &&
       (await resolveIsAdmin(req.user, req.authenticatedUserId));

@@ -69,6 +69,16 @@ Cheap ways to learn things:
 - Find code by feature in `agent-docs/file-and-domain-reference.md` before a repository-wide search. Naming is not uniform across every domain.
 - CI (`.github/workflows/ci-tests.yml`) runs package `validate` and `test:ci` checks. Frontend/mobile jobs are path-gated; the server job runs whenever that workflow triggers. Garmin and fresh-install/upgrade migration jobs have their own gates. Shared/workspace changes trigger frontend and mobile checks as well; validate affected consumers locally. Frontend/mobile `validate` include Knip; server `validate` does not. Docs PRs use `.github/workflows/docs-test.yml`.
 
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
+
 ## Cross-Package Rules
 
 - **German UI copy is required for every new user-facing element.** Add the English source key and a reviewed German value in `localization-overrides/de/` in the same change, including visible labels, accessibility names, empty/loading/error states, notifications, native metadata, and widget copy where affected. Apply the overlay with `node scripts/apply-german-overrides.mjs` and run its `--check` mode. Do not rely on English fallback or a syntactically complete Weblate catalog as evidence of German copy quality. Use consistent German terminology and one form of address within a flow; review the rendered German screen at normal and enlarged text sizes. Preserve user-entered and provider-supplied names literally. Do not hand-edit synced German catalogs: the reviewed overlay is the source of product-specific corrections. Other languages remain on the Weblate path.
@@ -173,6 +183,10 @@ pnpm run build
 
 ## Notification delivery and mobility planning
 
-Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
+Notification v1/v2 contracts and opt-in v3 coaching capabilities live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes. Mobility snapshot reads are read-only; occurrence creation belongs to definition writes and the explicit periodic planner, never GET/MCP reads. Session provenance names a trusted API/MCP ingress, not proof of the device platform. Local history retention must never queue server deletions.
+
+## Reviewed MCP recommendations
+
+- Coaching recommendations use owner app-session review and selected-domain proposal-only MCP credentials. Start at `docs/src/developer/mcp/recommendations.md`; never replace review with direct health-data writes. `XOT_COACHING_ENABLED` gates the cross-package rollout.

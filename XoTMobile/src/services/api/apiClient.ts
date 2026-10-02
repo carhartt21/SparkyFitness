@@ -1,3 +1,5 @@
+import { getActiveNutritionIdentity } from '../nutritionIdentity';
+import type { NutritionActionIdentity } from '../nutritionActionOutbox';
 import { getActiveServerConfig, proxyHeadersToRecord } from '../storage';
 import { addLog } from '../LogService';
 import { getAuthHeaders, notifySessionExpired } from './authService';
@@ -18,6 +20,8 @@ interface ApiFetchOptions {
   body?: unknown;
   headers?: Record<string, string>;
   timeoutMs?: number;
+  /** Bind credentials/destination and discard late responses after account changes. */
+  expectedIdentity?: NutritionActionIdentity;
 }
 
 export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
@@ -31,11 +35,32 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
     timeoutMs = DEFAULT_API_TIMEOUT_MS,
   } = options;
 
-  const config = await getActiveServerConfig();
+  const activeConfig = await getActiveServerConfig();
+  const config = activeConfig
+    ? {
+        ...activeConfig,
+        proxyHeaders: activeConfig.proxyHeaders?.map((header) => ({
+          ...header,
+        })),
+      }
+    : null;
   if (!config) {
     throw new Error('Server configuration not found.');
   }
 
+  const assertIdentity = async () => {
+    if (!options.expectedIdentity) return;
+    const current = await getActiveNutritionIdentity();
+    if (
+      config.id !== options.expectedIdentity.serverConfigId ||
+      current?.serverConfigId !== options.expectedIdentity.serverConfigId ||
+      current.userId !== options.expectedIdentity.userId
+    )
+      throw new Error('Account changed. Refresh before trying again.');
+  };
+  // Destination and auth headers below use the captured config, never a later
+  // global lookup. The final guard prevents late data entering an old cache.
+  await assertIdentity();
   const baseUrl = normalizeUrl(config.url);
 
   if (
@@ -80,6 +105,7 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
       timeoutMs
     );
 
+    await assertIdentity();
     if (!response.ok) {
       if (response.status === 401 && config.authType === 'session') {
         notifySessionExpired(config.id);
@@ -104,7 +130,9 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
       return undefined as T;
     }
 
-    return await response.json();
+    const result: T = await response.json();
+    await assertIdentity();
+    return result;
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     addLog(`[${serviceName}] Failed to ${operation}: ${message}`, 'ERROR');

@@ -1,3 +1,4 @@
+import { isFddbImportMeal } from '@workspace/shared';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -68,7 +69,7 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
   const { preferences } = usePreferences({ enabled: isConnected });
   const showNetCarbs = preferences?.show_net_carbs === true;
 
-  const { mealTypes } = useMealTypes();
+  const { mealTypes } = useMealTypes({ includeReadOnly: true });
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -82,6 +83,7 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
     return null;
   }, [mealTypeId, mealTypes]);
   const mealTypeName = resolvedType?.name ?? mealType ?? '';
+  const readOnly = isFddbImportMeal(mealTypeName);
   const label =
     mealLabel ??
     (resolvedType
@@ -96,7 +98,7 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
       : getHistoricalMealTypeLabel(mealTypeName, t));
 
   const mealStatusQuery = useMealTrackingStatus(date, {
-    enabled: isConnected && Boolean(resolvedType),
+    enabled: isConnected && Boolean(resolvedType) && !readOnly,
   });
   const { refetch: refetchMealStatus } = mealStatusQuery;
   const setMealStatus = useSetMealStatus(date);
@@ -148,7 +150,10 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
   // so it has no single real meal type to copy from (the server would match
   // nothing). Only offer copy for concrete meal types.
   const canCopy =
-    isConnected && entries.length > 0 && mealTypeName.toLowerCase() !== 'other';
+    !readOnly &&
+    isConnected &&
+    entries.length > 0 &&
+    mealTypeName.toLowerCase() !== 'other';
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -166,6 +171,7 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
     // Historical/aggregate groups have no current meal identity to update.
     // Do not show an invented "pending" state while the read is unavailable.
     if (
+      readOnly ||
       !resolvedType ||
       (!trackedMeal && !mealStatusQuery.isPending && !mealStatusQuery.isError)
     )
@@ -298,17 +304,21 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
               defaultValue: '{{date}} has no foods logged for this meal.',
               date: formatDateLabel(date, t, dateLocale),
             })}
-            action={{
-              label: t('mealTypeDetail.accessibility.addFood', {
-                defaultValue: 'Add Food',
-              }),
-              onPress: () =>
-                navigation.navigate('FoodSearch', {
-                  date,
-                  mealTypeId: resolvedType?.id,
-                }),
-              variant: 'primary',
-            }}
+            action={
+              readOnly
+                ? undefined
+                : {
+                    label: t('mealTypeDetail.accessibility.addFood', {
+                      defaultValue: 'Add Food',
+                    }),
+                    onPress: () =>
+                      navigation.navigate('FoodSearch', {
+                        date,
+                        mealTypeId: resolvedType?.id,
+                      }),
+                    variant: 'primary',
+                  }
+            }
           />
         ) : (
           <>
@@ -346,8 +356,12 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
                   key={entry.id || index}
                   entry={entry}
                   nutrition={calculateEntryNutrition(entry)}
-                  onAdjustServing={(foodEntry) =>
-                    servingSheetRef.current?.present(foodEntry)
+                  readOnly={readOnly}
+                  onAdjustServing={
+                    readOnly
+                      ? undefined
+                      : (foodEntry) =>
+                          servingSheetRef.current?.present(foodEntry)
                   }
                 />
               ))}
@@ -361,21 +375,25 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
   const header = useScreenHeader({
     left: { kind: 'back' },
     right: [
-      {
-        kind: 'icon',
-        sfSymbol: 'plus',
-        ionicon: 'add',
-        role: 'primary',
-        onPress: () =>
-          navigation.navigate('FoodSearch', {
-            date,
-            mealTypeId: resolvedType?.id,
-          }),
-        accessibilityLabel: t('mealTypeDetail.accessibility.addFood', {
-          defaultValue: 'Add Food',
-        }),
-        identifier: 'meal-type-detail-add',
-      },
+      ...(!readOnly
+        ? [
+            {
+              kind: 'icon',
+              sfSymbol: 'plus',
+              ionicon: 'add',
+              role: 'primary',
+              onPress: () =>
+                navigation.navigate('FoodSearch', {
+                  date,
+                  mealTypeId: resolvedType?.id,
+                }),
+              accessibilityLabel: t('mealTypeDetail.accessibility.addFood', {
+                defaultValue: 'Add Food',
+              }),
+              identifier: 'meal-type-detail-add',
+            } as const,
+          ]
+        : []),
       ...(canCopy
         ? [
             {

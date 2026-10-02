@@ -288,6 +288,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({
           icon: Target,
         },
         {
+          value: '/coaching',
+          label: t('coaching.title', { defaultValue: 'Recommendations' }),
+          icon: Target,
+        },
+        {
           value: '/settings',
           label: t('nav.settings', { defaultValue: 'Settings' }),
           icon: SettingsIcon,

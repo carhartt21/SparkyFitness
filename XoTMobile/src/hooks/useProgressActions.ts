@@ -18,6 +18,7 @@ export const PROGRESS_DOMAIN_ORDER: DailyProgressDomain[] = [
   'meal',
   'goal',
   'workout',
+  'activity',
   'checkin',
 ];
 
@@ -74,6 +75,11 @@ export function useProgressActions(date: string, onHydration: () => void) {
           date,
           scheduleId: item.reference_id ?? undefined,
         });
+        break;
+      case 'activity':
+        if (item.id.startsWith('mobility:'))
+          navigation.navigate('GuidedMobility');
+        else navigation.navigate('ExerciseReview', { date });
         break;
       case 'measurement':
         navigation.navigate('MeasurementsAdd', {

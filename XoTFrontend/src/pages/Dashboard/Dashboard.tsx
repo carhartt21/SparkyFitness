@@ -1,3 +1,4 @@
+import { PlannedMealsCard } from '@/pages/Coaching/PlannedMealsCard';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
@@ -11,7 +12,11 @@ import {
   Utensils,
   UtensilsCrossed,
 } from 'lucide-react';
-import { pickMealTypeForTime, todayInZone } from '@workspace/shared';
+import {
+  pickMealTypeForTime,
+  todayInZone,
+  isFddbImportMeal,
+} from '@workspace/shared';
 import DayNavigator from '@/components/DayNavigator';
 import { usePreferences } from '@/contexts/PreferencesContext';
 import { useDailySummary } from '@/hooks/Diary/useDailyProgress';
@@ -136,10 +141,13 @@ function Dashboard() {
     const now = new Date();
     const meal =
       mealName ??
-      pickMealTypeForTime(visibleMealTypes, {
-        hour: now.getHours(),
-        minute: now.getMinutes(),
-      })?.name;
+      pickMealTypeForTime(
+        visibleMealTypes.filter((type) => !isFddbImportMeal(type.name)),
+        {
+          hour: now.getHours(),
+          minute: now.getMinutes(),
+        }
+      )?.name;
     if (!meal) {
       openDiary();
       return;
@@ -217,6 +225,7 @@ function Dashboard() {
         </div>
       ) : (
         <>
+          <PlannedMealsCard day={selectedDate} />
           <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-[1.25fr_1.1fr_0.85fr_1fr]">
             <EnergyCard
               unit={unit}

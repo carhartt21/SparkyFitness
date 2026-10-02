@@ -226,3 +226,19 @@ export {
 } from "./nutrients/nutrientCoverage.ts";
 
 export { convertCatalogNutrientAmount } from "./nutrients/catalogUnitConversion.ts";
+export * from "./fddb/presentation.ts";
+export * from "./schemas/api/Coaching.api.zod.ts";
+export * from "./schemas/database/Coaching.zod.ts";
+export * from "./schemas/database/MealPlanning.zod.ts";
+export * from "./coaching/scheduling.ts";
+export * from "./coaching/outcomes.ts";
+export * from "./coaching/forms.ts";
+export * from "./coaching/tools.ts";
+export * from "./schemas/api/MealPlanning.api.zod.ts";
+
+export * from "./coaching/client.ts";
+
+export * from "./schemas/api/ActivityPlanning.api.zod.ts";
+export * from "./schemas/database/ActivityPlanResolutions.zod.ts";
+
+export * from "./activityPlanning.ts";

@@ -9,6 +9,35 @@ import workoutPresetRepository from '../models/workoutPresetRepository.js';
 import exerciseRepository from '../models/exerciseRepository.js';
 import { log } from '../config/logging.js';
 import { resolveTemplateStartDay } from '../utils/timezoneLoader.js';
+import type { PoolClient } from 'pg';
+import type { CoachingAction } from '@workspace/shared';
+
+/** Approval reuses validation/versioned writes and never deletes diary history. */
+export async function applyReviewedWorkoutPlan(
+  client: PoolClient,
+  userId: string,
+  action: Extract<CoachingAction, { kind: 'workout_plan' }>
+) {
+  await validateAndNormalizeAssignments(
+    action.definition.assignments,
+    action.definition.schedule_type,
+    userId
+  );
+  return action.templateId
+    ? workoutPlanTemplateRepository.updateWorkoutPlanTemplate(
+        action.templateId,
+        userId,
+        action.definition,
+        action.effectiveDay,
+        false,
+        client
+      )
+    : workoutPlanTemplateRepository.createWorkoutPlanTemplate(
+        { ...action.definition, user_id: userId },
+        action.effectiveDay,
+        client
+      );
+}
 
 export interface WorkoutPlanAssignmentSetInput {
   id?: number | string | null;

@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
+import { isFddbImportMeal } from '@workspace/shared';
 import type { FoodItem } from '../types/foods';
 import type { MealType } from '../types/mealTypes';
 import type { NutritionActionIdentity } from './nutritionActionOutbox';
@@ -167,16 +168,18 @@ export function cacheQuickMealTypes(
   identity: NutritionActionIdentity,
   mealTypes: MealType[]
 ): Promise<NutritionFavoriteCache> {
-  const categories = mealTypes.map((mealType) =>
-    cachedMealTypeSchema.parse({
-      id: mealType.id,
-      name: mealType.name,
-      sort_order: mealType.sort_order,
-      is_visible: mealType.is_visible,
-      show_in_quick_log: mealType.show_in_quick_log,
-      default_time: mealType.default_time,
-    })
-  );
+  const categories = mealTypes
+    .filter((mealType) => !isFddbImportMeal(mealType.name))
+    .map((mealType) =>
+      cachedMealTypeSchema.parse({
+        id: mealType.id,
+        name: mealType.name,
+        sort_order: mealType.sort_order,
+        is_visible: mealType.is_visible,
+        show_in_quick_log: mealType.show_in_quick_log,
+        default_time: mealType.default_time,
+      })
+    );
   return update(identity, (current) => ({
     ...current,
     updatedAt: new Date().toISOString(),

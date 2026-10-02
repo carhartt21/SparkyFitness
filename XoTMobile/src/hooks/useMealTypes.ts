@@ -1,3 +1,4 @@
+import { isFddbImportMeal } from '@workspace/shared';
 import { useQuery } from '@tanstack/react-query';
 import { fetchMealTypes } from '../services/api/mealTypesApi';
 import { getDefaultMealTypeId } from '../constants/meals';
@@ -6,8 +7,11 @@ import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
 import { cacheQuickMealTypes } from '../services/nutritionFavoriteCache';
 import { fetchProfile } from '../services/api/profileApi';
 
-export function useMealTypes(options?: { enabled?: boolean }) {
-  const { enabled = true } = options ?? {};
+export function useMealTypes(options?: {
+  enabled?: boolean;
+  includeReadOnly?: boolean;
+}) {
+  const { enabled = true, includeReadOnly = false } = options ?? {};
 
   const query = useQuery({
     queryKey: mealTypesQueryKey,
@@ -27,7 +31,10 @@ export function useMealTypes(options?: { enabled?: boolean }) {
     enabled,
     select: (data) => {
       const mealTypes = data
-        .filter((mt) => mt.is_visible)
+        .filter(
+          (mt) =>
+            mt.is_visible && (includeReadOnly || !isFddbImportMeal(mt.name))
+        )
         .sort((a, b) => a.sort_order - b.sort_order);
       return {
         mealTypes,

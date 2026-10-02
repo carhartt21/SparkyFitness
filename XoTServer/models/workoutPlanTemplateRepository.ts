@@ -43,30 +43,7 @@ async function captureWorkoutPlanVersion(
        (user_id, template_id, effective_from, plan_name, start_date, end_date, is_active, assignments)
      SELECT t.user_id, t.id, $3::date, t.plan_name, t.start_date, t.end_date,
             COALESCE($4::boolean, t.is_active, false),
-            COALESCE((
-              SELECT jsonb_agg(
-                jsonb_build_object(
-                  'id', a.id,
-                  'dayOfWeek', a.day_of_week,
-                  'workoutPresetId', a.workout_preset_id,
-                  'exerciseId', a.exercise_id,
-                  'sortOrder', a.sort_order,
-                  'activityType', a.activity_type,
-                  'sessionName', a.session_name,
-                  'plannedDurationMinutes', a.planned_duration_minutes,
-                  'plannedDistanceKm', a.planned_distance_km,
-                  'plannedTime', a.planned_time,
-                  'isOptional', a.is_optional,
-                  'sets', COALESCE((
-                    SELECT jsonb_agg(to_jsonb(s) ORDER BY s.set_number, s.id)
-                    FROM public.workout_plan_assignment_sets s
-                    WHERE s.assignment_id = a.id
-                  ), '[]'::jsonb)
-                ) ORDER BY a.day_of_week, a.sort_order, a.id
-              )
-              FROM public.workout_plan_template_assignments a
-              WHERE a.template_id = t.id
-            ), '[]'::jsonb)
+            public.workout_plan_assignments_snapshot(t.id)
      FROM public.workout_plan_templates t
      WHERE t.id = $1 AND t.user_id = $2`,
     [templateId, userId, effectiveDay, isActiveOverride ?? null]
@@ -204,11 +181,12 @@ export async function preparePlannedActivityExercise(
 
 async function createWorkoutPlanTemplate(
   planData: WorkoutPlanTemplateCreateInput,
-  effectiveDay: string
+  effectiveDay: string,
+  transactionClient?: PoolClient
 ): Promise<WorkoutPlanTemplateRow> {
-  const client = await getClient(planData.user_id); // User-specific operation
+  const client = transactionClient ?? (await getClient(planData.user_id)); // User-specific operation
   try {
-    await client.query('BEGIN');
+    if (!transactionClient) await client.query('BEGIN');
     const insertTemplateQuery = `
             INSERT INTO workout_plan_templates (user_id, plan_name, description, start_date, end_date, is_active, schedule_type, entry_mode)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`;
@@ -273,7 +251,7 @@ async function createWorkoutPlanTemplate(
       planData.user_id,
       effectiveDay
     );
-    await client.query('COMMIT');
+    if (!transactionClient) await client.query('COMMIT');
     const finalQuery = `
             SELECT
                 t.*,
@@ -307,7 +285,7 @@ async function createWorkoutPlanTemplate(
     const finalResult = await client.query(finalQuery, [newTemplate.id]);
     return finalResult.rows[0];
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (!transactionClient) await client.query('ROLLBACK');
     log(
       'error',
       `Error creating workout plan template: ${(error as Error).message}`,
@@ -315,7 +293,7 @@ async function createWorkoutPlanTemplate(
     );
     throw error;
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 
@@ -410,11 +388,12 @@ async function updateWorkoutPlanTemplate(
   userId: string,
   updateData: WorkoutPlanTemplateUpdateInput,
   effectiveDay: string,
-  shouldUnlinkHistoricalEntries = false
+  shouldUnlinkHistoricalEntries = false,
+  transactionClient?: PoolClient
 ): Promise<WorkoutPlanTemplateRow> {
-  const client = await getClient(userId); // User-specific operation
+  const client = transactionClient ?? (await getClient(userId)); // User-specific operation
   try {
-    await client.query('BEGIN');
+    if (!transactionClient) await client.query('BEGIN');
     if (shouldUnlinkHistoricalEntries) {
       await unlinkExerciseEntriesByTemplateId(templateId, userId, client);
     }
@@ -565,7 +544,7 @@ async function updateWorkoutPlanTemplate(
       }
     }
     await captureWorkoutPlanVersion(client, templateId, userId, effectiveDay);
-    await client.query('COMMIT');
+    if (!transactionClient) await client.query('COMMIT');
     const finalQuery = `
             SELECT
                 t.*,
@@ -599,7 +578,7 @@ async function updateWorkoutPlanTemplate(
     const finalResult = await client.query(finalQuery, [templateId]);
     return finalResult.rows[0];
   } catch (error) {
-    await client.query('ROLLBACK');
+    if (!transactionClient) await client.query('ROLLBACK');
     log(
       'error',
       `Error updating workout plan template ${templateId}: ${(error as Error).message}`,
@@ -607,7 +586,7 @@ async function updateWorkoutPlanTemplate(
     );
     throw error;
   } finally {
-    client.release();
+    if (!transactionClient) client.release();
   }
 }
 async function deleteWorkoutPlanTemplate(

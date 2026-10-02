@@ -13,6 +13,16 @@ X on Track Server is the backend API package for the X on Track monorepo. Use th
 
 If a task also touches `shared/`, the frontend, or the mobile app, read the relevant package guide before editing outside this directory. Use `../AGENTS.md` for monorepo-level context.
 
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`version=2` (or the legacy `include_activity=true` alias) opts Daily Progress into
+version 2; preserve the default HTTP version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
+
 ## Scope
 
 - This file is for package-local work in `XoTServer/`.
@@ -29,6 +39,7 @@ If a task also touches `shared/`, the frontend, or the mobile app, read the rele
 - Module system: ESM with `type: "module"` and `moduleResolution: "NodeNext"`
 - The package is now effectively TypeScript-first; almost all source files are `.ts`
 - Main domains: food and meal tracking, exercise logging, health and sleep data, sleep science, fasting, medications, mood, menstrual cycle and pregnancy, reporting, AI chat, onboarding, identity, admin tooling, and external provider integrations
+- Reviewed MCP recommendations add owner-only proposals, leased external reviews, typed activation, prompt plans and confirmed outcomes behind `XOT_COACHING_ENABLED`.
 - Hydration container presses can create a water log and linked food entry in one user-scoped transaction; `water_container_actions` retains the retry receipt after either diary row is deleted
 - Workout-plan reviews use immutable `workout_plan_template_versions` snapshots and a retained origin assignment ID on exercise entries so completed activity survives plan edits or deletion
 
@@ -58,6 +69,8 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 
 ## Source Map
 
+- `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `services/coaching*Service.ts`, and `models/coachingRepository.ts` - owner review, scoped proposals and frozen evidence. `tools/coachingRunner{,Schema,Reads}.ts` owns the external subscription runner and read audit.
+- `services/coachingWorkoutEvidence.ts` consumes the same immutable-prescription activity projection as Daily Progress. Started sets are not completion; whole activities require actual saved targets, and optional/skipped/rest or unknown prescriptions do not become missed sessions. Legacy attendance-only snapshots cannot establish a completion outcome.
 - `index.ts` - real dev entrypoint; loads env, secrets, and preflight checks before booting the app
 - `XoTServer.ts` - Express app shell, route mounting, Swagger/ReDoc, cron setup, graceful shutdown
 - `auth.ts` - Better Auth configuration, plugins, session behavior, SSO provider syncing
@@ -199,6 +212,7 @@ When searching, ignore noisy/generated directories unless you explicitly need th
   - `req.activeUserId`
   - `req.user`
 - `req.userId` is the active RLS target; `req.authenticatedUserId` is the logged-in actor
+- New owner foreign keys reference `public."user"(id)`, the Better Auth identity table. Do not reference retired `auth.users`; a migration created after the auth transition is not repaired by that older transition migration.
 - Family and delegated access flow through `middleware/checkPermissionMiddleware.ts`, `middleware/onBehalfOfMiddleware.ts`, and the auth middleware’s active-user switching
 - `checkPermissionMiddleware(permissionType)` guards routes; permission types are `'diary'`, `'reports'`, and `'checkin'`
 - If you change auth behavior, check both cookie-backed sessions and API key flows
@@ -246,6 +260,7 @@ When searching, ignore noisy/generated directories unless you explicitly need th
 
 ## Quick Routing
 
+- Recommendations, scheduled MCP reviews or prompt meal consumption: start at `../docs/src/developer/mcp/recommendations.md`, then the coaching services and `services/mealPlanOccurrenceService.ts`. Check owner app-session identity before canonical writes.
 - Startup, env, or deployment issue:
   inspect `index.ts`, `XoTServer.ts`, `utils/secretLoader.ts`, `utils/preflightChecks.ts`, and `config/logging.ts`
 - Auth, session, MFA, or API key issue:
@@ -314,10 +329,13 @@ Before adding a feature or changing auth/permission behavior, read:
 
 ## Notification delivery and mobility planning
 
-Notification v2 contracts live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
+Notification v1/v2 contracts and opt-in v3 coaching capabilities live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
 Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes. Mobility snapshot reads are read-only; occurrence creation belongs to definition writes and the explicit periodic planner, never GET/MCP reads. Session provenance names a trusted API/MCP ingress, not proof of the device platform. Local history retention must never queue server deletions.
 
 ## Micronutrient ingestion and coverage
 
 `services/nutrientObservationService.ts` resolves the bounded shared catalog in caller-owned transactions. Native ingestion is partial and preserves each source record independently; diary delegates write standalone snapshots without library mutation. `GET /api/reports/nutrient-coverage` and `models/nutrientCoverageRepository.ts` expose known/eligible counts separately from numeric trend keys. BLS imports reload trusted source values; `scripts/repair_bls_micronutrients.ts` defaults to a bounded, rolled-back dry run. See `../docs/implementation/micronutrient-coverage-rollout-2026-10-01.md` for flags, repair restrictions, replay and verification.
+## Reviewed MCP recommendations
+
+- `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `models/coachingRepository.ts`, and `services/coaching{Run,Evidence,Planning,Review,Maintenance,Credential}Service.ts` implement owner-only leased proposals, frozen evidence, preview/activation and outcomes. `services/mealPlanOccurrenceService.ts` owns prompt occurrences and explicit consumption receipts; `tools/coachingRunner.ts` is the external Mac subscription runner. Agents never approve or log intake. See `../docs/src/developer/mcp/recommendations.md`.

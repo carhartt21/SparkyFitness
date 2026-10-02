@@ -30,6 +30,7 @@ import { buildDashboardTools } from './dashboardTools.js';
 import { buildFavoritesTools } from './favoritesTools.js';
 import { buildFoodTools } from './foodTools.js';
 import { buildGoalTools } from './goalTools.js';
+import { buildActivityPlanningTools } from './activityPlanningTools.js';
 import { buildMobilityTools } from './mobilityTools.js';
 import { buildHabitTools } from './habitTools.js';
 import { buildMealPlanTools } from './mealPlansTools.js';
@@ -90,7 +91,10 @@ const CATEGORY_BUILDERS: Record<
     (u) => buildMobilityTools(u),
     (u, tz) => buildExerciseTools(u, tz),
     (u, tz) => buildExerciseStatsTools(u, tz),
-    (u, tz) => buildWorkoutPlanTools(u, tz),
+    (u, tz) => ({
+      ...buildWorkoutPlanTools(u, tz),
+      ...buildActivityPlanningTools(u, tz),
+    }),
   ],
   food: [
     (u, tz) => buildFoodTools(u, tz),

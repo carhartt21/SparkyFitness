@@ -1,4 +1,6 @@
 import { readProgressObjectives } from '../models/dailyProgressObjectives.js';
+import { getActivityPlanning } from './activityPlanningService.js';
+import { withActivityProgress } from '@workspace/shared';
 import {
   addDays,
   buildDailyProgress,
@@ -187,9 +189,15 @@ export async function getDailyProgress(
   date: string,
   includeObjectives = false
 ): Promise<DailyProgress> {
-  return buildDailyProgress(
+  const base = buildDailyProgress(
     await getDailyProgressInput(userId, date, includeObjectives)
   );
+  return includeObjectives
+    ? withActivityProgress(
+        base,
+        (await getActivityPlanning(userId, date, date)).occurrences
+      )
+    : base;
 }
 
 interface ScheduleWithHistory {
@@ -303,10 +311,16 @@ export async function getDailyProgressRange(
         )
     );
 
+  const activity = includeObjectives
+    ? await getActivityPlanning(userId, startDate, endDate)
+    : null;
   const days: DailyProgressDay[] = [];
   for (let day = startDate; day <= endDate; day = addDays(day, 1)) {
     if (
       day > today ||
+      activity?.occurrences.some(
+        (row) => row.date === day && row.reason === 'prescription_unknown'
+      ) ||
       (day < today &&
         (trackingStart === null || day < trackingStart || changedAfter(day)))
     ) {
@@ -398,11 +412,14 @@ export async function getDailyProgressRange(
           })
         : [],
     });
+    const combined = activity
+      ? withActivityProgress(progress, activity.occurrences)
+      : progress;
     days.push({
       date: day,
-      state: dayStateFromProgress(progress),
-      completed: progress.completed,
-      applicable: progress.applicable,
+      state: dayStateFromProgress(combined),
+      completed: combined.completed,
+      applicable: combined.applicable,
     });
   }
   return days;

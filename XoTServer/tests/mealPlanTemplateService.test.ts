@@ -7,6 +7,7 @@ vi.mock('../models/mealPlanTemplateRepository.js', () => ({
   default: {
     createMealPlanTemplate: vi.fn(),
     getMealPlanTemplatesByUserId: vi.fn(),
+    getMealPlanTemplateById: vi.fn(),
     getMealPlanTemplateAssignments: vi.fn(),
     updateMealPlanTemplate: vi.fn(),
     deleteMealPlanTemplate: vi.fn(),
@@ -34,6 +35,9 @@ describe('mealPlanTemplateService', () => {
 
   it('createMealPlanTemplate should create active template without deactivating other plans', async () => {
     const mockPlan = {
+      user_id: userId,
+      entry_mode: 'prefill' as const,
+      assignments: [],
       id: 'plan-1',
       plan_name: 'Base Plan',
       is_active: true,
@@ -63,6 +67,9 @@ describe('mealPlanTemplateService', () => {
 
   it('updateMealPlanTemplate should update template without deactivating other plans', async () => {
     const mockPlan = {
+      user_id: userId,
+      entry_mode: 'prefill' as const,
+      assignments: [],
       id: 'plan-2',
       plan_name: 'Cutting Plan',
       is_active: true,
@@ -96,6 +103,28 @@ describe('mealPlanTemplateService', () => {
     );
   });
 
+  it('preserves explicitly confirmed food when a prompt plan is revised or deleted without an entry-mode field', async () => {
+    const plan = {
+      id: 'prompt',
+      user_id: userId,
+      plan_name: 'Prompt',
+      entry_mode: 'prompt' as const,
+      is_active: true,
+      assignments: [],
+    };
+    vi.mocked(
+      mealPlanTemplateRepository.getMealPlanTemplateById
+    ).mockResolvedValue(plan);
+    vi.mocked(
+      mealPlanTemplateRepository.updateMealPlanTemplate
+    ).mockResolvedValue(plan);
+    await mealPlanTemplateService.updateMealPlanTemplate('prompt', userId, {
+      plan_name: 'Updated',
+    });
+    await mealPlanTemplateService.deleteMealPlanTemplate('prompt', userId);
+    expect(foodRepository.deleteFoodEntriesByTemplateId).not.toHaveBeenCalled();
+    expect(foodRepository.createFoodEntriesFromTemplate).not.toHaveBeenCalled();
+  });
   it('duplicateMealPlanTemplate should clone original plan with (Copy) name and inactive state', async () => {
     const originalTemplate = {
       id: 'plan-orig',
@@ -123,6 +152,9 @@ describe('mealPlanTemplateService', () => {
     ).mockResolvedValue(originalTemplate.assignments);
 
     const clonedPlan = {
+      user_id: userId,
+      entry_mode: 'prefill' as const,
+      assignments: [],
       id: 'plan-copy',
       plan_name: 'Keto Plan (Copy)',
       is_active: false,

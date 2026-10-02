@@ -1,3 +1,6 @@
+import type { PoolClient } from 'pg';
+import { createFoodEntryMealWithClient } from '../models/foodEntryMealRepository.js';
+import { bulkCreateFoodEntriesWithClient } from '../models/foodEntry.js';
 import foodRepository from '../models/foodRepository.js';
 import foodEntryMealRepository, {
   type MealEntryMoveResult,
@@ -2298,12 +2301,9 @@ async function resolveLoggedMealPortion(
 async function createFoodEntryMeal(
   authenticatedUserId: string,
   actingUserId: string,
-  mealData: LoggedMealInput
+  mealData: LoggedMealInput,
+  transactionClient?: PoolClient
 ) {
-  log(
-    'info',
-    `createFoodEntryMeal in foodEntryService: authenticatedUserId: ${authenticatedUserId}, actingUserId: ${actingUserId}, mealData: ${JSON.stringify(mealData)}`
-  );
   try {
     // Backwards compatibility (issue #1023): clients on the new serving model
     // send X-Meal-Model-Version: 2. Old clients omit the header — for
@@ -2373,7 +2373,14 @@ async function createFoodEntryMeal(
     );
 
     // 1. Create the parent food_entry_meals record with quantity, unit, name, description, and snapshotted yield.
-    const newFoodEntryMeal = await foodEntryMealRepository.createFoodEntryMeal(
+    const createParent = (
+      data: Parameters<typeof createFoodEntryMealWithClient>[1],
+      actorId: string
+    ) =>
+      transactionClient
+        ? createFoodEntryMealWithClient(transactionClient, data, actorId)
+        : foodEntryMealRepository.createFoodEntryMeal(data, actorId);
+    const newFoodEntryMeal = await createParent(
       {
         user_id: mealData.user_id || authenticatedUserId, // Use target user ID
         meal_template_id: mealData.meal_template_id || null,
@@ -2416,10 +2423,16 @@ async function createFoodEntryMeal(
       }
     );
     if (entriesToCreate.length > 0) {
-      await foodRepository.bulkCreateFoodEntries(
-        entriesToCreate,
-        authenticatedUserId
-      );
+      if (transactionClient)
+        await bulkCreateFoodEntriesWithClient(
+          transactionClient,
+          entriesToCreate
+        );
+      else
+        await foodRepository.bulkCreateFoodEntries(
+          entriesToCreate,
+          authenticatedUserId
+        );
       log(
         'info',
         `Created ${entriesToCreate.length} component food entries for food_entry_meal ${newFoodEntryMeal.id}.`

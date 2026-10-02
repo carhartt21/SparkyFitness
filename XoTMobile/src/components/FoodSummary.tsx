@@ -1,3 +1,4 @@
+import { isFddbImportMeal, shouldShowDiaryMeal } from '@workspace/shared';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, Pressable } from 'react-native';
@@ -379,42 +380,55 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
           })}
         </Text>
       )}
-      {groups.map((group) => (
-        <MealSection
-          key={
-            group.mealTypeId
-              ? `meal:${group.mealTypeId}`
-              : `historical:${group.name.toLowerCase()}`
-          }
-          group={group}
-          capturePhotos={capturePhotos}
-          goals={goals}
-          calorieGoal={calorieGoal}
-          onAdjustServing={onAdjustServing}
-          selectionMode={selectionMode}
-          selectedEntryIds={selectedEntryIds}
-          onSelectEntry={onSelectEntry}
-          onDragStart={() => setDraggingFood(true)}
-          onDragEnd={handleDragEnd}
-          registerDropTarget={registerDropTarget}
-          draggingFood={draggingFood}
-          onAddFood={
-            mealTypes.some((type) => type.id === group.mealTypeId)
-              ? onAddFood
-              : undefined
-          }
-          onPressMealType={onPressMealType}
-          mealState={
-            group.mealTypeId ? mealStates?.get(group.mealTypeId) : undefined
-          }
-          onSetMealStatus={
-            group.mealTypeId && onSetMealStatus
-              ? (status) => onSetMealStatus(group.mealTypeId!, status)
-              : undefined
-          }
-          mealStatusBusy={mealStatusBusy}
-        />
-      ))}
+      {groups
+        .filter((group) =>
+          shouldShowDiaryMeal(group.name, group.entries.length)
+        )
+        .map((group) => (
+          <MealSection
+            key={
+              group.mealTypeId
+                ? `meal:${group.mealTypeId}`
+                : `historical:${group.name.toLowerCase()}`
+            }
+            group={group}
+            capturePhotos={capturePhotos}
+            goals={goals}
+            calorieGoal={calorieGoal}
+            onAdjustServing={
+              isFddbImportMeal(group.name) ? undefined : onAdjustServing
+            }
+            selectionMode={selectionMode && !isFddbImportMeal(group.name)}
+            selectedEntryIds={selectedEntryIds}
+            onSelectEntry={
+              isFddbImportMeal(group.name) ? undefined : onSelectEntry
+            }
+            onDragStart={() => setDraggingFood(true)}
+            onDragEnd={isFddbImportMeal(group.name) ? undefined : handleDragEnd}
+            registerDropTarget={registerDropTarget}
+            draggingFood={draggingFood}
+            onAddFood={
+              !isFddbImportMeal(group.name) &&
+              mealTypes.some((type) => type.id === group.mealTypeId)
+                ? onAddFood
+                : undefined
+            }
+            onPressMealType={
+              isFddbImportMeal(group.name) ? undefined : onPressMealType
+            }
+            mealState={
+              group.mealTypeId ? mealStates?.get(group.mealTypeId) : undefined
+            }
+            onSetMealStatus={
+              !isFddbImportMeal(group.name) &&
+              group.mealTypeId &&
+              onSetMealStatus
+                ? (status) => onSetMealStatus(group.mealTypeId!, status)
+                : undefined
+            }
+            mealStatusBusy={mealStatusBusy}
+          />
+        ))}
     </View>
   );
 };

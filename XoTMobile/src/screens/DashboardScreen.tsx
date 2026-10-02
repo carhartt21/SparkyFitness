@@ -1,3 +1,4 @@
+import PlannedMealsCard from '../components/coaching/PlannedMealsCard';
 import OfflineHealthSummary from '../components/OfflineHealthSummary';
 import { useServerConfigs } from '../hooks/useServerConfigs';
 import { useDashboardSnapshot } from '../hooks/useDashboardSnapshot';
@@ -877,6 +878,7 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
           />
         )}
         {quickActions}
+        <PlannedMealsCard day={selectedDate} />
         {/* Macros Section — driven by nutrient display preferences (summary/mobile).
             Only the 4 core macros (with goals) and user-defined custom nutrients are
             shown here. Other enabled nutrients (sodium, sugars, etc.) belong in a

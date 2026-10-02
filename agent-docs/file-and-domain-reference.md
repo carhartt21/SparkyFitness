@@ -28,6 +28,16 @@ Shared   (shared/src/)
 
 ---
 
+### Weekly activity planning
+
+- Server: `routes/v2/activityPlanningRoutes.ts`, `services/activityPlanningService.ts`,
+  `services/activityPlanningProjection.ts`, `models/activityPlanningRepository.ts`.
+- Shared: `schemas/api/ActivityPlanning.api.zod.ts`, `activityPlanning.ts` and the
+  opt-in activity projection in `tracking/dailyTracking.ts`.
+- Clients: `components/WeeklyActivityOverview.tsx`, `hooks/Tracking/useActivityPlanning.ts`
+  (web) and `hooks/useActivityPlanning.ts` (phone); existing Workout/Mobility editors.
+- MCP: `ai/tools/activityPlanningTools.ts`; no resolution-write tool.
+
 ## Feature Domains
 
 Paths are relative to each package root. `—` means that layer does not exist for the domain.
@@ -94,7 +104,7 @@ Paths are relative to each package root. `—` means that layer does not exist f
 
 | Feature               | Backend                                                                                                                              | Frontend                                 | Mobile                                                                                                 | Shared                                     |
 | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------- | ------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
-| **Chat** (Trackbot)     | `routes/chatRoutes.ts` `routes/mcpRoutes.ts`, `services/chatService.ts`, `ai/tools/`                                                 | `pages/Chat/` `api/Chatbot/` `hooks/AI/` | `screens/ChatScreen.tsx` `services/api/chatApi.ts` `hooks/useChatHistory.ts`                           | — (no Chat API schema)                     |
+| **Chat** (Trackbot)   | `routes/chatRoutes.ts` `routes/mcpRoutes.ts`, `services/chatService.ts`, `ai/tools/`                                                 | `pages/Chat/` `api/Chatbot/` `hooks/AI/` | `screens/ChatScreen.tsx` `services/api/chatApi.ts` `hooks/useChatHistory.ts`                           | — (no Chat API schema)                     |
 | **AI Photo Estimate** | `routes/checkInPhotoRoutes.ts` + food-photo route, `services/foodPhotoEstimationService.ts` `services/checkInPhotoService.ts`, `ai/` | `pages/Foods/` (photo flow)              | `screens/FoodPhoto*Screen.tsx` `services/api/externalFoodSearchApi.ts` `hooks/useEstimateFoodPhoto.ts` | `schemas/api/FoodPhotoEstimate.api.zod.ts` |
 
 ---
@@ -115,17 +125,17 @@ Paths are relative to each package root. `—` means that layer does not exist f
 
 ## Cross-Cutting Code (Not Domain-Specific)
 
-| System                     | Location                                                                                                            | Purpose                                                                                                         |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| **Database & RLS**         | `XoTServer/db/`                                                                                           | Migrations, `rls_policies.sql`, pool management                                                                 |
+| System                     | Location                                                                                        | Purpose                                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| **Database & RLS**         | `XoTServer/db/`                                                                                 | Migrations, `rls_policies.sql`, pool management                                                                 |
 | **Auth Framework**         | `XoTServer/auth.ts` `XoTServer/middleware/authMiddleware.ts`                                    | Better Auth config, session handling                                                                            |
 | **Permissions**            | `XoTServer/middleware/checkPermissionMiddleware.ts` `XoTServer/utils/permissionUtils.ts`        | Family access, delegation logic                                                                                 |
-| **Shared Schemas**         | `shared/src/schemas/`                                                                                               | Database tables, API contracts (plus domain modules under `shared/src/medications/`, `shared/src/cycle/`, etc.) |
-| **Timezone Helpers**       | `shared/src/utils/` `XoTServer/utils/timezoneLoader.ts`                                                   | Day strings, UTC conversions                                                                                    |
-| **UI Primitives**          | `XoTFrontend/src/components/ui/`                                                                          | Buttons, forms, dialogs, etc.                                                                                   |
+| **Shared Schemas**         | `shared/src/schemas/`                                                                           | Database tables, API contracts (plus domain modules under `shared/src/medications/`, `shared/src/cycle/`, etc.) |
+| **Timezone Helpers**       | `shared/src/utils/` `XoTServer/utils/timezoneLoader.ts`                                         | Day strings, UTC conversions                                                                                    |
+| **UI Primitives**          | `XoTFrontend/src/components/ui/`                                                                | Buttons, forms, dialogs, etc.                                                                                   |
 | **React Query (frontend)** | client configured inline in `XoTFrontend/src/main.tsx`; keys in `XoTFrontend/src/api/keys/*.ts` | TanStack Query setup, cache keys                                                                                |
 | **React Query (mobile)**   | `XoTMobile/src/hooks/queryClient.ts` `XoTMobile/src/hooks/queryKeys.ts`                         | TanStack Query setup, cache keys                                                                                |
-| **Mobile Health Sync**     | `XoTMobile/src/services/` (Health Connect / HealthKit modules)                                            | Apple Health, Health Connect integration                                                                        |
+| **Mobile Health Sync**     | `XoTMobile/src/services/` (Health Connect / HealthKit modules)                                  | Apple Health, Health Connect integration                                                                        |
 
 ---
 
@@ -196,3 +206,10 @@ Grep the feature name in this doc to narrow to the right package folders, then g
 ### Micronutrient source coverage
 
 Shared `nutrients/blsComponentManifest.ts`, `nativeMicronutrientMappings.ts`, `catalogUnitConversion.ts` and `nutrientCoverage.ts` define source eligibility, units and coverage. Server `services/nutrientObservationService.ts` owns transactional binding; `models/nutrientCoverageRepository.ts` backs `/api/reports/nutrient-coverage`; `scripts/repair_bls_micronutrients.ts` is the bounded dry-run repair entrypoint. Web Reports and mobile `components/MicronutrientCoverage.tsx` use separate coverage API contracts. See `docs/implementation/micronutrient-coverage-rollout-2026-10-01.md` for historical replay and device gates.
+## Owner-reviewed recommendations
+
+- Server: `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `models/coachingRepository.ts`, `services/coaching*Service.ts`, `services/mealPlanOccurrenceService.ts`.
+- Workout outcomes: `services/coachingWorkoutEvidence.ts` uses `activityPlanningProjection.ts` and immutable prescriptions shared with Weekly activities/Daily Progress. Attendance-only evidence cannot establish completion.
+- Web: `src/pages/Coaching/`, `src/hooks/Coaching/`, `src/api/Coaching/`. Mobile: `CoachingScreen`, `useCoaching`, `components/coaching/`.
+- Shared: Coaching/MealPlanning schemas, `coaching/` policy/client/editor behavior and `fddb/presentation.ts`.
+- Setup, scope, retention and rollout: `docs/src/developer/mcp/recommendations.md`. The Mac runner is `XoTServer/tools/coachingRunner.ts`.

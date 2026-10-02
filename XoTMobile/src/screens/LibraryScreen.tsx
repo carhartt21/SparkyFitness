@@ -537,6 +537,15 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           </Pressable>
           <Pressable
             accessibilityRole="button"
+            className="px-4 py-4 border-b border-border-subtle"
+            onPress={() => navigation.navigate('Coaching')}
+          >
+            <Text className="text-base font-semibold text-text-primary">
+              {t('coaching.title', { defaultValue: 'Recommendations' })}
+            </Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
             className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
             onPress={() => navigation.navigate('GuidedMobility')}
           >

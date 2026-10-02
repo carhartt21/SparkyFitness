@@ -1,7 +1,31 @@
-import type { EngagementReminderKindV2 } from "../schemas/api/Engagement.api.zod.ts";
+import type { EngagementReminderKindV3 } from "../schemas/api/Engagement.api.zod.ts";
 
 /** Reviewed prompts shared by local and remote delivery. No inferred health claims. */
 export const ENGAGEMENT_NOTIFICATION_COPY = {
+  coaching_digest: {
+    titleKey: "coaching.digestTitle",
+    bodyKey: "coaching.digestBody",
+    en: {
+      title: "Recommendations",
+      body: "Recommendations are ready for your review.",
+    },
+    de: {
+      title: "Empfehlungen",
+      body: "Deine Empfehlungen stehen zur Prüfung bereit.",
+    },
+  },
+  coaching_action: {
+    titleKey: "coaching.actionTitle",
+    bodyKey: "coaching.actionBody",
+    en: {
+      title: "Your next step",
+      body: "An accepted action is due. Open it to review your next step.",
+    },
+    de: {
+      title: "Dein nächster Schritt",
+      body: "Eine angenommene Aufgabe ist fällig. Öffne sie für deinen nächsten Schritt.",
+    },
+  },
   check_in: {
     titleKey: "engagement.checkinReminderTitle",
     bodyKey: "engagement.checkinReminderBody",
@@ -99,7 +123,7 @@ export const ENGAGEMENT_NOTIFICATION_COPY = {
     },
   },
 } as const satisfies Record<
-  EngagementReminderKindV2,
+  EngagementReminderKindV3,
   {
     titleKey: string;
     bodyKey: string;

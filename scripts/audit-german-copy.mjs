@@ -46,6 +46,7 @@ function isNotificationCopy({ surface, key } = {}) {
         key ?? "",
       ) ||
       /^medications\.notification/.test(key ?? "") ||
+      /^coaching\.(?:digest|action)(?:Title|Body)$/.test(key ?? "") ||
       /^mobility\.reminder(?:Title|Body)$/.test(key ?? ""))
   );
 }

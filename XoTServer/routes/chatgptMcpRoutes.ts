@@ -21,6 +21,11 @@ import {
 } from '@workspace/shared';
 import versionService from '../services/versionService.js';
 import { hasActiveMcpConsent } from '../services/mcpConnectionService.js';
+import { registerCoachingTools } from '../ai/mcp/coachingAdapter.js';
+import {
+  resolveCoachingAgent,
+  coachingFeatureEnabled,
+} from '../services/coachingRunService.js';
 
 const router = express.Router();
 const WRITE_TOOLS = new Set([
@@ -178,13 +183,29 @@ if (mcpOAuthResource) {
       const userId = claims.sub;
       const timezone = await loadUserTimezone(userId);
       const canWrite = hasScope(claims.scope, 'mcp:write');
+      const canPropose =
+        hasScope(claims.scope, 'mcp:propose') &&
+        (await hasActiveMcpConsent(userId, clientId, 'mcp:propose'));
+      const agent =
+        canPropose && coachingFeatureEnabled()
+          ? await resolveCoachingAgent(userId, {
+              oauthClientId: clientId,
+            }).catch(() => null)
+          : null;
       const handler = createMcpHandler(
         () => {
           const server = new McpServer({
             name: 'x-on-track-chatgpt',
             version: versionService.getAppVersion(),
           });
-          registerTools(server, userId, timezone, canWrite);
+          if (!agent || canWrite)
+            registerTools(server, userId, timezone, canWrite);
+          if (agent)
+            registerCoachingTools(server, userId, agent.id, async () => {
+              if (!(await hasActiveMcpConsent(userId, clientId, 'mcp:propose')))
+                throw new Error('Proposal consent was revoked.');
+              await resolveCoachingAgent(userId, { oauthClientId: clientId });
+            });
           return server;
         },
         {
@@ -198,7 +219,7 @@ if (mcpOAuthResource) {
     {
       resource: mcpOAuthResource,
       requiredScopes: ['mcp:read'],
-      challengeScopes: ['mcp:read', 'mcp:write'],
+      challengeScopes: ['mcp:read', 'mcp:write', 'mcp:propose'],
     }
   );
   const nodeHandler = toNodeHandler({ fetch: protectedHandler });

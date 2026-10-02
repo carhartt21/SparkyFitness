@@ -245,6 +245,7 @@ export type RootStackParamList = {
   QuickMealPhoto: undefined;
   MovementBreak: undefined;
   GuidedMobility: undefined;
+  Coaching: undefined;
   FoodPhotoFlow: NavigatorScreenParams<FoodPhotoFlowParamList>;
   MealAdd:
     | {

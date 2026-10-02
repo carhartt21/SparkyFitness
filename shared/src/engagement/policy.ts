@@ -4,7 +4,7 @@ import {
   localDateTimeToUtc,
 } from "../utils/timezone.ts";
 import type {
-  EngagementReminderKindV2,
+  EngagementReminderKindV3,
   EngagementSettingsV2,
 } from "../schemas/api/Engagement.api.zod.ts";
 export interface OptionalReminderSlot {
@@ -73,7 +73,7 @@ export function selectOptionalReminderSlots<
   return result;
 }
 export interface EngagementSubject {
-  kind: EngagementReminderKindV2;
+  kind: EngagementReminderKindV3;
   id: string;
   time: string;
   resolved: boolean | null;
@@ -90,12 +90,12 @@ export interface EngagementFacts {
   subjects: EngagementSubject[];
 }
 export interface EngagementPlanSlot extends OptionalReminderSlot {
-  kind: EngagementReminderKindV2;
+  kind: EngagementReminderKindV3;
   subjectId: string;
   localDay: string;
 }
 export interface EngagementDiagnostic {
-  kind: EngagementReminderKindV2;
+  kind: EngagementReminderKindV3;
   reason: string;
   next_at: string | null;
 }
@@ -108,7 +108,7 @@ export function deriveEngagementPlan(input: {
   candidates: EngagementPlanSlot[];
   diagnostics: EngagementDiagnostic[];
   unresolvedSubjects: Array<{
-    kind: EngagementReminderKindV2;
+    kind: EngagementReminderKindV3;
     subjectId: string;
   }>;
 } {
@@ -120,11 +120,11 @@ export function deriveEngagementPlan(input: {
   const candidates: EngagementPlanSlot[] = [];
   const diagnostics: EngagementDiagnostic[] = [];
   const unresolvedSubjects: Array<{
-    kind: EngagementReminderKindV2;
+    kind: EngagementReminderKindV3;
     subjectId: string;
   }> = [];
   const add = (
-    kind: EngagementReminderKindV2,
+    kind: EngagementReminderKindV3,
     subjectId: string,
     time: number,
     expires: number,

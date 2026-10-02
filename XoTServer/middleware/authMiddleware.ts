@@ -9,8 +9,25 @@ import {
   setCachedSession,
 } from '../utils/apiKeySessionCache.js';
 import { bridgeBearerAuthHeader } from '../utils/bearerAuthBridge.js';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const authenticate = async (req: any, res: any, next: any) => {
+import type { Request, Response, NextFunction } from 'express';
+import { fromNodeHeaders } from 'better-auth/node';
+type AuthenticationRequest = Pick<
+  Request,
+  | 'headers'
+  | 'cookies'
+  | 'path'
+  | 'user'
+  | 'credentialKind'
+  | 'authenticatedUserId'
+  | 'originalUserId'
+  | 'activeUserId'
+  | 'userId'
+>;
+const authenticate = async (
+  req: AuthenticationRequest,
+  res: Response,
+  next: NextFunction
+) => {
   //log("debug", `authenticate middleware: req.path = ${req.path}, req.headers.cookie = ${req.headers.cookie}`);
   // 1. Better Auth Session & API Key Check (Unified Identity)
   // Tracks the raw API key when this request is API-key-authed, so we can
@@ -41,7 +58,7 @@ const authenticate = async (req: any, res: any, next: any) => {
     }
     if (!session) {
       session = await auth.api.getSession({
-        headers: req.headers,
+        headers: fromNodeHeaders(req.headers),
       });
       if (session && session.user && apiKeyToken) {
         setCachedSession(apiKeyToken, session);
@@ -49,18 +66,20 @@ const authenticate = async (req: any, res: any, next: any) => {
     }
     if (session && session.user) {
       req.authenticatedUserId = session.user.id;
+      req.credentialKind = apiKeyToken ? 'api_key' : 'session';
       req.originalUserId = req.authenticatedUserId;
       req.user = session.user; // Full user object (includes role)
 
       // Asynchronously update last login if it hasn't been updated in the last hour
-      const lastLogin =
-        (session.user as any).lastLoginAt ||
-        (session.user as any).last_login_at;
+      const lastLogin = req.user.lastLoginAt || req.user.last_login_at;
       const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-      if (!lastLogin || new Date(lastLogin) < oneHourAgo) {
+      if (
+        !(typeof lastLogin === 'string' || lastLogin instanceof Date) ||
+        new Date(lastLogin) < oneHourAgo
+      ) {
         const nowStr = new Date().toISOString();
-        (session.user as any).lastLoginAt = nowStr;
-        (session.user as any).last_login_at = nowStr;
+        req.user.lastLoginAt = nowStr;
+        req.user.last_login_at = nowStr;
         userRepository.updateUserLastLogin(session.user.id).catch((err) => {
           log('error', 'Failed to update user last login in middleware:', err);
         });

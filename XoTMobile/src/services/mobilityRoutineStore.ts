@@ -1,3 +1,5 @@
+import { queryClient } from '../hooks/queryClient';
+import { dailyProgressRootQueryKey } from '../hooks/queryKeys';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
 import {
@@ -545,6 +547,9 @@ export function synchronizeMobility(
       state.plans = snapshot.plans;
       state.syncError = state.conflicts.length ? 'conflict' : null;
       await write(identity, state, true);
+      void queryClient.invalidateQueries({
+        queryKey: dailyProgressRootQueryKey,
+      });
     } catch (error) {
       state.syncError = state.conflicts.length ? 'conflict' : 'offline';
       await write(identity, state, true);

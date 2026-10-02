@@ -83,12 +83,9 @@ async function deleteFoodEntriesByTemplateId(
 }
 
 async function createFoodEntriesFromTemplate(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  templateId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  userId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  today: any
+  templateId: string,
+  userId: string,
+  today: string
 ) {
   const client = await getClient(userId); // User-specific operation
   try {
@@ -99,11 +96,13 @@ async function createFoodEntriesFromTemplate(
     );
     const templateQuery = `
             SELECT
-                t.start_date,
-                t.end_date,
-                COALESCE(
+                COALESCE((v.definition->>'start_date')::date,t.start_date) AS start_date,
+                LEAST(COALESCE((v.definition->>'end_date')::date,t.end_date),
+                  (SELECT min(n.effective_from)-1 FROM meal_plan_template_versions n WHERE n.user_id=t.user_id AND n.template_id=t.id AND n.effective_from > $3::date)) AS end_date,
+                COALESCE(v.definition->>'entry_mode',t.entry_mode) AS entry_mode,
+                COALESCE(v.definition->'assignments',
                     (
-                        SELECT json_agg(
+                        SELECT jsonb_agg(
                             json_build_object(
                                 'day_of_week', a.day_of_week,
                                 'meal_type_id', a.meal_type_id,
@@ -118,19 +117,26 @@ async function createFoodEntriesFromTemplate(
                         FROM meal_plan_template_assignments a
                         WHERE a.template_id = t.id
                     ),
-                    '[]'::json
+                    '[]'::jsonb
                 ) as assignments
             FROM meal_plan_templates t
+            LEFT JOIN LATERAL (SELECT definition FROM meal_plan_template_versions v WHERE v.template_id=t.id AND v.user_id=t.user_id AND v.effective_from <= $3::date ORDER BY v.effective_from DESC,v.created_at DESC,v.id DESC LIMIT 1) v ON TRUE
             WHERE t.id = $1 AND t.user_id = $2
         `;
     const templateResult = await client.query(templateQuery, [
       templateId,
       userId,
+      today,
     ]);
     if (templateResult.rows.length === 0) {
       throw new Error('Meal plan template not found or access denied.');
     }
-    const { start_date, end_date, assignments } = templateResult.rows[0];
+    const { start_date, end_date, assignments, entry_mode } =
+      templateResult.rows[0];
+    if (entry_mode === 'prompt') {
+      await client.query('COMMIT');
+      return;
+    }
     if (!assignments || assignments.length === 0) {
       log(
         'info',

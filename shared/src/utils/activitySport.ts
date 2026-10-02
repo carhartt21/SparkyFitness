@@ -34,6 +34,9 @@ export const ACTIVITY_SPORTS = [
   "rowing",
   "fitness_equipment",
   "strength",
+  "soccer",
+  "mobility",
+  "stretching",
   "other",
 ] as const;
 export type ActivitySport = (typeof ACTIVITY_SPORTS)[number];
@@ -85,6 +88,9 @@ const SPORT_TO_PR_GROUP: Record<ActivitySport, PrSportGroup> = {
   rowing: "other",
   fitness_equipment: "other",
   strength: "other",
+  soccer: "other",
+  mobility: "other",
+  stretching: "other",
   other: "other",
 };
 
@@ -97,6 +103,9 @@ const SPORT_LABELS: Record<ActivitySport, string> = {
   rowing: "Rowing",
   fitness_equipment: "Gym Cardio",
   strength: "Strength",
+  soccer: "Soccer",
+  mobility: "Mobility",
+  stretching: "Stretching",
   other: "Other",
 };
 
@@ -172,6 +181,9 @@ const SPORT_TOKENS: ReadonlyArray<readonly [ActivitySport, readonly string[]]> =
         "cyclocross",
       ],
     ],
+    ["soccer", ["soccer", "football", "fussball"]],
+    ["mobility", ["mobility", "mobilitaet"]],
+    ["stretching", ["stretch", "stretching", "dehnen"]],
     ["walking", ["walk", "walks", "walking", "stroll", "rucking", "ruck"]],
     [
       "hiking",
@@ -305,9 +317,7 @@ function extractProviderSport(
       // garmin_fit nests the same shape one level down under `activity`.
       const activity = asRecord(data["activity"]) ?? data;
       const activityType = asRecord(activity["activityType"]);
-      return (
-        asString(activityType?.["typeKey"]) ?? asString(activity["sport"])
-      );
+      return asString(activityType?.["typeKey"]) ?? asString(activity["sport"]);
     }
     case "strava":
       return asString(data["sport_type"]) ?? asString(data["type"]);

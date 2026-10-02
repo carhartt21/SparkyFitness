@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import i18n from '../localization/i18n';
 import { getWellbeingSession } from './wellbeingSessionStore';
-import { engagementReminderKindV2Schema } from '@workspace/shared';
+import { engagementReminderKindV3Schema } from '@workspace/shared';
 import { reconcileTrackingEngagementReminders } from './trackingEngagementReminders';
 import {
   engagementSettingsV2Schema,
@@ -187,8 +187,8 @@ export async function registerRemoteEngagementDevice(
       installation_id: await getInstallationId(),
       expo_push_token: token.data,
       platform: Platform.OS,
-      protocol_version: 2,
-      reminder_kinds: engagementReminderKindV2Schema.options,
+      protocol_version: 3,
+      reminder_kinds: engagementReminderKindV3Schema.options,
       delivery_owner: deliveryOwner,
       language: i18n.language.startsWith('de') ? 'de' : 'en',
     },

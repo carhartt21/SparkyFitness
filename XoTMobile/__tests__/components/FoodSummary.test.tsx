@@ -89,6 +89,48 @@ describe('FoodSummary', () => {
     expect(onAddFood).toHaveBeenCalledWith('sys-b');
   });
 
+  it('hides empty FDDB sections and keeps a zero-calorie import read-only', () => {
+    const fddb: MealType = {
+      ...mealTypes[0],
+      id: 'fddb',
+      name: 'FDDB Import',
+      user_id: 'user1',
+    };
+    const add = jest.fn(),
+      edit = jest.fn(),
+      status = jest.fn();
+    const view = render(
+      <FoodSummary
+        foodEntries={[]}
+        mealTypes={[fddb]}
+        onAddFood={add}
+        onPressMealType={edit}
+      />
+    );
+    expect(view.queryByText('FDDB Import')).toBeNull();
+    view.rerender(
+      <FoodSummary
+        foodEntries={[
+          {
+            ...entry('import', 'fddb', 'FDDB Import'),
+            source: 'fddb',
+            calories: 0,
+            quantity: 1,
+            serving_size: 1,
+          },
+        ]}
+        mealTypes={[fddb]}
+        onAddFood={add}
+        onPressMealType={edit}
+      />
+    );
+    expect(view.getByText('FDDB Import')).toBeTruthy();
+    expect(view.queryByLabelText('Add food to FDDB Import')).toBeNull();
+    fireEvent.press(view.getByText('FDDB Import'));
+    expect(add).not.toHaveBeenCalled();
+    expect(edit).not.toHaveBeenCalled();
+    expect(status).not.toHaveBeenCalled();
+  });
   it('renders custom meal types as their own sections (not merged into Other)', () => {
     const view = render(
       <FoodSummary

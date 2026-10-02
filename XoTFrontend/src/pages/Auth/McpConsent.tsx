@@ -10,6 +10,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { useTranslation } from 'react-i18next';
 import { useMcpAuthorization } from '@/hooks/Auth/useMcpAuthorization';
+import { coachingDomainSchema, type CoachingDomain } from '@workspace/shared';
+import { useCoachingActions } from '@/hooks/Coaching/useCoaching';
 
 export default function McpConsent() {
   const {
@@ -17,7 +19,8 @@ export default function McpConsent() {
     submitMcpConsent,
     readMcpAuthorizationRedirect,
   } = useMcpAuthorization();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const { addCoachingAgent } = useCoachingActions();
   const de = i18n.language.startsWith('de');
   const { user, loading } = useAuth();
   const [clientName, setClientName] = useState('the connected assistant');
@@ -27,6 +30,9 @@ export default function McpConsent() {
   const params = new URLSearchParams(query);
   const clientId = params.get('client_id');
   const scopes = (params.get('scope') ?? '').split(/\s+/).filter(Boolean);
+  const [domains, setDomains] = useState<CoachingDomain[]>([
+    ...coachingDomainSchema.options,
+  ]);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -58,6 +64,12 @@ export default function McpConsent() {
     setPending(true);
     setError(null);
     try {
+      if (accept && clientId && scopes.includes('mcp:propose'))
+        await addCoachingAgent({
+          name: clientName,
+          domains,
+          oauthClientId: clientId,
+        });
       const response = await submitMcpConsent(query, accept);
       const redirectUrl = await readMcpAuthorizationRedirect(
         response,
@@ -105,6 +117,35 @@ export default function McpConsent() {
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2 text-sm">
+            {scopes.includes('mcp:propose') && (
+              <fieldset className="space-y-3">
+                <legend>
+                  {t('coaching.connectionHint', {
+                    defaultValue:
+                      'Each connection reads only the selected wellness areas and submits proposals. Review and activation stay in your app account.',
+                  })}
+                </legend>
+                {coachingDomainSchema.options.map((domain) => (
+                  <label
+                    key={domain}
+                    className="flex min-h-11 items-center gap-2"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={domains.includes(domain)}
+                      onChange={(event) =>
+                        setDomains(
+                          event.target.checked
+                            ? [...domains, domain]
+                            : domains.filter((item) => item !== domain)
+                        )
+                      }
+                    />
+                    {t(`coaching.domains.${domain}`, { defaultValue: domain })}
+                  </label>
+                ))}
+              </fieldset>
+            )}
             {scopes.includes('mcp:read') && (
               <p>
                 {de
@@ -126,7 +167,12 @@ export default function McpConsent() {
             </p>
           )}
           <div className="flex gap-3">
-            <Button disabled={pending} onClick={() => void decide(true)}>
+            <Button
+              disabled={
+                pending || (scopes.includes('mcp:propose') && !domains.length)
+              }
+              onClick={() => void decide(true)}
+            >
               {de ? 'Verbinden' : 'Connect'}
             </Button>
             <Button

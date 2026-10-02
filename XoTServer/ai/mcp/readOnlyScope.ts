@@ -105,6 +105,9 @@ export function checkReadOnlyScope(
   // endpoints directly to the repository. It ignores `date` and substitutes
   // 1970/9999 for a missing endpoint, so the generic day default would claim
   // a bounded request while executing an all-history query.
+  if (toolName === 'xot_get_activity_planning')
+    return checkRange(args.start_date, args.end_date, MAX_RANGE_DAYS);
+
   if (toolName === 'sparky_get_exercise_progress') {
     if (args.date !== undefined) {
       return toolError(

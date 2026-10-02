@@ -297,14 +297,24 @@ export function buildDailyTrackingTools(userId: string, tz: string) {
 
     sparky_get_daily_progress: tool({
       description:
-        'Read Daily Progress for one day: the share of explicit, applicable daily tasks the user completed (equal weights), with every item, its state and reason, and per-domain coverage. It is not a health or wellness score; percent is null when no task applies. Read-only.',
-      inputSchema: dayInput,
+        'Read Daily Progress for one day: the share of explicit, applicable daily tasks the user completed (equal weights), with every item, its state and reason, and per-domain coverage. It is not a health or wellness score; percent is null when no task applies. Set include_activity=true for version 2 scheduled activity tasks. Read-only.',
+      inputSchema: dayInput.extend({
+        include_activity: z.boolean().optional(),
+      }),
       execute: async (rawArgs) => {
-        const args = parseArgs(dayInput, rawArgs, tz);
+        const args = parseArgs(
+          dayInput.extend({ include_activity: z.boolean().optional() }),
+          rawArgs,
+          tz
+        );
         if (!args.ok) return args.error;
         const date = args.value.date ?? today();
         return run('sparky_get_daily_progress', async () => ({
-          ...(await getDailyProgress(userId, date)),
+          ...(await getDailyProgress(
+            userId,
+            date,
+            args.value.include_activity ?? false
+          )),
           note: 'Excluded items were explicitly skipped and leave the denominator. Items reflect records on the server; unsynced phone actions are absent.',
         }));
       },
@@ -312,10 +322,16 @@ export function buildDailyTrackingTools(userId: string, tz: string) {
 
     sparky_get_daily_status_context: tool({
       description:
-        'Read a compact status for one day: check-in state, active injury/illness/vacation periods, whether optional reminders are paused, and the Daily Progress totals. Read-only.',
-      inputSchema: dayInput,
+        'Read a compact status for one day: check-in state, active injury/illness/vacation periods, whether optional reminders are paused, and the Daily Progress totals. Set include_activity=true to include scheduled activities. Read-only.',
+      inputSchema: dayInput.extend({
+        include_activity: z.boolean().optional(),
+      }),
       execute: async (rawArgs) => {
-        const args = parseArgs(dayInput, rawArgs, tz);
+        const args = parseArgs(
+          dayInput.extend({ include_activity: z.boolean().optional() }),
+          rawArgs,
+          tz
+        );
         if (!args.ok) return args.error;
         const date = args.value.date ?? today();
         return run('sparky_get_daily_status_context', async () => {
@@ -325,7 +341,11 @@ export function buildDailyTrackingTools(userId: string, tz: string) {
               startDate: date,
               endDate: date,
             }),
-            getDailyProgress(userId, date),
+            getDailyProgress(
+              userId,
+              date,
+              args.value.include_activity ?? false
+            ),
           ]);
           return {
             date,

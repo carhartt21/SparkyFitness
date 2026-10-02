@@ -118,6 +118,7 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | `workout_preset_exercise_sets`      | Reps/sets configured in presets                                                                                                                    |
 | `workout_plan_templates`            | Templates for weekly and sequential workout schedules                                                                                              |
 | `workout_plan_template_versions`    | Dated snapshots of workout schedules for historical plan reviews                                                                                   |
+| `activity_plan_resolutions`         | Owner-only dated workout decisions, revision and explicit diary evidence                                                                           |
 | `workout_plan_template_assignments` | Scheduled workout templates (weekday or ordered sequence)                                                                                          |
 | `workout_plan_assignment_sets`      | Sets within assigned workout plans                                                                                                                 |
 
@@ -456,3 +457,26 @@ WHERE tablename = 'table_name';
 ### Micronutrient metadata
 
 `user_custom_nutrients.catalog_id` is nullable and unique per user when bound. `archived` retains name/unit reservations for diary history. `food_variants.provider_dataset_sha256` records the source dataset for conservative BLS repair. No micronutrient-specific numeric columns or new user tables are added. See [security tiers](./database-security-tiers.md#micronutrient-identity-and-native-snapshots) for native snapshot permissions and the orphan-key guard.
+### Owner-reviewed agent recommendations
+
+| Table                         | Purpose                                                                     | Permission |
+| ----------------------------- | --------------------------------------------------------------------------- | ---------- |
+| `coaching_settings`           | Account-local schedule, selected domains, reconsidered topics               | Owner only |
+| `coaching_agents`             | Expiring/revocable owner-agent or OAuth-client binding                      | Owner only |
+| `coaching_runs`               | Coalesced review slots, bounded leases and failure metadata                 | Owner only |
+| `coaching_snapshots`          | Immutable frozen wellness projection, seven-day retention                   | Owner only |
+| `coaching_proposals`          | Impact-sorted pending/reviewed proposals and retained cited evidence        | Owner only |
+| `coaching_actions`            | Accepted commitments, canonical activation references and evidence outcomes | Owner only |
+| `coaching_events`             | Owner decisions, feedback and outcome audit trail                           | Owner only |
+| `coaching_operations`         | Request fingerprints and idempotent results                                 | Owner only |
+| `coaching_previews`           | Five-minute revision/action/reference fingerprint                           | Owner only |
+| `meal_plan_template_versions` | Immutable forward-effective meal definitions                                | Owner only |
+| `meal_plan_log_receipts`      | Exactly-once explicit consumption receipts                                  | Owner only |
+
+Schemas are exported from `shared/src/schemas/database/{Coaching,MealPlanning}.zod.ts`. `meal_plan_templates.entry_mode` defaults to legacy `prefill`; reviewed plans use `prompt`. `meal_plans` has nullable version/assignment IDs, state and an item snapshot for prompt occurrences. A plan never establishes intake. Historical diary entries and immutable versions survive future revisions. Nutrition is revalidated from the library on explicit consumption.
+
+All new tables have Tier 1 owner RLS and app-session-only review routes. Proposal credentials are bound to one owner/agent, selected domains and expiry. Raw snapshots expire after seven days and run/agent-operation metadata after 90 days; retained recommendation evidence/history is deleted by the owner. Engagement v3 adds coaching kinds and an index limiting digest attempts to one per owner/local day. See [the workflow](../developer/mcp/recommendations.md).
+
+Workout version ownership references Better Auth's public `user` table. Migration `20261001120000_workout_plan_version_owner_identity.sql` corrects the earlier reference to retired `auth.users` without changing the version contract, RLS, or retained diary records. Retention cleanup continues when coaching processing is disabled.
+
+Migration `20261002120000_activity_coaching_prescriptions.sql` retains activity type, duration/distance targets, local time and optional-session metadata in new immutable workout prescriptions. Earlier versions remain unchanged. Coach outcomes and Daily Progress use the same saved-prescription completion rules; a started set or a scheduled prefill does not establish completion. Missing historical prescriptions remain unknown.

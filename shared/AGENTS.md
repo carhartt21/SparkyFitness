@@ -4,6 +4,16 @@ _Last updated: 2026-10-01_
 
 `@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
 
+## Weekly activity planning
+
+`activity_plan_resolutions` is owner-only. `/api/v2/activity-planning` projects
+immutable Workout Plan versions and existing dated Mobility plans without writes.
+`include_activity=true` opts Daily Progress into version 2; preserve the default
+version 1 contract. Workout links/skip/undo never mutate Diary or calories. Cache
+activity queries under the Daily Progress family. See
+`docs/implementation/weekly-activity-goals-2026-10-01.md` and
+`docs/src/features/weekly-activities.md` for completion and history rules.
+
 ## Scope
 
 - This package defines contracts and shared logic, not an app.
@@ -42,3 +52,6 @@ _Last updated: 2026-10-01_
 - Never export stale or unfinished types; if a consumer is drafting code and needs a type not yet here, add it.
 
 The nutrient source inventory lives in `src/nutrients/blsComponentManifest.ts` (138 pinned headers, explicit supported/blocked/out-of-scope classifications) and `nativeMicronutrientMappings.ts` (27 categories). `catalogUnitConversion.ts` permits vitamin-D IU conversion only with explicit catalog identity. `nutrientCoverage.ts` separates nullable recorded totals from known/eligible counts; unknown days never become zero in averages. Database mirrors include retained catalog identities and BLS variant dataset provenance.
+## Reviewed MCP recommendations
+
+- `src/schemas/api/{Coaching,MealPlanning}.api.zod.ts`, database `{Coaching,MealPlanning}.zod.ts`, `src/coaching/` and `src/fddb/` define coaching trust/action contracts, scheduling, confirmed outcomes, shared client/editor behavior and FDDB presentation. Engagement v3 adds coaching kinds; v1/v2 schemas remain strict. Validate all consuming packages.

@@ -9,7 +9,9 @@ import {
 } from 'react-native';
 import Button from './ui/Button';
 import { useNavigation } from '@react-navigation/native';
-import ReanimatedSwipeable from 'react-native-gesture-handler/ReanimatedSwipeable';
+import ReanimatedSwipeable, {
+  type SwipeableMethods,
+} from 'react-native-gesture-handler/ReanimatedSwipeable';
 import Animated from 'react-native-reanimated';
 import { DeleteRowAction } from './SwipeableDeleteRow';
 import { useRowCollapse } from '../hooks/useRowCollapse';
@@ -35,6 +37,7 @@ import { useCSSVariable } from 'uniwind';
 export type { CapturePhotoRef } from './NutritionCaptureThumbnail';
 
 interface SwipeableFoodRowProps {
+  readOnly?: boolean;
   entry: FoodEntry;
   nutrition: EntryNutrition;
   capturePhoto?: CapturePhotoRef;
@@ -48,6 +51,7 @@ interface SwipeableFoodRowProps {
 
 const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   entry,
+  readOnly: requestedReadOnly = false,
   nutrition,
   capturePhoto,
   onAdjustServing,
@@ -57,10 +61,11 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   onDragStart,
   onDragEnd,
 }) => {
+  const readOnly = requestedReadOnly || entry.source === 'fddb';
   const { t } = useTranslation();
   const { preferences } = usePreferences();
   const navigation = useNavigation();
-  const swipeableRef = useRef<any>(null);
+  const swipeableRef = useRef<SwipeableMethods>(null);
   const invalidateCacheRef = useRef<() => void>(() => {});
   const { collapse, handleLayout, animatedStyle } = useRowCollapse(() =>
     invalidateCacheRef.current()
@@ -136,6 +141,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   );
 
   const canQuickAdjust =
+    !readOnly &&
     !isPending &&
     !isMealComponent &&
     !!onAdjustServing &&
@@ -157,6 +163,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
     : formatTimeLabel(entry.entry_time, preferences?.time_format);
 
   const handlePress = () => {
+    if (readOnly) return;
     if (selectionMode) {
       onSelect?.(entry);
       return;
@@ -172,6 +179,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   };
 
   const handleLongPress = () => {
+    if (readOnly) return;
     if (onSelect) {
       onSelect(entry);
       return;
@@ -205,9 +213,11 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
       <ReanimatedSwipeable
         ref={swipeableRef}
         renderRightActions={
-          isPending || selectionMode ? undefined : renderRightActions
+          readOnly || isPending || selectionMode
+            ? undefined
+            : renderRightActions
         }
-        enabled={!isPending && !selectionMode}
+        enabled={!readOnly && !isPending && !selectionMode}
         overshootRight={false}
         rightThreshold={40}
       >
@@ -218,7 +228,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
           testID="food-row-surface"
           className="min-h-11 py-2.5 flex-row items-center bg-transparent"
         >
-          {selectionMode && onSelect && (
+          {!readOnly && selectionMode && onSelect && (
             <TouchableOpacity
               accessibilityRole="checkbox"
               accessibilityState={{ checked: selected }}
@@ -258,7 +268,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
             accessibilityRole="button"
             accessibilityLabel={`${name}, ${entry.quantity} ${entry.unit}`}
             accessibilityState={
-              selectionMode && onSelect ? { selected } : undefined
+              !readOnly && selectionMode && onSelect ? { selected } : undefined
             }
           >
             <View className="gap-0.5">
@@ -303,7 +313,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               {t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}
             </Text>
           )}
-          {selectionMode && onDragEnd && onSelect && (
+          {!readOnly && selectionMode && onDragEnd && onSelect && (
             <View
               {...dragResponder.panHandlers}
               accessible

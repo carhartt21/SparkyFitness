@@ -136,6 +136,8 @@ export function progressDomainLabel(
       return t('progress.domain.goal', { defaultValue: 'Daily objectives' });
     case 'workout':
       return t('progress.domain.workout', { defaultValue: 'Planned training' });
+    case 'activity':
+      return t('activityPlanning.activity', { defaultValue: 'Activity' });
     case 'supplement':
       return t('progress.domain.supplement', { defaultValue: 'Supplements' });
     default:
