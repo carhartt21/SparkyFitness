@@ -7,10 +7,11 @@ import {
 } from 'react-native';
 import type { KeyboardAwareScrollViewRef } from 'react-native-keyboard-controller';
 
-/** Keeps a focused note above the keyboard and any floating save bar. */
+/** Keeps a note or explicitly focused field above the keyboard/save bar. */
 export function useKeepNoteVisible(bottomReserve = 12) {
   const scrollRef = useRef<KeyboardAwareScrollViewRef>(null);
   const noteRef = useRef<View>(null);
+  const focusedField = useRef<Pick<View, 'measureInWindow'> | null>(null);
   const obstructionRef = useRef<View>(null);
   const focused = useRef(false);
   const scrollOffset = useRef(0);
@@ -43,15 +44,18 @@ export function useKeepNoteVisible(bottomReserve = 12) {
       const top = keyboardTop.current;
       if (!isCurrent() || top === null) return;
       const moveAbove = (boundary: number) => {
-        noteRef.current?.measureInWindow((_x, y, _width, height) => {
-          if (!isCurrent()) return;
-          const hiddenBy = y + height - boundary;
-          if (hiddenBy <= 0) return;
-          scrollRef.current?.scrollTo({
-            y: Math.max(0, scrollOffset.current + hiddenBy + 12),
-            animated: false,
-          });
-        });
+        (focusedField.current ?? noteRef.current)?.measureInWindow(
+          (_x, y, _width, height) => {
+            if (!isCurrent()) return;
+            // Reserve one standard spacing step, including native border/rounding.
+            const hiddenBy = y + height + 16 - boundary;
+            if (hiddenBy <= 0) return;
+            scrollRef.current?.scrollTo({
+              y: Math.max(0, scrollOffset.current + hiddenBy),
+              animated: false,
+            });
+          }
+        );
       };
       // Modal windows and keyboard prediction bars can use different screen
       // offsets. Measure a floating footer in the same window as the note.
@@ -87,6 +91,14 @@ export function useKeepNoteVisible(bottomReserve = 12) {
     };
   }, [ensureVisible, cancelCorrection]);
 
+  const focusField = (field: Pick<View, 'measureInWindow'> | null) => {
+    focusedField.current = field;
+    focused.current = true;
+    manualScroll.current = false;
+    keyboardTop.current = Keyboard.metrics()?.screenY ?? keyboardTop.current;
+    ensureVisible();
+  };
+
   return {
     scrollRef,
     noteRef,
@@ -99,12 +111,8 @@ export function useKeepNoteVisible(bottomReserve = 12) {
       manualScroll.current = true;
       cancelCorrection();
     },
-    onFocus: () => {
-      focused.current = true;
-      manualScroll.current = false;
-      keyboardTop.current = Keyboard.metrics()?.screenY ?? keyboardTop.current;
-      ensureVisible();
-    },
+    onFocus: () => focusField(noteRef.current),
+    onFieldFocus: focusField,
     // A multiline input can grow after its first focus. Re-check after its
     // layout updates so the lower lines do not slide under the keyboard.
     onNoteLayout: ensureVisible,
@@ -117,6 +125,7 @@ export function useKeepNoteVisible(bottomReserve = 12) {
     },
     onBlur: () => {
       focused.current = false;
+      focusedField.current = null;
       cancelCorrection();
     },
   };

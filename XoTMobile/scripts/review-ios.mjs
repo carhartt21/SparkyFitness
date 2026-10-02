@@ -122,7 +122,10 @@ const cases = filteredCases.map((item) => ({
   ...(process.argv.includes('--notification-tour')
     ? { scenario: 'notifications' }
     : {}),
-  ...(process.argv.includes('--v38-review') ? { scenario: 'v38-review' } : {}),
+  ...(process.argv.includes('--v38-review') ||
+  process.argv.includes('--ui-refinement-review')
+    ? { scenario: 'v38-review' }
+    : {}),
   nativeTabs: process.argv.includes('--native-tabs'),
 }));
 if (!cases.length) throw new Error('No review case matched --case');
@@ -406,23 +409,25 @@ try {
       renderSmokePassed: passed,
       nativeInteractionPassed: null,
       interactionScenario: process.argv.includes('--interactions')
-        ? process.argv.includes('--v38-review')
-          ? 'v38-corrections'
-          : process.argv.includes('--meal-status-review')
-            ? 'meal-goal-status'
-            : process.argv.includes('--launch-icon-actions')
-              ? 'launch-icon-actions'
-              : process.argv.includes('--notification-tour')
-                ? 'notification-tour'
-                : process.argv.includes('--tracking-tour')
-                  ? 'tracking-tour'
-                  : process.argv.includes('--tour')
-                    ? 'screen-tour'
-                    : process.argv.includes('--dashboard-only')
-                      ? 'dashboard-alignment'
-                      : process.argv.includes('--food-details-review')
-                        ? 'food-details-layout'
-                        : 'food-entry-flow'
+        ? process.argv.includes('--ui-refinement-review')
+          ? 'ui-refinements'
+          : process.argv.includes('--v38-review')
+            ? 'v38-corrections'
+            : process.argv.includes('--meal-status-review')
+              ? 'meal-goal-status'
+              : process.argv.includes('--launch-icon-actions')
+                ? 'launch-icon-actions'
+                : process.argv.includes('--notification-tour')
+                  ? 'notification-tour'
+                  : process.argv.includes('--tracking-tour')
+                    ? 'tracking-tour'
+                    : process.argv.includes('--tour')
+                      ? 'screen-tour'
+                      : process.argv.includes('--dashboard-only')
+                        ? 'dashboard-alignment'
+                        : process.argv.includes('--food-details-review')
+                          ? 'food-details-layout'
+                          : 'food-entry-flow'
         : null,
       logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
     });
@@ -443,7 +448,8 @@ try {
         // Dynamic Type coverage for the daily tracking screens.
         ...(process.argv.includes('--food-details-review') ||
         process.argv.includes('--meal-status-review') ||
-        process.argv.includes('--v38-review')
+        process.argv.includes('--v38-review') ||
+        process.argv.includes('--ui-refinement-review')
           ? ['390-de-light', '430-de-large']
           : []),
         ...(process.argv.includes('--tracking-tour') ||
@@ -458,7 +464,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

@@ -204,8 +204,11 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
         </View>
 
         {/* Default Online Search Provider */}
-        <View className="bg-surface rounded-xl p-3 mb-4 shadow-sm">
-          <View className="flex-row items-center justify-between">
+        <View
+          testID="food-default-provider"
+          className="bg-surface rounded-xl p-3 mb-4 shadow-sm"
+        >
+          <View className="gap-3">
             <Text className="text-base font-semibold text-text-primary">
               {t('foodSettings.foodSource.title', {
                 defaultValue: 'Default Food Provider',
@@ -221,7 +224,7 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
               placeholder={t('foodSettings.foodSource.firstAvailable', {
                 defaultValue: 'First available',
               })}
-              containerStyle={{ flex: 1, maxWidth: 200, marginLeft: 16 }}
+              containerStyle={{ alignSelf: 'stretch' }}
             />
           </View>
           <Text className="text-text-secondary text-sm mt-4">
@@ -257,7 +260,7 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
             })}
           </Text>
 
-          <View className="flex-row items-center justify-between">
+          <View className="gap-2">
             <Text className="text-sm text-text-primary">
               {t('foodSettings.barcode.provider', { defaultValue: 'Provider' })}
             </Text>
@@ -271,7 +274,7 @@ const FoodSettingsScreen: React.FC<FoodSettingsScreenProps> = ({
               placeholder={t('foodSettings.barcode.default', {
                 defaultValue: 'Default',
               })}
-              containerStyle={{ flex: 1, maxWidth: 200, marginLeft: 16 }}
+              containerStyle={{ alignSelf: 'stretch' }}
             />
           </View>
 

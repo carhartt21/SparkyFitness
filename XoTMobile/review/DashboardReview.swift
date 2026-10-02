@@ -42,6 +42,122 @@ final class DashboardReview: XCTestCase {
     capture("meal-empty-reopened", app)
   }
 
+  /// Focused dashboard/provider/keyboard review; only synthetic records.
+  func testUIRefinements() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    XCTAssertTrue(app.buttons["dashboard-edit-goal"].exists)
+    capture("refinement-dashboard", app)
+    let nextTask = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "dashboard-next-")).firstMatch
+    for _ in 0..<5 { if nextTask.isHittable { break }; dashboard.swipeUp() }
+    XCTAssertTrue(nextTask.isHittable)
+    capture("refinement-progress", app)
+    nextTask.tap()
+    capture("refinement-task-destination", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    for _ in 0..<6 { if app.buttons["open-settings"].isHittable { break }; dashboard.swipeDown() }
+    app.buttons["open-settings"].tap()
+    let foodSettings = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Essen")).firstMatch
+    for _ in 0..<6 { if foodSettings.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(foodSettings.isHittable); foodSettings.tap()
+    let provider = app.descendants(matching: .any)["food-default-provider"]
+    for _ in 0..<5 { if provider.exists && provider.frame.maxY < app.frame.maxY - 50 { break }; app.swipeUp() }
+    XCTAssertTrue(provider.exists)
+    capture("refinement-food-settings", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    app.buttons["Zurück"].firstMatch.tap()
+    try reviewFoodKeyboard(app)
+  }
+
+  func testFoodKeyboard() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    try reviewFoodKeyboard(app)
+  }
+
+  private func reviewFoodKeyboard(_ app: XCUIApplication) throws {
+    let dashboard = app.otherElements["dashboard-scroll"]
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<6 { if food.isHittable { break }; dashboard.swipeUp() }
+    XCTAssertTrue(food.isHittable); food.tap()
+    let search = app.textFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 15))
+    search.tap(); search.typeText("Review yogurt")
+    let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt with berries and toasted pumpkin seeds")).firstMatch
+    XCTAssertTrue(result.waitForExistence(timeout: 20)); result.tap()
+    let wheel = app.descendants(matching: .any)["food-entry-amount-wheel"]
+    XCTAssertTrue(wheel.waitForExistence(timeout: 15))
+    for _ in 0..<6 { if wheel.isHittable { break }; app.swipeUp() }
+    capture("refinement-food-details", app)
+    wheel.tap()
+    let amount = app.textFields["food-entry-amount-input"]
+    XCTAssertTrue(amount.waitForExistence(timeout: 10))
+    XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+    try assertKeyboardBarAttached(app)
+    let amountBar = app.descendants(matching: .any)["food-entry-keyboard-actions"]
+    let amountVisible = NSPredicate { _, _ in amount.frame.maxY <= amountBar.frame.minY - 12 }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: amountVisible, object: app)], timeout: 10), .completed)
+    capture("refinement-amount-keyboard", app)
+    // The native gesture container owns testID; its accessible child is the button.
+    // Exercise the current visible center of that same native action.
+    app.descendants(matching: .any)["keyboard-action-done"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let keyboardGone = NSPredicate { _, _ in !app.keyboards.firstMatch.exists }
+    let dismissed = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: keyboardGone, object: app)], timeout: 10)
+    capture("refinement-keyboard-dismissed", app)
+    XCTAssertEqual(dismissed, .completed)
+    let options = app.buttons["food-entry-more-options"]
+    for _ in 0..<8 { if options.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(options.isHittable); options.tap()
+    let note = app.textViews.firstMatch
+    for _ in 0..<10 { if note.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(note.isHittable); note.tap()
+    let noteText = String(repeating: "Synthetic review note. ", count: 12) + "END-REFINEMENT"
+    note.typeText(noteText)
+    try assertKeyboardBarAttached(app)
+    let add = app.descendants(matching: .any)["keyboard-action-add"]
+    let bar = app.descendants(matching: .any)["food-entry-keyboard-actions"]
+    let visibility = XCTAttachment(string: "Note bottom: \(note.frame.maxY); action bar top: \(bar.frame.minY)")
+    visibility.name = "refinement-note-measurement"
+    visibility.lifetime = .keepAlways
+    self.add(visibility)
+    let noteVisible = NSPredicate { _, _ in note.frame.maxY <= bar.frame.minY - 12 }
+    let visible = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: noteVisible, object: app)], timeout: 10)
+    capture("refinement-note-keyboard", app)
+    XCTAssertEqual(visible, .completed)
+    XCTAssertTrue(add.isHittable)
+    add.tap()
+    try waitForMutation("POST", quantity: 100, note: noteText)
+    capture("refinement-food-saved", app)
+  }
+
+  private func assertKeyboardBarAttached(_ app: XCUIApplication) throws {
+    let bar = app.descendants(matching: .any)["food-entry-keyboard-actions"]
+    let keyboard = app.keyboards.firstMatch
+    capture("refinement-keyboard-before-settling", app)
+    XCTAssertTrue(bar.waitForExistence(timeout: 10))
+    // XCUIKeyboard.frame excludes the panel's top inset and bottom safe area.
+    // Compare with the OS keyboard event emitted by the isolated review app.
+    let metricEvent = try events().last(where: { $0["method"] as? String == "KEYBOARD" })
+    let metrics = metricEvent?["metrics"] as? [String: Any]
+    let keyboardTop = try XCTUnwrap(metrics?["screenY"] as? Double)
+    XCTAssertGreaterThan(keyboard.frame.height, 0)
+    let attached = NSPredicate { _, _ in abs(bar.frame.maxY - keyboardTop) <= 2 }
+    let result = XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: attached, object: app)], timeout: 10)
+    capture("refinement-keyboard-geometry", app)
+    let doneFrame = app.descendants(matching: .any)["keyboard-action-done"].frame
+    let measurement = XCTAttachment(string: "Action bar bottom: \(bar.frame.maxY); OS keyboard panel top: \(keyboardTop); key-region top: \(keyboard.frame.minY); Done frame: \(doneFrame)")
+    measurement.name = "refinement-keyboard-measurement"
+    measurement.lifetime = .keepAlways
+    add(measurement)
+    XCTAssertEqual(result, .completed, "Action bar bottom \(bar.frame.maxY), OS keyboard panel top \(keyboardTop)")
+    XCTAssertFalse(app.buttons["Done"].exists)
+  }
+
   /// Focused v38 review: production controls with isolated synthetic transport.
   func testV38Corrections() throws {
     continueAfterFailure = false

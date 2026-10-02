@@ -857,6 +857,18 @@ describe('FoodEntryAddScreen', () => {
     expect(screen.queryByTestId('food-entry-quick-add')).toBeNull();
   });
 
+  it('provides the action bar when mounted with a keyboard already open', () => {
+    const visibility = jest.spyOn(Keyboard, 'isVisible').mockReturnValue(true);
+    try {
+      const screen = renderScreen({ item: baseLocalItem, date: '2026-04-23' });
+      expect(screen.getByTestId('keyboard-action-add')).toBeTruthy();
+      fireEvent.press(screen.getByTestId('keyboard-action-add'));
+      expect(mockAddEntry).toHaveBeenCalledTimes(1);
+    } finally {
+      visibility.mockRestore();
+    }
+  });
+
   it('keeps an Add Food action reachable above the keyboard', () => {
     const showKeyboard: ((event: any) => void)[] = [];
     const hideKeyboard: (() => void)[] = [];
@@ -875,6 +887,12 @@ describe('FoodEntryAddScreen', () => {
         showKeyboard.forEach((handler) =>
           handler({ endCoordinates: { screenY: 500 } })
         )
+      );
+      fireEvent(screen.getByTestId('food-entry-keyboard-actions'), 'layout', {
+        nativeEvent: { layout: { width: 390, height: 160, x: 0, y: 0 } },
+      });
+      expect(screen.getByTestId('food-entry-scroll').props.bottomOffset).toBe(
+        176
       );
       const addActions = screen.getAllByText(ADD_LABEL);
       expect(addActions).toHaveLength(2);

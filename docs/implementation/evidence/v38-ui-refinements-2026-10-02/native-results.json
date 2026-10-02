@@ -1,0 +1,333 @@
+{
+  "baseRevision": "b6a807e6829f617165b8bc10666045ffe6966127",
+  "fixture": "v38-review / synthetic in-memory transport",
+  "captures": [
+    {
+      "case": "390-de-dark",
+      "surface": "food-saved",
+      "file": "after-390-de-dark-food-saved.png",
+      "sha256": "f1adda05d9c17bf9df331b886ed983c5558625a5e5ce8db105ed14009d94bb1c",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-dark",
+      "surface": "note-keyboard",
+      "file": "after-390-de-dark-note-keyboard.png",
+      "sha256": "6538feda62412b5b37ea0e77fe7980abe17522a5c3949c61adb37fb68489a15d",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-dark",
+      "surface": "amount-keyboard",
+      "file": "after-390-de-dark-amount-keyboard.png",
+      "sha256": "ed4298aad9ac78fe575149ada01fd5b501a30a889bb9ff28c16d62c825c59474",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-dark",
+      "surface": "food-details",
+      "file": "after-390-de-dark-food-details.png",
+      "sha256": "b6283b624280f06dbcd9f3142fafe01ec1eb7ae2031d4a88bb294a1937413dc8",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-dark",
+      "surface": "food-settings",
+      "file": "after-390-de-dark-food-settings.png",
+      "sha256": "9cd0f91bbaab89c5b41f84f918c3368502ae576a37142ebebadb2d483182cb93",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "390-de-dark",
+      "surface": "progress",
+      "file": "after-390-de-dark-progress.png",
+      "sha256": "4881763503d10e0258e9d4aeaf8773bc7b1e5236968b94d43db62c8c8ba37bfb",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "390-de-dark",
+      "surface": "dashboard",
+      "file": "after-390-de-dark-dashboard.png",
+      "sha256": "4881763503d10e0258e9d4aeaf8773bc7b1e5236968b94d43db62c8c8ba37bfb",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "food-saved",
+      "file": "after-390-de-light-food-saved.png",
+      "sha256": "903e12de677df5c024f65d6bf95490714c637125f353677c65c24966874564b3",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "note-keyboard",
+      "file": "after-390-de-light-note-keyboard.png",
+      "sha256": "b47332b2559f83d2366ac097925124eb443af0af6e1bc7e6f1bc1feaafeed866",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "amount-keyboard",
+      "file": "after-390-de-light-amount-keyboard.png",
+      "sha256": "4eeeda0434b29b19c20af20e40e58cf99a534395332062cdf73aa20be8d871a0",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "food-details",
+      "file": "after-390-de-light-food-details.png",
+      "sha256": "f8dd91fb5c35ef730fea0d7a04262261d7c4d0e35ea58f54023fb0a9f33234dd",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "food-settings",
+      "file": "after-390-de-light-food-settings.png",
+      "sha256": "deadd46b879c5a234de71c9f4d7a04daeac6dbffaa8e87f7e7a9566512cc3b63",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "progress",
+      "file": "after-390-de-light-progress.png",
+      "sha256": "685620b0b6bd9a3fafa5f8f6b15eb4045887a79bc84b49fe3029c036a33afac3",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "390-de-light",
+      "surface": "dashboard",
+      "file": "after-390-de-light-dashboard.png",
+      "sha256": "685620b0b6bd9a3fafa5f8f6b15eb4045887a79bc84b49fe3029c036a33afac3",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "food-saved",
+      "file": "after-430-de-large-food-saved.png",
+      "sha256": "8557a87ebfb48a83dc954b3880acb9e482b1e27f226cc7aaebde4ba7c207eaa4",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "note-keyboard",
+      "file": "after-430-de-large-note-keyboard.png",
+      "sha256": "4c36ee83261c55f1ae8989894c1b642c1df27eb3bce4781734d23494303b7cc3",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "amount-keyboard",
+      "file": "after-430-de-large-amount-keyboard.png",
+      "sha256": "df9b34ba0cac1b0ba1b0d640f709edc7c2efaea5593627f80db9504794460391",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "food-details",
+      "file": "after-430-de-large-food-details.png",
+      "sha256": "106aea02a220131c8d499e6cc4ae2c8c3cf2f3d2d154507fbb167c9164ec58ee",
+      "run": "final-native-gesture-keyboard"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "food-settings",
+      "file": "after-430-de-large-food-settings.png",
+      "sha256": "1190dd5bd3754985322ad7f19ec3bf753393e016baf809b4f6b28566da22b7cf",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "progress",
+      "file": "after-430-de-large-progress.png",
+      "sha256": "ec6a2a5726af80624f9de613359ca06a7561ab93dcfd166acc372c7905c08225",
+      "run": "initial-layout-matrix"
+    },
+    {
+      "case": "430-de-large",
+      "surface": "dashboard",
+      "file": "after-430-de-large-dashboard.png",
+      "sha256": "bf0c39c7b95953416e9cb60cbade1f2b5d90e60acc3a437013b0e8d31ffdfd8e",
+      "run": "initial-layout-matrix"
+    }
+  ],
+  "keyboardMeasurements": [
+    {
+      "case": "390-de-dark",
+      "measurement": "Action bar bottom: 509.0; OS keyboard panel top: 509.0; key-region top: 553.0; Done frame: (12.33333334326744, 456.6666463315487, 91.0, 44.0)"
+    },
+    {
+      "case": "390-de-dark",
+      "measurement": "Action bar bottom: 536.0; OS keyboard panel top: 536.0; key-region top: 553.0; Done frame: (12.33333334326744, 483.6666463315487, 91.0, 44.0)"
+    },
+    {
+      "case": "390-de-light",
+      "measurement": "Action bar bottom: 509.0; OS keyboard panel top: 509.0; key-region top: 553.0; Done frame: (12.33333334326744, 456.6666463315487, 91.0, 44.0)"
+    },
+    {
+      "case": "390-de-light",
+      "measurement": "Action bar bottom: 536.0; OS keyboard panel top: 536.0; key-region top: 553.0; Done frame: (12.33333334326744, 483.6666463315487, 91.0, 44.0)"
+    },
+    {
+      "case": "430-de-large",
+      "measurement": "Action bar bottom: 587.0; OS keyboard panel top: 587.0; key-region top: 631.0; Done frame: (12.33333334326744, 436.6666463315487, 405.33331298828125, 66.6666259765625)"
+    },
+    {
+      "case": "430-de-large",
+      "measurement": "Action bar bottom: 614.0; OS keyboard panel top: 614.0; key-region top: 631.0; Done frame: (12.33333334326744, 463.6666463315487, 405.33331298828125, 66.6666259765625)"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.",
+  "layoutResults": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "layoutNoteVisibilityGate": "Superseded: it compared the note with the lower Add button, not the whole bar.",
+  "keyboardResults": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "ui-refinements",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "keyboardScenario": "testFoodKeyboard; --ui-refinement-review --food-keyboard-only",
+  "initialSourceSha256": {
+    "XoTMobile/src/components/CalorieRingCard.tsx": "5d0fcc2e955e273b8554a5ac0ebabeb6677f73d2d4b02746d43590d6a4ac9374",
+    "XoTMobile/src/components/DailyProgressCard.tsx": "8e75667d86097118f1aa83679e7eb743b7a2dda6d59f13d531c0ed0778e303f2",
+    "XoTMobile/src/components/tracking/progressTaskIcons.ts": "869b1da87e9629cc951b1bfad91ddd3a414703a5d70de3c069bb76f4d43023c2",
+    "XoTMobile/src/components/AmountWheel.tsx": "e3740ce70d0cf63255ea6387bebb684186599609364127cedb0767455fef5ed2",
+    "XoTMobile/src/components/SetRowChrome.tsx": "3fc9e11254aba0b838d2e41079c00475f2c46f60fad385c7520bfd16ec86499a",
+    "XoTMobile/src/screens/FoodEntryAddScreen.tsx": "28c9c0ba8f70347fc147b0260188051a0651849efabfc0432e5487db0b6b26d0",
+    "XoTMobile/src/screens/FoodSettingsScreen.tsx": "82d12865a9d0d4f8cccff5e36d9d0af89d85168a6f2f96ff9b5fcd9d5a295380",
+    "XoTMobile/src/localization/locales/de/translation.json": "32b3d5f8aebf91c70eefbb2e2c5d3ab93808732d10f4c09ced4b46a9417f740f",
+    "XoTMobile/review/DashboardReview.swift": "acdec2338357357efb7ca1dcdeb9ffddc5f7d23a296be2559e187219008a6260",
+    "XoTMobile/review/ReviewApp.tsx": "7a9c833b085e98c17577d68edd8a5580bb08f4f7041838a8422122ad7e1f4168",
+    "XoTMobile/scripts/review-ios.mjs": "c69be39f829555f419494bf52391c1525ffd76532d4b612e28448ebe8aa988ea"
+  },
+  "noteMeasurements": [
+    {
+      "case": "390-de-dark",
+      "measurement": "Note bottom: 435.3333333333332; action bar top: 452.33331298828125"
+    },
+    {
+      "case": "390-de-light",
+      "measurement": "Note bottom: 435.3333333333332; action bar top: 452.33331298828125"
+    },
+    {
+      "case": "430-de-large",
+      "measurement": "Note bottom: 415.33333079020167; action bar top: 432.33331298828125"
+    }
+  ],
+  "beforeCaptures": [
+    {
+      "file": "before-390-de-light-dashboard.png",
+      "sha256": "129248aecc02b3ee2a470b299c12d9dca9cfab592abc61c1ca0e85f9780e0369",
+      "source": "b6a807e68 + nonvisual provider test identifier"
+    },
+    {
+      "file": "before-390-de-light-food-details.png",
+      "sha256": "33c4fe76b8904aad8c1227df2983e1035c3d699abd2d5d3f3cdd3c81e77f3602",
+      "source": "b6a807e68 + nonvisual provider test identifier"
+    },
+    {
+      "file": "before-390-de-light-food-settings.png",
+      "sha256": "fad634c860aaec7516033b6a8246c4cc5558d1f69450d15f58e9e1d464e9c7dc",
+      "source": "b6a807e68 + nonvisual provider test identifier"
+    },
+    {
+      "file": "before-390-de-light-progress.png",
+      "sha256": "129248aecc02b3ee2a470b299c12d9dca9cfab592abc61c1ca0e85f9780e0369",
+      "source": "b6a807e68 + nonvisual provider test identifier"
+    }
+  ],
+  "failedAttempts": [
+    {
+      "stage": "initial keyboard verification",
+      "finding": "Simulator software keypad hidden; not accepted as a keyboard pass."
+    },
+    {
+      "stage": "note gate correction",
+      "finding": "Whole-bar gate found enlarged note coverage. Controller keyboard reserve later contracted during text updates; UIKit now owns iOS insets."
+    },
+    {
+      "stage": "numeric field review",
+      "finding": "UIKit reserve alone left amount behind the bar; the existing visibility helper now measures the active amount region."
+    },
+    {
+      "stage": "Done dispatch",
+      "finding": "Core touchable taps did not reach the handler even at visible center. Native Gesture Handler actions passed all final cases. Exact internal native cause unverified."
+    }
+  ]
+}

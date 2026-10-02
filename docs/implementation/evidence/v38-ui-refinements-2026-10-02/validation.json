@@ -1,0 +1,40 @@
+{
+  "baseRevision": "b6a807e6829f617165b8bc10666045ffe6966127",
+  "tests": {
+    "command": "pnpm exec jest --runInBand --coverage=false (10 suites listed in implementation note)",
+    "passed": 120,
+    "suitesPassed": 10
+  },
+  "mobileValidate": "passed; i18n, German overlay, typecheck, lint, Knip, native locales, Watch geometry and formatting",
+  "productionIosJsExport": "passed; normal entry point; no signed archive/publication",
+  "layoutDetector": [],
+  "backendTests": "skipped as requested; no backend changes",
+  "physicalIphoneWatchAndroid": "unverified",
+  "sourceSha256": {
+    "XoTMobile/src/components/CalorieRingCard.tsx": "5d0fcc2e955e273b8554a5ac0ebabeb6677f73d2d4b02746d43590d6a4ac9374",
+    "XoTMobile/src/components/DailyProgressCard.tsx": "8e75667d86097118f1aa83679e7eb743b7a2dda6d59f13d531c0ed0778e303f2",
+    "XoTMobile/src/components/tracking/progressTaskIcons.ts": "869b1da87e9629cc951b1bfad91ddd3a414703a5d70de3c069bb76f4d43023c2",
+    "XoTMobile/src/components/AmountWheel.tsx": "e8d648e6760fa498c24c735977e22ec96bc31a0bb232ed1a888fe99ca8e91040",
+    "XoTMobile/src/components/SetRowChrome.tsx": "65c55e21fe81d3e0ffdfb3ddf04be23cde6cd4b4d2de2f0e24608c8bcb356395",
+    "XoTMobile/src/screens/FoodEntryAddScreen.tsx": "fda68f0aa5f22fe66b881d68f3623bfade38ac704268baf3d9545d1f7e8586c0",
+    "XoTMobile/src/screens/FoodSettingsScreen.tsx": "82d12865a9d0d4f8cccff5e36d9d0af89d85168a6f2f96ff9b5fcd9d5a295380",
+    "XoTMobile/src/localization/locales/de/translation.json": "32b3d5f8aebf91c70eefbb2e2c5d3ab93808732d10f4c09ced4b46a9417f740f",
+    "XoTMobile/review/DashboardReview.swift": "0a8a1b0f8a3a6c537413748f3e7d27f357a1bb15f5c06fba05866f5876430c4b",
+    "XoTMobile/review/ReviewApp.tsx": "7a9c833b085e98c17577d68edd8a5580bb08f4f7041838a8422122ad7e1f4168",
+    "XoTMobile/scripts/review-ios.mjs": "5c2d445a09b4af277709661f7e9cd86bebbea0dc651e07cc45bb42894a145aea",
+    "XoTMobile/src/hooks/useKeepNoteVisible.ts": "a5818366c9d64a88b1617c43f9dcd860f6eb0e3cd63061b7a95438b2e33f2d88",
+    "localization-overrides/de/mobile.json": "5a7b871b44eb6735bffd764108eac02072ff96495042c55ad1679a0a574374c2"
+  },
+  "nativeLayoutCasesPassed": ["390-de-dark", "390-de-light", "430-de-large"],
+  "nativeKeyboardCasesPassed": ["390-de-dark", "390-de-light", "430-de-large"],
+  "keyboardAcceptance": [
+    "visible software keypad",
+    "numeric input above entire bar",
+    "numeric Done dismisses",
+    "no extra English Done toolbar",
+    "bar meets OS panel within 2 logical points",
+    "note above entire bar by at least 12 points",
+    "complete synthetic note and quantity acknowledged on save"
+  ],
+  "nativeBuildCheck": "XCTest harness compiled and passed against the existing development simulator app; no native dependencies/configuration changed"
+}

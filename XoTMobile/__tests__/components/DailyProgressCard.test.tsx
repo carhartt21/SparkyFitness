@@ -15,6 +15,9 @@ let mockQuery: {
   isError: boolean;
   refetch: typeof mockRefetch;
 };
+jest.mock('../../src/hooks/useDailyTracking', () => ({
+  useHabits: () => ({ data: [] }),
+}));
 jest.mock('../../src/hooks/useProjectedDailyProgress', () => ({
   useProjectedDailyProgress: () => mockQuery,
 }));

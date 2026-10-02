@@ -106,11 +106,15 @@ describe('AmountWheel intentional interaction', () => {
   it('opens numeric entry only after a successful tap and preserves decimal drafts', () => {
     const onChange = jest.fn();
     const onDraftChange = jest.fn();
+    const onFocus = jest.fn();
+    const onBlur = jest.fn();
     const view = render(
       <AmountWheel
         value={100}
         onChange={onChange}
         onDraftChange={onDraftChange}
+        onFocus={onFocus}
+        onBlur={onBlur}
         metric
         unitLabel="g"
       />
@@ -119,10 +123,16 @@ describe('AmountWheel intentional interaction', () => {
     expect(view.queryByTestId('food-entry-amount-input')).toBeNull();
     act(() => mockGestures.tap.onEnd?.({}, true));
     const input = view.getByTestId('food-entry-amount-input');
+    expect(input.props.keyboardType).toBe('decimal-pad');
+    // RN otherwise inserts an extra, English native toolbar above the pad.
+    expect(input.props.returnKeyType).toBeUndefined();
+    fireEvent(input, 'focus');
+    expect(onFocus).toHaveBeenCalledTimes(1);
     fireEvent.changeText(input, '12,5');
     expect(onDraftChange).toHaveBeenLastCalledWith('12,5');
     fireEvent.changeText(input, '');
     fireEvent(input, 'blur');
+    expect(onBlur).toHaveBeenCalledTimes(1);
     expect(view.getByTestId('food-entry-amount-input').props.value).toBe('');
     expect(onDraftChange).toHaveBeenLastCalledWith('');
     expect(onChange).not.toHaveBeenCalled();

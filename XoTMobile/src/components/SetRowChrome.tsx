@@ -19,6 +19,7 @@ import {
   KeyboardEvents,
   KeyboardStickyView,
 } from 'react-native-keyboard-controller';
+import { TouchableOpacity as GestureTouchableOpacity } from 'react-native-gesture-handler';
 import { useCSSVariable } from 'uniwind';
 import { useTranslation } from 'react-i18next';
 
@@ -205,6 +206,7 @@ export interface SetAccessoryAction {
 function AccessoryChromeButton({
   label,
   accessibilityLabel,
+  testID,
   onPress,
   bold,
   disabled,
@@ -213,6 +215,7 @@ function AccessoryChromeButton({
 }: {
   label: string;
   accessibilityLabel?: string;
+  testID?: string;
   onPress: () => void;
   bold?: boolean;
   disabled?: boolean;
@@ -230,9 +233,11 @@ function AccessoryChromeButton({
         // these small keyboard buttons on Android; 2 is enough lift.
         ...(Platform.OS === 'android' ? { elevation: 2 } : null),
       })}
-      isInteractive
+      // The inner gesture button owns the action; glass is presentation.
+      isInteractive={false}
     >
-      <TouchableOpacity
+      <GestureTouchableOpacity
+        testID={testID}
         onPress={onPress}
         disabled={disabled}
         accessibilityRole="button"
@@ -257,16 +262,17 @@ function AccessoryChromeButton({
         >
           {label}
         </Text>
-      </TouchableOpacity>
+      </GestureTouchableOpacity>
     </LiquidGlassSurface>
   );
 }
 
 /**
- * iOS input-accessory strip: floating rounded-rectangle buttons on a transparent background
+ * Screen-level keyboard accessory strip: floating rounded-rectangle buttons on a transparent background
  * so the app content stays visible against the Liquid Glass keyboard — Done on
  * the left (dismisses the keyboard), row-specific actions on the right. Render
- * inside an InputAccessoryView.
+ * inside a KeyboardStickyView. Numeric fields must not also request a native
+ * return-key toolbar.
  */
 export function SetInputAccessoryBar({
   onDone,
@@ -296,6 +302,7 @@ export function SetInputAccessoryBar({
       }}
     >
       <AccessoryChromeButton
+        testID="keyboard-action-done"
         label={t('common.done', { defaultValue: 'Done' })}
         onPress={onDone}
         accentPrimary={accentPrimary}
@@ -313,6 +320,7 @@ export function SetInputAccessoryBar({
         {actions.map((action) => (
           <AccessoryChromeButton
             key={action.key}
+            testID={`keyboard-action-${action.key}`}
             label={action.label}
             accessibilityLabel={action.accessibilityLabel}
             onPress={action.onPress}

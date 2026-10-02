@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Text } from 'react-native';
+import { Keyboard, Text } from 'react-native';
 import * as Device from 'expo-device';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import App from '../App';
@@ -19,9 +19,27 @@ export default function ReviewApp() {
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState('');
   useEffect(() => {
+    let keyboardSubscription:
+      ReturnType<typeof Keyboard.addListener> | undefined;
     async function prepare() {
       if (!__DEV__ || Device.isDevice)
         throw new Error('UI review requires a development simulator');
+      // XCTest's keyboard frame bounds the keys, excluding the rounded panel
+      // above them. Audit the OS-reported panel edge, not its key hit regions.
+      keyboardSubscription = Keyboard.addListener(
+        'keyboardDidShow',
+        (event) => {
+          void transport('http://127.0.0.1:43991/event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              method: 'KEYBOARD',
+              path: '/review/keyboard',
+              metrics: event.endCoordinates,
+            }),
+          }).catch(() => undefined);
+        }
+      );
       const config = (await (
         await transport('http://127.0.0.1:43991/scenario')
       ).json()) as {
@@ -129,6 +147,7 @@ export default function ReviewApp() {
       setReady(true);
     }
     void prepare().catch((error) => setFailure(String(error)));
+    return () => keyboardSubscription?.remove();
   }, []);
   if (failure) return <Text accessibilityRole="alert">{failure}</Text>;
   return ready ? <App /> : null;

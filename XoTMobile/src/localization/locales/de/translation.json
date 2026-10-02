@@ -3891,36 +3891,36 @@
     }
   },
   "foodSettings": {
-    "title": "Ernährung Einstellungen",
+    "title": "Ernährungseinstellungen",
     "errors": {
       "error": "Fehler",
-      "updateFailed": "Fehler beim update setting.."
+      "updateFailed": "Die Einstellung konnte nicht gespeichert werden."
     },
     "mealTypes": {
       "title": "Mahlzeitenarten",
       "subtitle": "Eigene Mahlzeitenkategorien hinzufügen, bearbeiten, sortieren oder löschen"
     },
     "netCarbs": {
-      "title": "Net Carbs anzeigen",
+      "title": "Nettokohlenhydrate anzeigen",
       "description": "Wenn diese Option aktiviert ist, zeigen Kohlenhydratzusammenfassungen Nettokohlenhydrate (Gesamtkohlenhydrate − Ballaststoffe) an, und in der Nährstoffaufschlüsselung wird eine Zeile „Gesamtkohlenhydrate“ hinzugefügt."
     },
     "foodSource": {
-      "title": "Standard Ernährung Provider",
-      "pickerTitle": "Suchen Provider",
-      "firstAvailable": "Erster verfügbar",
-      "description": "Used when searching für foods von Name."
+      "title": "Standardanbieter für Lebensmittel",
+      "pickerTitle": "Suchanbieter",
+      "firstAvailable": "Erster verfügbarer Anbieter",
+      "description": "Wird für die Suche nach Lebensmitteln anhand ihres Namens verwendet."
     },
     "openFacts": {
-      "title": "Adjust Öffnen Ernährung Facts Values",
-      "description": "Open Food Facts verwendet Werte pro 100g. Dadurch werden sie auf die Portionsgröße des Produkts umgerechnet."
+      "title": "Werte von Open Food Facts anpassen",
+      "description": "Open Food Facts liefert Nährwerte je 100 g. Diese werden auf die Portionsgröße des Produkts umgerechnet."
     },
     "barcode": {
-      "title": "Barcode Scannenning",
+      "title": "Barcode-Suche",
       "provider": "Anbieter",
-      "pickerTitle": "Barcode Anbieter",
+      "pickerTitle": "Barcode-Anbieter",
       "default": "Standard",
-      "retryTitle": "Erneut versuchen mit Öffnen Ernährung Facts",
-      "retryDescription": "Wenn kein Ergebnis gefunden wird, versuchen Sie es automatisch mit Open Food Facts."
+      "retryTitle": "Mit Open Food Facts erneut suchen",
+      "retryDescription": "Wenn kein Ergebnis gefunden wird, automatisch bei Open Food Facts suchen."
     }
   },
   "workoutComplete": {

@@ -2218,17 +2218,34 @@
   },
   "foodSettings": {
     "netCarbs": {
-      "description": "Wenn diese Option aktiviert ist, zeigen Kohlenhydratzusammenfassungen Nettokohlenhydrate (Gesamtkohlenhydrate − Ballaststoffe) an, und in der Nährstoffaufschlüsselung wird eine Zeile „Gesamtkohlenhydrate“ hinzugefügt."
+      "description": "Wenn diese Option aktiviert ist, zeigen Kohlenhydratzusammenfassungen Nettokohlenhydrate (Gesamtkohlenhydrate − Ballaststoffe) an, und in der Nährstoffaufschlüsselung wird eine Zeile „Gesamtkohlenhydrate“ hinzugefügt.",
+      "title": "Nettokohlenhydrate anzeigen"
     },
     "openFacts": {
-      "description": "Open Food Facts verwendet Werte pro 100g. Dadurch werden sie auf die Portionsgröße des Produkts umgerechnet."
+      "title": "Werte von Open Food Facts anpassen",
+      "description": "Open Food Facts liefert Nährwerte je 100 g. Diese werden auf die Portionsgröße des Produkts umgerechnet."
     },
     "barcode": {
-      "retryDescription": "Wenn kein Ergebnis gefunden wird, versuchen Sie es automatisch mit Open Food Facts."
+      "retryDescription": "Wenn kein Ergebnis gefunden wird, automatisch bei Open Food Facts suchen.",
+      "title": "Barcode-Suche",
+      "provider": "Anbieter",
+      "pickerTitle": "Barcode-Anbieter",
+      "default": "Standard",
+      "retryTitle": "Mit Open Food Facts erneut suchen"
     },
     "mealTypes": {
       "subtitle": "Eigene Mahlzeitenkategorien hinzufügen, bearbeiten, sortieren oder löschen",
       "title": "Mahlzeitenarten"
+    },
+    "foodSource": {
+      "title": "Standardanbieter für Lebensmittel",
+      "pickerTitle": "Suchanbieter",
+      "firstAvailable": "Erster verfügbarer Anbieter",
+      "description": "Wird für die Suche nach Lebensmitteln anhand ihres Namens verwendet."
+    },
+    "title": "Ernährungseinstellungen",
+    "errors": {
+      "updateFailed": "Die Einstellung konnte nicht gespeichert werden."
     }
   },
   "workoutComplete": {

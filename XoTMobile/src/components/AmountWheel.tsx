@@ -62,6 +62,8 @@ export interface AmountWheelProps {
   onChange: (value: number) => void;
   /** Preserve typed drafts, including invalid ones, in the submission state. */
   onDraftChange?: (text: string) => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
   metric: boolean;
   /** Spoken with the value, e.g. "grams" or "Medium pot". */
   unitLabel: string;
@@ -79,6 +81,8 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
   value,
   onChange,
   onDraftChange,
+  onFocus,
+  onBlur,
   metric,
   unitLabel,
   disabled = false,
@@ -196,10 +200,15 @@ const AmountWheel: React.FC<AmountWheelProps> = ({
         autoFocus
         value={draft}
         onChangeText={changeDraft}
-        onBlur={finishEditing}
+        onFocus={onFocus}
+        onBlur={() => {
+          finishEditing();
+          onBlur?.();
+        }}
         onSubmitEditing={finishEditing}
         keyboardType="decimal-pad"
-        returnKeyType="done"
+        // A numeric return key makes React Native inject a second iOS toolbar.
+        // The screen already provides the localized Done/Add accessory.
         selectTextOnFocus
         accessibilityLabel={t('foodEntryAdd.labels.amount', {
           defaultValue: 'Amount',

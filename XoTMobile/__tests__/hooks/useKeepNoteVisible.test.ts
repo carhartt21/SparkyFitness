@@ -31,7 +31,7 @@ describe('useKeepNoteVisible', () => {
 
     act(() => result.current.onFocus());
 
-    expect(scrollToKeyboard).toHaveBeenCalledWith({ y: 158, animated: false });
+    expect(scrollToKeyboard).toHaveBeenCalledWith({ y: 162, animated: false });
   });
 
   it('rechecks the note after a keyboard that opens later than input focus', () => {
@@ -63,7 +63,7 @@ describe('useKeepNoteVisible', () => {
     act(() =>
       listeners.get('keyboardDidShow')?.({ endCoordinates: { screenY: 600 } })
     );
-    expect(scrollToKeyboard).toHaveBeenCalledWith({ y: 158, animated: false });
+    expect(scrollToKeyboard).toHaveBeenCalledWith({ y: 162, animated: false });
   });
   it('uses the measured footer boundary and current scroll offset in a modal', () => {
     jest
@@ -92,11 +92,71 @@ describe('useKeepNoteVisible', () => {
       } as Parameters<typeof result.current.onScroll>[0])
     );
     act(() => result.current.onFocus());
-    expect(scrollTo).toHaveBeenCalledWith({ y: 276, animated: false });
+    expect(scrollTo).toHaveBeenCalledWith({ y: 280, animated: false });
     scrollTo.mockClear();
     act(() => result.current.onBlur());
     act(() => result.current.onNoteLayout());
     expect(scrollTo).not.toHaveBeenCalled();
+  });
+  it('keeps a clearance even when the field is not yet obscured', () => {
+    jest.spyOn(Keyboard, 'metrics').mockReturnValue({
+      screenY: 600,
+      screenX: 0,
+      width: 390,
+      height: 244,
+    });
+    jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callback(0);
+        return 1;
+      });
+    const scrollTo = jest.fn();
+    const { result } = renderHook(() => useKeepNoteVisible());
+    result.current.scrollRef.current = { scrollTo } as NonNullable<
+      typeof result.current.scrollRef.current
+    >;
+    result.current.noteRef.current = {
+      measureInWindow: (callback) => callback(0, 400, 390, 88),
+    } as NonNullable<typeof result.current.noteRef.current>;
+    result.current.obstructionRef.current = {
+      measureInWindow: (callback) => callback(0, 500, 390, 56),
+    } as NonNullable<typeof result.current.obstructionRef.current>;
+    act(() => result.current.onFocus());
+    expect(scrollTo).toHaveBeenCalledWith({ y: 4, animated: false });
+  });
+  it('measures the focused amount field and switches back to the note', () => {
+    jest.spyOn(Keyboard, 'metrics').mockReturnValue({
+      screenY: 600,
+      screenX: 0,
+      width: 390,
+      height: 244,
+    });
+    jest
+      .spyOn(global, 'requestAnimationFrame')
+      .mockImplementation((callback) => {
+        callback(0);
+        return 1;
+      });
+    const scrollTo = jest.fn();
+    const { result } = renderHook(() => useKeepNoteVisible());
+    result.current.scrollRef.current = { scrollTo } as NonNullable<
+      typeof result.current.scrollRef.current
+    >;
+    result.current.noteRef.current = {
+      measureInWindow: (callback) => callback(0, 400, 390, 88),
+    } as NonNullable<typeof result.current.noteRef.current>;
+    result.current.obstructionRef.current = {
+      measureInWindow: (callback) => callback(0, 500, 390, 56),
+    } as NonNullable<typeof result.current.obstructionRef.current>;
+    const amount: NonNullable<typeof result.current.noteRef.current> = {
+      measureInWindow: (callback) => callback(0, 480, 180, 60),
+    } as NonNullable<typeof result.current.noteRef.current>;
+    act(() => result.current.onFieldFocus(amount));
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 56, animated: false });
+    act(() => result.current.onBlur());
+    act(() => result.current.onFocus());
+    expect(scrollTo).toHaveBeenLastCalledWith({ y: 4, animated: false });
   });
   it.each(['hide', 'blur', 'drag'] as const)(
     'cancels pending corrections on %s',
@@ -154,7 +214,7 @@ describe('useKeepNoteVisible', () => {
         act(() => result.current.onDraftChange());
         act(() => frames[2](0));
         act(() => measurement?.(0, 550, 390, 100));
-        expect(scrollTo).toHaveBeenCalledWith({ y: 374, animated: false });
+        expect(scrollTo).toHaveBeenCalledWith({ y: 378, animated: false });
       }
     }
   );

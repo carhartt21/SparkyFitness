@@ -261,10 +261,19 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const { item, date: initialDate } = route.params;
   const photoCapture = route.params.photoCapture;
   const { t, i18n } = useTranslation();
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  // Search can hand off to this modal with the keyboard already open. Do not
+  // wait for another didShow event before exposing its confirmation action.
+  const [keyboardVisible, setKeyboardVisible] = useState(() =>
+    Keyboard.isVisible()
+  );
+  const [keyboardActionsHeight, setKeyboardActionsHeight] = useState(56);
+  const keyboardActionsReserve = keyboardActionsHeight + 16;
   const [logDetailsExpanded, setLogDetailsExpanded] = useState(false);
   const allowAddPress = useRef(createDuplicatePressGuard()).current;
   useEffect(() => {
+    const willShow = Keyboard.addListener('keyboardWillShow', () =>
+      setKeyboardVisible(true)
+    );
     const show = Keyboard.addListener('keyboardDidShow', () =>
       setKeyboardVisible(true)
     );
@@ -272,6 +281,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       setKeyboardVisible(false)
     );
     return () => {
+      willShow.remove();
       show.remove();
       hide.remove();
     };
@@ -384,6 +394,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   // beside it and is never copied in.
   const [entryNotes, setEntryNotes] = useState('');
   const noteVisibility = useKeepNoteVisible(96);
+  const amountVisibilityRef = useRef<View>(null);
   const entryTimeTouched = useRef(false);
   useEffect(() => {
     if (entryTimeTouched.current) return;
@@ -2148,7 +2159,12 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
           )}
         </Animated.View>
         <KeyboardAwareScrollView
-          mode="layout"
+          testID="food-entry-scroll"
+          // UIKit owns the iOS keyboard inset. The controller's reserve can
+          // contract while a multiline note updates in this native modal.
+          mode="insets"
+          enabled={Platform.OS !== 'ios'}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
           ref={noteVisibility.scrollRef}
           onScroll={(event) => {
             scrollY.setValue(event.nativeEvent.contentOffset.y);
@@ -2160,13 +2176,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
           className="flex-1"
           contentContainerClassName=""
           contentContainerStyle={{
-            paddingBottom: Math.max(insets.bottom, 12) + 96,
+            paddingBottom: Math.max(insets.bottom, 12) + keyboardActionsReserve,
           }}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={
             Platform.OS === 'ios' ? 'interactive' : 'on-drag'
           }
-          bottomOffset={96}
+          bottomOffset={keyboardActionsReserve}
         >
           {/* The hero stays pinned behind the cards; this spacer lets the
             first card start over its lower edge. */}
@@ -2200,7 +2216,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 ) : null}
               </View>
               {displayBrand ? (
-                <Text className="mt-1 text-sm text-text-secondary">
+                <Text className="mt-1 text-xs text-text-secondary">
                   {displayBrand}
                 </Text>
               ) : null}
@@ -2325,10 +2341,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 className={largeText ? 'gap-4' : 'flex-row items-start gap-3'}
               >
                 <View
+                  ref={amountVisibilityRef}
+                  collapsable={false}
+                  onLayout={noteVisibility.onNoteLayout}
                   style={largeText ? undefined : { flex: 0.66 }}
                   className="gap-2"
                 >
-                  <Text className="text-sm text-text-secondary">
+                  <Text className="text-xs text-text-secondary">
                     {t('foodEntryAdd.labels.amount', {
                       defaultValue: 'Amount',
                     })}
@@ -2339,6 +2358,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                     fullWidth
                     height={amountFieldHeight}
                     onDraftChange={handleAmountDraftChange}
+                    onFocus={() =>
+                      noteVisibility.onFieldFocus(amountVisibilityRef.current)
+                    }
+                    onBlur={noteVisibility.onBlur}
                     onChange={(next) =>
                       setQuantityText(String(next * amountInputScale))
                     }
@@ -2355,7 +2378,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                   style={largeText ? undefined : { flex: 1 }}
                   className="gap-2"
                 >
-                  <Text className="text-sm text-text-secondary">
+                  <Text className="text-xs text-text-secondary">
                     {t('foodEntryAdd.labels.unit', { defaultValue: 'Unit' })}
                   </Text>
                   <UnitDropdown
@@ -2514,7 +2537,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                       className="min-h-16 flex-row items-center gap-3 border-t border-border-subtle py-4"
                     >
                       <View className="flex-1">
-                        <Text className="text-lg font-semibold text-text-primary">
+                        <Text className="text-base font-semibold text-text-primary">
                           {variant.perServingLabel}
                         </Text>
                         <Text className="text-sm text-text-secondary">
@@ -2595,7 +2618,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 >
                   <Icon name="calendar" size={22} color={accentColor} />
                   <Text
-                    className="min-w-0 flex-1 text-sm font-medium text-text-primary"
+                    className="min-w-0 flex-1 text-xs font-medium text-text-primary"
                     numberOfLines={2}
                   >
                     {logDestinationSummary}
@@ -2651,12 +2674,12 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                         activeOpacity={0.7}
                         className="flex-row items-center"
                       >
-                        <Text className="text-text-secondary text-base">
+                        <Text className="text-text-secondary text-sm">
                           {t('foodEntryAdd.labels.time', {
                             defaultValue: 'Time',
                           })}
                         </Text>
-                        <Text className="text-text-primary text-base font-medium mx-1.5">
+                        <Text className="text-text-primary text-sm font-medium mx-1.5">
                           {formatTimeLabel(
                             entryTime,
                             preferences?.time_format
@@ -2702,7 +2725,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
 
                     {selectedMealType ? (
                       <View className="flex-row flex-wrap items-center">
-                        <Text className="text-text-secondary text-base">
+                        <Text className="text-text-secondary text-sm">
                           {t('foodEntryAdd.labels.meal', {
                             defaultValue: 'Meal',
                           })}
@@ -2720,7 +2743,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                               activeOpacity={0.7}
                               className="flex-row items-center"
                             >
-                              <Text className="text-text-primary text-base font-medium mx-1.5">
+                              <Text className="text-text-primary text-sm font-medium mx-1.5">
                                 {getMealTypeDisplayLabel(selectedMealType, t)}
                               </Text>
                               <Icon
@@ -2786,7 +2809,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                           </Text>
                         ) : null}
                         <Text
-                          className="text-base font-medium text-text-primary"
+                          className="text-sm font-medium text-text-primary"
                           numberOfLines={2}
                         >
                           {row.title}
@@ -3022,9 +3045,13 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
           style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
         >
           <View
+            testID="food-entry-keyboard-actions"
             ref={noteVisibility.obstructionRef}
             collapsable={false}
-            onLayout={noteVisibility.onNoteLayout}
+            onLayout={(event) => {
+              setKeyboardActionsHeight(event.nativeEvent.layout.height);
+              noteVisibility.onNoteLayout();
+            }}
             className="bg-background"
           >
             <SetInputAccessoryBar

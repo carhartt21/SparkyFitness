@@ -141,7 +141,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
       })}
       className="p-4 mb-3"
     >
-      <View className="mb-2 min-h-11 flex-row items-center gap-3">
+      <View className="mb-1 flex-row items-center gap-3">
         <Icon name="flame" size={24} color={flame} />
         <View className="flex-1">
           <Text
@@ -152,65 +152,68 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
             {t('dashboard.calories', { defaultValue: 'Calories' })}
           </Text>
         </View>
-        {onEditGoal ? (
-          <Pressable
-            testID="dashboard-edit-goal"
-            accessibilityRole="button"
-            accessibilityLabel={t('dashboard.editGoal', {
-              defaultValue: 'Edit goal',
-            })}
-            className="min-h-11 min-w-11 items-center justify-center rounded-xl active:opacity-70"
-            onPress={onEditGoal}
-          >
-            <Icon name="target" size={22} color={neutral} />
-          </Pressable>
-        ) : null}
       </View>
       <View
         style={{ flexDirection: expanded ? 'column' : 'row', gap: 12 }}
-        className="items-center"
+        className={expanded ? 'items-center' : 'items-start'}
       >
-        <View className="items-center justify-center">
-          {!expanded && (
-            <EnergyGauge
-              progress={hasGoal ? progressPercent : 0}
-              size={gaugeSize}
-              strokeWidth={14}
-            />
-          )}
-          <View
-            className="items-center justify-center"
-            style={
-              expanded
-                ? undefined
-                : { position: 'absolute', width: gaugeSize - 40 }
-            }
-          >
-            <Text
-              className="text-[32px] font-bold text-text-primary"
-              maxFontSizeMultiplier={1.6}
-              numberOfLines={1}
-              adjustsFontSizeToFit
+        <View className="items-center">
+          <View className="items-center justify-center">
+            {!expanded && (
+              <EnergyGauge
+                progress={hasGoal ? progressPercent : 0}
+                size={gaugeSize}
+                strokeWidth={14}
+              />
+            )}
+            <View
+              className="items-center justify-center"
+              style={
+                expanded
+                  ? undefined
+                  : { position: 'absolute', width: gaugeSize - 40, top: 32 }
+              }
             >
-              {formatLocalizedNumber(centerValue)}
-            </Text>
-            <Text
-              className="text-sm font-medium text-text-primary"
-              maxFontSizeMultiplier={1.8}
-            >
-              {kcal}
-            </Text>
-            <Text
-              className="text-text-secondary text-xs text-center"
-              maxFontSizeMultiplier={1.8}
-            >
-              {hasGoal
-                ? isOverTarget
-                  ? t('dashboard.overTarget', { defaultValue: 'over target' })
-                  : t('dashboard.remaining', { defaultValue: 'remaining' })
-                : t('dashboard.consumed', { defaultValue: 'Consumed' })}
-            </Text>
+              <Text
+                className="text-[32px] font-bold text-text-primary"
+                maxFontSizeMultiplier={1.6}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+              >
+                {formatLocalizedNumber(centerValue)}
+              </Text>
+              <Text
+                className="text-sm font-medium text-text-primary"
+                maxFontSizeMultiplier={1.8}
+              >
+                {kcal}
+              </Text>
+              <Text
+                className="text-text-secondary text-xs text-center"
+                maxFontSizeMultiplier={1.8}
+              >
+                {hasGoal
+                  ? isOverTarget
+                    ? t('dashboard.overTarget', { defaultValue: 'over target' })
+                    : t('dashboard.remaining', { defaultValue: 'remaining' })
+                  : t('dashboard.consumed', { defaultValue: 'Consumed' })}
+              </Text>
+            </View>
           </View>
+          {onEditGoal ? (
+            <Pressable
+              testID="dashboard-edit-goal"
+              accessibilityRole="button"
+              accessibilityLabel={t('dashboard.editGoal', {
+                defaultValue: 'Edit goal',
+              })}
+              className="min-h-11 min-w-11 items-center justify-center rounded-xl active:opacity-70"
+              style={expanded ? undefined : { marginTop: -20 }}
+              onPress={onEditGoal}
+            >
+              <Icon name="target" size={22} color={neutral} />
+            </Pressable>
+          ) : null}
         </View>
         <View style={expanded ? { width: '100%' } : { flex: 1 }}>
           <StatRow
