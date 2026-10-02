@@ -1,6 +1,7 @@
 import {
   nutritionGoalLabel,
   progressDomainLabel,
+  categoryStateLabel,
 } from '../components/tracking/trackingLabels';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
@@ -8,11 +9,7 @@ import { AccessibilityInfo, Modal, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
-import {
-  progressionStage,
-  type DailyProgressDomain,
-  type DailyProgressItem,
-} from '@workspace/shared';
+import { progressionStage, type DailyProgressItem } from '@workspace/shared';
 import TrackingScreen from '../components/tracking/TrackingScreen';
 import { useNeonScale } from '../components/tracking/useNeonScale';
 import ProgressTrackX from '../components/brand/ProgressTrackX';
@@ -30,21 +27,15 @@ import { usePreferences } from '../hooks/usePreferences';
 import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import { formatLocalizedNumber, useAppLocale } from '../localization';
 import { formatDate, getTodayDate } from '../utils/dateUtils';
+import { useActivityPlanning } from '../hooks/useActivityPlanning';
+import {
+  progressCategories,
+  PROGRESS_CATEGORY_ICONS,
+} from '../utils/progressCategories';
 import WeeklyActivityOverview from '../components/WeeklyActivityOverview';
 import type { RootStackParamList } from '../types/navigation';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'DailyProgress'>;
-
-const DOMAIN_ICON: Record<DailyProgressDomain, IconName> = {
-  checkin: 'daily-checkin',
-  habit: 'habit',
-  measurement: 'scale',
-  supplement: 'medication',
-  meal: 'meal',
-  goal: 'target',
-  workout: 'exercise-running',
-  activity: 'exercise',
-};
 
 const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
@@ -77,6 +68,31 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const { isConnected } = useServerConnection();
   const progressQuery = useProjectedDailyProgress(date, isConnected);
   const progress = progressQuery.progress;
+  const activities = useActivityPlanning(date, date, isConnected);
+  const [activityFailure, setActivityFailure] = useState(false);
+  const resolveActivity = async (
+    id: string,
+    revision: number,
+    action: 'skip' | 'undo'
+  ) => {
+    setActivityFailure(false);
+    try {
+      await activities.mutation.mutateAsync({
+        occurrence_id: id,
+        expected_revision: revision,
+        action,
+      });
+    } catch {
+      setActivityFailure(true);
+    }
+  };
+  const domains = progress
+    ? progressCategories(progress.items).map((category) => category.domain)
+    : PROGRESS_DOMAIN_ORDER;
+  const focusedDomain = route.params?.domain;
+  const orderedDomains = focusedDomain
+    ? [focusedDomain, ...domains.filter((domain) => domain !== focusedDomain)]
+    : domains;
 
   useEffect(() => {
     if (!progress || !isFocused) return;
@@ -167,7 +183,12 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
       date={date}
       onDateChange={setDate}
       onBack={navigation.goBack}
-      onRefresh={() => progressQuery.refetch()}
+      onRefresh={async () => {
+        await Promise.all([
+          progressQuery.refetch(),
+          activities.query.refetch(),
+        ]);
+      }}
     >
       {!isConnected ? (
         <StatusView
@@ -192,9 +213,15 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
             <ProgressTrackX
               progress={progress.percent}
               label={t('progress.xLabel', { defaultValue: 'Daily Progress' })}
-              unknownLabel={t('progress.nothingApplies', {
-                defaultValue: 'No tasks today',
-              })}
+              unknownLabel={
+                progress.items.length
+                  ? t('progress.noCountedTasks', {
+                      defaultValue: 'No counted tasks',
+                    })
+                  : t('progress.nothingApplies', {
+                      defaultValue: 'No tasks today',
+                    })
+              }
               size={176}
             />
             <Text
@@ -209,10 +236,12 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                     completed: progress.completed,
                     applicable: progress.applicable,
                   })
-                : t('progress.nothingAppliesLine', {
-                    defaultValue: '{{day}} · no tracking tasks',
-                    day: dayLabel,
-                  })}
+                : progress.items.length
+                  ? `${dayLabel} · ${t('progress.noCountedTasks', { defaultValue: 'No counted tasks' })}`
+                  : t('progress.nothingAppliesLine', {
+                      defaultValue: '{{day}} · no tracking tasks',
+                      day: dayLabel,
+                    })}
             </Text>
             <Text className="mt-1 text-center text-sm text-text-secondary">
               {progress.applicable > 0
@@ -220,14 +249,30 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                     defaultValue:
                       'Each task counts equally. This is not a health score; skipped items are left out.',
                   })
-                : t('progress.emptyExplanation', {
-                    defaultValue:
-                      'Nothing is scheduled or selected for this day. Choose what counts in Tracking settings.',
-                  })}
+                : progress.items.length
+                  ? t('progress.uncountedExplanation', {
+                      defaultValue:
+                        'Items below do not count toward this day’s progress. Review them or choose what counts in Tracking settings.',
+                    })
+                  : t('progress.emptyExplanation', {
+                      defaultValue:
+                        'Nothing is scheduled or selected for this day. Choose what counts in Tracking settings.',
+                    })}
             </Text>
           </GlowCard>
 
-          {PROGRESS_DOMAIN_ORDER.map((domain) => {
+          {activityFailure ? (
+            <Text
+              accessibilityRole="alert"
+              className="mb-3 text-sm text-text-secondary"
+            >
+              {t('progress.activitySaveFailed', {
+                defaultValue:
+                  'The status could not be saved. Refresh goals and try again.',
+              })}
+            </Text>
+          ) : null}
+          {orderedDomains.map((domain) => {
             const items = progress.items.filter(
               (item) => item.domain === domain
             );
@@ -244,7 +289,7 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
               >
                 <View className="flex-row items-center gap-2 pb-1">
                   <Icon
-                    name={DOMAIN_ICON[domain]}
+                    name={PROGRESS_CATEGORY_ICONS[domain]}
                     size={20}
                     color={secondary}
                   />
@@ -255,59 +300,109 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                     {progressDomainLabel(t, domain)}
                   </Text>
                   <Text className="text-sm text-text-secondary">
-                    {t('progress.domainCount', {
-                      defaultValue: '{{completed}} of {{applicable}}',
-                      completed: coverage.completed,
-                      applicable: coverage.applicable,
-                    })}
+                    {coverage.applicable === 0
+                      ? categoryStateLabel(
+                          t,
+                          progressCategories(items)[0]?.state ?? 'unknown'
+                        )
+                      : t('progress.domainCount', {
+                          defaultValue: '{{completed}} of {{applicable}}',
+                          completed: coverage.completed,
+                          applicable: coverage.applicable,
+                        })}
                   </Text>
                 </View>
                 {items.map((item, index) => {
                   const style = stateStyle(item);
+                  const occurrence = activities.query.data?.occurrences.find(
+                    (row) => row.id === item.id
+                  );
+                  const canSkip =
+                    occurrence?.source === 'workout' &&
+                    occurrence.state !== 'complete' &&
+                    (occurrence.state !== 'excluded' ||
+                      occurrence.revision > 0);
+                  const undo = occurrence?.state === 'excluded';
                   return (
-                    <Pressable
-                      key={item.id}
-                      accessibilityRole="button"
-                      className="min-h-12 flex-row items-center gap-3 py-2 active:opacity-70"
-                      style={
-                        index > 0
-                          ? { borderTopWidth: 1, borderTopColor: border }
-                          : undefined
-                      }
-                      onPress={() => openItem(item)}
-                      accessibilityLabel={`${itemLabel(item)}: ${style.label}`}
-                      testID={`daily-progress-item-${item.id}`}
-                    >
-                      <Icon name={style.icon} size={22} color={style.color} />
-                      <View className="flex-1">
-                        <Text className="text-base text-text-primary">
-                          {itemLabel(item)}
-                        </Text>
-                        {item.domain === 'goal' && (
-                          <Text className="text-sm text-text-secondary">
-                            {item.goal_summary
-                              ? Object.entries(item.goal_summary)
-                                  .map(
-                                    ([key, value]) =>
-                                      `${nutritionGoalLabel(t, key)}: ${formatLocalizedNumber(value)} ${key === 'calories' ? 'kcal' : 'g'}`
-                                  )
-                                  .join(' · ')
-                              : `${item.value == null ? t('progress.goals.unknown', { defaultValue: 'No value recorded' }) : formatLocalizedNumber(item.value)} / ${formatLocalizedNumber(item.target ?? 0)} ${item.unit ?? ''}`}
+                    <View key={item.id} className="flex-row items-center">
+                      <Pressable
+                        accessibilityRole="button"
+                        className="min-h-12 flex-1 flex-row items-center gap-3 py-2 active:opacity-70"
+                        style={
+                          index > 0
+                            ? { borderTopWidth: 1, borderTopColor: border }
+                            : undefined
+                        }
+                        onPress={() => openItem(item)}
+                        accessibilityLabel={`${itemLabel(item)}: ${style.label}`}
+                        testID={`daily-progress-item-${item.id}`}
+                      >
+                        <Icon name={style.icon} size={22} color={style.color} />
+                        <View className="flex-1">
+                          <Text className="text-base text-text-primary">
+                            {itemLabel(item)}
                           </Text>
-                        )}
-                        <Text className="text-xs text-text-secondary">
-                          {style.label}
-                          {item.reason.endsWith('_pending_sync')
-                            ? ` · ${t('progress.pendingSync', { defaultValue: 'saved on this phone' })}`
-                            : ''}
-                        </Text>
-                      </View>
-                      <Icon
-                        name="chevron-forward"
-                        size={16}
-                        color={secondary}
-                      />
-                    </Pressable>
+                          {item.domain === 'goal' && (
+                            <Text className="text-sm text-text-secondary">
+                              {item.goal_summary
+                                ? Object.entries(item.goal_summary)
+                                    .map(
+                                      ([key, value]) =>
+                                        `${nutritionGoalLabel(t, key)}: ${formatLocalizedNumber(value)} ${key === 'calories' ? 'kcal' : 'g'}`
+                                    )
+                                    .join(' · ')
+                                : `${item.value == null ? t('progress.goals.unknown', { defaultValue: 'No value recorded' }) : formatLocalizedNumber(item.value)} / ${formatLocalizedNumber(item.target ?? 0)} ${item.unit ?? ''}`}
+                            </Text>
+                          )}
+                          <Text className="text-xs text-text-secondary">
+                            {item.optional && item.state !== 'excluded'
+                              ? t('progress.optionalActivity', {
+                                  defaultValue:
+                                    'Optional · does not count toward the daily goal',
+                                })
+                              : style.label}
+                            {item.reason.endsWith('_pending_sync')
+                              ? ` · ${t('progress.pendingSync', { defaultValue: 'saved on this phone' })}`
+                              : ''}
+                          </Text>
+                        </View>
+                        <Icon
+                          name="chevron-forward"
+                          size={16}
+                          color={secondary}
+                        />
+                      </Pressable>
+                      {canSkip ? (
+                        <Pressable
+                          testID={`daily-progress-resolve-${item.id}`}
+                          accessibilityRole="button"
+                          accessibilityLabel={`${itemLabel(item)}: ${
+                            undo
+                              ? t('activityPlanning.undo', {
+                                  defaultValue: 'Undo decision',
+                                })
+                              : t('activityPlanning.skip', {
+                                  defaultValue: 'Skip activity',
+                                })
+                          }`}
+                          disabled={activities.mutation.isPending}
+                          onPress={() =>
+                            void resolveActivity(
+                              occurrence.id,
+                              occurrence.revision,
+                              undo ? 'undo' : 'skip'
+                            )
+                          }
+                          className="min-h-11 min-w-11 items-center justify-center"
+                        >
+                          <Icon
+                            name={undo ? 'repeat' : 'skip-forward'}
+                            size={20}
+                            color={secondary}
+                          />
+                        </Pressable>
+                      ) : null}
+                    </View>
                   );
                 })}
               </GlowCard>
@@ -351,9 +446,15 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
               progress={completionProgress}
               size={120}
               label={t('progress.title', { defaultValue: 'Daily Progress' })}
-              unknownLabel={t('progress.nothingApplies', {
-                defaultValue: 'No tasks today',
-              })}
+              unknownLabel={
+                progress?.items.length
+                  ? t('progress.noCountedTasks', {
+                      defaultValue: 'No counted tasks',
+                    })
+                  : t('progress.nothingApplies', {
+                      defaultValue: 'No tasks today',
+                    })
+              }
             />
             <Text
               accessibilityRole="header"

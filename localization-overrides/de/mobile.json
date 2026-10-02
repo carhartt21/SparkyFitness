@@ -850,7 +850,26 @@
     "completedHint": "Alle heutigen Aufgaben sind erfasst oder geprüft. Das zeigt Ihren Erfassungsstand, keine Gesundheitsbewertung.",
     "previewUnavailable": "Die Aufgaben konnten nicht geladen werden.",
     "previewStale": "Gespeicherte Aufgaben. Aktualisieren, um neue Änderungen zu sehen.",
-    "previewComplete": "Alle anstehenden Aufgaben sind geklärt."
+    "previewComplete": "Alle anstehenden Aufgaben sind geklärt.",
+    "categoryState": {
+      "open": "Offen",
+      "partial": "Teilweise erledigt",
+      "complete": "Erledigt",
+      "skipped": "Übersprungen",
+      "optional": "Optional",
+      "unknown": "Plan prüfen"
+    },
+    "allCategories_one": "Alle {{count}} Bereiche",
+    "allCategories_other": "Alle {{count}} Bereiche",
+    "optionalActivity": "Optional · zählt nicht zum Tagesziel",
+    "activitySaveFailed": "Der Status konnte nicht gespeichert werden. Aktualisieren Sie die Ziele und versuchen Sie es erneut.",
+    "categoryLabel": {
+      "supplement": "Supplemente",
+      "workout": "Training"
+    },
+    "partialShort": "Teilweise",
+    "noCountedTasks": "Keine zählenden Aufgaben",
+    "uncountedExplanation": "Die Einträge unten zählen nicht zum Tagesfortschritt. Prüfen Sie sie oder wählen Sie in den Tracking-Einstellungen aus, was zählt."
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
