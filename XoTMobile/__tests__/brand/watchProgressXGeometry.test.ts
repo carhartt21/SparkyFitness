@@ -8,8 +8,18 @@ const read = (relative: string) =>
 
 describe('watch Progress X complication', () => {
   it('draws the same X geometry as the phone and web', () => {
-    expect(read('watch-widget/ProgressXGeometry.swift')).toBe(
-      renderWatchProgressXGeometry()
+    for (const target of ['watch-widget', 'watch'])
+      expect(read(`${target}/ProgressXGeometry.swift`)).toBe(
+        renderWatchProgressXGeometry()
+      );
+    expect(read('watch/ProgressXDrawing.swift')).toBe(
+      read('watch-widget/ProgressXDrawing.swift')
+    );
+    expect(read('watch-widget/ProgressXComplication.swift')).toContain(
+      'ComplicationLink.progress.url'
+    );
+    expect(read('watch/Presentation/ContentView.swift')).toContain(
+      'DailyGoalsView()'
     );
   });
 

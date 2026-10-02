@@ -355,7 +355,18 @@ enum ContextPayloadMapper {
             day: day(from: payload),
             completed: min(completed, applicable),
             applicable: applicable,
-            percent: percent
+            percent: percent,
+            items: (payload["dailyProgressItems"] as? [[String: Any]])?.prefix(64).compactMap { row in
+                guard let id = row["id"] as? String, !id.isEmpty,
+                      let label = row["label"] as? String, !label.isEmpty,
+                      let domain = row["domain"] as? String,
+                      let state = row["state"] as? String, ["pending", "started"].contains(state)
+                else { return nil }
+                return WatchProgressItem(id: id, label: label, domain: domain, state: state,
+                    canComplete: row["canComplete"] as? Bool ?? false,
+                    recordedAt: row["recordedAt"] as? String,
+                    icon: row["icon"] as? String ?? "target")
+            }
         )
     }
 

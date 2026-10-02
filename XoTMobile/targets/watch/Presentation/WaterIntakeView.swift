@@ -69,7 +69,7 @@ struct WaterIntakeView: View {
     /// is what says "more is coming", and having the number jump ahead of the
     /// fill would contradict it.
     private var goalLabel: String {
-        guard goalMl > 0 else { return "Water not synced yet" }
+        guard goalMl > 0 else { return WatchCopy.text("watch.waterUnknown") }
         let percent = Int((progress * 100).rounded())
         return "\(percent)% * \(store.context.formattedWater(ml: effectiveMl))"
     }
@@ -148,13 +148,13 @@ struct WaterIntakeView: View {
                             containerSquare(container, side: geo.size.width)
                         }
                         if !store.failedQuickWaterActions.isEmpty {
-                            Button("Retry unsent") {
+                            Button(WatchCopy.text("watch.retryUnsent")) {
                                 session.retryFailedQuickWaterActions()
                             }
                             .font(.system(size: 10))
-                            .accessibilityLabel("Retry unsent quick water logs")
+                            .accessibilityLabel(WatchCopy.text("watch.retryWater"))
                         } else if !store.queuedQuickWaterActions.isEmpty {
-                            Text("\(store.queuedQuickWaterActions.count) queued")
+                            Text(WatchCopy.text("watch.queuedCount", store.queuedQuickWaterActions.count))
                                 .font(.system(size: 10))
                                 .foregroundStyle(.secondary)
                         }
@@ -168,8 +168,8 @@ struct WaterIntakeView: View {
                     .font(.system(size: 20))
                     .foregroundStyle(.secondary)
                 Text(hasEverSyncedContainers
-                     ? "No containers set up on the server yet"
-                     : "Open X on Track on your phone to sync your containers")
+                     ? WatchCopy.text("watch.noContainers")
+                     : WatchCopy.text("watch.syncContainers"))
                     .font(.system(size: 10))
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -190,7 +190,7 @@ struct WaterIntakeView: View {
                     .foregroundStyle(GoalPalette.water)
                 Text("250 ml")
                     .font(.system(size: 11, weight: .semibold))
-                Text("Quick water")
+                Text(WatchCopy.text("watch.quickWater"))
                     .font(.system(size: 9))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -200,8 +200,8 @@ struct WaterIntakeView: View {
             .neonSurface(GoalPalette.water)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Log 250 millilitres of water")
-        .accessibilityHint("Saves on the watch until the phone confirms it")
+        .accessibilityLabel(WatchCopy.text("watch.log250"))
+        .accessibilityHint(WatchCopy.text("watch.queuedHint"))
     }
 
     /// Last square in the column: opens today's log rather than logging
@@ -216,7 +216,7 @@ struct WaterIntakeView: View {
                 Image(systemName: "list.bullet")
                     .font(.system(size: 15))
                     .foregroundStyle(.secondary)
-                Text("Log")
+                Text(WatchCopy.text("watch.log"))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
@@ -225,7 +225,7 @@ struct WaterIntakeView: View {
             .neonSurface(.secondary, intensity: .edge)
         }
         .buttonStyle(.plain)
-        .accessibilityLabel("Today's logged drinks")
+        .accessibilityLabel(WatchCopy.text("watch.drinksToday"))
     }
 
     private func containerSquare(_ container: WaterContainer, side: CGFloat) -> some View {
@@ -251,7 +251,7 @@ struct WaterIntakeView: View {
         }
         .buttonStyle(.plain)
         .disabled(!store.canCaptureActions)
-        .accessibilityLabel("Log \(container.name), \(container.displayVolume)")
+        .accessibilityLabel(WatchCopy.text("watch.logContainer", container.name, container.displayVolume))
     }
 
     private func tap(_ container: WaterContainer) {

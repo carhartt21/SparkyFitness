@@ -20,6 +20,8 @@ import type {
   UpsertMeasurementReminderRequest,
 } from '@workspace/shared';
 
+import type { NutritionActionIdentity } from '../nutritionActionOutbox';
+
 const SERVICE_NAME = 'Daily Tracking API';
 const BASE = '/api/v2/tracking';
 
@@ -66,11 +68,15 @@ export const deleteDailyCheckin = (date: string) =>
 
 // --- Habits -------------------------------------------------------------------
 
-export const listHabits = async (includeInactive = false) =>
+export const listHabits = async (
+  includeInactive = false,
+  expectedIdentity?: NutritionActionIdentity
+) =>
   (await apiFetch<Habit[] | null>({
     endpoint: `${BASE}/habits${includeInactive ? '?include_inactive=true' : ''}`,
     serviceName: SERVICE_NAME,
     operation: 'list habits',
+    expectedIdentity,
   })) ?? [];
 
 export const createHabit = (body: CreateHabitRequest) =>
@@ -110,11 +116,16 @@ export const listHabitLogs = async (
     operation: 'list habit logs',
   })) ?? [];
 
-export const logHabit = (id: string, body: LogHabitRequest) =>
+export const logHabit = (
+  id: string,
+  body: LogHabitRequest,
+  expectedIdentity?: NutritionActionIdentity
+) =>
   apiFetch<HabitLog | null>({
     endpoint: `${BASE}/habits/${id}/logs`,
     serviceName: SERVICE_NAME,
     operation: 'log habit',
+    expectedIdentity,
     method: 'PUT',
     body,
   });
@@ -188,11 +199,15 @@ export const getMealTrackingStatus = (date: string) =>
     operation: 'get meal status',
   });
 
-export const setMealDayStatus = (body: SetMealDayStatusRequest) =>
+export const setMealDayStatus = (
+  body: SetMealDayStatusRequest,
+  expectedIdentity?: NutritionActionIdentity
+) =>
   apiFetch<MealTrackingStatus>({
     endpoint: `${BASE}/meal-status`,
     serviceName: SERVICE_NAME,
     operation: 'set meal status',
+    expectedIdentity,
     method: 'PUT',
     body,
   });
@@ -215,11 +230,15 @@ export const updateDailyTrackingPreferences = (
     body,
   });
 
-export const getDailyProgress = (date: string) =>
+export const getDailyProgress = (
+  date: string,
+  expectedIdentity?: NutritionActionIdentity
+) =>
   apiFetch<DailyProgress>({
     endpoint: `${BASE}/daily-progress/${date}?version=2&include_activity=true`,
     serviceName: SERVICE_NAME,
     operation: 'get daily progress',
+    expectedIdentity,
   });
 
 /** Per-day Daily Progress states for a calendar range (at most 42 days). */

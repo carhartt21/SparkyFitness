@@ -38,13 +38,16 @@ describe('Watch localization gate', () => {
       );
       fs.writeFileSync(
         path.join(fixture, 'targets/watch/NewCopy.swift'),
-        'WatchCopy.text("food.newLabel")'
+        'WatchCopy.text("food.newLabel")\nWatchCopy.text("workout.missing")\nText("Untranslated label")\nreturn "Untranslated status"'
       );
       expect(validateWatchLocales(fixture).errors).toEqual(
         expect.arrayContaining([
           'watch: missing German food.amount',
           'watch de:food.chooseHint placeholder mismatch',
           'watch: missing English food.newLabel',
+          'watch: missing English workout.missing',
+          'watch: hardcoded UI copy NewCopy.swift:3',
+          'watch: hardcoded UI copy NewCopy.swift:4',
         ])
       );
     } finally {

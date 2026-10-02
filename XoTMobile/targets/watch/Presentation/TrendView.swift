@@ -23,8 +23,8 @@ struct TrendView: View {
 
         var emptyStateMessage: String {
             switch self {
-            case .weight: return "Log a few days to see your weight trend."
-            case .bodyFat: return "Log body fat a few times to see its trend."
+            case .weight: return WatchCopy.text("watch.weightTrendEmpty")
+            case .bodyFat: return WatchCopy.text("watch.fatTrendEmpty")
             }
         }
     }
@@ -104,12 +104,12 @@ struct TrendView: View {
     private var capturedSummary: some View {
         if let last = store.visibleLastCaptured {
             HStack(alignment: .lastTextBaseline, spacing: 6) {
-                Text("\(String(format: "%.1f", unit.fromKg(last.weightKg))) \(unit.suffix)")
+                Text("\(String(format: "%.1f", locale: Locale.current, unit.fromKg(last.weightKg))) \(unit.suffix)")
                     .font(currentMetric == .weight ? .headline : .subheadline)
                     .monospacedDigit()
                     .foregroundStyle(currentMetric == .weight ? .primary : .secondary)
                 if let fat = last.bodyFatPercentage {
-                    Text(String(format: "%.1f %%", fat))
+                    Text(String(format: "%.1f %%", locale: Locale.current, fat))
                         .font(currentMetric == .bodyFat ? .headline : .subheadline)
                         .monospacedDigit()
                         .foregroundStyle(currentMetric == .bodyFat ? .primary : .secondary)
@@ -146,7 +146,7 @@ struct TrendView: View {
         Chart {
             ForEach(mean) { point in
                 if let date = point.date {
-                    LineMark(x: .value("Day", date), y: .value("Mean", unit.fromKg(point.weightKg)))
+                    LineMark(x: .value(WatchCopy.text("watch.day"), date), y: .value(WatchCopy.text("watch.mean"), unit.fromKg(point.weightKg)))
                         .lineStyle(StrokeStyle(lineWidth: 2))
                         .foregroundStyle(.tint)
                         .interpolationMethod(.catmullRom)
@@ -159,7 +159,7 @@ struct TrendView: View {
                     // sync state rather than hiding it in a label.
                     let isToday = point.day == CheckInDate.today()
                     let unconfirmed = store.isDayUnconfirmed(point.day)
-                    PointMark(x: .value("Day", date), y: .value("Weight", unit.fromKg(point.weightKg)))
+                    PointMark(x: .value(WatchCopy.text("watch.day"), date), y: .value(WatchCopy.text("watch.weight"), unit.fromKg(point.weightKg)))
                         // A custom symbol view rather than `symbolSize` plus a
                         // `ChartSymbolShape`: every built-in shape is filled,
                         // so there is no `.circle`-but-hollow to pick. Size and
@@ -188,7 +188,7 @@ struct TrendView: View {
     private var bodyFatChart: some View {
         Chart(bodyFatPoints) { point in
             if let date = point.date, let fat = point.bodyFatPercentage {
-                LineMark(x: .value("Day", date), y: .value("Body fat", fat))
+                LineMark(x: .value(WatchCopy.text("watch.day"), date), y: .value(WatchCopy.text("watch.bodyFat"), fat))
                     .lineStyle(StrokeStyle(lineWidth: 1.5))
                     .foregroundStyle(.secondary)
                     .interpolationMethod(.catmullRom)
@@ -199,7 +199,7 @@ struct TrendView: View {
         .frame(height: 96)
         .overlay(alignment: .trailing) {
             if let latest = bodyFatPoints.last?.bodyFatPercentage {
-                Text(String(format: "%.1f %%", latest))
+                Text(String(format: "%.1f %%", locale: Locale.current, latest))
                     .font(.caption2)
                     .monospacedDigit()
                     .foregroundStyle(.secondary)

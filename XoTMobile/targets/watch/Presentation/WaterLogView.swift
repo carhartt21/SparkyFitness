@@ -44,7 +44,7 @@ struct WaterLogView: View {
                 }
             }
         }
-        .navigationTitle("Today")
+        .navigationTitle(WatchCopy.text("watch.today"))
         // Inline, so the title sits on the same line as the back chevron
         // rather than eating a whole row of a screen this small.
         .navigationBarTitleDisplayMode(.inline)
@@ -69,7 +69,7 @@ struct WaterLogView: View {
             Image(systemName: "drop")
                 .font(.system(size: 22))
                 .foregroundStyle(.secondary)
-            Text("Nothing logged yet today")
+            Text(WatchCopy.text("watch.waterEmpty"))
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
@@ -101,8 +101,8 @@ struct WaterLogView: View {
         }
         .buttonStyle(.plain)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("\(entry.name), \(amountText(entry)), at \(entry.time)")
-        .accessibilityHint("Opens a prompt to delete this entry")
+        .accessibilityLabel(WatchCopy.text("watch.waterEntryA11y", entry.name, amountText(entry), entry.time))
+        .accessibilityHint(WatchCopy.text("watch.deleteHint"))
     }
 
     /// Formatted in the account's configured water unit, the same way the
@@ -113,7 +113,7 @@ struct WaterLogView: View {
 
     private func confirmation(for entry: WaterLogEntry) -> some View {
         VStack(spacing: 10) {
-            Text("Delete this entry?")
+            Text(WatchCopy.text("watch.deletePrompt"))
                 .font(.system(size: 15, weight: .semibold))
                 .multilineTextAlignment(.center)
             Text("\(entry.name) · \(amountText(entry))")
@@ -123,12 +123,12 @@ struct WaterLogView: View {
                 .multilineTextAlignment(.center)
 
             HStack(spacing: 8) {
-                Button("No") {
+                Button(WatchCopy.text("watch.no")) {
                     pendingDeletion = nil
                 }
                 .buttonStyle(.bordered)
 
-                Button("Yes") {
+                Button(WatchCopy.text("watch.yes")) {
                     delete(entry)
                 }
                 .buttonStyle(.borderedProminent)

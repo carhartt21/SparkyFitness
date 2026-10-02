@@ -27,6 +27,16 @@ enum OutboundPayloads {
         static let thumbnailRequest = "thumbnailRequest"
     }
 
+    static func progressAction(_ action: PendingProgressAction) -> [String: Any] {
+        var payload: [String: Any] = [
+            "type": "progressAction", "clientId": action.id, "scope": action.scope,
+            "entryDate": action.entryDate, "itemId": action.itemId,
+            "capturedAt": ISO8601DateFormatter().string(from: action.capturedAt),
+        ]
+        if let recordedAt = action.expectedRecordedAt { payload["expectedRecordedAt"] = recordedAt }
+        return payload
+    }
+
     /// A morning check-in awaiting a server write.
     ///
     /// `bodyFatPercentage` is OMITTED rather than sent as null when the wearer

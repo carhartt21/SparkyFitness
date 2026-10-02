@@ -214,8 +214,27 @@ export function validateWatchLocales(root) {
         if (entry.isDirectory()) inspect(file);
         else if (entry.name.endsWith('.swift')) {
           const source = fs.readFileSync(file, 'utf8');
+          for (const [index, line] of source.split('\n').entries()) {
+            if (line.trimStart().startsWith('//')) continue;
+            const literal =
+              line.match(/return\s+"([^"\n]*[A-Za-z]{2}\s[^"\n]*)"/) ??
+              line.match(
+                /(?:Text|Button|Label|TextField|navigationTitle|accessibilityLabel|accessibilityHint)\(\s*"([^"\n]+)"/
+              );
+            // Units/numerals and interpolated personal content are not static copy.
+            if (
+              literal &&
+              /[A-Za-z]{2}/.test(literal[1]) &&
+              !literal[1].includes('\\(') &&
+              !/^\d+\s*(?:ml|g|kcal)$/.test(literal[1])
+            ) {
+              errors.push(
+                `${target}: hardcoded UI copy ${path.relative(directory, file)}:${index + 1}`
+              );
+            }
+          }
           for (const match of source.matchAll(
-            /"((?:food|progress)\.[A-Za-z]+)"/g
+            /"((?:food|progress|watch|workout)\.[A-Za-z][A-Za-z0-9.]*)"/g
           )) {
             if (!maps.get('en').has(match[1]))
               errors.push(`${target}: missing English ${match[1]}`);
