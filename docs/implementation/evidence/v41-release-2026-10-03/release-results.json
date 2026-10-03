@@ -1,0 +1,74 @@
+{
+  "observedAtUtc": "2026-10-03T20:58:43.348219+00:00",
+  "sourceCommit": "5aaf5ecb836294c5df13fdb82998cdaf35d4f025",
+  "appVersion": "1.7.2",
+  "build": "41",
+  "buildId": "89829047-4739-42be-b8aa-5bb741c41ecc",
+  "buildStatus": "FINISHED",
+  "submissionId": "a40258c9-141b-4355-a90c-4adbbfbadde1",
+  "submissionStatus": "FINISHED",
+  "appleProcessingState": "VALID",
+  "internalBuildState": "IN_BETA_TESTING",
+  "ipaSha256": "7b9bb67a572a4f5c8e8697eea5bf1ac7ef42e047988d1aa9c93217f6f0fb618e",
+  "production": {
+    "sourceCommit": "5aaf5ecb836294c5df13fdb82998cdaf35d4f025",
+    "healthy": true,
+    "publicHttps": {
+      "/": 200,
+      "/api/health": 200,
+      "/.well-known/oauth-protected-resource/mcp/chatgpt": 200
+    },
+    "preserved": [
+      "database image",
+      "persistent mounts",
+      "protected settings",
+      "private routing",
+      "existing migration ledger unchanged",
+      "BLS catalogue count",
+      "mobility owner policies"
+    ],
+    "matchedEncryptedBackupVerifiedOffHost": true,
+    "newMigrations": 0,
+    "blsFoodCount": 7140,
+    "servedAppAssetsVerified": 27,
+    "servedArtworkVerified": 22
+  },
+  "validation": {
+    "sourceCommit": "5aaf5ecb836294c5df13fdb82998cdaf35d4f025",
+    "sourceArchiveSha256": "fa4192c3bc3425250c29bd84cc0ec1318606de2d467f7957c869ace9dbfe9fa2",
+    "includedBranches": [
+      "feat/v41-inbox-corrections-20261003",
+      "feat/bls-artwork-expansion-20261003"
+    ],
+    "mobileTests": {
+      "suites": 545,
+      "passed": 7699
+    },
+    "webTests": {
+      "suites": 174,
+      "passed": 1495
+    },
+    "serverTests": {
+      "suites": 14,
+      "passed": 265,
+      "fullSuite": "skipped by standing owner instruction"
+    },
+    "validate": {
+      "mobile": "passed",
+      "web": "passed",
+      "server": "passed"
+    },
+    "productionWebBuild": "passed",
+    "productionIosJsExport": "passed",
+    "docsBuild": "passed",
+    "migrations": "no pending migrations",
+    "blsRecords": 7140
+  },
+  "rolloutGates": {
+    "expandedNativeMicronutrientSync": false,
+    "micronutrientImport": false,
+    "coaching": false
+  },
+  "physicalDeviceChecks": "not performed",
+  "appleBuildId": "dd0f60bd-65d6-43a0-ae86-5838c96cb77c"
+}
