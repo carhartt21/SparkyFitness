@@ -31,6 +31,7 @@ activity queries under the Daily Progress family. See
 - `src/utils/` - timezone helpers (`todayInZone`, `instantToDay`, `dayToUtcRange`, `compareDays`, `addDays`, `isDayString`), cycle/menstruation helpers, and unit/calculation utilities.
 - `src/ai/`, `src/cycle/`, `src/medications/`, `src/mood/` - domain-specific helpers.
 - `src/foodSearch/relevance.ts` - shared deterministic food-query normalization and candidate ranking for server, web, and mobile; keep provider I/O in each consumer.
+- `src/foodImages/foodArtwork.ts` - display-only fallback resolution by retained BLS source identity, then OFF groups/name. `blsArtworkRules.ts` classifies the pinned archive for the versioned manifest; validate it using `XoTServer/scripts/audit_bls_artwork.ts`. Never persist illustrations as food photos or rewrite historical snapshots.
 
 ## Naming Convention
 

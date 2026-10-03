@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [BLS representative artwork workflow](bls-food-artwork-2026-10-03.md): pinned catalogue coverage, shared image resolution, generated exports, offline asset review and remaining device checks.
+
 - [v40 localization and release preparation](v40-localization-release-2026-10-03.md): phone/Watch German corrections, regression gates, simulator evidence and release verification.
 
 - [v39 owner-review corrective plan](v39-review-corrective-plan-2026-10-02.md) and [results](v39-review-corrective-results-2026-10-02.md): activity labels/skip, category overview and localized Watch daily goals; physical-device checks remain separate.

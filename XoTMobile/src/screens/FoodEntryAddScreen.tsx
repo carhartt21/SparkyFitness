@@ -384,7 +384,8 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const fallbackArtwork = foodFallbackImage(
     activeItem.name,
     activeItem.source === 'meal',
-    foodGroupTags
+    foodGroupTags,
+    activeItem
   );
   const effectiveMealId = selectedMealId ?? defaultMealTypeId;
   const selectedMealType = mealTypes.find((mt) => mt.id === effectiveMealId);

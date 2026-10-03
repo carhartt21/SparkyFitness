@@ -1,0 +1,162 @@
+[
+  {
+    "code": "E401000",
+    "name_de": "Teigwaren eifrei, roh",
+    "name_en": "Pasta egg-free, raw"
+  },
+  {
+    "code": "E111100",
+    "name_de": "Hühnerei roh",
+    "name_en": "Chicken egg raw"
+  },
+  {
+    "code": "K701100",
+    "name_de": "Champignon roh",
+    "name_en": "Button mushroom raw"
+  },
+  {
+    "code": "H510802",
+    "name_de": "Oliven grün, gesäuert, abgetropft",
+    "name_en": "Olives green, pickled, drained"
+  },
+  {
+    "code": "H640100",
+    "name_de": "Alfalfasprossen/Alfalfakeimlinge, roh",
+    "name_en": "Lucerne/alfalfa sprouts, raw"
+  },
+  {
+    "code": "N410100",
+    "name_de": "Kaffee (Getränk)",
+    "name_en": "Coffee (infusion)"
+  },
+  {
+    "code": "R411000",
+    "name_de": "Kutterhilfsmittel (E 450)",
+    "name_en": "Cutter additives phosphate-based (E 450)"
+  },
+  {
+    "code": "C352000",
+    "name_de": "Reis poliert, roh",
+    "name_en": "White rice raw"
+  },
+  {
+    "code": "C359000",
+    "name_de": "Reis parboiled, poliert, roh",
+    "name_en": "Rice parboiled, raw"
+  },
+  {
+    "code": "C351000",
+    "name_de": "Reis unpoliert, roh",
+    "name_en": "Brown rice raw"
+  },
+  {
+    "code": "F110100",
+    "name_de": "Apfel roh",
+    "name_en": "Apple raw"
+  },
+  {
+    "code": "F110400",
+    "name_de": "Apfel getrocknet",
+    "name_en": "Apple dried"
+  },
+  {
+    "code": "G561100",
+    "name_de": "Tomate roh",
+    "name_en": "Tomato raw"
+  },
+  {
+    "code": "R161200",
+    "name_de": "Tomaten passiert/Tomatenpüree",
+    "name_en": "Tomato puree"
+  },
+  {
+    "code": "G561132",
+    "name_de": "Tomate gekocht",
+    "name_en": "Tomato boiled"
+  },
+  {
+    "code": "C351032",
+    "name_de": "Reis unpoliert, gekocht",
+    "name_en": "Brown rice boiled"
+  },
+  {
+    "code": "C352032",
+    "name_de": "Reis poliert, gekocht",
+    "name_en": "White rice boiled"
+  },
+  {
+    "code": "G560400",
+    "name_de": "Tomate getrocknet",
+    "name_en": "Tomato dried"
+  },
+  {
+    "code": "G561500",
+    "name_de": "Tomate Pulver",
+    "name_en": "Tomato powder"
+  },
+  {
+    "code": "X820162",
+    "name_de": "Reis gekocht",
+    "name_en": "Rice boiled"
+  },
+  {
+    "code": "X321263",
+    "name_de": "Tomatensauce aus frischen Tomaten",
+    "name_en": "Tomato sauce of fresh tomatoes"
+  },
+  {
+    "code": "M5B1600",
+    "name_de": "Gorgonzola mind. 48 % Fett i. Tr.",
+    "name_en": "Gorgonzola cheese min. 48 % fat in dry matter"
+  },
+  {
+    "code": "X321153",
+    "name_de": "Tomatensauce von heller/weißer Grundsauce",
+    "name_en": "Tomato sauce from white basic sauce"
+  },
+  {
+    "code": "X820753",
+    "name_de": "Reis mit gebratenen Zwiebeln",
+    "name_en": "Rice with fried onions"
+  },
+  {
+    "code": "X4A6030",
+    "name_de": "Tomatensuppe klar, mit Gemüsebrühe",
+    "name_en": "Tomato soup clear, with vegetable stock"
+  },
+  {
+    "code": "C351082",
+    "name_de": "Reis unpoliert, gekocht, gebraten ohne Fett (Pfanne)",
+    "name_en": "Brown rice boiled, fried without fat (pan)"
+  },
+  {
+    "code": "X880453",
+    "name_de": "Curryreis",
+    "name_en": "Curried rice"
+  },
+  {
+    "code": "X820252",
+    "name_de": "Butterreis",
+    "name_en": "Buttered rice"
+  },
+  {
+    "code": "X8A1020",
+    "name_de": "Leberrisotto/Leberreis",
+    "name_en": "Liver risotto"
+  },
+  {
+    "code": "X437143",
+    "name_de": "Leberspätzle/Leberreis",
+    "name_en": "Liver spaetzle"
+  },
+  {
+    "code": "Y9A2010",
+    "name_de": "Himbeereis",
+    "name_en": "Raspberry ice cream"
+  },
+  {
+    "code": "Y996510",
+    "name_de": "Erdbeereis",
+    "name_en": "Strawberry ice cream"
+  }
+]

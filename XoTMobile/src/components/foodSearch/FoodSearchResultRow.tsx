@@ -54,6 +54,7 @@ const OnlineResultRow: React.FC<OnlineResultRowProps> = ({
           image={image}
           name={item.name}
           foodGroupTags={item.food_group_tags}
+          foodIdentity={item}
           getImageSource={getImageSource}
           size={40}
           onPress={

@@ -1,6 +1,73 @@
 # Food Provider Images
 
-How food photos flow from an external provider into SparkyFitness, which providers actually supply them, and how to verify a provider yourself instead of guessing.
+How food photos flow from an external provider into X on Track, and how bundled representative artwork fills an empty image slot without changing the food's data.
+
+## Bundled BLS artwork
+
+BLS supplies reference-food names and nutrients, not product photographs. The
+clients resolve a missing image through `foodArtworkKey` in `@workspace/shared`.
+For `provider_type: 'bls4'`, the exact `provider_external_id` selects an entry in
+`shared/src/foodImages/blsArtworkManifest.json`. German/English display names and
+owner renames therefore do not change the illustration. Keep the complete code:
+BLS 4.0 includes alphanumeric codes such as `M5B1600`.
+
+Resolution order is an existing usable food/provider photo, then the BLS code
+mapping, then existing Open Food Facts group tags, then the conservative name
+fallback. Meal templates use dish artwork. A failed photo may display the
+illustration, but the illustration never opens a photo viewer and is never saved
+into `images`, `image_url`, nutrients, or historical snapshots.
+
+The version-1 mapping covers the pinned catalogue's 7,140 records. It reuses
+bundled group artwork and adds ten specific images: raw/cooked/dried tomatoes,
+tomato sauce, raw apple, dry/cooked white and brown rice, and mushrooms. Mushroom
+artwork represents the group, not an exact species or preparation. There are 88
+neutral assignments for records such as additives and isolated powders; the
+remaining assignments are still often broad food-group illustrations, not exact
+food photos. The 50 nutrient-ineligible catalogue records remain ineligible for
+food search; having artwork does not make their nutrition complete.
+
+The audit uses the official German source names to classify preparation once,
+then ships code-based assignments. Do not apply older BLS numerical suffix rules
+to this dataset or infer a mixed dish's identity from one ingredient word.
+
+```bash
+cd XoTServer
+# Read-only archive check; verifies the committed mapping and both asset sets.
+pnpm exec tsx scripts/audit_bls_artwork.ts --archive /path/to/BLS_4_0_2025_DE.zip
+# After reviewing rule changes, regenerate the derived manifest only.
+pnpm exec tsx scripts/audit_bls_artwork.ts --archive /path/to/BLS_4_0_2025_DE.zip --write
+```
+
+Neither command accesses a database. The archive digest is validated by the
+existing importer. Coverage and public-name assignments are written under
+`.visual-sample/bls-artwork/`, outside version control. Source attribution remains
+in `agent-docs/bls4-food-source.md`.
+
+Asset inventory, subject specifications and output hashes live in
+`x-on-track-design/food-artwork/`. Phone PNGs are bundled under
+`XoTMobile/assets/food-artwork/`; web WebPs ship under
+`XoTFrontend/public/images/food-artwork/`. Every mapping must resolve to a file on
+both platforms. No Unsplash credentials or runtime image service are required.
+
+Cached food records with retained provider identity can display these images
+offline. This does not download the BLS catalogue to the phone. Historical diary
+rows without retained source identity continue using their existing photo/name
+fallback; no per-row lookup or history rewrite is performed.
+
+The production web service worker precaches the three fallback image folders
+using its existing Workbox cache. Its first successful installation requires a
+connection. To review transparency, 40/64-pixel thumbnails, light/dark and narrow
+layouts, and actual offline cache availability:
+
+```bash
+cd XoTFrontend
+pnpm run build
+node scripts/review-food-artwork.mjs
+```
+
+The review serves the built assets on an isolated loopback origin. It never
+connects to an account or backend. Screenshots and results stay under
+`.visual-sample/bls-artwork/`; this is an asset/PWA gate, not a phone device test.
 
 ## Support matrix
 
@@ -15,6 +82,7 @@ How food photos flow from an external provider into SparkyFitness, which provide
 | **Norish**        | Unverified                 | Recipe `image` is mapped and resolved against the instance URL; no instance to test on |
 | **USDA**          | **No**                     | Live API call — the FDC response has no image fields at all                            |
 | **SwissFood**     | **No**                     | Live API call — no image fields in the response                                        |
+| **BLS 4.0**       | Bundled illustrations      | Read-only pinned-archive audit; not source photographs                                 |
 
 Treat every "unverified" row as unproven: mapping code reading an image field proves the plumbing, **not** that the upstream API populates it.
 
@@ -70,6 +138,7 @@ SparkyFitness calls the **v1 `foods.search`** method, whose response has no imag
 ::: warning
 Do not migrate the search to `foods.search.v5`. It requires premier scope and hard-fails for Basic accounts with `Missing scope: scope 'premier'`, and it returns no images that `food.get.v4` doesn't already return.
 :::
+
 ## Verifying a provider yourself
 
 Read the mapper, then **call the real API** — the two answer different questions.
@@ -85,7 +154,6 @@ curl -s "https://api.nal.usda.gov/fdc/v1/foods/search?query=cheddar&pageSize=1&a
 
 For an OAuth provider, fetch a token first, then request one known food and grep the raw JSON for `image`. Testing a provider's **own documentation example food id** is the strongest check available: if their docs show images for that id and your call doesn't, the difference is account entitlement, not code.
 
-
 ## Diary entries own their photo
 
 A diary entry does not display the food's photo live. It snapshots it, exactly
@@ -99,7 +167,7 @@ as it snapshots nutrition:
   opt-in — both clients ask "Update past entries?" after a save.
 - Migration `20260814000000_backfill_diary_entry_images_from_parent.sql`
   backfilled rows logged before this behaviour existed. The photo an old entry
-  was *originally* logged with is unrecoverable — it was never stored — so the
+  was _originally_ logged with is unrecoverable — it was never stored — so the
   backfill stamps the parent's current image. It freezes history going forward
   rather than restoring it.
 
@@ -127,7 +195,7 @@ first and keeps the file when it is still referenced — and keeps it on any err
 too, since an unreferenced file on disk is cheaper than a broken thumbnail in
 someone's history.
 
-Food *deletion* was already safe: the food is either hard-deleted along with its
+Food _deletion_ was already safe: the food is either hard-deleted along with its
 entries, or hidden (`is_quick_food`) with its row and images intact.
 
 ## Gotchas

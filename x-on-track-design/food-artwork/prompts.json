@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "shared_direction": "Food thumbnail for X on Track. Representative food illustration, not an exact product photo. Polished realistic food cutout with natural textures and soft studio lighting. Centered compact cluster in three-quarter view, approximately 75% of the canvas with transparent margin. Clear at 48 pixels. Genuine transparent alpha and a restrained natural contact shadow. No text, logo, watermark, packaging, scenery, tabletop, border, glow, or unrelated ingredients.",
+  "subjects": {
+    "tomato-raw": "Whole fresh red tomato with green calyx and a tomato half showing seed chambers.",
+    "tomato-sauce": "Plain white ceramic bowl of smooth thick red tomato sauce with a stainless spoon; no pasta or garnish.",
+    "apple-raw": "Fresh red-yellow apple and a white-fleshed wedge; no brand or prepared fruit.",
+    "rice-dry": "Mound of separate uncooked ivory white long-grain rice and a wooden scoop; no cooked rice.",
+    "rice-cooked": "Plain white ceramic bowl of fluffy opaque plump cooked white long-grain rice; no garnish.",
+    "mushrooms": "Three fresh brown and white button mushrooms with one sliced to show gills; raw.",
+    "rice-brown-dry": "Mound of dry light-brown whole-grain long-grain rice and a wooden scoop.",
+    "rice-brown-cooked": "Plain white ceramic bowl of fluffy plump tan cooked whole-grain rice; no white rice or garnish.",
+    "tomato-cooked": "White bowl of soft cooked red tomato chunks with skins and natural liquid; not smooth sauce.",
+    "tomato-dried": "Pile of wrinkled leathery red-brown sun-dried tomato halves; no oil jar or fresh tomatoes."
+  }
+}
