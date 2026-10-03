@@ -20,6 +20,18 @@ describe('food fallback artwork', () => {
     ['F110100', 'Apple raw', 'apple-raw'],
     ['R161200', 'Tomaten passiert/Tomatenpüree', 'tomato-sauce'],
     ['K701100', 'Champignon roh', 'mushrooms'],
+    ['H310100', 'Pumpkin seeds', 'seeds'],
+    ['C214100', 'Wheat flour', 'flour'],
+    ['C217000', 'Wheat bran', 'bran'],
+    ['K230000', 'Potato starch', 'starch'],
+    ['M882000', 'Whole milk powder', 'milk-powder'],
+    ['M713100', 'Magerquark', 'quark'],
+    ['H861000', 'Tofu', 'tofu'],
+    ['H510802', 'Green olives', 'olives'],
+    ['V416100', 'Chicken breast raw', 'poultry-raw'],
+    ['V416182', 'Chicken breast cooked', 'poultry-cooked'],
+    ['E401032', 'Pasta cooked', 'pasta-cooked'],
+    ['N420900', 'Instant coffee powder', 'coffee-powder'],
   ])(
     'resolves %s to a shipped preparation-specific asset',
     (code, name, slug) => {

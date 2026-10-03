@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "assets": [
     {
       "slug": "tomato-raw",
@@ -110,6 +110,138 @@
       "webp_bytes": 25896,
       "png_sha256": "68abc3828407fb0fdb179a7bfd94af945b91631fbdda20f71926fd92afda281b",
       "webp_sha256": "371c751e691ff1b6fb4191d9897a9adffe8c5ce58435032cf6e9e49c41f92d6e"
+    },
+    {
+      "slug": "seeds",
+      "kind": "representative-illustration",
+      "subject": "A compact shallow pile of shelled green pumpkin seeds, pale sunflower kernels, sesame and brown flax seeds. Seeds only, no nuts, no shells, no bowl.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 90780,
+      "webp_bytes": 20304,
+      "png_sha256": "89e1a65b375e824ad8e9291b5dd791dc5e7f536f773e0d4af0136679952c0c7c",
+      "webp_sha256": "751119b334c2c12fa74718482f5f42f420fcbe97b469ecd78face656049fedf1"
+    },
+    {
+      "slug": "flour",
+      "kind": "representative-illustration",
+      "subject": "A mound of fine pale wheat-like flour with a simple wooden scoop resting beside it. Dry flour only, no grain ears or baked foods.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 82561,
+      "webp_bytes": 19228,
+      "png_sha256": "f6b1fe3e0b44704cdde8235daa47660d147b6d0a24e3d7e93dc9742fb6319eae",
+      "webp_sha256": "2472d0a328f70262d52ccfb5f35c68c65587a91e1b3cf3a569b12094e2a979cf"
+    },
+    {
+      "slug": "bran",
+      "kind": "representative-illustration",
+      "subject": "A mound of dry tan wheat/oat bran flakes with a simple wooden scoop. Clearly coarse fibrous bran, not fine flour or whole grain kernels.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 104184,
+      "webp_bytes": 26914,
+      "png_sha256": "efdfd9e5ce394f3c98ae8b324912e1215f44a41191e2499be4f38f52ea367cda",
+      "webp_sha256": "7d7518dc5e143feb476a9df92e0336c68057e249ccdf1c3b522e9db16183d239"
+    },
+    {
+      "slug": "starch",
+      "kind": "representative-illustration",
+      "subject": "A small plain white ceramic bowl of very fine bright white dry food starch and a shallow spoonful beside it. Smooth powder, no plants or flour sacks.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 62691,
+      "webp_bytes": 12982,
+      "png_sha256": "bd6eb6284e6aed76bace98fadba1b78f8dec12337ca2b4919293a3228a872cd6",
+      "webp_sha256": "f1912149fadefabe49a527ab40ff9f586644e9cd9d8509c6405a70b39b89ea4c"
+    },
+    {
+      "slug": "milk-powder",
+      "kind": "representative-illustration",
+      "subject": "A mound of pale cream dry milk powder in a small plain white bowl with a stainless teaspoon. Dry powder only, no liquid milk or cereal.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 69029,
+      "webp_bytes": 13718,
+      "png_sha256": "a079d45487f670d2e782141c47466adead4deb4697aba0f26fd18d5535142088",
+      "webp_sha256": "af5c7e0a8c9f9da5fa6560d5bf9891e7e6a267c18694976a036c007a46521a34"
+    },
+    {
+      "slug": "quark",
+      "kind": "representative-illustration",
+      "subject": "A small plain white ceramic bowl of thick smooth white quark, a gentle spoon-shaped swirl and a stainless spoon. No cottage-cheese curds, cheese wedges, herbs or fruit.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 69337,
+      "webp_bytes": 11952,
+      "png_sha256": "db12905accfb0a8da0ad156956dfd761e9fb33ab2d8192375d9426158075cc95",
+      "webp_sha256": "a463478e2648cd5006d1756f7bff892bf8f86d0b4ac957543f6fc6d95313186c"
+    },
+    {
+      "slug": "tofu",
+      "kind": "representative-illustration",
+      "subject": "A plain ivory block of unseasoned firm tofu with two neat cubes beside it. Natural porous soft matte surface, not cheese; no sauce or garnish.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 79727,
+      "webp_bytes": 15378,
+      "png_sha256": "af50d6da2ee44847bdc8927cfc1bb31c88f8afb4ab4cb4812b1fa037efd89394",
+      "webp_sha256": "866d3f01cb2df7586422cc100d4d2485f84d7668923bf811c0b0b96361d8ebe5"
+    },
+    {
+      "slug": "olives",
+      "kind": "representative-illustration",
+      "subject": "A compact cluster of whole green and dark purple-black olives with two pitted olive halves showing the hollow centers. No oil, leaves, stems or bowl.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 89625,
+      "webp_bytes": 15352,
+      "png_sha256": "ce0203998e2e9b111f62b2781ad250da6c426c0d86b37fdd1571492f8e4fdae6",
+      "webp_sha256": "a799f97d185a1a08b00b3b358d440af61188bc568097f76f6b49daec39b7691d"
+    },
+    {
+      "slug": "poultry-raw",
+      "kind": "representative-illustration",
+      "subject": "Two pieces of raw pale-pink boneless poultry breast, clean natural surface. Uncooked flesh only, no skin, herbs, bones or garnish.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 92534,
+      "webp_bytes": 16158,
+      "png_sha256": "bd473b6d2594498c26dad21b5b850e3fa139de25b193329b43e6a89bd095f27d",
+      "webp_sha256": "b283c7b03c9148a76988c6d86e9a47c48f9a1f15d9f737bcd8fd30a84a24c643"
+    },
+    {
+      "slug": "poultry-cooked",
+      "kind": "representative-illustration",
+      "subject": "A small plain white plate with a cooked boneless poultry breast and three slices revealing opaque white fully cooked meat, a modest golden exterior. No sauce, herbs, vegetables or raw meat.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 90785,
+      "webp_bytes": 15662,
+      "png_sha256": "d33f81f312f535106360b4a776df58f90b152c01d67823d7aaaca3bd0e2f307b",
+      "webp_sha256": "7207e233c4e860b523b4068a289492ea64620d2574de6558eae5db53a9a8ba49"
+    },
+    {
+      "slug": "pasta-cooked",
+      "kind": "representative-illustration",
+      "subject": "A small plain white bowl of soft fully cooked pale-yellow penne pasta, lightly moist with no sauce. No raw pasta, cheese, herbs or vegetables.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 85351,
+      "webp_bytes": 13188,
+      "png_sha256": "173db847bdaf0cd6138f5d899046a37eec7f5bb9073edec3281fdc66744c97f1",
+      "webp_sha256": "9d51ffd6f5289e7303f21b189d96849155591d290bdc339d13e308437a52cda1"
+    },
+    {
+      "slug": "coffee-powder",
+      "kind": "representative-illustration",
+      "subject": "A mound of dark brown instant-coffee granules in a small plain white bowl with a stainless teaspoon. Dry granules only, no whole coffee beans, liquid or foam.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 80406,
+      "webp_bytes": 17538,
+      "png_sha256": "6b5bc2b09ceee76aa91d0aeabd8ed92141403c826e3d01666b695629c9a81d14",
+      "webp_sha256": "4636949576c6a0fd7bf95e3924258a3283f1fb07c91901c84bbdeba3525a7a1c"
     }
   ]
 }

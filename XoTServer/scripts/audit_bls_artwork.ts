@@ -85,12 +85,12 @@ for (const key of Object.keys(ordered)) {
   }
 }
 const manifest = {
-  version: 1,
+  version: 2,
   dataset_sha256: dataset.dataset_sha256,
   by_artwork: ordered,
 };
 const summary = {
-  version: 1,
+  version: 2,
   dataset_sha256: dataset.dataset_sha256,
   records: audit.length,
   core_nutrient_eligible: dataset.eligible,

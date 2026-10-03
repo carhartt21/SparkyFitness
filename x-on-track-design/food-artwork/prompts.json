@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "shared_direction": "Food thumbnail for X on Track. Representative food illustration, not an exact product photo. Polished realistic food cutout with natural textures and soft studio lighting. Centered compact cluster in three-quarter view, approximately 75% of the canvas with transparent margin. Clear at 48 pixels. Genuine transparent alpha and a restrained natural contact shadow. No text, logo, watermark, packaging, scenery, tabletop, border, glow, or unrelated ingredients.",
   "subjects": {
     "tomato-raw": "Whole fresh red tomato with green calyx and a tomato half showing seed chambers.",
@@ -11,6 +11,19 @@
     "rice-brown-dry": "Mound of dry light-brown whole-grain long-grain rice and a wooden scoop.",
     "rice-brown-cooked": "Plain white ceramic bowl of fluffy plump tan cooked whole-grain rice; no white rice or garnish.",
     "tomato-cooked": "White bowl of soft cooked red tomato chunks with skins and natural liquid; not smooth sauce.",
-    "tomato-dried": "Pile of wrinkled leathery red-brown sun-dried tomato halves; no oil jar or fresh tomatoes."
-  }
+    "tomato-dried": "Pile of wrinkled leathery red-brown sun-dried tomato halves; no oil jar or fresh tomatoes.",
+    "seeds": "A compact shallow pile of shelled green pumpkin seeds, pale sunflower kernels, sesame and brown flax seeds. Seeds only, no nuts, no shells, no bowl.",
+    "flour": "A mound of fine pale wheat-like flour with a simple wooden scoop resting beside it. Dry flour only, no grain ears or baked foods.",
+    "bran": "A mound of dry tan wheat/oat bran flakes with a simple wooden scoop. Clearly coarse fibrous bran, not fine flour or whole grain kernels.",
+    "starch": "A small plain white ceramic bowl of very fine bright white dry food starch and a shallow spoonful beside it. Smooth powder, no plants or flour sacks.",
+    "milk-powder": "A mound of pale cream dry milk powder in a small plain white bowl with a stainless teaspoon. Dry powder only, no liquid milk or cereal.",
+    "quark": "A small plain white ceramic bowl of thick smooth white quark, a gentle spoon-shaped swirl and a stainless spoon. No cottage-cheese curds, cheese wedges, herbs or fruit.",
+    "tofu": "A plain ivory block of unseasoned firm tofu with two neat cubes beside it. Natural porous soft matte surface, not cheese; no sauce or garnish.",
+    "olives": "A compact cluster of whole green and dark purple-black olives with two pitted olive halves showing the hollow centers. No oil, leaves, stems or bowl.",
+    "poultry-raw": "Two pieces of raw pale-pink boneless poultry breast, clean natural surface. Uncooked flesh only, no skin, herbs, bones or garnish.",
+    "poultry-cooked": "A small plain white plate with a cooked boneless poultry breast and three slices revealing opaque white fully cooked meat, a modest golden exterior. No sauce, herbs, vegetables or raw meat.",
+    "pasta-cooked": "A small plain white bowl of soft fully cooked pale-yellow penne pasta, lightly moist with no sauce. No raw pasta, cheese, herbs or vegetables.",
+    "coffee-powder": "A mound of dark brown instant-coffee granules in a small plain white bowl with a stainless teaspoon. Dry granules only, no whole coffee beans, liquid or foam."
+  },
+  "expansion_direction": "Use case: product-mockup. Asset type: small food thumbnail for X on Track. Representative food illustration, not an exact provider product photo. Polished realistic food cutout with natural textures and soft studio lighting. Centered compact cluster in three-quarter view occupying approximately 75% of a square canvas with generous transparent margin. Clearly recognizable at 48 pixels. Genuine transparent alpha; restrained natural contact shadow only. No text, logo, watermark, packaging, scenery, tabletop, border, glow or unrelated ingredients."
 }
