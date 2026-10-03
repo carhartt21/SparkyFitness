@@ -127,6 +127,15 @@ try {
           (img) => img.complete && img.naturalWidth === 256
         )
       );
+      // A viewport change can leave a stale compositor frame in full-page
+      // captures. Decode images and let the resized/theme layout paint first.
+      await page.evaluate(async () => {
+        window.scrollTo(0, 0);
+        await Promise.all(Array.from(document.images, (img) => img.decode()));
+        await new Promise((resolveFrame) =>
+          requestAnimationFrame(() => requestAnimationFrame(resolveFrame))
+        );
+      });
       const overflow = await page.evaluate(
         () => document.documentElement.scrollWidth > window.innerWidth
       );

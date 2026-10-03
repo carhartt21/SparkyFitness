@@ -158,5 +158,245 @@
     "code": "Y996510",
     "name_de": "Erdbeereis",
     "name_en": "Strawberry ice cream"
+  },
+  {
+    "code": "H310100",
+    "name_de": "Kürbiskern",
+    "name_en": "Pumpkin seed"
+  },
+  {
+    "code": "H480100",
+    "name_de": "Chia-Samen",
+    "name_en": "Chia seeds"
+  },
+  {
+    "code": "H450400",
+    "name_de": "Mohn gemahlen",
+    "name_en": "Poppy seed ground"
+  },
+  {
+    "code": "H320100",
+    "name_de": "Pinienkern",
+    "name_en": "Pine nut"
+  },
+  {
+    "code": "C214100",
+    "name_de": "Weizen Mehl, Type 405",
+    "name_en": "Wheat flour, Type 405"
+  },
+  {
+    "code": "C211000",
+    "name_de": "Weizen Vollkornmehl",
+    "name_en": "Wheat wholemeal flour"
+  },
+  {
+    "code": "C217000",
+    "name_de": "Weizen Kleie",
+    "name_en": "Wheat bran"
+  },
+  {
+    "code": "C446000",
+    "name_de": "Mais Stärke",
+    "name_en": "Maize starch"
+  },
+  {
+    "code": "K230000",
+    "name_de": "Kartoffelstärke (Kartoffelmehl)",
+    "name_en": "Potato starch (potato flour)"
+  },
+  {
+    "code": "K512000",
+    "name_de": "Tapioka/Tapiokastärke",
+    "name_en": "Tapioca (granulated cassava starch)"
+  },
+  {
+    "code": "M882000",
+    "name_de": "Vollmilchpulver",
+    "name_en": "Whole milk powder"
+  },
+  {
+    "code": "M713100",
+    "name_de": "Speisequark Magerstufe, Magerquark < 10 % Fett i. Tr.",
+    "name_en": "Quark < 10 % fat in dry matter"
+  },
+  {
+    "code": "M710100",
+    "name_de": "Skyr, Frischkäse < 10 % Fett i. Tr.",
+    "name_en": "Skyr Icelandic style strained yogurt < 10 % fat in dry matter"
+  },
+  {
+    "code": "M711100",
+    "name_de": "Körniger Frischkäse < 10 % Fett i. Tr.",
+    "name_en": "Cottage cheese < 10 % fat in dry matter"
+  },
+  {
+    "code": "M148300",
+    "name_de": "Joghurt mind. 3,5 % Fett, mit Magermilchpulverzusatz",
+    "name_en": "Yogurt min. 3.5 % fat, fortified with skimmed milk powder"
+  },
+  {
+    "code": "M831100",
+    "name_de": "Speisequarkzubereitung < 10 % Fett i. Tr., mit Fruchtzubereitung, gesüßt",
+    "name_en": "Quark preparation < 10 % fat in dry matter, with fruit preparation, sweetened"
+  },
+  {
+    "code": "M772800",
+    "name_de": "Schmelzkäse aus Frischkäse, streichfähig, mind. 60 % Fett i. Tr.",
+    "name_en": "Processed cheese made from cream cheese, spreadable, min. 60 % fat in dry matter"
+  },
+  {
+    "code": "H861000",
+    "name_de": "Tofu",
+    "name_en": "Tofu"
+  },
+  {
+    "code": "H861132",
+    "name_de": "Seidentofu gargezogen",
+    "name_en": "Silken tofu poached"
+  },
+  {
+    "code": "H861082",
+    "name_de": "Tofu gebraten ohne Fett (Pfanne)",
+    "name_en": "Tofu fried without fat (pan)"
+  },
+  {
+    "code": "H910300",
+    "name_de": "Vegetarische Bratwurst (aus Tofu und Weizenprotein)",
+    "name_en": "Vegetarian bratwurst (made from tofu and wheat protein)"
+  },
+  {
+    "code": "H110800",
+    "name_de": "Erdnussmus",
+    "name_en": "Peanut butter (100 % pure)"
+  },
+  {
+    "code": "H841100",
+    "name_de": "Sojadrink ungesüßt",
+    "name_en": "Soya drink unsweetened"
+  },
+  {
+    "code": "H154000",
+    "name_de": "Kokosmilch/Kokosnussmilch",
+    "name_en": "Coconut milk"
+  },
+  {
+    "code": "H764400",
+    "name_de": "Sojamehl vollfett",
+    "name_en": "Soya flour full fat"
+  },
+  {
+    "code": "V416100",
+    "name_de": "Hähnchen Brustfilet, roh",
+    "name_en": "Chicken breast fillet, raw"
+  },
+  {
+    "code": "V416182",
+    "name_de": "Hähnchen Brustfilet, gebraten ohne Fett (Pfanne)",
+    "name_en": "Chicken breast fillet, fried without fat (pan)"
+  },
+  {
+    "code": "V634100",
+    "name_de": "Hähnchen Leber, roh",
+    "name_en": "Chicken liver, raw"
+  },
+  {
+    "code": "V434100",
+    "name_de": "Suppenhuhn Fleisch, mit Haut, roh",
+    "name_en": "Boiling fowl meat, with skin, raw"
+  },
+  {
+    "code": "V212100",
+    "name_de": "Hirsch Fleisch, roh",
+    "name_en": "Venison meat, raw"
+  },
+  {
+    "code": "V990182",
+    "name_de": "Geflügel Frikadelle, gebraten ohne Fett (Pfanne)",
+    "name_en": "Poultry patty, fried without fat (pan)"
+  },
+  {
+    "code": "E401032",
+    "name_de": "Teigwaren eifrei, gekocht",
+    "name_en": "Pasta egg-free, boiled"
+  },
+  {
+    "code": "E609132",
+    "name_de": "Eierteigwaren Tortelloni (Ricotta-Spinat-Füllung) getrocknet, gekocht",
+    "name_en": "Egg pasta Tortelloni (ricotta and spinach filling) dried, boiled"
+  },
+  {
+    "code": "E606032",
+    "name_de": "Semmelknödel gekocht",
+    "name_en": "White bread dumplings boiled"
+  },
+  {
+    "code": "N420100",
+    "name_de": "Kaffee (Getränk) aus Instantpulver",
+    "name_en": "Coffee (infusion) made from instant powder"
+  },
+  {
+    "code": "N420900",
+    "name_de": "Instantkaffeepulver",
+    "name_en": "Coffee instant powder"
+  },
+  {
+    "code": "N412900",
+    "name_de": "Cappuccino (Getränk) aus gesüßtem Instantpulver",
+    "name_en": "Cappuccino (infusion) made from sweetened instant powder"
+  },
+  {
+    "code": "N503900",
+    "name_de": "Cappuccino Instantpulver, gesüßt",
+    "name_en": "Cappuccino instant powder, sweetened"
+  },
+  {
+    "code": "G850100",
+    "name_de": "Gemüsecremesuppe Instantpulver",
+    "name_en": "Cream of vegetable soup instant powder"
+  },
+  {
+    "code": "G850132",
+    "name_de": "Gemüsecremesuppe aus Instantpulver (mit Wasser zubereitet)",
+    "name_en": "Cream of vegetable soup, made from instant powder and water"
+  },
+  {
+    "code": "K850532",
+    "name_de": "Pilzcremesuppe aus Instantpulver (mit Wasser zubereitet)",
+    "name_en": "Cream of mushroom soup, made from instant powder and water"
+  },
+  {
+    "code": "R481132",
+    "name_de": "Vanillepudding, Flammeri, zubereitet aus Pulver und Milch 3,5 % Fett, gesüßt",
+    "name_en": "Vanilla pudding made from powder, milk 3.5 % fat and sugar"
+  },
+  {
+    "code": "R481100",
+    "name_de": "Puddingpulver Vanille, ungezuckert",
+    "name_en": "Pudding powder, vanilla, unsweetened"
+  },
+  {
+    "code": "C650000",
+    "name_de": "Reisdrink ungesüßt",
+    "name_en": "Rice drink unsweetened"
+  },
+  {
+    "code": "X432142",
+    "name_de": "Teigwaren eifrei (mit Salz gekocht)",
+    "name_en": "Pasta egg-free (boiled with salt)"
+  },
+  {
+    "code": "X740862",
+    "name_de": "Teigwaren eifrei, in Öl geschwenkt, mit gekochtem Broccoli und Sardellen",
+    "name_en": "Pasta egg-free, tossed in oil, with boiled broccoli and anchovies"
+  },
+  {
+    "code": "X700062",
+    "name_de": "Eier-Frischteigwaren, selbstgemacht, roh",
+    "name_en": "Fresh egg pasta, homemade, raw"
+  },
+  {
+    "code": "X912033",
+    "name_de": "Pizza Margherita (mit Tomatensauce, Mozzarella)",
+    "name_en": "Pizza margherita (with tomato sauce, mozzarella)"
   }
 ]

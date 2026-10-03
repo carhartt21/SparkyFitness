@@ -17,18 +17,25 @@ fallback. Meal templates use dish artwork. A failed photo may display the
 illustration, but the illustration never opens a photo viewer and is never saved
 into `images`, `image_url`, nutrients, or historical snapshots.
 
-The version-1 mapping covers the pinned catalogue's 7,140 records. It reuses
-bundled group artwork and adds ten specific images: raw/cooked/dried tomatoes,
-tomato sauce, raw apple, dry/cooked white and brown rice, and mushrooms. Mushroom
-artwork represents the group, not an exact species or preparation. There are 88
-neutral assignments for records such as additives and isolated powders; the
-remaining assignments are still often broad food-group illustrations, not exact
-food photos. The 50 nutrient-ineligible catalogue records remain ineligible for
-food search; having artwork does not make their nutrition complete.
+The version-2 mapping covers the pinned catalogue's 7,140 records. It reuses
+bundled group artwork and has 22 dedicated illustrations, including raw/cooked
+poultry and pasta, seeds, olives, tofu, quark, flour, bran, starch, milk powder
+and instant coffee. It also distinguishes raw/cooked/dried tomatoes, tomato
+sauce, raw apple and dry/cooked white and brown rice. There are 28 neutral
+assignments for additives and specialized powders without a reviewed image;
+5,174 assignments still use broad groups. These are representative illustrations,
+not exact species, cuts, pasta shapes, recipes or nutrient records. Mushroom
+artwork represents the family, not a particular species or preparation.
+The 50 nutrient-ineligible catalogue records remain ineligible for food search;
+having artwork does not make their nutrition complete.
 
 The audit uses the official German source names to classify preparation once,
 then ships code-based assignments. Do not apply older BLS numerical suffix rules
 to this dataset or infer a mixed dish's identity from one ingredient word.
+The primary food takes precedence over a secondary ingredient: yogurt with
+milk powder uses yogurt artwork, coffee prepared from instant powder uses a
+drink image, and prepared soup is distinct from dry soup powder. A cooked
+ingredient mentioned in a pasta recipe does not prove the pasta's own state.
 
 ```bash
 cd XoTServer

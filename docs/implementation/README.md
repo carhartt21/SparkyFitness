@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [BLS artwork expansion](bls-food-artwork-expansion-2026-10-03.md): 12 additional illustrations, 584 refined assignments and preparation/ingredient regression checks.
+
 - [BLS representative artwork workflow](bls-food-artwork-2026-10-03.md): pinned catalogue coverage, shared image resolution, generated exports, offline asset review and remaining device checks.
 
 - [v40 localization and release preparation](v40-localization-release-2026-10-03.md): phone/Watch German corrections, regression gates, simulator evidence and release verification.

@@ -12,6 +12,18 @@ export const SPECIFIC_FOOD_ARTWORK = [
   "tomato-cooked",
   "tomato-dried",
   "mushrooms",
+  "seeds",
+  "flour",
+  "bran",
+  "starch",
+  "milk-powder",
+  "quark",
+  "tofu",
+  "olives",
+  "poultry-raw",
+  "poultry-cooked",
+  "pasta-cooked",
+  "coffee-powder",
 ] as const;
 
 export type SpecificFoodArtwork = (typeof SPECIFIC_FOOD_ARTWORK)[number];
@@ -83,6 +95,67 @@ export function classifyBlsFoodArtwork(
     key: `food:${slug}`,
     basis: "specific",
   });
+  const illustration = (
+    slug: SpecificFoodArtwork,
+  ): BlsArtworkClassification => ({
+    key: `food:${slug}`,
+    basis: "subgroup",
+  });
+
+  // The primary food/form wins over ingredients mentioned later in the name:
+  // yogurt with milk powder is yogurt; coffee made from powder is a drink.
+  if (family === "M") {
+    if (
+      /^(?:milchpulver|vollmilchpulver|magermilchpulver|buttermilchpulver|sussmolkenpulver)/.test(
+        name,
+      )
+    )
+      return illustration("milk-powder");
+    if (/^(?:speisequark|skyr)/.test(name)) return illustration("quark");
+    if (/^(?:frischkase|korniger frischkase)/.test(name))
+      return off("fresh-cheese");
+    if (/^(?:joghurt|sahnejoghurt|schafjoghurt)/.test(name))
+      return off("plain-milk-and-yogurt");
+  }
+  if (family === "N" && /^(?:kaffee|cappuccino) \(getrank\)/.test(name))
+    return group("hot_drinks");
+  if (family === "N" && /^instantkaffeepulver/.test(name))
+    return illustration("coffee-powder");
+  if ((family === "C" || family === "K") && /starke|^tapioka/.test(name))
+    return illustration("starch");
+  if (family === "C" && /kleie/.test(name)) return illustration("bran");
+  if (family === "C" && /mehl/.test(name)) return illustration("flour");
+  if (family === "H") {
+    if (/^sojamehl /.test(name)) return illustration("flour");
+    if (
+      /^(?:tofu|seidentofu)(?: |$)/.test(name) &&
+      !/gebraten|gebacken|geschmort/.test(name)
+    )
+      return illustration("tofu");
+    if (/^oliven /.test(name)) return illustration("olives");
+    if (
+      /^(?:erdnussbutter|erdnusscreme|erdnussmus|haselnussmus|nussmus)/.test(
+        name,
+      )
+    )
+      return off("nut-butter");
+    if (/^(?:sojadrink|kokosmilch|kokosnussmilch)/.test(name))
+      return off("plant-based-milk-substitutes");
+  }
+  if (family === "C" && /^(?:reisdrink|haferdrink)/.test(name))
+    return off("plant-based-milk-substitutes");
+  if (family === "V") {
+    if (["V5", "V6"].includes(subgroup) || /innereien/.test(name))
+      return off("offals");
+    if (["V3", "V4"].includes(subgroup)) {
+      // Breaded or composite poultry is not a plain breast illustration.
+      if (/paniert|frikadelle|pastete/.test(name)) return off("poultry");
+      if (/gebraten|gegrillt|gebacken|geschmort|gekocht/.test(name))
+        return illustration("poultry-cooked");
+      if (/\broh\b|tiefgefroren/.test(name)) return illustration("poultry-raw");
+      return off("poultry");
+    }
+  }
 
   // These are deliberately narrow. A preparation mention in a mixed dish
   // cannot turn it into a photograph of an ordinary ingredient.
@@ -118,10 +191,29 @@ export function classifyBlsFoodArtwork(
   )
     return specific("tomato-sauce");
 
-  if (family === "E") return group(subgroup === "E1" ? "eggs" : "pasta");
+  if (family === "E") {
+    if (subgroup === "E1") return group("eggs");
+    if (
+      /teigwaren/.test(name) &&
+      /gekocht/.test(name) &&
+      !/fullung|ravioli|tortell/.test(name)
+    )
+      return illustration("pasta-cooked");
+    return group("pasta");
+  }
   if (family === "K" && subgroup === "K7")
     return { key: "food:mushrooms", basis: "group" };
-  // Additives, starches and isolated powders have no suitable food photograph.
+  // Powders without a reviewed representative and additives stay neutral.
+  if (
+    family === "R" &&
+    /^(?:vanillepudding|schokoladenpudding).*zubereitet/.test(name)
+  )
+    return off("dairy-desserts");
+  if (
+    ["G", "K"].includes(family) &&
+    /suppe.*(?:zubereitet|mit wasser)/.test(name)
+  )
+    return group("soups");
   if (family === "R" && ["R4", "R5"].includes(subgroup))
     return group("generic", "neutral");
   if (["G", "N", "M"].includes(family) && /pulver/.test(name))
@@ -135,10 +227,8 @@ export function classifyBlsFoodArtwork(
     return /suppe/.test(name) ? off("dehydrated-soups") : group("condiments");
   if (family === "H") {
     if (["H1", "H2"].includes(subgroup)) return group("nuts");
-    if (["H3", "H4"].includes(subgroup)) return group("nuts");
+    if (["H3", "H4"].includes(subgroup)) return illustration("seeds");
     if (["H5", "H6"].includes(subgroup)) return group("vegetables");
-    if (/^(?:erdnussbutter|erdnusscreme|nussmus)/.test(name))
-      return off("nut-butter");
     if (subgroup === "H9") return group("meals");
     if (subgroup === "H0")
       return /^glasnudel/.test(name)
@@ -174,6 +264,14 @@ export function classifyBlsFoodArtwork(
   }
   if (family === "X" || family === "Y") {
     const identity = name.split(/[,()]/)[0] ?? "";
+    if (/^(?:pizza|quiche|flammkuchen)(?: |$)/.test(identity))
+      return off("pizza-pies-and-quiches");
+    if (
+      /^(?:vollkorn-)?(?:eier-)?(?:frisch)?teigwaren/.test(identity) &&
+      /\b(?:gekocht|gedampft)\b/.test(name.split(",")[0] ?? "") &&
+      !/fullung|ravioli|tortell/.test(name)
+    )
+      return illustration("pasta-cooked");
     if (/suppe|bruhe|eintopf/.test(identity)) return group("soups");
     if (/sauce|sosse/.test(identity)) return group("condiments");
     // "Curryreis" also ends in "eis"; verify the canonical English food

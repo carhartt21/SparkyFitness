@@ -17,6 +17,18 @@ const specificImages: Record<SpecificFoodArtwork, number> = {
   'tomato-cooked': require('../../assets/food-artwork/tomato-cooked.png'),
   'tomato-dried': require('../../assets/food-artwork/tomato-dried.png'),
   mushrooms: require('../../assets/food-artwork/mushrooms.png'),
+  seeds: require('../../assets/food-artwork/seeds.png'),
+  flour: require('../../assets/food-artwork/flour.png'),
+  bran: require('../../assets/food-artwork/bran.png'),
+  starch: require('../../assets/food-artwork/starch.png'),
+  'milk-powder': require('../../assets/food-artwork/milk-powder.png'),
+  quark: require('../../assets/food-artwork/quark.png'),
+  tofu: require('../../assets/food-artwork/tofu.png'),
+  olives: require('../../assets/food-artwork/olives.png'),
+  'poultry-raw': require('../../assets/food-artwork/poultry-raw.png'),
+  'poultry-cooked': require('../../assets/food-artwork/poultry-cooked.png'),
+  'pasta-cooked': require('../../assets/food-artwork/pasta-cooked.png'),
+  'coffee-powder': require('../../assets/food-artwork/coffee-powder.png'),
 };
 
 const images: Record<FoodFallbackGroup, number> = {
