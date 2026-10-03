@@ -56,6 +56,7 @@ const FoodLibraryRow: React.FC<FoodLibraryRowProps> = ({
         <FoodThumbnail
           image={primaryImageOf(food)}
           name={food.name}
+          foodIdentity={food}
           getImageSource={getImageSource}
           size={40}
           onPress={openImages}

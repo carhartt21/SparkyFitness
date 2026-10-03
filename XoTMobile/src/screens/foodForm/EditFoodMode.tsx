@@ -529,7 +529,12 @@ export function EditFoodMode({
         identityAside={
           <FoodImagePicker
             variant="cover"
-            coverPlaceholder={foodFallbackImage(item?.name)}
+            coverPlaceholder={foodFallbackImage(
+              item?.name,
+              false,
+              undefined,
+              item
+            )}
             items={pickerImages}
             onItemsChange={setPickerImages}
             disabled={isSubmitting}

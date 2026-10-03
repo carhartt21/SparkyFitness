@@ -5,6 +5,7 @@ import { Image } from 'expo-image';
 import SafeImage from './SafeImage';
 import type { GetFoodImageSource } from '../hooks/useFoodImageSource';
 import { foodFallbackImage } from '../utils/foodFallbackImages';
+import type { FoodArtworkIdentity } from '@workspace/shared';
 
 interface FoodThumbnailProps {
   /** Stored image path, or null when the entity has no picture. */
@@ -12,6 +13,7 @@ interface FoodThumbnailProps {
   /** Display name used only to choose non-persistent fallback artwork. */
   name?: string | null;
   foodGroupTags?: readonly string[] | null;
+  foodIdentity?: FoodArtworkIdentity | null;
   /** From `useFoodImageSource()`; hoisted so one cache serves a whole list. */
   getImageSource: GetFoodImageSource;
   size?: number;
@@ -41,6 +43,7 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
   image,
   name,
   foodGroupTags,
+  foodIdentity,
   getImageSource,
   size = 44,
   variant = 'food',
@@ -102,7 +105,8 @@ const FoodThumbnail: React.FC<FoodThumbnailProps> = ({
               source={foodFallbackImage(
                 name,
                 variant === 'meal',
-                foodGroupTags
+                foodGroupTags,
+                foodIdentity
               )}
               style={box}
               contentFit="contain"

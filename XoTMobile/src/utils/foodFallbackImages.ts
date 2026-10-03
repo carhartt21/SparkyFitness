@@ -1,9 +1,23 @@
 import {
-  foodFallbackGroup,
-  openFoodFactsArtworkSlug,
+  foodArtworkKey,
+  type FoodArtworkIdentity,
+  type SpecificFoodArtwork,
   type FoodFallbackGroup,
 } from '@workspace/shared';
 import { OFF_FOOD_GROUP_IMAGES } from './offFoodGroupImages';
+
+const specificImages: Record<SpecificFoodArtwork, number> = {
+  'tomato-raw': require('../../assets/food-artwork/tomato-raw.png'),
+  'tomato-sauce': require('../../assets/food-artwork/tomato-sauce.png'),
+  'apple-raw': require('../../assets/food-artwork/apple-raw.png'),
+  'rice-dry': require('../../assets/food-artwork/rice-dry.png'),
+  'rice-cooked': require('../../assets/food-artwork/rice-cooked.png'),
+  'rice-brown-dry': require('../../assets/food-artwork/rice-brown-dry.png'),
+  'rice-brown-cooked': require('../../assets/food-artwork/rice-brown-cooked.png'),
+  'tomato-cooked': require('../../assets/food-artwork/tomato-cooked.png'),
+  'tomato-dried': require('../../assets/food-artwork/tomato-dried.png'),
+  mushrooms: require('../../assets/food-artwork/mushrooms.png'),
+};
 
 const images: Record<FoodFallbackGroup, number> = {
   vegetables: require('../../assets/food-fallbacks/vegetables.png'),
@@ -42,11 +56,13 @@ const images: Record<FoodFallbackGroup, number> = {
 export function foodFallbackImage(
   name: string | null | undefined,
   isMeal = false,
-  foodGroupTags?: readonly string[] | null
+  foodGroupTags?: readonly string[] | null,
+  identity?: FoodArtworkIdentity | null
 ): number {
-  if (!isMeal) {
-    const slug = openFoodFactsArtworkSlug(foodGroupTags);
-    if (slug && OFF_FOOD_GROUP_IMAGES[slug]) return OFF_FOOD_GROUP_IMAGES[slug];
-  }
-  return images[foodFallbackGroup(name, isMeal, foodGroupTags)];
+  const key = foodArtworkKey(name, isMeal, foodGroupTags, identity);
+  if (key.startsWith('food:'))
+    return specificImages[key.slice(5) as SpecificFoodArtwork];
+  if (key.startsWith('off:'))
+    return OFF_FOOD_GROUP_IMAGES[key.slice(4)] ?? images.generic;
+  return images[key.slice(6) as FoodFallbackGroup];
 }

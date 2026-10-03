@@ -51,6 +51,23 @@ const createFood = (overrides: Partial<Food> = {}): Food => ({
 });
 
 describe('FoodResultCard', () => {
+  it('selects BLS artwork by code rather than the translated name', () => {
+    const { container } = render(
+      <FoodResultCard
+        item={createFood({
+          name: 'White rice boiled',
+          provider_type: 'bls4',
+          provider_external_id: 'C352032',
+        })}
+        nutrientConfig={nutrientConfig}
+      />
+    );
+    expect(container.querySelector('img')).toHaveAttribute(
+      'src',
+      '/images/food-artwork/rice-cooked.webp'
+    );
+    expect(screen.queryByRole('button', { name: 'View images' })).toBeNull();
+  });
   it('shows non-clickable group artwork when a food has no photo', () => {
     const { container } = render(
       <FoodResultCard

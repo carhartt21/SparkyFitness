@@ -1,0 +1,115 @@
+{
+  "version": 1,
+  "assets": [
+    {
+      "slug": "tomato-raw",
+      "kind": "representative-illustration",
+      "subject": "Whole fresh red tomato with green calyx and a tomato half showing seed chambers.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 95820,
+      "webp_bytes": 18858,
+      "png_sha256": "48541e2b89817804e3d3bafd69fd513de2e58ac67099e78922c618bbfc76187e",
+      "webp_sha256": "ea00b998a721b1f90535cbd7a864c5cdbdbe9a276f83f74e7f1b01ba3c928e2d"
+    },
+    {
+      "slug": "tomato-sauce",
+      "kind": "representative-illustration",
+      "subject": "Plain white ceramic bowl of smooth thick red tomato sauce with a stainless spoon; no pasta or garnish.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 77081,
+      "webp_bytes": 15654,
+      "png_sha256": "4b7462e330a65b81db4c52c4a5dfd216f390c83f0a99a8d50886d279b471c9ba",
+      "webp_sha256": "5cccc208f755b353ef679d6e582eed99ae4a44128de4c3a8e8b6cfafe71c556c"
+    },
+    {
+      "slug": "apple-raw",
+      "kind": "representative-illustration",
+      "subject": "Fresh red-yellow apple and a white-fleshed wedge; no brand or prepared fruit.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 103734,
+      "webp_bytes": 18298,
+      "png_sha256": "dde0ad9f1f895af24dc3340d88673b4a2b40e64034bdd36a5848d1cc87b157f5",
+      "webp_sha256": "05539a4bae2222cdd48b7883f77af74a2b36c973b23aa2231c7f31567a7b30bc"
+    },
+    {
+      "slug": "rice-dry",
+      "kind": "representative-illustration",
+      "subject": "Mound of separate uncooked ivory white long-grain rice and a wooden scoop; no cooked rice.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 78611,
+      "webp_bytes": 17002,
+      "png_sha256": "08d1dc32c607742f5b22649938d97e9bd546e0b4b9e1217a699d263fc27282f6",
+      "webp_sha256": "35d3ca4c8d8282ee7615248962941fc1df517d4d8a5d3e3c3d27ddecc1e8a426"
+    },
+    {
+      "slug": "rice-cooked",
+      "kind": "representative-illustration",
+      "subject": "Plain white ceramic bowl of fluffy opaque plump cooked white long-grain rice; no garnish.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 65981,
+      "webp_bytes": 11816,
+      "png_sha256": "de1cdeba09f4a224dd1e96264d5d928039b1ad8c9c5fc813da27fd4af0e7afe6",
+      "webp_sha256": "73dcd8e30fb600271d762ef960845102589fc17647e3b35485711bc343f140ac"
+    },
+    {
+      "slug": "mushrooms",
+      "kind": "representative-illustration",
+      "subject": "Three fresh brown and white button mushrooms with one sliced to show gills; raw.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 97011,
+      "webp_bytes": 18444,
+      "png_sha256": "9c1a26317950785242ce4d550adfbe25a1e8aa3a1cc1af32a2e7af463e28553a",
+      "webp_sha256": "2dc6e44a24fdbca51ef32ce77fa6483a0227b22873a6bbd7dc924c9f2e2f5150"
+    },
+    {
+      "slug": "rice-brown-dry",
+      "kind": "representative-illustration",
+      "subject": "Mound of dry light-brown whole-grain long-grain rice and a wooden scoop.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 99573,
+      "webp_bytes": 24090,
+      "png_sha256": "286c72b27cd556a7d2bcfe4de8a476af0c6cc06c21aa75de4e88317657aadd98",
+      "webp_sha256": "6391ed3d59921dce4380f558a2a0e46d7e84cc506b170ca1d99afd8eed4ce7eb"
+    },
+    {
+      "slug": "rice-brown-cooked",
+      "kind": "representative-illustration",
+      "subject": "Plain white ceramic bowl of fluffy plump tan cooked whole-grain rice; no white rice or garnish.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 97434,
+      "webp_bytes": 18614,
+      "png_sha256": "74e2ca0cc3eaf036a169781e1534ad6611d319327b67ded26a3e818485a63e9a",
+      "webp_sha256": "a56a3a17ee636ff840730a87ff985e31d3fc7cf6d2399869b05a26252e68cad7"
+    },
+    {
+      "slug": "tomato-cooked",
+      "kind": "representative-illustration",
+      "subject": "White bowl of soft cooked red tomato chunks with skins and natural liquid; not smooth sauce.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 108894,
+      "webp_bytes": 18898,
+      "png_sha256": "55fb0cd6f6e3188b15809f7dd9d434520ba37e8fd3158501e9fba5a9c4c4fd1b",
+      "webp_sha256": "f4d01b7b71a208dc87edda5f29365d4a7638f8941b9ec491e8b82446a6a38284"
+    },
+    {
+      "slug": "tomato-dried",
+      "kind": "representative-illustration",
+      "subject": "Pile of wrinkled leathery red-brown sun-dried tomato halves; no oil jar or fresh tomatoes.",
+      "source_size": [1254, 1254],
+      "size": [256, 256],
+      "png_bytes": 112656,
+      "webp_bytes": 25896,
+      "png_sha256": "68abc3828407fb0fdb179a7bfd94af945b91631fbdda20f71926fd92afda281b",
+      "webp_sha256": "371c751e691ff1b6fb4191d9897a9adffe8c5ce58435032cf6e9e49c41f92d6e"
+    }
+  ]
+}

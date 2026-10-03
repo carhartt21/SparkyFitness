@@ -10,6 +10,33 @@ import { join } from 'node:path';
 
 describe('food fallback artwork', () => {
   it.each([
+    ['G561100', 'Tomato raw', 'tomato-raw'],
+    ['G561132', 'Tomate gekocht', 'tomato-cooked'],
+    ['G560400', 'Tomato dried', 'tomato-dried'],
+    ['C352000', 'White rice raw', 'rice-dry'],
+    ['C352032', 'Reis poliert, gekocht', 'rice-cooked'],
+    ['C351000', 'Brown rice raw', 'rice-brown-dry'],
+    ['C351032', 'Brown rice boiled', 'rice-brown-cooked'],
+    ['F110100', 'Apple raw', 'apple-raw'],
+    ['R161200', 'Tomaten passiert/Tomatenpüree', 'tomato-sauce'],
+    ['K701100', 'Champignon roh', 'mushrooms'],
+  ])(
+    'resolves %s to a shipped preparation-specific asset',
+    (code, name, slug) => {
+      expect(
+        foodFallbackImageSrc(name, false, null, {
+          provider_type: 'bls4',
+          provider_external_id: code,
+        })
+      ).toBe(`/images/food-artwork/${slug}.webp`);
+      expect(
+        existsSync(
+          join(process.cwd(), 'public/images/food-artwork', slug + '.webp')
+        )
+      ).toBe(true);
+    }
+  );
+  it.each([
     ['Tomate roh', 'vegetables'],
     ['Tomatensoße', 'condiments'],
     ['Salatblatt', 'vegetables'],

@@ -269,6 +269,7 @@ const FoodDatabaseManager = () => {
             <div className="flex items-start gap-2 min-w-[150px]">
               <FoodListArtwork
                 name={food.name}
+                foodIdentity={food}
                 src={imageSrc}
                 onOpen={
                   imageSrc

@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { foodFallbackImageSrc } from '@/utils/foodFallbackImages';
+import type { FoodArtworkIdentity } from '@workspace/shared';
 
 /** A real food photo remains interactive; illustrative artwork never opens a photo viewer. */
 export default function FoodListArtwork({
   name,
   src,
   isMeal = false,
+  foodIdentity,
   onOpen,
 }: {
   name: string | null | undefined;
   src: string | null;
   isMeal?: boolean;
+  foodIdentity?: FoodArtworkIdentity | null;
   onOpen?: () => void;
 }) {
   const { t } = useTranslation();
@@ -19,7 +22,7 @@ export default function FoodListArtwork({
   if (!src || src === failedSrc) {
     return (
       <img
-        src={foodFallbackImageSrc(name, isMeal)}
+        src={foodFallbackImageSrc(name, isMeal, undefined, foodIdentity)}
         alt=""
         className="w-10 h-10 flex-shrink-0 object-contain rounded-md bg-muted/50"
         loading="lazy"

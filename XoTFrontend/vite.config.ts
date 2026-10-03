@@ -72,6 +72,12 @@ export default defineConfig(({ mode }) => {
           // Avoid injecting a second install manifest with divergent branding.
           manifest: false,
           workbox: {
+            globPatterns: [
+              '**/*.{js,wasm,css,html}',
+              'images/food-artwork/*.webp',
+              'images/food-fallbacks/*.webp',
+              'images/off-food-groups/*.webp',
+            ],
             maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
             navigateFallback: '/index.html',
             navigateFallbackDenylist: [/^\/api/, /^\/uploads/], // Don't serve index.html for API or Uploads
