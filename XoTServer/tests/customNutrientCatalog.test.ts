@@ -264,4 +264,20 @@ describe('native supplement catalog identity', () => {
       { catalogId: 'caffeine', name: 'Caffeine', fixedField: 'caffeine_mg' },
     ]);
   });
+  it('returns the refreshed native definitions for a mixed catalog request', async () => {
+    const db = catalogClient();
+    vi.spyOn(customNutrientService, 'getCustomNutrients').mockResolvedValue([]);
+    const result = await customNutrientService.ensureCatalogNutrients(USER, [
+      'caffeine',
+      'magnesium',
+    ]);
+    expect(result.resolved).toEqual([
+      { catalogId: 'magnesium', name: 'Magnesium' },
+      { catalogId: 'caffeine', name: 'Caffeine', fixedField: 'caffeine_mg' },
+    ]);
+    expect(result.nutrients).toEqual(db.rows);
+    expect(result.nutrients).toEqual([
+      expect.objectContaining({ catalog_id: 'magnesium', unit: 'mg' }),
+    ]);
+  });
 });

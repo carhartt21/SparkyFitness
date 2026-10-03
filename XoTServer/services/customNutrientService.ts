@@ -267,7 +267,7 @@ class CustomNutrientService {
           ...after.rows.filter((row) => !existing.has(row.id)),
           ...(other?.created ?? []),
         ],
-        nutrients: other?.nutrients ?? after.rows,
+        nutrients: after.rows,
       };
     } catch (error) {
       await client.query('ROLLBACK');
