@@ -5,7 +5,14 @@ import {
 } from '../components/tracking/trackingLabels';
 import React, { useEffect, useRef, useState } from 'react';
 import { useIsFocused } from '@react-navigation/native';
-import { AccessibilityInfo, Modal, Pressable, Text, View } from 'react-native';
+import {
+  AccessibilityInfo,
+  Modal,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -40,6 +47,8 @@ type Props = NativeStackScreenProps<RootStackParamList, 'DailyProgress'>;
 const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
   const scale = useNeonScale();
+  const { width, fontScale } = useWindowDimensions();
+  const stackedSummary = fontScale > 1.3 || width < 360;
   const isFocused = useIsFocused();
   const locale = useAppLocale();
   const previousProgress = useRef<{
@@ -208,7 +217,7 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
           <GlowCard
             testID="daily-progress-summary"
             glowColor={stage === 'ready' ? undefined : stageColor}
-            className="mb-3 items-center p-5"
+            className={`mb-3 items-center gap-4 p-4 ${stackedSummary ? '' : 'flex-row'}`}
           >
             <ProgressTrackX
               progress={progress.percent}
@@ -222,43 +231,49 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                       defaultValue: 'No tasks today',
                     })
               }
-              size={176}
+              size={112}
+              fit="track"
+              showValue={progress.percent != null}
             />
-            <Text
-              testID="daily-progress-count"
-              className="mt-3 text-xl font-bold text-text-primary"
-            >
-              {progress.applicable > 0
-                ? t('progress.countLine', {
-                    defaultValue:
-                      '{{day}} · {{completed}} of {{applicable}} complete',
-                    day: dayLabel,
-                    completed: progress.completed,
-                    applicable: progress.applicable,
-                  })
-                : progress.items.length
-                  ? `${dayLabel} · ${t('progress.noCountedTasks', { defaultValue: 'No counted tasks' })}`
-                  : t('progress.nothingAppliesLine', {
-                      defaultValue: '{{day}} · no tracking tasks',
+            <View className={stackedSummary ? 'w-full' : 'min-w-0 flex-1'}>
+              <Text
+                testID="daily-progress-count"
+                className={`text-lg font-semibold text-text-primary ${stackedSummary ? 'text-center' : ''}`}
+              >
+                {progress.applicable > 0
+                  ? t('progress.countLine', {
+                      defaultValue:
+                        '{{day}} · {{completed}} of {{applicable}} complete',
                       day: dayLabel,
-                    })}
-            </Text>
-            <Text className="mt-1 text-center text-sm text-text-secondary">
-              {progress.applicable > 0
-                ? t('progress.explanation', {
-                    defaultValue:
-                      'Each task counts equally. This is not a health score; skipped items are left out.',
-                  })
-                : progress.items.length
-                  ? t('progress.uncountedExplanation', {
-                      defaultValue:
-                        'Items below do not count toward this day’s progress. Review them or choose what counts in Tracking settings.',
+                      completed: progress.completed,
+                      applicable: progress.applicable,
                     })
-                  : t('progress.emptyExplanation', {
+                  : progress.items.length
+                    ? `${dayLabel} · ${t('progress.noCountedTasks', { defaultValue: 'No counted tasks' })}`
+                    : t('progress.nothingAppliesLine', {
+                        defaultValue: '{{day}} · no tracking tasks',
+                        day: dayLabel,
+                      })}
+              </Text>
+              <Text
+                className={`mt-1 text-text-secondary ${stackedSummary ? 'text-center text-sm' : 'text-xs'}`}
+              >
+                {progress.applicable > 0
+                  ? t('progress.explanation', {
                       defaultValue:
-                        'Nothing is scheduled or selected for this day. Choose what counts in Tracking settings.',
-                    })}
-            </Text>
+                        'Each task counts equally. This is not a health score; skipped items are left out.',
+                    })
+                  : progress.items.length
+                    ? t('progress.uncountedExplanation', {
+                        defaultValue:
+                          'Items below do not count toward this day’s progress. Review them or choose what counts in Tracking settings.',
+                      })
+                    : t('progress.emptyExplanation', {
+                        defaultValue:
+                          'Nothing is scheduled or selected for this day. Choose what counts in Tracking settings.',
+                      })}
+              </Text>
+            </View>
           </GlowCard>
 
           {activityFailure ? (

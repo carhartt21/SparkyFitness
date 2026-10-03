@@ -5,6 +5,9 @@ The [reviewed plan](v40-review-corrective-plan-2026-10-03.md) covers all six
 X on Track Inbox findings. Five owner attachments were inspected privately;
 committed screenshots contain synthetic data only.
 
+The subsequent request to reduce the full Progress screen's top card is recorded
+in [the compact summary follow-up](v40-progress-summary-compact-2026-10-03.md).
+
 ## Results
 
 | Finding / priority                         | Result                                                                                                                                                                                                                                                                                                     | Verification                                                                                                                                                                                                                                                                     |

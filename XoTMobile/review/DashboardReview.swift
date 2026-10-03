@@ -151,6 +151,20 @@ final class DashboardReview: XCTestCase {
     nextTasks.firstMatch.tap()
     XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.waitForExistence(timeout: 10))
     capture("summary-task-destination", app)
+    app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.tap()
+    for _ in 0..<7 { if progressHeading.isHittable { break }; dashboard.swipeDown() }
+    progressHeading.tap()
+    let detailSummary = app.descendants(matching: .any)["daily-progress-summary"]
+    XCTAssertTrue(detailSummary.waitForExistence(timeout: 10))
+    let detailCount = app.descendants(matching: .any)["daily-progress-count"]
+    XCTAssertTrue(detailCount.exists)
+    XCTAssertGreaterThanOrEqual(detailCount.frame.minX, detailSummary.frame.minX)
+    XCTAssertLessThanOrEqual(detailCount.frame.maxX, detailSummary.frame.maxX)
+    capture("progress-screen-summary", app)
+    let detailMeasurement = XCTAttachment(string: "Progress detail summary: \(detailSummary.frame), count: \(detailCount.frame); stacked: \(stacked)")
+    detailMeasurement.name = "progress-screen-measurement"
+    detailMeasurement.lifetime = .keepAlways
+    add(detailMeasurement)
   }
 
   func testSupplementLayout() throws {
