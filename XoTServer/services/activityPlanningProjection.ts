@@ -26,6 +26,10 @@ export function projectActivityPlanning(
   today: string
 ): ActivityPlanningResponse {
   const occurrences: ActivityOccurrence[] = [];
+  const automaticTargets = new Map<
+    string,
+    { duration: number | null; distance: number | null; capturedAt: string }
+  >();
   const grouped = new Map<string, typeof data.entries>();
   for (const entry of data.entries) {
     const rows = grouped.get(entry.record_id) ?? [];
@@ -61,6 +65,34 @@ export function projectActivityPlanning(
           rows.some((e) => e.id === row.entry_id)
       )?.occurrence_id ?? null,
   }));
+  const reserved = new Set(
+    records
+      .filter(
+        (record) =>
+          record.origin_assignment_ids.length > 0 || record.linked_occurrence_id
+      )
+      .map((record) => record.id)
+  );
+  const automaticEvidence = (
+    entry: PlanningEntry,
+    date: string,
+    sport: ActivityOccurrence['activity_type'],
+    capturedAt: string
+  ) => {
+    const record = records.find((row) => row.id === entry.record_id)!;
+    return (
+      date <= today &&
+      sport !== 'other' &&
+      record.confirmed &&
+      !reserved.has(record.id) &&
+      record.date === date &&
+      record.activity_type === sport &&
+      grouped.get(record.id)!.length === 1 &&
+      recordedActivity(entry) &&
+      entry.recorded_at !== null &&
+      new Date(entry.recorded_at).getTime() >= new Date(capturedAt).getTime()
+    );
+  };
   const versions = new Map<number, typeof data.versions>();
   for (const version of data.versions) {
     const list = versions.get(version.template_id) ?? [];
@@ -107,10 +139,36 @@ export function projectActivityPlanning(
                 .filter(
                   (row) =>
                     row.entry_date === date &&
-                    row.origin_id === assignmentId &&
-                    (row.completed_count > 0 || recordedActivity(row))
+                    ((row.origin_id === assignmentId &&
+                      (row.completed_count > 0 || recordedActivity(row))) ||
+                      onDay.some((version) => {
+                        const assignment = version.assignments.find(
+                          (item) =>
+                            item.id === assignmentId &&
+                            item.dayOfWeek === dayOfWeek(date)
+                        );
+                        return (
+                          due(version) &&
+                          assignment &&
+                          assignment.activityType &&
+                          !assignment.exerciseId &&
+                          !assignment.workoutPresetId &&
+                          automaticEvidence(
+                            row,
+                            date,
+                            classifyActivitySport({
+                              exerciseName: assignment.activityType,
+                            }).sport,
+                            version.captured_at
+                          )
+                        );
+                      }))
                 )
-                .map((row) => row.first_confirmed_at ?? row.recorded_at)
+                .map((row) =>
+                  row.origin_id === assignmentId
+                    ? (row.first_confirmed_at ?? row.recorded_at)
+                    : row.recorded_at
+                )
                 .filter((at): at is string => at !== null)
                 .sort()[0]
             : undefined;
@@ -154,7 +212,13 @@ export function projectActivityPlanning(
             ((assignment.exerciseId !== null &&
               row.exerciseId === assignment.exerciseId) ||
               (assignment.workoutPresetId !== null &&
-                row.workoutPresetId === assignment.workoutPresetId))
+                row.workoutPresetId === assignment.workoutPresetId) ||
+              (assignment.activityType &&
+                !assignment.exerciseId &&
+                !assignment.workoutPresetId &&
+                !row.exerciseId &&
+                !row.workoutPresetId &&
+                row.activityType === assignment.activityType))
         );
         if (replacement) replaced.add(replacement.id);
       }
@@ -245,6 +309,17 @@ export function projectActivityPlanning(
               row.confirmed
           );
         const skipped = resolution?.action === 'skip';
+        if (
+          wholeActivity &&
+          !actualActivity.length &&
+          (!resolution || resolution.action === 'undo')
+        ) {
+          automaticTargets.set(id, {
+            duration: assignment.plannedDurationMinutes ?? null,
+            distance: assignment.plannedDistanceKm ?? null,
+            capturedAt: version.captured_at,
+          });
+        }
         occurrences.push({
           id,
           date,
@@ -361,6 +436,64 @@ export function projectActivityPlanning(
       expected_sets: null,
       completed_sets: 0,
     });
+  }
+  // An imported session has no plan assignment ID. Match it conservatively at
+  // read time; do not create links, diary rows or energy credits. Explicitly
+  // assigned/linked sessions are reserved, and one record can resolve one task.
+  const candidates = occurrences
+    .filter((occurrence) => automaticTargets.has(occurrence.id))
+    .sort((a, b) => {
+      const left = automaticTargets.get(a.id)!;
+      const right = automaticTargets.get(b.id)!;
+      const specificity = (target: typeof left) =>
+        Number(target.duration !== null) + Number(target.distance !== null);
+      return (
+        specificity(right) - specificity(left) ||
+        (right.distance ?? 0) - (left.distance ?? 0) ||
+        (right.duration ?? 0) - (left.duration ?? 0) ||
+        a.id.localeCompare(b.id)
+      );
+    });
+  for (const occurrence of candidates) {
+    if (occurrence.date > today || occurrence.activity_type === 'other')
+      continue;
+    const target = automaticTargets.get(occurrence.id)!;
+    const eligible = records
+      .flatMap((record) => {
+        const evidence = grouped
+          .get(record.id)!
+          .filter((entry) =>
+            automaticEvidence(
+              entry,
+              occurrence.date,
+              occurrence.activity_type,
+              target.capturedAt
+            )
+          );
+        if (evidence.length !== 1) return [];
+        const entry = evidence[0];
+        const complete =
+          (target.duration === null ||
+            (entry.duration_minutes ?? -1) >= target.duration) &&
+          (target.distance === null ||
+            (entry.distance ?? -1) >= target.distance);
+        return [{ record, entry, complete }];
+      })
+      .sort(
+        (a, b) =>
+          Number(b.complete) - Number(a.complete) ||
+          a.entry.recorded_at!.localeCompare(b.entry.recorded_at!) ||
+          a.record.id.localeCompare(b.record.id)
+      );
+    const match = eligible[0];
+    if (!match) continue;
+    reserved.add(match.record.id);
+    occurrence.state = match.complete ? 'complete' : 'started';
+    occurrence.reason = match.complete
+      ? 'compatible_activity_recorded'
+      : 'partial_activity_targets';
+    occurrence.recorded_at = match.entry.recorded_at;
+    occurrence.evidence_ids = [match.entry.id];
   }
   occurrences.sort(
     (a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id)

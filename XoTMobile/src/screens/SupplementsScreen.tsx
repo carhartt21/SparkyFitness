@@ -257,6 +257,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
         <NeonButton
           label={t('common.showAll', { defaultValue: 'Show all' })}
           variant="subtle"
+          className="mb-3 rounded-xl"
           onPress={() => setFocusedId(undefined)}
         />
       )}
@@ -321,6 +322,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
               defaultValue: 'Supplements taken',
             })}
             stats={stats}
+            quiet
           />
 
           {groupByDaypart(
@@ -333,7 +335,6 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
             return (
               <GlowCard
                 key={daypart}
-                glowColor={color}
                 className="mb-3 p-3"
                 testID={`supplements-group-${daypart}`}
               >
@@ -346,10 +347,9 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                     {daypartLabel(t, daypart)}
                   </Text>
                   <View
-                    className="rounded-full border px-3 py-1"
+                    className="rounded-md px-2 py-1"
                     style={{
-                      borderColor: color,
-                      backgroundColor: withAlpha(color, 0.12),
+                      backgroundColor: withAlpha(color, 0.08),
                     }}
                   >
                     <Text className="text-sm font-semibold" style={{ color }}>
@@ -423,7 +423,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                           ) : null}
                         </View>
                       </Pressable>
-                      <View className="min-w-[55%] flex-1">
+                      <View className="min-w-0 flex-1">
                         <Text
                           className="text-base font-semibold text-text-primary"
                           numberOfLines={2}
@@ -435,6 +435,17 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                             <Text className="text-sm text-text-secondary">
                               {amount}
                             </Text>
+                          ) : null}
+                          {time ? (
+                            <View className="flex-row items-center gap-1">
+                              <Icon name="clock" size={14} color={timeColor} />
+                              <Text
+                                className="text-sm"
+                                style={{ color: timeColor }}
+                              >
+                                {timeLabel(time)}
+                              </Text>
+                            </View>
                           ) : null}
                           {withMeal ? (
                             <View className="rounded-md border border-border-subtle px-2 py-0.5">
@@ -452,17 +463,6 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                           ) : null}
                         </View>
                       </View>
-                      {time ? (
-                        <View className="flex-row items-center gap-1">
-                          <Icon name="clock" size={14} color={timeColor} />
-                          <Text
-                            className="text-sm"
-                            style={{ color: timeColor }}
-                          >
-                            {timeLabel(time)}
-                          </Text>
-                        </View>
-                      ) : null}
                       <Pressable
                         testID={`supplement-menu-${dose.schedule.id}`}
                         accessibilityRole="button"
@@ -471,7 +471,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                           name: dose.medication.name,
                         })}
                         onPress={() => openMenu(dose)}
-                        className="h-11 w-8 items-center justify-center"
+                        className="h-11 w-11 items-center justify-center"
                       >
                         <Icon
                           name="ellipsis-horizontal"
@@ -486,11 +486,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
             );
           })}
 
-          <GlowCard
-            glowColor={scale.green}
-            className="mb-3 p-4"
-            testID="supplements-settings"
-          >
+          <GlowCard className="mb-3 p-4" testID="supplements-settings">
             <View className="mb-3 flex-row items-center gap-3">
               <Icon name="bell" size={22} color={scale.green} />
               <View className="flex-1">
@@ -515,9 +511,10 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                 </Text>
               </View>
             </View>
-            <View className="gap-2">
+            <View className="gap-3">
               <NeonButton
-                variant="outline"
+                variant="subtle"
+                className="rounded-xl"
                 size="sm"
                 icon="bell"
                 label={t('supplements.notificationSettings', {
@@ -526,7 +523,8 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                 onPress={() => navigation.navigate('NotificationSettings')}
               />
               <NeonButton
-                variant="outline"
+                variant="subtle"
+                className="rounded-xl"
                 size="sm"
                 icon="pencil"
                 label={t('supplements.editRoutine', {

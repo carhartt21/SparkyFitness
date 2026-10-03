@@ -1,0 +1,48 @@
+{
+  "baseRevision": "632c96d15806159ce46fc1df0784959107797717",
+  "productSourceSha256": "d57608625cf21cecb9d3973380eea37ea8a2539db1db287493333150e58ed69e",
+  "productionFile": "XoTMobile/src/screens/DailyProgressScreen.tsx",
+  "synthetic": true,
+  "nativeHeightPoints": {
+    "390-de-dark": {
+      "before": 366,
+      "after": 162
+    },
+    "390-de-light": {
+      "before": 366,
+      "after": 162
+    },
+    "430-de-large": {
+      "before": 890,
+      "after": 748
+    }
+  },
+  "checks": [
+    {
+      "command": "pnpm exec jest --watchman=false --runInBand --coverage=false __tests__/screens/DailyProgressActivity.test.tsx __tests__/components/DailyProgressCard.test.tsx",
+      "status": "passed",
+      "suites": 2,
+      "tests": 5
+    },
+    {
+      "command": "pnpm validate",
+      "status": "passed"
+    },
+    {
+      "command": "review-ios.mjs --interactions --summary-cards-review",
+      "status": "passed",
+      "beforeCases": 3,
+      "afterCases": 3
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    }
+  ],
+  "limits": [
+    "Synthetic native simulator review with current JavaScript in a compatible development shell",
+    "Large text deliberately stacks and scrolls",
+    "No physical-device or new signed build verification",
+    "No production deployment or TestFlight publication"
+  ]
+}

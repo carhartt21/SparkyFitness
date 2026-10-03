@@ -46,6 +46,7 @@ import {
   useSaveDailyCheckin,
 } from '../hooks/useDailyTracking';
 import { useServerConnection } from '../hooks';
+import { useCheckinTagOptions } from '../hooks/useCheckinTagOptions';
 import { getTodayDate } from '../utils/dateUtils';
 import type { RootStackParamList } from '../types/navigation';
 
@@ -131,6 +132,7 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
   // Navigation fires synchronously before React commits state/query updates.
   const saveIntent = useRef<'idle' | 'saving' | 'resolved'>('idle');
   const [customTag, setCustomTag] = useState('');
+  const tagOptions = useCheckinTagOptions(checkin?.tags ?? EMPTY.tags);
   const [addingTag, setAddingTag] = useState(false);
   const [loadedFor, setLoadedFor] = useState<string | null>(null);
 
@@ -255,10 +257,20 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
         : [...draft.tags, tag],
     });
 
-  const addCustomTag = () => {
-    const tag = customTag.trim();
-    if (tag && !draft.tags.includes(tag))
-      update({ tags: [...draft.tags, tag] });
+  const addCustomTag = (text = customTag) => {
+    const tag = text.trim();
+    if (!tag) return;
+    if (!tagOptions.canRemember) {
+      Toast.show({
+        type: 'error',
+        text1: t('checkin.tagIdentityUnavailable', {
+          defaultValue: 'Connect your account before creating a saved tag.',
+        }),
+      });
+      return;
+    }
+    tagOptions.remember(tag);
+    if (!draft.tags.includes(tag)) update({ tags: [...draft.tags, tag] });
     setCustomTag('');
     setAddingTag(false);
   };
@@ -266,7 +278,12 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
   const tagLabel = (tag: string) =>
     isBuiltInCheckinTag(tag) ? checkinTagLabel(t, tag) : tag;
 
-  const customTags = draft.tags.filter((tag) => !isBuiltInCheckinTag(tag));
+  const customTags = [
+    ...new Set([
+      ...tagOptions.tags,
+      ...draft.tags.filter((tag) => !isBuiltInCheckinTag(tag)),
+    ]),
+  ];
   const activeContext = activeContextPeriods(contextQuery.data ?? [], date);
   const state = checkin?.state ?? null;
 
@@ -623,9 +640,12 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
               testID="daily-checkin-custom-tag"
               value={customTag}
               onChangeText={setCustomTag}
-              onSubmitEditing={addCustomTag}
-              onBlur={addCustomTag}
+              onEndEditing={(event) =>
+                addCustomTag(event?.nativeEvent.text ?? customTag)
+              }
               autoFocus
+              autoCorrect={false}
+              autoCapitalize="none"
               maxLength={40}
               returnKeyType="done"
               placeholder={t('checkin.tagPlaceholder', {

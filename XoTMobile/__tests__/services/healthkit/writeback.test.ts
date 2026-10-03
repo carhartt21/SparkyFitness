@@ -1,3 +1,4 @@
+import { listEntries } from '../../../src/services/api/medicationsApi';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   saveCorrelationSample,
@@ -18,6 +19,9 @@ import {
 } from '../../../src/services/healthkit/writeback';
 import i18n, { initializeI18n } from '../../../src/localization/i18n';
 
+jest.mock('../../../src/services/api/medicationsApi', () => ({
+  listEntries: jest.fn(),
+}));
 jest.mock('../../../src/services/api/dailySummaryApi', () => ({
   fetchDailySummary: jest.fn(),
 }));
@@ -87,6 +91,7 @@ const prefs = (initial: Record<string, unknown>) => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  (listEntries as jest.Mock).mockResolvedValue([]);
   store = {};
   mockAuthStatus.mockReturnValue(SHARING_AUTHORIZED);
   mockDeleteObjects.mockResolvedValue(1);
@@ -120,6 +125,56 @@ const manualLogEntry = (
 });
 
 describe('writebackPhase', () => {
+  it('exports confirmed supplement-only nutrition once and reconciles dose deletion', async () => {
+    prefs({ writebackNutritionEnabled: true });
+    mockSummary.mockResolvedValue({ foodEntries: [], waterIntake: 0 });
+    (listEntries as jest.Mock).mockResolvedValue([
+      {
+        id: 'supplement-1',
+        entry_date: '2026-06-01',
+        status: 'taken',
+        taken_at: '2026-06-01T10:30:00Z',
+        source: 'manual',
+        entry_type: 'dose',
+        dose_amount_snapshot: 2,
+        dose_unit_snapshot: 'capsule',
+        med_name_snapshot: 'Synthetic fiber',
+        nutrients_snapshot: { dietary_fiber: 3 },
+      },
+    ]);
+    await writebackPhase(['2026-06-01']);
+    expect(mockSaveCorrelation).toHaveBeenCalledTimes(1);
+    expect(mockSaveCorrelation.mock.calls[0][1]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          quantityType: 'HKQuantityTypeIdentifierDietaryFiber',
+          quantity: 6,
+        }),
+      ])
+    );
+    expect(
+      mockSaveCorrelation.mock.calls[0][1].some(
+        (sample: { quantityType: string }) => sample.quantityType === ENERGY
+      )
+    ).toBe(false);
+    await writebackPhase(['2026-06-01']);
+    expect(mockSaveCorrelation).toHaveBeenCalledTimes(1);
+    (listEntries as jest.Mock).mockResolvedValue([]);
+    await writebackPhase(['2026-06-01']);
+    expect(mockDeleteObjects).toHaveBeenCalled();
+    expect(mockSaveCorrelation).toHaveBeenCalledTimes(1);
+    expect(store['writebackNutritionUuids:2026-06-01']).toEqual({});
+  });
+  it('preserves exported nutrition when the intake snapshot request fails', async () => {
+    prefs({ writebackNutritionEnabled: true });
+    await writebackPhase(['2026-06-01']);
+    const previous = JSON.parse(JSON.stringify(store));
+    (listEntries as jest.Mock).mockRejectedValueOnce(new Error('offline'));
+    await writebackPhase(['2026-06-01']);
+    expect(mockDeleteObjects).not.toHaveBeenCalled();
+    expect(mockSaveCorrelation).toHaveBeenCalledTimes(1);
+    expect(store).toEqual(previous);
+  });
   it('does nothing when both metrics are disabled', async () => {
     prefs({
       writebackNutritionEnabled: false,

@@ -129,11 +129,16 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
               style={
                 expanded
                   ? undefined
-                  : { position: 'absolute', width: gaugeSize - 40, top: 32 }
+                  : {
+                      position: 'absolute',
+                      width: gaugeSize - 32,
+                      height: gaugeSize - 32,
+                      top: 16,
+                    }
               }
             >
               <Text
-                className="text-[32px] font-bold text-text-primary"
+                className="text-[30px] font-bold text-text-primary"
                 maxFontSizeMultiplier={1.6}
                 numberOfLines={1}
                 adjustsFontSizeToFit

@@ -17,6 +17,7 @@ import {
   waterIntakeLogQueryKey,
 } from './queryKeys';
 import { navigationRef as rootNavigationRef } from '../components/ActiveWorkoutBar';
+import { fireSuccessHaptic } from '../services/haptics';
 import { logPhoneContainerWaterAction } from '../services/phoneContainerWaterAction';
 
 /**
@@ -46,7 +47,7 @@ export function useWaterIntakeMutation({
   date,
   enabled = true,
 }: UseWaterIntakeMutationOptions) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedContainerId, setSelectedContainerId] = useState<number | null>(
     null
@@ -130,6 +131,36 @@ export function useWaterIntakeMutation({
     void AsyncStorage.setItem(SELECTED_CONTAINER_KEY, String(id));
   };
 
+  const additionLabel = (container: WaterContainer) => {
+    const ml = getServingVolume(container);
+    const amount =
+      ml == null
+        ? container.name
+        : t('waterIntake.loggedAmount', {
+            defaultValue: '{{amount}} ml water',
+            amount: new Intl.NumberFormat(i18n.language, {
+              maximumFractionDigits: 1,
+            }).format(ml),
+          });
+    return amount;
+  };
+  const confirmAddition = (container: WaterContainer, queued: boolean) => {
+    const amount = additionLabel(container);
+    fireSuccessHaptic();
+    Toast.show({
+      type: queued ? 'info' : 'success',
+      text1: t('waterIntake.addedConfirmation', {
+        defaultValue: '{{amount}} logged',
+        amount,
+      }),
+      text2: queued
+        ? t('waterIntake.savedForSync', {
+            defaultValue: 'Saved on this phone. Sync will retry automatically.',
+          })
+        : undefined,
+    });
+  };
+
   const mutation = useMutation({
     mutationFn: async (changeDrinks: number) => {
       if (!activeContainer) {
@@ -138,6 +169,7 @@ export function useWaterIntakeMutation({
       if (changeDrinks === 1 && activeContainer.id > 0) {
         return {
           kind: 'container' as const,
+          container: activeContainer,
           state: await logPhoneContainerWaterAction(
             date,
             activeContainer.id,
@@ -150,10 +182,19 @@ export function useWaterIntakeMutation({
         changeDrinks,
         containerId: activeContainer.id,
       });
-      return { kind: 'direct' as const, result };
+      return { kind: 'direct' as const, result, container: activeContainer };
     },
     onMutate: async (changeDrinks: number) => {
       if (!activeContainer) return;
+      if (changeDrinks > 0) {
+        Toast.show({
+          type: 'info',
+          text1: t('waterIntake.loggingAddition', {
+            defaultValue: 'Logging {{amount}}…',
+            amount: additionLabel(activeContainer),
+          }),
+        });
+      }
 
       // Real container additions first enter the durable outbox. The server
       // may resolve a linked food's water credit differently from its vessel
@@ -186,7 +227,7 @@ export function useWaterIntakeMutation({
         }
       );
     },
-    onSuccess: (response) => {
+    onSuccess: (response, changeDrinks) => {
       if (response.kind === 'container') {
         if (response.state === 'attentionRequired') {
           Toast.show({
@@ -196,9 +237,12 @@ export function useWaterIntakeMutation({
               defaultValue: 'Failed to update water intake. Please try again.',
             }),
           });
+        } else {
+          confirmAddition(response.container, response.state === 'queued');
         }
         return;
       }
+      if (changeDrinks > 0) confirmAddition(response.container, false);
       queryClient.setQueryData<DailySummaryRawData>(
         dailySummaryQueryKey(date),
         (old) => {
@@ -272,7 +316,7 @@ export function useWaterIntakeMutation({
   const logPreset = useMutation({
     mutationFn: (containerId: number) =>
       logPhoneContainerWaterAction(date, containerId, queryClient),
-    onSuccess: (state) => {
+    onSuccess: (state, containerId) => {
       if (state === 'attentionRequired') {
         Toast.show({
           type: 'error',
@@ -280,6 +324,11 @@ export function useWaterIntakeMutation({
             defaultValue: 'Could not log that drink',
           }),
         });
+      } else {
+        const container = quickAddPresets.find(
+          (item) => item.id === containerId
+        );
+        if (container) confirmAddition(container, state === 'queued');
       }
       void queryClient.invalidateQueries({
         queryKey: dailySummaryQueryKey(date),

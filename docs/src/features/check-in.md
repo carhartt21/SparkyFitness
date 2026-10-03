@@ -1,6 +1,6 @@
 # Check-In
 
-The Check-In feature in X on Track allows you to quickly log your daily progress, including meals, exercises, and other key metrics. Detailed instructions on using the Check-In feature will be provided in the future.
+Check-In records how your day felt. Daily Progress separately tracks the tasks you configured; answering a check-in does not log a meal, dose or workout.
 
 ## Daily Check-In
 
@@ -9,6 +9,8 @@ The Daily Check-In (mobile: **More → Daily Check-In** or the Dashboard's Daily
 - **How was your day overall?** Very difficult, difficult, okay, good or great.
 - **Day summary** (optional, 1–5): energy, stress, sleep last night, nutrition on track and activity. Each scale states what 1 and 5 mean. For stress, a higher number means more stress, so it is never shown as better.
 - **Note and tags** such as busy day or low sleep, plus your own tags.
+
+**Custom tags on the phone** are saved as reusable options when you finish entering them. Deselecting a tag removes it from that day’s answers, but keeps the option for later. Saved options are local to this phone and separated by account/server; they are not a cross-device tag library. Tags in a loaded historical check-in also become available again. Only selected tags are submitted with the check-in.
 
 **Complete** needs at least one answer, note or tag. **Skip for today** records that you chose not to check in; it stores no answers and you can reopen the day. Leaving with unsaved answers keeps them as a draft.
 

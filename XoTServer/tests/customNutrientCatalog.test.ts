@@ -3,7 +3,6 @@ import {
   MICRONUTRIENT_CATALOG,
   MULTIVITAMIN_PANEL_IDS,
   FOOD_VARIANT_NUTRIENT_FIELDS,
-  SUPPLEMENT_NUTRIENT_VIEW_GROUPS,
   getMicronutrientById,
   normalizeNutrientName,
 } from '@workspace/shared';
@@ -19,6 +18,7 @@ vi.mock('../utils/timezoneLoader', () => ({
   loadUserTimezone: vi.fn().mockResolvedValue('UTC'),
 }));
 
+const { getClient } = await import('../db/poolManager.js');
 const { default: customNutrientService } =
   await import('../services/customNutrientService.js');
 
@@ -81,191 +81,203 @@ describe('MICRONUTRIENT_CATALOG', () => {
   });
 });
 
-describe('customNutrientService.ensureCatalogNutrients', () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
-
-  const stub = (
-    existing: { name: string; unit: string; aliases: string[] }[]
-  ) => {
-    const getSpy = vi
-      .spyOn(customNutrientService, 'getCustomNutrients')
-      .mockResolvedValue(existing as never);
-    const createSpy = vi
-      .spyOn(customNutrientService, 'createCustomNutrient')
-      .mockImplementation(
-        (async (_userId: string, payload: { name: string }) => payload) as never
+interface Definition {
+  id: string;
+  name: string;
+  unit: string;
+  catalog_id: string | null;
+  archived: boolean;
+}
+function catalogClient(initial: Definition[] = [], reserved: string[] = []) {
+  const rows = initial.map((row) => ({ ...row }));
+  const queries: string[] = [];
+  const release = vi.fn();
+  const query = vi.fn(async (sql: string, params: unknown[] = []) => {
+    queries.push(sql);
+    if (
+      ['BEGIN', 'COMMIT', 'ROLLBACK'].includes(sql) ||
+      sql.includes('pg_advisory_xact_lock')
+    )
+      return { rows: [] };
+    if (sql.startsWith('SELECT')) {
+      if (sql.includes('nutrient_key_is_reserved'))
+        return { rows: [{ exists: reserved.includes(String(params[1])) }] };
+      return { rows: rows.map((row) => ({ ...row })) };
+    }
+    if (sql.startsWith('UPDATE')) {
+      const row = rows.find(
+        (row) => row.id === (sql.includes('catalog_id') ? params[1] : params[0])
       );
-    return { getSpy, createSpy };
-  };
-
-  it('creates a nutrient seeded with the catalog unit, aliases and Daily Value', async () => {
-    const { createSpy } = stub([]);
-
-    const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'vitamin_d',
-    ]);
-
-    expect(createSpy).toHaveBeenCalledTimes(1);
-    expect(createSpy).toHaveBeenCalledWith(USER, {
-      name: 'Vitamin D',
-      unit: 'µg',
-      aliases: expect.arrayContaining(['Cholecalciferol']),
-      defaultTarget: 20,
-      // Goal + reports only. A supplement's nutrients must NOT be registered on the
-      // food_database view, or every food row grows an always-0.0 column for each one.
-      viewGroups: SUPPLEMENT_NUTRIENT_VIEW_GROUPS,
-    });
-    expect(SUPPLEMENT_NUTRIENT_VIEW_GROUPS).not.toContain('food_database');
-    expect(result.resolved).toEqual([
-      { catalogId: 'vitamin_d', name: 'Vitamin D' },
-    ]);
+      if (row) {
+        if (sql.includes('catalog_id')) row.catalog_id = String(params[0]);
+        else row.archived = false;
+      }
+      return { rows: [] };
+    }
+    if (sql.includes('INSERT INTO user_custom_nutrients')) {
+      const row = {
+        id: `new-${rows.length}`,
+        name: String(params[1]),
+        unit: String(params[2]),
+        catalog_id: String(params[4]),
+        archived: false,
+      };
+      rows.push(row);
+      return { rows: [{ ...row }] };
+    }
+    throw new Error(`Unexpected SQL: ${sql}`);
   });
+  vi.mocked(getClient).mockResolvedValue({ query, release } as never);
+  return { rows, queries, release };
+}
 
-  it('never creates a custom nutrient for a built-in column', async () => {
-    const { createSpy } = stub([]);
-
+describe('native supplement catalog identity', () => {
+  beforeEach(() => vi.restoreAllMocks());
+  it('provisions native definitions and their units without inventing goals or recorded amounts', async () => {
+    const db = catalogClient();
     const result = await customNutrientService.ensureCatalogNutrients(USER, [
+      'magnesium',
+      'vitamin_d',
       'vitamin_c',
     ]);
-
-    // Vitamin C is already a food_variants column — shadowing it with a custom
-    // nutrient of the same name would double-count it in the report UNION.
-    expect(createSpy).not.toHaveBeenCalled();
     expect(result.resolved).toEqual([
+      { catalogId: 'magnesium', name: 'Magnesium' },
+      { catalogId: 'vitamin_d', name: 'Vitamin D' },
       { catalogId: 'vitamin_c', name: 'Vitamin C', fixedField: 'vitamin_c' },
     ]);
-  });
-
-  it('never creates a custom nutrient for caffeine — it is a fixed column', async () => {
-    const { createSpy } = stub([]);
-
-    const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'caffeine',
-    ]);
-
-    // caffeine_mg is a first-class food_variants column (#1958); shadowing it
-    // with a custom nutrient of the same name would double-count it.
-    expect(createSpy).not.toHaveBeenCalled();
-    expect(result.resolved).toEqual([
-      { catalogId: 'caffeine', name: 'Caffeine', fixedField: 'caffeine_mg' },
-    ]);
-  });
-
-  it('is idempotent — an existing nutrient of the same name is reused', async () => {
-    const { createSpy } = stub([
-      { name: 'Vitamin D', unit: 'µg', aliases: [] },
-    ]);
-
-    const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'vitamin_d',
-    ]);
-
-    expect(createSpy).not.toHaveBeenCalled();
-    expect(result.created).toEqual([]);
-    expect(result.resolved).toEqual([
-      { catalogId: 'vitamin_d', name: 'Vitamin D' },
-    ]);
-  });
-
-  it("resolves onto the user's own spelling when it matches by alias", async () => {
-    // The user already tracks "Vit D" and taught it the alias "Vitamin D3".
-    // Picking the catalog's Vitamin D must reuse that row and report its real
-    // name, or the editor would store values under a key that doesn't exist.
-    const { createSpy } = stub([
-      { name: 'Vit D', unit: 'IU', aliases: ['Vitamin D3'] },
-    ]);
-
-    const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'vitamin_d',
-    ]);
-
-    expect(createSpy).not.toHaveBeenCalled();
-    expect(result.resolved).toEqual([
-      { catalogId: 'vitamin_d', name: 'Vit D' },
-    ]);
-  });
-
-  it('skips unknown catalog ids without failing the batch', async () => {
-    const { createSpy } = stub([]);
-
-    const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'not_a_nutrient',
-      'zinc',
-    ]);
-
-    expect(createSpy).toHaveBeenCalledTimes(1);
-    expect(result.resolved).toEqual([{ catalogId: 'zinc', name: 'Zinc' }]);
-  });
-
-  it('does not create the same nutrient twice within one batch', async () => {
-    const { createSpy } = stub([]);
-
-    const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'magnesium',
-      'magnesium',
-    ]);
-
-    expect(createSpy).toHaveBeenCalledTimes(1);
-    expect(result.resolved).toHaveLength(2);
-    expect(result.resolved.every((entry) => entry.name === 'Magnesium')).toBe(
-      true
+    expect(result.created).toHaveLength(2);
+    expect(db.rows).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          name: 'Magnesium',
+          unit: 'mg',
+          catalog_id: 'magnesium',
+        }),
+      ])
     );
+    expect(
+      db.queries.some((sql) =>
+        /goal|preference|food_entries|medication_entries/.test(sql)
+      )
+    ).toBe(false);
+    expect(db.release).toHaveBeenCalledOnce();
   });
-
-  it('can resolve two different catalog ids onto the same existing nutrient', async () => {
-    // A single user nutrient whose aliases cover both vitamins. Both picks collapse onto
-    // it, so the caller receives the same name twice — the dialog must dedupe the keys
-    // before they become rows, or the grid would render a duplicate React key.
-    const { createSpy } = stub([
-      { name: 'Fat-solubles', unit: 'µg', aliases: ['Vitamin D', 'Vitamin K'] },
+  it('reuses identity and preserves existing storage units and preferences on replay', async () => {
+    const db = catalogClient([
+      {
+        id: 'mg',
+        name: 'Magnesium',
+        unit: 'g',
+        catalog_id: null,
+        archived: false,
+      },
     ]);
-
+    const first = await customNutrientService.ensureCatalogNutrients(USER, [
+      'magnesium',
+      'magnesium',
+    ]);
+    expect(first.created).toEqual([]);
+    expect(first.resolved).toHaveLength(1);
+    expect(db.rows[0]).toMatchObject({ unit: 'g', catalog_id: 'magnesium' });
+    expect(
+      (await customNutrientService.ensureCatalogNutrients(USER, ['magnesium']))
+        .created
+    ).toEqual([]);
+  });
+  it('does not bind loose aliases or collapse chemically different nutrients', async () => {
+    catalogClient([
+      {
+        id: 'mixed',
+        name: 'Fat-solubles',
+        unit: 'µg',
+        catalog_id: null,
+        archived: false,
+      },
+    ]);
     const result = await customNutrientService.ensureCatalogNutrients(USER, [
       'vitamin_d',
       'vitamin_k',
     ]);
-
-    expect(createSpy).not.toHaveBeenCalled();
-    expect(result.resolved.map((entry) => entry.name)).toEqual([
-      'Fat-solubles',
-      'Fat-solubles',
+    expect(result.resolved.map((row) => row.name)).toEqual([
+      'Vitamin D',
+      'Vitamin K',
     ]);
   });
-
-  it('seeds the whole multivitamin panel in one call', async () => {
-    const { createSpy } = stub([]);
-
+  it.each([
+    [
+      {
+        id: 'mg',
+        name: 'Magnesium',
+        unit: 'IU',
+        catalog_id: null,
+        archived: false,
+      },
+    ],
+    [
+      {
+        id: 'mg',
+        name: 'Magnesium',
+        unit: 'mg',
+        catalog_id: 'zinc',
+        archived: false,
+      },
+    ],
+  ])('rejects an incompatible definition and rolls back', async (initial) => {
+    const db = catalogClient([initial]);
+    await expect(
+      customNutrientService.ensureCatalogNutrients(USER, ['magnesium'])
+    ).rejects.toMatchObject({ status: 409 });
+    expect(db.queries).toContain('ROLLBACK');
+    expect(db.queries).not.toContain('COMMIT');
+  });
+  it('rejects historical orphan keys instead of assigning a guessed unit', async () => {
+    const db = catalogClient([], ['Magnesium']);
+    await expect(
+      customNutrientService.ensureCatalogNutrients(USER, ['magnesium'])
+    ).rejects.toMatchObject({ status: 409 });
+    expect(db.queries).toContain('ROLLBACK');
+  });
+  it('resolves the entire native multivitamin panel and keeps fixed fields distinct', async () => {
+    catalogClient();
     const result = await customNutrientService.ensureCatalogNutrients(
       USER,
       MULTIVITAMIN_PANEL_IDS
     );
-
     expect(result.resolved).toHaveLength(MULTIVITAMIN_PANEL_IDS.length);
-    // Panel entries that are built-in columns resolve to a fixedField instead of
-    // being created, so creates < panel size.
-    const fixedCount = MULTIVITAMIN_PANEL_IDS.filter(
-      (id) => getMicronutrientById(id)?.fixedField
-    ).length;
-    expect(createSpy).toHaveBeenCalledTimes(
-      MULTIVITAMIN_PANEL_IDS.length - fixedCount
-    );
+    expect(
+      result.resolved.find((row) => row.catalogId === 'vitamin_a')?.fixedField
+    ).toBe('vitamin_a');
   });
-
-  it('returns the post-seed list without re-querying', async () => {
-    const { getSpy } = stub([{ name: 'Ashwagandha', unit: 'mg', aliases: [] }]);
-
+  it('preserves the legacy non-native picker and skips unknown catalog IDs', async () => {
+    vi.spyOn(customNutrientService, 'getCustomNutrients').mockResolvedValue([]);
+    const create = vi
+      .spyOn(customNutrientService, 'createCustomNutrient')
+      .mockImplementation(
+        async (_userId, payload) => ({ ...payload }) as never
+      );
     const result = await customNutrientService.ensureCatalogNutrients(USER, [
-      'zinc',
+      'not_a_nutrient',
+      'caffeine',
     ]);
-
-    // The created rows are composed onto the existing ones rather than re-SELECTed, so
-    // the whole call costs exactly one read.
-    expect(getSpy).toHaveBeenCalledTimes(1);
-    expect(result.nutrients.map((n: { name: string }) => n.name)).toEqual([
-      'Ashwagandha',
-      'Zinc',
+    expect(create).not.toHaveBeenCalled();
+    expect(result.resolved).toEqual([
+      { catalogId: 'caffeine', name: 'Caffeine', fixedField: 'caffeine_mg' },
+    ]);
+  });
+  it('returns the refreshed native definitions for a mixed catalog request', async () => {
+    const db = catalogClient();
+    vi.spyOn(customNutrientService, 'getCustomNutrients').mockResolvedValue([]);
+    const result = await customNutrientService.ensureCatalogNutrients(USER, [
+      'caffeine',
+      'magnesium',
+    ]);
+    expect(result.resolved).toEqual([
+      { catalogId: 'magnesium', name: 'Magnesium' },
+      { catalogId: 'caffeine', name: 'Caffeine', fixedField: 'caffeine_mg' },
+    ]);
+    expect(result.nutrients).toEqual(db.rows);
+    expect(result.nutrients).toEqual([
+      expect.objectContaining({ catalog_id: 'magnesium', unit: 'mg' }),
     ]);
   });
 });

@@ -71,8 +71,8 @@ export const useCreateCustomNutrientMutation = ({
 };
 
 // Find-or-create custom nutrients from the canonical micronutrient catalog. Used by
-// the supplement nutrient picker so that picking "Vitamin D" materializes a nutrient
-// with the right unit, aliases and Daily Value. Idempotent, so repeated picks are safe.
+// the supplement picker to provision or bind compatible native identities. Native
+// definitions preserve units and do not create goals. Repeated picks are safe.
 export const useEnsureCatalogNutrientsMutation = () => {
   const queryClient = useQueryClient();
   const { t } = useTranslation();
@@ -84,7 +84,8 @@ export const useEnsureCatalogNutrientsMutation = () => {
     // would otherwise miss the freshly-seeded ones. Invalidations refresh in the
     // background rather than holding the mutation pending for another roundtrip.
     onSuccess: (result) => {
-      if (result.created.length === 0) return;
+      // Binding/reactivation can update an existing row without creating one.
+      // Refresh that identity too, so native writeback sees the returned catalog ID.
       queryClient.setQueryData(customNutrientsKeys.all, result.nutrients);
       queryClient.invalidateQueries({
         queryKey: ['preferences', 'nutrients'],

@@ -1,0 +1,123 @@
+{
+  "synthetic": true,
+  "baseMain": "36166b9d6",
+  "phone": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v41-inbox-corrections",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v41-inbox-corrections",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "large": true,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v41-inbox-corrections",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "editorConfirmation": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v41-inbox-corrections",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "large": true,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "v41-inbox-corrections",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "populatedSupplements": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "supplement-layout",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "large": true,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "supplement-layout",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "watch": {
+    "synthetic": true,
+    "nativeAssertionsPassed": 19,
+    "sourceSha256": "3c63e19489e1ca21f76264f09e9a1dede4e5a91729cb4f922ff2448d4838b228",
+    "screenshots": [
+      "watch-goals-de.png",
+      "watch-intake-de.png",
+      "watch-intake-unknown-de.png",
+      "watch-intake-over-de.png"
+    ],
+    "limits": "Synthetic simulator; no phone/server round-trip or physical Watch delivery verified."
+  },
+  "validation": {
+    "mobile": {
+      "suites": 545,
+      "tests": 7699
+    },
+    "web": {
+      "suites": 174,
+      "tests": 1483
+    },
+    "serverTargeted": {
+      "suites": 16,
+      "tests": 229
+    },
+    "consumerValidate": "all three passed",
+    "watchComplicationTypecheck": "passed"
+  },
+  "screenshots": [
+    "390-de-dark-progress-screen-summary.png",
+    "390-de-dark-summary-energy.png",
+    "390-de-dark-summary-progress.png",
+    "390-de-dark-supplements-populated.png",
+    "390-de-dark-v40-custom-tag-reselected.png",
+    "390-de-dark-v41-supplement-magnesium.png",
+    "390-de-dark-v41-supplement-more-nutrients.png",
+    "390-de-dark-v41-water-confirmed.png",
+    "390-de-light-v41-water-confirmed.png",
+    "430-de-large-supplements-populated.png",
+    "430-de-large-v41-supplement-magnesium.png",
+    "430-de-large-v41-supplement-more-nutrients.png",
+    "watch-goals-de.png",
+    "watch-intake-de.png",
+    "watch-intake-over-de.png",
+    "watch-intake-unknown-de.png"
+  ],
+  "limits": "Synthetic in-memory phone transport and unpaired Watch simulator. No production persistence, signed device archive, native health receipt or phone-Watch round-trip verified."
+}

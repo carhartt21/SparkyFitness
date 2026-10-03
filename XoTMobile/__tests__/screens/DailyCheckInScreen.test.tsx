@@ -1,6 +1,10 @@
 import React from 'react';
 import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import {
+  useAppPreferencesStore,
+  __resetAppPreferencesStoreForTests,
+} from '../../src/stores/appPreferencesStore';
 import DailyCheckInScreen from '../../src/screens/DailyCheckInScreen';
 import {
   useDailyCheckin,
@@ -27,6 +31,14 @@ const route = {
   name: 'DailyCheckIn',
   params: { date: '2026-09-28' },
 } as unknown as ScreenProps['route'];
+
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  getActiveNutritionIdentity: jest.fn(async () => ({
+    serverConfigId: 'tag-server',
+    userId: 'tag-user',
+  })),
+  subscribeNutritionIdentity: () => () => {},
+}));
 
 jest.mock('../../src/hooks', () => ({
   useServerConnection: () => ({ isConnected: true, isLoading: false }),
@@ -60,6 +72,7 @@ const renderScreen = () =>
 describe('DailyCheckInScreen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    __resetAppPreferencesStoreForTests();
     beforeRemoveListeners.clear();
     (useDailyCheckin as jest.Mock).mockReturnValue({
       data: null,
@@ -71,6 +84,66 @@ describe('DailyCheckInScreen', () => {
     (useSaveDailyCheckin as jest.Mock).mockReturnValue({ save, skip, reopen });
     save.mutateAsync.mockResolvedValue({});
     skip.mutateAsync.mockResolvedValue({});
+  });
+
+  it('keeps a created tag when deselected and on reopening without saving it as an answer', async () => {
+    const screen = renderScreen();
+    await waitFor(() =>
+      expect(useAppPreferencesStore.persist.hasHydrated()).toBe(true)
+    );
+    // Allow the account identity promise to settle before tag creation.
+    await waitFor(() =>
+      expect(screen.getByTestId('daily-checkin-add-tag')).toBeTruthy()
+    );
+    fireEvent.press(screen.getByTestId('daily-checkin-add-tag'));
+    fireEvent.changeText(
+      screen.getByTestId('daily-checkin-custom-tag'),
+      '  Eigener Test  '
+    );
+    fireEvent(screen.getByTestId('daily-checkin-custom-tag'), 'endEditing');
+    await waitFor(() =>
+      expect(screen.getByTestId('daily-checkin-tag-Eigener Test')).toBeTruthy()
+    );
+    fireEvent.press(screen.getByTestId('daily-checkin-tag-Eigener Test'));
+    expect(
+      screen.getByTestId('daily-checkin-tag-Eigener Test').props
+        .accessibilityState.checked
+    ).toBe(false);
+    fireEvent.press(screen.getByTestId('daily-checkin-overall-4'));
+    fireEvent.press(screen.getByTestId('daily-checkin-complete'));
+    await waitFor(() => expect(save.mutateAsync).toHaveBeenCalled());
+    expect(save.mutateAsync.mock.calls[0][0].tags).toEqual([]);
+    screen.unmount();
+    const reopened = renderScreen();
+    await waitFor(() =>
+      expect(
+        reopened.getByTestId('daily-checkin-tag-Eigener Test')
+      ).toBeTruthy()
+    );
+    fireEvent.press(reopened.getByTestId('daily-checkin-tag-Eigener Test'));
+    expect(
+      reopened.getByTestId('daily-checkin-tag-Eigener Test').props
+        .accessibilityState.checked
+    ).toBe(true);
+  });
+
+  it('uses the native submitted text when the final keystroke has not rendered yet', async () => {
+    const screen = renderScreen();
+    await waitFor(() =>
+      expect(screen.getByTestId('daily-checkin-add-tag')).toBeTruthy()
+    );
+    fireEvent.press(screen.getByTestId('daily-checkin-add-tag'));
+    fireEvent.changeText(
+      screen.getByTestId('daily-checkin-custom-tag'),
+      'Eigener Tes'
+    );
+    fireEvent(screen.getByTestId('daily-checkin-custom-tag'), 'endEditing', {
+      nativeEvent: { text: 'Eigener Test' },
+    });
+    await waitFor(() =>
+      expect(screen.getByTestId('daily-checkin-tag-Eigener Test')).toBeTruthy()
+    );
+    expect(screen.queryByTestId('daily-checkin-tag-Eigener Tes')).toBeNull();
   });
 
   it('refuses to complete an empty check-in', () => {

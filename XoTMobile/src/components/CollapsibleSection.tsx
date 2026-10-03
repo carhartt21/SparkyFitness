@@ -21,6 +21,7 @@ interface CollapsibleSectionProps {
   onToggle: () => void;
   children: React.ReactNode;
   itemCount: number;
+  itemCountLabel?: string;
 }
 
 const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
@@ -29,6 +30,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   onToggle,
   children,
   itemCount,
+  itemCountLabel,
 }) => {
   const { t } = useTranslation();
   const textSecondary = useCSSVariable('--color-text-secondary') as string;
@@ -50,7 +52,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   return (
     <View className="mt-2">
       <TouchableOpacity
-        className="flex-row justify-between items-center py-3 border-b border-border-subtle"
+        className="flex-row justify-between items-center gap-3 py-3 border-b border-border-subtle"
         style={{ borderBottomWidth: StyleSheet.hairlineWidth }}
         onPress={handleToggle}
         activeOpacity={0.7}
@@ -64,20 +66,21 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
             : t('common.expandSection', { defaultValue: 'Expand this section' })
         }
       >
-        <View className="flex-row items-center gap-2">
+        <View className="flex-1 flex-row items-center gap-2">
           <Animated.View style={chevronStyle}>
             <Icon name="chevron-down" size={20} color={textSecondary} />
           </Animated.View>
-          <Text className="text-base font-semibold text-text-primary">
+          <Text className="flex-1 text-base font-semibold text-text-primary">
             {title}
           </Text>
         </View>
         <Text className="text-sm text-text-muted">
           (
-          {t('common.itemCount', {
-            count: itemCount,
-            defaultValue: '{{count}} items',
-          })}
+          {itemCountLabel ??
+            t('common.itemCount', {
+              count: itemCount,
+              defaultValue: '{{count}} items',
+            })}
           )
         </Text>
       </TouchableOpacity>

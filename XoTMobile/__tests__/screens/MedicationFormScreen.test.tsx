@@ -1,5 +1,7 @@
+import { useCustomNutrients } from '../../src/hooks/useCustomNutrients';
+import { ensureCatalogNutrients } from '../../src/services/api/customNutrientsApi';
 import React from 'react';
-import { fireEvent, render } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { pressAction } from './helpers/nativeHeaderTestUtils';
 import MedicationFormScreen from '../../src/screens/MedicationFormScreen';
@@ -13,6 +15,19 @@ import type { RootStackScreenProps } from '../../src/types/navigation';
 
 type ScreenProps = RootStackScreenProps<'MedicationForm'>;
 
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({ invalidateQueries: jest.fn() }),
+}));
+jest.mock('../../src/hooks/useCustomNutrients', () => ({
+  useCustomNutrients: jest.fn(() => ({
+    customNutrients: [],
+    isLoading: false,
+    isError: false,
+  })),
+}));
+jest.mock('../../src/services/api/customNutrientsApi', () => ({
+  ensureCatalogNutrients: jest.fn(),
+}));
 jest.mock('../../src/hooks/useMedications', () => ({
   useMedicationDetail: jest.fn(),
   useCreateMedication: jest.fn(),
@@ -133,6 +148,11 @@ describe('MedicationFormScreen — optional text fields', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (useCustomNutrients as jest.Mock).mockReturnValue({
+      customNutrients: [],
+      isLoading: false,
+      isError: false,
+    });
     mockUseMedicationDetail.mockReturnValue({
       data: baseMed,
     } as unknown as ReturnType<typeof useMedicationDetail>);
@@ -348,6 +368,104 @@ describe('MedicationFormScreen — optional text fields', () => {
         notes: null,
       }),
       expect.anything()
+    );
+  });
+  it('retains late-loaded custom values when another nutrient was edited first', async () => {
+    mockUseMedicationDetail.mockReturnValue({
+      data: {
+        ...baseMed,
+        is_supplement: true,
+        nutrients: {
+          dietary_fiber: 1,
+          custom_nutrients: { 'Owner magnesium': 80 },
+        },
+      },
+    } as unknown as ReturnType<typeof useMedicationDetail>);
+    (useCustomNutrients as jest.Mock).mockReturnValue({
+      customNutrients: [],
+      isLoading: true,
+      isError: false,
+    });
+    const screen = renderScreen('med-1');
+    fireEvent.changeText(screen.getByLabelText('Fiber g'), '2');
+    (useCustomNutrients as jest.Mock).mockReturnValue({
+      customNutrients: [
+        {
+          id: 'mg',
+          name: 'Owner magnesium',
+          unit: 'mg',
+          catalog_id: 'magnesium',
+        },
+      ],
+      isLoading: false,
+      isError: false,
+    });
+    screen.rerender(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <MedicationFormScreen
+          navigation={mockNavigation}
+          route={{
+            key: 'MedicationForm-key',
+            name: 'MedicationForm',
+            params: { medicationId: 'med-1' },
+          }}
+        />
+      </SafeAreaProvider>
+    );
+    expect(screen.getByLabelText('Magnesium mg').props.value).toBe('80');
+    (ensureCatalogNutrients as jest.Mock).mockResolvedValue({
+      resolved: [{ catalogId: 'magnesium', name: 'Owner magnesium' }],
+      nutrients: [
+        {
+          id: 'mg',
+          name: 'Owner magnesium',
+          unit: 'mg',
+          catalog_id: 'magnesium',
+        },
+      ],
+    });
+    pressAction(screen, mockNavigation, 'Save');
+    await waitFor(() =>
+      expect(updateMutate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          body: expect.objectContaining({
+            nutrients: {
+              dietary_fiber: 2,
+              custom_nutrients: { 'Owner magnesium': 80 },
+            },
+          }),
+        }),
+        expect.anything()
+      )
+    );
+  });
+  it('saves decimal-comma magnesium and fiber through canonical definitions', async () => {
+    mockUseMedicationDetail.mockReturnValue({
+      data: { ...baseMed, is_supplement: true, nutrients: {} },
+    } as ReturnType<typeof useMedicationDetail>);
+    (ensureCatalogNutrients as jest.Mock).mockResolvedValue({
+      resolved: [{ catalogId: 'magnesium', name: 'Magnesium' }],
+      nutrients: [
+        { id: 'mg', name: 'Magnesium', unit: 'mg', catalog_id: 'magnesium' },
+      ],
+    });
+    const screen = renderScreen('med-1');
+    fireEvent.changeText(screen.getByLabelText('Fiber g'), '2,5');
+    fireEvent.changeText(screen.getByLabelText('Magnesium mg'), '100');
+    pressAction(screen, mockNavigation, 'Save');
+    await waitFor(() =>
+      expect(updateMutate).toHaveBeenCalledWith(
+        {
+          id: 'med-1',
+          body: expect.objectContaining({
+            nutrients: {
+              dietary_fiber: 2.5,
+              custom_nutrients: { Magnesium: 100 },
+            },
+          }),
+        },
+        expect.anything()
+      )
     );
   });
 });

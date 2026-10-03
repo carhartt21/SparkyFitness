@@ -119,8 +119,8 @@ final class DashboardReview: XCTestCase {
     XCTAssertEqual(rowsFrame.width, progressRows.frame.width, accuracy: 2)
     let stacked = rowsFrame.minY >= visualFrame.maxY
     if !stacked {
-      XCTAssertGreaterThanOrEqual(progressRows.frame.height, 192)
-      XCTAssertGreaterThanOrEqual(progressVisual.frame.height, 192)
+      XCTAssertGreaterThanOrEqual(progressRows.frame.height, 176)
+      XCTAssertGreaterThanOrEqual(progressVisual.frame.height, 176)
     }
     for task in nextTasks.allElementsBoundByIndex {
       XCTAssertGreaterThanOrEqual(task.frame.height, 44)
@@ -151,6 +151,132 @@ final class DashboardReview: XCTestCase {
     nextTasks.firstMatch.tap()
     XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.waitForExistence(timeout: 10))
     capture("summary-task-destination", app)
+    app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.tap()
+    for _ in 0..<7 { if progressHeading.isHittable { break }; dashboard.swipeDown() }
+    progressHeading.tap()
+    let detailSummary = app.descendants(matching: .any)["daily-progress-summary"]
+    XCTAssertTrue(detailSummary.waitForExistence(timeout: 10))
+    let detailCount = app.descendants(matching: .any)["daily-progress-count"]
+    XCTAssertTrue(detailCount.exists)
+    XCTAssertGreaterThanOrEqual(detailCount.frame.minX, detailSummary.frame.minX)
+    XCTAssertLessThanOrEqual(detailCount.frame.maxX, detailSummary.frame.maxX)
+    capture("progress-screen-summary", app)
+    let detailMeasurement = XCTAttachment(string: "Progress detail summary: \(detailSummary.frame), count: \(detailCount.frame); stacked: \(stacked)")
+    detailMeasurement.name = "progress-screen-measurement"
+    detailMeasurement.lifetime = .keepAlways
+    add(detailMeasurement)
+  }
+
+  func testSupplementLayout() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["Mehr", "More"])).firstMatch
+    more.tap()
+    let supplements = app.descendants(matching: .any)["more-supplements"]
+    for _ in 0..<5 { if supplements.exists && supplements.isHittable { break }; app.swipeUp() }
+    supplements.tap()
+    let summary = app.descendants(matching: .any)["supplements-summary"]
+    XCTAssertTrue(summary.waitForExistence(timeout: 10))
+    capture("v40-supplements-populated", app)
+    let menu = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "supplement-menu-")).firstMatch
+    XCTAssertTrue(menu.exists)
+    XCTAssertGreaterThanOrEqual(menu.frame.width, 44)
+    XCTAssertGreaterThanOrEqual(menu.frame.height, 44)
+    let settings = app.descendants(matching: .any)["supplements-settings"]
+    for _ in 0..<8 { if settings.exists && settings.frame.maxY < app.frame.maxY - 20 { break }; app.swipeUp() }
+    XCTAssertTrue(settings.exists)
+    capture("v40-supplements-settings-populated", app)
+  }
+
+  func testV40Corrections() throws {
+    try testSummaryCards()
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch
+    back.tap()
+    let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["Mehr", "More"])).firstMatch
+    XCTAssertTrue(more.waitForExistence(timeout: 10))
+    more.tap()
+    let supplements = app.descendants(matching: .any)["more-supplements"]
+    for _ in 0..<5 { if supplements.exists && supplements.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(supplements.isHittable)
+    supplements.tap()
+    XCTAssertTrue(app.buttons["supplements-back"].waitForExistence(timeout: 10))
+    capture("v40-supplements-top", app)
+    app.swipeUp()
+    capture("v40-supplements-settings", app)
+    let menu = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "supplement-menu-")).firstMatch
+    if menu.exists { XCTAssertGreaterThanOrEqual(menu.frame.width, 44); XCTAssertGreaterThanOrEqual(menu.frame.height, 44) }
+    app.buttons["supplements-back"].tap()
+    let checkin = app.descendants(matching: .any)["more-daily-checkin"]
+    for _ in 0..<5 { if checkin.exists && checkin.isHittable { break }; app.swipeDown() }
+    checkin.tap()
+    XCTAssertTrue(app.buttons["daily-checkin-back"].waitForExistence(timeout: 10))
+    let addTag = app.buttons["daily-checkin-add-tag"]
+    for _ in 0..<10 { if addTag.exists && addTag.isHittable && addTag.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(addTag.isHittable)
+    addTag.tap()
+    let field = app.textFields["daily-checkin-custom-tag"]
+    XCTAssertTrue(field.waitForExistence(timeout: 5))
+    field.tap()
+    field.typeText("Eigener Test")
+    XCTAssertTrue(NSPredicate(format: "value == %@", "Eigener Test").evaluate(with: field))
+    field.typeText("\n")
+    let tag = app.descendants(matching: .any)["daily-checkin-tag-Eigener Test"]
+    XCTAssertTrue(tag.waitForExistence(timeout: 5))
+    tag.tap()
+    XCTAssertTrue(tag.exists)
+    capture("v40-custom-tag-deselected", app)
+    for _ in 0..<12 { if app.buttons["daily-checkin-back"].isHittable { break }; app.swipeDown() }
+    app.buttons["daily-checkin-back"].tap()
+    checkin.tap()
+    XCTAssertTrue(app.buttons["daily-checkin-back"].waitForExistence(timeout: 10))
+    for _ in 0..<10 { if tag.exists && tag.isHittable && tag.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(tag.exists)
+    tag.tap()
+    capture("v40-custom-tag-reselected", app)
+  }
+
+  func testV41Corrections() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let water = app.buttons["dashboard-water"]
+    for _ in 0..<8 { if water.isHittable && water.frame.maxY < app.frame.maxY - 120 { break }; app.swipeUp() }
+    XCTAssertTrue(water.isHittable)
+    water.tap()
+    let confirmation = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "250 ml Wasser eingetragen")).firstMatch
+    XCTAssertTrue(confirmation.waitForExistence(timeout: 10))
+    capture("v41-water-confirmed", app)
+    for _ in 0..<10 { app.swipeDown() }
+    try testV40Corrections()
+    let back = app.buttons["daily-checkin-back"]
+    for _ in 0..<12 { if back.isHittable { break }; app.swipeDown() }
+    back.tap()
+    let supplements = app.descendants(matching: .any)["more-supplements"]
+    for _ in 0..<8 { if supplements.isHittable { break }; app.swipeUp() }
+    supplements.tap()
+    let addSupplement = app.descendants(matching: .any)["supplements-add"]
+    XCTAssertTrue(addSupplement.waitForExistence(timeout: 10))
+    addSupplement.tap()
+    let fiber = app.textFields["supplement-nutrient-dietary_fiber"]
+    for _ in 0..<12 { if fiber.isHittable && fiber.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(fiber.exists)
+    capture("v41-supplement-fiber", app)
+    let magnesium = app.textFields["supplement-nutrient-catalog:magnesium"]
+    for _ in 0..<10 { if magnesium.isHittable && magnesium.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(magnesium.exists)
+    capture("v41-supplement-magnesium", app)
+    let moreNutrients = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Weitere Nährstoffe")).firstMatch
+    for _ in 0..<10 { if moreNutrients.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(moreNutrients.exists)
+    moreNutrients.tap()
+    let thiamin = app.textFields["supplement-nutrient-catalog:thiamin"]
+    for _ in 0..<12 { if thiamin.isHittable && thiamin.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(thiamin.exists)
+    capture("v41-supplement-more-nutrients", app)
   }
 
   func testMealGoalStatus() throws {

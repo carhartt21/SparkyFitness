@@ -45,7 +45,10 @@ export default function DashboardSummaryCard({
   const light = !useGlowTheme();
   const available = contentWidth ?? width - 64;
   const stacked = fontScale > 1.3 || available < 280;
-  const size = Math.min(168, Math.max(132, Math.round((available - 12) / 2)));
+  const size = Math.min(
+    144,
+    Math.max(128, Math.round((available - 12) * 0.45))
+  );
   const heading = (
     <>
       <View style={{ width: 18 }} />
@@ -71,7 +74,7 @@ export default function DashboardSummaryCard({
       testID={testID}
       glowColor={cardGlow}
       accessibilityLabel={onOpen ? undefined : accessibilityLabel}
-      className="mb-3 p-4"
+      className="mb-3 p-3"
     >
       {onOpen ? (
         <Pressable
@@ -103,7 +106,7 @@ export default function DashboardSummaryCard({
             style={
               stacked
                 ? { width: size }
-                : { width: size, minHeight: 192, alignSelf: 'stretch' }
+                : { width: size, minHeight: 176, alignSelf: 'stretch' }
             }
           >
             {renderVisual({
@@ -132,7 +135,7 @@ export default function DashboardSummaryCard({
   );
 }
 
-/** Matching icon holders, 64-point row targets and separators for both cards. */
+/** Matching icon holders, 44-point or larger row targets and separators for both cards. */
 export function DashboardSummaryRow({
   icon,
   color,
@@ -162,7 +165,7 @@ export function DashboardSummaryRow({
       ) : null}
     </>
   );
-  const className = `${compact ? 'min-h-12' : 'min-h-16'} flex-row items-center gap-2 py-2 ${last ? '' : 'border-b border-border-subtle'}`;
+  const className = `${compact ? 'min-h-11' : 'min-h-14'} flex-row items-center gap-2 py-1.5 ${last ? '' : 'border-b border-border-subtle'}`;
   return onPress ? (
     <Pressable
       testID={testID}

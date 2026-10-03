@@ -143,5 +143,10 @@
   "progress.close": "Schließen",
   "progress.noCountedTasks": "Keine zählenden Aufgaben",
   "watch.macroUnknownA11y": "%@ noch nicht synchronisiert",
-  "watch.macroA11y": "%@ %@ von %@ Gramm"
+  "watch.macroA11y": "%@ %@ von %@ Gramm",
+  "watch.eatenShort": "Essen",
+  "watch.burnedShort": "Aktivität",
+  "watch.energyStatA11y": "%@: %@ kcal",
+  "watch.energyStatUnknownA11y": "%@: nicht verfügbar",
+  "watch.energyUnknownShort": "Keine Daten"
 }

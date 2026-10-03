@@ -1451,7 +1451,36 @@
         "iron": "Iron",
         "caffeine_mg": "Caffeine",
         "water_ml": "Water",
-        "alcohol_g": "Alcohol"
+        "alcohol_g": "Alcohol",
+        "dietary_fiber": "Fiber",
+        "vitamin_a": "Vitamin A",
+        "saturated_fat": "Saturated fat",
+        "polyunsaturated_fat": "Polyunsaturated fat",
+        "monounsaturated_fat": "Monounsaturated fat",
+        "trans_fat": "Trans fat",
+        "cholesterol": "Cholesterol",
+        "sugars": "Sugars",
+        "thiamin": "Vitamin B1 (thiamin)",
+        "riboflavin": "Vitamin B2 (riboflavin)",
+        "niacin": "Vitamin B3 (niacin)",
+        "pantothenic_acid": "Vitamin B5",
+        "vitamin_b6": "Vitamin B6",
+        "biotin": "Biotin (B7)",
+        "vitamin_b12": "Vitamin B12",
+        "folate": "Folate (B9)",
+        "vitamin_d": "Vitamin D",
+        "vitamin_e": "Vitamin E",
+        "vitamin_k": "Vitamin K",
+        "chloride": "Chloride",
+        "chromium": "Chromium",
+        "copper": "Copper",
+        "iodine": "Iodine",
+        "magnesium": "Magnesium",
+        "manganese": "Manganese",
+        "molybdenum": "Molybdenum",
+        "phosphorus": "Phosphorus",
+        "selenium": "Selenium",
+        "zinc": "Zinc"
       },
       "updateFailed": "Failed to update medication: {{error}}",
       "createFailed": "Failed to create medication: {{error}}",
@@ -1463,7 +1492,10 @@
       "supplementCreateFailed": "Could not create supplement: {{error}}",
       "supplementUpdateFailed": "Could not update supplement: {{error}}",
       "classification": "Category",
-      "glp1Classification": "GLP-1 items remain medications. Their classification cannot be changed here."
+      "glp1Classification": "GLP-1 items remain medications. Their classification cannot be changed here.",
+      "additionalNutrients": "More nutrients",
+      "nutrientsUnavailable": "Nutrient definitions could not be loaded. Please reopen this form and try again.",
+      "nutrientSaveFailed": "Check nutrient amounts and units. No supplement changes were saved; try again when connected."
     },
     "detail": {
       "deleteTitle": "Delete Medication",
@@ -5283,7 +5315,11 @@
     "configure": "Please configure a water container on the server to track hydration.",
     "multipleNoPrimaryMobile": "You have multiple water containers but none is marked as primary. Tap to choose one.",
     "configureMobile": "Add a water container to start tracking hydration.",
-    "defaultContainer": "Default"
+    "defaultContainer": "Default",
+    "loggedAmount": "{{amount}} ml water",
+    "addedConfirmation": "{{amount}} logged",
+    "savedForSync": "Saved on this phone. Sync will retry automatically.",
+    "loggingAddition": "Logging {{amount}}…"
   },
   "waterContainers": {
     "title": "Water containers",
@@ -6234,7 +6270,8 @@
       "okay": "Okay",
       "good": "Good",
       "great": "Great"
-    }
+    },
+    "tagIdentityUnavailable": "Connect your account before creating a saved tag."
   },
   "context": {
     "manageA11y": "Manage injury, illness and vacation periods",

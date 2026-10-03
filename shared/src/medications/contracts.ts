@@ -152,6 +152,8 @@ export interface CreateMedicationInput {
 export type UpdateMedicationInput = Partial<CreateMedicationInput>;
 
 export interface MedicationEntry {
+  /** Immutable per-dose nutrition; null for medication-only intake. */
+  nutrients_snapshot?: Record<string, number | Record<string, number>> | null;
   id: string;
   medication_id: string;
   schedule_id: string | null;

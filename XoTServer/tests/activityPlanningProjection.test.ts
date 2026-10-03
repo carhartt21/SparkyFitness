@@ -352,3 +352,170 @@ describe('activity planning completion truth', () => {
     );
   });
 });
+
+describe('imported whole-activity completion', () => {
+  const runningPlan = () => {
+    const data = activityData();
+    Object.assign(data.versions[0].assignments[0], {
+      exerciseId: null,
+      workoutPresetId: null,
+      exercises: [],
+      activityType: 'running',
+      label: 'running',
+      plannedDurationMinutes: 30,
+      plannedDistanceKm: 5,
+    });
+    data.entries = [
+      activityEntry({
+        origin_id: null,
+        source: 'Apple Health',
+        exercise_name: 'Running',
+        duration_minutes: 35,
+        distance: 5.2,
+        recorded_at: '2026-10-01T11:00:00Z',
+        completed_count: 0,
+      }),
+    ];
+    return data;
+  };
+  it('resolves a confirmed imported Running record without a plan ID or writes', () => {
+    const data = runningPlan();
+    const original = structuredClone(data);
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'complete',
+      reason: 'compatible_activity_recorded',
+      evidence_ids: [data.entries[0].id],
+    });
+    expect(data).toEqual(original);
+  });
+  it.each([
+    { exercise_name: 'Walking' },
+    { source: 'Workout Plan' },
+    { entry_date: '2026-09-30' },
+    { duration_minutes: 0, distance: 0 },
+    { recorded_at: '2026-10-01T09:00:00Z' },
+    { origin_id: 99 },
+  ])(
+    'excludes incompatible, planned, earlier or reserved evidence: %j',
+    (change) => {
+      const data = runningPlan();
+      Object.assign(data.entries[0], change);
+      expect(project(data).occurrences[0].state).toBe('pending');
+    }
+  );
+  it.each([{ duration_minutes: 20 }, { distance: null }, { distance: 4 }])(
+    'shows a shorter or incomplete run as started: %j',
+    (change) => {
+      const data = runningPlan();
+      Object.assign(data.entries[0], change);
+      expect(project(data).occurrences[0].state).toBe('started');
+    }
+  );
+  it('requires one whole record and never sums several short sessions', () => {
+    const data = runningPlan();
+    data.entries[0].duration_minutes = 15;
+    data.entries.push(
+      activityEntry({
+        ...data.entries[0],
+        id: randomUUID(),
+        record_id: randomUUID(),
+      })
+    );
+    expect(project(data).occurrences[0].state).toBe('started');
+    data.entries[1].record_id = data.entries[0].record_id;
+    expect(project(data).occurrences[0].state).toBe('pending');
+  });
+  it('uses a record once and gives a constrained goal priority over attendance', () => {
+    const data = runningPlan();
+    data.versions[0].assignments.push({
+      ...data.versions[0].assignments[0],
+      id: 2,
+      plannedDistanceKm: null,
+      plannedDurationMinutes: null,
+    });
+    expect(project(data).occurrences.map((row) => row.state)).toEqual([
+      'complete',
+      'pending',
+    ]);
+    data.entries.push(
+      activityEntry({
+        ...data.entries[0],
+        id: randomUUID(),
+        record_id: randomUUID(),
+        distance: 1,
+        duration_minutes: 10,
+      })
+    );
+    expect(project(data).occurrences.map((row) => row.state)).toEqual([
+      'complete',
+      'complete',
+    ]);
+    data.entries.reverse();
+    expect(project(data).occurrences.map((row) => row.state)).toEqual([
+      'complete',
+      'complete',
+    ]);
+  });
+  it('preserves explicit skip and link reservations', () => {
+    const data = runningPlan();
+    data.resolutions = [
+      {
+        user_id: owner,
+        occurrence_id: `workout:1:1:${DAY}`,
+        local_day: DAY,
+        revision: 1,
+        action: 'skip',
+        record_id: null,
+        entry_id: null,
+        updated_at: '2026-10-01T12:00:00Z',
+      },
+    ];
+    expect(project(data).occurrences[0].state).toBe('excluded');
+    data.resolutions[0] = {
+      ...data.resolutions[0],
+      occurrence_id: `workout:1:99:${DAY}`,
+      action: 'link',
+      record_id: data.entries[0].record_id,
+      entry_id: data.entries[0].id,
+    };
+    expect(project(data).occurrences[0].state).toBe('pending');
+  });
+  it('matches imports even when a plan prefill exists', () => {
+    const data = runningPlan();
+    data.entries.push(
+      activityEntry({
+        source: 'Workout Plan',
+        duration_minutes: 30,
+        distance: 5,
+      })
+    );
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'complete',
+      reason: 'compatible_activity_recorded',
+    });
+  });
+  it('pins the prescription when an imported run precedes an edit or deletion', () => {
+    const data = runningPlan();
+    const edited = structuredClone(data.versions[0]);
+    edited.id = '2';
+    edited.captured_at = '2026-10-01T12:00:00Z';
+    edited.assignments[0].plannedDistanceKm = 10;
+    data.versions.push(edited);
+    expect(project(data).occurrences[0].state).toBe('complete');
+    edited.is_active = false;
+    edited.assignments = [];
+    expect(project(data).occurrences).toHaveLength(1);
+    expect(project(data).occurrences[0].state).toBe('complete');
+  });
+  it('does not backfill a new goal with an earlier imported run', () => {
+    const data = runningPlan();
+    data.versions[0].captured_at = '2026-10-01T12:00:00Z';
+    expect(project(data).occurrences[0].state).toBe('pending');
+  });
+  it('removes inferred completion when the source record disappears', () => {
+    const data = runningPlan();
+    expect(project(data).occurrences[0].state).toBe('complete');
+    data.entries = [];
+    expect(project(data).occurrences[0].state).toBe('pending');
+  });
+});

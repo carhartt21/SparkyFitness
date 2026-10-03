@@ -9,7 +9,7 @@ import type {
   QuantitySampleForSaving,
   QuantityTypeIdentifierWriteable,
 } from '@kingstinct/react-native-healthkit';
-import type { FoodEntry } from '../../types/foodEntries';
+import type { NutritionWritebackEntry as FoodEntry } from '../shared/supplementWriteback';
 import {
   HC_NUTRIENT_COLUMNS,
   G_TO_MG,
@@ -214,7 +214,15 @@ export const foodEntryToNutrientSamples = (
   if (!entry.serving_size) return null; // 0 / null / undefined — can't scale
 
   const [hour, minute, second] = resolveFoodEntryTime(entry);
-  const interval = recordInterval(entry.entry_date, hour, minute, second, now);
+  const timestamp = entry.writebackTimestamp
+    ? new Date(entry.writebackTimestamp)
+    : null;
+  const interval = timestamp
+    ? Number.isFinite(timestamp.getTime()) &&
+      timestamp.getTime() <= now.getTime()
+      ? { start: timestamp, end: timestamp }
+      : null
+    : recordInterval(entry.entry_date, hour, minute, second, now);
   if (!interval) return null; // anchor still in the future — defer to a later sync
 
   const { start, end } = interval;

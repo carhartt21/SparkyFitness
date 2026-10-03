@@ -1,3 +1,4 @@
+import { isBuiltInCheckinTag } from '@workspace/shared';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
@@ -80,6 +81,7 @@ export const PREFERENCE_DEFAULTS = {
   defaultRestSec: DEFAULT_REST_SEC as number,
   restTimerSoundEnabled: true,
   workoutKeepAwakeEnabled: false,
+  checkinCustomTagsByAccount: {} as Record<string, string[]>,
   languagePreference: 'system' as LanguagePreference,
   healthTrendOrder: [...HEALTH_TREND_KEYS] as HealthTrendKey[],
   hiddenHealthTrends: [] as HealthTrendKey[],
@@ -131,6 +133,7 @@ export type AppPreferencesData = {
   defaultRestSec: number;
   restTimerSoundEnabled: boolean;
   workoutKeepAwakeEnabled: boolean;
+  checkinCustomTagsByAccount: Record<string, string[]>;
   languagePreference: LanguagePreference;
   healthTrendOrder: HealthTrendKey[];
   hiddenHealthTrends: HealthTrendKey[];
@@ -145,6 +148,7 @@ export type AppPreferencesData = {
 };
 
 export interface AppPreferencesState extends AppPreferencesData {
+  rememberCheckinTags: (scope: string, tags: readonly string[]) => void;
   setHapticsEnabled: (value: boolean) => void;
   setSoundsEnabled: (value: boolean) => void;
   setNotificationsEnabled: (value: boolean) => void;
@@ -235,6 +239,24 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
     (set) => ({
       ...PREFERENCE_DEFAULTS,
 
+      rememberCheckinTags: (scope, tags) =>
+        set((state) => {
+          const current = state.checkinCustomTagsByAccount[scope] ?? [];
+          const additions = tags
+            .map((tag) => tag.trim())
+            .filter(
+              (tag) =>
+                tag.length > 0 && tag.length <= 40 && !isBuiltInCheckinTag(tag)
+            );
+          const next = [...new Set([...current, ...additions])];
+          if (!scope || next.length === current.length) return state;
+          return {
+            checkinCustomTagsByAccount: {
+              ...state.checkinCustomTagsByAccount,
+              [scope]: next,
+            },
+          };
+        }),
       setHapticsEnabled: (value) => set({ hapticsEnabled: value }),
       setSoundsEnabled: (value) => set({ soundsEnabled: value }),
       setNotificationsEnabled: (value) => set({ notificationsEnabled: value }),
@@ -359,6 +381,7 @@ export const useAppPreferencesStore = create<AppPreferencesState>()(
         defaultRestSec: state.defaultRestSec,
         restTimerSoundEnabled: state.restTimerSoundEnabled,
         workoutKeepAwakeEnabled: state.workoutKeepAwakeEnabled,
+        checkinCustomTagsByAccount: state.checkinCustomTagsByAccount,
         languagePreference: state.languagePreference,
         healthTrendOrder: state.healthTrendOrder,
         hiddenHealthTrends: state.hiddenHealthTrends,

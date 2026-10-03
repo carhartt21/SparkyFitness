@@ -118,6 +118,11 @@ For database-backed meal-icon persistence, start the isolated web stack and run 
 
 Use `--interactions --summary-cards-review --case '^(390-de-dark|390-de-light|430-de-large)$'` with a fresh output directory. This uses the existing isolated v38 fixture and runs only the energy/task summary review, without provider or keyboard flows. It measures matching visual/supporting columns, checks normal-size row and visual heights, verifies minimum touch targets and horizontal bounds, captures both cards and opens a real pending task destination. Enlarged text uses stacked layouts. The date navigator's next-day control is deliberately excluded from the task selector. Synthetic habit names remain literal fixture data; the capture is not a localization assertion about those names.
 
+It then opens the full Daily Progress screen, captures its summary and measures
+the card/count frames. The count must stay within the card's horizontal bounds;
+enlarged text can legitimately continue below the viewport. Measurements support
+before/after height comparison rather than imposing a fixed height on content.
+
 ## Food macro column fitting
 
 Use `--interactions --food-macro-review --case '^(390-de-dark|390-de-light|430-de-large)$'` with a fresh output directory. This opens the synthetic yogurt through real food search, checks the nutrient columns' horizontal bounds, captures 150 kcal, then edits an unsaved quantity draft to display 15,000 kcal. German formatting uses `15.000`. Inspect both captures for glyph containment: accessibility bounds alone cannot prove text fits. At enlarged text the existing two-column layout applies; the normal capture shows its first row and the long-value capture shows all four nutrients. This mode makes no saves and does not verify backend persistence.
@@ -147,3 +152,37 @@ breakdown. It captures both the category card's top and its lower rows; at enlar
 text they scroll separately. Category counts are not the daily progress denominator.
 Actual confirmations, phone undo, reconnect, midnight, account switch and signed
 complication delivery still require the paired-device release check.
+
+## v40 review corrections
+
+`--interactions --v40-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+combines the summary-column/tap-target checks with Supplements captures and a
+custom Check-In tag create → deselect → reopen → reselect flow. The review wrapper
+resets its synthetic tag options before each case. Native input is literal (no
+autocorrection), and the test checks the entered value before submitting. This
+checks device preferences and navigation; it does not prove backend persistence.
+
+`--interactions --supplements-review` with the same cases opens populated
+synthetic supplement rows, checks the menu's 44-point target, and captures the
+summary and separated settings actions. Only these enumerated GET responses use
+the populated fixture; production requests and unsupported writes are unchanged.
+User-entered dose units and names are displayed literally in this fixture too.
+
+`node scripts/review-watch-goals.mjs --output /absolute/private/review-directory`
+compiles the real Watch sources with a separate synthetic host, runs the native
+goal/receipt and localization assertions, and captures German Daily Goals and
+intake (known, unknown and over-target) at 42 mm. The host is never part of the
+shipped app. Real phone–Watch sync and physical complication appearance remain
+device checks.
+
+## v41 inbox corrections
+
+Use `--interactions --v41-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+with a compatible simulator app and a fresh output directory. This extends the
+summary/check-in review with one water quick-action confirmation showing the
+synthetic 250 ml amount, then opens the supplement editor and verifies fiber,
+magnesium and the expanded native nutrient section. German dark/light and enlarged
+text cases use the same real components. The isolated transport accepts the
+schema-validated water action in memory, with operation replay detection; it never
+accesses a production account. Offline retry, actual Health writeback and paired
+Watch round-trips remain unit/device gates rather than screenshot claims.

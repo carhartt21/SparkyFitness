@@ -149,3 +149,9 @@
 
 "watch.macroUnknownA11y" = "%@ not synced yet";
 "watch.macroA11y" = "%@ %@ of %@ grams";
+
+"watch.eatenShort" = "Eaten";
+"watch.burnedShort" = "Activity";
+"watch.energyStatA11y" = "%@: %@ kcal";
+"watch.energyStatUnknownA11y" = "%@: unavailable";
+"watch.energyUnknownShort" = "No data";
