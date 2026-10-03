@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v41 release](v41-release-2026-10-03.md): combined validation, preserved rollout gates and verified TestFlight/production delivery.
+
 - [BLS artwork expansion](bls-food-artwork-expansion-2026-10-03.md): 12 additional illustrations, 584 refined assignments and preparation/ingredient regression checks.
 - [v41 inbox corrections](v41-inbox-corrections-2026-10-03.md): nine phone/Watch reports, supplement native export, imported activity matching, regression and simulator evidence; release/device acceptance remains separate.
 
