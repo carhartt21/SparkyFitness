@@ -23,6 +23,20 @@ import {
 } from '../utils/medicationLocalization';
 import { MEDICATION_TYPES } from '../types/medications';
 import { SUPPLEMENT_FORMS } from '@workspace/shared';
+import { useQueryClient } from '@tanstack/react-query';
+import CollapsibleSection from '../components/CollapsibleSection';
+import { useCustomNutrients } from '../hooks/useCustomNutrients';
+import { invalidateNutritionCaches } from '../hooks/invalidateNutritionCaches';
+import { ensureCatalogNutrients } from '../services/api/customNutrientsApi';
+import type { UserCustomNutrient } from '../services/api/customNutrientsApi';
+import {
+  SUPPLEMENT_FIXED_FIELDS,
+  SUPPLEMENT_NATIVE_FIELDS,
+  supplementDefinition,
+  supplementNutritionDraft,
+  parseSupplementNutritionDraft,
+  applySupplementNutritionDraft,
+} from '../utils/supplementNutrition';
 
 type MedicationFormScreenProps = RootStackScreenProps<'MedicationForm'>;
 
@@ -41,21 +55,6 @@ interface FormState {
   isSupplement: boolean;
   nutrients: Record<string, string>;
 }
-
-const SUPPLEMENT_NUTRIENTS = [
-  { key: 'calories', unit: 'kcal' },
-  { key: 'protein', unit: 'g' },
-  { key: 'carbs', unit: 'g' },
-  { key: 'fat', unit: 'g' },
-  { key: 'sodium', unit: 'mg' },
-  { key: 'potassium', unit: 'mg' },
-  { key: 'vitamin_c', unit: 'mg' },
-  { key: 'calcium', unit: 'mg' },
-  { key: 'iron', unit: 'mg' },
-  { key: 'caffeine_mg', unit: 'mg' },
-  { key: 'water_ml', unit: 'ml' },
-  { key: 'alcohol_g', unit: 'g' },
-] as const;
 
 const EMPTY_FORM: FormState = {
   name: '',
@@ -77,7 +76,9 @@ const hasDetailsContent = (form: FormState): boolean =>
   Boolean(form.reason || form.prescriber || form.pharmacy || form.notes);
 
 function baseFromMed(
-  existingMed?: NonNullable<ReturnType<typeof useMedicationDetail>['data']>
+  existingMed:
+    NonNullable<ReturnType<typeof useMedicationDetail>['data']> | undefined,
+  definitions: readonly UserCustomNutrient[]
 ): FormState {
   if (!existingMed) return EMPTY_FORM;
   return {
@@ -97,11 +98,7 @@ function baseFromMed(
     notes: existingMed.notes ?? '',
     isActive: existingMed.is_active,
     isSupplement: existingMed.is_supplement === true,
-    nutrients: Object.fromEntries(
-      Object.entries(existingMed.nutrients ?? {})
-        .filter(([, value]) => typeof value === 'number')
-        .map(([key, value]) => [key, String(value)])
-    ),
+    nutrients: supplementNutritionDraft(existingMed.nutrients, definitions),
   };
 }
 
@@ -109,38 +106,47 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
   route,
   navigation,
 }) => {
-  const { t } = useTranslation();
-  const nutrientLabels = {
-    calories: t('medications.form.nutrient.calories', {
-      defaultValue: 'Energy',
-    }),
-    protein: t('medications.form.nutrient.protein', {
-      defaultValue: 'Protein',
-    }),
-    carbs: t('medications.form.nutrient.carbs', {
-      defaultValue: 'Carbohydrates',
-    }),
-    fat: t('medications.form.nutrient.fat', { defaultValue: 'Fat' }),
-    sodium: t('medications.form.nutrient.sodium', { defaultValue: 'Sodium' }),
-    potassium: t('medications.form.nutrient.potassium', {
-      defaultValue: 'Potassium',
-    }),
-    vitamin_c: t('medications.form.nutrient.vitamin_c', {
-      defaultValue: 'Vitamin C',
-    }),
-    calcium: t('medications.form.nutrient.calcium', {
-      defaultValue: 'Calcium',
-    }),
-    iron: t('medications.form.nutrient.iron', { defaultValue: 'Iron' }),
-    caffeine_mg: t('medications.form.nutrient.caffeine_mg', {
-      defaultValue: 'Caffeine',
-    }),
-    water_ml: t('medications.form.nutrient.water_ml', {
-      defaultValue: 'Water',
-    }),
-    alcohol_g: t('medications.form.nutrient.alcohol_g', {
-      defaultValue: 'Alcohol',
-    }),
+  const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
+  const {
+    customNutrients,
+    isLoading: nutrientsLoading,
+    isError: nutrientsError,
+  } = useCustomNutrients();
+  const [savingNutrition, setSavingNutrition] = useState(false);
+  const [showAdditionalNutrients, setShowAdditionalNutrients] = useState(false);
+  const allNutrients = [
+    ...SUPPLEMENT_FIXED_FIELDS,
+    ...SUPPLEMENT_NATIVE_FIELDS,
+  ];
+  const commonKeys = new Set([
+    'calories',
+    'protein',
+    'carbs',
+    'fat',
+    'dietary_fiber',
+    'sodium',
+    'potassium',
+    'vitamin_c',
+    'calcium',
+    'iron',
+    'caffeine_mg',
+    'water_ml',
+    'alcohol_g',
+    'catalog:magnesium',
+  ]);
+  const commonNutrients = allNutrients.filter((field) =>
+    commonKeys.has(field.key)
+  );
+  const additionalNutrients = allNutrients.filter(
+    (field) => !commonKeys.has(field.key)
+  );
+  const nutrientLabel = (field: (typeof allNutrients)[number]) => {
+    const key = field.catalogId ?? field.key;
+    // i18n-audit-ignore-next-line dynamic-i18n-key -- bounded nutrient registry has reviewed English/German entries.
+    return t(`medications.form.nutrient.${key}`, {
+      defaultValue: field.defaultLabel,
+    });
   };
   const medicationId = route.params?.medicationId;
   const isEditing = !!medicationId;
@@ -160,10 +166,14 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     !isEditing && route.params?.supplement ? { isSupplement: true } : {}
   );
 
-  const form: FormState = useMemo(
-    () => ({ ...baseFromMed(existingMed), ...edits }),
-    [existingMed, edits]
-  );
+  const form: FormState = useMemo(() => {
+    const base = baseFromMed(existingMed, customNutrients);
+    return {
+      ...base,
+      ...edits,
+      nutrients: { ...base.nutrients, ...edits.nutrients },
+    };
+  }, [existingMed, customNutrients, edits]);
 
   // null until the user toggles; until then follow the data, so a medication
   // with detail content opens expanded even when it arrives after mount.
@@ -177,8 +187,13 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     []
   );
 
-  const handleSave = useCallback(() => {
-    if (createMedication.isPending || updateMedication.isPending) return;
+  const handleSave = useCallback(async () => {
+    if (
+      createMedication.isPending ||
+      updateMedication.isPending ||
+      savingNutrition
+    )
+      return;
 
     if (!form.name.trim()) {
       Alert.alert(
@@ -198,30 +213,6 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
       ? parseFloat(form.strengthValue)
       : null;
     const doseNum = form.doseAmount ? parseFloat(form.doseAmount) : null;
-    const nutrientAmounts: Record<string, number | Record<string, number>> = {
-      ...(existingMed?.nutrients ?? {}),
-    };
-    for (const { key } of SUPPLEMENT_NUTRIENTS) {
-      const raw = form.nutrients[key]?.trim();
-      if (!raw) {
-        delete nutrientAmounts[key];
-        continue;
-      }
-      const value = Number(raw.replace(',', '.'));
-      if (!Number.isFinite(value) || value < 0) {
-        Alert.alert(
-          t('medications.form.invalidNumber', {
-            defaultValue: 'Invalid number',
-          }),
-          t('medications.form.invalidNutrient', {
-            defaultValue: 'Enter a non-negative number for each nutrient.',
-          })
-        );
-        return;
-      }
-      nutrientAmounts[key] = value;
-    }
-
     if (
       (form.strengthValue && !Number.isFinite(strengthNum)) ||
       (form.doseAmount && !Number.isFinite(doseNum))
@@ -234,6 +225,64 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
         })
       );
       return;
+    }
+
+    let nutrientAmounts = existingMed?.nutrients ?? {};
+    if (form.isSupplement) {
+      const needsDefinitions =
+        Object.keys(existingMed?.nutrients?.custom_nutrients ?? {}).length >
+          0 ||
+        SUPPLEMENT_NATIVE_FIELDS.some((field) =>
+          form.nutrients[field.key]?.trim()
+        );
+      if (needsDefinitions && (nutrientsLoading || nutrientsError)) {
+        Alert.alert(
+          t('common.error', { defaultValue: 'Error' }),
+          t('medications.form.nutrientsUnavailable', {
+            defaultValue:
+              'Nutrient definitions could not be loaded. Please reopen this form and try again.',
+          })
+        );
+        return;
+      }
+      try {
+        const values = parseSupplementNutritionDraft(form.nutrients);
+        const catalogIds = SUPPLEMENT_NATIVE_FIELDS.filter(
+          (field) => values[field.key] !== undefined
+        ).map((field) => field.catalogId);
+        if (catalogIds.length) {
+          setSavingNutrition(true);
+          const result = await ensureCatalogNutrients(catalogIds);
+          nutrientAmounts = applySupplementNutritionDraft(
+            values,
+            existingMed?.nutrients,
+            customNutrients,
+            result.resolved,
+            result.nutrients
+          );
+          invalidateNutritionCaches(queryClient);
+        } else {
+          nutrientAmounts = applySupplementNutritionDraft(
+            values,
+            existingMed?.nutrients,
+            customNutrients,
+            []
+          );
+        }
+      } catch {
+        Alert.alert(
+          t('medications.form.invalidNumber', {
+            defaultValue: 'Invalid number',
+          }),
+          t('medications.form.nutrientSaveFailed', {
+            defaultValue:
+              'Check nutrient amounts and units. No supplement changes were saved; try again when connected.',
+          })
+        );
+        return;
+      } finally {
+        setSavingNutrition(false);
+      }
     }
 
     const base = {
@@ -307,6 +356,11 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     updateMedication,
     navigation,
     t,
+    customNutrients,
+    nutrientsLoading,
+    nutrientsError,
+    queryClient,
+    savingNutrition,
   ]);
 
   const formTitle = form.isSupplement
@@ -327,7 +381,10 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
     right: {
       kind: 'primary',
       label: t('common.save', { defaultValue: 'Save' }),
-      busy: createMedication.isPending || updateMedication.isPending,
+      busy:
+        createMedication.isPending ||
+        updateMedication.isPending ||
+        savingNutrition,
       busyLabel: t('common.saving', { defaultValue: 'Saving…' }),
       onPress: handleSave,
     },
@@ -344,6 +401,36 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
       value: id,
     }));
   }, [form.isSupplement, form.typeId, t]);
+
+  const renderNutrient = (field: (typeof allNutrients)[number]) => {
+    const unit = field.catalogId
+      ? (supplementDefinition(field.catalogId, customNutrients)?.unit ??
+        field.unit)
+      : field.unit;
+    const label = nutrientLabel(field);
+    return (
+      <View key={field.key} className="flex-row items-center gap-3">
+        <Text className="flex-1 text-sm text-text-primary">
+          {label} ({unit})
+        </Text>
+        <View style={{ width: 110 }}>
+          <FormInput
+            testID={`supplement-nutrient-${field.key}`}
+            accessibilityLabel={`${label} ${unit}`}
+            value={form.nutrients[field.key] ?? ''}
+            onChangeText={(value) =>
+              setEdits((current) => ({
+                ...current,
+                nutrients: { ...current.nutrients, [field.key]: value },
+              }))
+            }
+            keyboardType="decimal-pad"
+            placeholder="—"
+          />
+        </View>
+      </View>
+    );
+  };
 
   return (
     <View
@@ -485,27 +572,24 @@ const MedicationFormScreen: React.FC<MedicationFormScreenProps> = ({
                   defaultValue: 'Leave unknown values blank.',
                 })}
               </Text>
-              {SUPPLEMENT_NUTRIENTS.map(({ key, unit }) => (
-                <View key={key} className="flex-row items-center gap-3">
-                  <Text className="flex-1 text-sm text-text-primary">
-                    {nutrientLabels[key]} ({unit})
-                  </Text>
-                  <View style={{ width: 110 }}>
-                    <FormInput
-                      accessibilityLabel={`${nutrientLabels[key]} ${unit}`}
-                      value={form.nutrients[key] ?? ''}
-                      onChangeText={(value) =>
-                        updateField('nutrients', {
-                          ...form.nutrients,
-                          [key]: value,
-                        })
-                      }
-                      keyboardType="decimal-pad"
-                      placeholder="—"
-                    />
-                  </View>
+              {commonNutrients.map(renderNutrient)}
+              <CollapsibleSection
+                title={t('medications.form.additionalNutrients', {
+                  defaultValue: 'More nutrients',
+                })}
+                expanded={showAdditionalNutrients}
+                onToggle={() =>
+                  setShowAdditionalNutrients(!showAdditionalNutrients)
+                }
+                itemCount={additionalNutrients.length}
+                itemCountLabel={new Intl.NumberFormat(i18n.language).format(
+                  additionalNutrients.length
+                )}
+              >
+                <View className="gap-3">
+                  {additionalNutrients.map(renderNutrient)}
                 </View>
-              ))}
+              </CollapsibleSection>
             </View>
           )}
 

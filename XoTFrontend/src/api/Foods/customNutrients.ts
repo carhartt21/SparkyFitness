@@ -42,7 +42,7 @@ export const customNutrientService = {
   },
 
   // Find-or-create the user's custom nutrients for a set of canonical catalog ids,
-  // seeded with the catalog's unit, aliases and Daily Value. Idempotent.
+  // preserving compatible native units/identities without assigning a new goal.
   async ensureCatalogNutrients(
     catalogIds: string[]
   ): Promise<EnsureCatalogNutrientsResponse> {

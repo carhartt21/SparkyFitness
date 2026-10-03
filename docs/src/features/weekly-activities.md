@@ -18,9 +18,15 @@ planners. No automatic training program is generated.
    Mobility requires completed outcomes for every routine step.
    Whole activities require recorded duration/distance to meet every saved target
    in one record. Optional sessions and rest days do not add required daily tasks.
-4. For an imported or manually logged session, choose an unassigned, confirmed
-   Diary session on the same date and select **Link activity**. This records your
-   explicit decision. A session cannot satisfy two scheduled activities.
+4. A confirmed, unassigned whole activity can automatically resolve a goal on
+   the same day when its known sport matches and one record meets every saved
+   duration/distance target. A shorter record shows **Started**. Walking cannot
+   complete a running goal; planned prefills, ambiguous mixed sessions and
+   records from before the goal was configured are excluded. One record resolves
+   one task, with explicit assignment/link decisions taking precedence.
+   For other cases, choose a confirmed Diary session and **Link activity** to
+   record your explicit decision. Automatic matching never writes a Diary entry
+   or adds calories; removing its source record removes the inferred completion.
 5. Select **Skip activity** to remove that task from the Daily Progress denominator,
    or **Undo decision** to remove your skip/link. These controls do not change Diary
    data, calories, provider provenance or set completion.

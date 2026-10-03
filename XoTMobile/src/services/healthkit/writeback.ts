@@ -1,3 +1,5 @@
+import { listEntries } from '../api/medicationsApi';
+import { supplementWritebackEntries } from '../shared/supplementWriteback';
 import { fetchCustomNutrients } from '../api/customNutrientsApi';
 import {
   saveCorrelationSample,
@@ -254,7 +256,13 @@ const writeNutritionForDate = async (
   summary: DailySummary,
   version: number
 ): Promise<void> => {
-  const entries = await resolveCollapsedFoodEntries(date, summary.foodEntries);
+  // Load both sources before replacing any tracked native records. Failure cannot
+  // silently erase yesterday's exported supplement nutrition.
+  const [foods, supplements] = await Promise.all([
+    resolveCollapsedFoodEntries(date, summary.foodEntries),
+    listEntries({ fromDate: date, toDate: date }),
+  ]);
+  const entries = [...foods, ...supplementWritebackEntries(supplements, date)];
   const definitions = entries.some(
     (entry) =>
       !entry.source && Object.keys(entry.custom_nutrients ?? {}).length > 0

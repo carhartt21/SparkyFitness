@@ -1,3 +1,4 @@
+import type { PoolClient } from 'pg';
 import { getClient } from '../db/poolManager.js';
 import { log } from '../config/logging.js';
 import { v4 as uuidv4 } from 'uuid';
@@ -7,7 +8,10 @@ import {
   getMicronutrientById,
   normalizeNutrientName,
   SUPPLEMENT_NUTRIENT_VIEW_GROUPS,
+  NATIVE_MICRONUTRIENT_MAPPINGS,
+  healthNutrientQuantitySchema,
 } from '@workspace/shared';
+import { resolveNutrientQuantities } from './nutrientObservationService.js';
 
 interface CreateCustomNutrientPayload {
   name: string;
@@ -195,24 +199,88 @@ class CustomNutrientService {
     }
   }
   /**
-   * Find-or-create the user's custom nutrients for a set of canonical catalog ids.
-   *
-   * Used by the supplement nutrient picker: picking "Vitamin D" must materialize a
-   * `user_custom_nutrients` row with the catalog's canonical name, unit, aliases and
-   * Daily Value, so that (a) %DV works immediately and (b) the provider-import
-   * matcher can later map label/provider spellings onto it.
-   *
-   * Idempotent. A catalog entry is skipped when:
-   *  - it is already a first-class `food_variants` column (`fixedField`) — creating a
-   *    custom "Vitamin C" alongside the built-in one would double-count it; or
-   *  - the user already has a nutrient whose name OR alias matches it (normalized),
-   *    so we never create a second "Magnesium".
-   *
-   * @returns `resolved` (each catalog id mapped to the nutrient key the caller should
-   *   store — a fixed field name, or the custom nutrient's actual name, which may be a
-   *   pre-existing spelling such as "Vit D"), plus what was created and the full list.
+   * Provision native nutrient identities using the owner-scoped shared resolver.
+   * Exact canonical names or retained catalog IDs must have compatible units;
+   * loose aliases cannot establish a chemical identity. No intake or goals are
+   * created. Non-native catalog picks retain the existing provisioning policy.
    */
   static async ensureCatalogNutrients(userId: string, catalogIds: string[]) {
+    const nativeIds = new Set<string>(
+      NATIVE_MICRONUTRIENT_MAPPINGS.map((entry) => entry.catalogId)
+    );
+    const native = [...new Set(catalogIds.filter((id) => nativeIds.has(id)))];
+    const legacy = catalogIds.filter((id) => !nativeIds.has(id));
+    if (!native.length)
+      return this.ensureLegacyCatalogNutrients(userId, legacy);
+    const other = legacy.length
+      ? await this.ensureLegacyCatalogNutrients(userId, legacy)
+      : null;
+    const client: PoolClient = await getClient(userId);
+    try {
+      await client.query('BEGIN');
+      const before = await client.query<{ id: string }>(
+        'SELECT id FROM user_custom_nutrients WHERE user_id = $1',
+        [userId]
+      );
+      // Zero is only a provisioning input to the shared definition resolver. No
+      // health observation, dose, nutrition value, preference or goal is saved.
+      await resolveNutrientQuantities(
+        client,
+        userId,
+        native.map((id) => {
+          const catalog = getMicronutrientById(id)!;
+          return healthNutrientQuantitySchema.parse({
+            catalogId: id,
+            unit: catalog.unit,
+            amount: 0,
+          });
+        })
+      );
+      const after = await client.query<{
+        id: string;
+        name: string;
+        unit: string;
+        catalog_id: string | null;
+      }>(
+        'SELECT * FROM user_custom_nutrients WHERE user_id = $1 AND archived = false',
+        [userId]
+      );
+      const resolved = native.map((catalogId) => {
+        const catalog = getMicronutrientById(catalogId)!;
+        if (catalog.fixedField)
+          return {
+            catalogId,
+            name: catalog.displayName,
+            fixedField: catalog.fixedField,
+          };
+        const definition = after.rows.find(
+          (row) => row.catalog_id === catalogId
+        );
+        if (!definition) throw new Error('Catalog nutrient resolution failed');
+        return { catalogId, name: definition.name };
+      });
+      await client.query('COMMIT');
+      const existing = new Set(before.rows.map((row) => row.id));
+      return {
+        resolved: [...resolved, ...(other?.resolved ?? [])],
+        created: [
+          ...after.rows.filter((row) => !existing.has(row.id)),
+          ...(other?.created ?? []),
+        ],
+        nutrients: other?.nutrients ?? after.rows,
+      };
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  }
+
+  private static async ensureLegacyCatalogNutrients(
+    userId: string,
+    catalogIds: string[]
+  ) {
     const existing = await this.getCustomNutrients(userId);
     // Normalized index of everything the user already has, by name AND alias, mapped
     // back to that nutrient's actual name — so a catalog pick collapses onto the

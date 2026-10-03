@@ -174,3 +174,15 @@ goal/receipt and localization assertions, and captures German Daily Goals and
 intake (known, unknown and over-target) at 42 mm. The host is never part of the
 shipped app. Real phone–Watch sync and physical complication appearance remain
 device checks.
+
+## v41 inbox corrections
+
+Use `--interactions --v41-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+with a compatible simulator app and a fresh output directory. This extends the
+summary/check-in review with one water quick-action confirmation showing the
+synthetic 250 ml amount, then opens the supplement editor and verifies fiber,
+magnesium and the expanded native nutrient section. German dark/light and enlarged
+text cases use the same real components. The isolated transport accepts the
+schema-validated water action in memory, with operation replay detection; it never
+accesses a production account. Offline retry, actual Health writeback and paired
+Watch round-trips remain unit/device gates rather than screenshot claims.

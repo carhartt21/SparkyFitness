@@ -51,6 +51,7 @@ export default function ReviewApp() {
         scenario: string;
         nativeTabs?: boolean;
         v40Review?: boolean;
+        v41Review?: boolean;
       };
       const fixture = createNutritionFixture(config.scenario);
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
@@ -78,6 +79,24 @@ export default function ReviewApp() {
             method,
             options?.body
           );
+          if (
+            config.v41Review &&
+            method === 'GET' &&
+            url.pathname === '/api/water-containers'
+          )
+            return new Response(
+              JSON.stringify([
+                {
+                  id: 1,
+                  name: 'Synthetic glass',
+                  volume: 250,
+                  unit: 'ml',
+                  is_primary: true,
+                  servings_per_container: 1,
+                },
+              ]),
+              { status: 200, headers: { 'Content-Type': 'application/json' } }
+            );
           const supplementResult =
             config.v40Review &&
             method === 'GET' &&

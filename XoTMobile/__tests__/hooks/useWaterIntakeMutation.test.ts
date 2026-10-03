@@ -892,4 +892,30 @@ describe('useWaterIntakeMutation', () => {
       expect(result.current.activeContainer?.id).toBe(91);
     });
   });
+  test.each(['synced', 'queued'] as const)(
+    'confirms the actual amount after a %s press',
+    async (state) => {
+      mockFetchWaterContainers.mockResolvedValue([
+        { ...primaryContainer, volume: 1050, servings_per_container: 3 },
+      ]);
+      mockLogPhoneContainerWaterAction.mockResolvedValue(state);
+      const { result } = renderHook(
+        () => useWaterIntakeMutation({ date: testDate }),
+        { wrapper: createQueryWrapper(queryClient) }
+      );
+      await waitFor(() => expect(result.current.isReady).toBe(true));
+      act(() => {
+        result.current.increment();
+      });
+      await waitFor(() =>
+        expect(Toast.show).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: state === 'queued' ? 'info' : 'success',
+            text1: '350 ml water logged',
+          })
+        )
+      );
+      expect(mockLogPhoneContainerWaterAction).toHaveBeenCalledTimes(1);
+    }
+  );
 });

@@ -238,6 +238,47 @@ final class DashboardReview: XCTestCase {
     capture("v40-custom-tag-reselected", app)
   }
 
+  func testV41Corrections() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let water = app.buttons["dashboard-water"]
+    for _ in 0..<8 { if water.isHittable && water.frame.maxY < app.frame.maxY - 120 { break }; app.swipeUp() }
+    XCTAssertTrue(water.isHittable)
+    water.tap()
+    let confirmation = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "250 ml Wasser eingetragen")).firstMatch
+    XCTAssertTrue(confirmation.waitForExistence(timeout: 10))
+    capture("v41-water-confirmed", app)
+    for _ in 0..<10 { app.swipeDown() }
+    try testV40Corrections()
+    let back = app.buttons["daily-checkin-back"]
+    for _ in 0..<12 { if back.isHittable { break }; app.swipeDown() }
+    back.tap()
+    let supplements = app.descendants(matching: .any)["more-supplements"]
+    for _ in 0..<8 { if supplements.isHittable { break }; app.swipeUp() }
+    supplements.tap()
+    let addSupplement = app.descendants(matching: .any)["supplements-add"]
+    XCTAssertTrue(addSupplement.waitForExistence(timeout: 10))
+    addSupplement.tap()
+    let fiber = app.textFields["supplement-nutrient-dietary_fiber"]
+    for _ in 0..<12 { if fiber.isHittable && fiber.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(fiber.exists)
+    capture("v41-supplement-fiber", app)
+    let magnesium = app.textFields["supplement-nutrient-catalog:magnesium"]
+    for _ in 0..<10 { if magnesium.isHittable && magnesium.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(magnesium.exists)
+    capture("v41-supplement-magnesium", app)
+    let moreNutrients = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Weitere Nährstoffe")).firstMatch
+    for _ in 0..<10 { if moreNutrients.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(moreNutrients.exists)
+    moreNutrients.tap()
+    let thiamin = app.textFields["supplement-nutrient-catalog:thiamin"]
+    for _ in 0..<12 { if thiamin.isHittable && thiamin.frame.maxY < app.frame.maxY - 80 { break }; app.swipeUp() }
+    XCTAssertTrue(thiamin.exists)
+    capture("v41-supplement-more-nutrients", app)
+  }
+
   func testMealGoalStatus() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

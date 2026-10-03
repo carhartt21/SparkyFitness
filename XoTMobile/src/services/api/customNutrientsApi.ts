@@ -19,3 +19,19 @@ export const fetchCustomNutrients = (): Promise<UserCustomNutrient[]> =>
     serviceName: 'Custom Nutrients API',
     operation: 'fetch custom nutrients',
   });
+
+/** Resolve canonical nutrient identity without changing saved units or health records. */
+export const ensureCatalogNutrients = (
+  catalogIds: string[]
+): Promise<{
+  resolved: { catalogId: string; name: string; fixedField?: string }[];
+  created: UserCustomNutrient[];
+  nutrients: UserCustomNutrient[];
+}> =>
+  apiFetch({
+    endpoint: '/api/custom-nutrients/from-catalog',
+    method: 'POST',
+    body: { catalogIds },
+    serviceName: 'Custom Nutrients API',
+    operation: 'resolve supplement nutrients',
+  });

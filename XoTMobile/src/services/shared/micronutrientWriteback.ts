@@ -5,7 +5,7 @@ import {
   NATIVE_MICRONUTRIENT_MAPPINGS,
 } from '@workspace/shared';
 import type { UserCustomNutrient } from '../api/customNutrientsApi';
-import type { FoodEntry } from '../../types/foodEntries';
+import type { NutritionWritebackEntry as FoodEntry } from './supplementWriteback';
 
 /** Convert a consumed snapshot using its bound definition's actual storage unit. */
 export function micronutrientWriteback(

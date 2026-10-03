@@ -277,7 +277,7 @@ export function createNutritionFixture(scenario: string) {
           JSON.parse(body ?? '{}')
         );
         if (
-          scenario !== 'hydration-options' ||
+          !['hydration-options', 'v38-review'].includes(scenario) ||
           payload.container_id !== 1 ||
           payload.entry_date !== reviewDate
         )

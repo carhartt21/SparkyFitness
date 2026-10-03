@@ -32,6 +32,9 @@ export const medicationNutrientsSchema = z.object({
   vitamin_c: nutrientValueSchema.optional(),
   calcium: nutrientValueSchema.optional(),
   iron: nutrientValueSchema.optional(),
+  caffeine_mg: nutrientValueSchema.optional(),
+  water_ml: nutrientValueSchema.optional(),
+  alcohol_g: nutrientValueSchema.optional(),
   custom_nutrients: z.record(z.string(), nutrientValueSchema).optional(),
 });
 
