@@ -29,6 +29,7 @@ interface TrackingSummaryCardProps {
   stats: SummaryStat[];
   progressLabel: string;
   testID: string;
+  quiet?: boolean;
 }
 
 /**
@@ -44,11 +45,13 @@ export default function TrackingSummaryCard({
   stats,
   progressLabel,
   testID,
+  quiet = false,
 }: TrackingSummaryCardProps) {
   const scale = useNeonScale();
   // Large Dynamic Type stacks the stats under the count instead of
   // squeezing three columns.
   const stacked = useWindowDimensions().fontScale > 1.3;
+  const quietColumns = quiet && !stacked;
   const [border, secondary] = useCSSVariable([
     '--color-border-subtle',
     '--color-text-secondary',
@@ -67,11 +70,13 @@ export default function TrackingSummaryCard({
   return (
     <GlowCard
       testID={testID}
-      glowColor={stage === 'ready' ? undefined : stageColor}
+      glowColor={quiet || stage === 'ready' ? undefined : stageColor}
       className={`mb-3 p-4 ${stacked ? 'gap-3' : 'flex-row items-center'}`}
     >
       <View
-        className="flex-row items-center gap-3"
+        className={
+          quietColumns ? 'items-center gap-1' : 'flex-row items-center gap-3'
+        }
         style={stacked ? undefined : { flex: 1.7 }}
       >
         <ProgressTrackX
@@ -81,19 +86,22 @@ export default function TrackingSummaryCard({
           size={68}
           showValue={false}
         />
-        <View className="flex-1">
+        <View className={quietColumns ? 'w-full' : 'flex-1'}>
           {applicable > 0 ? (
             <>
               <Text
                 numberOfLines={1}
                 adjustsFontSizeToFit
-                className="text-[26px] font-bold text-text-primary"
+                className={`text-[26px] font-bold text-text-primary ${quietColumns ? 'text-center' : ''}`}
                 testID={`${testID}-count`}
                 maxFontSizeMultiplier={1.3}
               >
                 {completed}/{applicable}
               </Text>
-              <Text className="text-sm text-text-secondary" numberOfLines={2}>
+              <Text
+                className={`text-sm text-text-secondary ${quietColumns ? 'text-center' : ''}`}
+                numberOfLines={2}
+              >
                 {caption}
               </Text>
             </>
@@ -126,7 +134,11 @@ export default function TrackingSummaryCard({
                   : { borderLeftWidth: 1, borderLeftColor: border }
               }
             >
-              <IconBadge icon={stat.icon} color={stat.color} size={36} />
+              <IconBadge
+                icon={stat.icon}
+                color={stat.color}
+                size={quiet ? 28 : 36}
+              />
               <Text
                 className="text-center text-base font-bold text-text-primary"
                 numberOfLines={1}

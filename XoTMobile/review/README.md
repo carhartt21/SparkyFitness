@@ -147,3 +147,25 @@ breakdown. It captures both the category card's top and its lower rows; at enlar
 text they scroll separately. Category counts are not the daily progress denominator.
 Actual confirmations, phone undo, reconnect, midnight, account switch and signed
 complication delivery still require the paired-device release check.
+
+## v40 review corrections
+
+`--interactions --v40-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+combines the summary-column/tap-target checks with Supplements captures and a
+custom Check-In tag create → deselect → reopen → reselect flow. The review wrapper
+resets its synthetic tag options before each case. Native input is literal (no
+autocorrection), and the test checks the entered value before submitting. This
+checks device preferences and navigation; it does not prove backend persistence.
+
+`--interactions --supplements-review` with the same cases opens populated
+synthetic supplement rows, checks the menu's 44-point target, and captures the
+summary and separated settings actions. Only these enumerated GET responses use
+the populated fixture; production requests and unsupported writes are unchanged.
+User-entered dose units and names are displayed literally in this fixture too.
+
+`node scripts/review-watch-goals.mjs --output /absolute/private/review-directory`
+compiles the real Watch sources with a separate synthetic host, runs the native
+goal/receipt and localization assertions, and captures German Daily Goals and
+intake (known, unknown and over-target) at 42 mm. The host is never part of the
+shipped app. Real phone–Watch sync and physical complication appearance remain
+device checks.

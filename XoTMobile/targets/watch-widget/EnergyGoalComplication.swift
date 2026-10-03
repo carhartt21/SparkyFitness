@@ -75,19 +75,13 @@ struct EnergyGoalProvider: TimelineProvider {
 /// Mirror of `GoalPalette` in targets/watch — separate compiled targets can't
 /// share a constant, so if one changes, change both.
 private enum ComplicationPalette {
-    /// #8992DC, sampled off the phone's calorie ring. Sitting outside the
-    /// macro hues entirely is deliberate: the inner calorie ring sits right
-    /// against the outer macro ring here, and the previous `.green` was a
-    /// near-neighbour of carbs once the macros took the app's colours.
-    static let calories = Color(red: 0.537, green: 0.573, blue: 0.863)
-    // Sampled straight off the phone's Nutrients card, so a macro is the same
-    // colour on the watch face as in the app: fat #8AC2DA, carbs #97C692,
-    // protein #DBB06F. Literal values rather than the system colours because
-    // these are deliberately muted — `.yellow`/`.orange`/`.blue` are far more
-    // saturated and wouldn't match.
-    static let fat = Color(red: 0.541, green: 0.761, blue: 0.855)
-    static let carbs = Color(red: 0.592, green: 0.776, blue: 0.573)
-    static let protein = Color(red: 0.859, green: 0.690, blue: 0.435)
+    // The phone's categorical nutrition tokens: neutral calories #B4C8D2,
+    // fat #F5B647, carbs #B59CFF and protein #57B9F8. These identify nutrients,
+    // not a good/bad progress rating. Keep the app GoalPalette in sync.
+    static let calories = Color(red: 180.0 / 255, green: 200.0 / 255, blue: 210.0 / 255)
+    static let fat = Color(red: 245.0 / 255, green: 182.0 / 255, blue: 71.0 / 255)
+    static let carbs = Color(red: 181.0 / 255, green: 156.0 / 255, blue: 1)
+    static let protein = Color(red: 87.0 / 255, green: 185.0 / 255, blue: 248.0 / 255)
 }
 
 /// Inner ring: a single full-circle progress trim for the calorie goal.

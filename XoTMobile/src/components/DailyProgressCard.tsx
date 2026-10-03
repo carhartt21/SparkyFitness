@@ -118,20 +118,6 @@ export default function DailyProgressCard({
       )}
       footer={
         <>
-          {categories.length > next.length ? (
-            <Pressable
-              onPress={onOpenProgress}
-              accessibilityRole="button"
-              className="min-h-11 justify-center"
-            >
-              <Text className="text-xs text-accent-primary">
-                {t('progress.allCategories', {
-                  defaultValue: 'All {{count}} categories',
-                  count: categories.length,
-                })}
-              </Text>
-            </Pressable>
-          ) : null}
           {query.isError ? (
             <Text className="mt-2 text-xs text-text-secondary">
               {t('progress.previewStale', {

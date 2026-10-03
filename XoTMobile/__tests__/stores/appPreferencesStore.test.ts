@@ -12,6 +12,37 @@ describe('appPreferencesStore', () => {
     __resetAppPreferencesStoreForTests();
   });
 
+  it('persists valid custom tag options per account and rehydrates without dropping older preferences', async () => {
+    const store = useAppPreferencesStore.getState();
+    store.setSoundsEnabled(false);
+    store.rememberCheckinTags('server-a/user-a', [
+      '  Eigener Test  ',
+      'busy_day',
+      '',
+      'x'.repeat(41),
+    ]);
+    store.rememberCheckinTags('server-a/user-a', ['Eigener Test']);
+    store.rememberCheckinTags('server-a/user-b', ['Anderer Test']);
+    expect(
+      useAppPreferencesStore.getState().checkinCustomTagsByAccount
+    ).toEqual({
+      'server-a/user-a': ['Eigener Test'],
+      'server-a/user-b': ['Anderer Test'],
+    });
+    const persisted = await AsyncStorage.getItem(
+      '@SparkyFitness/app-preferences'
+    );
+    __resetAppPreferencesStoreForTests();
+    await AsyncStorage.setItem('@SparkyFitness/app-preferences', persisted!);
+    await useAppPreferencesStore.persist.rehydrate();
+    expect(
+      useAppPreferencesStore.getState().checkinCustomTagsByAccount[
+        'server-a/user-a'
+      ]
+    ).toEqual(['Eigener Test']);
+    expect(useAppPreferencesStore.getState().soundsEnabled).toBe(false);
+  });
+
   describe('defaults', () => {
     it('starts with all expected defaults', () => {
       const state = useAppPreferencesStore.getState();

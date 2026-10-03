@@ -1,0 +1,97 @@
+{
+  "baseRevision": "0472ee2d89a419fb3ab236e3e48278186f59594b",
+  "synthetic": true,
+  "productSourceSha256": {
+    "XoTMobile/src/components/CalorieRingCard.tsx": "a9d01ff5da4b146b35306d9d28f60a6dec826097989562ea68b2ea99a32c289f",
+    "XoTMobile/src/components/DailyProgressCard.tsx": "2e1c78dd9fa7cef8db4e6342903378860aa868d5fe391ec1dbc6b9ebd1c3add7",
+    "XoTMobile/src/components/tracking/TrackingSummaryCard.tsx": "61a5987b9aad05b7ef612a5300767035c3c788d2cdf95f9a52f2f0c0745a7de2",
+    "XoTMobile/src/components/ui/DashboardSummaryCard.tsx": "520023d9153b363822aff4d15b6d6f3b988911d90540e1d6e10229f7eaa15bca",
+    "XoTMobile/src/localization/locales/de/translation.json": "de45cf2dae275e3afafd0758e2ba787be3c28dc1c5f5e5722b072c7227dbead3",
+    "XoTMobile/src/localization/locales/en/translation.json": "f6090069163311a7a090aab5ec5045963627d4b6a86ab96d20435129348c5f13",
+    "XoTMobile/src/screens/DailyCheckInScreen.tsx": "7440c30922f0d0bebc373f647b0957f1aab918e2c1b452ef2321b5fc51ff75ba",
+    "XoTMobile/src/screens/SupplementsScreen.tsx": "a6dd83c736783fe5e7aa1561beeb22cf5af6a2827338166ca8eb75da07f2b4d9",
+    "XoTMobile/src/stores/appPreferencesStore.ts": "8f4d8be7f78c980f29d00d9048af468db87e967f95f584abfec5377b02989db4",
+    "XoTMobile/targets/watch-widget/EnergyGoalComplication.swift": "eccff8b3e56c4c06fce40fd838f5af5b2ac0f9d03c0a21bd43064aebc43d2ab4",
+    "XoTMobile/targets/watch/Presentation/GoalSummaryView.swift": "768e13093d59c6aaa5e5be75776f22bf7c03f2fce5980af4a7f2a8421f85f187",
+    "XoTMobile/targets/watch/de.lproj/Localizable.strings": "c47705463d2d1f89d77dc00ccf7ed40bdf9a0940b72893be70b64b613d951baf",
+    "XoTMobile/targets/watch/en.lproj/Localizable.strings": "d0db75fa0aa43a93393e4af28a74fe90ae35bb0f30f91bf8aa6ec95a6ca073e7",
+    "localization-overrides/de/mobile.json": "530da01c9bccb75e0a8c05dd23e6e536ad8e95f672e5a9d932a9e2789e6eafb7",
+    "localization-overrides/de/watch.json": "a3f2c435b3da4914017a60bceb2125eaa0e64e926cba878ff0ded63bd7755eb5",
+    "XoTMobile/src/hooks/useCheckinTagOptions.ts": "0a4b6a25a560a2559f51e33a735dc57882638e1eecb890f8f02bb5fb04b72255"
+  },
+  "checks": [
+    {
+      "command": "pnpm install --frozen-lockfile",
+      "status": "passed"
+    },
+    {
+      "package": "XoTMobile",
+      "command": "pnpm exec jest --watchman=false --runInBand --coverage=false",
+      "status": "passed",
+      "suites": 543,
+      "tests": 7669
+    },
+    {
+      "package": "XoTMobile",
+      "command": "pnpm validate",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/apply-german-overrides.mjs --check",
+      "status": "passed"
+    },
+    {
+      "command": "node scripts/audit-german-copy.mjs",
+      "status": "passed"
+    },
+    {
+      "command": "node --test scripts/apply-german-overrides.test.mjs scripts/audit-german-copy.test.mjs",
+      "status": "passed",
+      "tests": 10
+    },
+    {
+      "command": "review-ios.mjs --interactions --v40-review",
+      "status": "passed",
+      "nativeCases": 3
+    },
+    {
+      "command": "review-watch-goals.mjs",
+      "status": "passed",
+      "assertions": 19
+    },
+    {
+      "command": "xcrun swiftc -typecheck -parse-as-library -sdk <watchsimulator> -target arm64-apple-watchos11.0-simulator XoTMobile/targets/watch-widget/*.swift",
+      "status": "passed"
+    },
+    {
+      "package": "docs",
+      "command": "pnpm build",
+      "status": "passed",
+      "note": "Existing large-chunk warning"
+    },
+    {
+      "command": "git diff --check",
+      "status": "passed"
+    },
+    {
+      "command": "review-ios.mjs --interactions --supplements-review",
+      "status": "passed",
+      "nativeCases": 3
+    }
+  ],
+  "unverified": [
+    "Physical paired phone/Watch actions and synchronization",
+    "Live-account/server persistence",
+    "Actual Watch confirmation dialog traversal",
+    "Signed complication delivery and appearance",
+    "VoiceOver listening",
+    "Android interaction",
+    "New EAS/TestFlight archive"
+  ],
+  "notRun": [
+    {
+      "check": "Backend tests",
+      "reason": "No server code or contract changed"
+    }
+  ]
+}

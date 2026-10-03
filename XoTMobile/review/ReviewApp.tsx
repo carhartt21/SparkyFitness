@@ -14,6 +14,8 @@ import { buildDailySummary } from '../src/services/dailySummaryService';
 import { reviewDate, summaryFixture } from './fixtures';
 import { createNutritionFixture } from './nutritionFixture';
 import { createWellnessReviewFixture } from './wellnessFixture';
+import { trackingReviewResponse } from './trackingFixture';
+import { getTodayDate } from '../src/utils/dateUtils';
 
 const transport = global.fetch;
 export default function ReviewApp() {
@@ -48,6 +50,7 @@ export default function ReviewApp() {
         theme: 'Dark' | 'Light' | 'Amoled';
         scenario: string;
         nativeTabs?: boolean;
+        v40Review?: boolean;
       };
       const fixture = createNutritionFixture(config.scenario);
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
@@ -75,10 +78,24 @@ export default function ReviewApp() {
             method,
             options?.body
           );
+          const supplementResult =
+            config.v40Review &&
+            method === 'GET' &&
+            ['/api/v2/medications', '/api/v2/medications/entries'].includes(
+              url.pathname
+            )
+              ? trackingReviewResponse(
+                  url.pathname,
+                  'populated',
+                  getTodayDate()
+                )
+              : undefined;
           const result =
-            wellnessResult === undefined
-              ? fixture.respond(url, method, options?.body)
-              : wellnessResult;
+            supplementResult !== undefined
+              ? supplementResult
+              : wellnessResult === undefined
+                ? fixture.respond(url, method, options?.body)
+                : wellnessResult;
           if (method !== 'GET' || url.pathname === '/api/daily-summary') {
             await transport('http://127.0.0.1:43991/event', {
               method: 'POST',
@@ -118,6 +135,7 @@ export default function ReviewApp() {
         caffeineCardVisible: config.scenario === 'hydration-review',
         cycleCardVisible: false,
         medicationsCardVisible: false,
+        checkinCustomTagsByAccount: {},
         progressPhotosCardVisible: false,
         diarySummaryVisible: true,
       });
@@ -131,8 +149,8 @@ export default function ReviewApp() {
         apiKey: 'synthetic-not-a-credential',
         authType: 'apiKey',
       });
+      await rememberActiveNutritionUser('review-user');
       if (config.scenario === 'saved') {
-        await rememberActiveNutritionUser('review-user');
         await saveDashboardSnapshot(
           { serverConfigId: 'ui-review', userId: 'review-user' },
           {

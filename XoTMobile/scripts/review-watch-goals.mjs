@@ -101,6 +101,26 @@ if (!fs.existsSync(assertions))
 const evidence = JSON.parse(fs.readFileSync(assertions, 'utf8'));
 await new Promise((resolve) => setTimeout(resolve, 1500));
 sim('io', device, 'screenshot', path.join(output, 'watch-goals-de.png'));
+for (const [name, flags] of [
+  ['watch-intake-de', []],
+  ['watch-intake-unknown-de', ['--nutrition-unknown']],
+  ['watch-intake-over-de', ['--nutrition-over']],
+]) {
+  sim('terminate', device, identifier);
+  sim(
+    'launch',
+    device,
+    identifier,
+    '-AppleLanguages',
+    '(de)',
+    '-AppleLocale',
+    'de_DE',
+    '--intake',
+    ...flags
+  );
+  await new Promise((resolve) => setTimeout(resolve, 1800));
+  sim('io', device, 'screenshot', path.join(output, `${name}.png`));
+}
 const hash = createHash('sha256');
 for (const file of [...sources, harness]) hash.update(fs.readFileSync(file));
 fs.writeFileSync(
@@ -110,7 +130,12 @@ fs.writeFileSync(
       ...evidence,
       device,
       sourceSha256: hash.digest('hex'),
-      screenshot: 'watch-goals-de.png',
+      screenshots: [
+        'watch-goals-de.png',
+        'watch-intake-de.png',
+        'watch-intake-unknown-de.png',
+        'watch-intake-over-de.png',
+      ],
       limits:
         'Synthetic simulator; no phone/server round-trip or physical Watch delivery verified.',
     },

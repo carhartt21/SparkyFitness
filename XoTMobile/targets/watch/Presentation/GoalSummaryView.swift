@@ -65,9 +65,9 @@ struct GoalSummaryView: View {
     /// supporting numbers stay out of its way.
     private var headlineRow: some View {
         HStack(spacing: 2) {
-            statBlock(value: nutrition?.caloriesConsumed, label: WatchCopy.text("watch.eaten"))
+            statBlock(value: nutrition?.caloriesConsumed, label: WatchCopy.text("watch.eatenShort"), spokenLabel: WatchCopy.text("watch.eaten"))
             calorieRing
-            statBlock(value: nutrition?.caloriesBurned, label: WatchCopy.text("watch.burned"))
+            statBlock(value: nutrition?.caloriesBurned, label: WatchCopy.text("watch.burnedShort"), spokenLabel: WatchCopy.text("watch.burned"))
         }
     }
 
@@ -116,7 +116,8 @@ struct GoalSummaryView: View {
     }
 
     private var calorieCaption: String {
-        guard let nutrition, nutrition.caloriesRemaining < 0 else { return WatchCopy.text("watch.kcalLeft") }
+        guard let nutrition else { return WatchCopy.text("watch.energyUnknownShort") }
+        guard nutrition.caloriesRemaining < 0 else { return WatchCopy.text("watch.kcalLeft") }
         return WatchCopy.text("watch.kcalOver")
     }
 
@@ -131,7 +132,7 @@ struct GoalSummaryView: View {
             : WatchCopy.text("watch.leftA11y", amount)
     }
 
-    private func statBlock(value: Double?, label: String) -> some View {
+    private func statBlock(value: Double?, label: String, spokenLabel: String) -> some View {
         VStack(spacing: 1) {
             Text(value.map(whole) ?? "–")
                 .font(.system(size: 15, weight: .medium, design: .rounded))
@@ -141,9 +142,12 @@ struct GoalSummaryView: View {
             Text(label)
                 .font(.system(size: 9))
                 .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.85)
         }
-        .frame(maxWidth: .infinity)
-        .accessibilityElement(children: .combine)
+        .frame(minWidth: 0, maxWidth: .infinity)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(value.map { WatchCopy.text("watch.energyStatA11y", spokenLabel, whole($0)) } ?? WatchCopy.text("watch.energyStatUnknownA11y", spokenLabel))
     }
 
     // MARK: - Macros
@@ -219,10 +223,10 @@ struct GoalSummaryView: View {
 }
 
 enum GoalPalette {
-    static let calories = Color(red: 0.537, green: 0.573, blue: 0.863)
-    static let carbs = Color(red: 0.592, green: 0.776, blue: 0.573)
-    static let fat = Color(red: 0.541, green: 0.761, blue: 0.855)
-    static let protein = Color(red: 0.859, green: 0.690, blue: 0.435)
+    static let calories = Color(red: 180.0 / 255, green: 200.0 / 255, blue: 210.0 / 255)
+    static let carbs = Color(red: 181.0 / 255, green: 156.0 / 255, blue: 1)
+    static let fat = Color(red: 245.0 / 255, green: 182.0 / 255, blue: 71.0 / 255)
+    static let protein = Color(red: 87.0 / 255, green: 185.0 / 255, blue: 248.0 / 255)
     /// The app's hydration colour (`--color-hydration`, #22B8F5).
     static let water = Neon.cyan
 }

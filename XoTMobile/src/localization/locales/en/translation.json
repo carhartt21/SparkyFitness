@@ -6234,7 +6234,8 @@
       "okay": "Okay",
       "good": "Good",
       "great": "Great"
-    }
+    },
+    "tagIdentityUnavailable": "Connect your account before creating a saved tag."
   },
   "context": {
     "manageA11y": "Manage injury, illness and vacation periods",
