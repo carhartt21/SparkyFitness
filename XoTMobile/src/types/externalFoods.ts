@@ -1,5 +1,9 @@
 export interface ExternalFoodVariant {
   custom_nutrients?: Record<string, string | number> | null;
+  serving_label?: string | null;
+  metric_amount?: number | null;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number;
   serving_size: number;
   serving_unit: string;
   serving_description: string;

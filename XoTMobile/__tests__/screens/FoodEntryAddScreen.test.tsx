@@ -28,6 +28,8 @@ import { setPendingMealPlanSelection } from '../../src/services/mealPlanSelectio
 import { buildMealIngredientDraft } from '../../src/utils/mealBuilderDraft';
 import { completeMealPhotoWithFoodLocally } from '../../src/services/nutritionPhotoCompletion';
 import type { FoodVariantDetail } from '../../src/types/foods';
+import { _transformNormalizedFood } from '../../src/services/api/externalFoodSearchApi';
+import { externalFoodItemToFoodInfo } from '../../src/types/foodInfo';
 
 const mockPop = jest.fn((count: number) => ({
   type: 'POP',
@@ -961,6 +963,69 @@ describe('FoodEntryAddScreen', () => {
     });
     expect(mockAddEntry).not.toHaveBeenCalled();
   });
+
+  it.each([21.5, 100])(
+    'selects and logs OFF portions with a %s g reference',
+    (referenceSize) => {
+      const portion = {
+        serving_size: 1,
+        serving_unit: 'serving',
+        serving_description: '1 serving (21.5 g)',
+        metric_amount: 21.5,
+        metric_unit: 'g' as const,
+        calories: 123,
+        protein: 1.8,
+        carbs: 10.6,
+        fat: 8,
+      };
+      const reference = {
+        serving_size: referenceSize,
+        serving_unit: 'g',
+        calories: referenceSize === 100 ? 572 : 123,
+        protein: referenceSize === 100 ? 8.6 : 1.8,
+        carbs: referenceSize === 100 ? 49.5 : 10.6,
+        fat: referenceSize === 100 ? 37.3 : 8,
+      };
+      const external = _transformNormalizedFood(
+        {
+          name: 'Kinder bueno',
+          brand: 'Kinder',
+          provider_external_id: '80052760',
+          barcode: '80052760',
+          default_variant: reference,
+          variants: [reference, portion],
+        },
+        'openfoodfacts'
+      );
+      const screen = renderScreen({
+        item: externalFoodItemToFoodInfo(external),
+        date: '2026-04-23',
+      });
+      expect(amountValue(screen)).toBe(1);
+      typeAmount(screen, '2');
+      expect(
+        screen.getByTestId('food-entry-highlight-calories').props
+          .accessibilityLabel
+      ).toBe('Calories: 246 kcal');
+      fireEvent.press(screen.getByText(ADD_LABEL));
+      expect(mockAddEntry).toHaveBeenCalledWith(
+        expect.objectContaining({
+          saveFoodPayload: expect.objectContaining({
+            serving_size: 1,
+            serving_unit: 'serving (21.5 g)',
+            calories: 123,
+          }),
+          createEntryPayload: expect.objectContaining({
+            quantity: 2,
+            unit: 'serving',
+          }),
+          externalVariants: expect.arrayContaining([
+            expect.objectContaining({ metric_amount: 21.5, metric_unit: 'g' }),
+          ]),
+        })
+      );
+    }
+  );
 
   it('saves external foods first and then stores the ingredient draft in meal-builder mode', async () => {
     mockSaveFoodAsync.mockResolvedValue({

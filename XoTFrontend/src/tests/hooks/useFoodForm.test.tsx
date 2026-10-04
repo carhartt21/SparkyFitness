@@ -1343,6 +1343,52 @@ describe('useCustomFoodForm', () => {
     expect(result.current.aiEstimatedUnits[1]).toBe('cup');
   });
 
+  it('keeps the weight of a grouped provider portion when saving', async () => {
+    const initialVariants = [
+      createVariant({
+        serving_size: 21.5,
+        serving_unit: 'g',
+        calories: 123,
+        is_default: true,
+      }),
+      createVariant({
+        id: 'off-portion',
+        serving_size: 1,
+        serving_unit: 'serving',
+        calories: 123,
+        metric_amount: 21.5,
+        metric_unit: 'g',
+        serving_label: 'Bar',
+        sort_order: 1,
+      }),
+    ];
+    const { result } = renderHook(() =>
+      useCustomFoodForm({ initialVariants, onSave: jest.fn() })
+    );
+    await waitFor(() => expect(result.current.variants).toHaveLength(1));
+    act(() => result.current.updateField('name', 'Public portion fixture'));
+    await act(async () => {
+      await result.current.handleSubmit({
+        preventDefault: jest.fn(),
+      } as unknown as React.FormEvent<HTMLFormElement>);
+    });
+    expect(mockSaveFood).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variants: expect.arrayContaining([
+          expect.objectContaining({
+            id: 'off-portion',
+            serving_size: 1,
+            serving_unit: 'serving',
+            metric_amount: 21.5,
+            metric_unit: 'g',
+            serving_label: 'Bar',
+            sort_order: 1,
+          }),
+        ]),
+      })
+    );
+  });
+
   it('saves immediately after manual AI nutrition edits with manual provenance', async () => {
     const onSave = jest.fn();
     const initialVariants = [

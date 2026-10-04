@@ -184,6 +184,11 @@ function groupEquivalentVariants(
         id: variant.id,
         serving_size: Number(variant.serving_size),
         serving_unit: variant.serving_unit,
+        serving_description: variant.serving_description,
+        serving_label: variant.serving_label,
+        metric_amount: variant.metric_amount,
+        metric_unit: variant.metric_unit,
+        sort_order: variant.sort_order,
       });
     } else {
       grouped.push({ ...variant, equivalents: [] });
@@ -1208,6 +1213,11 @@ export function useCustomFoodForm({
               is_default: false,
               serving_size: eq.serving_size,
               serving_unit: eq.serving_unit,
+              serving_description: eq.serving_description,
+              serving_label: eq.serving_label,
+              metric_amount: eq.metric_amount,
+              metric_unit: eq.metric_unit,
+              sort_order: eq.sort_order,
             } as FormFoodVariant);
           });
         }

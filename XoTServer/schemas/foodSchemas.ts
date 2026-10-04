@@ -16,6 +16,10 @@ export const FoodVariantSchema = z.object({
   user_id: z.string().optional(),
   serving_size: z.number(),
   serving_unit: z.string(),
+  serving_label: z.string().nullable().optional(),
+  metric_amount: z.number().positive().finite().nullable().optional(),
+  metric_unit: z.enum(['g', 'ml']).nullable().optional(),
+  sort_order: z.number().int().nonnegative().optional(),
   serving_description: z.preprocess(
     (value) => (value === null ? undefined : value),
     z.string().optional()

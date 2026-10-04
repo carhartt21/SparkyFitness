@@ -200,6 +200,13 @@ device checks.
 
 ## v41 inbox corrections
 
+The `--interactions --food-details-review` flow also selects an OFF-shaped saved
+21.5 g portion and enters two, checking the 43 g total. Run German normal and
+enlarged text with `--case '^(390-de-dark|430-de-large)$'`. The fixture remains
+synthetic yogurt nutrition; the real OFF product data is verified separately by
+server tests. This checks localized portion labels and bounded, accessible menu
+rows, not production ingestion or database persistence.
+
 Use `--interactions --v41-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
 with a compatible simulator app and a fresh output directory. This extends the
 summary/check-in review with one water quick-action confirmation showing the

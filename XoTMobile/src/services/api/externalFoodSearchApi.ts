@@ -455,6 +455,10 @@ export async function _searchMealie(
 
 interface NormalizedFoodVariant {
   id?: string;
+  serving_label?: string | null;
+  metric_amount?: number | null;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number;
   serving_size: number;
   serving_unit: string;
   serving_description?: string;
@@ -539,6 +543,10 @@ export function _transformNormalizedFood(
   const mapVariant = (v: NormalizedFoodVariant): ExternalFoodVariant => ({
     serving_size: v.serving_size,
     serving_unit: v.serving_unit,
+    serving_label: v.serving_label,
+    metric_amount: v.metric_amount,
+    metric_unit: v.metric_unit,
+    sort_order: v.sort_order,
     serving_description:
       v.serving_description ?? `${v.serving_size} ${v.serving_unit}`,
     calories: v.calories,

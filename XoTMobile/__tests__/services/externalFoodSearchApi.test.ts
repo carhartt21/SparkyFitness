@@ -1533,6 +1533,67 @@ describe('externalFoodSearchApi', () => {
     };
 
     describe('transformNormalizedFood', () => {
+      test('keeps the OFF portion and its metric link through detail selection and unit conversion', () => {
+        const basis = {
+          serving_size: 21.5,
+          serving_unit: 'g',
+          calories: 123,
+          fat: 8,
+          carbs: 10.6,
+          protein: 1.8,
+          is_default: true,
+        };
+        const portion = {
+          ...basis,
+          serving_size: 1,
+          serving_unit: 'serving',
+          serving_description: '1 serving (21.5 g)',
+          metric_amount: 21.5,
+          metric_unit: 'g' as const,
+          sort_order: 1,
+          is_default: false,
+        };
+        const result = transformNormalizedFood(
+          {
+            name: 'Kinder bueno',
+            brand: null,
+            is_custom: false,
+            default_variant: basis,
+            variants: [basis, portion],
+          },
+          'openfoodfacts'
+        );
+        expect(result).toMatchObject({
+          serving_size: 1,
+          serving_unit: 'serving',
+          calories: 123,
+        });
+        expect(result.variants?.[0]).toMatchObject({
+          metric_amount: 21.5,
+          metric_unit: 'g',
+          sort_order: 1,
+        });
+        const units = buildExternalUnitVariants(result.variants);
+        expect(units[0]).toMatchObject({
+          metric_amount: 21.5,
+          metric_unit: 'g',
+        });
+        // Explicit grams selected by the user stay selected, never overwritten by a heuristic.
+        const metric = transformNormalizedFood(
+          {
+            name: 'Kinder bueno',
+            brand: null,
+            is_custom: false,
+            default_variant: basis,
+            variants: [basis, portion],
+          },
+          'openfoodfacts',
+          basis
+        );
+        expect(metric.serving_unit).toBe('g');
+        expect(metric.variants).toHaveLength(2);
+      });
+
       test('retains additional and custom nutrients through selection and unit adapters', () => {
         const variant = {
           serving_size: 100,

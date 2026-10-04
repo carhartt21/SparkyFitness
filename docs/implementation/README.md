@@ -18,6 +18,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 - [Dashboard widget motion](dashboard-widget-motion-2026-10-04.md): restrained change/press feedback, continuous macro updates, native Reduce Motion and simulator evidence.
 - [v41 dashboard density](v41-dashboard-density-2026-10-04.md): compact paired summaries, first-viewport quick actions and bounded German simulator checks.
+- [Open Food Facts serving ingestion](open-food-facts-serving-ingestion-2026-10-04.md): declared portions, correct scaling, metadata persistence and German quantity labels; existing-library refresh and release checks remain separate.
+
 - [v41 release](v41-release-2026-10-03.md): combined validation, preserved rollout gates and verified TestFlight/production delivery.
 
 - [BLS artwork expansion](bls-food-artwork-expansion-2026-10-03.md): 12 additional illustrations, 584 refined assignments and preparation/ingredient regression checks.

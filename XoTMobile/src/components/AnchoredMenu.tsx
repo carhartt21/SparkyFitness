@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StatusBar,
   View,
   Text,
@@ -11,6 +12,7 @@ import {
 import Animated, { FadeIn, ZoomIn } from 'react-native-reanimated';
 import { useCSSVariable } from 'uniwind';
 import { useTranslation } from 'react-i18next';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Icon, { IconName } from './Icon';
 
 export type AnchorRect = {
@@ -71,7 +73,9 @@ const AnchoredMenu: React.FC<Props> = ({
   minWidth = 200,
 }) => {
   const { t } = useTranslation();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [menuHeight, setMenuHeight] = useState(0);
   const accentColor = String(useCSSVariable('--color-accent-primary'));
   const textPrimary = String(useCSSVariable('--color-text-primary'));
   const textMuted = String(useCSSVariable('--color-text-muted'));
@@ -89,14 +93,36 @@ const AnchoredMenu: React.FC<Props> = ({
   // StatusBar.currentHeight, so it stays 0 there (already correct).
   const statusBarOffset =
     Platform.OS === 'android' ? (StatusBar.currentHeight ?? 0) : 0;
-  const top = anchor.y + anchor.height + 6 + statusBarOffset;
+  const minTop = Math.max(8, insets.top);
+  const bottom = screenHeight - Math.max(8, insets.bottom);
+  const maxMenuHeight = Math.max(44, bottom - minTop);
+  const height = Math.min(menuHeight, maxMenuHeight);
+  const below = anchor.y + anchor.height + 6 + statusBarOffset;
+  const above = anchor.y - height - 6 + statusBarOffset;
+  const preferredTop = below + height <= bottom ? below : above;
+  const top = Math.max(minTop, Math.min(preferredTop, bottom - height));
   const isLeftHalf = anchor.x + anchor.width / 2 < screenWidth / 2;
+  const edge = Math.min(
+    Math.max(
+      8,
+      isLeftHalf ? anchor.x : screenWidth - (anchor.x + anchor.width)
+    ),
+    screenWidth - 52
+  );
+  const maxWidth = screenWidth - edge - 8;
+  const boundedWidth = Math.min(minWidth, maxWidth);
   const menuStyle = isLeftHalf
-    ? { top, left: Math.max(8, anchor.x), minWidth }
+    ? {
+        top,
+        left: edge,
+        minWidth: boundedWidth,
+        maxWidth,
+      }
     : {
         top,
-        right: Math.max(8, screenWidth - (anchor.x + anchor.width)),
-        minWidth,
+        right: edge,
+        minWidth: boundedWidth,
+        maxWidth,
       };
 
   return (
@@ -113,6 +139,10 @@ const AnchoredMenu: React.FC<Props> = ({
       <Pressable
         className="flex-1"
         onPress={onClose}
+        // Grouping the backdrop hides its nested option buttons from iOS
+        // accessibility. Keep the rows reachable and support VoiceOver escape.
+        accessible={false}
+        onAccessibilityEscape={onClose}
         accessibilityLabel={t('common.dismissMenu', {
           defaultValue: 'Dismiss menu',
         })}
@@ -128,59 +158,66 @@ const AnchoredMenu: React.FC<Props> = ({
             entering={ZoomIn.duration(160).withInitialValues({
               transform: [{ scale: 0.95 }],
             })}
-            className="bg-surface rounded-xl border border-border-subtle shadow-lg py-1"
+            className="bg-surface rounded-xl border border-border-subtle shadow-lg overflow-hidden"
             style={{ transformOrigin: isLeftHalf ? 'top left' : 'top right' }}
+            onLayout={(event) => setMenuHeight(event.nativeEvent.layout.height)}
           >
-            {items.map((item, index) =>
-              item.isGroupLabel ? (
-                <View
-                  key={item.key}
-                  className={`px-4 pt-2.5 pb-1 ${
-                    index > 0 ? 'border-t border-border-subtle' : ''
-                  }`}
-                >
-                  <Text
-                    className="text-xs font-bold uppercase tracking-wider"
-                    style={{ color: textMuted }}
+            <ScrollView
+              style={{ maxHeight: maxMenuHeight - 2 }}
+              contentContainerStyle={{ paddingVertical: 4 }}
+              keyboardShouldPersistTaps="handled"
+            >
+              {items.map((item, index) =>
+                item.isGroupLabel ? (
+                  <View
+                    key={item.key}
+                    className={`px-4 pt-2.5 pb-1 ${
+                      index > 0 ? 'border-t border-border-subtle' : ''
+                    }`}
                   >
-                    {item.label}
-                  </Text>
-                </View>
-              ) : (
-                <Pressable
-                  key={item.key}
-                  onPress={() => {
-                    onClose();
-                    item.onPress?.();
-                  }}
-                  className={`flex-row items-center gap-3 px-4 py-3 ${
-                    index > 0 && !items[index - 1]?.isGroupLabel
-                      ? 'border-t border-border-subtle'
-                      : ''
-                  }`}
-                  accessibilityRole="button"
-                  accessibilityLabel={item.label}
-                  accessibilityState={
-                    item.selected !== undefined
-                      ? { selected: item.selected }
-                      : undefined
-                  }
-                >
-                  {item.icon ? (
-                    <Icon name={item.icon} size={20} color={accentColor} />
-                  ) : null}
-                  <Text
-                    className="text-base font-medium flex-1"
-                    style={{ color: textPrimary }}
+                    <Text
+                      className="text-xs font-bold uppercase tracking-wider"
+                      style={{ color: textMuted }}
+                    >
+                      {item.label}
+                    </Text>
+                  </View>
+                ) : (
+                  <Pressable
+                    key={item.key}
+                    onPress={() => {
+                      onClose();
+                      item.onPress?.();
+                    }}
+                    className={`flex-row items-center gap-3 px-4 py-3 ${
+                      index > 0 && !items[index - 1]?.isGroupLabel
+                        ? 'border-t border-border-subtle'
+                        : ''
+                    }`}
+                    accessibilityRole="button"
+                    accessibilityLabel={item.label}
+                    accessibilityState={
+                      item.selected !== undefined
+                        ? { selected: item.selected }
+                        : undefined
+                    }
                   >
-                    {item.label}
-                  </Text>
-                  {item.selected ? (
-                    <Icon name="checkmark" size={18} color={accentColor} />
-                  ) : null}
-                </Pressable>
-              )
-            )}
+                    {item.icon ? (
+                      <Icon name={item.icon} size={20} color={accentColor} />
+                    ) : null}
+                    <Text
+                      className="text-base font-medium flex-1"
+                      style={{ color: textPrimary }}
+                    >
+                      {item.label}
+                    </Text>
+                    {item.selected ? (
+                      <Icon name="checkmark" size={18} color={accentColor} />
+                    ) : null}
+                  </Pressable>
+                )
+              )}
+            </ScrollView>
           </Animated.View>
         </Animated.View>
       </Pressable>
