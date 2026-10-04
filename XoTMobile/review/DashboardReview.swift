@@ -191,6 +191,42 @@ final class DashboardReview: XCTestCase {
     detailMeasurement.name = "progress-screen-measurement"
     detailMeasurement.lifetime = .keepAlways
     add(detailMeasurement)
+    // The graphic/count and card padding also open the same selected-day
+    // breakdown. Category rows above must remain independent native buttons.
+    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch
+    for (target, name) in [(progressVisual, "visual"),
+                            (app.descendants(matching: .any)["dashboard-daily-progress-count"], "count"),
+                            (progressHeading, "card-padding")] {
+      back.tap()
+      for _ in 0..<7 {
+        if target.frame.minY > 110 && target.frame.maxY < app.frame.maxY - 100 { break }
+        // Full-page swipes can oscillate around the stacked visual at large
+        // text sizes. Scroll only the measured distance to a safe top inset.
+        let delta = target.frame.minY - 140
+        let distance = min(app.frame.height * 0.35, abs(delta)) / app.frame.height
+        let startY = delta > 0 ? 0.72 : 0.35
+        let endY = startY + (delta > 0 ? -distance : distance)
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+          .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY)), withVelocity: .slow, thenHoldForDuration: 0.4)
+      }
+      XCTAssertTrue(target.exists)
+      // The visual is a non-accessible layout container. Its center tap and
+      // resulting destination verify hit testing; XCTest's isHittable is for
+      // the actual text/button controls, which remain independently exposed.
+      if name != "visual" { XCTAssertTrue(target.isHittable) }
+      XCTAssertGreaterThan(target.frame.minY, 110)
+      XCTAssertLessThan(target.frame.maxY, app.frame.maxY - 100)
+      if name == "card-padding" {
+        let card = app.descendants(matching: .any)["dashboard-daily-progress"]
+        // Outside the header/row bounds, inside the rounded card's padding.
+        card.coordinate(withNormalizedOffset: CGVector(dx: 0, dy: 0))
+          .withOffset(CGVector(dx: 6, dy: target.frame.midY - card.frame.minY)).tap()
+      } else {
+        target.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+      }
+      XCTAssertTrue(detailSummary.waitForExistence(timeout: 10), "Progress \(name) must open Daily Progress")
+      capture("progress-open-\(name)", app)
+    }
   }
 
   func testSupplementLayout() throws {

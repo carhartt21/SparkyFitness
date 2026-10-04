@@ -1,0 +1,59 @@
+{
+  "baseRevision": "c2afba676baeb8b60bd548d32a14d1036c0415c9",
+  "workingSourceSha256": {
+    "XoTMobile/src/components/DailyProgressCard.tsx": "a30b402e305d903a6b2078259c9db8da9b4f7c43f9fcc52376e793a860eb6fb4",
+    "XoTMobile/src/components/ui/DashboardSummaryCard.tsx": "a0e5e3cb66d1a39ce9b0159b6ea8f70a87cb56cb44d2afb30e4e4911f2b99e55",
+    "XoTMobile/__tests__/components/DailyProgressCard.test.tsx": "f74b863bef76486b81eacf7462baafd061dea6dad9ebd6763fa97bce45af18aa",
+    "XoTMobile/review/DashboardReview.swift": "6cfc2f1a6182c9d33337797473c986fd8accb9cd4e15722bb7837f9e7a0ae70c"
+  },
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "logicalViewport": "390x844",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "logicalViewport": "390x844",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "logicalViewport": "430x932",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards"
+    }
+  ],
+  "captures": [
+    {
+      "capture": "390-de-dark-card.png",
+      "attachment": "summary-progress-top_0_A5DC2581-9856-490E-8408-D805C6DA7F21.png"
+    },
+    {
+      "capture": "390-de-dark-open-visual.png",
+      "attachment": "progress-open-visual_0_7FC7FBA1-6E88-443F-AA43-5F3D8551A140.png"
+    },
+    {
+      "capture": "430-de-large-open-count.png",
+      "attachment": "progress-open-count_0_6769427D-FC2E-4D2D-9571-68039F140F6A.png"
+    }
+  ],
+  "verification": {
+    "mobileValidate": true,
+    "focusedJestSuites": 2,
+    "focusedJestTests": 10,
+    "docsBuild": true
+  },
+  "provenance": "Production UI source was unchanged across the runs. Normal-text cases passed in the three-case confirmation run; enlarged text passed in the targeted final run after correcting the non-accessible-container test gate. Swift hash describes that final test. All fixtures are synthetic; no physical-device, Android, spoken VoiceOver or production deployment verification."
+}

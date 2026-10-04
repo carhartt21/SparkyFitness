@@ -41,6 +41,12 @@ export default function DailyProgressCard({
         testID="dashboard-daily-progress"
         headingIcon="target"
         title={t('progress.title', { defaultValue: 'Daily Progress' })}
+        openTestID="dashboard-progress-open"
+        onOpen={onOpenProgress}
+        onCardPress={onOpenProgress}
+        accessibilityLabel={t('progress.title', {
+          defaultValue: 'Daily Progress',
+        })}
       >
         <Text className="mt-1 text-sm text-text-secondary">
           {query.isError
@@ -71,6 +77,7 @@ export default function DailyProgressCard({
       title={t('progress.title', { defaultValue: 'Daily Progress' })}
       openTestID="dashboard-progress-open"
       onOpen={onOpenProgress}
+      onCardPress={onOpenProgress}
       accessibilityLabel={t('progress.cardA11y', {
         defaultValue:
           'Daily Progress: {{completed}} of {{applicable}} tasks complete',

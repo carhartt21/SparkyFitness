@@ -59,3 +59,36 @@ No physical iPhone 18 Pro or Android test was performed. No server, Watch native
 source, health sync or data contract changed; backend tests were not required for
 this UI correction. No merge, production deployment, TestFlight build or upload
 was performed. The Todoist report remains open for acceptance in the next build.
+
+## Whole-card navigation follow-up
+
+The owner review requested that tapping the Daily Progress widget open its full
+breakdown. Previously only the heading did so. The X graphic, count and surrounding
+card space now call the same selected-day `DailyProgress` destination. Category
+rows retain their existing shortcuts, and Retry remains independent. Loading and
+failed-read cards also offer the progress destination through their heading and
+background, using the existing localized title.
+
+The optional card target belongs to `DashboardSummaryCard` and is enabled only
+by `DailyProgressCard`. Its wrapper does not group the nested controls into one
+accessibility element; the labelled heading and category buttons remain available.
+It uses the shared pressed-opacity treatment and preserves the card dimensions,
+neutral glow, source values and dates.
+
+Two focused Jest suites / **10 tests passed**, covering body/graphic/count taps,
+independent category and Retry actions, loading/error/empty states and the existing
+energy/header/overview behavior. Mobile `pnpm run validate` passed. The mechanical
+UI detector and `git diff --check` reported no findings.
+
+The native summary test now checks graphic, count and padding taps separately,
+and still checks category navigation and first-viewport action bounds. The first
+enlarged-text run exposed full-page test swipes oscillating past the visual;
+positioning now uses the measured target distance and verifies visible bounds
+before tapping. A follow-up test gate incorrectly required the non-accessible X
+layout container to be a hittable accessibility element; its visible center tap
+and resulting destination now directly verify hit testing, while real buttons
+retain native hittability checks. All three German native cases passed: 390-point
+dark/light and 430-point enlarged text. The docs build passed.
+[Navigation evidence](evidence/v41-dashboard-density-2026-10-04/card-navigation/README.md)
+records the final run and its synthetic-data limitations. Physical-device and
+Android checks remain outstanding; this follow-up does not merge or deploy the branch.

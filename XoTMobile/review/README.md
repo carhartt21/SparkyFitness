@@ -131,6 +131,9 @@ It then opens the full Daily Progress screen, captures its summary and measures
 the card/count frames. The count must stay within the card's horizontal bounds;
 enlarged text can legitimately continue below the viewport. Measurements support
 before/after height comparison rather than imposing a fixed height on content.
+The same review opens the breakdown from the X graphic, count and card padding,
+while retaining category-row destinations. Each target is positioned inside the
+visible viewport before tapping, including in the stacked enlarged-text layout.
 
 ## Food macro column fitting
 

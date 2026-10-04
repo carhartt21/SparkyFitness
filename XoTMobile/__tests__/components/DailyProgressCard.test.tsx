@@ -63,10 +63,13 @@ it('distinguishes loading and failed reads and offers a working retry', () => {
   const view = render(<DailyProgressCard {...props} />);
   expect(view.getByText('Loading...')).toBeTruthy();
   expect(view.queryByText('No tasks today')).toBeNull();
+  fireEvent.press(view.getByText('Loading...'));
+  expect(props.onOpenProgress).toHaveBeenCalledTimes(1);
   mockQuery.isError = true;
   view.rerender(<DailyProgressCard {...props} />);
   fireEvent.press(view.getByText('Retry'));
   expect(mockRefetch).toHaveBeenCalledTimes(1);
+  expect(props.onOpenProgress).toHaveBeenCalledTimes(1);
 });
 it('opens a category and retains its completed state after resolution', () => {
   mockQuery.progress = {
@@ -79,6 +82,7 @@ it('opens a category and retains its completed state after resolution', () => {
   fireEvent.press(view.getByTestId('dashboard-category-meal'));
   expect(mockOpenCategory).toHaveBeenCalledWith('meal');
   expect(mockOpenItem).not.toHaveBeenCalled();
+  expect(props.onOpenProgress).not.toHaveBeenCalled();
   fireEvent.press(view.getByTestId('dashboard-progress-open'));
   expect(props.onOpenProgress).toHaveBeenCalledTimes(1);
   mockQuery.progress = {
@@ -90,6 +94,27 @@ it('opens a category and retains its completed state after resolution', () => {
   view.rerender(<DailyProgressCard {...props} />);
   expect(view.queryByLabelText(task.label)).toBeNull();
   expect(view.getByText('Complete')).toBeTruthy();
+});
+it('opens progress from the visual, count and card space without grouping the category controls', () => {
+  mockQuery.progress = {
+    applicable: 1,
+    completed: 0,
+    percent: 0,
+    items: [task],
+  };
+  const view = render(<DailyProgressCard {...props} />);
+  fireEvent.press(view.getByTestId('preview-x'));
+  fireEvent.press(view.getByTestId('dashboard-daily-progress-count'));
+  fireEvent.press(view.getByTestId('dashboard-daily-progress-tap-target'));
+  expect(props.onOpenProgress).toHaveBeenCalledTimes(3);
+  expect(mockOpenCategory).not.toHaveBeenCalled();
+  expect(
+    view.getByTestId('dashboard-daily-progress-tap-target').props.accessible
+  ).toBe(false);
+  expect(view.getAllByRole('button')).toHaveLength(2);
+  fireEvent.press(view.getByTestId('dashboard-category-meal'));
+  expect(mockOpenCategory).toHaveBeenCalledWith('meal');
+  expect(props.onOpenProgress).toHaveBeenCalledTimes(3);
 });
 it('marks cached tasks as stale and keeps known zero distinct from no applicable tasks', () => {
   mockQuery = {

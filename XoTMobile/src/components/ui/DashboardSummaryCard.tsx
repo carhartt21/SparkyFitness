@@ -21,6 +21,7 @@ export default function DashboardSummaryCard({
   testID,
   accessibilityLabel,
   onOpen,
+  onCardPress,
   openTestID,
   renderVisual,
   children,
@@ -31,6 +32,8 @@ export default function DashboardSummaryCard({
   testID: string;
   accessibilityLabel?: string;
   onOpen?: () => void;
+  /** Optional whole-card target; nested header/row controls retain their actions. */
+  onCardPress?: () => void;
   openTestID?: string;
   renderVisual?: (layout: SummaryVisualLayout) => ReactNode;
   children: ReactNode;
@@ -69,7 +72,7 @@ export default function DashboardSummaryCard({
       )}
     </>
   );
-  return (
+  const card = (
     <GlowCard
       testID={testID}
       glowColor={cardGlow}
@@ -128,6 +131,18 @@ export default function DashboardSummaryCard({
       </View>
       {footer}
     </GlowCard>
+  );
+  return onCardPress ? (
+    <Pressable
+      testID={`${testID}-tap-target`}
+      onPress={onCardPress}
+      accessible={false}
+      className="active:opacity-80"
+    >
+      {card}
+    </Pressable>
+  ) : (
+    card
   );
 }
 
