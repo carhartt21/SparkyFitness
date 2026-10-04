@@ -1,6 +1,6 @@
 import React from 'react';
 import { Platform, View } from 'react-native';
-import { render } from '@testing-library/react-native';
+import { renderWithSafeArea as render } from '../helpers/renderWithSafeArea';
 
 import { useScreenHeader } from '../../src/hooks/useScreenHeader';
 import { __resetAppPreferencesStoreForTests } from '../../src/stores/appPreferencesStore';

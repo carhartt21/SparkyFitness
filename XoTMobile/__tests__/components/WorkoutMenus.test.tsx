@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
+import { renderWithSafeArea as render } from '../helpers/renderWithSafeArea';
 import { SetTypeMenu } from '../../src/components/WorkoutMenus';
 import type { AnchorRect } from '../../src/components/AnchoredMenu';
 
@@ -7,7 +8,7 @@ jest.mock('../../src/components/Icon', () => {
   const { View } = require('react-native');
   return {
     __esModule: true,
-    default: ({ name }: any) => <View testID={`icon-${name}`} />,
+    default: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
   };
 });
 

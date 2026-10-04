@@ -159,8 +159,10 @@ export default function ReviewApp() {
       };
       // Every scenario starts with isolated synthetic cache data. Error captures
       // must not accidentally reuse the preceding over-target scenario.
-      const cacheKeys = (await AsyncStorage.getAllKeys()).filter((key) =>
-        key.startsWith('@SparkyFitness/dashboard-cache/')
+      const cacheKeys = (await AsyncStorage.getAllKeys()).filter(
+        (key) =>
+          key.startsWith('@SparkyFitness/dashboard-cache/') ||
+          key.startsWith('@SparkyFitness/mobility-routines/v1/ui-review/')
       );
       await AsyncStorage.multiRemove(cacheKeys);
       await markCurrentVersionSeen();
@@ -190,10 +192,6 @@ export default function ReviewApp() {
       await rememberActiveNutritionUser('review-user');
       if (config.mobilityReview) {
         const identity = { serverConfigId: 'ui-review', userId: 'review-user' };
-        const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
-          key.startsWith('@SparkyFitness/mobility-routines/v1/ui-review/')
-        );
-        await AsyncStorage.multiRemove(keys);
         await saveHealthPreference('writebackWorkoutEnabled', false);
         const routine = await saveMobilityRoutine(identity, {
           name: 'Schulter- und Hüftmobilität',

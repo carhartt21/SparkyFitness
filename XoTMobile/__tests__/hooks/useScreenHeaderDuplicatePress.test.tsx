@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, fireEvent, screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
+import { renderWithSafeArea as render } from '../helpers/renderWithSafeArea';
 import { useScreenHeader } from '../../src/hooks/useScreenHeader';
 
 jest.mock('@react-navigation/native', () => ({
