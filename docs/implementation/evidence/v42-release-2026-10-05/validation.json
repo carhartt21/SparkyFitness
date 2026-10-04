@@ -1,0 +1,43 @@
+{
+  "observedAtUtc": "2026-10-04T22:25:56.941348+00:00",
+  "combinedSource": "4debac5d896aad556ae057888fb24786028a3df7",
+  "reviewAndTestCorrection": "4898eafa4",
+  "mobileTests": {
+    "suites": 557,
+    "passed": 7807
+  },
+  "webTests": {
+    "suites": 175,
+    "passed": 1501
+  },
+  "targetedServerTests": {
+    "suites": 5,
+    "passed": 100,
+    "blanketSuite": "skipped by standing owner instruction"
+  },
+  "validate": {
+    "mobile": "passed",
+    "web": "passed",
+    "server": "passed"
+  },
+  "frozenOfflineInstall": "passed",
+  "repositoryCheck": "passed",
+  "productionWebBuild": "passed",
+  "productionIosHermesExport": "passed",
+  "docsBuild": "passed",
+  "nativeSimulatorInteractions": [
+    "food-details-layout",
+    "mobility-flow"
+  ],
+  "simulatorEvidenceIncludesFixtureCorrection": true,
+  "productionPreflight": {
+    "currentSource": "5aaf5ecb836294c5df13fdb82998cdaf35d4f025",
+    "healthy": true,
+    "pendingMigrations": 0,
+    "blsFoodCount": 7140,
+    "servingColumns": 4
+  },
+  "latestAppleAndEasBuild": "41",
+  "physicalDeviceChecks": "not performed",
+  "delivery": "not started at preparation"
+}
