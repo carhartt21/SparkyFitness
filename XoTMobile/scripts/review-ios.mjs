@@ -60,6 +60,13 @@ const allCases = process.argv.includes('--single')
         device: 'iPhone-13',
       },
       {
+        name: '402-de-dark',
+        language: 'de',
+        theme: 'Dark',
+        scenario: 'populated',
+        device: 'iPhone-17-Pro',
+      },
+      {
         name: '430-en-dark',
         language: 'en',
         theme: 'Dark',
@@ -467,7 +474,12 @@ try {
                                         ? 'food-details-layout'
                                         : 'food-entry-flow'
         : null,
-      logicalViewport: item.device === 'iPhone-13' ? '390x844' : '430x932',
+      logicalViewport:
+        item.device === 'iPhone-13'
+          ? '390x844'
+          : item.device === 'iPhone-17-Pro'
+            ? '402x874'
+            : '430x932',
     });
     console.log(
       `${item.name}: ${passed ? 'render smoke passed' : 'FAILED — inspect screenshot'}`
@@ -479,6 +491,7 @@ try {
       [
         'baseline-de',
         '390-de-dark',
+        '402-de-dark',
         '430-en-dark',
         '390-en-saved',
         '390-de-hydration-options',

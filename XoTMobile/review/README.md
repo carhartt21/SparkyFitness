@@ -17,7 +17,7 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Gates and artifacts
 
-- 390×844 German dark/light; 430×932 English dark and German accessibility-extra-large; empty day, over-target AMOLED and summary error.
+- 390×844 German dark/light; 402×874 German dark; 430×932 English dark and German accessibility-extra-large; empty day, over-target AMOLED and summary error.
 - OCR waits for expected fixture metrics and rejects known untranslated dashboard labels/developer menus. It is a render smoke test, **not a visual-fidelity score**.
 - Runtime errors and unknown fixture endpoints fail the run. Expected simulated HTTP 503 errors do not. Unsupported writes fail just like unknown GET routes.
 - With `--interactions`, XCTest scrolls the German 390-point and English 430-point dashboards, checks the four quick actions are hittable and at least 44×44 points, and opens food search with one tap. It then searches for the synthetic yogurt, selects 200 g, types a long note, checks that the field clears the floating Save action, saves, opens the entry through Diary, edits to 100 g, and deletes. The final capture waits for Diary return and absence of the deleted row. Explicit mutation acknowledgments assert quantity and complete note retention; fixture unit tests reconcile 600 → 900 → 750 → 600 kcal. The other five cases remain Dashboard render checks, not nutrition interaction checks.
@@ -117,6 +117,15 @@ For database-backed meal-icon persistence, start the isolated web stack and run 
 ## Paired dashboard summaries
 
 Use `--interactions --summary-cards-review --case '^(390-de-dark|390-de-light|430-de-large)$'` with a fresh output directory. This uses the existing isolated v38 fixture and runs only the energy/task summary review, without provider or keyboard flows. It measures matching visual/supporting columns, checks normal-size row and visual heights, verifies minimum touch targets and horizontal bounds, captures both cards and opens a real pending task destination. Enlarged text uses stacked layouts. The date navigator's next-day control is deliberately excluded from the task selector. Synthetic habit names remain literal fixture data; the capture is not a localization assertion about those names.
+
+Include `402-de-dark` for the 402×874 iPhone Pro viewport, using the available
+iPhone 17 Pro simulator. At ordinary text sizes the same native test now checks
+all four quick actions **before scrolling**, including their full frames and
+24-point clearance above the tab bar's central Add-button overhang. This makes
+first-viewport density an acceptance gate rather than relying on `isHittable`.
+The smaller 390-point case must pass too. Accessibility text intentionally stacks
+and scrolls; it is not required to fit the entire dashboard into one viewport.
+There is no physical iPhone 18 Pro or Android claim from these captures.
 
 It then opens the full Daily Progress screen, captures its summary and measures
 the card/count frames. The count must stay within the card's horizontal bounds;

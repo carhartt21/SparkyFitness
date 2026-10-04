@@ -46,8 +46,8 @@ export default function DashboardSummaryCard({
   const available = contentWidth ?? width - 64;
   const stacked = fontScale > 1.3 || available < 280;
   const size = Math.min(
-    144,
-    Math.max(128, Math.round((available - 12) * 0.45))
+    120,
+    Math.max(104, Math.round((available - 12) * 0.36))
   );
   const heading = (
     <>
@@ -56,7 +56,7 @@ export default function DashboardSummaryCard({
         <Icon name={headingIcon} size={18} color={muted} />
         <Text
           accessibilityRole="header"
-          className="shrink text-center text-lg font-semibold text-text-primary"
+          className="shrink text-center text-base font-semibold text-text-primary"
           maxFontSizeMultiplier={1.8}
         >
           {title}
@@ -74,7 +74,7 @@ export default function DashboardSummaryCard({
       testID={testID}
       glowColor={cardGlow}
       accessibilityLabel={onOpen ? undefined : accessibilityLabel}
-      className="mb-3 p-3"
+      className="mb-2 px-3 py-2"
     >
       {onOpen ? (
         <Pressable
@@ -82,14 +82,12 @@ export default function DashboardSummaryCard({
           accessibilityRole="button"
           accessibilityLabel={accessibilityLabel}
           onPress={onOpen}
-          className="mb-1 min-h-11 flex-row items-center gap-3 active:opacity-70"
+          className="min-h-11 flex-row items-center gap-3 active:opacity-70"
         >
           {heading}
         </Pressable>
       ) : (
-        <View className="mb-1 min-h-11 flex-row items-center gap-3">
-          {heading}
-        </View>
+        <View className="min-h-11 flex-row items-center gap-3">{heading}</View>
       )}
       <View
         onLayout={(event) => setContentWidth(event.nativeEvent.layout.width)}
@@ -104,9 +102,7 @@ export default function DashboardSummaryCard({
             testID={`${testID}-visual`}
             className="items-center justify-center"
             style={
-              stacked
-                ? { width: size }
-                : { width: size, minHeight: 176, alignSelf: 'stretch' }
+              stacked ? { width: size } : { width: size, alignSelf: 'stretch' }
             }
           >
             {renderVisual({
@@ -144,7 +140,6 @@ export function DashboardSummaryRow({
   accessibilityLabel,
   testID,
   last = false,
-  compact = false,
 }: {
   icon: IconName;
   color: string;
@@ -153,19 +148,18 @@ export function DashboardSummaryRow({
   accessibilityLabel: string;
   testID?: string;
   last?: boolean;
-  compact?: boolean;
 }) {
   const chevron = useCSSVariable('--color-text-muted') as string;
   const content = (
     <>
-      <IconBadge icon={icon} color={color} size={compact ? 28 : 38} />
+      <IconBadge icon={icon} color={color} size={28} />
       <View style={{ flex: 1, minWidth: 0 }}>{children}</View>
       {onPress ? (
         <Icon name="chevron-forward" size={14} color={chevron} />
       ) : null}
     </>
   );
-  const className = `${compact ? 'min-h-11' : 'min-h-14'} flex-row items-center gap-2 py-1.5 ${last ? '' : 'border-b border-border-subtle'}`;
+  const className = `min-h-11 flex-row items-center gap-2 py-1 ${last ? '' : 'border-b border-border-subtle'}`;
   return onPress ? (
     <Pressable
       testID={testID}

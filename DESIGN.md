@@ -73,7 +73,7 @@ typography:
     fontSize: "20px"
     fontWeight: 700
   dashboard-energy-value:
-    fontSize: "28px"
+    fontSize: "26px"
     fontWeight: 700
   dashboard-section-title:
     fontSize: "16px"
@@ -213,7 +213,7 @@ Dashboard's energy, nutrient, hydration, exercise, and meal-overview cards use s
 
 Mobile groups use 12px corners and icon tiles use 8px corners. Web section tabs and accordion items use 8px corners; the profile summary uses 12px. Thin separators and borders mark boundaries without turning each mobile row into a separate card.
 
-Cards use 16-point corners (`GlowCard`). Primary, outline and filter controls are capsules (`NeonButton`, `ui/Button`, `SegmentedControl`), matching the reference; circles remain for progress, icon-only buttons, icon badges and the central Add action. The energy gauge is a 270° arc (`EnergyGauge`), 132–168 points across with a 14-point stroke; it is supplementary to the textual balance. Floating workout `LiquidGlassSurface` chrome keeps 16-point container corners.
+Cards use 16-point corners (`GlowCard`). Primary, outline and filter controls are capsules (`NeonButton`, `ui/Button`, `SegmentedControl`), matching the reference; circles remain for progress, icon-only buttons, icon badges and the central Add action. The dashboard energy gauge is a 270° arc (`EnergyGauge`), 104–120 points across with a 14-point stroke; it is supplementary to the textual balance. Floating workout `LiquidGlassSurface` chrome keeps 16-point container corners.
 
 ## Components
 
@@ -234,6 +234,16 @@ A compact card names the active profile and whether it is a family member or the
 Tabs have text labels and decorative icons, with a visible active fill and keyboard focus ring. Their layout changes from grid to sidebar by viewport width. Accordion triggers contain an icon, title, description, and disclosure chevron; focus uses the theme ring and open state rotates the chevron. The underlying Radix primitives supply tab and disclosure semantics.
 
 ### Mobile Dashboard energy and quick actions
+
+The energy and Daily Progress summaries share `DashboardSummaryCard`: 12-point
+horizontal and 8-point vertical padding, matching 104–120-point visual columns,
+16-point section titles, 28-point icon holders and rows with at least 44-point
+touch targets. Their graphics do not impose a 176-point minimum card height.
+The energy balance has a centered, width-bounded 26-point value so it fits inside
+the smaller arc. Four 72-point-minimum quick actions follow both cards. The normal
+German first viewport is checked above the bottom navigation and its raised Add
+button; larger text and extra status/allowance copy can scroll. See the bounded
+[v41 density record](docs/implementation/v41-dashboard-density-2026-10-04.md).
 
 `DashboardHeader` starts with the approved logo in a bordered Home target that resets the day, the product name and tagline, and the Settings action in the upper-right corner. `DateBar` (shared with the Diary) holds previous-day, the calendar date that opens the picker, a Today control on other days, and next-day. `CalorieRingCard` keeps the “Daily energy” accessibility label and shows the remaining balance (or over target / consumed without a goal) inside a red→yellow→green `EnergyGauge`; its gradient describes distance along the arc, not health quality. The card border and glow are neutral. Consumed, activity burned (or total expenditure) and base target rows open the Diary, the exercise review and Calorie settings; Edit goal opens Calorie settings. Any allowance adjustment is stated separately.
 

@@ -48,6 +48,7 @@ const CustomTabBar: React.FC<BottomTabBarProps> = ({
 
   return (
     <View
+      testID="app-tab-bar"
       className="flex-row items-end overflow-visible"
       style={{
         backgroundColor: chrome,

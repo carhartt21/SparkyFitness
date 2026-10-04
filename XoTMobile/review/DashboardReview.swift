@@ -95,11 +95,38 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(app.descendants(matching: .any)["dashboard-daily-progress-count"].exists)
     let visualFrame = energyVisual.frame
     let rowsFrame = energyRows.frame
+    let stacked = rowsFrame.minY >= visualFrame.maxY
+    // Ordinary text: both cards and the whole action row fit before scrolling,
+    // including clearance above the central Add button's tab-bar overhang.
+    // Accessibility text intentionally stacks and scrolls instead of shrinking.
+    if !stacked {
+      let tabBar = app.otherElements["app-tab-bar"]
+      XCTAssertTrue(tabBar.exists)
+      for key in ["food", "exercise-running", "water", "scan"] {
+        let action = app.buttons["dashboard-\(key)"]
+        XCTAssertTrue(action.isHittable, "\(key) must be visible without scrolling")
+        XCTAssertGreaterThanOrEqual(action.frame.width, 44)
+        XCTAssertGreaterThanOrEqual(action.frame.height, 44)
+        XCTAssertGreaterThanOrEqual(action.frame.minX, dashboard.frame.minX)
+        XCTAssertLessThanOrEqual(action.frame.maxX, dashboard.frame.maxX)
+        XCTAssertLessThanOrEqual(action.frame.maxY, tabBar.frame.minY - 24,
+          "The full action row must clear the tab bar and its central button")
+      }
+      let energyCard = app.descendants(matching: .any)["dashboard-energy"].frame
+      let progressCard = app.descendants(matching: .any)["dashboard-daily-progress"].frame
+      let actions = app.descendants(matching: .any)["dashboard-quick-actions"].frame
+      let viewport = XCTAttachment(string: "Energy: \(energyCard); progress: \(progressCard); actions: \(actions); tab bar: \(tabBar.frame)")
+      viewport.name = "dashboard-first-viewport-measurement"
+      viewport.lifetime = .keepAlways
+      add(viewport)
+      capture("dashboard-first-viewport", app)
+    }
     capture("summary-energy", app)
     let goal = app.buttons["dashboard-edit-goal"]
     XCTAssertTrue(goal.exists)
     XCTAssertGreaterThanOrEqual(goal.frame.width, 44)
-    XCTAssertGreaterThanOrEqual(goal.frame.height, 44)
+    // XCTest can report a 44-point frame as 43.999969 after scaling.
+    XCTAssertGreaterThanOrEqual(goal.frame.height.rounded(), 44)
 
     let nextTasks = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@ AND identifier != %@", "dashboard-category-", "dashboard-next-day"))
     let lastTask = nextTasks.element(boundBy: 3)
@@ -117,7 +144,6 @@ final class DashboardReview: XCTestCase {
     XCTAssertEqual(visualFrame.width, progressVisual.frame.width, accuracy: 2)
     XCTAssertEqual(rowsFrame.minX, progressRows.frame.minX, accuracy: 2)
     XCTAssertEqual(rowsFrame.width, progressRows.frame.width, accuracy: 2)
-    let stacked = rowsFrame.minY >= visualFrame.maxY
     if !stacked {
       XCTAssertGreaterThanOrEqual(progressRows.frame.height, 176)
       XCTAssertGreaterThanOrEqual(progressVisual.frame.height, 176)

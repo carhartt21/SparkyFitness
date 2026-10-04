@@ -147,7 +147,6 @@ export default function DailyProgressCard({
         return (
           <DashboardSummaryRow
             key={category.domain}
-            compact
             testID={`dashboard-category-${category.domain}`}
             onPress={() => openCategory(category.domain)}
             accessibilityLabel={`${label}: ${state}`}

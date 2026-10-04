@@ -44,7 +44,7 @@ const StatRow: React.FC<StatRowProps> = ({
         {label}
       </Text>
       <Text
-        className="text-lg font-bold text-text-primary"
+        className="text-lg leading-tight font-bold text-text-primary"
         maxFontSizeMultiplier={1.6}
       >
         {shown}
@@ -138,7 +138,7 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
               }
             >
               <Text
-                className="text-[30px] font-bold text-text-primary"
+                className="w-full text-center text-[26px] font-bold text-text-primary"
                 maxFontSizeMultiplier={1.6}
                 numberOfLines={1}
                 adjustsFontSizeToFit
@@ -146,13 +146,13 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
                 {formatLocalizedNumber(centerValue)}
               </Text>
               <Text
-                className="text-sm font-medium text-text-primary"
+                className="w-full text-center text-sm font-medium text-text-primary"
                 maxFontSizeMultiplier={1.8}
               >
                 {kcal}
               </Text>
               <Text
-                className="text-text-secondary text-xs text-center"
+                className="w-full text-text-secondary text-xs text-center"
                 maxFontSizeMultiplier={1.8}
               >
                 {hasGoal

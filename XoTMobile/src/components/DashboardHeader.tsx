@@ -21,7 +21,7 @@ export default function DashboardHeader(props: Props) {
   const { t } = useTranslation();
 
   return (
-    <View className="pt-3 pb-3 gap-3">
+    <View className="py-2 gap-2">
       <AppHeaderRow
         title={t('dashboard.appName', { defaultValue: 'X on Track' })}
         subtitle={t('dashboard.tagline', {

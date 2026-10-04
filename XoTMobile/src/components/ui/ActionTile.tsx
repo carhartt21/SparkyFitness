@@ -34,16 +34,16 @@ export default function ActionTile({
       accessibilityLabel={
         accessibilityLabel ?? (sublabel ? `${label} ${sublabel}` : label)
       }
-      className="min-h-[84px] items-center justify-center rounded-2xl border px-1 py-3 active:opacity-80"
+      className="min-h-[72px] items-center justify-center rounded-2xl border px-1 py-2 active:opacity-80"
       style={[
         { backgroundColor: withAlpha(color, glowing ? 0.07 : 0.06) },
         glowSurfaceStyle(color, glowing, 'strong'),
         style,
       ]}
     >
-      <Icon name={icon} size={28} color={color} />
+      <Icon name={icon} size={24} color={color} />
       <Text
-        className="mt-2 text-center text-[13px] font-semibold text-text-primary"
+        className="mt-1 text-center text-[13px] font-semibold text-text-primary"
         maxFontSizeMultiplier={1.6}
       >
         {label}

@@ -1,0 +1,102 @@
+{
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "v41Review": false,
+      "v40Review": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "390x844",
+      "summary-layout-measurement": "Energy visual: (29.0, 225.33333587646484, 115.0, 142.00001525878906), rows: (156.0, 225.33333587646484, 205.0, 142.00001525878906); task visual: (29.0, 437.3333435058594, 115.0, 178.99996948242188), rows: (156.0, 437.3333435058594, 205.0, 178.99996948242188); stacked: false",
+      "dashboard-first-viewport-measurement": "Energy: (16.0, 172.33333587646484, 358.0, 204.00001525878906); progress: (16.0, 384.3333435058594, 358.0, 240.99996948242188); actions: (16.0, 633.3333129882812, 358.0, 72.0); tab bar: (0.0, 749.6666870117188, 390.0, 94.33331298828125)"
+    },
+    {
+      "name": "402-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-17-Pro",
+      "nativeTabs": false,
+      "v41Review": false,
+      "v40Review": false,
+      "screenshot": "402-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "402x874",
+      "summary-layout-measurement": "Energy visual: (29.0, 240.33333587646484, 120.0, 144.00001525878906), rows: (161.0, 240.33333587646484, 212.0, 142.00001525878906); task visual: (29.0, 454.3333435058594, 120.0, 178.99996948242188), rows: (161.0, 454.3333435058594, 212.0, 178.99996948242188); stacked: false",
+      "dashboard-first-viewport-measurement": "Energy: (16.0, 187.33333587646484, 370.0, 206.00001525878906); progress: (16.0, 401.3333435058594, 370.0, 240.99996948242188); actions: (16.0, 650.3333129882812, 370.0, 72.0); tab bar: (0.0, 779.6666870117188, 402.0, 94.33331298828125)"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "v38-review",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "v41Review": false,
+      "v40Review": false,
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "390x844",
+      "summary-layout-measurement": "Energy visual: (29.0, 225.33333587646484, 115.0, 142.00001525878906), rows: (156.0, 225.33333587646484, 205.0, 142.00001525878906); task visual: (29.0, 437.3333435058594, 115.0, 178.99996948242188), rows: (156.0, 437.3333435058594, 205.0, 178.99996948242188); stacked: false",
+      "dashboard-first-viewport-measurement": "Energy: (16.0, 172.33333587646484, 358.0, 204.00001525878906); progress: (16.0, 384.3333435058594, 358.0, 240.99996948242188); actions: (16.0, 633.3333129882812, 358.0, 72.0); tab bar: (0.0, 749.6666870117188, 390.0, 94.33331298828125)"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "v38-review",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "v41Review": false,
+      "v40Review": false,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "summary-cards",
+      "logicalViewport": "430x932",
+      "stackedScreenshot": "430-de-large-progress-stacked.png",
+      "summary-layout-measurement": "Energy visual: (155.0, 356.6666717529297, 120.0, 158.66665649414062), rows: (29.0, 527.3333435058594, 372.0, 222.0); task visual: (155.0, 138.33331298828125, 120.0, 226.00006103515625), rows: (29.0, 376.33331298828125, 372.0, 416.333251953125); stacked: true"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.",
+  "baseRevision": "e19713b84c275a9e409c76ffa0372a204ddea39e",
+  "sourceNote": "Captures include the scoped source edits on top of baseRevision; source hashes pin those files.",
+  "sourceHashes": {
+    "XoTMobile/src/components/ui/DashboardSummaryCard.tsx": "60015411dd0037028d77165201318b1436b0fa1cb6df868a3a0a677ffe9d3f3e",
+    "XoTMobile/src/components/ui/ActionTile.tsx": "427d84c613521e07ad10931ef0c4b00224ddd60e20624eed4b6171a4ec0b1a56",
+    "XoTMobile/src/components/CalorieRingCard.tsx": "26068b7d1ba3bd6b1e771bd1f0cd2fa4b18fc4a731773fb91a3103b1cf2c689f",
+    "XoTMobile/src/components/DailyProgressCard.tsx": "8ec427d0b544f488190a89b674e360aef0b2e3aebc22009583fd6087e9e3d6cc",
+    "XoTMobile/src/components/DashboardHeader.tsx": "ac603b9657a2cff201f770288621236cd840c1d59cd0b025268cb4e03f556ade",
+    "XoTMobile/src/components/CustomTabBar.tsx": "8de541034b485f32c8ef000443683c8ee9ff7cd4932a3936ac29ee05ef4a026a",
+    "XoTMobile/scripts/review-ios.mjs": "bf6b4192858fcce5c3a020a4d6c9da70c34692bacd30c1703de0db8ac18d9a8a",
+    "XoTMobile/review/DashboardReview.swift": "293a0b49cf089017f27bd3922949dce36c64e0ff7d7ec724a776b4a7887d0cd2"
+  },
+  "validation": {
+    "mobileValidate": "passed",
+    "documentationBuild": "passed",
+    "focusedJestSuites": 5,
+    "focusedJestTests": 17,
+    "runtimeGuardTests": 3,
+    "nativeReviewCases": 4,
+    "frozenOfflineInstall": "passed",
+    "layoutDetectorFindings": 0
+  },
+  "limitations": [
+    "Synthetic fixture data only; no production account or persisted health records used.",
+    "Available iPhone 17 Pro simulator provides the 402x874 viewport; no physical iPhone 18 Pro was tested.",
+    "No Android device, production deployment, TestFlight build or upload performed.",
+    "Enlarged text and extra status/allowance copy are allowed to stack/scroll."
+  ]
+}

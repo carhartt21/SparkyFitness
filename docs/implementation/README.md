@@ -12,6 +12,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v41 dashboard density](v41-dashboard-density-2026-10-04.md): compact paired summaries, first-viewport quick actions and bounded German simulator checks.
 - [v41 release](v41-release-2026-10-03.md): combined validation, preserved rollout gates and verified TestFlight/production delivery.
 
 - [BLS artwork expansion](bls-food-artwork-expansion-2026-10-03.md): 12 additional illustrations, 584 refined assignments and preparation/ingredient regression checks.
