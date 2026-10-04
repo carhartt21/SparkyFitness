@@ -1032,7 +1032,10 @@
       "supplementsSubtitle": "Die heutige Routine",
       "progressSubtitle": "Heute erledigte Aufgaben",
       "contextSubtitle": "Verletzung, Krankheit, Urlaub",
-      "trackingSettingsSubtitle": "Fortschritt und Erinnerungen"
+      "trackingSettingsSubtitle": "Fortschritt und Erinnerungen",
+      "mobility": "Mobilität",
+      "mobilitySubtitle": "Routinen",
+      "wellnessSubtitle": "Erfassen"
     },
     "sleep": "Schlaf",
     "healthTrendsSettings": "Gesundheit Trends",

@@ -7,6 +7,7 @@ import {
   ActivityIndicator,
   Pressable,
   RefreshControl,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
@@ -60,6 +61,11 @@ type RecentItem =
 
 const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const tileLayout = {
+    className: fontScale > 1.3 ? 'w-full mb-3' : 'w-[48%] mb-3',
+    wrapText: fontScale > 1.3,
+  };
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
   const usesNativeTabs = useNativeIOSTabsActive();
@@ -305,7 +311,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('DailyCheckIn'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             testID="more-habits"
@@ -319,7 +325,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('Habits'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             testID="more-supplements"
@@ -333,7 +339,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('Supplements'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             testID="more-daily-progress"
@@ -347,7 +353,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('DailyProgress'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             testID="more-health-context"
@@ -361,7 +367,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('HealthContext'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             icon="bell"
@@ -376,21 +382,39 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('TrackingSettings'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             testID="more-wellness"
             icon="wellness"
             color={accentColor}
             title={t('wellness.title', { defaultValue: 'Wellness' })}
-            subtitle={t('wellness.log', { defaultValue: 'Log activity' })}
+            subtitle={t('screens.library.wellnessSubtitle', {
+              defaultValue: 'Log activity',
+            })}
             disabled={isNavigationLocked}
             onPress={() =>
               runNavigationAction(() =>
                 navigation.navigate('Wellness', { date: selectedDate })
               )
             }
-            className="w-full mb-3"
+            {...tileLayout}
+          />
+          <CreateTile
+            testID="more-mobility"
+            icon="exercise-yoga"
+            color={neon.cyan}
+            title={t('screens.library.mobility', {
+              defaultValue: 'Mobility',
+            })}
+            subtitle={t('screens.library.mobilitySubtitle', {
+              defaultValue: 'Guided routines',
+            })}
+            disabled={isNavigationLocked}
+            onPress={() =>
+              runNavigationAction(() => navigation.navigate('GuidedMobility'))
+            }
+            {...tileLayout}
           />
         </View>
 
@@ -416,7 +440,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                 })
               )
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             icon="meal"
@@ -428,7 +452,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             onPress={() =>
               runNavigationAction(() => navigation.navigate('MealAdd'))
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             icon="exercise-weights"
@@ -442,7 +466,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                 navigation.navigate('ExerciseForm', { mode: 'create-exercise' })
               )
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
           <CreateTile
             icon="bookmark-filled"
@@ -460,7 +484,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
                 })
               )
             }
-            className="w-[48%] mb-3"
+            {...tileLayout}
           />
         </View>
 

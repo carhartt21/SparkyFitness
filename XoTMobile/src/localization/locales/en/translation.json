@@ -695,7 +695,10 @@
       "supplementsSubtitle": "Today’s routine",
       "progressSubtitle": "Tasks done today",
       "contextSubtitle": "Injury, illness, vacation",
-      "trackingSettingsSubtitle": "Progress and reminders"
+      "trackingSettingsSubtitle": "Progress and reminders",
+      "mobility": "Mobility",
+      "mobilitySubtitle": "Guided routines",
+      "wellnessSubtitle": "Log activity"
     },
     "sleep": "Sleep",
     "healthTrendsSettings": "Health Trends",

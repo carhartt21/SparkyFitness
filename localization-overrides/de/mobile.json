@@ -326,6 +326,9 @@
       "progressSubtitle": "Heute erledigte Aufgaben",
       "contextSubtitle": "Verletzung, Krankheit, Urlaub",
       "trackingSettingsSubtitle": "Fortschritt und Erinnerungen",
+      "mobility": "Mobilität",
+      "mobilitySubtitle": "Routinen",
+      "wellnessSubtitle": "Erfassen",
       "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihre Mediathek anzuzeigen.",
       "medications": "Medikamente & Ergänzungsmittel"
     },

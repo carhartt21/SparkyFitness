@@ -15,6 +15,8 @@ interface CreateTileProps {
   /** Hex accent for the tile's icon and glow; defaults to the app accent. */
   color?: string;
   testID?: string;
+  /** Allow complete labels when the caller switches to accessible full-width rows. */
+  wrapText?: boolean;
 }
 
 const CreateTile: React.FC<CreateTileProps> = ({
@@ -26,6 +28,7 @@ const CreateTile: React.FC<CreateTileProps> = ({
   className = '',
   color,
   testID,
+  wrapText = false,
 }) => {
   const accentPrimary = useCSSVariable('--color-accent-primary') as string;
   const glowing = useGlowTheme();
@@ -49,11 +52,14 @@ const CreateTile: React.FC<CreateTileProps> = ({
       <View className="flex-1 ml-3">
         <Text
           className="text-text-primary text-sm font-medium"
-          numberOfLines={1}
+          numberOfLines={wrapText ? undefined : 1}
         >
           {title}
         </Text>
-        <Text className="text-text-secondary text-xs" numberOfLines={1}>
+        <Text
+          className="text-text-secondary text-xs"
+          numberOfLines={wrapText ? undefined : 1}
+        >
           {subtitle}
         </Text>
       </View>

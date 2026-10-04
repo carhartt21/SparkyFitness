@@ -877,8 +877,24 @@ final class DashboardReview: XCTestCase {
     let more = app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch
     more.tap()
     let wellness = app.descendants(matching: .any)["more-wellness"]
-    for _ in 0..<6 { if wellness.exists && wellness.isHittable { break }; app.swipeUp() }
+    let mobility = app.descendants(matching: .any)["more-mobility"]
+    let tabBar = app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch
+    for _ in 0..<10 {
+      if wellness.isHittable && mobility.isHittable && mobility.frame.maxY < tabBar.frame.minY { break }
+      app.swipeUp()
+    }
     XCTAssertTrue(wellness.waitForExistence(timeout: 10))
+    XCTAssertTrue(mobility.waitForExistence(timeout: 10))
+    XCTAssertEqual(wellness.frame.width, mobility.frame.width, accuracy: 1)
+    if abs(wellness.frame.minX - mobility.frame.minX) < 1 {
+      XCTAssertLessThan(wellness.frame.maxY, mobility.frame.minY)
+    } else {
+      XCTAssertEqual(wellness.frame.minY, mobility.frame.minY, accuracy: 1)
+      XCTAssertLessThan(wellness.frame.maxX, mobility.frame.minX)
+    }
+    XCTAssertGreaterThanOrEqual(wellness.frame.height, 44)
+    XCTAssertGreaterThanOrEqual(mobility.frame.height, 44)
+    XCTAssertLessThanOrEqual(mobility.frame.maxX, app.frame.maxX)
     capture("wellness-more", app)
     wellness.tap()
     let sauna = app.buttons.matching(NSPredicate(format: "label IN %@", ["Log Sauna", "Sauna erfassen"])).firstMatch
