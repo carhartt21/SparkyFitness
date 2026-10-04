@@ -400,7 +400,8 @@
       "completeSet": "Complete Set",
       "logAsTaken": "Log as taken",
       "skip": "Skip",
-      "snooze15": "Snooze 15 min"
+      "snooze15": "Snooze 15 min",
+      "reviewSupplements": "Open supplements"
     },
     "permission": {
       "notificationsOff": "Notifications off",
@@ -1705,7 +1706,14 @@
     "notificationRepeatTitle": "💊 Intake · follow-up {{number}}",
     "notificationSupplementRepeatTitle": "🌿 Supplement · follow-up {{number}}",
     "notificationRepeatBody": "Already recorded? Check your scheduled intake status in the app.",
-    "notificationRepeatNamed": "Already recorded? Check the status of {{name}}{{dose}} in the app."
+    "notificationRepeatNamed": "Already recorded? Check the status of {{name}}{{dose}} in the app.",
+    "notificationSupplementGroupRepeatTitle": "🌿 Supplement follow-up",
+    "notificationSupplementGroupNamed": "Your planned supplements: {{items}}. Open the list to record your intake.",
+    "notificationSupplementGroupRepeatNamed": "Already recorded? Check {{items}} in your supplement list.",
+    "notificationSupplementGroupTitle_other": "🌿 {{count}} supplements",
+    "notificationSupplementGroupTitle_one": "🌿 {{count}} supplement",
+    "notificationSupplementGroupPrivate_other": "Check {{count}} planned supplement intakes in the app.",
+    "notificationSupplementGroupPrivate_one": "Check {{count}} planned supplement intake in the app."
   },
   "scheduleSummary": {
     "daily": "Daily",

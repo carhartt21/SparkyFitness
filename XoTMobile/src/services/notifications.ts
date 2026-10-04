@@ -42,6 +42,8 @@ export const COMPLETE_SET_ACTION = 'complete-set';
 export const MEDICATION_REMINDER_CATEGORY = 'medication-reminder';
 export const MEDICATION_TAKEN_ACTION = 'medication-taken';
 export const MEDICATION_SKIP_ACTION = 'medication-skip';
+export const SUPPLEMENT_GROUP_CATEGORY = 'supplement-reminder-group';
+export const SUPPLEMENT_GROUP_REVIEW_ACTION = 'supplement-group-review';
 export const NUTRITION_CAPTURE_CATEGORY = 'engagement-nutrition-capture';
 export const NUTRITION_CAPTURE_ACTION = 'engagement-take-photo';
 export const NUTRITION_REVIEW_CATEGORY = 'engagement-nutrition-review';
@@ -150,6 +152,16 @@ export async function registerLocalizedNotificationPresentation(): Promise<void>
       },
     ]
   );
+  await Notifications.setNotificationCategoryAsync(SUPPLEMENT_GROUP_CATEGORY, [
+    {
+      identifier: SUPPLEMENT_GROUP_REVIEW_ACTION,
+      buttonTitle: notificationCopy(
+        'notifications.actions.reviewSupplements',
+        'Open supplements'
+      ),
+      options: { opensAppToForeground: true },
+    },
+  ]);
   await Notifications.setNotificationCategoryAsync(
     MEDICATION_REMINDER_CATEGORY,
     [
@@ -237,7 +249,9 @@ export async function initNotifications(): Promise<void> {
     Notifications.setNotificationHandler({
       handleNotification: async (notification) => {
         const category = notification.request.content.categoryIdentifier;
-        const isMedReminder = category === MEDICATION_REMINDER_CATEGORY;
+        const isMedReminder =
+          category === MEDICATION_REMINDER_CATEGORY ||
+          category === SUPPLEMENT_GROUP_CATEGORY;
         const isRestPing = category === REST_COMPLETE_CATEGORY;
         // iOS also runs this while the app is frontmost-but-inactive (screen
         // locking, app switcher), where the chime never plays — so there the

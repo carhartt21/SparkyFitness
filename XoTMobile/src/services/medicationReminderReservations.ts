@@ -1,49 +1,72 @@
 import * as Notifications from 'expo-notifications';
 import { toLocalDateString } from '../utils/dateUtils';
+import { supplementGroupMembers } from './supplementReminderGroups';
 
 type ScheduledNotification = Pick<Notifications.NotificationRequest, 'content'>;
 
-/** Read scheduled dose times without changing the medication reminder owner. */
+function occurrenceTime(key: string, entryDate: string): number | null {
+  const time = /_(\d{2}):(\d{2})(?:_(10|20|30))?$/.exec(key);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(entryDate) || !time) return null;
+  const hour = Number(time[1]);
+  const minute = Number(time[2]);
+  if (hour > 23 || minute > 59) return null;
+  const [year, month, day] = entryDate.split('-').map(Number);
+  const date = new Date(year, month - 1, day, hour, minute);
+  if (toLocalDateString(date) !== entryDate) return null;
+  return date.getTime() + Number(time[3] ?? 0) * 60_000;
+}
+
+/** Read individual and consolidated intake times, including midnight follow-ups. */
+export function medicationReminderTime(
+  data: Record<string, unknown> | undefined
+): number | null {
+  if (typeof data?.entryDate !== 'string') return null;
+  if (data.supplementGroupVersion === '1') {
+    const members = supplementGroupMembers(data);
+    if (!members || typeof data.triggerAt !== 'string') return null;
+    const declaredTime = Number(data.triggerAt);
+    return Number.isFinite(declaredTime) &&
+      members.every(
+        (key) =>
+          key.startsWith(`med_${data.entryDate}_`) &&
+          occurrenceTime(key, String(data.entryDate)) === declaredTime
+      )
+      ? declaredTime
+      : null;
+  }
+  if (
+    typeof data.medicationId !== 'string' ||
+    typeof data.scheduleId !== 'string'
+  )
+    return null;
+  const baseKey =
+    typeof data.baseKey === 'string'
+      ? data.baseKey
+      : typeof data.key === 'string'
+        ? data.key
+        : '';
+  const key = typeof data.key === 'string' ? data.key : baseKey;
+  if (
+    key !== baseKey &&
+    (!key.startsWith(baseKey) ||
+      !/^_(10|20|30)$/.test(key.slice(baseKey.length)))
+  )
+    return null;
+  return occurrenceTime(key, data.entryDate);
+}
+
+/** Reserve each firing instant once without changing the intake reminder owner. */
 export function medicationReminderTimes(
   requests: ScheduledNotification[]
 ): number[] {
-  const times = new Set<number>();
-  for (const request of requests) {
-    const data = request.content.data;
-    if (
-      typeof data?.medicationId !== 'string' ||
-      typeof data.scheduleId !== 'string' ||
-      typeof data.entryDate !== 'string'
-    )
-      continue;
-
-    const baseKey =
-      typeof data.baseKey === 'string'
-        ? data.baseKey
-        : typeof data.key === 'string'
-          ? data.key
-          : '';
-    const time = /_(\d{2}):(\d{2})$/.exec(baseKey);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(data.entryDate) || !time) continue;
-    const hour = Number(time[1]);
-    const minute = Number(time[2]);
-    if (hour > 23 || minute > 59) continue;
-    const [year, month, day] = data.entryDate.split('-').map(Number);
-    const date = new Date(year, month - 1, day, hour, minute);
-    if (toLocalDateString(date) !== data.entryDate) continue;
-
-    const key = typeof data.key === 'string' ? data.key : baseKey;
-    const offset =
-      key === baseKey
-        ? 0
-        : /^_(10|20|30)$/.test(key.slice(baseKey.length)) &&
-            key.startsWith(baseKey)
-          ? Number(key.slice(baseKey.length + 1))
-          : null;
-    if (offset === null) continue;
-    times.add(date.getTime() + offset * 60_000);
-  }
-  return [...times].sort((a, b) => a - b);
+  return [
+    ...new Set(
+      requests.flatMap((request) => {
+        const time = medicationReminderTime(request.content.data);
+        return time === null ? [] : [time];
+      })
+    ),
+  ].sort((a, b) => a - b);
 }
 
 export async function getMedicationReminderReservations(): Promise<number[]> {

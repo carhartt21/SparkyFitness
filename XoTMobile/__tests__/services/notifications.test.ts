@@ -162,6 +162,22 @@ describe('notifications service', () => {
       );
     });
 
+    it('registers a German foreground action for groups without bulk intake actions', async () => {
+      await i18n.changeLanguage('de');
+      await registerLocalizedNotificationPresentation();
+      expect(mockSetCategory).toHaveBeenCalledWith(
+        'supplement-reminder-group',
+        [
+          {
+            identifier: 'supplement-group-review',
+            buttonTitle: 'Supplemente öffnen',
+            options: { opensAppToForeground: true },
+          },
+        ]
+      );
+      await i18n.changeLanguage('en');
+    });
+
     it('creates Android channel with HIGH importance', async () => {
       Object.defineProperty(Platform, 'OS', {
         get: () => 'android',
@@ -257,6 +273,17 @@ describe('notifications service', () => {
       expect(result.shouldPlaySound).toBe(true);
       expect(result.shouldShowBanner).toBe(true);
       expect(result.shouldShowList).toBe(true);
+    });
+
+    it('shows consolidated supplement reminders in the foreground', async () => {
+      const handler = await getHandler();
+      expect(
+        await handler(notificationWith('supplement-reminder-group'))
+      ).toMatchObject({
+        shouldShowBanner: true,
+        shouldShowList: true,
+        shouldPlaySound: true,
+      });
     });
 
     it('keeps sound for non-rest notifications regardless of the chime preference', async () => {

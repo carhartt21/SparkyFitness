@@ -14,6 +14,15 @@ import {
   useAppPreferencesStore,
 } from '../../src/stores/appPreferencesStore';
 import { getTodayDate } from '../../src/utils/dateUtils';
+import { subscribeNutritionActions } from '../../src/services/nutritionActionOutbox';
+import { subscribeNutritionIdentity } from '../../src/services/nutritionIdentity';
+
+jest.mock('../../src/services/nutritionActionOutbox', () => ({
+  subscribeNutritionActions: jest.fn(() => jest.fn()),
+}));
+jest.mock('../../src/services/nutritionIdentity', () => ({
+  subscribeNutritionIdentity: jest.fn(() => jest.fn()),
+}));
 
 jest.mock('../../src/hooks/useMedications', () => ({
   useMedications: jest.fn(),
@@ -170,10 +179,13 @@ describe('MedicationReminderReconciler', () => {
   it('does not nudge for exact alarms while reminders are off or queries are loading', () => {
     useAppPreferencesStore.setState({ medicationRemindersEnabled: false });
     mockQueries({ meds: timedMedications, medEntries: entries });
-    render(<MedicationReminderReconciler />);
+    const { unmount } = render(<MedicationReminderReconciler />);
     expect(mockMaybePrompt).not.toHaveBeenCalled();
+    unmount();
 
-    useAppPreferencesStore.setState({ medicationRemindersEnabled: true });
+    act(() => {
+      useAppPreferencesStore.setState({ medicationRemindersEnabled: true });
+    });
     mockQueries({ meds: undefined, loadingMeds: true });
     render(<MedicationReminderReconciler />);
     expect(mockMaybePrompt).not.toHaveBeenCalled();
@@ -229,5 +241,17 @@ describe('MedicationReminderReconciler', () => {
     unmount();
 
     expect(removeSubscription).toHaveBeenCalled();
+  });
+  it('reconciles immediately on offline intake and identity changes, and unsubscribes', () => {
+    mockQueries({ meds: medications, medEntries: entries });
+    const { unmount } = render(<MedicationReminderReconciler />);
+    const actions = jest.mocked(subscribeNutritionActions);
+    const identity = jest.mocked(subscribeNutritionIdentity);
+    act(() => actions.mock.calls[0][0]());
+    act(() => identity.mock.calls[0][0]());
+    expect(mockReconcile).toHaveBeenCalledTimes(3);
+    unmount();
+    expect(actions.mock.results[0].value).toHaveBeenCalledTimes(1);
+    expect(identity.mock.results[0].value).toHaveBeenCalledTimes(1);
   });
 });

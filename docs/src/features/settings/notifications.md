@@ -40,7 +40,11 @@ The item's medication/supplement classification determines its reminder wording.
 
 Optional **Intake follow-ups** send at **+10, +20 and +30 minutes**, for today's unresolved scheduled intake only. They are off by default for a new preference; an existing saved choice is kept. Recording **taken** or **skipped** cancels remaining follow-ups. Dismissing the notification does not record intake. These alerts are outside the optional logging-reminder quota.
 
-Several similar intake alerts may therefore be intentional follow-ups or separate saved schedules. Current scheduling uses a stable account/schedule/day/time identifier to replace an existing pending occurrence instead of appending duplicates. It also defers replacement when cancellation cannot be confirmed. It cannot retract an alert that the operating system already presented.
+Supplements due at the **exact same time** on the same intake day share **one notification** listing the unresolved items. Tap it or choose **Open supplements** (**Supplemente öffnen**) to open that day's supplement list and record each item separately. Medications remain individual, and different times are not rounded into a group. A single remaining supplement keeps its individual Taken/Skip actions.
+
+If follow-ups are enabled, items firing together share one alert at each follow-up time too. Recording one item shrinks the future group, including a saved offline decision. Recording every item cancels the remaining alerts. **Hide names** replaces the names and doses with a neutral item count. Opening a group does not mark anything taken or skipped.
+
+Several similar intake alerts may therefore be intentional follow-ups or separate saved schedules at different times. Current scheduling uses a stable account/schedule/day/time identifier to replace an existing pending occurrence instead of appending duplicates. It also defers replacement when cancellation cannot be confirmed. It cannot retract an alert that the operating system already presented.
 
 Enable **Hide names** if you do not want the item name and dose in notification content. The title still distinguishes a medication from a supplement. Notification actions record an intake decision; they do not change a prescribed dose or recommend taking more.
 

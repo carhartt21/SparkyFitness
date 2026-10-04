@@ -181,7 +181,8 @@
     "actions": {
       "snooze15": "In 15 Min. erinnern",
       "logAsTaken": "Als eingenommen erfassen",
-      "completeSet": "Satz abschließen"
+      "completeSet": "Satz abschließen",
+      "reviewSupplements": "Supplemente öffnen"
     },
     "rest": {
       "title": "⏱️ Pause beendet",
@@ -1382,7 +1383,14 @@
     "notificationRepeatTitle": "💊 Einnahme · Erinnerung {{number}}",
     "notificationSupplementRepeatTitle": "🌿 Supplement · Erinnerung {{number}}",
     "notificationRepeatBody": "Schon erfasst? Prüfe den Status deiner geplanten Einnahme in der App.",
-    "notificationRepeatNamed": "Schon erfasst? Prüfe den Status von {{name}}{{dose}} in der App."
+    "notificationRepeatNamed": "Schon erfasst? Prüfe den Status von {{name}}{{dose}} in der App.",
+    "notificationSupplementGroupRepeatTitle": "🌿 Supplemente · Erinnerung",
+    "notificationSupplementGroupNamed": "Deine geplanten Supplemente: {{items}}. Öffne die Liste, um deine Einnahmen zu erfassen.",
+    "notificationSupplementGroupRepeatNamed": "Schon erfasst? Prüfe {{items}} in deiner Supplement-Liste.",
+    "notificationSupplementGroupTitle_other": "🌿 {{count}} Supplemente",
+    "notificationSupplementGroupTitle_one": "🌿 {{count}} Supplement",
+    "notificationSupplementGroupPrivate_other": "Prüfe {{count}} geplante Supplement-Einnahmen in der App.",
+    "notificationSupplementGroupPrivate_one": "Prüfe {{count}} geplante Supplement-Einnahme in der App."
   },
   "mealBuilder": {
     "linkedMealWebEdit": "Bearbeiten Sie diese Untermahlzeitzutat in der Web-App.",

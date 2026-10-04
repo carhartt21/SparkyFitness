@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [Consolidated supplement reminders](supplement-reminder-groups-2026-10-04.md): exact-time grouping, individual intake decisions, offline reconciliation and notification checks.
+
 - [Dashboard widget motion](dashboard-widget-motion-2026-10-04.md): restrained change/press feedback, continuous macro updates, native Reduce Motion and simulator evidence.
 - [v41 dashboard density](v41-dashboard-density-2026-10-04.md): compact paired summaries, first-viewport quick actions and bounded German simulator checks.
 - [v41 release](v41-release-2026-10-03.md): combined validation, preserved rollout gates and verified TestFlight/production delivery.

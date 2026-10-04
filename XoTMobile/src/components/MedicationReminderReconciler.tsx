@@ -8,6 +8,8 @@ import { reconcileMedicationReminders } from '../services/medicationReminderServ
 import { maybePromptForExactAlarmPermission } from '../services/notifications';
 import { addLog } from '../services/LogService';
 import i18n from '../localization/i18n';
+import { subscribeNutritionActions } from '../services/nutritionActionOutbox';
+import { subscribeNutritionIdentity } from '../services/nutritionIdentity';
 
 const MedicationReminderReconciler: React.FC = () => {
   const medicationRemindersEnabled = useAppPreferencesStore(
@@ -24,6 +26,17 @@ const MedicationReminderReconciler: React.FC = () => {
   );
   const remindersActive = medicationRemindersEnabled && notificationsEnabled;
   const [languageRevision, setLanguageRevision] = useState(0);
+  const [intakeRevision, setIntakeRevision] = useState(0);
+  useEffect(() => {
+    // Offline intake decisions must immediately shrink pending reminder groups.
+    const changed = () => setIntakeRevision((revision) => revision + 1);
+    const unsubscribeActions = subscribeNutritionActions(changed);
+    const unsubscribeIdentity = subscribeNutritionIdentity(changed);
+    return () => {
+      unsubscribeActions();
+      unsubscribeIdentity();
+    };
+  }, []);
 
   const {
     data: medications,
@@ -66,6 +79,7 @@ const MedicationReminderReconciler: React.FC = () => {
     medicationReminderHideNames,
     today,
     languageRevision,
+    intakeRevision,
   ]);
 
   useEffect(() => {

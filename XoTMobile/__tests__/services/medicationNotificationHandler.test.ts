@@ -19,6 +19,8 @@ jest.mock('../../src/services/notifications', () => ({
   dismissDeliveredNotification: jest.fn(async () => undefined),
   MEDICATION_TAKEN_ACTION: 'MEDICATION_TAKEN',
   MEDICATION_SKIP_ACTION: 'MEDICATION_SKIP',
+  SUPPLEMENT_GROUP_CATEGORY: 'supplement-reminder-group',
+  SUPPLEMENT_GROUP_REVIEW_ACTION: 'supplement-group-review',
 }));
 
 jest.mock('../../src/services/api/medicationsApi', () => ({

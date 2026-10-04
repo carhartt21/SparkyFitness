@@ -1,9 +1,12 @@
 import * as Notifications from 'expo-notifications';
+import { Linking } from 'react-native';
 import {
   addNotificationResponseListener,
   dismissDeliveredNotification,
   MEDICATION_TAKEN_ACTION,
   MEDICATION_SKIP_ACTION,
+  SUPPLEMENT_GROUP_CATEGORY,
+  SUPPLEMENT_GROUP_REVIEW_ACTION,
 } from './notifications';
 import { createEntry, listEntries } from './api/medicationsApi';
 import { queryClient } from '../hooks/queryClient';
@@ -14,14 +17,98 @@ import { isDoseLogged } from '../utils/medications';
 import { getActiveNutritionIdentity } from './nutritionIdentity';
 import { enqueuePlannedSupplementAction } from './nutritionActionOutbox';
 import { reconcileNutritionActions } from './nutritionActionSync';
+import { medicationReminderTime } from './medicationReminderReservations';
 
 let initialized = false;
+const openedGroups = new Set<string>();
+const openingGroups = new Set<string>();
+let navigationReady = false;
+let pendingGroupResponse: Notifications.NotificationResponse | null = null;
+
+/** Delay cold-start links until the authenticated navigation tree can receive them. */
+export function setSupplementReminderNavigationReady(ready: boolean): void {
+  navigationReady = ready;
+  if (!ready || !pendingGroupResponse) return;
+  const pending = pendingGroupResponse;
+  pendingGroupResponse = null;
+  handleGroupResponse(pending);
+}
+
+/** Group actions only open the dated list; each intake remains an individual decision. */
+async function openSupplementGroup(
+  response: Notifications.NotificationResponse
+): Promise<void> {
+  const request = response.notification.request;
+  const data = request.content.data;
+  if (
+    request.content.categoryIdentifier !== SUPPLEMENT_GROUP_CATEGORY ||
+    ![
+      Notifications.DEFAULT_ACTION_IDENTIFIER,
+      SUPPLEMENT_GROUP_REVIEW_ACTION,
+    ].includes(response.actionIdentifier) ||
+    data?.isSupplement !== 'true' ||
+    medicationReminderTime(data) === null ||
+    typeof data.accountUserId !== 'string' ||
+    typeof data.serverConfigId !== 'string'
+  )
+    return;
+  const id = request.identifier;
+  if (openedGroups.has(id) || openingGroups.has(id)) return;
+  openingGroups.add(id);
+  try {
+    const identity = await getActiveNutritionIdentity();
+    if (
+      !identity ||
+      identity.userId !== data.accountUserId ||
+      identity.serverConfigId !== data.serverConfigId
+    )
+      return;
+    if (!navigationReady) {
+      pendingGroupResponse = response;
+      return;
+    }
+    await Linking.openURL(
+      `sparkyfitnessmobile://supplements?date=${data.entryDate}`
+    );
+    openedGroups.add(id);
+    if (openedGroups.size > 128)
+      openedGroups.delete(openedGroups.values().next().value!);
+    if (
+      Notifications.getLastNotificationResponse()?.notification.request
+        .identifier === id
+    )
+      Notifications.clearLastNotificationResponse();
+  } finally {
+    openingGroups.delete(id);
+  }
+}
+
+function handleGroupResponse(
+  response: Notifications.NotificationResponse
+): void {
+  if (!navigationReady) {
+    pendingGroupResponse = response;
+    return;
+  }
+  void openSupplementGroup(response).catch(() => {
+    addLog(
+      '[MedicationNotificationAction] Could not open supplement reminder group',
+      'WARNING'
+    );
+  });
+}
 
 export function initMedicationNotificationActions(): void {
   if (initialized) return;
   initialized = true;
 
   addNotificationResponseListener((response) => {
+    if (
+      response.notification.request.content.data?.supplementGroupVersion === '1'
+    ) {
+      handleGroupResponse(response);
+      return;
+    }
     const actionId = response.actionIdentifier;
 
     let status: MedicationEntryStatus | null = null;
@@ -72,6 +159,11 @@ export function initMedicationNotificationActions(): void {
       data?.serverConfigId
     );
   });
+  const initial = Notifications.getLastNotificationResponse();
+  if (
+    initial?.notification.request.content.data?.supplementGroupVersion === '1'
+  )
+    handleGroupResponse(initial);
 }
 
 async function clearMatchingReminders(

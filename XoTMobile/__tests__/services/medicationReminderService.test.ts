@@ -206,9 +206,11 @@ describe('reconcileMedicationReminders', () => {
 
     it('cancels pending medication reminders when the OS permission is not granted', async () => {
       mockGetPerms.mockResolvedValue({ status: 'denied' } as never);
-      mockGetAllScheduled.mockResolvedValue([
-        pendingRequest('n1', { medicationId: 'med-1', key: BASE_KEY }),
-      ]);
+      mockGetAllScheduled
+        .mockResolvedValueOnce([
+          pendingRequest('n1', { medicationId: 'med-1', key: BASE_KEY }),
+        ])
+        .mockResolvedValueOnce([]);
 
       await reconcileMedicationReminders([buildMedication()], []);
 
@@ -891,18 +893,329 @@ describe('reconcileMedicationReminders', () => {
       expect(second).toEqual(first);
     });
 
-    it('makes a concurrent second call a no-op', async () => {
+    it('serializes concurrent passes rather than dropping the newer request', async () => {
       useAppPreferencesStore.setState({ medicationRemindersEnabled: false });
-      mockGetAllScheduled.mockResolvedValue([
-        pendingRequest('n1', { medicationId: 'med-1', key: BASE_KEY }),
-      ]);
+      mockGetAllScheduled
+        .mockResolvedValueOnce([
+          pendingRequest('n1', { medicationId: 'med-1', key: BASE_KEY }),
+        ])
+        .mockResolvedValueOnce([]);
 
       const first = reconcileMedicationReminders([], []);
       const second = reconcileMedicationReminders([], []);
       await Promise.all([first, second]);
 
-      expect(mockGetAllScheduled).toHaveBeenCalledTimes(1);
+      expect(mockGetAllScheduled).toHaveBeenCalledTimes(2);
       expect(mockCancel).toHaveBeenCalledTimes(1);
+    });
+  });
+  describe('consolidated supplement reminders', () => {
+    const supplements = (times = ['09:00', '09:00']) =>
+      times.map((time, index) =>
+        buildMedication({
+          id: `supp-${index}`,
+          name: ['Electrolytes', 'Vitamin D'][index] ?? 'Zinc',
+          is_supplement: true,
+          schedules: [
+            buildSchedule({
+              id: `ss-${index}`,
+              medication_id: `supp-${index}`,
+              time_of_day: time,
+              end_date: TODAY,
+            }),
+          ],
+        })
+      );
+    const calls = () => mockSchedule.mock.calls.map(([request]) => request);
+    // Model native pending state across passes, not only a one-shot empty mock.
+    const nativeLedger = () => {
+      let pending: Notifications.NotificationRequest[] = [];
+      mockGetAllScheduled.mockImplementation(async () => pending);
+      mockSchedule.mockImplementation(async (request) => {
+        const id = request.identifier!;
+        pending = [
+          ...pending.filter((item) => item.identifier !== id),
+          request as unknown as Notifications.NotificationRequest,
+        ];
+        return id;
+      });
+      mockCancel.mockImplementation(async (id) => {
+        pending = pending.filter((item) => item.identifier !== id);
+      });
+      return () => pending;
+    };
+    beforeEach(() => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: false });
+      jest
+        .mocked(getActiveNutritionIdentity)
+        .mockResolvedValue({ userId: 'user-1', serverConfigId: 'server-1' });
+    });
+
+    it('replaces same-time items with one dated reminder listing their schedule doses', async () => {
+      await reconcileMedicationReminders(supplements(), []);
+      expect(calls()).toHaveLength(1);
+      expect(calls()[0]).toMatchObject({
+        identifier: expect.stringContaining(
+          'medication:server-1:user-1:supplements_'
+        ),
+        content: {
+          title: '🌿 2 supplements',
+          body: 'Your planned supplements: Electrolytes (500 mg), Vitamin D (500 mg). Open the list to record your intake.',
+          categoryIdentifier: 'supplement-reminder-group',
+          data: { count: '2', entryDate: TODAY, isSupplement: 'true' },
+        },
+      });
+      expect(calls()[0].content.data).not.toHaveProperty('medicationId');
+      expect(calls()[0].content.data).not.toHaveProperty('scheduleId');
+      expect(JSON.stringify(calls()[0].content.data)).not.toContain(
+        'Electrolytes'
+      );
+    });
+
+    it('groups each follow-up slot without changing repeat timing', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: true });
+      await reconcileMedicationReminders(supplements(), []);
+      expect(calls()).toHaveLength(4);
+      expect(calls().map((request) => request.content.data?.triggerAt)).toEqual(
+        [0, 10, 20, 30].map((minute) =>
+          String(new Date(2026, 6, 28, 9, minute).getTime())
+        )
+      );
+      expect(
+        calls()
+          .slice(1)
+          .every(
+            (request) => request.content.title === '🌿 Supplement follow-up'
+          )
+      ).toBe(true);
+    });
+
+    it('keeps adjacent times and medication reminders separate', async () => {
+      await reconcileMedicationReminders(
+        [
+          ...supplements(['09:00', '09:01']),
+          buildMedication({ schedules: [buildSchedule({ end_date: TODAY })] }),
+        ],
+        []
+      );
+      expect(calls()).toHaveLength(3);
+      expect(
+        calls().every(
+          (request) =>
+            request.content.categoryIdentifier === 'medication-reminder'
+        )
+      ).toBe(true);
+    });
+
+    it('groups an initial dose and another dose follow-up firing at the same instant', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: true });
+      await reconcileMedicationReminders(supplements(['09:00', '09:10']), []);
+      expect(calls()).toHaveLength(5);
+      const shared = calls().find(
+        (request) =>
+          request.content.data?.triggerAt ===
+          String(new Date(2026, 6, 28, 9, 10).getTime())
+      );
+      expect(shared?.content.title).toBe('🌿 2 supplements');
+      expect(shared?.content.data?.followUp).toBe('false');
+    });
+
+    it('deduplicates representations but retains distinct same-time schedules', async () => {
+      const one = supplements()[0];
+      await reconcileMedicationReminders(
+        [
+          one,
+          one,
+          {
+            ...one,
+            schedules: [
+              buildSchedule({
+                id: 'another',
+                medication_id: one.id,
+                end_date: TODAY,
+              }),
+            ],
+          },
+        ],
+        []
+      );
+      expect(calls()).toHaveLength(1);
+      expect(calls()[0].content.data?.count).toBe('2');
+    });
+
+    it('keeps grouped identifiers and membership stable when API order changes', async () => {
+      await reconcileMedicationReminders(supplements(), []);
+      const first = calls()[0];
+      mockSchedule.mockClear();
+      await reconcileMedicationReminders(supplements().reverse(), []);
+      expect(calls()[0]).toEqual(first);
+    });
+
+    it('retains an unchanged native group rather than scheduling it again', async () => {
+      nativeLedger();
+      await reconcileMedicationReminders(supplements(), []);
+      mockSchedule.mockClear();
+      await reconcileMedicationReminders(supplements().reverse(), []);
+      expect(mockSchedule).not.toHaveBeenCalled();
+      expect(mockCancel).not.toHaveBeenCalled();
+    });
+
+    it.each(['taken', 'skipped'] as const)(
+      'shrinks a group after %s and cancels it after all items resolve',
+      async (status) => {
+        const pending = nativeLedger();
+        const meds = supplements();
+        await reconcileMedicationReminders(meds, []);
+        const entry = buildEntry({
+          medication_id: 'supp-0',
+          schedule_id: 'ss-0',
+          status,
+        });
+        await reconcileMedicationReminders(meds, [entry]);
+        expect(pending()).toHaveLength(1);
+        expect(pending()[0].content.data).toMatchObject({
+          medicationId: 'supp-1',
+          scheduleId: 'ss-1',
+        });
+        await reconcileMedicationReminders(meds, [
+          entry,
+          buildEntry({ medication_id: 'supp-1', schedule_id: 'ss-1', status }),
+        ]);
+        expect(pending()).toHaveLength(0);
+      }
+    );
+
+    it('removes an offline queued intake from every group follow-up immediately', async () => {
+      useAppPreferencesStore.setState({ medicationReminderRepeats: true });
+      const pending = nativeLedger();
+      await reconcileMedicationReminders(supplements(), []);
+      jest.mocked(listNutritionActions).mockResolvedValue([
+        {
+          type: 'logPlannedSupplement',
+          payload: { schedule_id: 'ss-0', entry_date: TODAY },
+        },
+      ] as never);
+      await reconcileMedicationReminders(supplements(), []);
+      expect(pending()).toHaveLength(4);
+      expect(
+        pending().every(
+          (request) => request.content.data?.medicationId === 'supp-1'
+        )
+      ).toBe(true);
+    });
+
+    it('serializes a concurrent intake update and leaves only unresolved items pending', async () => {
+      const pending = nativeLedger();
+      await Promise.all([
+        reconcileMedicationReminders(supplements(), []),
+        reconcileMedicationReminders(supplements(), [
+          buildEntry({ medication_id: 'supp-0', schedule_id: 'ss-0' }),
+        ]),
+      ]);
+      expect(pending()).toHaveLength(1);
+      expect(pending()[0].content.data?.medicationId).toBe('supp-1');
+    });
+
+    it('does not replay elapsed grouped alerts when reconciliation runs late', async () => {
+      jest.setSystemTime(new Date(2026, 6, 28, 9, 15));
+      useAppPreferencesStore.setState({ medicationReminderRepeats: true });
+      await reconcileMedicationReminders(supplements(), []);
+      expect(calls()).toHaveLength(2);
+      expect(
+        calls().every(
+          (request) => Number(request.content.data?.triggerAt) > Date.now()
+        )
+      ).toBe(true);
+    });
+
+    it('replaces old separate alerts with one group only after successful cancellation', async () => {
+      mockGetAllScheduled.mockResolvedValue(
+        supplements().map((med) =>
+          pendingRequest(`old-${med.id}`, {
+            medicationId: med.id,
+            key: `med_${TODAY}_${med.id}_${med.schedules![0].id}_09:00`,
+            accountUserId: 'user-1',
+            serverConfigId: 'server-1',
+          })
+        )
+      );
+      await reconcileMedicationReminders(supplements(), []);
+      expect(mockCancel).toHaveBeenCalledTimes(2);
+      expect(calls()).toHaveLength(1);
+    });
+
+    it('defers a group if cancelling a legacy individual alert fails', async () => {
+      mockGetAllScheduled.mockResolvedValue([
+        pendingRequest('old', {
+          medicationId: 'supp-0',
+          key: `med_${TODAY}_supp-0_ss-0_09:00`,
+        }),
+      ]);
+      mockCancel.mockRejectedValue(new Error('native unavailable'));
+      await reconcileMedicationReminders(supplements(), []);
+      expect(mockSchedule).not.toHaveBeenCalled();
+    });
+
+    it('defers the remaining individual alert if cancelling its previous group fails', async () => {
+      await reconcileMedicationReminders(supplements(), []);
+      const group = calls()[0];
+      mockSchedule.mockClear();
+      mockGetAllScheduled.mockResolvedValue([
+        group as unknown as Notifications.NotificationRequest,
+      ]);
+      mockCancel.mockRejectedValue(new Error('native unavailable'));
+      await reconcileMedicationReminders(supplements(), [
+        buildEntry({ medication_id: 'supp-0', schedule_id: 'ss-0' }),
+      ]);
+      expect(mockSchedule).not.toHaveBeenCalled();
+    });
+
+    it('keeps Hide names private and regenerates German group copy on language change', async () => {
+      const pending = nativeLedger();
+      await reconcileMedicationReminders(supplements(), []);
+      useAppPreferencesStore.setState({ medicationReminderHideNames: true });
+      await i18n.changeLanguage('de');
+      try {
+        await reconcileMedicationReminders(supplements(), []);
+        expect(pending()).toHaveLength(1);
+        expect(pending()[0].content.title).toBe('🌿 2 Supplemente');
+        expect(pending()[0].content.body).toBe(
+          'Prüfe 2 geplante Supplement-Einnahmen in der App.'
+        );
+        expect(JSON.stringify(pending()[0].content)).not.toContain(
+          'Electrolytes'
+        );
+      } finally {
+        await i18n.changeLanguage('en');
+      }
+    });
+
+    it('cancels groups when notifications are disabled or the active account changes', async () => {
+      const pending = nativeLedger();
+      await reconcileMedicationReminders(supplements(), []);
+      jest
+        .mocked(getActiveNutritionIdentity)
+        .mockResolvedValue({ userId: 'user-2', serverConfigId: 'server-2' });
+      await reconcileMedicationReminders(supplements(), []);
+      expect(pending()).toHaveLength(0);
+      jest
+        .mocked(getActiveNutritionIdentity)
+        .mockResolvedValue({ userId: 'user-1', serverConfigId: 'server-1' });
+      await reconcileMedicationReminders(supplements(), []);
+      useAppPreferencesStore.setState({ notificationsEnabled: false });
+      await reconcileMedicationReminders(supplements(), []);
+      expect(pending()).toHaveLength(0);
+    });
+
+    it('recovers the serialized queue after a failed native read', async () => {
+      mockGetAllScheduled.mockRejectedValueOnce(
+        new Error('native unavailable')
+      );
+      await expect(
+        reconcileMedicationReminders(supplements(), [])
+      ).rejects.toThrow('native unavailable');
+      await reconcileMedicationReminders(supplements(), []);
+      expect(calls()).toHaveLength(1);
     });
   });
 });

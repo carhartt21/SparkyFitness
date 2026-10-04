@@ -50,3 +50,30 @@ it('reads an older base request with no separate baseKey and crosses midnight fo
     new Date(2026, 8, 24, 0, 10).getTime(),
   ]);
 });
+
+it('reserves combined reminders once, including a follow-up crossing midnight', () => {
+  const entryDate = '2026-09-23';
+  const members = ['a_s1', 'b_s2'].map((id) => `med_${entryDate}_${id}_23:50`);
+  const at = new Date(2026, 8, 23, 23, 50).getTime();
+  const group = {
+    supplementGroupVersion: '1',
+    entryDate,
+    memberKeys: JSON.stringify(members),
+    triggerAt: String(at),
+  };
+  expect(
+    medicationReminderTimes([
+      request(group),
+      request(group),
+      request({
+        ...group,
+        memberKeys: JSON.stringify(members.map((key) => `${key}_20`)),
+        triggerAt: String(at + 20 * 60_000),
+      }),
+      request({ ...group, memberKeys: 'invalid' }),
+      request({ ...group, triggerAt: String(at + 1) }),
+      request({ ...group, entryDate: '2026-02-30' }),
+      request({ ...group, memberKeys: JSON.stringify(['med_x', 'med_x']) }),
+    ])
+  ).toEqual([at, at + 20 * 60_000]);
+});

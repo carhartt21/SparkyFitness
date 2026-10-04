@@ -29,6 +29,7 @@ import {
   useWatchCheckInBridge,
 } from './src/hooks';
 import { useAppStartup } from './src/hooks/useAppStartup';
+import { setSupplementReminderNavigationReady } from './src/services/medicationNotificationHandler';
 import { useAppBootstrap } from './src/hooks/useAppBootstrap';
 import { useLaunchIconActions } from './src/hooks/useLaunchIconActions';
 import { useAppLanguageForegroundSync } from './src/hooks/useAppLanguageForegroundSync';
@@ -398,7 +399,17 @@ function AppContent() {
       ref={rootNavigationRef}
       theme={navigationTheme}
       linking={linkingEnabled ? linking : undefined}
+      onReady={() => {
+        setSupplementReminderNavigationReady(
+          rootNavigationRef
+            .getRootState()
+            ?.routes.some((route) => route.name === 'Tabs') ?? false
+        );
+      }}
       onStateChange={(state) => {
+        setSupplementReminderNavigationReady(
+          state?.routes.some((route) => route.name === 'Tabs') ?? false
+        );
         // Enable deep-link handling once the user has left Onboarding.
         // Without this, widget URLs are ignored for the rest of the session
         // after first-run setup completes.

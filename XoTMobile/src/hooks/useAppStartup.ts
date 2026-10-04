@@ -20,7 +20,10 @@ import {
   initNotifications,
   registerLocalizedNotificationPresentation,
 } from '../services/notifications';
-import { initMedicationNotificationActions } from '../services/medicationNotificationHandler';
+import {
+  initMedicationNotificationActions,
+  setSupplementReminderNavigationReady,
+} from '../services/medicationNotificationHandler';
 import { initNutritionEngagementResponses } from '../services/nutritionEngagementReminders';
 import { initMovementEngagementResponses } from '../services/movementEngagementReminders';
 import { initTrackingEngagementResponses } from '../services/trackingEngagementReminders';
@@ -48,6 +51,7 @@ interface AppStartupArgs {
 export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
   useEffect(() => {
     let cancelled = false;
+    setSupplementReminderNavigationReady(false);
     const onLanguageChanged = () => {
       void registerLocalizedNotificationPresentation().catch((error) => {
         const message = error instanceof Error ? error.message : String(error);
@@ -183,6 +187,7 @@ export function useAppStartup({ shouldYieldObserverSync }: AppStartupArgs) {
 
     return () => {
       cancelled = true;
+      setSupplementReminderNavigationReady(false);
       i18n.off('languageChanged', onLanguageChanged);
       if (Platform.OS === 'ios') {
         stopObservers();
