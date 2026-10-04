@@ -1,0 +1,10 @@
+{
+  "canonicalArtworkPngs": 22,
+  "canonicalArtworkHashesMatch": true,
+  "mobilityCueAssetsBundled": [
+    "rest-chime.wav",
+    "rest-chime-2.wav"
+  ],
+  "reviewMarkersAbsent": true,
+  "displayName": "X on Track"
+}

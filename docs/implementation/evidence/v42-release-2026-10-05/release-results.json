@@ -1,0 +1,68 @@
+{
+  "observedAtUtc": "2026-10-04T22:45:48.350105+00:00",
+  "sourceCommit": "53066770e12a51efbf54839acd89d320779e8dfe",
+  "appVersion": "1.7.2",
+  "build": "42",
+  "buildId": "b932f81e-6b98-4ccc-88e8-afac0f8a4a00",
+  "buildStatus": "FINISHED",
+  "submissionId": "a6100247-5b7d-47ca-a644-3aa0102e02b7",
+  "submissionStatus": "FINISHED",
+  "appleProcessingState": "not yet listed by Apple API",
+  "internalBuildState": "unverified",
+  "ipaSha256": "3c6f45767c63971f889a432b3667a07f8dcc4c491ca7eb04f00bc7dbc2eb9fae",
+  "production": {
+    "sourceCommit": "53066770e12a51efbf54839acd89d320779e8dfe",
+    "publicHttps": {
+      "/": 200,
+      "/api/health": 200,
+      "/.well-known/oauth-protected-resource/mcp/chatgpt": 200
+    },
+    "preserved": [
+      "database image",
+      "persistent mounts",
+      "protected settings",
+      "private routing",
+      "existing migration ledger unchanged",
+      "BLS catalogue count",
+      "mobility owner policies"
+    ],
+    "healthy": true,
+    "matchedEncryptedBackupVerifiedOffHost": true,
+    "newMigrations": 0,
+    "blsFoodCount": 7140,
+    "servedAppAssetsVerified": 28,
+    "servedArtworkVerified": 22
+  },
+  "validation": {
+    "mobileTests": {
+      "suites": 557,
+      "passed": 7807
+    },
+    "webTests": {
+      "suites": 175,
+      "passed": 1501
+    },
+    "targetedServerTests": {
+      "suites": 5,
+      "passed": 100,
+      "blanketSuite": "skipped by standing owner instruction"
+    },
+    "validate": {
+      "mobile": "passed",
+      "web": "passed",
+      "server": "passed"
+    },
+    "frozenOfflineInstall": "passed",
+    "repositoryCheck": "passed",
+    "productionWebBuild": "passed",
+    "productionIosHermesExport": "passed",
+    "docsBuild": "passed",
+    "sourceArchiveSha256": "aea4d0e4ff55a9e423bc4a3a4a9f68e7457c16661f380c256414fe0d489309c2"
+  },
+  "rolloutGates": {
+    "expandedNativeMicronutrientSync": false,
+    "micronutrientImport": false,
+    "coaching": false
+  },
+  "physicalDeviceChecks": "not performed"
+}

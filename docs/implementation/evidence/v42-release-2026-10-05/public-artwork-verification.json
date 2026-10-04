@@ -1,0 +1,29 @@
+{
+  "publicOrigin": "https://health.ilmtech.de",
+  "verifiedArtwork": [
+    "tomato-raw",
+    "tomato-sauce",
+    "apple-raw",
+    "rice-dry",
+    "rice-cooked",
+    "mushrooms",
+    "rice-brown-dry",
+    "rice-brown-cooked",
+    "tomato-cooked",
+    "tomato-dried",
+    "seeds",
+    "flour",
+    "bran",
+    "starch",
+    "milk-powder",
+    "quark",
+    "tofu",
+    "olives",
+    "poultry-raw",
+    "poultry-cooked",
+    "pasta-cooked",
+    "coffee-powder"
+  ],
+  "count": 22,
+  "allMatchSource": true
+}
