@@ -143,6 +143,8 @@ const cases = filteredCases.map((item) => ({
     : {}),
   nativeTabs: process.argv.includes('--native-tabs'),
   v41Review: process.argv.includes('--v41-review'),
+  motionReview: process.argv.includes('--motion-review'),
+  reducedMotion: process.argv.includes('--reduce-motion'),
   v40Review:
     process.argv.includes('--v40-review') ||
     process.argv.includes('--supplements-review'),
@@ -295,6 +297,17 @@ try {
       };
     if (device.state !== 'Booted') sim('boot', device.udid);
     sim('bootstatus', device.udid, '-b');
+    if (process.argv.includes('--motion-review'))
+      sim(
+        'spawn',
+        device.udid,
+        'defaults',
+        'write',
+        'com.apple.Accessibility',
+        'ReduceMotionEnabled',
+        '-bool',
+        item.reducedMotion ? 'YES' : 'NO'
+      );
     sim('install', device.udid, app);
     sim(
       'status_bar',
@@ -397,6 +410,7 @@ try {
       assertRuntimeClean(readFileSync(path.join(output, 'metro.log'), 'utf8'));
       const text = texts.map((t) => t.text).join('\n');
       passed =
+        process.argv.includes('--motion-review') ||
         process.argv.includes('--summary-cards-review') ||
         process.argv.includes('--supplements-review') ||
         process.argv.includes('--v40-review') ||
@@ -426,6 +440,8 @@ try {
       if (item.language === 'de')
         passed =
           passed && !/Today|Daily energy|Activity burned|Log water/.test(text);
+      if (item.motionReview && item.reducedMotion)
+        passed = passed && /Bewegung reduziert/.test(text);
       if (passed) break;
     }
     writeFileSync(
@@ -438,41 +454,45 @@ try {
       renderSmokePassed: passed,
       nativeInteractionPassed: null,
       interactionScenario: process.argv.includes('--interactions')
-        ? process.argv.includes('--wellness-tour')
-          ? 'wellness-tour'
-          : process.argv.includes('--hydration-review')
-            ? 'caffeine-hydration'
-            : process.argv.includes('--food-macro-review')
-              ? 'food-macro-columns'
-              : process.argv.includes('--supplements-review')
-                ? 'supplement-layout'
-                : process.argv.includes('--v41-review')
-                  ? 'v41-inbox-corrections'
-                  : process.argv.includes('--v40-review')
-                    ? 'v40-corrections'
-                    : process.argv.includes('--summary-cards-review')
-                      ? 'summary-cards'
-                      : process.argv.includes('--ui-refinement-review')
-                        ? 'ui-refinements'
-                        : process.argv.includes('--v38-review')
-                          ? 'v38-corrections'
-                          : process.argv.includes('--meal-status-review')
-                            ? 'meal-goal-status'
-                            : process.argv.includes('--launch-icon-actions')
-                              ? 'launch-icon-actions'
-                              : process.argv.includes('--notification-tour')
-                                ? 'notification-tour'
-                                : process.argv.includes('--tracking-tour')
-                                  ? 'tracking-tour'
-                                  : process.argv.includes('--tour')
-                                    ? 'screen-tour'
-                                    : process.argv.includes('--dashboard-only')
-                                      ? 'dashboard-alignment'
+        ? process.argv.includes('--motion-review')
+          ? 'dashboard-motion'
+          : process.argv.includes('--wellness-tour')
+            ? 'wellness-tour'
+            : process.argv.includes('--hydration-review')
+              ? 'caffeine-hydration'
+              : process.argv.includes('--food-macro-review')
+                ? 'food-macro-columns'
+                : process.argv.includes('--supplements-review')
+                  ? 'supplement-layout'
+                  : process.argv.includes('--v41-review')
+                    ? 'v41-inbox-corrections'
+                    : process.argv.includes('--v40-review')
+                      ? 'v40-corrections'
+                      : process.argv.includes('--summary-cards-review')
+                        ? 'summary-cards'
+                        : process.argv.includes('--ui-refinement-review')
+                          ? 'ui-refinements'
+                          : process.argv.includes('--v38-review')
+                            ? 'v38-corrections'
+                            : process.argv.includes('--meal-status-review')
+                              ? 'meal-goal-status'
+                              : process.argv.includes('--launch-icon-actions')
+                                ? 'launch-icon-actions'
+                                : process.argv.includes('--notification-tour')
+                                  ? 'notification-tour'
+                                  : process.argv.includes('--tracking-tour')
+                                    ? 'tracking-tour'
+                                    : process.argv.includes('--tour')
+                                      ? 'screen-tour'
                                       : process.argv.includes(
-                                            '--food-details-review'
+                                            '--dashboard-only'
                                           )
-                                        ? 'food-details-layout'
-                                        : 'food-entry-flow'
+                                        ? 'dashboard-alignment'
+                                        : process.argv.includes(
+                                              '--food-details-review'
+                                            )
+                                          ? 'food-details-layout'
+                                          : 'food-entry-flow'
         : null,
       logicalViewport:
         item.device === 'iPhone-13'
@@ -498,6 +518,7 @@ try {
         '430-en-hydration-options',
         // Dynamic Type coverage for the daily tracking screens.
         ...(process.argv.includes('--food-details-review') ||
+        process.argv.includes('--motion-review') ||
         process.argv.includes('--meal-status-review') ||
         process.argv.includes('--v38-review') ||
         process.argv.includes('--ui-refinement-review') ||
@@ -518,12 +539,26 @@ try {
       ].includes(item.name)
     ) {
       const resultBundle = path.join(output, `${item.name}.xcresult`);
+      const recorder = item.motionReview
+        ? spawn(
+            'xcrun',
+            [
+              'simctl',
+              'io',
+              device.udid,
+              'recordVideo',
+              '--codec=h264',
+              path.join(output, `${item.name}.motion.mov`),
+            ],
+            { stdio: 'ignore' }
+          )
+        : null;
       try {
         await runAsync(
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--hydration-review') ? 'testHydrationSources' : process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--supplements-review') ? 'testSupplementLayout' : process.argv.includes('--v41-review') ? 'testV41Corrections' : process.argv.includes('--v40-review') ? 'testV40Corrections' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--motion-review') ? 'testWidgetMotion' : process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--hydration-review') ? 'testHydrationSources' : process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--supplements-review') ? 'testSupplementLayout' : process.argv.includes('--v41-review') ? 'testV41Corrections' : process.argv.includes('--v40-review') ? 'testV40Corrections' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',
@@ -544,6 +579,24 @@ try {
         results.at(-1).nativeInteractionPassed = false;
         throw error;
       } finally {
+        if (recorder) {
+          const stopped = new Promise((resolve) =>
+            recorder.once('exit', resolve)
+          );
+          recorder.kill('SIGINT');
+          await stopped;
+        }
+        if (item.motionReview && item.reducedMotion)
+          sim(
+            'spawn',
+            device.udid,
+            'defaults',
+            'write',
+            'com.apple.Accessibility',
+            'ReduceMotionEnabled',
+            '-bool',
+            'NO'
+          );
         writeFileSync(
           path.join(output, `${item.name}.events.json`),
           JSON.stringify(events, null, 2)

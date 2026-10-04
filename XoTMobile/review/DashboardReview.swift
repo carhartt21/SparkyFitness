@@ -1,6 +1,36 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Presentation-only harness uses production components and synthetic values.
+  func testWidgetMotion() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let scroll = app.otherElements["motion-review-scroll"]
+    XCTAssertTrue(scroll.waitForExistence(timeout: 30))
+    let change = app.buttons["motion-review-change"]
+    for _ in 0..<8 { if change.isHittable { break }; scroll.swipeUp(velocity: .slow) }
+    XCTAssertTrue(change.isHittable)
+    capture("motion-initial", app)
+    for value in ["57%", "100%", "43%", "Nicht verfügbar", "100%"] {
+      change.tap()
+      let mark = app.descendants(matching: .any)["Täglicher Fortschritt: \(value)"]
+      XCTAssertTrue(mark.waitForExistence(timeout: 10), "Exact label must update with \(value)")
+      capture("motion-\(value)", app)
+    }
+    let macroAction = app.buttons.matching(NSPredicate(format: "label == %@", "Lesen")).firstMatch
+    XCTAssertTrue(macroAction.isHittable)
+    macroAction.press(forDuration: 0.2)
+    XCTAssertTrue(app.descendants(matching: .any)["Protein: 70 g / 100 g"].waitForExistence(timeout: 10))
+    capture("motion-macros-updated", app)
+    let addWater = app.buttons["Wasser hinzufügen"]
+    for _ in 0..<8 { if addWater.isHittable { break }; scroll.swipeUp(velocity: .slow) }
+    XCTAssertTrue(addWater.isHittable)
+    addWater.tap()
+    XCTAssertTrue(app.staticTexts["1.000 ml"].waitForExistence(timeout: 10))
+    capture("motion-hydration-updated", app)
+  }
+
   func testHydrationSources() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

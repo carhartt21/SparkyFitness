@@ -6,7 +6,10 @@ const mockRefetch = jest.fn();
 const mockOpen = jest.fn();
 let mockState = 'pending';
 let mockRevision = 5;
-jest.mock('@react-navigation/native', () => ({ useIsFocused: () => true }));
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useIsFocused: () => true,
+}));
 jest.mock('../../src/hooks/usePreferences', () => ({
   usePreferences: () => ({ preferences: {} }),
 }));

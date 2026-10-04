@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Keyboard, Text } from 'react-native';
 import * as Device from 'expo-device';
+import * as SplashScreen from 'expo-splash-screen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import App from '../App';
 import { markCurrentVersionSeen } from '../src/services/whatsNewBanner';
@@ -16,11 +17,14 @@ import { createNutritionFixture } from './nutritionFixture';
 import { createWellnessReviewFixture } from './wellnessFixture';
 import { trackingReviewResponse } from './trackingFixture';
 import { getTodayDate } from '../src/utils/dateUtils';
+import MotionReview from './MotionReview';
+import { initializeI18n } from '../src/localization/i18n';
 
 const transport = global.fetch;
 export default function ReviewApp() {
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState('');
+  const [motionReview, setMotionReview] = useState(false);
   useEffect(() => {
     let keyboardSubscription:
       ReturnType<typeof Keyboard.addListener> | undefined;
@@ -52,6 +56,7 @@ export default function ReviewApp() {
         nativeTabs?: boolean;
         v40Review?: boolean;
         v41Review?: boolean;
+        motionReview?: boolean;
       };
       const fixture = createNutritionFixture(config.scenario);
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
@@ -191,12 +196,15 @@ export default function ReviewApp() {
         );
       }
       await setThemePreference(config.theme);
+      await initializeI18n(config.language);
+      setMotionReview(config.motionReview === true);
       useDiaryDateStore.getState().setSelectedDate(reviewDate);
       setReady(true);
+      if (config.motionReview) await SplashScreen.hideAsync();
     }
     void prepare().catch((error) => setFailure(String(error)));
     return () => keyboardSubscription?.remove();
   }, []);
   if (failure) return <Text accessibilityRole="alert">{failure}</Text>;
-  return ready ? <App /> : null;
+  return ready ? motionReview ? <MotionReview /> : <App /> : null;
 }

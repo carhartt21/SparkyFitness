@@ -14,6 +14,7 @@ import DashboardSectionHeader from './DashboardSectionHeader';
 import GlowCard from './ui/GlowCard';
 import NeonButton from './ui/NeonButton';
 import { useGlowTheme, withAlpha } from './ui/glow';
+import ValueChangeFade from './ui/ValueChangeFade';
 
 interface ContainerOption {
   id: number;
@@ -205,8 +206,10 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                   {Array.from({ length: CUP_COUNT }, (_, index) => {
                     const filled = progress >= (index + 1) / CUP_COUNT - 1e-6;
                     return (
-                      <View
+                      <ValueChangeFade
                         key={index}
+                        changeKey={filled}
+                        duration={200}
                         testID={
                           filled ? 'hydration-cup-filled' : 'hydration-cup'
                         }
@@ -223,7 +226,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                             }}
                           />
                         ) : null}
-                      </View>
+                      </ValueChangeFade>
                     );
                   })}
                 </View>

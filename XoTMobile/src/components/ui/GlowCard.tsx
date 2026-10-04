@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  Pressable,
   View,
   type AccessibilityRole,
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { glowSurfaceStyle, useGlowTheme, type GlowIntensity } from './glow';
+import MotionPressable from './MotionPressable';
 
 interface GlowCardProps {
   children: React.ReactNode;
@@ -54,7 +54,7 @@ export default function GlowCard({
 
   if (onPress) {
     return (
-      <Pressable
+      <MotionPressable
         testID={testID}
         onPress={onPress}
         accessibilityRole={accessibilityRole ?? 'button'}
@@ -64,7 +64,7 @@ export default function GlowCard({
         style={composed}
       >
         {children}
-      </Pressable>
+      </MotionPressable>
     );
   }
   return (

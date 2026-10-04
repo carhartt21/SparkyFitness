@@ -1,5 +1,7 @@
 import React from 'react';
-import { AccessibilityInfo, Animated, Easing, Text, View } from 'react-native';
+import { Animated, Text, View } from 'react-native';
+import { useTweenedValue } from '../../hooks/useTweenedValue';
+import { useCompletionPulse } from '../../hooks/useCompletionPulse';
 import Svg, {
   Defs,
   G,
@@ -37,63 +39,10 @@ export default function ProgressTrackX({
   fit = 'canvas',
 }: ProgressTrackXProps) {
   const target = normalizeProgress(progress);
-  const [animated] = React.useState(() => new Animated.Value(target ?? 0));
-  const currentValue = React.useRef(target ?? 0);
-  const [rendered, setRendered] = React.useState<number | null>(target);
-  const [reduceMotion, setReduceMotion] = React.useState(false);
-
-  React.useEffect(() => {
-    let mounted = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((enabled) => {
-      if (mounted) setReduceMotion(enabled);
-    });
-    const subscription = AccessibilityInfo.addEventListener(
-      'reduceMotionChanged',
-      setReduceMotion
-    );
-    return () => {
-      mounted = false;
-      subscription.remove();
-    };
-  }, []);
-
-  React.useEffect(() => {
-    const listener = animated.addListener(({ value }) => {
-      currentValue.current = value;
-      setRendered(value);
-    });
-    return () => animated.removeListener(listener);
-  }, [animated]);
-
-  React.useEffect(() => {
-    animated.stopAnimation((value) => {
-      currentValue.current = value;
-      if (target == null) {
-        animated.setValue(0);
-        currentValue.current = 0;
-        setRendered(null);
-        return;
-      }
-      if (reduceMotion) {
-        animated.setValue(target);
-        setRendered(target);
-        return;
-      }
-      animated.setValue(currentValue.current);
-      Animated.timing(animated, {
-        toValue: target,
-        duration: 480,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: false,
-      }).start();
-    });
-    return () => animated.stopAnimation();
-  }, [animated, target, reduceMotion]);
-
-  const visibleProgress = target == null ? null : (rendered ?? 0);
+  const visibleProgress = useTweenedValue(target, 480);
+  const completionOpacity = useCompletionPulse(target, visibleProgress);
   const visible = getProgressionXReveal(visibleProgress);
-  const valueText =
-    visibleProgress == null ? unknownLabel : `${Math.round(visibleProgress)}%`;
+  const valueText = target == null ? unknownLabel : `${Math.round(target)}%`;
   const baseline = light
     ? progressionXGeometry.baselineLight
     : progressionXGeometry.baselineDark;
@@ -101,94 +50,62 @@ export default function ProgressTrackX({
 
   return (
     <View
+      accessible
       accessibilityRole="image"
       accessibilityLabel={`${label}: ${valueText}`}
     >
-      <Svg
-        width={size}
-        height={size}
-        // Crop only the reference canvas padding; paths/reveal stay canonical.
-        viewBox={
-          fit === 'track' ? '52 52 216 216' : progressionXGeometry.viewBox
-        }
-        accessible={false}
-      >
-        <Defs>
-          {progressionXGeometry.segments.map((segment, index) => (
-            <React.Fragment key={segment.id}>
-              <LinearGradient
-                id={`progress-x-gradient-${index}`}
-                x1={segment.gradient.x1}
-                y1={segment.gradient.y1}
-                x2={segment.gradient.x2}
-                y2={segment.gradient.y2}
-                gradientUnits="userSpaceOnUse"
-              >
-                <Stop offset="0" stopColor={segment.gradient.from} />
-                <Stop offset="1" stopColor={segment.gradient.to} />
-              </LinearGradient>
-              <Mask
-                id={`progress-x-mask-${index}`}
-                x="0"
-                y="0"
-                width="320"
-                height="320"
-                maskUnits="userSpaceOnUse"
-              >
-                <Path
-                  d={segment.guide}
-                  fill="none"
-                  stroke="#fff"
-                  strokeWidth={segment.revealWidth}
-                  strokeLinecap="round"
-                  strokeDasharray={`${visible[index] ?? 0} ${(progressionXSegmentLengths[index] ?? 0) + 1}`}
-                />
-              </Mask>
-            </React.Fragment>
-          ))}
-        </Defs>
-        <G opacity={appearance}>
-          {progressionXGeometry.segments.map((segment) =>
-            segment.kind === 'stroke' ? (
-              <React.Fragment key={`base-${segment.id}`}>
-                <Path
-                  d={segment.path}
-                  fill="none"
-                  stroke={baseline}
-                  strokeWidth={segment.strokeWidth}
-                  strokeLinecap={
-                    'linecap' in segment && segment.linecap === 'butt'
-                      ? 'butt'
-                      : 'round'
-                  }
-                  strokeLinejoin="round"
-                />
-                {'taperPath' in segment && (
-                  <Path d={segment.taperPath} fill={baseline} />
-                )}
+      <View style={{ width: size, height: size }}>
+        <Svg
+          width={size}
+          height={size}
+          // Crop only the reference canvas padding; paths/reveal stay canonical.
+          viewBox={
+            fit === 'track' ? '52 52 216 216' : progressionXGeometry.viewBox
+          }
+          accessible={false}
+        >
+          <Defs>
+            {progressionXGeometry.segments.map((segment, index) => (
+              <React.Fragment key={segment.id}>
+                <LinearGradient
+                  id={`progress-x-gradient-${index}`}
+                  x1={segment.gradient.x1}
+                  y1={segment.gradient.y1}
+                  x2={segment.gradient.x2}
+                  y2={segment.gradient.y2}
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <Stop offset="0" stopColor={segment.gradient.from} />
+                  <Stop offset="1" stopColor={segment.gradient.to} />
+                </LinearGradient>
+                <Mask
+                  id={`progress-x-mask-${index}`}
+                  x="0"
+                  y="0"
+                  width="320"
+                  height="320"
+                  maskUnits="userSpaceOnUse"
+                >
+                  <Path
+                    d={segment.guide}
+                    fill="none"
+                    stroke="#fff"
+                    strokeWidth={segment.revealWidth}
+                    strokeLinecap="round"
+                    strokeDasharray={`${visible[index] ?? 0} ${(progressionXSegmentLengths[index] ?? 0) + 1}`}
+                  />
+                </Mask>
               </React.Fragment>
-            ) : (
-              <Path
-                key={`base-${segment.id}`}
-                d={segment.path}
-                fill={baseline}
-              />
-            )
-          )}
-          {visibleProgress != null &&
-            progressionXGeometry.segments.map((segment, index) => {
-              if ((visible[index] ?? 0) <= 0) return null;
-              const fill = `url(#progress-x-gradient-${index})`;
-              const mask =
-                visibleProgress >= 100
-                  ? undefined
-                  : `url(#progress-x-mask-${index})`;
-              return segment.kind === 'stroke' ? (
-                <G key={`active-${segment.id}`} mask={mask}>
+            ))}
+          </Defs>
+          <G opacity={appearance}>
+            {progressionXGeometry.segments.map((segment) =>
+              segment.kind === 'stroke' ? (
+                <React.Fragment key={`base-${segment.id}`}>
                   <Path
                     d={segment.path}
                     fill="none"
-                    stroke={fill}
+                    stroke={baseline}
                     strokeWidth={segment.strokeWidth}
                     strokeLinecap={
                       'linecap' in segment && segment.linecap === 'butt'
@@ -198,20 +115,104 @@ export default function ProgressTrackX({
                     strokeLinejoin="round"
                   />
                   {'taperPath' in segment && (
-                    <Path d={segment.taperPath} fill={fill} />
+                    <Path d={segment.taperPath} fill={baseline} />
                   )}
-                </G>
+                </React.Fragment>
               ) : (
                 <Path
-                  key={`active-${segment.id}`}
+                  key={`base-${segment.id}`}
                   d={segment.path}
-                  fill={fill}
-                  mask={mask}
+                  fill={baseline}
                 />
-              );
-            })}
-        </G>
-      </Svg>
+              )
+            )}
+            {visibleProgress != null &&
+              progressionXGeometry.segments.map((segment, index) => {
+                if ((visible[index] ?? 0) <= 0) return null;
+                const fill = `url(#progress-x-gradient-${index})`;
+                const mask =
+                  visibleProgress >= 100
+                    ? undefined
+                    : `url(#progress-x-mask-${index})`;
+                return segment.kind === 'stroke' ? (
+                  <G key={`active-${segment.id}`} mask={mask}>
+                    <Path
+                      d={segment.path}
+                      fill="none"
+                      stroke={fill}
+                      strokeWidth={segment.strokeWidth}
+                      strokeLinecap={
+                        'linecap' in segment && segment.linecap === 'butt'
+                          ? 'butt'
+                          : 'round'
+                      }
+                      strokeLinejoin="round"
+                    />
+                    {'taperPath' in segment && (
+                      <Path d={segment.taperPath} fill={fill} />
+                    )}
+                  </G>
+                ) : (
+                  <Path
+                    key={`active-${segment.id}`}
+                    d={segment.path}
+                    fill={fill}
+                    mask={mask}
+                  />
+                );
+              })}
+          </G>
+        </Svg>
+        <Animated.View
+          pointerEvents="none"
+          accessible={false}
+          style={{ position: 'absolute', inset: 0, opacity: completionOpacity }}
+        >
+          <Svg
+            width={size}
+            height={size}
+            viewBox={
+              fit === 'track' ? '52 52 216 216' : progressionXGeometry.viewBox
+            }
+            accessible={false}
+          >
+            <Defs>
+              {progressionXGeometry.segments.map((segment, index) => (
+                <LinearGradient
+                  key={segment.id}
+                  id={`pulse-x-gradient-${index}`}
+                  x1={segment.gradient.x1}
+                  y1={segment.gradient.y1}
+                  x2={segment.gradient.x2}
+                  y2={segment.gradient.y2}
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <Stop offset="0" stopColor={segment.gradient.from} />
+                  <Stop offset="1" stopColor={segment.gradient.to} />
+                </LinearGradient>
+              ))}
+            </Defs>
+            {progressionXGeometry.segments.map((segment, index) => (
+              <Path
+                key={segment.id}
+                d={segment.path}
+                fill={
+                  segment.kind === 'stroke'
+                    ? 'none'
+                    : `url(#pulse-x-gradient-${index})`
+                }
+                stroke={`url(#pulse-x-gradient-${index})`}
+                strokeWidth={
+                  segment.kind === 'stroke' ? segment.strokeWidth + 5 : 5
+                }
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={light ? 0.1 : 0.18}
+              />
+            ))}
+          </Svg>
+        </Animated.View>
+      </View>
       {showValue && (
         <Text className="text-center text-text-secondary text-xs">
           {valueText}

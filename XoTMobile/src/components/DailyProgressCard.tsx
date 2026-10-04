@@ -159,6 +159,7 @@ export default function DailyProgressCard({
             accessibilityLabel={`${label}: ${state}`}
             icon={PROGRESS_CATEGORY_ICONS[category.domain]}
             color={accent}
+            changeKey={category.state}
             last={index === next.length - 1}
           >
             <Text className="text-sm font-medium text-text-primary">

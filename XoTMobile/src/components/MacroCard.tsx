@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatLocalizedNumber } from '../localization';
 import { View, Text, useWindowDimensions } from 'react-native';
@@ -8,9 +8,9 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   Easing,
-  useReducedMotion,
+  cancelAnimation,
 } from 'react-native-reanimated';
-import { useIsFocused } from '@react-navigation/native';
+import { useMotionPreferences } from '../hooks/useMotionPreferences';
 import { useCSSVariable, useUniwind } from 'uniwind';
 
 interface MacroCardProps {
@@ -42,7 +42,7 @@ const MacroCard: React.FC<MacroCardProps> = ({
 }) => {
   const { t } = useTranslation();
   const { fontScale } = useWindowDimensions();
-  const reducedMotion = useReducedMotion();
+  const { active, reducedMotion } = useMotionPreferences();
   const { theme } = useUniwind();
   const dark = theme === 'dark' || theme === 'amoled';
   const [barWidth, setBarWidth] = useState(0);
@@ -52,21 +52,29 @@ const MacroCard: React.FC<MacroCardProps> = ({
   const borderRadius = compact ? 3 : 4;
   const [trackColor] = useCSSVariable(['--color-progress-track']) as [string];
 
-  const animatedProgress = useSharedValue(0);
+  const animatedProgress = useSharedValue(progress);
+  const previousProgress = useRef(progress);
 
-  // Replay the 0 -> progress entrance animation while the screen is focused.
-  // Driven by useIsFocused()+useEffect (rather than useFocusEffect) so the
-  // shared-value write lives in a real effect that React's compiler can
-  // optimize around.
-  const isFocused = useIsFocused();
+  // Reanimated retargets from the current presentation value. Never reset to
+  // zero on navigation or replay a value already shown during reconciliation.
   useEffect(() => {
-    if (!isFocused) return;
-    animatedProgress.value = 0;
-    animatedProgress.value = withTiming(progress, {
-      duration: reducedMotion ? 0 : 500,
-      easing: Easing.out(Easing.cubic),
-    });
-  }, [isFocused, progress, animatedProgress, reducedMotion]);
+    const changed = previousProgress.current !== progress;
+    previousProgress.current = progress;
+    if (!active || reducedMotion) {
+      animatedProgress.value = progress;
+    } else if (changed) {
+      animatedProgress.value = withTiming(progress, {
+        duration: 300,
+        easing: Easing.out(Easing.cubic),
+      });
+    }
+    return () => cancelAnimation(animatedProgress);
+  }, [active, progress, animatedProgress, reducedMotion]);
+
+  const rowFillStyle = useAnimatedStyle(() => ({
+    width:
+      `${Math.min(100, Math.max(0, animatedProgress.value * 100))}%` as `${number}%`,
+  }));
 
   const fillWidth = useDerivedValue(() => {
     const p = animatedProgress.value;
@@ -100,7 +108,6 @@ const MacroCard: React.FC<MacroCardProps> = ({
     // Reference layout: name and amount on one line, a slim glowing bar with
     // its percentage underneath. Missing goals omit bar and percentage.
     const amount = `${formatLocalizedNumber(Math.round(consumed))}${hasGoal ? ` / ${formatLocalizedNumber(Math.round(goal!))}` : ''} ${unit}`;
-    const pct = Math.min(100, Math.max(0, progress * 100));
     return (
       <View
         className="w-full py-1.5"
@@ -134,14 +141,17 @@ const MacroCard: React.FC<MacroCardProps> = ({
               className="h-2 flex-1 rounded-full"
               style={{ backgroundColor: trackColor }}
             >
-              <View
-                style={{
-                  width: `${pct}%`,
-                  height: '100%',
-                  backgroundColor: color,
-                  borderRadius: 4,
-                  boxShadow: dark ? `0px 0px 8px 0px ${color}99` : undefined,
-                }}
+              <Animated.View
+                testID="macro-row-fill"
+                style={[
+                  {
+                    height: '100%',
+                    backgroundColor: color,
+                    borderRadius: 4,
+                    boxShadow: dark ? `0px 0px 8px 0px ${color}99` : undefined,
+                  },
+                  rowFillStyle,
+                ]}
               />
             </View>
             <Text

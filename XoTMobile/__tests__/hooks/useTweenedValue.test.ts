@@ -1,6 +1,9 @@
 import { act, renderHook } from '@testing-library/react-native';
-import { AccessibilityInfo } from 'react-native';
 import { useTweenedValue } from '../../src/hooks/useTweenedValue';
+let mockMotion = { active: true, reducedMotion: false };
+jest.mock('../../src/hooks/useMotionPreferences', () => ({
+  useMotionPreferences: () => mockMotion,
+}));
 
 describe('useTweenedValue', () => {
   let now = 0;
@@ -14,6 +17,7 @@ describe('useTweenedValue', () => {
 
   beforeEach(() => {
     now = 0;
+    mockMotion = { active: true, reducedMotion: false };
     frames = [];
     jest.spyOn(Date, 'now').mockImplementation(() => now);
     jest
@@ -25,9 +29,6 @@ describe('useTweenedValue', () => {
     jest.spyOn(global, 'cancelAnimationFrame').mockImplementation(() => {
       frames = [];
     });
-    jest
-      .spyOn(AccessibilityInfo, 'isReduceMotionEnabled')
-      .mockResolvedValue(false);
   });
 
   afterEach(() => jest.restoreAllMocks());
@@ -72,6 +73,67 @@ describe('useTweenedValue', () => {
       initialProps: { value: 0.5 },
     });
     await act(async () => rerender({ value: 0.5 }));
+    expect(frames).toHaveLength(0);
+  });
+
+  it('settles a hidden change without replaying when focus returns', () => {
+    const { result, rerender } = renderHook(
+      ({ value }) => useTweenedValue(value),
+      { initialProps: { value: 0.2 } }
+    );
+    rerender({ value: 0.8 });
+    act(() => flush(100));
+    mockMotion.active = false;
+    rerender({ value: 0.8 });
+    expect(result.current).toBe(0.8);
+    expect(frames).toHaveLength(0);
+    rerender({ value: 0.6 });
+    mockMotion.active = true;
+    rerender({ value: 0.6 });
+    expect(result.current).toBe(0.6);
+    expect(frames).toHaveLength(0);
+  });
+
+  it('immediately settles in-flight motion when Reduce Motion is enabled', () => {
+    const { result, rerender } = renderHook(
+      ({ value }) => useTweenedValue(value),
+      { initialProps: { value: 0.2 } }
+    );
+    rerender({ value: 0.8 });
+    mockMotion.reducedMotion = true;
+    rerender({ value: 0.8 });
+    expect(result.current).toBe(0.8);
+    expect(frames).toHaveLength(0);
+    mockMotion.reducedMotion = false;
+    rerender({ value: 0.8 });
+    expect(result.current).toBe(0.8);
+    expect(frames).toHaveLength(0);
+  });
+
+  it('shows unknown distinctly and does not invent a zero-to-known transition', () => {
+    const { result, rerender } = renderHook(
+      ({ value }: { value: number | null }) => useTweenedValue(value),
+      { initialProps: { value: null } }
+    );
+    expect(result.current).toBeNull();
+    rerender({ value: 57 });
+    expect(result.current).toBe(57);
+    expect(frames).toHaveLength(0);
+    rerender({ value: null });
+    expect(result.current).toBeNull();
+    rerender({ value: 0 });
+    expect(result.current).toBe(0);
+    expect(frames).toHaveLength(0);
+  });
+
+  it('cancels pending frames on unmount', () => {
+    const { rerender, unmount } = renderHook(
+      ({ value }) => useTweenedValue(value),
+      { initialProps: { value: 0 } }
+    );
+    rerender({ value: 1 });
+    expect(frames).toHaveLength(1);
+    unmount();
     expect(frames).toHaveLength(0);
   });
 });

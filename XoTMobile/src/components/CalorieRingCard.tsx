@@ -38,6 +38,7 @@ const StatRow: React.FC<StatRowProps> = ({
       onPress={onPress}
       testID={testID}
       last={last}
+      changeKey={value}
       accessibilityLabel={`${label}: ${shown} ${value == null ? '' : unit}`.trim()}
     >
       <Text className="text-xs text-text-secondary" maxFontSizeMultiplier={1.8}>

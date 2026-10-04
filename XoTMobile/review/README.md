@@ -27,6 +27,17 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Isolation and limits
 
+`--interactions --motion-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+mounts an isolated gallery of the production energy, X, summary row, macro,
+hydration and press-feedback components. It checks exact accessible states
+through 43% → 57% → 100%, decreases, unknown → complete, macro updates and
+confirmed-water additions. Each case records a `.motion.mov` alongside the
+ordinary PNG/XCTest evidence. The gallery contains synthetic data only.
+Add `--reduce-motion --case '^390-de-dark$'` to set the native preference on
+the dedicated review simulator, confirm it in rendered copy and repeat the
+interactions. The runner resets that preference afterward. For production
+Dashboard navigation/layout use `--summary-cards-review` separately.
+
 `XOT_UI_REVIEW=1` changes only Metro's resolution of the entrypoint's `./App` import. Normal exports retain the production entrypoint. The review wrapper refuses release builds and physical devices, allows only the synthetic `ui-review.invalid` origin, supplies explicit GET fixtures, and accepts only enumerated in-memory nutrition and wellness mutations plus a timezone bootstrap response. Created IDs use `review-created-`; other writes and origins are rejected. Each scenario starts with a fresh fixture. Loopback audit events contain synthetic records only. No credentials or personal records belong in fixtures or committed screenshots. Do not set this variable in EAS/deployment profiles.
 
 The synthetic transport deliberately does not verify authentication, server persistence, offline mutation replay, HealthKit, Watch sync, camera permissions or physical-device performance. Search, portion, save, quantity edit and delete are tested against memory only; persistence across process restart and editing a note with the keyboard open remain unverified. An unpaired Watch warning is expected. The review preference set hides health trend series and optional modules; those require separate scenario coverage.

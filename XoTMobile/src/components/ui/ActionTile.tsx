@@ -1,4 +1,5 @@
-import { Pressable, Text, type StyleProp, type ViewStyle } from 'react-native';
+import { Text, type StyleProp, type ViewStyle } from 'react-native';
+import MotionPressable from './MotionPressable';
 import Icon, { type IconName } from '../Icon';
 import { glowSurfaceStyle, useGlowTheme, withAlpha } from './glow';
 
@@ -27,7 +28,7 @@ export default function ActionTile({
 }: ActionTileProps) {
   const glowing = useGlowTheme();
   return (
-    <Pressable
+    <MotionPressable
       testID={testID}
       onPress={onPress}
       accessibilityRole="button"
@@ -56,6 +57,6 @@ export default function ActionTile({
           {sublabel}
         </Text>
       ) : null}
-    </Pressable>
+    </MotionPressable>
   );
 }

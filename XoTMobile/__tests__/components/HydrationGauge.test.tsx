@@ -1,12 +1,44 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
+import { Animated } from 'react-native';
 import HydrationGauge from '../../src/components/HydrationGauge';
 import { initializeI18n } from '../../src/localization/i18n';
+jest.mock('../../src/hooks/useMotionPreferences', () => ({
+  useMotionPreferences: () => ({ active: true, reducedMotion: false }),
+}));
 
 // #1557, #1629: fromFoodMl renders a muted caption only when the user has
 // opted in to add_food_water_to_intake (server-side) and it produced a
 // non-zero value -- 0/undefined must render nothing extra.
 describe('HydrationGauge fromFoodMl caption', () => {
+  it('illuminates cups for confirmed water only, including correction feedback', () => {
+    const timing = jest.spyOn(Animated, 'timing');
+    const { rerender, getAllByTestId } = render(
+      <HydrationGauge consumed={500} goal={2500} />
+    );
+    expect(
+      getAllByTestId('hydration-cup-filled', { includeHiddenElements: true })
+    ).toHaveLength(1);
+    timing.mockClear();
+    rerender(<HydrationGauge consumed={500} goal={2500} pendingMl={2000} />);
+    expect(
+      getAllByTestId('hydration-cup-filled', { includeHiddenElements: true })
+    ).toHaveLength(1);
+    expect(timing).not.toHaveBeenCalled();
+    rerender(<HydrationGauge consumed={1000} goal={2500} />);
+    expect(
+      getAllByTestId('hydration-cup-filled', { includeHiddenElements: true })
+    ).toHaveLength(2);
+    expect(timing).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({ duration: 200 })
+    );
+    rerender(<HydrationGauge consumed={500} goal={2500} />);
+    expect(
+      getAllByTestId('hydration-cup-filled', { includeHiddenElements: true })
+    ).toHaveLength(1);
+    timing.mockRestore();
+  });
   it('shows unsynced water separately from the server-backed total', () => {
     render(
       <HydrationGauge

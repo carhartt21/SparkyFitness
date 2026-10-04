@@ -1,6 +1,5 @@
 import {
   ActivityIndicator,
-  Pressable,
   Text,
   View,
   type StyleProp,
@@ -9,6 +8,7 @@ import {
 import { useCSSVariable } from 'uniwind';
 import Icon, { type IconName } from '../Icon';
 import { glowSurfaceStyle, useGlowTheme, withAlpha } from './glow';
+import MotionPressable from './MotionPressable';
 
 type NeonButtonVariant = 'primary' | 'outline' | 'subtle';
 
@@ -92,7 +92,7 @@ export default function NeonButton({
         : tint;
 
   return (
-    <Pressable
+    <MotionPressable
       testID={testID}
       onPress={onPress}
       disabled={inactive}
@@ -129,6 +129,6 @@ export default function NeonButton({
           </Text>
         </View>
       )}
-    </Pressable>
+    </MotionPressable>
   );
 }

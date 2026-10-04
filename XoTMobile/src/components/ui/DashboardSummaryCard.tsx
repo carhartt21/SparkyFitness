@@ -6,6 +6,8 @@ import GlowCard from './GlowCard';
 import IconBadge from './IconBadge';
 import { useGlowTheme } from './glow';
 import Icon, { type IconName } from '../Icon';
+import MotionPressable from './MotionPressable';
+import ValueChangeFade from './ValueChangeFade';
 
 interface SummaryVisualLayout {
   size: number;
@@ -133,14 +135,14 @@ export default function DashboardSummaryCard({
     </GlowCard>
   );
   return onCardPress ? (
-    <Pressable
+    <MotionPressable
       testID={`${testID}-tap-target`}
       onPress={onCardPress}
       accessible={false}
       className="active:opacity-80"
     >
       {card}
-    </Pressable>
+    </MotionPressable>
   ) : (
     card
   );
@@ -155,6 +157,7 @@ export function DashboardSummaryRow({
   accessibilityLabel,
   testID,
   last = false,
+  changeKey,
 }: {
   icon: IconName;
   color: string;
@@ -163,16 +166,20 @@ export function DashboardSummaryRow({
   accessibilityLabel: string;
   testID?: string;
   last?: boolean;
+  changeKey?: string | number | null;
 }) {
   const chevron = useCSSVariable('--color-text-muted') as string;
   const content = (
-    <>
+    <ValueChangeFade
+      changeKey={changeKey}
+      className="flex-1 flex-row items-center gap-2"
+    >
       <IconBadge icon={icon} color={color} size={28} />
       <View style={{ flex: 1, minWidth: 0 }}>{children}</View>
       {onPress ? (
         <Icon name="chevron-forward" size={14} color={chevron} />
       ) : null}
-    </>
+    </ValueChangeFade>
   );
   const className = `min-h-11 flex-row items-center gap-2 py-1 ${last ? '' : 'border-b border-border-subtle'}`;
   return onPress ? (
