@@ -6,6 +6,7 @@ import {
   formatServingSizeForDisplay,
   formatCaloriesForDisplay,
   formatVariantServingLabel,
+  formatQuantityUnitLabel,
   formatVariantLabel,
   buildLocalVariantOptions,
 } from '../../src/utils/foodDetails';
@@ -48,6 +49,36 @@ describe('foodDetails: INPUT vs DISPLAY formatting split', () => {
   });
 
   describe('presentation labels follow the active application locale', () => {
+    test('renders OFF serving descriptions and saved unit context in German', async () => {
+      await i18n.changeLanguage('de');
+      const values = {
+        servingSize: 1,
+        servingUnit: 'serving',
+        servingDescription: '1 serving (21.5 g)',
+        calories: 123,
+      };
+      expect(formatVariantServingLabel(values)).toBe('1 Portion (21,5 g)');
+      expect(
+        formatVariantServingLabel({
+          ...values,
+          servingDescription: undefined,
+          servingUnit: 'serving (21.5 g)',
+        })
+      ).toBe('1 Portion (21,5 g)');
+      const savedValues = {
+        ...values,
+        servingDescription: undefined,
+        servingUnit: 'serving (21.5 g)',
+      };
+      const metricEquivalent = [{ serving_size: 21.5, serving_unit: 'g' }];
+      expect(formatVariantServingLabel(savedValues, metricEquivalent)).toBe(
+        '1 Portion (21,5 g)'
+      );
+      expect(formatQuantityUnitLabel(savedValues, metricEquivalent)).toBe(
+        'Portion (21,5 g)'
+      );
+    });
+
     test('formatServingSizeForDisplay renders locale decimal separator', async () => {
       await i18n.changeLanguage('en');
       expect(formatServingSizeForDisplay(1.5)).toBe('1.5');

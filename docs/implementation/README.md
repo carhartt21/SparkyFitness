@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [Open Food Facts serving ingestion](open-food-facts-serving-ingestion-2026-10-04.md): declared portions, correct scaling, metadata persistence and German quantity labels; existing-library refresh and release checks remain separate.
+
 - [v41 release](v41-release-2026-10-03.md): combined validation, preserved rollout gates and verified TestFlight/production delivery.
 
 - [BLS artwork expansion](bls-food-artwork-expansion-2026-10-03.md): 12 additional illustrations, 584 refined assignments and preparation/ingredient regression checks.

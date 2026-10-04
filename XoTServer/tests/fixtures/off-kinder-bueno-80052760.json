@@ -1,0 +1,20 @@
+{
+  "code": "80052760",
+  "product_name": "Kinder bueno",
+  "serving_size": "1 serving (21.5 g)",
+  "serving_quantity": 21.5,
+  "serving_quantity_unit": "g",
+  "product_quantity": 43,
+  "product_quantity_unit": "g",
+  "quantity": "43 g",
+  "nutriments": {
+    "energy-kcal_100g": 572,
+    "energy-kcal_serving": 123,
+    "fat_100g": 37.3,
+    "fat_serving": 8.02,
+    "carbohydrates_100g": 49.5,
+    "carbohydrates_serving": 10.6,
+    "proteins_100g": 8.6,
+    "proteins_serving": 1.85
+  }
+}

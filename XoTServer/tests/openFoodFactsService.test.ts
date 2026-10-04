@@ -811,6 +811,91 @@ describe('openFoodFactsService', () => {
       ]);
     });
 
+    it.each([true, false])(
+      'preserves serving metadata with usable current nutrition=%s',
+      async (usableCurrent) => {
+        fetchMock
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+              hits: [
+                {
+                  code: '80052760',
+                  product_name: 'Kinder bueno',
+                  serving_size: '1 serving (21.5 g)',
+                  serving_quantity: 21.5,
+                  serving_quantity_unit: 'g',
+                  nutriments: { 'energy-kcal_100g': 572 },
+                },
+              ],
+            }),
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+              products: [
+                {
+                  code: '80052760',
+                  product_name: 'Kinder bueno',
+                  nutriments: usableCurrent ? { 'energy-kcal_100g': 572 } : {},
+                },
+              ],
+            }),
+          });
+        const result = await searchOpenFoodFacts('Kinder bueno');
+        expect(
+          mapOpenFoodFactsProduct(result.products[0]!).variants?.[1]
+        ).toMatchObject({ metric_amount: 21.5, calories: 123 });
+        expect(fetchMock).toHaveBeenCalledTimes(2);
+      }
+    );
+
+    it.each([true, false])(
+      'keeps a serving-only nutrition basis together during hydration=%s',
+      async (currentHasNutrition) => {
+        fetchMock
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+              hits: [
+                {
+                  code: '80052760',
+                  product_name: 'Kinder bueno',
+                  serving_size: '1 serving (21.5 g)',
+                  serving_quantity: 21.5,
+                  serving_quantity_unit: 'g',
+                  nutriments: { 'energy-kcal_serving': 123 },
+                },
+              ],
+            }),
+          })
+          .mockResolvedValueOnce({
+            ok: true,
+            json: async () => ({
+              products: [
+                {
+                  code: '80052760',
+                  product_name: 'Kinder bueno',
+                  serving_size: '30 g',
+                  serving_quantity: 30,
+                  serving_quantity_unit: 'g',
+                  nutriments: currentHasNutrition
+                    ? { 'energy-kcal_100g': 572 }
+                    : {},
+                },
+              ],
+            }),
+          });
+        const result = await searchOpenFoodFacts('Kinder bueno');
+        expect(
+          mapOpenFoodFactsProduct(result.products[0]!).variants?.[1]
+        ).toMatchObject({
+          metric_amount: currentHasNutrition ? 30 : 21.5,
+          calories: currentHasNutrition ? 172 : 123,
+        });
+      }
+    );
+
     it('throws a compact error without exposing an upstream HTML response', async () => {
       // @ts-expect-error TS(2339): Property 'mockResolvedValue' does not exist on typ... Remove this comment to see the full error message
       fetch.mockResolvedValue({
@@ -1875,10 +1960,15 @@ describe('openFoodFactsService', () => {
       expect(household!.fat).toBe(metric!.fat);
     });
 
-    it('does not add a variants array for a plain metric serving_size', () => {
+    it('offers a countable portion for a plain metric serving_size', () => {
       const product = { ...milanoProduct, serving_size: '28 g' };
       const result = mapOpenFoodFactsProduct(product);
-      expect(result.variants).toBeUndefined();
+      expect(result.variants?.[1]).toMatchObject({
+        serving_size: 1,
+        serving_unit: 'serving',
+        metric_amount: 28,
+        metric_unit: 'g',
+      });
       expect(result.default_variant.serving_unit).toBe('g');
     });
 
@@ -1896,16 +1986,19 @@ describe('openFoodFactsService', () => {
       expect(result.default_variant.serving_unit).toBe('ml');
     });
 
-    it('does not duplicate the metric variant when the household unit is metric', () => {
+    it('turns a repeated metric descriptor into one named portion', () => {
       // "28 g (28 g)" would parse a household unit of 'g' — must be skipped.
       const product = { ...milanoProduct, serving_size: '28 g (28 g)' };
       const result = mapOpenFoodFactsProduct(product);
-      expect(result.variants).toBeUndefined();
+      expect(result.variants?.[1]).toMatchObject({
+        serving_size: 1,
+        serving_unit: 'serving',
+        metric_amount: 28,
+      });
     });
 
-    it('does not add a household variant when serving_quantity is absent (no verified metric link)', () => {
-      // Synthetic (not a specific confirmed-live barcode), constructed to hit
-      // the gap: a parseable household descriptor with no serving_quantity.
+    it('uses an explicit textual metric equivalent when serving_quantity is absent', () => {
+      // Synthetic source shape: the text itself supplies a verified metric link.
       const product = {
         product_name: 'Synthetic No-Serving-Quantity Product',
         brands: 'Test Brand',
@@ -1921,10 +2014,16 @@ describe('openFoodFactsService', () => {
       };
       const result = mapOpenFoodFactsProduct(product);
 
-      expect(result.variants).toBeUndefined();
-      expect(result.default_variant.serving_size).toBe(100);
+      expect(result.variants?.[1]).toMatchObject({
+        serving_size: 2,
+        serving_unit: 'tbsp',
+        metric_amount: 28,
+        metric_unit: 'g',
+        calories: 129,
+      });
+      expect(result.default_variant.serving_size).toBe(28);
       expect(result.default_variant.serving_unit).toBe('g');
-      expect(result.default_variant.calories).toBe(462);
+      expect(result.default_variant.calories).toBe(129);
     });
   });
 });

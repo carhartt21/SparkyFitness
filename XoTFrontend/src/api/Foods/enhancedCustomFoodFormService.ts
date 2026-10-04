@@ -3,6 +3,14 @@ import { buildPayloadRequest } from '../imageRequest';
 
 import type { Food, FoodVariant } from '@/types/food';
 
+/** Persist a provider portion's explicit weight separately from its display copy. */
+const servingMetadata = (variant: FoodVariant) => ({
+  serving_label: variant.serving_label,
+  metric_amount: variant.metric_amount,
+  metric_unit: variant.metric_unit,
+  sort_order: variant.sort_order,
+});
+
 export const loadFoodVariants = async (
   foodId: string
 ): Promise<FoodVariant[]> => {
@@ -20,6 +28,7 @@ export const createFoodVariant = async (
     method: 'POST',
     body: {
       food_id: foodId,
+      ...servingMetadata(variant),
       serving_size: variant.serving_size,
       serving_unit: variant.serving_unit,
       calories: variant.calories,
@@ -100,6 +109,7 @@ export const saveFood = async (
         method: 'PUT',
         body: {
           food_id: foodId, // Ensure food_id is passed for authorization/validation
+          ...servingMetadata(variant),
           serving_size: variant.serving_size,
           serving_unit: variant.serving_unit,
           calories: variant.calories,
@@ -138,6 +148,7 @@ export const saveFood = async (
     if (variantsToCreate.length > 0) {
       const newVariantsData = variantsToCreate.map((variant) => ({
         food_id: foodId,
+        ...servingMetadata(variant),
         serving_size: variant.serving_size,
         serving_unit: variant.serving_unit,
         calories: variant.calories,
@@ -205,6 +216,7 @@ export const saveFood = async (
       // list — notably a provider photo carried over from an import — was lost.
       images: foodData.images ?? [],
       // Pass primary variant details to createFood, which will create the default variant
+      ...servingMetadata(primaryVariant),
       serving_size: primaryVariant.serving_size,
       serving_unit: primaryVariant.serving_unit,
       calories: primaryVariant.calories,
@@ -243,6 +255,7 @@ export const saveFood = async (
     // Insert additional variants (starting from the second variant)
     const additionalVariantsToInsert = variants.slice(1).map((variant) => ({
       food_id: savedFood.id,
+      ...servingMetadata(variant),
       serving_size: variant.serving_size,
       serving_unit: variant.serving_unit,
       calories: variant.calories,

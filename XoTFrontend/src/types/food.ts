@@ -292,6 +292,11 @@ export interface EquivalentUnit {
   id?: string;
   serving_size: number;
   serving_unit: string;
+  serving_description?: string;
+  serving_label?: string | null;
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number;
 }
 
 export type FormFoodVariantWithEquivalents = FormFoodVariant & {

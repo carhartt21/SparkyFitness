@@ -79,6 +79,21 @@ export const reviewVariants = [
     is_default: false,
     sort_order: 2,
   },
+  {
+    id: 'review-variant-off-shaped-portion',
+    food_id: reviewFood.id,
+    serving_size: 1,
+    serving_unit: 'serving (21.5 g)',
+    metric_amount: 21.5,
+    metric_unit: 'g' as const,
+    calories: 32.25,
+    protein: 2.15,
+    carbs: 3.225,
+    fat: 1.075,
+    dietary_fiber: 0.43,
+    is_default: false,
+    sort_order: 3,
+  },
 ];
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));

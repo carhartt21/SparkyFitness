@@ -638,6 +638,22 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(wheel.isHittable)
     XCTAssertGreaterThanOrEqual(wheel.frame.height, 44)
     capture("food-details-top", app)
+    let picker = app.buttons["food-entry-unit-picker"]
+    XCTAssertTrue(picker.isHittable)
+    picker.tap()
+    let portion = app.buttons.matching(NSPredicate(format: "label IN %@", ["1 Portion (21,5 g)", "1 serving (21.5 g)"])).firstMatch
+    XCTAssertTrue(portion.waitForExistence(timeout: 10))
+    capture("food-serving-options", app)
+    portion.tap()
+    wheel.tap()
+    let amountInput = app.textFields["food-entry-amount-input"]
+    XCTAssertTrue(amountInput.waitForExistence(timeout: 10))
+    replace(amountInput, with: "2")
+    app.descendants(matching: .any)["keyboard-action-done"].coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5)).tap()
+    let totalWeight = app.staticTexts["food-entry-amount-weight"]
+    XCTAssertTrue(totalWeight.waitForExistence(timeout: 10))
+    XCTAssertTrue(totalWeight.label.contains("43 g"))
+    capture("food-serving-two-portions", app)
     // An ordinary scroll that starts on the quantity field must not change
     // the logged amount. Only a deliberate hold activates the spinner.
     let initialAmount = wheel.value as? String

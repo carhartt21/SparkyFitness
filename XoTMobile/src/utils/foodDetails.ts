@@ -163,7 +163,12 @@ export function formatFoodFormNumber(
 }
 
 export function formatServingDescription(desc: string): string {
-  return desc.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  const cleaned = desc.replace(/_/g, ' ').replace(/\s+/g, ' ').trim();
+  const measured = cleaned.match(
+    /^(\d+(?:[.,]\d+)?)\s+([^()]+)\s*\((\d+(?:[.,]\d+)?)\s*(g|ml)\)$/i
+  );
+  if (!measured) return cleaned;
+  return `${formatLocalizedUnitQuantity(Number(measured[1].replace(',', '.')), measured[2].trim(), i18n.t)} (${formatLocalizedUnitQuantity(Number(measured[3].replace(',', '.')), measured[4].toLowerCase(), i18n.t)})`;
 }
 
 /** Check if a variant represents a standard reference serving (100g or 100ml). */
@@ -333,6 +338,10 @@ export function externalVariantToUnitVariant(
 ): FoodUnitVariant {
   return {
     id,
+    serving_label: variant.serving_label,
+    metric_amount: variant.metric_amount,
+    metric_unit: variant.metric_unit,
+    sort_order: variant.sort_order,
     serving_size: variant.serving_size,
     serving_unit: variant.serving_unit,
     serving_description: variant.serving_description,
@@ -372,6 +381,8 @@ export function selectDisplayVariant<
   T extends {
     serving_size: number;
     serving_unit: string;
+    metric_amount?: number | string | null;
+    metric_unit?: 'g' | 'ml' | null;
   },
 >(
   defaultVariant: T,
@@ -388,12 +399,25 @@ export function selectDisplayVariant<
       )
     : undefined;
 
-  const namedVariant = isReferenceServing(
-    defaultVariant.serving_size,
-    defaultVariant.serving_unit
-  )
-    ? variants.find((variant) => !isMetricUnit(variant.serving_unit))
+  // A provider's gram-sized default can describe one named serving of the
+  // exact same weight (OFF "21.5 g" + "1 serving"). Prefer that usable count,
+  // while retaining an explicit requested metric selection and the gram basis.
+  const equivalentPortion = isMetricUnit(defaultVariant.serving_unit)
+    ? variants.find(
+        (variant) =>
+          !isMetricUnit(variant.serving_unit) &&
+          variant.metric_unit === defaultVariant.serving_unit &&
+          Number(variant.metric_amount) === defaultVariant.serving_size
+      )
     : undefined;
+  const namedVariant =
+    equivalentPortion ??
+    (isReferenceServing(
+      defaultVariant.serving_size,
+      defaultVariant.serving_unit
+    )
+      ? variants.find((variant) => !isMetricUnit(variant.serving_unit))
+      : undefined);
 
   const displayVariant = requestedVariant ?? namedVariant ?? defaultVariant;
   const orderedVariants = [displayVariant];
@@ -423,6 +447,10 @@ function findMetricEquivalent(
   equivalents?: EquivalentUnit[]
 ): EquivalentUnit | undefined {
   return equivalents?.find((eq) => isMetricUnit(eq.serving_unit));
+}
+
+function hasMetricWeightSuffix(label: string): boolean {
+  return /\(\d+(?:[.,]\d+)?\s*(g|ml)\)$/i.test(label);
 }
 
 export function formatVariantServingLabel(
@@ -456,7 +484,7 @@ export function formatVariantServingLabel(
     ? findMetricEquivalent(equivalents)
     : undefined;
 
-  if (metricEquivalent) {
+  if (metricEquivalent && !hasMetricWeightSuffix(servingLabel)) {
     return `${servingLabel} (${formatLocalizedUnitQuantity(metricEquivalent.serving_size, metricEquivalent.serving_unit, i18n.t)})`;
   }
 
@@ -483,7 +511,7 @@ export function formatQuantityUnitLabel(
     i18n.t
   );
 
-  if (metricEquivalent) {
+  if (metricEquivalent && !hasMetricWeightSuffix(unitLabel)) {
     return `${unitLabel} (${formatLocalizedUnitQuantity(metricEquivalent.serving_size, metricEquivalent.serving_unit, i18n.t)})`;
   }
 
@@ -654,6 +682,8 @@ export interface ServingIdentity {
   serving_size?: number;
   serving_unit?: string;
   serving_description?: string | null;
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
 }
 
 const METRIC_SERVING_UNIT_PATTERN = /^(?:g|kg|ml|l)$/i;
@@ -671,7 +701,17 @@ export function toPersistedServingUnit(variant: ServingIdentity): string {
   const metricContext = variant.serving_description
     ?.trim()
     .match(METRIC_CONTEXT_PATTERN);
-  if (!metricContext) return servingUnit;
+  if (!metricContext) {
+    const metricAmount = Number(variant.metric_amount);
+    if (
+      Number.isFinite(metricAmount) &&
+      metricAmount > 0 &&
+      variant.metric_unit
+    ) {
+      return `${servingUnit} (${metricAmount} ${variant.metric_unit})`;
+    }
+    return servingUnit;
+  }
 
   const [, amount, unit] = metricContext;
   return `${servingUnit} (${amount} ${unit.toLowerCase()})`;
@@ -705,6 +745,16 @@ export function buildCreateFoodVariantInput(
   variant: FoodUnitVariant
 ): Omit<CreateFoodVariantPayload, 'food_id'> {
   return {
+    serving_label: variant.serving_label,
+    metric_amount:
+      variant.metric_amount == null
+        ? variant.metric_amount
+        : Number.isFinite(Number(variant.metric_amount)) &&
+            Number(variant.metric_amount) > 0
+          ? Number(variant.metric_amount)
+          : undefined,
+    metric_unit: variant.metric_unit,
+    sort_order: variant.sort_order,
     serving_size: variant.serving_size,
     serving_unit: toPersistedServingUnit(variant),
     calories: variant.calories,

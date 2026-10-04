@@ -51,6 +51,10 @@ export interface FoodInput extends NutrientFields {
   image_source_url?: string | null;
   /** Owner-authored markdown reference note. */
   notes?: string | null;
+  serving_label?: string | null;
+  metric_amount?: NutrientValue;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number | null;
   serving_size?: NutrientValue;
   serving_unit?: string | null;
   source?: string | null;
@@ -66,6 +70,10 @@ const DEFAULT_VARIANT_JSON_SQL = `
     'id', fv.id,
     'serving_size', fv.serving_size,
     'serving_unit', fv.serving_unit,
+    'serving_label', fv.serving_label,
+    'metric_amount', fv.metric_amount,
+    'metric_unit', fv.metric_unit,
+    'sort_order', fv.sort_order,
     'calories', fv.calories,
     'protein', fv.protein,
     'carbs', fv.carbs,
@@ -271,8 +279,8 @@ async function createFoodWithClient(client: PoolClient, foodData: FoodInput) {
         saturated_fat, polyunsaturated_fat, monounsaturated_fat, trans_fat,
         cholesterol, sodium, potassium, dietary_fiber, sugars,
         vitamin_a, vitamin_c, calcium, iron, caffeine_mg, water_ml, alcohol_g, abv_percent, is_default, glycemic_index, custom_nutrients,
-        source, ai_confidence, allergens, traces, provider_dataset_sha256, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, TRUE, $25, $26, $27, $28, $29, $30, $31, now(), now()) RETURNING id`,
+        source, ai_confidence, allergens, traces, provider_dataset_sha256, serving_label, metric_amount, metric_unit, sort_order, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, TRUE, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, now(), now()) RETURNING id`,
     [
       newFood.id,
       sanitizeNumeric(foodData.serving_size),
@@ -305,6 +313,10 @@ async function createFoodWithClient(client: PoolClient, foodData: FoodInput) {
       foodData.allergens ?? null,
       foodData.traces ?? null,
       foodData.provider_dataset_sha256 ?? null,
+      foodData.serving_label ?? null,
+      sanitizeNumeric(foodData.metric_amount),
+      foodData.metric_unit ?? null,
+      foodData.sort_order ?? 0,
     ]
   );
   const newVariantId = variantResult.rows[0].id;
@@ -325,6 +337,10 @@ function buildDefaultVariantEcho(
     id: newVariantId,
     serving_size: foodData.serving_size,
     serving_unit: foodData.serving_unit,
+    serving_label: foodData.serving_label ?? null,
+    metric_amount: foodData.metric_amount ?? null,
+    metric_unit: foodData.metric_unit ?? null,
+    sort_order: foodData.sort_order ?? 0,
     calories: foodData.calories,
     protein: foodData.protein,
     carbs: foodData.carbs,

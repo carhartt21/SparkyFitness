@@ -10,6 +10,8 @@ import {
   alcoholGramsForServing,
   foodSearchRetrievalQuery,
   rankFoodSearchCandidates,
+  metricWeightOf,
+  type ServingWeight,
 } from '@workspace/shared';
 import package$0 from '../../package.json' with { type: 'json' };
 import {
@@ -108,7 +110,7 @@ interface OffProduct {
   brands?: string;
   code?: string;
   serving_size?: string;
-  serving_quantity?: number;
+  serving_quantity?: number | string;
   serving_quantity_unit?: string;
   product_quantity_unit?: string;
   nutriments?: Record<string, unknown>;
@@ -423,9 +425,42 @@ async function hydrateSearchHits(
     // The full-text index can still hold nutrition while Product Opener is
     // temporarily stale or incomplete. Keep the qualified ranked hit in that
     // case so hydration cannot underfill an otherwise valid search page.
-    return currentProduct && hasUsableOffCoreNutrition(currentProduct)
+    if (!currentProduct) return indexedProduct;
+    const complete = hasUsableOffCoreNutrition(currentProduct)
       ? currentProduct
       : indexedProduct;
+    const merged = { ...complete };
+    const indexedNutritionNeedsServing =
+      complete === indexedProduct &&
+      Object.keys(indexedProduct.nutriments ?? {}).some(
+        (key) =>
+          key.endsWith('_serving') &&
+          parseOffNumber(indexedProduct.nutriments?.[key]) !== null &&
+          parseOffNumber(
+            indexedProduct.nutriments?.[key.replace(/_serving$/, '_100g')]
+          ) === null
+      );
+    // A declaration is one bundle. Mixing a current 30 g quantity with an
+    // older "1 bar (21.5 g)" label would produce an inconsistent portion.
+    const servingSource =
+      !indexedNutritionNeedsServing &&
+      (currentProduct.serving_size !== undefined ||
+        currentProduct.serving_quantity !== undefined)
+        ? currentProduct
+        : indexedProduct;
+    for (const field of [
+      'serving_size',
+      'serving_quantity',
+      'serving_quantity_unit',
+    ] as const) {
+      const value = servingSource[field];
+      if (value !== undefined) Object.assign(merged, { [field]: value });
+      else delete merged[field];
+    }
+    if (!merged.product_quantity_unit && indexedProduct.product_quantity_unit) {
+      merged.product_quantity_unit = indexedProduct.product_quantity_unit;
+    }
+    return merged;
   });
 }
 
@@ -720,21 +755,34 @@ function normalizeAllergenTags(tags: string[] | undefined): string[] | null {
 // Deliberately does NOT consult `nutrition_data_per`: that field records what
 // the contributor selected in the data-entry form (often left at its default
 // of "100g" even for liquids), not the product's physical unit.
+function normalizeOffMetricUnit(unit: string): string {
+  const normalized = normalizeServingUnit(unit);
+  if (/^grammes?$/.test(normalized)) return 'g';
+  if (/^litres?$/.test(normalized)) return 'l';
+  return normalized;
+}
+
 function deriveOffServingUnit(product: OffProduct): string {
-  if (product.serving_quantity_unit) {
-    return normalizeServingUnit(product.serving_quantity_unit);
+  if (
+    typeof product.serving_quantity_unit === 'string' &&
+    product.serving_quantity_unit.trim()
+  ) {
+    return normalizeOffMetricUnit(product.serving_quantity_unit);
   }
-  if (product.product_quantity_unit) {
-    return normalizeServingUnit(product.product_quantity_unit);
+  if (
+    typeof product.product_quantity_unit === 'string' &&
+    product.product_quantity_unit.trim()
+  ) {
+    return normalizeOffMetricUnit(product.product_quantity_unit);
   }
   // Last resort: pull a unit token out of the free-text serving_size string,
   // e.g. "1 portion (330 ml)" or "250 ml".
   if (typeof product.serving_size === 'string') {
     const match = product.serving_size.match(
-      /([\d.,]+)\s*(ml|milliliters?|millilitres?|g|grams?|kg|l|liters?|litres?|oz|ounces?)\b/i
+      /([\d.,]+)\s*(ml|milliliters?|millilitres?|g|grams?|grammes?|kg|l|liters?|litres?|oz|ounces?)\b/i
     );
     if (match) {
-      return normalizeServingUnit(match[2]);
+      return normalizeOffMetricUnit(match[2]);
     }
   }
   // Nothing in the record states a unit. Grams is right for food and wrong for
@@ -765,38 +813,81 @@ function isOffLiquid(product: OffProduct): boolean {
   return false;
 }
 
-// Metric units that must never become a household variant — they would just
-// duplicate the metric default (e.g. "28 g (28 g)").
-const METRIC_SERVING_UNITS = new Set(['g', 'ml', 'kg', 'l', 'oz']);
-
-interface HouseholdServing {
-  size: number | null;
-  unit: string | null;
+interface OffServing {
+  weight: ServingWeight;
+  count: number;
+  unit: string;
 }
 
-// Extracts a household serving (e.g. "2 cookies") from OFF's free-text
-// serving_size string when it also states the equivalent metric weight/volume
-// in parentheses, e.g. "2 cookies (28 g)". null/null when there's no such
-// descriptor, or the unit is itself metric.
-function parseOffHouseholdServing(
-  servingSize: string | undefined
-): HouseholdServing {
-  if (typeof servingSize !== 'string') return { size: null, unit: null };
-  const match = servingSize.match(
-    /^\s*([\d.,]+)\s+([^\d(][^(]*?)\s*\([^)]*\)\s*$/
-  );
-  if (!match) return { size: null, unit: null };
-  const size = parseFloat(match[1].replace(',', '.'));
-  const unit = normalizeServingUnit(match[2]);
-  if (
-    !Number.isFinite(size) ||
-    size <= 0 ||
-    !unit ||
-    METRIC_SERVING_UNITS.has(unit)
-  ) {
-    return { size: null, unit: null };
+/** Strict positive numeric quantities; never parse "21 g" as a numeric field. */
+function positiveOffQuantity(value: unknown): number | null {
+  if (typeof value !== 'number' && typeof value !== 'string') return null;
+  if (typeof value === 'string' && !/^\s*\d+(?:[.,]\d+)?\s*$/.test(value)) {
+    return null;
   }
-  return { size, unit };
+  const quantity = Number(
+    typeof value === 'string' ? value.replace(',', '.') : value
+  );
+  return Number.isFinite(quantity) && quantity > 0 ? quantity : null;
+}
+
+/**
+ * OFF's serving_quantity is the metric equivalent, not a piece count. Accept
+ * an explicit weight in serving_size when the structured quantity is absent.
+ * A pack quantity is only a unit hint; it must never become a serving weight.
+ */
+function resolveOffServing(product: OffProduct): OffServing | null {
+  const text =
+    typeof product.serving_size === 'string' ? product.serving_size.trim() : '';
+  const metricPattern =
+    /^(\d+(?:[.,]\d+)?)\s*(g|grams?|grammes?|ml|milliliters?|millilitres?|kg|l|liters?|litres?|oz|ounces?)$/i;
+  const parenthesis = text.match(/\(([^()]*)\)\s*$/);
+  const metricText = (parenthesis?.[1] ?? text).trim().match(metricPattern);
+  const textWeight = metricText
+    ? metricWeightOf(
+        positiveOffQuantity(metricText[1]),
+        normalizeOffMetricUnit(metricText[2])
+      )
+    : null;
+  const quantity = positiveOffQuantity(product.serving_quantity);
+  const unit = deriveOffServingUnit(product);
+  // The structured quantity is normalized to g/ml by OFF. Without an
+  // explicit unit field, a textual litre/kilogram is only a dimension hint.
+  const quantityUnit = product.serving_quantity_unit
+    ? unit
+    : metricWeightOf(1, unit)?.metric_unit;
+  const declaredWeight =
+    quantity !== null ? metricWeightOf(quantity, quantityUnit) : null;
+  // Conflicting units/amounts are unsafe evidence for a piece-to-weight link.
+  if (
+    declaredWeight &&
+    textWeight &&
+    (declaredWeight.metric_unit !== textWeight.metric_unit ||
+      Math.abs(declaredWeight.metric_amount - textWeight.metric_amount) > 0.01)
+  )
+    return null;
+  const weight = declaredWeight ?? textWeight;
+  if (!weight) return null;
+  const descriptor = parenthesis
+    ? text.slice(0, parenthesis.index).trim()
+    : metricText
+      ? ''
+      : text;
+  const household = descriptor.match(/^(\d+(?:[.,]\d+)?)\s+([^\d()]+)$/);
+  const count = positiveOffQuantity(household?.[1]);
+  const householdUnit = household ? normalizeServingUnit(household[2]) : null;
+  // A plain "21.5 g" still declares a usable serving: one portion of 21.5 g.
+  return {
+    weight,
+    count:
+      count !== null && householdUnit && !metricWeightOf(1, householdUnit)
+        ? count
+        : 1,
+    unit:
+      count !== null && householdUnit && !metricWeightOf(1, householdUnit)
+        ? householdUnit
+        : 'serving',
+  };
 }
 
 // OpenFoodFacts stores every nutrient's `*_100g` value in grams but exposes the
@@ -847,10 +938,8 @@ function hasUsableOffCoreNutrition(product: OffProduct): boolean {
     return true;
   }
 
-  const servingQuantity = parseOffNumber(product.serving_quantity);
   return (
-    servingQuantity !== null &&
-    servingQuantity > 0 &&
+    resolveOffServing(product) !== null &&
     OFF_CORE_NUTRIENT_SERVING_KEYS.some(
       (key) => parseOffNumber(product.nutriments?.[key]) !== null
     )
@@ -965,173 +1054,177 @@ function mapOpenFoodFactsProduct(
   { autoScale = true, language = 'en' } = {}
 ) {
   const nutriments = product.nutriments || {};
-  const declaredServingQuantity =
-    product.serving_quantity && product.serving_quantity > 0
-      ? product.serving_quantity
-      : null;
-  const servingQuantity = declaredServingQuantity ?? 100;
-  const servingSize = autoScale ? servingQuantity : 100;
-  const scale = servingSize / 100;
-  const servingUnit = deriveOffServingUnit(product);
+  const serving = resolveOffServing(product);
+  const declaredServingQuantity = serving?.weight.metric_amount ?? null;
+  const servingUnit =
+    serving?.weight.metric_unit ??
+    metricWeightOf(1, deriveOffServingUnit(product))?.metric_unit ??
+    'g';
   const rawAbv =
     parseOffNumber(nutriments['alcohol_100g']) ??
     parseOffNumber(nutriments['alcohol_serving']) ??
     parseOffNumber(nutriments['alcohol']);
-  const defaultVariant = {
-    serving_size: servingSize,
-    serving_unit: servingUnit,
-    calories: Math.round(
-      getOffEnergyKcal100g(nutriments, declaredServingQuantity) * scale
-    ),
-    protein:
-      Math.round(
-        getOffNutrient100g(nutriments, 'proteins', declaredServingQuantity) *
-          scale *
-          10
-      ) / 10,
-    carbs:
-      Math.round(
-        getOffNutrient100g(
-          nutriments,
-          'carbohydrates',
-          declaredServingQuantity
-        ) *
-          scale *
-          10
-      ) / 10,
-    fat:
-      Math.round(
-        getOffNutrient100g(nutriments, 'fat', declaredServingQuantity) *
-          scale *
-          10
-      ) / 10,
-    saturated_fat:
-      Math.round(
-        getOffNutrient100g(
-          nutriments,
-          'saturated-fat',
-          declaredServingQuantity
-        ) *
-          scale *
-          10
-      ) / 10,
-    sodium: Math.round(
-      getOffNutrient100g(nutriments, 'sodium', declaredServingQuantity) *
-        1000 *
-        scale
-    ),
-    dietary_fiber:
-      Math.round(
-        getOffNutrient100g(nutriments, 'fiber', declaredServingQuantity) *
-          scale *
-          10
-      ) / 10,
-    sugars:
-      Math.round(
-        getOffNutrient100g(nutriments, 'sugars', declaredServingQuantity) *
-          scale *
-          10
-      ) / 10,
-    polyunsaturated_fat:
-      Math.round(
-        getOffNutrient100g(
-          nutriments,
-          'polyunsaturated-fat',
-          declaredServingQuantity
-        ) *
-          scale *
-          10
-      ) / 10,
-    monounsaturated_fat:
-      Math.round(
-        getOffNutrient100g(
-          nutriments,
-          'monounsaturated-fat',
-          declaredServingQuantity
-        ) *
-          scale *
-          10
-      ) / 10,
-    trans_fat:
-      Math.round(
-        getOffNutrient100g(nutriments, 'trans-fat', declaredServingQuantity) *
-          scale *
-          10
-      ) / 10,
-    cholesterol: Math.round(
-      getOffNutrient100g(nutriments, 'cholesterol', declaredServingQuantity) *
-        1000 *
-        scale
-    ),
-    potassium: Math.round(
-      getOffNutrient100g(nutriments, 'potassium', declaredServingQuantity) *
-        1000 *
-        scale
-    ),
-    vitamin_a: Math.round(
-      getOffNutrient100g(nutriments, 'vitamin-a', declaredServingQuantity) *
-        1000000 *
-        scale
-    ),
-    vitamin_c:
-      Math.round(
-        getOffNutrient100g(nutriments, 'vitamin-c', declaredServingQuantity) *
+  const makeMetricVariant = (servingSize: number) => {
+    const scale = servingSize / 100;
+    return {
+      serving_size: servingSize,
+      serving_unit: servingUnit,
+      calories: Math.round(
+        getOffEnergyKcal100g(nutriments, declaredServingQuantity) * scale
+      ),
+      protein:
+        Math.round(
+          getOffNutrient100g(nutriments, 'proteins', declaredServingQuantity) *
+            scale *
+            10
+        ) / 10,
+      carbs:
+        Math.round(
+          getOffNutrient100g(
+            nutriments,
+            'carbohydrates',
+            declaredServingQuantity
+          ) *
+            scale *
+            10
+        ) / 10,
+      fat:
+        Math.round(
+          getOffNutrient100g(nutriments, 'fat', declaredServingQuantity) *
+            scale *
+            10
+        ) / 10,
+      saturated_fat:
+        Math.round(
+          getOffNutrient100g(
+            nutriments,
+            'saturated-fat',
+            declaredServingQuantity
+          ) *
+            scale *
+            10
+        ) / 10,
+      sodium: Math.round(
+        getOffNutrient100g(nutriments, 'sodium', declaredServingQuantity) *
           1000 *
-          scale *
-          10
-      ) / 10,
-    calcium: Math.round(
-      getOffNutrient100g(nutriments, 'calcium', declaredServingQuantity) *
-        1000 *
-        scale
-    ),
-    iron:
-      Math.round(
-        getOffNutrient100g(nutriments, 'iron', declaredServingQuantity) *
+          scale
+      ),
+      dietary_fiber:
+        Math.round(
+          getOffNutrient100g(nutriments, 'fiber', declaredServingQuantity) *
+            scale *
+            10
+        ) / 10,
+      sugars:
+        Math.round(
+          getOffNutrient100g(nutriments, 'sugars', declaredServingQuantity) *
+            scale *
+            10
+        ) / 10,
+      polyunsaturated_fat:
+        Math.round(
+          getOffNutrient100g(
+            nutriments,
+            'polyunsaturated-fat',
+            declaredServingQuantity
+          ) *
+            scale *
+            10
+        ) / 10,
+      monounsaturated_fat:
+        Math.round(
+          getOffNutrient100g(
+            nutriments,
+            'monounsaturated-fat',
+            declaredServingQuantity
+          ) *
+            scale *
+            10
+        ) / 10,
+      trans_fat:
+        Math.round(
+          getOffNutrient100g(nutriments, 'trans-fat', declaredServingQuantity) *
+            scale *
+            10
+        ) / 10,
+      cholesterol: Math.round(
+        getOffNutrient100g(nutriments, 'cholesterol', declaredServingQuantity) *
           1000 *
-          scale *
-          10
-      ) / 10,
-    // OFF stores caffeine_100g in grams (mass-based, like sodium/iron/calcium
-    // above) -- x1000 converts to milligrams, matching every other mg-unit
-    // nutrient here.
-    caffeine_mg:
-      Math.round(
-        getOffNutrient100g(nutriments, 'caffeine', declaredServingQuantity) *
+          scale
+      ),
+      potassium: Math.round(
+        getOffNutrient100g(nutriments, 'potassium', declaredServingQuantity) *
           1000 *
-          scale *
-          10
-      ) / 10,
-    // OFF's water_100g is grams; water's density is ~1 g/ml, so grams and
-    // millilitres are numerically equivalent here -- no x1000 factor, just
-    // the same per-100g -> per-serving scale as calories/protein/fat.
-    water_ml:
-      Math.round(
-        getOffNutrient100g(nutriments, 'water', declaredServingQuantity) *
-          scale *
-          10
-      ) / 10,
-    // OpenFoodFacts stores alcohol_100g as % ABV (volume fraction * 100),
-    // NOT grams of ethanol per 100g. We extract it directly as abv_percent,
-    // and derive alcohol_g via grams = volume_ml * (abv/100) * 0.789.
-    abv_percent: rawAbv !== null && rawAbv >= 0 ? rawAbv : undefined,
-    alcohol_g:
-      rawAbv !== null && rawAbv >= 0
-        ? alcoholGramsForServing(servingSize, servingUnit, rawAbv)
-        : 0,
-    ...(() => {
-      const extracted = extractOffProviderNutrients(
-        nutriments,
-        scale,
-        declaredServingQuantity
-      );
-      return {
-        provider_nutrients: extracted.values,
-        provider_nutrient_units: extracted.units,
-      };
-    })(),
-    is_default: true,
+          scale
+      ),
+      vitamin_a: Math.round(
+        getOffNutrient100g(nutriments, 'vitamin-a', declaredServingQuantity) *
+          1000000 *
+          scale
+      ),
+      vitamin_c:
+        Math.round(
+          getOffNutrient100g(nutriments, 'vitamin-c', declaredServingQuantity) *
+            1000 *
+            scale *
+            10
+        ) / 10,
+      calcium: Math.round(
+        getOffNutrient100g(nutriments, 'calcium', declaredServingQuantity) *
+          1000 *
+          scale
+      ),
+      iron:
+        Math.round(
+          getOffNutrient100g(nutriments, 'iron', declaredServingQuantity) *
+            1000 *
+            scale *
+            10
+        ) / 10,
+      // OFF stores caffeine_100g in grams (mass-based, like sodium/iron/calcium
+      // above) -- x1000 converts to milligrams, matching every other mg-unit
+      // nutrient here.
+      caffeine_mg:
+        Math.round(
+          getOffNutrient100g(nutriments, 'caffeine', declaredServingQuantity) *
+            1000 *
+            scale *
+            10
+        ) / 10,
+      // OFF's water_100g is grams; water's density is ~1 g/ml, so grams and
+      // millilitres are numerically equivalent here -- no x1000 factor, just
+      // the same per-100g -> per-serving scale as calories/protein/fat.
+      water_ml:
+        Math.round(
+          getOffNutrient100g(nutriments, 'water', declaredServingQuantity) *
+            scale *
+            10
+        ) / 10,
+      // OpenFoodFacts stores alcohol_100g as % ABV (volume fraction * 100),
+      // NOT grams of ethanol per 100g. We extract it directly as abv_percent,
+      // and derive alcohol_g via grams = volume_ml * (abv/100) * 0.789.
+      abv_percent: rawAbv !== null && rawAbv >= 0 ? rawAbv : undefined,
+      alcohol_g:
+        rawAbv !== null && rawAbv >= 0
+          ? alcoholGramsForServing(servingSize, servingUnit, rawAbv)
+          : 0,
+      ...(() => {
+        const extracted = extractOffProviderNutrients(
+          nutriments,
+          scale,
+          declaredServingQuantity
+        );
+        return {
+          provider_nutrients: extracted.values,
+          provider_nutrient_units: extracted.units,
+        };
+      })(),
+      is_default: true,
+    };
   };
+  const defaultVariant = makeMetricVariant(
+    autoScale ? (declaredServingQuantity ?? 100) : 100
+  );
   // Language fallback priority:
   // 1. product_name_${language}
   // 2. product_name_en
@@ -1147,28 +1240,23 @@ function mapOpenFoodFactsProduct(
     allergens: normalizeAllergenTags(product.allergens_tags),
     traces: normalizeAllergenTags(product.traces_tags),
   };
-  // If OFF states an equivalent household serving (e.g. "2 cookies (28 g)"),
-  // surface it as a second, non-default variant so users can log by piece,
-  // reusing the metric variant's values (same physical serving, no rescaling).
-  // Only valid when declaredServingQuantity was actually declared — otherwise
-  // metricVariant is still on the unscaled 100g basis, and reusing it would
-  // mislabel those numbers under the household unit. Skip it in that case.
-  const household = parseOffHouseholdServing(product.serving_size);
-  const householdVariant =
-    declaredServingQuantity !== null &&
-    household.size !== null &&
-    household.unit !== null &&
-    !(
-      household.size === metricVariant.serving_size &&
-      household.unit === metricVariant.serving_unit
-    )
-      ? {
-          ...metricVariant,
-          serving_size: household.size,
-          serving_unit: household.unit,
-          is_default: false,
-        }
-      : null;
+  // The portion is independently scaled to its declared weight. In particular,
+  // disabling autoScale keeps a 100 g/ml default, never 100 g nutrition under
+  // a 21.5 g household label. The gram basis remains selectable for arbitrary amounts.
+  const householdVariant = serving
+    ? {
+        ...makeMetricVariant(serving.weight.metric_amount),
+        allergens: metricVariant.allergens,
+        traces: metricVariant.traces,
+        serving_size: serving.count,
+        serving_unit: serving.unit,
+        serving_description: `${serving.count} ${serving.unit} (${serving.weight.metric_amount} ${serving.weight.metric_unit})`,
+        metric_amount: serving.weight.metric_amount,
+        metric_unit: serving.weight.metric_unit,
+        sort_order: 1,
+        is_default: false,
+      }
+    : null;
   return {
     name,
     brand: product.brands?.split(',')[0]?.trim() || '',

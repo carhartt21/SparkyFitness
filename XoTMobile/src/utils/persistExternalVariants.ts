@@ -80,6 +80,11 @@ export async function persistExternalVariants(
       try {
         await createFoodVariant({
           food_id: savedFood.id,
+          serving_label: variant.serving_label,
+          metric_amount: variant.metric_amount,
+          metric_unit: variant.metric_unit,
+          sort_order: variant.sort_order,
+          custom_nutrients: variant.custom_nutrients ?? undefined,
           serving_size: variant.serving_size,
           serving_unit: toPersistedServingUnit(variant),
           calories: variant.calories,

@@ -35,6 +35,74 @@ const createFood = (overrides: Partial<Food> = {}): Food => ({
 });
 
 describe('enhancedCustomFoodFormService', () => {
+  it('persists declared OFF portion weight for primary and alternate variants', async () => {
+    mockApiCall.mockResolvedValue({ id: 'food-1' });
+    const portion = createVariant({
+      serving_size: 1,
+      serving_unit: 'serving',
+      metric_amount: 21.5,
+      metric_unit: 'g',
+      sort_order: 1,
+      calories: 123,
+    });
+    await saveFood(
+      createFood({ provider_type: 'openfoodfacts' }),
+      [
+        portion,
+        { ...portion, serving_size: 21.5, serving_unit: 'g', sort_order: 0 },
+      ],
+      'user-1'
+    );
+    expect(mockApiCall).toHaveBeenCalledWith(
+      '/foods',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          metric_amount: 21.5,
+          metric_unit: 'g',
+          sort_order: 1,
+        }),
+      })
+    );
+    expect(mockApiCall).toHaveBeenCalledWith(
+      '/foods/food-variants/bulk',
+      expect.objectContaining({
+        body: expect.arrayContaining([
+          expect.objectContaining({
+            metric_amount: 21.5,
+            metric_unit: 'g',
+            sort_order: 0,
+          }),
+        ]),
+      })
+    );
+  });
+
+  it('keeps portion metadata when updating an existing variant', async () => {
+    const portion = createVariant({
+      id: 'portion-1',
+      metric_amount: 21.5,
+      metric_unit: 'g',
+      serving_label: 'Bar',
+      sort_order: 1,
+    });
+    mockApiCall
+      .mockResolvedValueOnce(createFood())
+      .mockResolvedValueOnce([portion])
+      .mockResolvedValue({});
+    await saveFood(createFood(), [portion], 'user-1', 'food-1');
+    expect(mockApiCall).toHaveBeenCalledWith(
+      '/foods/food-variants/portion-1',
+      expect.objectContaining({
+        body: expect.objectContaining({
+          metric_amount: 21.5,
+          metric_unit: 'g',
+          serving_label: 'Bar',
+          sort_order: 1,
+        }),
+      })
+    );
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
   });

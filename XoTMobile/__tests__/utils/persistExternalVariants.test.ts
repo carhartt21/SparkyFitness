@@ -13,6 +13,59 @@ const mockedCreateFoodVariant = jest.mocked(createFoodVariant);
 const mockedFetchFoodVariants = jest.mocked(fetchFoodVariants);
 
 describe('persistExternalVariants', () => {
+  it('adds an OFF portion to a legacy gram-only food and keeps its weight and custom nutrients on retry', async () => {
+    const basis = {
+      id: 'basis',
+      food_id: 'food-1',
+      serving_size: 100,
+      serving_unit: 'g',
+      calories: 572,
+      fat: 37.3,
+      carbs: 49.5,
+      protein: 8.6,
+    };
+    const portion = {
+      serving_size: 1,
+      serving_unit: 'serving',
+      serving_description: '1 serving (21.5 g)',
+      metric_amount: 21.5,
+      metric_unit: 'g' as const,
+      sort_order: 1,
+      calories: 123,
+      fat: 8,
+      carbs: 10.6,
+      protein: 1.8,
+      custom_nutrients: { Magnesium: 4 },
+    };
+    mockedFetchFoodVariants.mockResolvedValueOnce([basis]);
+    await persistExternalVariants({ id: 'food-1', default_variant: basis }, [
+      portion,
+    ]);
+    expect(mockedCreateFoodVariant).toHaveBeenCalledTimes(1);
+    expect(mockedCreateFoodVariant).toHaveBeenCalledWith(
+      expect.objectContaining({
+        serving_unit: 'serving (21.5 g)',
+        metric_amount: 21.5,
+        metric_unit: 'g',
+        custom_nutrients: { Magnesium: 4 },
+        sort_order: 1,
+      })
+    );
+    mockedFetchFoodVariants.mockResolvedValueOnce([
+      basis,
+      {
+        ...portion,
+        id: 'portion',
+        food_id: 'food-1',
+        serving_unit: 'serving (21.5 g)',
+      },
+    ]);
+    await persistExternalVariants({ id: 'food-1', default_variant: basis }, [
+      portion,
+    ]);
+    expect(mockedCreateFoodVariant).toHaveBeenCalledTimes(1);
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockedCreateFoodVariant.mockResolvedValue({ id: 'created-variant' } as any);

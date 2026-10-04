@@ -4,6 +4,10 @@ export interface FoodUnitVariant {
   // Marks this variant as the food's trusted default — the one AI estimates
   // anchor on so subsequent estimates don't compound off other AI values.
   is_default?: boolean;
+  serving_label?: string | null;
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number;
   serving_size: number;
   serving_unit: string;
   serving_description?: string | null;

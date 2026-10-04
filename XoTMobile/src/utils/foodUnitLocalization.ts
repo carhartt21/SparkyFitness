@@ -97,12 +97,16 @@ const COUNTABLE_UNITS: ReadonlySet<string> = new Set([
   'whole',
 ]);
 
-/**
- * Localized presentation label for a controlled canonical unit in a standalone
- * context (e.g. "cup" in a picker row). Returns the localized UI copy for known
- * units, or the original literal for unknown/custom/server-defined units. The
- * raw unit is never altered.
- */
+/** Recognize metric context only on controlled units, leaving custom names literal. */
+function measuredUnit(unit: string) {
+  const match = unit.match(/^([^()]+)\s*\((\d+(?:[.,]\d+)?)\s*(g|ml)\)$/);
+  if (!match || !UNIT_KEYS[match[1].trim()]) return null;
+  const amount = Number(match[2].replace(',', '.'));
+  if (!Number.isFinite(amount) || amount <= 0) return null;
+  return { unit: match[1].trim(), amount, metricUnit: match[3] };
+}
+
+/** Localized standalone unit label; technical identities remain unchanged. */
 export function localizeFoodUnit(
   unit: string | null | undefined,
   t: TFunction
@@ -110,6 +114,10 @@ export function localizeFoodUnit(
   if (unit == null) return '';
   const translate = t;
   const normalized = unit.trim().toLowerCase();
+  const context = measuredUnit(normalized);
+  if (context) {
+    return `${localizeFoodUnit(context.unit, t)} (${formatLocalizedUnitQuantity(context.amount, context.metricUnit, t)})`;
+  }
   const key = UNIT_KEYS[normalized];
   if (!key) return unit;
   // The canonical raw unit is the readable English defaultValue, so EN output
@@ -143,7 +151,13 @@ export function formatLocalizedUnitQuantity(
   });
 
   const key = UNIT_KEYS[normalized];
-  if (!key) return `${qty} ${unit}`;
+  if (!key) {
+    const context = measuredUnit(normalized);
+    if (context) {
+      return `${formatLocalizedUnitQuantity(quantity, context.unit, t)} (${formatLocalizedUnitQuantity(context.amount, context.metricUnit, t)})`;
+    }
+    return `${qty} ${unit}`;
+  }
   if (COUNTABLE_UNITS.has(normalized)) {
     // Plural selection uses the raw quantity; the localized numeral is rendered
     // separately so the decimal separator follows the app locale. The plural
