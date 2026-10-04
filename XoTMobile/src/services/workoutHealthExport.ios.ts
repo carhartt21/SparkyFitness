@@ -86,6 +86,15 @@ async function exportPending(
   key: string,
   pending: PendingExport
 ): Promise<void> {
+  const identity = await activeIdentity();
+  if (
+    !identity ||
+    (pending.workout.sourceUserId &&
+      pending.workout.sourceUserId !== identity.userId) ||
+    (pending.workout.sourceServerConfigId &&
+      pending.workout.sourceServerConfigId !== identity.serverConfigId)
+  )
+    throw new Error('Workout account changed.');
   if ((await loadHealthPreference<boolean>(PREFERENCE)) !== true) return;
   if (
     !hasWorkoutWritePermission() ||
@@ -121,6 +130,14 @@ async function exportPending(
       },
     });
   }
+  // Consent and account can change while HealthKit queries/permissions are open.
+  const current = await activeIdentity();
+  if (
+    current?.serverConfigId !== identity.serverConfigId ||
+    current.userId !== identity.userId
+  )
+    throw new Error('Workout account changed.');
+  if ((await loadHealthPreference<boolean>(PREFERENCE)) !== true) return;
   if (existing.length === 0) {
     const { startedAt, finishedAt } = pending.workout;
     if (
@@ -141,7 +158,9 @@ async function exportPending(
       return;
     }
     await saveWorkoutSample(
-      WorkoutActivityType.traditionalStrengthTraining,
+      pending.workout.activityKind === 'mobility'
+        ? WorkoutActivityType.flexibility
+        : WorkoutActivityType.traditionalStrengthTraining,
       [
         {
           quantityType: 'HKQuantityTypeIdentifierActiveEnergyBurned',
@@ -149,7 +168,11 @@ async function exportPending(
           unit: 'kcal',
           startDate: new Date(startedAt),
           endDate: new Date(finishedAt),
-          metadata: { HKWasUserEntered: true, XOnTrackWritebackVersion: 1 },
+          metadata: {
+            HKWasUserEntered: true,
+            XOnTrackWritebackVersion: 1,
+            XOnTrackEnergySource: pending.workout.energySource ?? 'known',
+          },
         },
       ],
       new Date(startedAt),
@@ -162,6 +185,7 @@ async function exportPending(
         HKSyncVersion: 1,
         HKExternalUUID: pending.syncId,
         HKWorkoutBrandName: 'X on Track',
+        XOnTrackEnergySource: pending.workout.energySource ?? 'known',
       }
     );
     addLog('[Workout Health export] Saved workout to Apple Health.', 'INFO');
@@ -235,6 +259,23 @@ export async function needsPhoneWorkoutEnergy(
   const loc = await location(sessionId);
   if (!loc) return false;
   return serialize(async () => (await readRecord(loc.key)) == null);
+}
+
+export async function getWorkoutHealthExportStatus(
+  sessionId: string
+): Promise<'saved' | 'pending' | 'skipped' | null> {
+  const loc = await location(sessionId);
+  if (!loc) return null;
+  return serialize(async () => {
+    const record = await readRecord(loc.key);
+    return record?.status === 'done'
+      ? 'saved'
+      : record?.status === 'skipped'
+        ? 'skipped'
+        : record
+          ? 'pending'
+          : null;
+  });
 }
 
 /** Reservation is durable BEFORE sending start. Once reserved, the phone never
@@ -327,6 +368,8 @@ export async function queueCompletedWorkoutExport(
   return serialize(async () => {
     const loc = await location(workout.sessionId);
     if (!loc) return 'skipped';
+    if (workout.sourceUserId && workout.sourceUserId !== loc.identity.userId)
+      throw new Error('Workout belongs to a different account.');
     if (
       workout.sourceServerConfigId &&
       workout.sourceServerConfigId !== loc.identity.serverConfigId

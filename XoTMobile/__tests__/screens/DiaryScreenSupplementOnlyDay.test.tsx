@@ -13,6 +13,16 @@ import {
   createQueryWrapper,
 } from '../hooks/queryTestUtils';
 
+// This suite isolates the settled diary sources; mobility has no entries here.
+jest.mock('../../src/hooks/useMobilityDiary', () => ({
+  useMobilityDiary: () => ({
+    sessions: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}));
+
 jest.mock('../../src/hooks', () => ({
   useServerConnection: () => ({ isConnected: true }),
   useDailySummary: jest.fn(),

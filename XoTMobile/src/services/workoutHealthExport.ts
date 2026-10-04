@@ -7,8 +7,12 @@ export interface FinishedWorkoutForHealth {
   finishedAt: number;
   completedSetCount: number;
   sourceServerConfigId: string | null;
-  /** Explicitly supplied active energy, never a guessed zero or total expenditure. */
+  /** Explicitly confirmed active energy, never a guessed zero or total expenditure. */
   activeEnergyKcal?: number;
+  energySource?: 'known' | 'confirmed-estimate';
+  /** Omitted for existing strength workouts; mobility uses HealthKit flexibility. */
+  activityKind?: 'mobility';
+  sourceUserId?: string;
 }
 
 export interface WorkoutHealthRecordingSession {
@@ -30,6 +34,12 @@ export async function needsPhoneWorkoutEnergy(
   _sessionId: string
 ): Promise<boolean> {
   return false;
+}
+
+export async function getWorkoutHealthExportStatus(
+  _sessionId: string
+): Promise<'saved' | 'pending' | 'skipped' | null> {
+  return null;
 }
 
 export async function isWorkoutHealthRecordingEnabled(): Promise<boolean> {

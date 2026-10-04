@@ -8,6 +8,7 @@ import DayNavigator from '@/components/DayNavigator';
 import NutritionSummaryCard, { DayTotals } from './NutritionSummaryCard';
 import DailyProgress from './DailyProgress';
 import WellnessCard from './WellnessCard';
+import MobilityDiaryCard from './MobilityDiaryCard';
 import WaterIntake from './WaterIntake';
 import CaffeineCard from './CaffeineCard';
 import MealCard from './MealCard';
@@ -763,6 +764,7 @@ const Diary = () => {
         </Card>
       )}
 
+      <MobilityDiaryCard date={selectedDate} />
       <WellnessCard date={selectedDate} />
 
       {/* Food Unit Selector Dialog */}

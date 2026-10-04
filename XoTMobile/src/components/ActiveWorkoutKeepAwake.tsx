@@ -5,8 +5,10 @@ import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 
 // The wake lock is scoped to this component's lifetime: `useKeepAwake`
 // releases it on unmount, so conditional mounting is the whole on/off logic.
-const KeepAwakeLock: React.FC = () => {
-  useKeepAwake('active-workout');
+export const KeepAwakeLock: React.FC<{ tag?: string }> = ({
+  tag = 'active-workout',
+}) => {
+  useKeepAwake(tag);
   return null;
 };
 

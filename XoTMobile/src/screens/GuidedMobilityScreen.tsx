@@ -1,8 +1,11 @@
+import { isRecordedMobilitySession } from '@workspace/shared';
+import { useIsFocused } from '@react-navigation/native';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   AppState,
+  Platform,
   Text,
   TextInput,
   View,
@@ -11,6 +14,8 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Button from '../components/ui/Button';
+import { KeepAwakeLock } from '../components/ActiveWorkoutKeepAwake';
+import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import MobilityHistorySection from '../components/MobilityHistorySection';
 import { useScreenHeader } from '../hooks/useScreenHeader';
 import { fireSuccessHaptic } from '../services/haptics';
@@ -20,6 +25,8 @@ import {
   deleteMobilityRoutine,
   getMobilityState,
   mobilitySecondsRemaining,
+  mobilityElapsedSeconds,
+  MOBILITY_TRANSITION_SECONDS,
   saveMobilityRoutine,
   startMobilitySession,
   subscribeMobilityState,
@@ -38,6 +45,8 @@ import type { NutritionActionIdentity } from '../services/nutritionActionOutbox'
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { playMobilityCueSound } from '../services/sounds';
 import { newUuid } from '../utils/ids';
+import { mobilityCueAt, type MobilityCuePosition } from '../utils/mobilityCue';
+import { exportMobilityToHealth } from '../services/mobilityHealthExport';
 
 type StepDraft = {
   id?: string;
@@ -63,11 +72,11 @@ const blankStep = (): StepDraft => ({
   side: 'both',
   kind: 'timed',
   amount: '30',
-  transition: '0',
+  transition: String(MOBILITY_TRANSITION_SECONDS),
 });
 const blankRoutine = (): RoutineDraft => ({
   name: '',
-  cue: 'haptic',
+  cue: 'both',
   reminderTime: '',
   steps: [blankStep()],
 });
@@ -87,7 +96,9 @@ function toDraft(routine: MobilityRoutine): RoutineDraft {
       amount: String(
         step.kind === 'timed' ? step.durationSeconds : step.repetitions
       ),
-      transition: String(step.transitionSeconds),
+      transition: String(
+        Math.max(MOBILITY_TRANSITION_SECONDS, step.transitionSeconds)
+      ),
     })),
   };
 }
@@ -101,7 +112,7 @@ function parseStep(step: StepDraft): MobilityStepDraft {
     amount < (step.kind === 'timed' ? 5 : 1) ||
     amount > (step.kind === 'timed' ? 3600 : 1000) ||
     !Number.isInteger(transitionSeconds) ||
-    transitionSeconds < 0 ||
+    transitionSeconds < MOBILITY_TRANSITION_SECONDS ||
     transitionSeconds > 600
   ) {
     throw new Error('invalid-step');
@@ -125,7 +136,13 @@ function formatClock(seconds: number): string {
 export default function GuidedMobilityScreen() {
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+  const isFocused = useIsFocused();
+  const focused = useRef(isFocused);
+  focused.current = isFocused;
   const nativeHeader = useNativeIOSHeadersActive();
+  const keepScreenAwake = useAppPreferencesStore(
+    (preferences) => preferences.workoutKeepAwakeEnabled
+  );
   const [identity, setIdentity] = useState<NutritionActionIdentity | null>(
     null
   );
@@ -136,9 +153,10 @@ export default function GuidedMobilityScreen() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const refreshGeneration = useRef(0);
-  const previousRemaining = useRef<{ key: string; seconds: number } | null>(
-    null
-  );
+  const previousCue = useRef<MobilityCuePosition | null>(null);
+  const transitionInFlight = useRef(false);
+  const workInFlight = useRef(false);
+  const autoTransitionKey = useRef<string | null>(null);
 
   const refresh = useCallback(() => {
     const generation = ++refreshGeneration.current;
@@ -193,6 +211,7 @@ export default function GuidedMobilityScreen() {
       refresh();
     });
     const foreground = AppState.addEventListener('change', (value) => {
+      previousCue.current = null;
       if (value === 'active') {
         setNow(Date.now());
         refresh();
@@ -213,27 +232,72 @@ export default function GuidedMobilityScreen() {
     ? mobilitySecondsRemaining(session, new Date(now))
     : null;
   useEffect(() => {
-    if (!session || session.state !== 'running' || remaining === null) {
-      previousRemaining.current = null;
+    if (!session || !isFocused || AppState.currentState !== 'active') {
+      previousCue.current = null;
       return;
     }
-    const key = `${session.id}:${session.phase}:${session.stepIndex}`;
-    const previous = previousRemaining.current;
-    if (
-      previous?.key === key &&
-      previous.seconds > 0 &&
-      remaining === 0 &&
-      AppState.currentState === 'active'
-    ) {
-      if (session.routine.cue === 'haptic' || session.routine.cue === 'both') {
+    const event = mobilityCueAt(
+      session,
+      mobilityElapsedSeconds(session, new Date(now)),
+      previousCue.current
+    );
+    previousCue.current = event.position;
+    if (event.cue) {
+      if (session.routine.cue === 'haptic' || session.routine.cue === 'both')
         fireSuccessHaptic();
-      }
-      if (session.routine.cue === 'sound' || session.routine.cue === 'both') {
-        playMobilityCueSound();
-      }
+      if (session.routine.cue === 'sound' || session.routine.cue === 'both')
+        playMobilityCueSound(event.cue);
     }
-    previousRemaining.current = { key, seconds: remaining };
-  }, [remaining, session]);
+  }, [now, session, isFocused]);
+
+  useEffect(() => {
+    if (
+      !identity ||
+      !session ||
+      session.phase !== 'transition' ||
+      session.state !== 'running' ||
+      remaining !== 0 ||
+      !isFocused ||
+      busy ||
+      AppState.currentState !== 'active' ||
+      transitionInFlight.current
+    )
+      return;
+    const key = `${identity.serverConfigId}:${identity.userId}:${session.id}:${session.stepIndex}:${session.phaseStartedAt}`;
+    if (autoTransitionKey.current === key) return;
+    autoTransitionKey.current = key;
+    transitionInFlight.current = true;
+    let failed = false;
+    void (async () => {
+      const active = await getActiveNutritionIdentity();
+      if (
+        active?.serverConfigId !== identity.serverConfigId ||
+        active?.userId !== identity.userId ||
+        AppState.currentState !== 'active' ||
+        !focused.current
+      ) {
+        autoTransitionKey.current = null;
+        return;
+      }
+      await applyMobilitySessionAction(
+        identity,
+        session.id,
+        'continue-if-ready'
+      );
+    })()
+      .catch(() => {
+        failed = true;
+        setError(
+          t('mobility.actionError', {
+            defaultValue: 'That change could not be saved. Try again.',
+          })
+        );
+      })
+      .finally(() => {
+        transitionInFlight.current = false;
+        if (!failed) refresh();
+      });
+  }, [identity, session, remaining, isFocused, busy, refresh, t]);
 
   const header = useScreenHeader({
     title: t('mobility.title', { defaultValue: 'Guided mobility' }),
@@ -258,6 +322,8 @@ export default function GuidedMobilityScreen() {
   };
 
   const perform = async (work: () => Promise<unknown>) => {
+    if (workInFlight.current) return;
+    workInFlight.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -270,15 +336,84 @@ export default function GuidedMobilityScreen() {
         })
       );
     } finally {
+      workInFlight.current = false;
       setBusy(false);
     }
   };
 
+  const exportSession = async (
+    savedSession: MobilityState['history'][number],
+    explicit = false
+  ) => {
+    if (
+      !identity ||
+      Platform.OS !== 'ios' ||
+      !isRecordedMobilitySession(savedSession)
+    )
+      return;
+    try {
+      const result = await exportMobilityToHealth(savedSession, identity, t);
+      if (explicit || result === 'pending') {
+        const message =
+          result === 'saved'
+            ? t('mobility.healthSaved', {
+                defaultValue:
+                  'This session is saved as a flexibility workout in Apple Health and Apple Fitness.',
+              })
+            : result === 'disabled'
+              ? t('mobility.healthDisabled', {
+                  defaultValue:
+                    'Enable workout recording in Sync settings to export mobility sessions to Apple Health.',
+                })
+              : result === 'pending'
+                ? t('mobility.healthPending', {
+                    defaultValue:
+                      'The export is pending. Check workout and active-energy write permissions in Sync settings, then retry here.',
+                  })
+                : t('mobility.healthSkipped', {
+                    defaultValue:
+                      'The session stays in your X on Track diary. You can export it later with confirmed active calories.',
+                  });
+        Alert.alert(
+          t('mobility.healthTitle', {
+            defaultValue: 'Mobility in Apple Health',
+          }),
+          message
+        );
+      }
+    } catch {
+      Alert.alert(
+        t('mobility.healthTitle', { defaultValue: 'Mobility in Apple Health' }),
+        t('mobility.healthError', {
+          defaultValue:
+            'The session is saved in X on Track. Check workout and active-energy write permissions in Sync settings and retry the export from session history.',
+        })
+      );
+    }
+  };
   const runAction = (action: MobilitySessionAction) => {
-    if (!identity || !session) return;
-    void perform(() =>
-      applyMobilitySessionAction(identity, session.id, action)
-    );
+    if (!identity || !session || busy) return;
+    void perform(async () => {
+      const active = await getActiveNutritionIdentity();
+      if (
+        active?.serverConfigId !== identity.serverConfigId ||
+        active?.userId !== identity.userId
+      )
+        throw new Error('Account changed.');
+      const savedSession = await applyMobilitySessionAction(
+        identity,
+        session.id,
+        action
+      );
+      // Save locally first; a cancelled export never loses confirmed movement.
+      if (
+        savedSession.state === 'finished' ||
+        savedSession.state === 'cancelled'
+      ) {
+        refresh();
+        await exportSession(savedSession);
+      }
+    });
   };
 
   const confirmEndSession = () => {
@@ -406,7 +541,7 @@ export default function GuidedMobilityScreen() {
       setError(
         t('mobility.invalidStep', {
           defaultValue:
-            'Check each step: timed steps need 5–3600 seconds, repetitions need 1–1000, and transitions need 0–600 seconds.',
+            'Check each step: timed steps need 5–3600 seconds, repetitions need 1–1000, and transitions need 5–600 seconds.',
         })
       );
       return;
@@ -431,6 +566,9 @@ export default function GuidedMobilityScreen() {
       className="flex-1 bg-background"
       style={nativeHeader ? undefined : { paddingTop: insets.top }}
     >
+      {isFocused && session?.state === 'running' && keepScreenAwake ? (
+        <KeepAwakeLock tag="mobility-routine" />
+      ) : null}
       {header}
       <KeyboardAwareScrollView
         mode="layout"
@@ -488,6 +626,9 @@ export default function GuidedMobilityScreen() {
                 </Text>
                 <Text className="text-text-secondary">
                   {sideLabel(step.side)}
+                  {step.kind === 'timed' && step.side === 'both'
+                    ? ` · ${mobilityElapsedSeconds(session, new Date(now)) >= step.durationSeconds / 2 ? t('mobility.secondHalf', { defaultValue: 'Second half · switch sides if needed' }) : t('mobility.firstHalf', { defaultValue: 'First half' })}`
+                    : ''}
                 </Text>
               </>
             ) : null}
@@ -512,15 +653,20 @@ export default function GuidedMobilityScreen() {
               </Text>
             ) : null}
             <Text className="text-sm text-text-secondary">
-              {t('mobility.expiryIsNotCompletion', {
-                defaultValue:
-                  'The timer does not mark a step complete. Confirm what you did.',
-              })}
+              {session.phase === 'transition'
+                ? t('mobility.transitionHint', {
+                    defaultValue:
+                      'Get ready for the next exercise. Its timer starts after this countdown; pause if you need more time.',
+                  })
+                : t('mobility.expiryIsNotCompletion', {
+                    defaultValue:
+                      'The timer does not mark a step complete. Confirm what you did.',
+                  })}
             </Text>
             {session.phase === 'transition' ? (
               <Button disabled={busy} onPress={() => runAction('continue')}>
-                {t('mobility.continue', {
-                  defaultValue: 'Continue to next step',
+                {t('mobility.startNow', {
+                  defaultValue: 'Start now',
                 })}
               </Button>
             ) : (
@@ -594,7 +740,7 @@ export default function GuidedMobilityScreen() {
               maxLength={120}
             />
             <Text className="font-semibold text-text-primary">
-              {t('mobility.cue', { defaultValue: 'End-of-timer cue' })}
+              {t('mobility.cue', { defaultValue: 'Timer and halfway cues' })}
             </Text>
             <View className="flex-row flex-wrap gap-2">
               {(['off', 'haptic', 'sound', 'both'] as const).map((cue) => (
@@ -608,6 +754,12 @@ export default function GuidedMobilityScreen() {
                 </Button>
               ))}
             </View>
+            <Text className="text-sm text-text-secondary">
+              {t('mobility.cueHint', {
+                defaultValue:
+                  'Timed steps marked Both sides cue halfway and at the end. Choose Sound or Both for an audible cue, including in silent mode. Cues play while this screen is open.',
+              })}
+            </Text>
             <Text className="font-semibold text-text-primary">
               {t('mobility.dailyReminderTime', {
                 defaultValue: 'Daily reminder time (optional)',
@@ -935,6 +1087,11 @@ export default function GuidedMobilityScreen() {
               history={state?.history ?? []}
               deleting={busy}
               onDelete={confirmDeleteSession}
+              onExport={
+                Platform.OS === 'ios'
+                  ? (saved) => void perform(() => exportSession(saved, true))
+                  : undefined
+              }
             />
           </View>
         )}

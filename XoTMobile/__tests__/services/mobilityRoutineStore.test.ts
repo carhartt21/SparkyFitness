@@ -227,3 +227,68 @@ it('reads an earlier saved routine without a reminder as unscheduled', async () 
     reminderTime: null,
   });
 });
+
+it('adds setup time to legacy zero transitions, then starts the next timer exactly once', async () => {
+  const step = {
+    name: 'Reach',
+    instructions: '',
+    side: 'both' as const,
+    kind: 'timed' as const,
+    durationSeconds: 30,
+    transitionSeconds: 0,
+  };
+  const routine = await saveMobilityRoutine(
+    alice,
+    { name: 'Setup time', cue: 'both', steps: [step, step] },
+    at(0)
+  );
+  const session = await startMobilitySession(alice, routine.id, at(1));
+  const transition = await applyMobilitySessionAction(
+    alice,
+    session.id,
+    'complete-step',
+    at(31)
+  );
+  expect(transition.phase).toBe('transition');
+  expect(mobilitySecondsRemaining(transition, at(31))).toBe(5);
+  expect(
+    (
+      await applyMobilitySessionAction(
+        alice,
+        session.id,
+        'continue-if-ready',
+        at(35)
+      )
+    ).phase
+  ).toBe('transition');
+  await applyMobilitySessionAction(alice, session.id, 'pause', at(35));
+  expect(
+    (
+      await applyMobilitySessionAction(
+        alice,
+        session.id,
+        'continue-if-ready',
+        at(100)
+      )
+    ).state
+  ).toBe('paused');
+  await applyMobilitySessionAction(alice, session.id, 'resume', at(100));
+  const next = await applyMobilitySessionAction(
+    alice,
+    session.id,
+    'continue-if-ready',
+    at(101)
+  );
+  expect(next.phase).toBe('step');
+  expect(mobilitySecondsRemaining(next, at(102))).toBe(29);
+  expect(
+    await applyMobilitySessionAction(
+      alice,
+      session.id,
+      'continue-if-ready',
+      at(102)
+    )
+  ).toEqual(next);
+  expect(next.outcomes).toHaveLength(1);
+  expect((await getMobilityState(alice)).history).toEqual([]);
+});

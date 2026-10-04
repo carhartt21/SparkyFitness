@@ -371,3 +371,30 @@ it('does not resend old terminal receipts on every foreground refresh', async ()
   await retryPendingWorkoutExports();
   expect(WatchConnectivity!.sendWorkoutHealthCommand).not.toHaveBeenCalled();
 });
+
+test('uses flexibility for mobility and retains exactly-once retries', async () => {
+  const mobility = {
+    ...workout,
+    sessionId: 'mobility:session',
+    activityKind: 'mobility' as const,
+    sourceUserId: identity.userId,
+  };
+  await queueCompletedWorkoutExport(mobility);
+  await queueCompletedWorkoutExport(mobility);
+  expect(saveWorkoutSample).toHaveBeenCalledTimes(1);
+  expect(saveWorkoutSample).toHaveBeenCalledWith(
+    62,
+    expect.any(Array),
+    expect.any(Date),
+    expect.any(Date),
+    { energyBurned: 175 },
+    expect.objectContaining({ XOnTrackWritebackVersion: 1 })
+  );
+});
+
+test('rejects a mobility export belonging to another account', async () => {
+  await expect(
+    queueCompletedWorkoutExport({ ...workout, sourceUserId: 'other-user' })
+  ).rejects.toThrow('different account');
+  expect(saveWorkoutSample).not.toHaveBeenCalled();
+});

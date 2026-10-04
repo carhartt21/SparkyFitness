@@ -18,6 +18,13 @@ import { createWellnessReviewFixture } from './wellnessFixture';
 import { trackingReviewResponse } from './trackingFixture';
 import { getTodayDate } from '../src/utils/dateUtils';
 import MotionReview from './MotionReview';
+import { createMobilityReviewFixture } from './mobilityFixture';
+import {
+  saveMobilityRoutine,
+  startMobilitySession,
+  applyMobilitySessionAction,
+} from '../src/services/mobilityRoutineStore';
+import { saveHealthPreference } from '../src/services/healthkit/preferences';
 import { initializeI18n } from '../src/localization/i18n';
 
 const transport = global.fetch;
@@ -57,8 +64,10 @@ export default function ReviewApp() {
         v40Review?: boolean;
         v41Review?: boolean;
         motionReview?: boolean;
+        mobilityReview?: boolean;
       };
       const fixture = createNutritionFixture(config.scenario);
+      const mobilityFixture = createMobilityReviewFixture();
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
       global.fetch = async (input, options) => {
         const url = new URL(
@@ -114,12 +123,17 @@ export default function ReviewApp() {
                   getTodayDate()
                 )
               : undefined;
+          const mobilityResult = config.mobilityReview
+            ? mobilityFixture.respond(url, method, options?.body)
+            : undefined;
           const result =
-            supplementResult !== undefined
-              ? supplementResult
-              : wellnessResult === undefined
-                ? fixture.respond(url, method, options?.body)
-                : wellnessResult;
+            mobilityResult !== undefined
+              ? mobilityResult
+              : supplementResult !== undefined
+                ? supplementResult
+                : wellnessResult === undefined
+                  ? fixture.respond(url, method, options?.body)
+                  : wellnessResult;
           if (method !== 'GET' || url.pathname === '/api/daily-summary') {
             await transport('http://127.0.0.1:43991/event', {
               method: 'POST',
@@ -174,6 +188,52 @@ export default function ReviewApp() {
         authType: 'apiKey',
       });
       await rememberActiveNutritionUser('review-user');
+      if (config.mobilityReview) {
+        const identity = { serverConfigId: 'ui-review', userId: 'review-user' };
+        const keys = (await AsyncStorage.getAllKeys()).filter((key) =>
+          key.startsWith('@SparkyFitness/mobility-routines/v1/ui-review/')
+        );
+        await AsyncStorage.multiRemove(keys);
+        await saveHealthPreference('writebackWorkoutEnabled', false);
+        const routine = await saveMobilityRoutine(identity, {
+          name: 'Schulter- und Hüftmobilität',
+          cue: 'off',
+          steps: [
+            {
+              name: 'Schulterdehnung',
+              instructions:
+                'Sanft dehnen, nach der Hälfte bei Bedarf die Seite wechseln.',
+              side: 'both',
+              kind: 'timed',
+              durationSeconds: 20,
+              transitionSeconds: 5,
+            },
+            {
+              name: 'Hüftbeuger',
+              instructions: 'Bewegen Sie sich in einem angenehmen Bereich.',
+              side: 'both',
+              kind: 'timed',
+              durationSeconds: 20,
+              transitionSeconds: 5,
+            },
+          ],
+        });
+        mobilityFixture.allowRoutine(routine.id);
+        // Pin the diary date so a review crossing midnight cannot move the
+        // fixture's workout off the selected day. The paused timer resumes now.
+        const startedAt = new Date(`${reviewDate}T10:00:00Z`);
+        const session = await startMobilitySession(
+          identity,
+          routine.id,
+          startedAt
+        );
+        await applyMobilitySessionAction(
+          identity,
+          session.id,
+          'pause',
+          startedAt
+        );
+      }
       if (config.scenario === 'saved') {
         await saveDashboardSnapshot(
           { serverConfigId: 'ui-review', userId: 'review-user' },

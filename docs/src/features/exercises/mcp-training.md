@@ -56,3 +56,5 @@ For completed training, tell the assistant the actual date, exercise, duration, 
 After a write, ask for a fresh read of the preset, mobility snapshot or exercise diary and check the app. Exercise/food logging tools do not all have operation-ID deduplication. If a call times out, inspect the diary before retrying so an uncertain successful write is not duplicated.
 
 See [Exercise tool contracts](/developer/mcp/exercise) for payload fields and [Notifications](/features/settings/notifications#mcp-notification-updates) for changing reminder settings through OAuth.
+
+Completed phone mobility sessions with confirmed movement now appear in the diary on their account-local start day. On iPhone, workout recording under Sync enables an optional Apple Health/Fitness export as flexibility training. Confirm or edit the labelled light-stretching calorie estimate, enter known active calories, or skip; session history offers a later export/retry. Estimates require a recorded weight and confirmed timed steps. Export uses the elapsed session time, including pauses and transitions. A manual MCP plan result does not automatically create a Health workout or calorie credit.

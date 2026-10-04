@@ -28,7 +28,7 @@ const newStep = (): MobilityStep => ({
   side: 'both',
   kind: 'timed',
   durationSeconds: 30,
-  transitionSeconds: 0,
+  transitionSeconds: 5,
 });
 export default function Mobility() {
   const { t, i18n } = useTranslation();
@@ -155,7 +155,7 @@ export default function Mobility() {
                   id: uuid(),
                   name: '',
                   steps: [newStep()],
-                  cue: 'haptic',
+                  cue: 'both',
                   reminderTime: null,
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
@@ -592,9 +592,9 @@ export default function Mobility() {
                 <Input
                   id={`step-transition-${step.id}`}
                   type="number"
-                  min={0}
+                  min={5}
                   max={600}
-                  value={step.transitionSeconds}
+                  value={Math.max(5, step.transitionSeconds)}
                   onChange={(event) =>
                     patchStep(step.id, {
                       transitionSeconds: Number(event.target.value),

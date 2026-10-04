@@ -1,3 +1,4 @@
+import { isRecordedMobilitySession } from '@workspace/shared';
 import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -9,12 +10,14 @@ type Props = {
   history: MobilitySession[];
   deleting: boolean;
   onDelete: (session: MobilitySession) => void;
+  onExport?: (session: MobilitySession) => void;
 };
 
 export default function MobilityHistorySection({
   history,
   deleting,
   onDelete,
+  onExport,
 }: Props) {
   const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -143,6 +146,25 @@ export default function MobilityHistorySection({
                           count: unrecorded,
                         })}
                       </Text>
+                    ) : null}
+                    {onExport && isRecordedMobilitySession(session) ? (
+                      <>
+                        <Text className="text-sm text-text-secondary">
+                          {t('mobility.healthElapsedHint', {
+                            defaultValue:
+                              'Apple Health uses the session\u2019s elapsed time, including pauses and transitions. You can confirm or edit a light-stretching calorie estimate; it is not a measurement.',
+                          })}
+                        </Text>
+                        <Button
+                          variant="secondary"
+                          disabled={deleting}
+                          onPress={() => onExport(session)}
+                        >
+                          {t('mobility.healthExport', {
+                            defaultValue: 'Export to Apple Health',
+                          })}
+                        </Button>
+                      </>
                     ) : null}
                     <Button
                       variant="destructive"

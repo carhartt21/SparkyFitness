@@ -49,6 +49,8 @@ import { settingsButtonLabel } from '../components/SettingsHeaderButton';
 import DiaryCalorieMacroSummary from '../components/DiaryCalorieMacroSummary';
 import EmptyDayIllustration from '../components/EmptyDayIllustration';
 import ExerciseSummary from '../components/ExerciseSummary';
+import MobilityDiarySection from '../components/MobilityDiarySection';
+import { useMobilityDiary } from '../hooks/useMobilityDiary';
 import FoodSummary from '../components/FoodSummary';
 import DiaryBulkActionSheet from '../components/DiaryBulkActionSheet';
 import { applyBulkFoodEntryAction } from '../services/api/foodEntriesApi';
@@ -327,6 +329,11 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   );
 
   const { preferences } = usePreferences();
+  const mobilityDiary = useMobilityDiary(
+    selectedDate,
+    isConnected,
+    preferences?.timezone
+  );
   const weightUnit = (preferences?.default_weight_unit as 'kg' | 'lbs') ?? 'kg';
   const distanceUnit =
     (preferences?.default_distance_unit as 'km' | 'miles') ?? 'km';
@@ -576,6 +583,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         refetchCustomNutrients(),
         refetchNutrientPrefs(),
         refetchSleep(),
+        mobilityDiary.refetch(),
       ]);
     } finally {
       setRefreshing(false);
@@ -588,6 +596,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     refetchCustomNutrients,
     refetchNutrientPrefs,
     refetchSleep,
+    mobilityDiary,
   ]);
 
   const isRefreshing = refreshing;
@@ -605,6 +614,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       summary?.exerciseEntries.length === 0 &&
       !hasAnyMeasurement &&
       !hasWellnessActivity &&
+      !mobilityDiary.isLoading &&
+      mobilityDiary.sessions.length === 0 &&
       // A progress photo is something the user recorded for this day, so it
       // defeats the empty state exactly as a logged supplement does. Gated on
       // the load like sleep above: ungated, a day with photos flashes the empty
@@ -625,6 +636,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     remotePhotoCaptures,
     hasAnyMeasurement,
     hasWellnessActivity,
+    mobilityDiary.isLoading,
+    mobilityDiary.sessions.length,
     isPhotosLoading,
     dayPhotos,
     naps,
@@ -820,6 +833,13 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             customNutrients={customNutrients}
           />
         )}
+        <MobilityDiarySection
+          sessions={mobilityDiary.sessions}
+          timezone={mobilityDiary.timezone}
+          failed={mobilityDiary.isError}
+          onRetry={() => void mobilityDiary.refetch()}
+          onPress={() => navigation.navigate('GuidedMobility')}
+        />
         {isConnected && <WellnessCard date={selectedDate} mode="diary" />}
         <PendingNutritionActions
           actions={localFoodActions}

@@ -42,23 +42,25 @@ export function playRestCompleteSound(): void {
 }
 
 /** An explicitly enabled cue for a visible guided-mobility timer. */
-export function playMobilityCueSound(): void {
+export function playMobilityCueSound(cue: 'halfway' | 'end' = 'end'): void {
   if (AppState.currentState !== 'active') return;
-  playForegroundChime();
+  playForegroundChime(cue);
 }
 
-function playForegroundChime(): void {
+let mobilityHalfwayPlayer: AudioPlayer | null = null;
+
+function playForegroundChime(mobilityCue?: 'halfway' | 'end'): void {
   void (async () => {
     try {
-      if (!audioModeConfigured) {
+      if (mobilityCue || !audioModeConfigured) {
         try {
           // Short UI cue: mix with (never duck) the user's music, and stay
-          // silent when the ringer/silent switch is off — the haptic still fires.
+          // silent with the ringer off, except explicitly enabled workout cues.
           await setAudioModeAsync({
-            playsInSilentMode: false,
+            playsInSilentMode: !!mobilityCue,
             interruptionMode: 'mixWithOthers',
           });
-          audioModeConfigured = true;
+          audioModeConfigured = !mobilityCue;
         } catch (err) {
           // Retry on the next chime; a config failure must not mute the cue.
           addLog(
@@ -66,6 +68,15 @@ function playForegroundChime(): void {
             'WARNING'
           );
         }
+      }
+      if (mobilityCue === 'halfway') {
+        if (mobilityHalfwayPlayer == null)
+          mobilityHalfwayPlayer = createAudioPlayer(
+            require('../../assets/sounds/rest-chime-2.wav')
+          );
+        await mobilityHalfwayPlayer.seekTo(0);
+        mobilityHalfwayPlayer.play();
+        return;
       }
       if (restChimePlayer == null) {
         restChimePlayer = createAudioPlayer(
@@ -161,6 +172,7 @@ export function playIntervalCue(
 /** Test-only helper — drops the cached player and audio-mode flag. */
 export function __resetSoundsForTests(): void {
   restChimePlayer = null;
+  mobilityHalfwayPlayer = null;
   intervalWorkPlayer = null;
   intervalRestPlayer = null;
   audioModeConfigured = false;

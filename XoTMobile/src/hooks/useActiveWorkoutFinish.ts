@@ -12,6 +12,7 @@ import {
   needsPhoneWorkoutEnergy,
 } from '../services/workoutHealthExport';
 import { addLog } from '../services/LogService';
+import { requestWorkoutActiveEnergy } from '../services/workoutEnergyPrompt';
 import type { RootStackParamList } from '../types/navigation';
 
 interface UseActiveWorkoutFinishArgs {
@@ -144,57 +145,7 @@ export function useActiveWorkoutFinish({
             (await needsPhoneWorkoutEnergy(state.sessionId))
           ) {
             if (!isCurrentWorkout()) return;
-            activeEnergyKcal = await new Promise<number | undefined>(
-              (resolve) => {
-                const ask = () =>
-                  Alert.prompt(
-                    t('healthSync.workoutEnergyTitle', {
-                      defaultValue: 'Active calories for Apple Health',
-                    }),
-                    t('healthSync.workoutEnergyMessage', {
-                      defaultValue:
-                        'No Watch energy recording was started. Enter active calories only if you know them. Skip export to keep the workout in X on Track without a zero-calorie Health entry. Your goal settings stay unchanged.',
-                    }),
-                    [
-                      {
-                        text: t('healthSync.workoutSkipExport', {
-                          defaultValue: 'Skip export',
-                        }),
-                        style: 'cancel',
-                        onPress: () => resolve(undefined),
-                      },
-                      {
-                        text: t('common.save', { defaultValue: 'Save' }),
-                        onPress: (value?: string) => {
-                          const energy = Number(
-                            value?.trim().replace(',', '.')
-                          );
-                          if (Number.isFinite(energy) && energy > 0)
-                            resolve(energy);
-                          else
-                            Alert.alert(
-                              t('healthSync.workoutEnergyInvalid', {
-                                defaultValue:
-                                  'Enter a positive calorie amount, or skip export.',
-                              }),
-                              undefined,
-                              [
-                                {
-                                  text: t('common.ok', { defaultValue: 'OK' }),
-                                  onPress: ask,
-                                },
-                              ]
-                            );
-                        },
-                      },
-                    ],
-                    'plain-text',
-                    '',
-                    'decimal-pad'
-                  );
-                ask();
-              }
-            );
+            activeEnergyKcal = await requestWorkoutActiveEnergy(t);
           }
           // Watch edits can arrive while the calorie/permission prompt is open.
           // Persist them and use the fresh snapshot for Health export.

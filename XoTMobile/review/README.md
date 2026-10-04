@@ -209,3 +209,14 @@ text cases use the same real components. The isolated transport accepts the
 schema-validated water action in memory, with operation replay detection; it never
 accesses a production account. Offline retry, actual Health writeback and paired
 Watch round-trips remain unit/device gates rather than screenshot claims.
+
+## Mobility flow
+
+`--interactions --mobility-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+seeds one synthetic two-step mobility routine in the existing local store, paused
+before the tour. The transport accepts only that routine and its sessions with
+schema-validated mutations and retained operation IDs. XCTest resumes, captures
+the halfway state, confirms the first exercise, captures transition/automatic
+start, confirms the second and opens its diary entry. Health workout recording is
+disabled in this simulator fixture. These captures verify UI/flow, not audible
+playback, real backend persistence or Apple Health/Fitness export.

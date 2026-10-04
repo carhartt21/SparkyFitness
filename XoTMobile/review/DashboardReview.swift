@@ -1,6 +1,47 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Exercises the real mobile runner and diary against isolated synthetic records.
+  func testMobilityFlow() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    app.buttons.matching(NSPredicate(format: "label IN %@", ["More", "Mehr"])).firstMatch.tap()
+    let tile = app.descendants(matching: .any)["more-mobility"]
+    for _ in 0..<8 { if tile.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(tile.isHittable); tile.tap()
+    let resume = app.buttons["Fortsetzen"]
+    XCTAssertTrue(resume.waitForExistence(timeout: 15))
+    capture("mobility-paused", app)
+    for _ in 0..<6 { if resume.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(resume.isHittable); resume.tap()
+    sleep(11)
+    app.swipeDown()
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "Zweite Hälfte")).firstMatch.waitForExistence(timeout: 10))
+    capture("mobility-halfway", app)
+    let complete = app.buttons["Ich habe diesen Schritt gemacht"]
+    for _ in 0..<6 { if complete.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(complete.isHittable); complete.tap()
+    app.swipeDown()
+    capture("mobility-transition", app)
+    XCTAssertTrue(app.staticTexts["Hüftbeuger"].waitForExistence(timeout: 15))
+    capture("mobility-next-step", app)
+    for _ in 0..<6 { if complete.isHittable { break }; app.swipeUp() }
+    complete.tap()
+    XCTAssertTrue(app.staticTexts["Verlauf der Einheiten"].waitForExistence(timeout: 15))
+    capture("mobility-history", app)
+    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Back", "Zurück"])).firstMatch
+    for _ in 0..<8 { if back.isHittable { break }; app.swipeDown() }
+    XCTAssertTrue(back.isHittable); back.tap()
+    app.buttons["Tagebuch"].tap()
+    let diary = app.otherElements["mobility-diary"]
+    for _ in 0..<8 { if diary.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(diary.waitForExistence(timeout: 15))
+    XCTAssertTrue(app.staticTexts["Mobilitätstraining"].exists)
+    capture("mobility-diary", app)
+  }
+
   /// Presentation-only harness uses production components and synthetic values.
   func testWidgetMotion() throws {
     continueAfterFailure = false

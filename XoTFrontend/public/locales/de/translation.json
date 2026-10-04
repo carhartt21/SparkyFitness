@@ -7075,5 +7075,11 @@
     "historyEmpty": "In diesem Zeitraum wurden keine Wellness-Aktivitäten erfasst.",
     "saveFailed": "Die Aktivität konnte nicht gespeichert werden. Bitte versuchen Sie es erneut.",
     "removeFailed": "Die Aktivität konnte nicht entfernt werden. Bitte versuchen Sie es erneut."
+  },
+  "mobilityDiary": {
+    "title": "Mobilitätstraining",
+    "counts": "{{completed}} abgeschlossen · {{skipped}} übersprungen",
+    "endedEarly": "Vorzeitig beendet",
+    "loadError": "Mobilitätseinheiten konnten nicht geladen werden. Versuchen Sie es erneut."
   }
 }

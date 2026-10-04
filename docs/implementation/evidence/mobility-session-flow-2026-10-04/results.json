@@ -1,0 +1,62 @@
+{
+  "revision": "c83f87f5717a534514659748c2d6ad14917f371d",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "v41Review": false,
+      "motionReview": false,
+      "mobilityReview": true,
+      "reducedMotion": false,
+      "v40Review": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "mobility-flow",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "v41Review": false,
+      "motionReview": false,
+      "mobilityReview": true,
+      "reducedMotion": false,
+      "v40Review": false,
+      "screenshot": "390-de-light.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "mobility-flow",
+      "logicalViewport": "390x844"
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "nativeTabs": false,
+      "v41Review": false,
+      "motionReview": false,
+      "mobilityReview": true,
+      "reducedMotion": false,
+      "v40Review": false,
+      "screenshot": "430-de-large.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "mobility-flow",
+      "logicalViewport": "430x932"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval.",
+  "note": "Recorded from the in-progress mobility feature working tree, based on c83f87f57. Synthetic account/transport; no Apple Health writes were enabled. Later copy, time-zone and diary spacing fixes were verified separately."
+}

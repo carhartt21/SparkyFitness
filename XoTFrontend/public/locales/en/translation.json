@@ -7074,5 +7074,11 @@
     "historyEmpty": "No wellness activities recorded in this period.",
     "saveFailed": "Could not save the activity. Please try again.",
     "removeFailed": "Could not remove the activity. Please try again."
+  },
+  "mobilityDiary": {
+    "title": "Mobility workouts",
+    "counts": "{{completed}} completed · {{skipped}} skipped",
+    "endedEarly": "Ended early",
+    "loadError": "Mobility sessions could not be loaded. Please try again."
   }
 }

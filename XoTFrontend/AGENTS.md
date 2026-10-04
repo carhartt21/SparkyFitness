@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-02_
+_Last updated: 2026-10-04_
 
 X on Track Frontend is the React web app for the X on Track monorepo. Use this file as the primary guide for work inside `XoTFrontend/`.
 
@@ -135,7 +135,7 @@ When searching, ignore `node_modules/`, `dist/`, and every locale except `public
 
 Notification v1/v2 contracts and opt-in v3 coaching capabilities live in `shared/src/schemas/api/Engagement.api.zod.ts`; installed v1 clients retain strict projections. Mobile owns local-to-server handoff and device retirement in `remoteEngagement.ts`; shared `engagement/policy.ts` owns slot selection. Server `engagementPlanningService.ts` derives unresolved subjects; delivery rechecks completion, revision and device capability before sending. Settings display provider acceptance separately from physical receipt.
 
-Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Do not turn mobility completion into exercise calories or HealthKit writes.
+Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-local plans and revisioned idempotent mutations. Mobile `mobilityRoutineStore.ts` retains the original local runner and account-scoped operation queue; web `/mobility` edits definitions/plans and reads history. MCP manual results require existing write scope/consent and cannot resolve an active phone session. Mobility diary rows project confirmed terminal sessions without creating exercise entries or adjusting calorie goals. Explicit phone export may reuse `workoutHealthExport` for a HealthKit flexibility workout, with workout-recording consent, known active kcal or an explicitly confirmed mobility estimate, account guards and the existing idempotent export ledger. MCP/manual plan results never trigger HealthKit export automatically.
 
 ## Micronutrient reports
 

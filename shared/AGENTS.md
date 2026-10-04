@@ -61,3 +61,7 @@ The nutrient source inventory lives in `src/nutrients/blsComponentManifest.ts` (
 ## Wellness activity logging
 
 Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. The diary Wellness cards in web and mobile log presets or literal custom names, undo only the selected day, and read 30 days of history ending on that day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.
+
+## Mobility diary projection
+
+`src/mobility/history.ts` selects terminal mobility sessions with explicitly completed outcomes on the account-local start day. It is display-only: no exercise entry, calorie credit, plan creation, or HealthKit side effect. Phone export is a separate consented action using known energy or an explicitly confirmed mobility estimate and the existing workout exporter. Keep the strict Mobility v2 payloads compatible with installed clients.

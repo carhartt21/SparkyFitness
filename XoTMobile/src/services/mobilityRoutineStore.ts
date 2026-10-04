@@ -142,6 +142,9 @@ async function write(
   }
   await AsyncStorage.setItem(keyFor(identity), JSON.stringify(validated));
   listeners.forEach((listener) => listener());
+  void queryClient.invalidateQueries({
+    queryKey: ['mobility-diary', identity.serverConfigId, identity.userId],
+  });
   return validated;
 }
 
@@ -274,7 +277,10 @@ export function startMobilitySession(
   });
 }
 
-function elapsed(session: MobilitySession, now: Date): number {
+export function mobilityElapsedSeconds(
+  session: MobilitySession,
+  now: Date
+): number {
   if (session.state !== 'running' || !session.phaseStartedAt) {
     return session.elapsedSeconds;
   }
@@ -283,6 +289,9 @@ function elapsed(session: MobilitySession, now: Date): number {
     Math.max(0, (now.getTime() - Date.parse(session.phaseStartedAt)) / 1000)
   );
 }
+
+/** Legacy routines used zero by default. Every next exercise gets setup time. */
+export const MOBILITY_TRANSITION_SECONDS = 5;
 
 /** Timer expiry only changes the displayed countdown; it never records movement. */
 export function mobilitySecondsRemaining(
@@ -293,13 +302,16 @@ export function mobilitySecondsRemaining(
   if (!step) return null;
   const duration =
     session.phase === 'transition'
-      ? session.routine.steps[session.stepIndex - 1]?.transitionSeconds
+      ? Math.max(
+          MOBILITY_TRANSITION_SECONDS,
+          session.routine.steps[session.stepIndex - 1]?.transitionSeconds ?? 0
+        )
       : step.kind === 'timed'
         ? step.durationSeconds
         : null;
   return duration == null
     ? null
-    : Math.max(0, Math.ceil(duration - elapsed(session, now)));
+    : Math.max(0, Math.ceil(duration - mobilityElapsedSeconds(session, now)));
 }
 
 export type MobilitySessionAction =
@@ -309,6 +321,7 @@ export type MobilitySessionAction =
   | 'complete-step'
   | 'skip-step'
   | 'continue'
+  | 'continue-if-ready'
   | 'cancel';
 
 export function applyMobilitySessionAction(
@@ -332,7 +345,7 @@ export function applyMobilitySessionAction(
       next = {
         ...current,
         state: 'paused',
-        elapsedSeconds: elapsed(current, now),
+        elapsedSeconds: mobilityElapsedSeconds(current, now),
         phaseStartedAt: null,
       };
     } else if (action === 'resume') {
@@ -357,7 +370,14 @@ export function applyMobilitySessionAction(
         elapsedSeconds: 0,
         phaseStartedAt: current.state === 'running' ? now.toISOString() : null,
       };
-    } else if (action === 'continue') {
+    } else if (action === 'continue' || action === 'continue-if-ready') {
+      if (
+        action === 'continue-if-ready' &&
+        (current.phase !== 'transition' ||
+          current.state !== 'running' ||
+          mobilitySecondsRemaining(current, now) !== 0)
+      )
+        return current;
       if (current.phase !== 'transition') {
         throw new Error('No transition is active.');
       }
@@ -382,7 +402,7 @@ export function applyMobilitySessionAction(
         ...current,
         outcomes: [...current.outcomes, outcome],
         stepIndex: isLast ? current.stepIndex : current.stepIndex + 1,
-        phase: !isLast && step.transitionSeconds > 0 ? 'transition' : 'step',
+        phase: !isLast ? 'transition' : 'step',
         state: isLast ? 'finished' : current.state,
         elapsedSeconds: 0,
         phaseStartedAt:

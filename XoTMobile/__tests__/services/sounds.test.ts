@@ -141,3 +141,26 @@ describe('sounds service', () => {
     );
   });
 });
+
+test('halfway and end mobility sounds use separate players and are audible in silent mode', async () => {
+  __resetAppPreferencesStoreForTests();
+  __resetSoundsForTests();
+  mockCreatePlayer.mockClear();
+  mockSetAudioMode.mockClear();
+  setAppState('active');
+  playMobilityCueSound('halfway');
+  await flush();
+  playMobilityCueSound('end');
+  await flush();
+  expect(mockCreatePlayer).toHaveBeenCalledTimes(2);
+  expect(mockSetAudioMode).toHaveBeenLastCalledWith({
+    playsInSilentMode: true,
+    interruptionMode: 'mixWithOthers',
+  });
+  playRestCompleteSound();
+  await flush();
+  expect(mockSetAudioMode).toHaveBeenLastCalledWith({
+    playsInSilentMode: false,
+    interruptionMode: 'mixWithOthers',
+  });
+});

@@ -4,6 +4,8 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DiaryScreen from '../../src/screens/DiaryScreen';
+import { useMobilityDiary } from '../../src/hooks/useMobilityDiary';
+import { mobilitySession } from '../helpers/mobilityFixtures';
 import {
   useDailySummary,
   useCustomNutrients,
@@ -23,6 +25,15 @@ import { EMPTY_SUPPLEMENT_TOTALS } from '@workspace/shared';
 import type { DailySummary, MacroSummary } from '../../src/types/dailySummary';
 import type { FoodEntry } from '../../src/types/foodEntries';
 import { buildSleepEntry } from '../helpers/sleepFixtures';
+
+jest.mock('../../src/hooks/useMobilityDiary', () => ({
+  useMobilityDiary: jest.fn(() => ({
+    sessions: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  })),
+}));
 
 type DiaryScreenProps = React.ComponentProps<typeof DiaryScreen>;
 
@@ -399,6 +410,15 @@ const renderScreen = () => {
   );
 };
 
+beforeEach(() => {
+  jest.mocked(useMobilityDiary).mockReturnValue({
+    sessions: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  });
+});
+
 describe('DiaryScreen custom queries', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -656,6 +676,21 @@ describe('DiaryScreen sleep cards', () => {
     configureConnection(true);
     configureOnlineData();
     configureSleep();
+  });
+
+  test('confirmed mobility alone keeps the day non-empty and opens session history', () => {
+    configureSleep({ wakeUp: null, naps: [], bedTime: null });
+    jest.mocked(useMobilityDiary).mockReturnValue({
+      sessions: [mobilitySession()],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    const screen = renderScreen();
+    expect(screen.queryByTestId('empty-day')).toBeNull();
+    expect(screen.getByText('Morning reach')).toBeTruthy();
+    fireEvent.press(screen.getByText('Morning reach'));
+    expect(mockNavigation.navigate).toHaveBeenCalledWith('GuidedMobility');
   });
 
   test('renders all three cards when the day has sleep data', () => {
