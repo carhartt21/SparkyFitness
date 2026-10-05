@@ -14,12 +14,12 @@ const SyncFrequency: React.FC<SyncFrequencyProps> = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <View className="bg-surface rounded-xl p-4 mb-4 shadow-sm">
+    <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-4">
       <Text className="text-lg font-bold mb-3 text-text-primary">
         {t('syncFrequency.title', { defaultValue: 'Background Sync' })}
       </Text>
-      <View className="flex-row justify-between items-center">
-        <Text className="text-base text-text-primary">
+      <View className="flex-row justify-between items-center gap-3">
+        <Text className="min-w-0 flex-1 text-base text-text-primary">
           {t('syncFrequency.enable', {
             defaultValue: 'Enable Background Sync',
           })}
@@ -36,7 +36,7 @@ const SyncFrequency: React.FC<SyncFrequencyProps> = ({
         />
       </View>
       {Platform.OS === 'ios' && (
-        <Text className="text-[13px] text-text-muted leading-4.5 mt-1">
+        <Text className="text-sm text-text-secondary mt-3">
           {t('syncFrequency.iosNote', {
             defaultValue:
               'When enabled, the app will update in the background when your phone allows it. Manually syncing will always update right away.',

@@ -1,3 +1,4 @@
+import { groupFoodEntriesByMealType } from './mealNutrition';
 import { localDateTimeToUtc, utcToLocalDateTimeInput } from '@workspace/shared';
 
 export interface DiaryTimelineItem {
@@ -54,5 +55,54 @@ export function sortDiaryTimeline<T extends DiaryTimelineItem>(
     if (a.timestamp === null && b.timestamp !== null) return 1;
     if (b.timestamp === null && a.timestamp !== null) return -1;
     return (a.timestamp ?? 0) - (b.timestamp ?? 0) || a.id.localeCompare(b.id);
+  });
+}
+
+/** Keep canonical meal identities; historical days contain logged groups only. */
+export function diaryMealGroups(
+  entries: import('../types/foodEntries').FoodEntry[],
+  mealTypes: import('../types/mealTypes').MealType[],
+  day: string,
+  today: string,
+  timezone: string
+) {
+  const groups = groupFoodEntriesByMealType(entries, mealTypes);
+  if (day >= today) {
+    for (const meal of mealTypes) {
+      if (
+        meal.is_visible &&
+        meal.purpose !== 'import' &&
+        !groups.some((group) => group.mealTypeId === meal.id)
+      ) {
+        groups.push({
+          mealTypeId: meal.id,
+          name: meal.name,
+          displayName: meal.display_name,
+          sortOrder: meal.sort_order,
+          iconKey: meal.icon_key,
+          entries: [],
+          isSystem: meal.user_id === null,
+        });
+      }
+    }
+  }
+  return groups.map((group) => {
+    const meal = mealTypes.find((item) => item.id === group.mealTypeId);
+    const recorded = sortDiaryTimeline(
+      group.entries.map((entry) => ({
+        ...entry,
+        timestamp: diaryTimestamp(day, entry.entry_time, timezone),
+      }))
+    );
+    // Current settings are not historical evidence of when a meal was eaten.
+    const scheduled =
+      day >= today ? diaryTimestamp(day, meal?.default_time, timezone) : null;
+    return {
+      ...group,
+      entries: recorded,
+      timestamp: scheduled ?? recorded[0]?.timestamp ?? null,
+      clock:
+        scheduled !== null ? (meal?.default_time?.slice(0, 5) ?? null) : null,
+    };
   });
 }

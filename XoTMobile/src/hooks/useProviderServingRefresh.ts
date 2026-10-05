@@ -47,41 +47,49 @@ export function useProviderServingRefresh(
       stop();
     };
   }, []);
+  const externalId =
+    food?.provider_external_id?.trim() ||
+    (food?.barcode && /^\d{6,18}$/.test(food.barcode)
+      ? food.barcode
+      : undefined);
   const eligible =
     enabled &&
     food?.source === 'local' &&
     food.provider_type === 'openfoodfacts' &&
-    !!food.provider_external_id &&
+    !!externalId &&
     !!identity &&
     food.userId === identity.userId;
   const query = useQuery({
     queryKey: [
       'providerServingRefresh',
-      1,
+      2,
       identity?.serverConfigId,
       identity?.userId,
       food?.id,
-      food?.provider_external_id,
+      externalId,
       language,
     ],
     enabled: eligible,
     staleTime: 24 * 60 * 60 * 1000,
     retry: false,
     queryFn: async () => {
-      if (!food || !identity || food.userId !== identity.userId)
+      if (!food || !externalId || !identity || food.userId !== identity.userId)
         throw new Error('Food owner changed');
+      const isCurrentOwner = async () => {
+        const active = await getActiveNutritionIdentity();
+        return (
+          active?.serverConfigId === identity.serverConfigId &&
+          active.userId === identity.userId
+        );
+      };
       const publish = async (
         variants: FoodVariantDetail[],
         changed: boolean
       ) => {
-        const active = await getActiveNutritionIdentity();
-        if (
-          active?.serverConfigId !== identity.serverConfigId ||
-          active.userId !== identity.userId
-        )
-          return;
+        if (!(await isCurrentOwner())) return;
         // Discard any older in-flight variant read before publishing newly appended rows.
-        void client.cancelQueries({ queryKey: foodVariantsQueryKey(food.id) });
+        await client.cancelQueries({ queryKey: foodVariantsQueryKey(food.id) });
+        if (!(await isCurrentOwner())) return;
         client.setQueryData(foodVariantsQueryKey(food.id), variants);
         if (changed) invalidateFoodCache(client);
       };
@@ -100,13 +108,16 @@ export function useProviderServingRefresh(
       }
       const details = await fetchExternalFoodDetails(
         'openfoodfacts',
-        food.provider_external_id!,
+        externalId,
         undefined,
         undefined,
-        language
+        language,
+        identity
       );
       // Re-read before appending so another screen's newly saved choices are preserved.
+      if (!(await isCurrentOwner())) return existing;
       const current = await fetchFoodVariants(food.id, identity);
+      if (!(await isCurrentOwner())) return existing;
       const missing = missingProviderServings(
         food.id,
         current,

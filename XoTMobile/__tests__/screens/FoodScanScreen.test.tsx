@@ -268,7 +268,7 @@ describe('FoodScanScreen', () => {
             provider_type: 'yazio',
             provider_external_id: 'yazio-apple-1',
             provider_verified: true,
-            servingDescription: '1 piece (200 g)',
+            servingDescription: '200 g',
             externalVariants: expect.arrayContaining([
               expect.objectContaining({
                 serving_size: 1,

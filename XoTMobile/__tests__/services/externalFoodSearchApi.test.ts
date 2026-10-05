@@ -1564,17 +1564,17 @@ describe('externalFoodSearchApi', () => {
           'openfoodfacts'
         );
         expect(result).toMatchObject({
-          serving_size: 1,
-          serving_unit: 'serving',
+          serving_size: 21.5,
+          serving_unit: 'g',
           calories: 123,
         });
-        expect(result.variants?.[0]).toMatchObject({
+        expect(result.variants?.[1]).toMatchObject({
           metric_amount: 21.5,
           metric_unit: 'g',
           sort_order: 1,
         });
         const units = buildExternalUnitVariants(result.variants);
-        expect(units[0]).toMatchObject({
+        expect(units[1]).toMatchObject({
           metric_amount: 21.5,
           metric_unit: 'g',
         });
@@ -1966,8 +1966,8 @@ describe('externalFoodSearchApi', () => {
         expect(
           result.variants?.map((variant) => variant.serving_description)
         ).toEqual([
-          '1 serving (200 g)',
           '100 g',
+          '1 serving (200 g)',
           '200 g',
           '1 serving (400 g)',
           '400 g',
@@ -2035,7 +2035,7 @@ describe('externalFoodSearchApi', () => {
         expect(result.variants![1].serving_unit).toBe('small');
       });
 
-      test('preferred serving overrides the named-serving swap on a 100g default', () => {
+      test('new imports default to grams while explicit portions remain selectable', () => {
         const food = {
           name: 'Pork Chop',
           brand: null,
@@ -2063,10 +2063,9 @@ describe('externalFoodSearchApi', () => {
           ],
         };
 
-        // Without a preferred serving the named-serving heuristic swaps
-        // display to the household size; the caller's serving pins it back.
+        // Metric input remains the default even when the provider has portions.
         expect(transformNormalizedFood(food, 'fatsecret').serving_unit).toBe(
-          'small'
+          'g'
         );
 
         const pinned = transformNormalizedFood(food, 'fatsecret', {

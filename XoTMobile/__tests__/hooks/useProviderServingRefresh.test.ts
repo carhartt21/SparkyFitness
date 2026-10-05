@@ -99,7 +99,8 @@ describe('refreshing an owned, previously saved OFF food', () => {
       'synthetic-provider-id',
       undefined,
       undefined,
-      'de'
+      'de',
+      identity
     );
     expect(createFoodVariant).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -118,6 +119,27 @@ describe('refreshing an owned, previously saved OFF food', () => {
     ).toEqual(basis);
     hook.rerender({});
     expect(fetchExternalFoodDetails).toHaveBeenCalledTimes(1);
+  });
+  it('refreshes a legacy saved OFF food by its valid barcode when the provider ID is absent', async () => {
+    renderHook(
+      () =>
+        useProviderServingRefresh(
+          { ...food, provider_external_id: null, barcode: '80052760' },
+          true
+        ),
+      {
+        wrapper: createQueryWrapper(client),
+      }
+    );
+    await waitFor(() => expect(fetchExternalFoodDetails).toHaveBeenCalled());
+    expect(fetchExternalFoodDetails).toHaveBeenCalledWith(
+      'openfoodfacts',
+      '80052760',
+      undefined,
+      undefined,
+      'de',
+      identity
+    );
   });
   it('preserves already imported or custom portions without an upstream request', async () => {
     jest.mocked(fetchFoodVariants).mockResolvedValue([
@@ -193,7 +215,8 @@ describe('refreshing an owned, previously saved OFF food', () => {
     renderHook(() => useProviderServingRefresh(food, true), {
       wrapper: createQueryWrapper(client),
     });
-    await waitFor(() => expect(createFoodVariant).toHaveBeenCalled());
+    await waitFor(() => expect(fetchExternalFoodDetails).toHaveBeenCalled());
+    expect(createFoodVariant).not.toHaveBeenCalled();
     expect(client.getQueryData(foodVariantsQueryKey('food'))).toBeUndefined();
   });
   it.each([false, true])(

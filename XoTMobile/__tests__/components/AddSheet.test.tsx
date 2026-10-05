@@ -43,7 +43,7 @@ jest.mock('@gorhom/bottom-sheet', () => {
         );
       }
     ),
-    BottomSheetView: ({ children }: any) =>
+    BottomSheetScrollView: ({ children }: any) =>
       React.createElement(View, null, children),
     BottomSheetBackdrop: () => null,
   };
@@ -130,6 +130,16 @@ describe('AddSheet', () => {
     expect(onDismissWithoutAction).toHaveBeenCalledTimes(1);
   });
 
+  it('offers water and mobility through the same quick-action grid', () => {
+    const onAddWater = jest.fn();
+    const onAddMobility = jest.fn();
+    const screen = renderAddSheet({ onAddWater, onAddMobility });
+    act(() => screen.ref.current?.present());
+    fireEvent.press(screen.getByText('Water'));
+    fireEvent.press(screen.getByText('Mobility'));
+    expect(onAddWater).toHaveBeenCalledTimes(1);
+    expect(onAddMobility).toHaveBeenCalledTimes(1);
+  });
   it('renders the Measurements tile in the main grid', () => {
     const { ref, getByText } = renderAddSheet();
 

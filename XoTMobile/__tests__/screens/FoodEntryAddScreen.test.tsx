@@ -1008,7 +1008,9 @@ describe('FoodEntryAddScreen', () => {
         item: externalFoodItemToFoodInfo(external),
         date: '2026-04-23',
       });
-      expect(amountValue(screen)).toBe(1);
+      expect(amountValue(screen)).toBe(referenceSize);
+      fireEvent.press(screen.getByTestId('food-entry-unit-picker'));
+      fireEvent.press(screen.getByTestId('menu-item-ext-1'));
       typeAmount(screen, '2');
       expect(
         screen.getByTestId('food-entry-highlight-calories').props

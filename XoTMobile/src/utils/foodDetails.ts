@@ -268,6 +268,10 @@ export function foodInfoToUnitVariant(item: FoodInfoItem): FoodUnitVariant {
     serving_size: item.servingSize,
     serving_unit: item.servingUnit,
     serving_description: item.servingDescription,
+    serving_label: item.serving_label,
+    metric_amount: item.metric_amount,
+    metric_unit: item.metric_unit,
+    sort_order: item.sort_order,
     calories: item.calories,
     protein: item.protein,
     carbs: item.carbs,
@@ -299,6 +303,10 @@ export function localVariantToUnitVariant(
     id: variant.id,
     food_id: variant.food_id,
     is_default: variant.is_default,
+    serving_label: variant.serving_label,
+    metric_amount: variant.metric_amount,
+    metric_unit: variant.metric_unit,
+    sort_order: variant.sort_order,
     serving_size: variant.serving_size,
     serving_unit: variant.serving_unit,
     calories: variant.calories,
@@ -399,27 +407,12 @@ export function selectDisplayVariant<
       )
     : undefined;
 
-  // A provider's gram-sized default can describe one named serving of the
-  // exact same weight (OFF "21.5 g" + "1 serving"). Prefer that usable count,
-  // while retaining an explicit requested metric selection and the gram basis.
-  const equivalentPortion = isMetricUnit(defaultVariant.serving_unit)
-    ? variants.find(
-        (variant) =>
-          !isMetricUnit(variant.serving_unit) &&
-          variant.metric_unit === defaultVariant.serving_unit &&
-          Number(variant.metric_amount) === defaultVariant.serving_size
-      )
-    : undefined;
-  const namedVariant =
-    equivalentPortion ??
-    (isReferenceServing(
-      defaultVariant.serving_size,
-      defaultVariant.serving_unit
-    )
-      ? variants.find((variant) => !isMetricUnit(variant.serving_unit))
-      : undefined);
-
-  const displayVariant = requestedVariant ?? namedVariant ?? defaultVariant;
+  // New entries start with the metric nutrition basis. An explicit selection
+  // stays authoritative, including when detail hydration adds provider portions.
+  const metricVariant = isMetricUnit(defaultVariant.serving_unit)
+    ? defaultVariant
+    : variants.find((variant) => isMetricUnit(variant.serving_unit));
+  const displayVariant = requestedVariant ?? metricVariant ?? defaultVariant;
   const orderedVariants = [displayVariant];
   if (!isSameVariant(displayVariant, defaultVariant)) {
     orderedVariants.push(defaultVariant);
@@ -622,46 +615,55 @@ export function buildExternalVariantOptions(
     })
   );
 
-  return groupEquivalentVariants(optionVariants).map(
-    ({ base, equivalents }) => {
-      const servingDescription = base.serving_description ?? undefined;
-      const values = {
-        servingSize: base.serving_size,
-        servingUnit: base.serving_unit,
-        servingDescription,
-        calories: base.calories,
-      };
-      return {
-        id: base.id,
-        label: formatVariantLabel(values, equivalents),
-        quantityUnitLabel: formatQuantityUnitLabel(values, equivalents),
-        perServingLabel: formatVariantServingLabel(values, equivalents),
-        servingDescription,
-        servingSize: base.serving_size,
-        servingUnit: base.serving_unit,
-        calories: base.calories,
-        protein: base.protein,
-        carbs: base.carbs,
-        fat: base.fat,
-        fiber: base.dietary_fiber,
-        saturatedFat: base.saturated_fat,
-        monounsaturatedFat: base.monounsaturated_fat,
-        polyunsaturatedFat: base.polyunsaturated_fat,
-        sodium: base.sodium,
-        sugars: base.sugars,
-        transFat: base.trans_fat,
-        potassium: base.potassium,
-        calcium: base.calcium,
-        iron: base.iron,
-        caffeineMg: base.caffeine_mg,
-        waterMl: base.water_ml,
-        alcoholG: base.alcohol_g,
-        cholesterol: base.cholesterol,
-        vitaminA: base.vitamin_a,
-        vitaminC: base.vitamin_c,
-      };
-    }
-  );
+  // A portion and its gram basis are distinct input methods even when their
+  // nutrients match. Never collapse the gram input into a named portion.
+  return optionVariants.map((base) => {
+    const equivalents: EquivalentUnit[] =
+      base.metric_amount && base.metric_unit && !isMetricUnit(base.serving_unit)
+        ? [
+            {
+              serving_size: Number(base.metric_amount),
+              serving_unit: base.metric_unit,
+            },
+          ]
+        : [];
+    const servingDescription = base.serving_description ?? undefined;
+    const values = {
+      servingSize: base.serving_size,
+      servingUnit: base.serving_unit,
+      servingDescription,
+      calories: base.calories,
+    };
+    return {
+      id: base.id,
+      label: formatVariantLabel(values, equivalents),
+      quantityUnitLabel: formatQuantityUnitLabel(values, equivalents),
+      perServingLabel: formatVariantServingLabel(values, equivalents),
+      servingDescription,
+      servingSize: base.serving_size,
+      servingUnit: base.serving_unit,
+      calories: base.calories,
+      protein: base.protein,
+      carbs: base.carbs,
+      fat: base.fat,
+      fiber: base.dietary_fiber,
+      saturatedFat: base.saturated_fat,
+      monounsaturatedFat: base.monounsaturated_fat,
+      polyunsaturatedFat: base.polyunsaturated_fat,
+      sodium: base.sodium,
+      sugars: base.sugars,
+      transFat: base.trans_fat,
+      potassium: base.potassium,
+      calcium: base.calcium,
+      iron: base.iron,
+      caffeineMg: base.caffeine_mg,
+      waterMl: base.water_ml,
+      alcoholG: base.alcohol_g,
+      cholesterol: base.cholesterol,
+      vitaminA: base.vitamin_a,
+      vitaminC: base.vitamin_c,
+    };
+  });
 }
 
 export function buildLocalUnitVariants(

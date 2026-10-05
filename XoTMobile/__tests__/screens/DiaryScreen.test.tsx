@@ -7,6 +7,14 @@ jest.mock('../../src/components/SwipeableFoodRow', () => {
     ),
   };
 });
+jest.mock('../../src/hooks/useDiaryScheduledEntries', () => ({
+  useDiaryScheduledEntries: jest.fn(() => ({
+    entries: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  })),
+}));
 jest.mock('../../src/hooks/useMedications', () => ({
   useMedications: () => ({
     data: [],
@@ -31,6 +39,7 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DiaryScreen from '../../src/screens/DiaryScreen';
+import { useDiaryScheduledEntries } from '../../src/hooks/useDiaryScheduledEntries';
 import { useMobilityDiary } from '../../src/hooks/useMobilityDiary';
 import { mobilitySession } from '../helpers/mobilityFixtures';
 import {
@@ -251,14 +260,6 @@ jest.mock('../../src/components/FoodSummary', () => {
   return { __esModule: true, default: () => <View testID="food-summary" /> };
 });
 
-jest.mock('../../src/components/ExerciseSummary', () => {
-  const { View } = require('react-native');
-  return {
-    __esModule: true,
-    default: () => <View testID="exercise-summary" />,
-  };
-});
-
 jest.mock('../../src/components/MeasurementsSummary', () => {
   const { View } = require('react-native');
   return {
@@ -449,6 +450,12 @@ const renderScreen = (hydration?: HydrationDayDetails) => {
 };
 
 beforeEach(() => {
+  jest.mocked(useDiaryScheduledEntries).mockReturnValue({
+    entries: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  });
   jest.mocked(useMedicationEntries).mockReturnValue({
     data: [],
     isLoading: false,
@@ -508,6 +515,18 @@ describe('DiaryScreen custom queries', () => {
     );
     expect(useNutritionCapturesByDate).toHaveBeenCalledWith('2024-06-15', true);
   });
+  test.each(['loading', 'error'] as const)(
+    'does not call the day empty while scheduled entries are in %s',
+    (state) => {
+      jest.mocked(useDiaryScheduledEntries).mockReturnValue({
+        entries: [],
+        isLoading: state === 'loading',
+        isError: state === 'error',
+        refetch: jest.fn(),
+      });
+      expect(renderScreen().queryByTestId('empty-day')).toBeNull();
+    }
+  );
   test('interleaves recorded intake, food, water and mobility, without duplicating linked food hydration or showing scheduled intake as taken', () => {
     const entry: MedicationEntry = {
       id: 'taken',
@@ -584,7 +603,7 @@ describe('DiaryScreen custom queries', () => {
       screen.getAllByTestId(/^diary-event-/).map((row) => row.props.testID)
     ).toEqual([
       'diary-event-intake:taken',
-      'diary-event-food:breakfast',
+      'diary-event-meal:breakfast',
       'diary-event-water:water',
       'diary-event-mobility:00000000-0000-4000-8000-000000000003',
     ]);
@@ -808,6 +827,11 @@ describe('DiaryScreen custom queries', () => {
   });
 });
 
+function expandTimeline(screen: ReturnType<typeof renderScreen>) {
+  for (const row of screen.queryAllByTestId(/^diary-expand-/))
+    fireEvent.press(row);
+}
+
 describe('DiaryScreen sleep cards', () => {
   const napEntry = buildSleepEntry({
     id: 'nap-1',
@@ -860,12 +884,19 @@ describe('DiaryScreen sleep cards', () => {
     const screen = renderScreen();
     expect(screen.queryByTestId('empty-day')).toBeNull();
     expect(screen.getByText('Morning reach')).toBeTruthy();
-    fireEvent.press(screen.getByText('Morning reach'));
+    fireEvent.press(
+      screen.getByTestId(
+        'diary-expand-mobility:00000000-0000-4000-8000-000000000003'
+      )
+    );
+    fireEvent.press(screen.getAllByText('Morning reach').at(-1)!);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('GuidedMobility');
   });
 
   test('renders all three cards when the day has sleep data', () => {
-    const { getByTestId } = renderScreen();
+    const screen = renderScreen();
+    expandTimeline(screen);
+    const { getByTestId } = screen;
 
     expect(getByTestId('wake-up-card')).toBeTruthy();
     expect(getByTestId('naps-card')).toBeTruthy();
@@ -875,13 +906,15 @@ describe('DiaryScreen sleep cards', () => {
   test('sleep alone keeps the day non-empty, suppressing the illustration', () => {
     // baseSummary has no food, exercise or measurements — sleep is the only thing
     // recorded. A day the user slept through is not an empty day.
-    const { getByTestId, queryByTestId } = renderScreen();
+    const screen = renderScreen();
+    expandTimeline(screen);
+    const { getByTestId, queryByTestId } = screen;
 
     expect(queryByTestId('empty-day')).toBeNull();
     expect(getByTestId('wake-up-card')).toBeTruthy();
     // The food and exercise sections still render, empty, as the day's scaffolding.
     expect(queryByTestId('status-view')).toBeNull();
-    expect(getByTestId('exercise-summary')).toBeTruthy();
+    expect(queryByTestId('exercise-summary')).toBeNull();
   });
 
   test('a nap alone is enough to keep the day non-empty', () => {
@@ -889,7 +922,9 @@ describe('DiaryScreen sleep cards', () => {
     // only an afternoon nap still renders as a real day.
     configureSleep({ wakeUp: null, naps: [napEntry], bedTime: null });
 
-    const { getByTestId, queryByTestId } = renderScreen();
+    const screen = renderScreen();
+    expandTimeline(screen);
+    const { getByTestId, queryByTestId } = screen;
 
     expect(queryByTestId('empty-day')).toBeNull();
     expect(getByTestId('naps-card')).toBeTruthy();
@@ -902,11 +937,11 @@ describe('DiaryScreen sleep cards', () => {
     // arrived must not sit behind "Loading diary..." waiting on `/api/sleep`.
     configureSleep({ wakeUp: null, naps: [], bedTime: null, isLoading: true });
 
-    const { getByTestId, queryByTestId } = renderScreen();
+    const { queryByTestId } = renderScreen();
 
     expect(queryByTestId('status-view')).toBeNull();
     expect(queryByTestId('status-view')).toBeNull();
-    expect(getByTestId('exercise-summary')).toBeTruthy();
+    expect(queryByTestId('exercise-summary')).toBeNull();
   });
 
   test('holds the empty-day illustration until the sleep query settles', () => {
@@ -944,7 +979,9 @@ describe('DiaryScreen sleep cards', () => {
       }),
     });
 
-    const { getByTestId, queryByTestId } = renderScreen();
+    const screen = renderScreen();
+    expandTimeline(screen);
+    const { getByTestId, queryByTestId } = screen;
 
     expect(queryByTestId('empty-day')).toBeNull();
     expect(getByTestId('bed-time-card')).toBeTruthy();
@@ -959,7 +996,9 @@ describe('DiaryScreen sleep cards', () => {
       refetch: refetchSummary,
     } as ReturnType<typeof useDailySummary>);
 
-    const { getByTestId, UNSAFE_root } = renderScreen();
+    const screen = renderScreen();
+    expandTimeline(screen);
+    const { getByTestId, UNSAFE_root } = screen;
 
     const order = [
       'wake-up-card',

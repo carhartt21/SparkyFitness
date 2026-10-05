@@ -25,6 +25,7 @@ import FoodsLibraryScreen from '../screens/FoodsLibraryScreen';
 import MealsLibraryScreen from '../screens/MealsLibraryScreen';
 import MealPlansScreen from '../screens/MealPlansScreen';
 import MealPlanFormScreen from '../screens/MealPlanFormScreen';
+import WaterLogScreen from '../screens/WaterLogScreen';
 import WaterContainersScreen from '../screens/WaterContainersScreen';
 import WaterContainerEditScreen from '../screens/WaterContainerEditScreen';
 import ExercisesLibraryScreen from '../screens/ExercisesLibraryScreen';
@@ -525,3 +526,5 @@ export const SafeWorkoutPlanForm = withErrorBoundary(
   'WorkoutPlanForm',
   { canGoBack: true }
 );
+
+export const SafeWaterLog = withErrorBoundary(WaterLogScreen, 'WaterLog');

@@ -1,4 +1,5 @@
 import { getClient } from '../db/poolManager.js';
+import { ValidationError } from '../utils/errors.js';
 import type {
   CreateMedicationEntryBody,
   UpdateMedicationEntryBody,
@@ -67,13 +68,33 @@ async function createEntry(userId: string, data: CreateMedicationEntryBody) {
           }
         }
         nameSnapshot ||= med.display_name || med.name;
-        // For a supplement the snapshot is what the report multiplies the per-dose payload
-        // by, so it MUST be the authoritative schedule/medication dose count — never a
-        // client-supplied value, which could be stale, zero or negative and skew every
-        // nutrient in the report. Non-supplement entries keep the existing behaviour of
-        // honouring a caller-provided snapshot and falling back to the medication dose.
+        // Planned occurrences use the authoritative schedule dose. An explicit,
+        // unscheduled PRN intake may record a different actual amount, in the
+        // medication's existing unit; nutrients remain server-derived per unit.
         if (med.is_supplement) {
-          doseAmountSnapshot = med.dose_amount;
+          const extraIntake = !data.schedule_id && data.status === 'prn_taken';
+          if (
+            extraIntake &&
+            doseAmountSnapshot !== undefined &&
+            doseAmountSnapshot !== null
+          ) {
+            if (
+              !Number.isFinite(doseAmountSnapshot) ||
+              doseAmountSnapshot <= 0
+            ) {
+              throw new ValidationError(
+                'Intake amount must be greater than zero.'
+              );
+            }
+            if (doseUnitSnapshot && doseUnitSnapshot !== med.dose_unit) {
+              throw new ValidationError(
+                'Intake unit must match the supplement unit.'
+              );
+            }
+          } else {
+            doseAmountSnapshot = med.dose_amount;
+          }
+          doseUnitSnapshot = med.dose_unit;
         } else if (
           doseAmountSnapshot === undefined ||
           doseAmountSnapshot === null

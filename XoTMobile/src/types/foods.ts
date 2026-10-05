@@ -7,6 +7,10 @@ export interface FoodDefaultVariant {
    */
   source?: 'manual' | 'ai_estimate' | 'imported';
   ai_confidence?: 'high' | 'medium' | 'low' | null;
+  serving_label?: string | null;
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number;
   serving_size: number;
   serving_unit: string;
   calories: number;

@@ -157,6 +157,10 @@ export interface FoodInfoItem {
   servingSize: number;
   servingUnit: string;
   servingDescription?: string;
+  serving_label?: string | null;
+  metric_amount?: number | string | null;
+  metric_unit?: 'g' | 'ml' | null;
+  sort_order?: number;
   calories: number;
   protein: number;
   carbs: number;
@@ -217,6 +221,10 @@ export const foodItemToFoodInfo = (
   provider_verified: item.provider_verified,
   servingSize: item.default_variant.serving_size,
   servingUnit: item.default_variant.serving_unit,
+  serving_label: item.default_variant.serving_label,
+  metric_amount: item.default_variant.metric_amount,
+  metric_unit: item.default_variant.metric_unit,
+  sort_order: item.default_variant.sort_order,
   calories: item.default_variant.calories,
   protein: item.default_variant.protein,
   carbs: item.default_variant.carbs,
@@ -257,6 +265,10 @@ export const externalFoodItemToFoodInfo = (
   servingSize: item.serving_size,
   servingUnit: item.serving_unit,
   servingDescription: item.serving_description,
+  serving_label: item.serving_label,
+  metric_amount: item.metric_amount,
+  metric_unit: item.metric_unit,
+  sort_order: item.sort_order,
   calories: item.calories,
   protein: item.protein,
   carbs: item.carbs,

@@ -83,6 +83,7 @@ export type RootStackParamList = {
   MealPlans: undefined;
   MealPlanForm: { template?: MealPlanTemplate; initialMeal?: Meal } | undefined;
   // #2115, Phase 12: mobile-only water-container CRUD.
+  WaterLog: { date?: string } | undefined;
   WaterContainers: undefined;
   WaterContainerEdit: { containerId?: number } | undefined;
   ExercisesLibrary: undefined;

@@ -1,6 +1,59 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Native layout/navigation gate, using isolated records only; no Health writes.
+  func testV43Corrections() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    app.buttons["Tagebuch"].tap()
+    let meal = app.buttons["diary-expand-meal:review-breakfast-type"]
+    XCTAssertTrue(meal.waitForExistence(timeout: 15))
+    capture("v43-diary-collapsed", app)
+    meal.tap()
+    capture("v43-diary-expanded", app)
+    XCTAssertGreaterThanOrEqual(meal.frame.height, 44)
+    app.buttons["app-header-logo"].tap()
+    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add", "Hinzufügen"])).firstMatch
+    XCTAssertTrue(add.waitForExistence(timeout: 10)); add.tap()
+    XCTAssertTrue(app.buttons["add-sheet-water"].waitForExistence(timeout: 10))
+    for _ in 0..<8 { if app.buttons["add-sheet-water"].isHittable { break }; app.swipeUp() }
+    capture("v43-quick-add", app)
+    app.buttons["add-sheet-water"].tap()
+    XCTAssertTrue(app.staticTexts["Wasser"].waitForExistence(timeout: 15))
+    capture("v43-water-log", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    app.buttons["Mehr"].tap()
+    let supplements = app.descendants(matching: .any)["more-supplements"]
+    for _ in 0..<8 { if supplements.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(supplements.isHittable); supplements.tap()
+    let extra = app.buttons["supplements-log-extra"]
+    for _ in 0..<8 { if extra.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(extra.waitForExistence(timeout: 15)); extra.tap()
+    capture("v43-extra-intake", app)
+    XCTAssertTrue(app.textFields["supplements-extra-amount"].exists)
+    app.buttons["Zurück"].firstMatch.tap()
+    let mobility = app.descendants(matching: .any)["more-mobility"]
+    for _ in 0..<8 { if mobility.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(mobility.isHittable); mobility.tap()
+    let start = app.buttons["Schulter- und Hüftmobilität starten"]
+    XCTAssertTrue(start.waitForExistence(timeout: 15))
+    for _ in 0..<6 { if start.isHittable { break }; app.swipeUp() }
+    XCTAssertGreaterThanOrEqual(start.frame.height, 44)
+    capture("v43-mobility-list", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    for _ in 0..<8 { if app.buttons["open-settings"].isHittable { break }; app.swipeDown() }
+    app.buttons["open-settings"].tap()
+    let sync = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Gesundheitsdaten synchronisieren")).firstMatch
+    for _ in 0..<8 { if sync.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(sync.isHittable); sync.tap()
+    XCTAssertTrue(app.staticTexts["Gesundheitsdaten"].waitForExistence(timeout: 15))
+    capture("v43-sync-top", app)
+    app.swipeUp(velocity: .slow)
+    capture("v43-sync-range", app)
+  }
+
   func testCoachingReviews() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

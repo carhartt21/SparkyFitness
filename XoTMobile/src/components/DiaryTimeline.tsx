@@ -1,4 +1,4 @@
-import { Fragment, type ReactNode } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
@@ -12,6 +12,9 @@ export interface DiaryTimelineEntry extends DiaryTimelineItem {
   clock: string | null;
   label: string;
   content: ReactNode;
+  summary?: ReactNode;
+  accessory?: ReactNode;
+  collapsible?: boolean;
 }
 
 export default function DiaryTimeline({
@@ -60,28 +63,65 @@ export default function DiaryTimeline({
                   })}
                 </Text>
               )}
-            <View
-              testID={`diary-event-${entry.id}`}
-              className={`py-3 ${index > 0 ? 'border-t border-border-subtle' : ''}`}
-            >
-              <View className="mb-1 flex-row items-center gap-2">
-                {entry.clock && (
-                  <Text
-                    className="text-sm font-semibold text-text-secondary"
-                    style={{ fontVariant: ['tabular-nums'] }}
-                  >
-                    {entry.clock}
-                  </Text>
-                )}
-                <Text className="min-w-0 flex-1 text-sm text-text-secondary">
-                  {entry.label}
-                </Text>
-              </View>
-              {entry.content}
-            </View>
+            <TimelineRow entry={entry} separated={index > 0} />
           </Fragment>
         ))}
       </View>
+    </View>
+  );
+}
+
+function TimelineRow({
+  entry,
+  separated,
+}: {
+  entry: DiaryTimelineEntry;
+  separated: boolean;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const accent = useCSSVariable('--color-accent-primary') as string;
+  return (
+    <View
+      testID={`diary-event-${entry.id}`}
+      className={`py-3 ${separated ? 'border-t border-border-subtle' : ''}`}
+    >
+      <View className="flex-row items-center gap-2">
+        <Pressable
+          disabled={!entry.collapsible}
+          accessibilityRole={entry.collapsible ? 'button' : undefined}
+          accessibilityLabel={entry.label}
+          accessibilityState={entry.collapsible ? { expanded } : undefined}
+          testID={`diary-expand-${entry.id}`}
+          onPress={() => setExpanded(!expanded)}
+          className="min-h-11 min-w-0 flex-1 flex-row items-center gap-3"
+        >
+          {entry.clock && (
+            <Text
+              className="text-sm font-semibold text-text-secondary"
+              style={{ fontVariant: ['tabular-nums'] }}
+            >
+              {entry.clock}
+            </Text>
+          )}
+          <View className="min-w-0 flex-1 gap-1">
+            <Text className="text-base font-semibold text-text-primary">
+              {entry.label}
+            </Text>
+            {entry.summary}
+          </View>
+          {entry.collapsible && (
+            <Icon
+              name={expanded ? 'chevron-up' : 'chevron-down'}
+              size={18}
+              color={accent}
+            />
+          )}
+        </Pressable>
+        {entry.accessory}
+      </View>
+      {(!entry.collapsible || expanded) && (
+        <View className="pt-2">{entry.content}</View>
+      )}
     </View>
   );
 }

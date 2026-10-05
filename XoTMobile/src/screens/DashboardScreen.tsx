@@ -16,7 +16,6 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import Toast from 'react-native-toast-message';
 import { formatLocalizedNumber, useAppLocale } from '../localization';
 import {
   Pressable,
@@ -45,12 +44,11 @@ import HealthTrendsPager from '../components/HealthTrendsPager';
 import HydrationGauge from '../components/HydrationGauge';
 import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import { useManualWaterActions } from '../hooks/useManualWaterActions';
+import { useRetrySavedWater } from '../hooks/useRetrySavedWater';
 import {
-  listNutritionActions,
-  retryNutritionAction,
-} from '../services/nutritionActionOutbox';
-import { getActiveNutritionIdentity } from '../services/nutritionIdentity';
-import { reconcileNutritionActions } from '../services/nutritionActionSync';
+  linkedWaterPressLabel,
+  waterPresetOptions,
+} from '../utils/waterLoggingLabels';
 import CaffeineCard from '../components/CaffeineCard';
 import Icon from '../components/Icon';
 import ActionTile from '../components/ui/ActionTile';
@@ -260,71 +258,14 @@ const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
     enabled: isConnected,
   });
   const manualWater = useManualWaterActions(selectedDate);
-  const [retryingSavedWater, setRetryingSavedWater] = useState(false);
-  const retryingSavedWaterRef = useRef(false);
-  const retrySavedWater = useCallback(async () => {
-    if (retryingSavedWaterRef.current) return;
-    retryingSavedWaterRef.current = true;
-    setRetryingSavedWater(true);
-    try {
-      const identity = await getActiveNutritionIdentity();
-      if (!identity) throw new Error('No active nutrition account');
-      const actions = await listNutritionActions(identity);
-      const failedWater = actions.filter(
-        (action) =>
-          (action.type === 'logManualWater' ||
-            action.type === 'logContainerWater') &&
-          action.payload.entry_date === selectedDate &&
-          action.syncState === 'attentionRequired'
-      );
-      for (const action of failedWater) {
-        await retryNutritionAction(identity, action.clientOperationId);
-      }
-      if (failedWater.length > 0) {
-        await reconcileNutritionActions(queryClient);
-      }
-    } catch {
-      Toast.show({
-        type: 'error',
-        text1: t('dashboard.retrySavedWaterFailed', {
-          defaultValue: 'Could not retry saved water entries',
-        }),
-      });
-    } finally {
-      retryingSavedWaterRef.current = false;
-      setRetryingSavedWater(false);
-    }
-  }, [queryClient, selectedDate, t]);
-
-  // A linked container has no volume of its own, so state what one press logs
-  // in the linked variant's own unit instead of a millilitre figure it does
-  // not have.
-  const linkedPressLabel = useMemo(() => {
-    if (!activeWaterContainer?.linked_food_id) return undefined;
-    const quantity = Number(activeWaterContainer.linked_quantity ?? 1);
-    const unit = activeWaterContainer.linked_variant_serving_unit || '';
-    const name = activeWaterContainer.linked_food_name || '';
-    if (!unit || !Number.isFinite(quantity) || quantity <= 0) return name;
-    const amount = `${formatLocalizedNumber(quantity, { maximumFractionDigits: 2 })} ${unit}`;
-    return name ? `${amount} \u00b7 ${name}` : amount;
-  }, [activeWaterContainer]);
-
-  // Each preset states what one tap logs, in the linked drink's own unit --
-  // the same phrasing the selected container uses above it.
+  const { retry: retrySavedWater, retrying: retryingSavedWater } =
+    useRetrySavedWater(selectedDate);
+  const linkedPressLabel = useMemo(
+    () => linkedWaterPressLabel(activeWaterContainer),
+    [activeWaterContainer]
+  );
   const quickAddOptions = useMemo(
-    () =>
-      waterQuickAddPresets.map((preset) => {
-        const quantity = Number(preset.linked_quantity ?? 1);
-        const unit = preset.linked_variant_serving_unit || '';
-        return {
-          id: preset.id,
-          name: preset.linked_food_name || preset.name,
-          pressLabel:
-            unit && Number.isFinite(quantity) && quantity > 0
-              ? `${formatLocalizedNumber(quantity, { maximumFractionDigits: 2 })} ${unit}`
-              : undefined,
-        };
-      }),
+    () => waterPresetOptions(waterQuickAddPresets),
     [waterQuickAddPresets]
   );
 

@@ -127,7 +127,11 @@
     "energyEstimateTitle": "Mobilitätskalorien bestätigen",
     "energyEstimateMessage": "Schätzung: {{kcal}} Aktivitäts-kcal aus {{minutes}} Min. bestätigten Zeitübungen und Ihrem zuletzt erfassten Gewicht ({{weight}} kg). Annahme: leichte Dehnung (2,3 MET), ohne Ruheenergie. Dies ist kein Messwert. Prüfen oder ändern Sie den Wert vor dem Bestätigen.",
     "energyEstimateConfirm": "Bestätigen und exportieren",
-    "energyNoEstimateMessage": "Für eine Kalorienschätzung werden ein bekanntes Gewicht und bestätigte Zeitübungen benötigt. Geben Sie Aktivitätskalorien nur ein, wenn Sie sie kennen, oder überspringen Sie den Export. Die Einheit bleibt im Tagebuch."
+    "energyNoEstimateMessage": "Für eine Kalorienschätzung werden ein bekanntes Gewicht und bestätigte Zeitübungen benötigt. Geben Sie Aktivitätskalorien nur ein, wenn Sie sie kennen, oder überspringen Sie den Export. Die Einheit bleibt im Tagebuch.",
+    "startShort": "Starten",
+    "startNamed": "{{name}} starten",
+    "editNamed": "{{name}} bearbeiten",
+    "deleteNamed": "{{name}} löschen"
   },
   "common": {
     "optionalParen": "(Optional)",
@@ -164,6 +168,9 @@
     "addServer": "Tippen Sie, um einen Server hinzuzufügen",
     "notifications": {
       "subtitle": "Erinnerungen an Routinen, Medikamente und Ergänzungsmittel sowie Trainingstimer."
+    },
+    "rows": {
+      "healthSync": "Gesundheitsdaten synchronisieren"
     }
   },
   "navigation": {
@@ -363,30 +370,34 @@
       "all": "Vollständig synchronisieren",
       "allDescription": "Sendet alle Gesundheitsdaten und liest Routen- und Herzfrequenzdaten bereits synchronisierter Trainings erneut ein. Das dauert länger."
     },
-    "sendToServer": "Senden Sie Ihre Gesundheitsdaten an Ihren Server",
+    "sendToServer": "Überträgt die freigegebenen Gesundheitsdaten an Ihren Server.",
     "permissionRequired": {
       "backgroundAccess": "Für die Hintergrundsynchronisierung ist eine Hintergrundzugriffsberechtigung erforderlich. Bitte erteilen Sie die Berechtigung in den Health Connect-Einstellungen.",
-      "allMessage": "Einige Berechtigungen wurden nicht erteilt. Bitte aktivieren Sie alle erforderlichen Gesundheitsberechtigungen im {{settings}}, um alle Daten zu synchronisieren."
+      "allMessage": "Einige Berechtigungen wurden nicht erteilt. Aktivieren Sie die erforderlichen Gesundheitsberechtigungen in {{settings}}, um die ausgewählten Daten zu synchronisieren.",
+      "title": "Berechtigung erforderlich",
+      "allTitle": "Berechtigungen erforderlich"
     },
     "permissionError": {
-      "allMetrics": "Beim Anfordern von Integritätsberechtigungen ist ein Fehler aufgetreten: {{error}}"
+      "allMetrics": "Beim Anfordern der Gesundheitsberechtigungen ist ein Fehler aufgetreten: {{error}}",
+      "title": "Berechtigungsfehler"
     },
     "removal": {
       "errorMessage": "Daten konnten nicht aus {{store}} entfernt werden.",
       "confirmTitle": "Entfernen Sie alle {{store}}-Daten",
       "confirmMessage": "Alle von X on Track in {{store}} gespeicherten Ernährungs- und Trinkprotokolle löschen und die Rückübertragung deaktivieren? Ihr X on Track-Tagebuch und die Protokolle aus anderen Apps sind davon nicht betroffen.",
       "deleted": "Die von X on Track gespeicherten Daten wurden aus {{store}} entfernt.",
-      "partialMessage": "Einige Einträge konnten nicht aus {{store}} gelöscht werden."
+      "partialMessage": "Einige Einträge konnten nicht aus {{store}} gelöscht werden.",
+      "removed": "Entfernt"
     },
     "range": {
-      "description": "Steuert, wie viele Daten in die nächste Synchronisierung einbezogen werden",
+      "description": "Für die nächste manuelle Synchronisierung.",
       "largeWarning": "Große Zeitbereiche können eine Weile dauern.",
-      "title": "Synchronisierungszeitraum",
-      "selectTitle": "Synchronisierungszeitraum auswählen"
+      "title": "Zeitraum",
+      "selectTitle": "Zeitraum auswählen"
     },
     "unavailable": {
       "healthConnect": "Health Connect ist nicht verfügbar. Bitte stellen Sie sicher, dass es installiert und aktiviert ist.",
-      "healthKit": "Gesundheitsdaten (HealthKit) sind nicht verfügbar. Bitte aktivieren Sie den Health-Zugriff in der iOS Health-App."
+      "healthKit": "Gesundheitsdaten sind nicht verfügbar. Prüfen Sie den Zugriff auf Apple Health in den iOS-Einstellungen."
     },
     "report": {
       "privacy": "Liest die Daten der letzten 4 Stunden von Health Connect zur Fehlerbehebung.\nAus Datenschutzgründen werden die Werte gerundet. Es wird nichts automatisch gesendet.",
@@ -399,7 +410,8 @@
       "title": "Berechtigung verweigert"
     },
     "import": {
-      "subtitle": "Einmaliger Import aller bisherigen Gesundheitsdaten"
+      "subtitle": "Ältere Daten einmalig übernehmen.",
+      "title": "Gesamten Verlauf importieren"
     },
     "timeRanges": {
       "last24Hours": "Letzte 24 Stunden",
@@ -410,7 +422,11 @@
       "last6Months": "Letzte 6 Monate",
       "lastYear": "Letztes Jahr"
     },
-    "title": "Gesundheitsdaten synchronisieren"
+    "title": "Gesundheitsdaten",
+    "syncNow": "Jetzt synchronisieren",
+    "syncing": "Wird synchronisiert…",
+    "healthConnectSettings": "Health Connect-Einstellungen",
+    "healthAppSettings": "Apple Health-Einstellungen"
   },
   "dashboardSettings": {
     "dailyProgress": "Täglicher Fortschritt",
@@ -524,7 +540,10 @@
       "withoutTime": "Ohne erfasste Uhrzeit",
       "partialError": "Einige Wasser-, Einnahme- oder Wellness-Einträge konnten nicht aktualisiert werden. Zum Aktualisieren nach unten ziehen oder erneut versuchen.",
       "intake": "Einnahme",
-      "undoWellness": "{{name}} rückgängig machen"
+      "undoWellness": "{{name}} rückgängig machen",
+      "planned": "Geplant · noch nicht erfasst",
+      "recordIntake": "{{name}} als eingenommen erfassen",
+      "plannedIntakeHint": "Geplante Einnahme. Erst nach der tatsächlichen Einnahme erfassen."
     }
   },
   "privacyPolicy": {
@@ -1176,7 +1195,15 @@
       "evening": "Abend",
       "anytime": "Jederzeit"
     },
-    "singular": "Ergänzungsmittel"
+    "singular": "Ergänzungsmittel",
+    "extra": {
+      "add": "Zusätzliche Einnahme",
+      "hint": "Zusätzliche Einnahme erfassen. Ihr Einnahmeplan und die geplanten Mengen bleiben unverändert.",
+      "select": "Supplement auswählen",
+      "amount": "Eingenommene Menge",
+      "time": "Einnahmezeit",
+      "error": "Die Einnahme konnte nicht gespeichert werden. Bitte erneut versuchen."
+    }
   },
   "trackingSettings": {
     "title": "Tracking-Einstellungen",
@@ -1498,8 +1525,10 @@
     "syncMetricHint": "Schaltet die Synchronisierung für diese Gesundheitsmetrik um.",
     "writeMetricHint": "Schaltet das Schreiben dieser Metrik in den Gesundheitsspeicher um.",
     "alerts": {
-      "healthAppUnavailableMessage": "Bitte installieren Sie die Apple Health App, um Ihre Gesundheitsdaten zu synchronisieren.",
-      "permissionErrorMessage": "Beim Versuch, Integritätsberechtigungen anzufordern, ist ein unerwarteter Fehler aufgetreten: {{error}}"
+      "healthAppUnavailableMessage": "Installieren Sie Apple Health, um Ihre Gesundheitsdaten zu synchronisieren.",
+      "permissionErrorMessage": "Beim Anfordern der Gesundheitsberechtigungen ist ein Fehler aufgetreten: {{error}}",
+      "healthAppUnavailableTitle": "Apple Health nicht verfügbar",
+      "permissionErrorTitle": "Berechtigungsfehler"
     },
     "consultProfessional": "Wenden Sie sich für medizinische Beratung, Diagnosen oder Behandlungen an eine medizinische Fachperson.",
     "workoutExportErrorMessage": "Ihr Training wurde gespeichert, aber der Apple-Health-Export ist fehlgeschlagen: {{error}}",
@@ -1517,7 +1546,11 @@
     "notMedicalAdvice": "Keine medizinische Beratung.",
     "pickDateRange": "Zeitraum auswählen …",
     "noData": "Keine Daten",
-    "loading": "Gesundheitsdaten werden geladen"
+    "loading": "Gesundheitsdaten werden geladen",
+    "appleHealth": "Apple Health",
+    "healthConnect": "Health Connect",
+    "syncMetricLabel": "{{metric}} synchronisieren",
+    "writeMetricLabel": "{{metric}} in {{store}} speichern"
   },
   "auth": {
     "noMethods": "Auf diesem Server sind derzeit keine Standard-Anmeldemethoden aktiviert. Bitte verwenden Sie einen API-Schlüssel oder wenden Sie sich an einen Administrator.",
@@ -1569,14 +1602,17 @@
   },
   "syncFrequency": {
     "iosNote": "Wenn diese Option aktiviert ist, wird die App im Hintergrund aktualisiert, wenn Ihr Telefon dies zulässt. Bei der manuellen Synchronisierung erfolgt die Aktualisierung immer sofort.",
-    "enable": "Hintergrundsynchronisierung aktivieren",
-    "toggleHint": "Schaltet die Synchronisierung von Gesundheitsdaten im Hintergrund ein oder aus."
+    "enable": "Automatisch synchronisieren",
+    "toggleHint": "Schaltet die Synchronisierung von Gesundheitsdaten im Hintergrund ein oder aus.",
+    "title": "Im Hintergrund",
+    "toggleLabel": "Hintergrundsynchronisierung"
   },
   "syncOnOpen": {
     "description": "Wenn diese Option aktiviert ist, werden Gesundheitsdaten automatisch synchronisiert, wenn Sie die App öffnen.",
     "toggleHint": "Schaltet die automatische Synchronisierung beim Öffnen der App um.",
     "enable": "Beim Öffnen synchronisieren",
-    "toggleLabel": "Beim Öffnen der App synchronisieren"
+    "toggleLabel": "Beim Öffnen der App synchronisieren",
+    "title": "Beim Öffnen"
   },
   "calorieSettings": {
     "deviceProjectionDescription": "Die Gesamtkalorien von Health Connect für den aktuellen Tag werden auf Mitternacht prognostiziert. Für abgeschlossene Tage wird die erfasste Summe verwendet. Der Zielmodus wird auf diesen TDEE angewendet, mit BMR + aktiven Kalorien als Ersatz.",
@@ -4744,5 +4780,13 @@
     "openRecaps": "Rückblicke öffnen",
     "insightsHint": "Daten einordnen, Vorschläge prüfen und angenommene Änderungen nachverfolgen.",
     "connectionContext": "Zusätzlicher Verbindungskontext"
+  },
+  "addSheet": {
+    "water": "Wasser",
+    "mobility": "Mobilität"
+  },
+  "waterLog": {
+    "offline": "Zum Erfassen von Wasser mit Ihrem Server verbinden.",
+    "error": "Trinkdaten konnten nicht geladen werden."
   }
 }

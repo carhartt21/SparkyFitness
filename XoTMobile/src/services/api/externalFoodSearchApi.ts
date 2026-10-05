@@ -1,3 +1,4 @@
+import type { NutritionActionIdentity } from '../nutritionActionOutbox';
 import { isPermittedHttpUrl } from '../../utils/serverUrl';
 import { apiFetch, normalizeUrl } from './apiClient';
 import { AI_TIMEOUT_MS } from '../../utils/concurrency';
@@ -572,10 +573,7 @@ export function _transformNormalizedFood(
     custom_nutrients: v.custom_nutrients,
   });
 
-  // FoodEntryAddScreen selects ext-0 (first variant) by default. Prefer the
-  // serving the caller already showed the user, then the provider's named
-  // serving, but keep the 100g/100ml reference in the ordered list so it
-  // still imports and remains selectable.
+  // Keep new entries metric-first and retain explicit selections on hydration.
   const { displayVariant, orderedVariants } = selectDisplayVariant(
     dv,
     food.variants,
@@ -644,7 +642,8 @@ export async function fetchExternalFoodDetails(
   externalId: string,
   providerId?: string,
   preferredServing?: ServingIdentity,
-  language?: string
+  language?: string,
+  expectedIdentity?: NutritionActionIdentity
 ): Promise<ExternalFoodItem> {
   const params = new URLSearchParams();
   if (providerId) params.set('providerId', providerId);
@@ -652,9 +651,10 @@ export async function fetchExternalFoodDetails(
   const qs = params.toString();
 
   const response = await apiFetch<NormalizedFood>({
-    endpoint: `/api/v2/foods/details/${providerType}/${externalId}${qs ? `?${qs}` : ''}`,
+    endpoint: `/api/v2/foods/details/${providerType}/${encodeURIComponent(externalId)}${qs ? `?${qs}` : ''}`,
     serviceName: 'External Food Search',
     operation: `fetch ${providerType} details (v2)`,
+    expectedIdentity,
   });
 
   return _transformNormalizedFood(response, providerType, preferredServing);
