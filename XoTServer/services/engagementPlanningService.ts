@@ -115,14 +115,14 @@ export async function engagementPlanForUser(userId: string, now = new Date()) {
     if (coachingFeatureEnabled()) {
       const { settings: coaching } = await readCoachingSettings(client, userId);
       const pending = await client.query(
-        "SELECT 1 FROM coaching_proposals WHERE user_id=$1 AND status='pending' AND expires_day>=$2 LIMIT 1",
+        "SELECT 1 WHERE EXISTS(SELECT 1 FROM coaching_proposals WHERE user_id=$1 AND status='pending' AND expires_day>=$2) OR EXISTS(SELECT 1 FROM coaching_recaps WHERE user_id=$1 AND read_at IS NULL)",
         [userId, day]
       );
       facts.subjects.push({
         kind: 'coaching_digest',
         id: 'inbox',
         time: coaching.digestTime,
-        enabled: coaching.digestEnabled,
+        enabled: coaching.enabled && coaching.digestEnabled,
         resolved: pending.rows.length === 0,
       });
       const actions = await client.query<{ id: string; time: string }>(

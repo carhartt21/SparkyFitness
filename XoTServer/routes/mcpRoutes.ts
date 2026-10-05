@@ -158,14 +158,24 @@ router.post('/', async (req, res) => {
     mcpServer.server.onerror = (e) => log('error', '[MCP] server error', e);
     if (req.mcpAgentId) {
       const agentId = req.mcpAgentId;
-      registerCoachingTools(mcpServer, userId, agentId, async () => {
-        // Recheck the current connection, not a cached permission flag.
-        const current = await resolveCoachingAgent(userId, {
-          keyId: req.mcpCredentialId,
-        });
-        if (current.id !== agentId)
-          throw new Error('Agent credential was revoked.');
+      const agent = await resolveCoachingAgent(userId, {
+        keyId: req.mcpCredentialId,
       });
+      registerCoachingTools(
+        mcpServer,
+        userId,
+        agentId,
+        async () => {
+          // Recheck the current connection, not a cached permission flag.
+          const current = await resolveCoachingAgent(userId, {
+            keyId: req.mcpCredentialId,
+          });
+          if (current.id !== agentId)
+            throw new Error('Agent credential was revoked.');
+        },
+        true,
+        agent.protocol_version ?? 1
+      );
     } else
       registerRegistryTools(
         mcpServer,

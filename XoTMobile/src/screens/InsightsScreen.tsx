@@ -287,6 +287,27 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
         </View>
 
         <InsightCard
+          testID="insights-coaching"
+          icon="sparkles"
+          iconColor={accent}
+          title={t('coachingLoop.insightsTitle', {
+            defaultValue: 'Recaps & recommendations',
+          })}
+          action={{
+            label: t('coachingLoop.openRecaps', {
+              defaultValue: 'Open recaps',
+            }),
+            onPress: () => navigation.navigate('Coaching'),
+          }}
+        >
+          <Text className="text-base text-text-secondary">
+            {t('coachingLoop.insightsHint', {
+              defaultValue:
+                'Review your data, consider suggestions and follow up on accepted changes.',
+            })}
+          </Text>
+        </InsightCard>
+        <InsightCard
           testID="insights-calories"
           icon="flame"
           iconColor={calories}

@@ -2,16 +2,25 @@
 
 Recommendations connect recorded wellness data to actions you can review in X on Track. An external agent reads the areas you select and returns proposals. Only you, signed in with your own app session, can activate a proposal. Family delegates and API/MCP credentials cannot approve one.
 
-## Set up your account
+## Set up cloud reviews
 
-The administrator enables `XOT_COACHING_ENABLED=true` on the server. Open **Recommendations → Schedule & connections** on the web, or **More → Recommendations** on mobile.
+The administrator enables `XOT_COACHING_ENABLED=true` after release checks. Open **Recommendations → Schedule & connections** on web, or **More → Recommendations** on phone. Recaps are the default view; phone Insights and web Reports also link here.
 
-1. Enable periodic reviews and select nutrition, activity, recovery, habits and/or measurements.
-2. Set the review times. Defaults are 08:00 and 20:00 daily, Sunday 09:00 weekly, and a 20:00 inbox digest. Times use the account's IANA timezone from Settings.
-3. Add an agent connection and select its allowed areas. Create its proposal-only key; copy it once into the external runner's private configuration. Keys expire after 90 days; revoke or rotate them here. Never use a full-access API key for the scheduled runner.
-4. Install and test the [Mac runner](../developer/mcp/recommendations.md#mac-subscription-runner). The Mac must be awake, online and signed in to Codex with its saved ChatGPT login.
+1. Enable periodic reviews. Select nutrition, activity, recovery, habits and/or measurements. Times use the account's IANA timezone from Settings.
+2. Save the calendar review schedule: one daily cloud task at **08:00** by default. Daily reviews cover yesterday; Monday adds the previous Monday–Sunday, the first of the month adds the previous month, and January 1 adds the previous year. Each cadence can be disabled. Missed windows coalesce to the latest period for each cadence instead of replaying every missed day.
+3. Optionally allow **supplement adherence** or **server notification history**. These need nutrition or habits respectively and also need matching permission on the connection. Medication records and dose changes are excluded. Notification delivery does not prove that you saw a reminder; phone-only local reminder history is unavailable.
+4. In **Connect a cloud review**, copy the MCP address into ChatGPT and authorize reading and proposals. Refresh the authorized connection list, select the intended connection, and enable its bounded review access. Save selected data permissions before connecting; copying a task uses saved settings.
+5. Copy the review prompt and test it in a normal ChatGPT conversation using this connection. Then create **one daily cloud task** at the saved time and timezone. The application does not create a ChatGPT schedule automatically. Task/plugin availability depends on your account/workspace; an authorized connection is not proof of an unattended working schedule. Test an actual unattended run and verify that its recap arrives here before relying on it. Update the ChatGPT task separately if its time changes.
 
-OAuth clients request **`mcp:propose`** at `/mcp/chatgpt`. Consent creates an owner/client binding with selected areas. Existing `mcp:read` and `mcp:write` consents are separate: enabling proposal access does not grant direct diary writes. A compatible client must explicitly request the new scope; reconnecting an existing read-only connection does not upgrade it automatically.
+ChatGPT cloud tasks can use eligible connected tools where supported; see [OpenAI's automation guide](https://learn.chatgpt.com/docs/automations). An unavailable task/connection stops the run without silently installing an API or Mac fallback. An optional, explicitly configured [Mac subscription runner](../developer/mcp/recommendations.md#mac-subscription-runner) remains supported separately.
+
+OAuth clients request **`mcp:propose`** at `/mcp/chatgpt`. A bound coaching connection exposes only the six coaching tools, even if an older consent included broad write access. Consent never permits the external reviewer to approve plan, goal or notification changes. Revoke the connection to stop its calls, and remove the external ChatGPT task separately.
+
+## Read a recap or request a review
+
+**Recaps** contains daily, weekly, monthly, yearly and manual reviews. A successful no-change review still publishes a recap. Open it to mark it read, inspect observations/limitations and optionally expand retained evidence. Delete removes only that recap, not diary records, accepted configurations or recommendations.
+
+**Request review** queues work for the next cloud invocation; it does not trigger ChatGPT immediately. Copy the prompt into ChatGPT for an immediate manual run. One invocation drains at most five eligible periods sequentially.
 
 ## Review a recommendation
 
@@ -39,7 +48,9 @@ Digests and due-task reminders use the existing optional notification system. Th
 
 ## Data and retention
 
-Daily reviews use seven calendar days plus today's unresolved work; weekly reviews use 28 days. Missed scheduled windows are coalesced to the latest eligible review. Pending and active topics are deduplicated. A failed or timed-out run publishes nothing.
+Calendar protocol 2 uses the actual preceding daily/weekly/monthly/yearly period. Monthly and yearly evidence is aggregated on the server into bounded monthly rows, not an annual raw diary. Aggregated counts describe recorded entries and days, not adherence; unknown values stay unknown. Legacy protocol 1 keeps its original seven-day daily and 28-day weekly windows. Missed scheduled windows are coalesced to the latest eligible review. Pending and active topics are deduplicated. A failed or timed-out run publishes nothing.
+
+Recaps and their cited evidence remain owner-only until explicitly deleted and survive snapshot, run and agent cleanup. Per-cadence completion survives recap deletion, so deleted reviews are not automatically repeated. Owner decisions and outcomes feed into the next review; a declined topic stays suppressed until explicitly reconsidered. Feedback arriving after a review starts is retained for the next run. Only a successful report advances the feedback cursor.
 
 Raw frozen snapshots expire after seven days; run metadata and agent operation receipts after 90 days. Pending proposals expire after at most 14 days or their action window. Cited evidence, decisions and outcome history stay with the recommendation until you delete its inactive history. That deletion also removes retry receipts containing the recommendation or action. Accepted canonical configurations and diary logs remain managed in their normal application screens. Agent revocation blocks new calls immediately.
 

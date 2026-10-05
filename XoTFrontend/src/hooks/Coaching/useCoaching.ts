@@ -55,7 +55,8 @@ export function useCoachingInbox(
   const { activeUserId, isActingOnBehalf } = useActiveUser();
   return useInfiniteQuery({
     queryKey: ['coaching', activeUserId, 'inbox', tab, domain],
-    enabled: enabled && !isActingOnBehalf && tab !== 'settings',
+    enabled:
+      enabled && !isActingOnBehalf && tab !== 'settings' && tab !== 'recaps',
     initialPageParam: 0,
     queryFn: ({ pageParam }) =>
       api.loadCoachingInbox(
@@ -81,5 +82,32 @@ export function usePlannedMeals(day: string, enabled: boolean) {
     queryKey: ['coaching', activeUserId, 'planned-meals', day],
     queryFn: () => api.loadPlannedMeals(day),
     enabled: enabled && !isActingOnBehalf,
+  });
+}
+
+export function useCoachingConnections() {
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
+  return useQuery({
+    queryKey: ['coaching', activeUserId, 'connections'],
+    queryFn: api.loadCoachingConnections,
+    enabled: !!activeUserId && !isActingOnBehalf,
+  });
+}
+export function useCoachingRecaps() {
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
+  return useInfiniteQuery({
+    queryKey: ['coaching', activeUserId, 'recaps'],
+    enabled: !!activeUserId && !isActingOnBehalf,
+    initialPageParam: 0,
+    queryFn: ({ pageParam }) => api.loadCoachingRecaps(pageParam),
+    getNextPageParam: (page) => page.nextOffset ?? undefined,
+  });
+}
+export function useCoachingRecap(id: string | null) {
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
+  return useQuery({
+    queryKey: ['coaching', activeUserId, 'recap', id],
+    enabled: !!activeUserId && !isActingOnBehalf && !!id,
+    queryFn: () => api.loadCoachingRecap(id!),
   });
 }

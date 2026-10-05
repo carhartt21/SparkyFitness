@@ -6763,7 +6763,7 @@
     "enabled": "Regelmäßige Prüfungen aktivieren",
     "pauseHint": "Eine Pause beendet neue Agent-Prüfungen. Angenommene Maßnahmen können weiterhin verwaltet werden.",
     "weeklyDay": "Wochentag der Prüfung",
-    "digestEnabled": "Bei ausstehenden Empfehlungen benachrichtigen",
+    "digestEnabled": "Über neue Rückblicke oder Vorschläge informieren",
     "digestHint": "Höchstens eine Zusammenfassung pro Tag. Fernbenachrichtigungen müssen auf einem unterstützten Smartphone aktiviert sein; Ruhezeiten und das gemeinsame Tageslimit gelten.",
     "dataAccess": "Verfügbare Daten für die Prüfung",
     "save": "Prüfzeiten speichern",
@@ -6784,7 +6784,7 @@
     "addAgent": "Verbindung hinzufügen",
     "status": "Letzte Prüfungen",
     "statusError": "Der Prüfstatus ist nicht verfügbar.",
-    "noRuns": "Noch keine Prüfungen ausgeführt. Der Mac-Prüfdienst muss angemeldet und aktiv sein.",
+    "noRuns": "Noch keine Prüfungen. Den verbundenen ChatGPT-Auftrag testen und anschließend einen unbeaufsichtigten Cloud-Lauf prüfen.",
     "consumed": "Ich habe das gegessen",
     "consumptionHint": "Bitte die tatsächlich verzehrte Menge bestätigen. Die aktuellen Nährwerte aus der Bibliothek werden verwendet; die Lebensmittel werden einmal für dieses Tagebuchdatum erfasst.",
     "confirmConsumption": "Verzehr bestätigen und erfassen",
@@ -6808,7 +6808,8 @@
       "pending": "Neu",
       "active": "Aktiv",
       "history": "Verlauf",
-      "settings": "Prüfzeiten und Verbindungen"
+      "settings": "Prüfzeiten und Verbindungen",
+      "recaps": "Rückblicke"
     },
     "fields": {
       "quantity": "Titel",
@@ -6998,10 +6999,14 @@
       "soccer": "Fußball",
       "yoga": "Yoga",
       "other": "Andere Aktivität",
-      "rest": "Ruhetag"
+      "rest": "Ruhetag",
+      "monthly": "Monatlich",
+      "yearly": "Jährlich"
     },
     "proposalAccess": "Verbindung für Vorschläge",
-    "deleteConfirm": "Diese Empfehlung samt gespeicherten Belegen und Verlauf endgültig löschen? Tagebucheinträge und angenommene Einstellungen bleiben erhalten."
+    "deleteConfirm": "Diese Empfehlung samt gespeicherten Belegen und Verlauf endgültig löschen? Tagebucheinträge und angenommene Einstellungen bleiben erhalten.",
+    "digestTitle": "💡 Dein Rückblick ist da",
+    "digestBody": "Schau in X on Track in deinen Rückblick und prüfe neue Vorschläge. Du entscheidest, was du übernehmen möchtest."
   },
   "activityPlanning": {
     "title": "Aktivitäten der Woche",
@@ -7081,5 +7086,36 @@
     "counts": "{{completed}} abgeschlossen · {{skipped}} übersprungen",
     "endedEarly": "Vorzeitig beendet",
     "loadError": "Mobilitätseinheiten konnten nicht geladen werden. Versuchen Sie es erneut."
+  },
+  "coachingLoop": {
+    "cloudTitle": "Cloud-Prüfung verbinden",
+    "cloudStep1": "X on Track in ChatGPT über diese MCP-Adresse verbinden und Lesen sowie Vorschläge erlauben.",
+    "cloudStep2": "Liste aktualisieren und die autorisierte Verbindung auswählen. Sie darf nur die ausgewählten Daten prüfen und keine Änderungen freigeben.",
+    "cloudStep3": "Diesen Auftrag zuerst in einem normalen ChatGPT-Chat mit der ausgewählten Verbindung testen. Anschließend eine tägliche Cloud-Aufgabe zur angegebenen Uhrzeit einrichten. Die Verfügbarkeit hängt vom ChatGPT-Konto ab.",
+    "copyAddress": "MCP-Adresse kopieren",
+    "connectionsError": "Verbindungen sind nicht verfügbar. OAuth-Konfiguration des Servers prüfen und aktualisieren.",
+    "chooseConnection": "Autorisierte ChatGPT-Verbindung",
+    "bindConnection": "Für geprüfte Empfehlungen verwenden",
+    "copyPrompt": "Prüfauftrag kopieren",
+    "copied": "Kopiert",
+    "cloudUnverified": "Eine verbundene Assistenz bestätigt noch keinen Cloud-Zeitplan. Zuerst einen unbeaufsichtigten Lauf prüfen. Bei einer Änderung der Prüfzeit muss auch die Aufgabe in ChatGPT angepasst werden.",
+    "reviewTime": "Tägliche Cloud-Aufgabe (24 Stunden)",
+    "calendarHint": "Täglich: gestern. Montags: die vorige Woche. Am Monatsersten: der vorige Monat. Am 1. Januar: das vorige Jahr. Bei verpassten Läufen wird je Rhythmus nur der zuletzt abgeschlossene Zeitraum geprüft.",
+    "optionalContext": "Zusatzdaten werden nur geteilt, wenn sie hier und für die Verbindung aktiviert sind. Medikamente und Dosierungsänderungen sind ausgeschlossen. Supplementverlauf benötigt Ernährung, Erinnerungsverlauf benötigt Gewohnheiten.",
+    "supplement_adherence": "Erfasste Supplementeinnahmen",
+    "notification_history": "Verlauf der Server-Erinnerungen",
+    "queueHint": "Eine angeforderte Prüfung wartet auf den nächsten Cloud-Lauf. Für eine sofortige Prüfung den Auftrag kopieren und in ChatGPT ausführen.",
+    "recapHint": "Rückblicke bleiben bis zum Löschen erhalten. Vorschläge müssen immer einzeln freigegeben werden.",
+    "limitations": "Grenzen dieser Prüfung",
+    "seeSuggestions": "Vorschläge prüfen",
+    "deleteRecap": "Rückblick löschen",
+    "deleteHint": "Nur der Rückblick wird gelöscht. Erfasste Daten und Empfehlungen bleiben erhalten.",
+    "unread": "Ungelesen",
+    "noRecaps": "Noch keine Rückblicke. ChatGPT verbinden und eine Prüfung testen. Eine erfolgreiche Prüfung erscheint hier auch ohne Änderungsvorschlag.",
+    "openRecap": "Rückblick öffnen",
+    "insightsTitle": "Rückblicke & Empfehlungen",
+    "openRecaps": "Rückblicke öffnen",
+    "insightsHint": "Daten einordnen, Vorschläge prüfen und angenommene Änderungen nachverfolgen.",
+    "connectionContext": "Zusätzlicher Verbindungskontext"
   }
 }

@@ -6,12 +6,12 @@ export const ENGAGEMENT_NOTIFICATION_COPY = {
     titleKey: "coaching.digestTitle",
     bodyKey: "coaching.digestBody",
     en: {
-      title: "Recommendations",
-      body: "Recommendations are ready for your review.",
+      title: "Your review is ready",
+      body: "Open X on Track for your recap and any suggestions waiting for approval.",
     },
     de: {
-      title: "Empfehlungen",
-      body: "Deine Empfehlungen stehen zur Prüfung bereit.",
+      title: "💡 Dein Rückblick ist da",
+      body: "Schau in X on Track in deinen Rückblick und prüfe neue Vorschläge. Du entscheidest, was du übernehmen möchtest.",
     },
   },
   coaching_action: {

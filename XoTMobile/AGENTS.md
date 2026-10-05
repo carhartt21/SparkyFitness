@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-04_
+_Last updated: 2026-10-05_
 
 X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and Trackbot chat.
 
@@ -430,3 +430,5 @@ Outbox and identity changes trigger reconciliation, so offline intake decisions 
 future groups. Preserve stable identifiers and cancellation-failure guards when switching
 between individual and consolidated requests. Group times still reserve discretionary
 reminder collision slots. Names/doses belong only in permitted visible copy, never payloads.
+
+Calendar coaching protocol 2: read `../docs/src/developer/mcp/recommendations.md` before changing external review contracts. `CoachingV2.api.zod.ts` and `coaching/calendar.ts` define calendar cadence and independent context permissions; server `coachingCalendarEvidence` and `coachingRecapService` own bounded aggregates and durable owner-only recaps. Phone/web coaching screens expose cloud connection setup and recaps; approval remains an owner app-session action. Preserve strict protocol-1 responses, frozen feedback cursors and per-cadence completion through cleanup. Cloud task activation/device delivery require separate verification; never claim a connection proves a working schedule.

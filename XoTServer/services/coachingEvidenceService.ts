@@ -27,7 +27,7 @@ interface Projection {
 }
 const foodColumns =
   'id,entry_date,created_at,source,food_name,quantity,unit,serving_size,serving_unit,calories,protein,carbs,fat,dietary_fiber,saturated_fat,sugars,sodium,caffeine_mg,alcohol_g,water_ml,meal_type_id,meal_plan_template_id';
-const projections: readonly Projection[] = [
+export const coachingEvidenceProjections: readonly Projection[] = [
   {
     domain: 'nutrition',
     kind: 'hydration',
@@ -126,7 +126,7 @@ export async function collectCoachingEvidence(
     'Legacy meal-template-generated diary rows are unconfirmed consumption.',
     'Daily activity summaries already include workouts. Never add active calories to workout calories.',
   ];
-  for (const projection of projections) {
+  for (const projection of coachingEvidenceProjections) {
     if (!domains.includes(projection.domain)) continue;
     const result = await client.query<{ value: unknown }>(
       `SELECT to_jsonb(projection) AS value FROM (${projection.query} ORDER BY entry_date,id LIMIT 10001) projection`,

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   coachingContextSchema,
+  coachingContextV2Schema,
   coachingSnapshotPageSchema,
 } from '@workspace/shared';
 
@@ -22,8 +23,11 @@ const eventSchema = z.object({
     }),
   }),
 });
-const followsAllPages = (pages: Map<number, number | null>): boolean => {
-  let cursor: number | null = 0;
+const followsAllPages = (
+  pages: Map<number, number | null>,
+  start = 0
+): boolean => {
+  let cursor: number | null = start;
   const visited = new Set<number>();
   while (cursor !== null) {
     if (visited.has(cursor) || !pages.has(cursor)) return false;
@@ -39,7 +43,10 @@ export class CoachingRunReadAudit {
   private proposals = new Map<number, number | null>();
   private commitments = new Map<number, number | null>();
   private events = new Map<number, number | null>();
-  constructor(private readonly snapshotId: string) {}
+  constructor(
+    private readonly snapshotId: string,
+    private readonly feedbackCursor = 0
+  ) {}
 
   observe(value: unknown): void {
     const parsed = eventSchema.safeParse(value);
@@ -58,7 +65,9 @@ export class CoachingRunReadAudit {
       if (page.success && page.data.snapshotId === this.snapshotId)
         this.snapshot.set(page.data.offset, page.data.nextOffset);
     } else if (tool === 'xot_get_coaching_context') {
-      const page = coachingContextSchema.safeParse(body);
+      const page = z
+        .union([coachingContextV2Schema, coachingContextSchema])
+        .safeParse(body);
       if (!page.success) return;
       const offset = (field: string) =>
         typeof args[field] === 'number' ? args[field] : 0;
@@ -71,15 +80,19 @@ export class CoachingRunReadAudit {
         page.data.nextCommitmentOffset
       );
       this.events.set(
-        offset('eventCursor'),
+        typeof args.eventCursor === 'number'
+          ? args.eventCursor
+          : this.feedbackCursor,
         page.data.events.length < 100 ? null : page.data.nextEventCursor
       );
     }
   }
 
   complete(): boolean {
-    return [this.snapshot, this.proposals, this.commitments, this.events].every(
-      followsAllPages
+    return (
+      [this.snapshot, this.proposals, this.commitments].every((pages) =>
+        followsAllPages(pages)
+      ) && followsAllPages(this.events, this.feedbackCursor)
     );
   }
 }

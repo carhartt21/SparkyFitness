@@ -6718,7 +6718,7 @@
     "enabled": "Enable periodic reviews",
     "pauseHint": "Pausing stops new agent runs. Accepted actions remain available for you to manage.",
     "weeklyDay": "Weekly review day",
-    "digestEnabled": "Notify me when recommendations are waiting",
+    "digestEnabled": "Notify me about new recaps or suggestions",
     "digestHint": "At most one digest each day. Remote notifications must be enabled on a supported phone; quiet hours and your shared daily limit apply.",
     "dataAccess": "Data available for review",
     "save": "Save schedule",
@@ -6739,7 +6739,7 @@
     "addAgent": "Add connection",
     "status": "Recent reviews",
     "statusError": "Review status is unavailable.",
-    "noRuns": "No reviews have run yet. Keep the Mac runner signed in and running.",
+    "noRuns": "No reviews have run yet. Test the connected ChatGPT review, then verify an unattended cloud run.",
     "review": "Review recommendation",
     "close": "Close",
     "evidence": "Evidence and limitations",
@@ -6776,7 +6776,8 @@
       "pending": "New",
       "active": "Active",
       "history": "History",
-      "settings": "Schedule & connections"
+      "settings": "Schedule & connections",
+      "recaps": "Recaps"
     },
     "domains": {
       "nutrition": "Nutrition",
@@ -6875,12 +6876,14 @@
       "soccer": "soccer",
       "yoga": "yoga",
       "other": "other",
-      "rest": "rest"
+      "rest": "rest",
+      "monthly": "Monthly",
+      "yearly": "Yearly"
     },
     "proposalAccess": "Proposal-only connection",
     "deleteConfirm": "Delete this recommendation and its retained evidence and history permanently? Diary entries and accepted configurations are kept.",
-    "digestTitle": "Recommendations",
-    "digestBody": "Recommendations are ready for your review.",
+    "digestTitle": "Your review is ready",
+    "digestBody": "Open X on Track for your recap and any suggestions waiting for approval.",
     "actionTitle": "Your next step",
     "actionBody": "An accepted action is due. Open it to review your next step."
   },
@@ -6958,5 +6961,36 @@
     "removeFailed": "Could not remove the activity. Please try again.",
     "offlineTitle": "Wellness needs your server",
     "offlineSubtitle": "Connect to your server to see and log wellness activities."
+  },
+  "coachingLoop": {
+    "cloudTitle": "Connect a cloud review",
+    "cloudStep1": "In ChatGPT, connect X on Track using this MCP address and allow reading and proposals.",
+    "cloudStep2": "Refresh this list and choose the authorized connection. The selected data is all it can review; it cannot approve changes.",
+    "cloudStep3": "Test this prompt in a normal ChatGPT conversation using the selected connection. Then create one daily cloud task at the time shown. Scheduling availability depends on your ChatGPT account.",
+    "copyAddress": "Copy MCP address",
+    "connectionsError": "Connections are unavailable. Check server OAuth configuration and refresh.",
+    "chooseConnection": "Authorized ChatGPT connection",
+    "bindConnection": "Use for reviewed coaching",
+    "copyPrompt": "Copy review prompt",
+    "copied": "Copied",
+    "cloudUnverified": "A binding does not confirm a cloud schedule. Verify one unattended run before relying on it. Changing the review time here also requires updating the task in ChatGPT.",
+    "reviewTime": "Daily cloud task (24-hour)",
+    "calendarHint": "Daily: yesterday. Monday: the previous week. First of the month: the previous month. January 1: the previous year. Missed periods coalesce to the latest period for each cadence.",
+    "optionalContext": "Optional context is shared only when enabled here and in the connection. Medications and dose changes are excluded. Supplement history requires Nutrition; reminder history requires Habits.",
+    "supplement_adherence": "Recorded supplement intake",
+    "notification_history": "Server reminder history",
+    "queueHint": "A requested review waits for the next cloud run. For an immediate review, copy the prompt and run it in ChatGPT.",
+    "recapHint": "Your reviews stay here until you delete them. Suggestions always need your approval.",
+    "limitations": "What this review cannot establish",
+    "seeSuggestions": "Review suggestions",
+    "deleteRecap": "Delete recap",
+    "deleteHint": "This deletes only the recap. Your logged data and recommendations remain.",
+    "unread": "Unread",
+    "noRecaps": "No recaps yet. Connect ChatGPT and test a review. A successful review appears here even when no change is suggested.",
+    "openRecap": "Open recap",
+    "insightsTitle": "Recaps & recommendations",
+    "openRecaps": "Open recaps",
+    "insightsHint": "Review your data, consider suggestions and follow up on accepted changes.",
+    "connectionContext": "Additional connection context"
   }
 }

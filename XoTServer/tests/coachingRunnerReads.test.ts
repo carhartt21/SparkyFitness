@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { defaultCoachingSettings } from '@workspace/shared';
+import {
+  defaultCoachingSettings,
+  defaultCoachingSettingsV2,
+} from '@workspace/shared';
 import { CoachingRunReadAudit } from '../tools/coachingRunnerReads.js';
 const id = '00000000-0000-4000-8000-000000000001';
 const event = (
@@ -104,5 +107,35 @@ describe('subscription evidence-read audit', () => {
       )
     );
     expect(audit.complete()).toBe(true);
+  });
+  it('audits protocol-2 feedback from the frozen cursor without rereading acknowledged history', () => {
+    const audit = new CoachingRunReadAudit(id, 500);
+    audit.observe(event('xot_get_coaching_snapshot', snapshot(0, null)));
+    audit.observe(
+      event('xot_get_coaching_context', {
+        ...context,
+        protocolVersion: 2,
+        settings: defaultCoachingSettingsV2,
+        processedEventCursor: 500,
+        nextEventCursor: 500,
+      })
+    );
+    expect(audit.complete()).toBe(true);
+    const missing = new CoachingRunReadAudit(id, 500);
+    missing.observe(event('xot_get_coaching_snapshot', snapshot(0, null)));
+    missing.observe(
+      event(
+        'xot_get_coaching_context',
+        {
+          ...context,
+          protocolVersion: 2,
+          settings: defaultCoachingSettingsV2,
+          processedEventCursor: 500,
+          nextEventCursor: 500,
+        },
+        { eventCursor: 0 }
+      )
+    );
+    expect(missing.complete()).toBe(false);
   });
 });

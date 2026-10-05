@@ -61,6 +61,11 @@ vi.mock('@better-auth/mcp', () => ({
 vi.mock('../services/mcpConnectionService.js', () => ({
   hasActiveMcpConsent: fixture.consent,
 }));
+vi.mock('../services/coachingRunService.js', () => ({
+  hasCoachingOAuthBinding: async () => false,
+  coachingFeatureEnabled: () => false,
+  resolveCoachingAgent: vi.fn(),
+}));
 vi.mock('../utils/timezoneLoader.js', () => ({
   loadUserTimezone: async () => 'Europe/Berlin',
 }));

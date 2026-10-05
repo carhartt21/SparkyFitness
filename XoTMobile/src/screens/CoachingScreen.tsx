@@ -15,7 +15,10 @@ import {
   type CoachingProposal,
   type CoachingFeedback,
   type CoachingPreview,
-  type CoachingSettings,
+  type CoachingSettingsV2,
+  coachingCadenceSchema,
+  coachingContextPermissionSchema,
+  cloudCoachingTaskPrompt,
   type CoachingDomain,
 } from '@workspace/shared';
 import type { RootStackParamList } from '../types/navigation';
@@ -28,6 +31,10 @@ import BottomSheetPicker from '../components/BottomSheetPicker';
 import { CommitmentFeedback } from '../components/coaching/CommitmentFeedback';
 import CoachingFields from '../components/coaching/CoachingFields';
 import { useNeonScale } from '../components/tracking/useNeonScale';
+import Clipboard from '@react-native-clipboard/clipboard';
+import CloudSetup from '../components/coaching/CloudSetup';
+import Recaps from '../components/coaching/Recaps';
+import ReviewTimeField from '../components/coaching/ReviewTimeField';
 import { newUuid } from '../utils/ids';
 
 type Api = ReturnType<typeof useCoaching>['api'];
@@ -290,7 +297,7 @@ function Settings({ api, scope }: { api: Api; scope: string }) {
     queryFn: api.loadCoachingContext,
     refetchInterval: 60_000,
   });
-  const [draft, setDraft] = useState<CoachingSettings | null>(null),
+  const [draft, setDraft] = useState<CoachingSettingsV2 | null>(null),
     [name, setName] = useState(''),
     [domains, setDomains] = useState<CoachingDomain[]>([
       ...coachingDomainSchema.options,
@@ -349,43 +356,54 @@ function Settings({ api, scope }: { api: Api; scope: string }) {
               'Pausing stops new agent runs. Accepted actions remain available for you to manage.',
           })}
         </Text>
-        {(
-          ['morningTime', 'eveningTime', 'weeklyTime', 'digestTime'] as const
-        ).map((field) => (
-          <View key={field} className="gap-2">
-            <Text className="text-base text-text-primary">
-              {copy(`coaching.${field}`, field)}
+        <ReviewTimeField
+          label={t('coachingLoop.reviewTime', {
+            defaultValue: 'Daily cloud task (24-hour)',
+          })}
+          value={settings.reviewTime}
+          onChange={(reviewTime) => setDraft({ ...settings, reviewTime })}
+        />
+        <Text className="text-sm text-text-secondary">
+          {t('coachingLoop.calendarHint', {
+            defaultValue:
+              'Daily: yesterday. Monday: the previous week. First of the month: the previous month. January 1: the previous year. Missed periods coalesce to the latest period for each cadence.',
+          })}
+        </Text>
+        {coachingCadenceSchema.options.map((cadence) => (
+          <View
+            key={cadence}
+            className="flex-row items-center justify-between gap-3"
+          >
+            <Text className="flex-1 text-base text-text-primary">
+              {copy(`coaching.options.${cadence}`, cadence)}
             </Text>
-            <FormInput
-              accessibilityLabel={copy(`coaching.${field}`, field)}
-              value={settings[field]}
-              onChangeText={(value) =>
-                setDraft({ ...settings, [field]: value })
+            <Switch
+              accessibilityLabel={copy(`coaching.options.${cadence}`, cadence)}
+              value={settings.cadences.includes(cadence)}
+              onValueChange={(enabled) =>
+                setDraft({
+                  ...settings,
+                  cadences: enabled
+                    ? [...settings.cadences, cadence]
+                    : settings.cadences.filter((item) => item !== cadence),
+                })
               }
-              placeholder="08:00"
             />
           </View>
         ))}
-        <BottomSheetPicker
-          title={t('coaching.weeklyDay', { defaultValue: 'Weekly review day' })}
-          value={settings.weeklyDay}
-          options={Array.from({ length: 7 }, (_, day) => ({
-            value: day,
-            label: new Intl.DateTimeFormat(i18n.language, {
-              weekday: 'long',
-              timeZone: 'UTC',
-            }).format(new Date(Date.UTC(2026, 8, 27 + day))),
-          }))}
-          onSelect={(value) => setDraft({ ...settings, weeklyDay: value })}
+        <ReviewTimeField
+          label={t('coaching.digestTime', { defaultValue: 'Daily digest' })}
+          value={settings.digestTime}
+          onChange={(digestTime) => setDraft({ ...settings, digestTime })}
         />
         <Text className="text-base text-text-primary">
           {t('coaching.digestEnabled', {
-            defaultValue: 'Notify me when recommendations are waiting',
+            defaultValue: 'Notify me about new recaps or suggestions',
           })}
         </Text>
         <Switch
           accessibilityLabel={t('coaching.digestEnabled', {
-            defaultValue: 'Notify me when recommendations are waiting',
+            defaultValue: 'Notify me about new recaps or suggestions',
           })}
           value={settings.digestEnabled}
           onValueChange={(value) =>
@@ -420,8 +438,43 @@ function Settings({ api, scope }: { api: Api; scope: string }) {
             />
           </View>
         ))}
+        <Text className="text-sm text-text-secondary">
+          {t('coachingLoop.optionalContext', {
+            defaultValue:
+              'Optional context is shared only when enabled here and in the connection. Medications and dose changes are excluded. Supplement history requires Nutrition; reminder history requires Habits.',
+          })}
+        </Text>
+        {coachingContextPermissionSchema.options.map((permission) => (
+          <View
+            key={permission}
+            className="flex-row items-center justify-between gap-3"
+          >
+            <Text className="flex-1 text-base text-text-primary">
+              {copy(`coachingLoop.${permission}`, permission)}
+            </Text>
+            <Switch
+              accessibilityLabel={copy(
+                `coachingLoop.${permission}`,
+                permission
+              )}
+              value={settings.contextPermissions.includes(permission)}
+              onValueChange={(enabled) =>
+                setDraft({
+                  ...settings,
+                  contextPermissions: enabled
+                    ? [...settings.contextPermissions, permission]
+                    : settings.contextPermissions.filter(
+                        (item) => item !== permission
+                      ),
+                })
+              }
+            />
+          </View>
+        ))}
         <NeonButton
-          disabled={busy || !settings.domains.length}
+          disabled={
+            busy || !settings.domains.length || !settings.cadences.length
+          }
           label={t('coaching.save', { defaultValue: 'Save schedule' })}
           onPress={() => {
             void run(async () => {
@@ -435,6 +488,12 @@ function Settings({ api, scope }: { api: Api; scope: string }) {
           }}
         />
       </GlowCard>
+      <CloudSetup
+        api={api}
+        scope={scope}
+        settings={query.data?.settings ?? settings}
+        timezone={query.data?.timezone ?? 'UTC'}
+      />
       <GlowCard className="gap-4 p-4">
         <Text className="text-xl font-semibold text-text-primary">
           {t('coaching.connections', { defaultValue: 'Agent connections' })}
@@ -454,15 +513,32 @@ function Settings({ api, scope }: { api: Api; scope: string }) {
               {agent.name}
             </Text>
             <Text className="text-text-secondary">
-              {agent.domains.join(', ')} ·{' '}
+              {agent.domains
+                .map((domain) => copy(`coaching.domains.${domain}`, domain))
+                .join(', ')}{' '}
+              ·{' '}
               {agent.enabled
                 ? t('coaching.connected', { defaultValue: 'Connected' })
                 : t('coaching.revoked', { defaultValue: 'Revoked' })}
             </Text>
+            <Text className="text-sm text-text-secondary">
+              {t('coachingLoop.connectionContext', {
+                defaultValue: 'Additional connection context',
+              })}
+              :{' '}
+              {agent.contextPermissions
+                .map((permission) =>
+                  copy(`coachingLoop.${permission}`, permission)
+                )
+                .join(', ') || '—'}
+            </Text>
             <Text className="text-text-secondary">
               {t('coaching.lastSeen', { defaultValue: 'Last contact' })}:{' '}
               {agent.lastSeenAt
-                ? new Date(agent.lastSeenAt).toLocaleString(i18n.language)
+                ? new Date(agent.lastSeenAt).toLocaleString(i18n.language, {
+                    hour12: false,
+                    timeZone: query.data?.timezone,
+                  })
                 : '—'}
             </Text>
             {agent.enabled && agent.credentialKind === 'api_key' && (
@@ -547,7 +623,12 @@ function Settings({ api, scope }: { api: Api; scope: string }) {
           label={t('coaching.addAgent', { defaultValue: 'Add connection' })}
           onPress={() => {
             void run(async () => {
-              await api.addCoachingAgent({ name, domains });
+              await api.addCoachingAgent({
+                name,
+                domains,
+                protocolVersion: 2,
+                contextPermissions: settings.contextPermissions,
+              });
               setName('');
             });
           }}
@@ -588,9 +669,9 @@ function Inbox({
   const copy = useCoachingCopy();
   const { t, i18n } = useTranslation(),
     client = useQueryClient();
-  const [tab, setTab] = useState<'pending' | 'active' | 'history' | 'settings'>(
-      'pending'
-    ),
+  const [tab, setTab] = useState<
+      'recaps' | 'pending' | 'active' | 'history' | 'settings'
+    >('recaps'),
     [domain, setDomain] = useState(''),
     [selected, setSelected] = useState<CoachingProposal | null>(null),
     [busy, setBusy] = useState(false),
@@ -602,7 +683,8 @@ function Inbox({
   const query = useInfiniteQuery({
     queryKey: ['coaching', scope, 'inbox', tab, domain],
     initialPageParam: 0,
-    enabled: tab !== 'settings' && !!settings.data?.featureEnabled,
+    enabled:
+      tab !== 'settings' && tab !== 'recaps' && !!settings.data?.featureEnabled,
     queryFn: ({ pageParam }) =>
       api.loadCoachingInbox(
         pageParam,
@@ -664,19 +746,19 @@ function Inbox({
         ) : (
           <>
             <View className="flex-row flex-wrap gap-2">
-              {(['pending', 'active', 'history', 'settings'] as const).map(
-                (value) => (
-                  <NeonButton
-                    key={value}
-                    variant={tab === value ? 'primary' : 'outline'}
-                    label={copy(`coaching.tabs.${value}`, value)}
-                    onPress={() => {
-                      setTab(value);
-                      setSelected(null);
-                    }}
-                  />
-                )
-              )}
+              {(
+                ['recaps', 'pending', 'active', 'history', 'settings'] as const
+              ).map((value) => (
+                <NeonButton
+                  key={value}
+                  variant={tab === value ? 'primary' : 'outline'}
+                  label={copy(`coaching.tabs.${value}`, value)}
+                  onPress={() => {
+                    setTab(value);
+                    setSelected(null);
+                  }}
+                />
+              ))}
             </View>
             <NeonButton
               disabled={busy || !settings.data?.settings.enabled}
@@ -688,8 +770,35 @@ function Inbox({
                 void run(() => api.requestCoaching());
               }}
             />
+            <Text className="text-sm text-text-secondary">
+              {t('coachingLoop.queueHint', {
+                defaultValue:
+                  'A requested review waits for the next cloud run. For an immediate review, copy the prompt and run it in ChatGPT.',
+              })}
+            </Text>
+            <NeonButton
+              variant="outline"
+              label={t('coachingLoop.copyPrompt', {
+                defaultValue: 'Copy review prompt',
+              })}
+              onPress={() =>
+                Clipboard.setString(
+                  cloudCoachingTaskPrompt(
+                    settings.data?.settings.reviewTime ?? '08:00',
+                    settings.data?.timezone ?? 'UTC',
+                    i18n.language
+                  )
+                )
+              }
+            />
             {tab === 'settings' ? (
               <Settings api={api} scope={scope} />
+            ) : tab === 'recaps' ? (
+              <Recaps
+                api={api}
+                scope={scope}
+                onRecommendations={() => setTab('pending')}
+              />
             ) : (
               <>
                 <BottomSheetPicker

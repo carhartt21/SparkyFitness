@@ -265,6 +265,7 @@ describe.skipIf(!enabled)('owner-only coaching workflow in PostgreSQL', () => {
     }
   });
   it('reserves coaching only for capable v3 devices, shares the cap, and limits digests to one attempted delivery per day', async () => {
+    await patchCoachingSettings(bob, { expectedRevision: 0, enabled: true });
     const when = localDateTimeToUtc(`${today}T19:00:00`, 'Europe/Berlin');
     const bobAgent = (
       await createCoachingAgent(bob, {

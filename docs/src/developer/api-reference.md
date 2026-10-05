@@ -460,3 +460,7 @@ Owner-only `POST /api/workout-plan-templates/:id/assignments/:assignmentId/activ
 `GET /api/reports/nutrient-coverage` accepts ISO calendar-day `startDate`/`endDate` and optional target `userId` UUID. Authentication and report-read permission are required. The response groups by day and catalog ID, with known/eligible entry counts, nullable recorded total and the actual bound unit. It is separate from numeric trend responses. Invalid dates, reversed ranges or malformed IDs return 400; unauthorized profiles return 403.
 
 Native nutrition uploads can include `nutrient_observation: { mode: "partial", quantities: [{ catalogId: "magnesium", amount: 45, unit: "mg" }] }`. Quantities are finite, nonnegative, bounded to the 27 supported micronutrients and unique by catalog ID. Omitted values preserve only the same source record's prior observations. Client-asserted authoritative clearing is rejected. See the [implementation and recovery record](https://github.com/carhartt21/SparkyFitness/blob/feat/micronutrient-coverage/docs/implementation/micronutrient-coverage-rollout-2026-10-01.md) for compatibility and rollout details.
+
+## Owner-reviewed calendar recaps
+
+The [proposal and review contract](./mcp/recommendations.md) documents `/api/v2/coaching` owner-session APIs and the six bounded MCP tools. Settings, context and agent creation support `?version=2`; old clients keep strict protocol-1 projections. Recaps have paginated list, detail, mark-read and explicit-delete routes. No MCP tool approves or activates a recommendation.

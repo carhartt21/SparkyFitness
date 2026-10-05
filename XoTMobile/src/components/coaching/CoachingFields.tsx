@@ -29,7 +29,10 @@ import NeonButton from '../ui/NeonButton';
 import { newUuid } from '../../utils/ids';
 
 type Json = z.infer<ReturnType<typeof z.json>>;
-type Api = ReturnType<typeof createCoachingClient>;
+type Api = Pick<
+  ReturnType<typeof createCoachingClient>,
+  'loadCoachingPlanning'
+>;
 function Reference({
   kind,
   value,

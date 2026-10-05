@@ -227,3 +227,7 @@ the halfway state, confirms the first exercise, captures transition/automatic
 start, confirms the second and opens its diary entry. Health workout recording is
 disabled in this simulator fixture. These captures verify UI/flow, not audible
 playback, real backend persistence or Apple Health/Fitness export.
+
+## Cloud review UI
+
+`--interactions --coaching-review --case '^(390-de-dark|390-de-light|430-de-large)$'` uses the actual Recommendations screen and schema-validated synthetic protocol-2 recaps/settings. It accepts only enumerated coaching reads and marking the synthetic recap read; it never connects ChatGPT, a real account or changes a plan. Two initial attempts failed at the existing More entry selector; the fixture/selector correction remains unrerun as recorded in `../../docs/implementation/chatgpt-review-loop-2026-10-05.md` at repository root. Run this gate before native release acceptance.

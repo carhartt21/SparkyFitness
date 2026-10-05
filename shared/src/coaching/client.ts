@@ -21,6 +21,17 @@ import {
   plannedMealReceiptSchema,
   type PlannedMealConfirmation,
 } from "../schemas/api/MealPlanning.api.zod.ts";
+import {
+  coachingConnectionsSchema,
+  coachingSettingsResponseV2Schema,
+  coachingSettingsV2Schema,
+  coachingContextV2Schema,
+  coachingAgentV2Schema,
+  coachingRecapSchema,
+  coachingRecapListSchema,
+  type CoachingSettingsPatchV2,
+  type CoachingAgentCreateV2,
+} from "../schemas/api/CoachingV2.api.zod.ts";
 export interface CoachingRequest {
   path: string;
   method: "GET" | "POST" | "PATCH" | "DELETE";
@@ -119,6 +130,18 @@ export function createCoachingClient(
     mutation(`/planned-meals/${id}/skip`, {});
 
   return {
+    loadCoachingConnections: async () =>
+      coachingConnectionsSchema.parse(await read("/connections")),
+    loadCoachingRecaps: async (offset = 0) =>
+      coachingRecapListSchema.parse(
+        await read("/recaps", { params: { offset, limit: 20 } }),
+      ),
+    loadCoachingRecap: async (id: string) =>
+      coachingRecapSchema.parse(await read(`/recaps/${id}`)),
+    readCoachingRecap: async (id: string) =>
+      coachingRecapSchema.parse(await mutation(`/recaps/${id}/read`, {})),
+    deleteCoachingRecap: (id: string) =>
+      mutation(`/recaps/${id}`, undefined, "DELETE"),
     loadCoachingSettings,
     saveCoachingSettings,
     loadCoachingContext,
@@ -136,5 +159,50 @@ export function createCoachingClient(
     loadPlannedMeals,
     confirmCoachingMeal,
     skipCoachingMeal,
+  };
+}
+
+/** New clients opt into protocol 2 without widening legacy response contracts. */
+export function createCoachingClientV2(
+  request: (input: CoachingRequest) => Promise<unknown>,
+  uuid: () => string,
+) {
+  const base = createCoachingClient(request, uuid);
+  return {
+    ...base,
+    loadCoachingSettings: async () =>
+      coachingSettingsResponseV2Schema.parse(
+        await request({
+          path: "/settings",
+          method: "GET",
+          params: { version: 2 },
+        }),
+      ),
+    loadCoachingContext: async () =>
+      coachingContextV2Schema.parse(
+        await request({
+          path: "/context",
+          method: "GET",
+          params: { version: 2 },
+        }),
+      ),
+    saveCoachingSettings: async (body: CoachingSettingsPatchV2) =>
+      coachingSettingsV2Schema.parse(
+        await request({
+          path: "/settings",
+          method: "PATCH",
+          params: { version: 2 },
+          body,
+        }),
+      ),
+    addCoachingAgent: async (body: CoachingAgentCreateV2) =>
+      coachingAgentV2Schema.parse(
+        await request({
+          path: "/agents",
+          method: "POST",
+          params: { version: 2 },
+          body,
+        }),
+      ),
   };
 }

@@ -530,7 +530,7 @@ const DEFAULT_SCHEDULE = {
   meal_review_time: '20:00',
   movement_break_time: '15:00',
 };
-function mapSettingsV2(
+export function mapSettingsV2(
   row: Record<string, unknown> | undefined
 ): EngagementSettingsV2 {
   return engagementSettingsV2Schema.parse({

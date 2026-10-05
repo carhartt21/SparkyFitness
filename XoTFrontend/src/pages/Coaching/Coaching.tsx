@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { z } from 'zod';
 import {
   coachingActionSchema,
+  cloudCoachingTaskPrompt,
   coachingDomainSchema,
   type CoachingProposal,
   type CoachingFeedback,
@@ -22,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ActionFields } from './ActionFields';
 import { CommitmentFeedback } from './CommitmentFeedback';
+import { Recaps } from './Recaps';
 import { CoachingSettings } from './CoachingSettings';
 
 function ProposalReview({
@@ -268,9 +270,9 @@ function CoachingInbox() {
   const { t, i18n } = useTranslation(),
     { isActingOnBehalf } = useActiveUser(),
     refresh = useCoachingRefresh();
-  const [tab, setTab] = useState<'pending' | 'active' | 'history' | 'settings'>(
-      'pending'
-    ),
+  const [tab, setTab] = useState<
+      'recaps' | 'pending' | 'active' | 'history' | 'settings'
+    >('recaps'),
     [domain, setDomain] = useState(''),
     [selected, setSelected] = useState<CoachingProposal | null>(null),
     [error, setError] = useState(false),
@@ -364,33 +366,65 @@ function CoachingInbox() {
               defaultValue: 'Recommendation views',
             })}
           >
-            {(['pending', 'active', 'history', 'settings'] as const).map(
-              (value) => (
-                <Button
-                  key={value}
-                  variant={tab === value ? 'default' : 'outline'}
-                  aria-pressed={tab === value}
-                  onClick={() => {
-                    setTab(value);
-                    setSelected(null);
-                  }}
-                >
-                  {t(`coaching.tabs.${value}`, {
-                    defaultValue:
-                      value === 'pending'
+            {(
+              ['recaps', 'pending', 'active', 'history', 'settings'] as const
+            ).map((value) => (
+              <Button
+                key={value}
+                variant={tab === value ? 'default' : 'outline'}
+                aria-pressed={tab === value}
+                onClick={() => {
+                  setTab(value);
+                  setSelected(null);
+                }}
+              >
+                {t(`coaching.tabs.${value}`, {
+                  defaultValue:
+                    value === 'recaps'
+                      ? 'Recaps'
+                      : value === 'pending'
                         ? 'New'
                         : value === 'active'
                           ? 'Active'
                           : value === 'history'
                             ? 'History'
                             : 'Schedule & connections',
-                  })}
-                </Button>
-              )
-            )}
+                })}
+              </Button>
+            ))}
           </nav>
+          <div className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              {t('coachingLoop.queueHint', {
+                defaultValue:
+                  'A requested review waits for the next cloud run. For an immediate review, copy the prompt and run it in ChatGPT.',
+              })}
+            </p>
+            <Button
+              variant="outline"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(
+                    cloudCoachingTaskPrompt(
+                      settings.data?.settings.reviewTime ?? '08:00',
+                      settings.data?.timezone ?? 'UTC',
+                      i18n.language
+                    )
+                  );
+                } catch {
+                  setError(true);
+                }
+              }}
+            >
+              {t('coachingLoop.copyPrompt', {
+                defaultValue: 'Copy review prompt',
+              })}
+            </Button>
+          </div>
           {tab === 'settings' ? (
             <CoachingSettings />
+          ) : tab === 'recaps' ? (
+            <Recaps onRecommendations={() => setTab('pending')} />
           ) : (
             <>
               <div className="max-w-xs space-y-2">

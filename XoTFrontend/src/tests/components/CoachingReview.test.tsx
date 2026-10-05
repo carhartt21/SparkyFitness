@@ -24,6 +24,7 @@ jest.mock('@/hooks/Coaching/useCoaching', () => ({
   useCoachingRefresh: jest.fn(),
   useCoachingPlanning: jest.fn(),
 }));
+jest.mock('@/pages/Coaching/Recaps', () => ({ Recaps: () => null }));
 jest.mock('@/pages/Coaching/CoachingSettings', () => ({
   CoachingSettings: () => null,
 }));
@@ -124,6 +125,7 @@ beforeEach(() => {
 });
 it('requires a fresh preview after editing and submits the displayed action and token', async () => {
   render(<Coaching />);
+  fireEvent.click(screen.getByRole('button', { name: 'New' }));
   fireEvent.click(
     screen.getByRole('button', { name: 'Review recommendation' })
   );
@@ -161,6 +163,7 @@ it('blocks preview on missing evidence and clears the review after an account sw
       typeof hooks.useCoachingEvidence
     >);
   const view = render(<Coaching />);
+  fireEvent.click(screen.getByRole('button', { name: 'New' }));
   fireEvent.click(
     screen.getByRole('button', { name: 'Review recommendation' })
   );
