@@ -1,0 +1,46 @@
+{
+  "sourceCommit": "6e72f1151c4f5c7ac625751cf3fa0470479d28ca",
+  "mobile": {
+    "version": "1.7.2",
+    "build": 43,
+    "sourceCommit": "6e72f1151c4f5c7ac625751cf3fa0470479d28ca",
+    "buildId": "892252a3-e153-4dd9-995d-4c898c365878",
+    "buildStatus": "FINISHED",
+    "submissionId": "3803d58c-83f6-4338-920e-19c2b672e1b7",
+    "submissionStatus": "IN_QUEUE",
+    "appleBuilds": [],
+    "internalBuildState": [],
+    "signedTargetsVerified": true,
+    "ipaSha256": "0f8ab843fa0474d4d085aa01de62e93720c86a0e00559981d04b8c23c35bd5bb",
+    "uploadMethod": "EAS automatic submission",
+    "physicalDeviceChecks": "unverified",
+    "checkedAtUtc": "2026-10-05T12:27:24.230626+00:00"
+  },
+  "production": {
+    "checkedAtUtc": "2026-10-05T12:18:41.495456+00:00",
+    "publicHttps": {
+      "/": 200,
+      "/api/health": 200,
+      "/.well-known/oauth-protected-resource/mcp/chatgpt": 200
+    },
+    "publicSmokePassed": true,
+    "backupVerifiedOffHost": true,
+    "rollbackImagesRetained": true,
+    "protectedSettingsRoutingMountsAndDatabaseImagePreserved": true,
+    "database": {
+      "migrationCount": 270,
+      "reviewLoopMigrationApplied": true,
+      "blsFoodCount": 7140,
+      "recapsRls": true,
+      "recapsOwnerPolicy": true,
+      "servingColumns": 4
+    },
+    "entryAssetCount": 28,
+    "artworkCount": 22
+  },
+  "rolloutGates": {
+    "MICRONUTRIENT_IMPORT_ENABLED": false,
+    "XOT_COACHING_ENABLED": false,
+    "EXPO_PUBLIC_MICRONUTRIENT_SYNC_ENABLED": false
+  }
+}

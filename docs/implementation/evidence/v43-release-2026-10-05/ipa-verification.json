@@ -1,0 +1,54 @@
+{
+  "sha256": "0f8ab843fa0474d4d085aa01de62e93720c86a0e00559981d04b8c23c35bd5bb",
+  "targets": [
+    {
+      "bundleId": "com.cg.phi",
+      "version": "1.7.2",
+      "build": "43",
+      "signatureVerified": true,
+      "appGroupPreserved": true,
+      "healthKit": true,
+      "germanPermissionKeys": [
+        "NSCameraUsageDescription",
+        "NSPhotoLibraryUsageDescription",
+        "NSHealthShareUsageDescription",
+        "NSHealthUpdateUsageDescription",
+        "NSLocalNetworkUsageDescription"
+      ]
+    },
+    {
+      "bundleId": "com.cg.phi.widget",
+      "version": "1.7.2",
+      "build": "43",
+      "signatureVerified": true,
+      "appGroupPreserved": true,
+      "healthKit": false
+    },
+    {
+      "bundleId": "com.cg.phi.ExpoWidgetsTarget",
+      "version": "1.7.2",
+      "build": "43",
+      "signatureVerified": true,
+      "appGroupPreserved": true,
+      "healthKit": false
+    },
+    {
+      "bundleId": "com.cg.phi.watchkitapp",
+      "version": "1.7.2",
+      "build": "43",
+      "signatureVerified": true,
+      "appGroupPreserved": true,
+      "healthKit": true,
+      "germanCatalogKeys": 150
+    },
+    {
+      "bundleId": "com.cg.phi.watchkitapp.watch-widget",
+      "version": "1.7.2",
+      "build": "43",
+      "signatureVerified": true,
+      "appGroupPreserved": true,
+      "healthKit": false,
+      "germanCatalogKeys": 16
+    }
+  ]
+}
