@@ -156,7 +156,11 @@
     "energyEstimateTitle": "Confirm mobility calories",
     "energyEstimateMessage": "Estimate: {{kcal}} active kcal from {{minutes}} min of confirmed timed exercises and your latest weight ({{weight}} kg). Assumes mild stretching (2.3 MET), with resting energy excluded. This is not a measurement. Check or edit the value before confirming.",
     "energyEstimateConfirm": "Confirm and export",
-    "energyNoEstimateMessage": "A calorie estimate needs a known weight and confirmed timed exercises. Enter active calories only if you know them, or skip export. The session stays in your diary."
+    "energyNoEstimateMessage": "A calorie estimate needs a known weight and confirmed timed exercises. Enter active calories only if you know them, or skip export. The session stays in your diary.",
+    "startShort": "Start",
+    "startNamed": "Start {{name}}",
+    "editNamed": "Edit {{name}}",
+    "deleteNamed": "Delete {{name}}"
   },
   "activeTimer": {
     "timeToTarget": "Time to target",
@@ -625,7 +629,9 @@
     "askSparky": "Ask Trackbot",
     "syncHealth": "Sync Health Data",
     "logPregnancyEntry": "Log Pregnancy Entry",
-    "logCycle": "Log Cycle"
+    "logCycle": "Log Cycle",
+    "water": "Water",
+    "mobility": "Mobility"
   },
   "screens": {
     "foods": "Foods",
@@ -1423,7 +1429,10 @@
       "withoutTime": "Without a recorded time",
       "partialError": "Some water, intake or wellness entries could not be refreshed. Pull to refresh and try again.",
       "intake": "Intake",
-      "undoWellness": "Undo {{name}}"
+      "undoWellness": "Undo {{name}}",
+      "planned": "Planned · nothing logged yet",
+      "recordIntake": "Record {{name}} as taken",
+      "plannedIntakeHint": "Planned intake. Record it only after you have taken it."
     }
   },
   "medications": {
@@ -6389,7 +6398,15 @@
       "evening": "Evening",
       "anytime": "Any time"
     },
-    "singular": "Supplement"
+    "singular": "Supplement",
+    "extra": {
+      "add": "Log extra intake",
+      "hint": "Record an additional intake. Your schedule and planned doses stay unchanged.",
+      "select": "Choose supplement",
+      "amount": "Amount taken",
+      "time": "Intake time",
+      "error": "Could not save the intake. Please try again."
+    }
   },
   "trackingSettings": {
     "title": "Tracking settings",
@@ -6992,5 +7009,9 @@
     "openRecaps": "Open recaps",
     "insightsHint": "Review your data, consider suggestions and follow up on accepted changes.",
     "connectionContext": "Additional connection context"
+  },
+  "waterLog": {
+    "offline": "Connect to your server to log water.",
+    "error": "Could not load hydration details."
   }
 }

@@ -6,6 +6,7 @@ import {
   Alert,
   AppState,
   Platform,
+  Pressable,
   Text,
   TextInput,
   View,
@@ -14,6 +15,9 @@ import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import Button from '../components/ui/Button';
+import Icon from '../components/Icon';
+import { useCSSVariable } from 'uniwind';
+import NeonButton from '../components/ui/NeonButton';
 import { KeepAwakeLock } from '../components/ActiveWorkoutKeepAwake';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import MobilityHistorySection from '../components/MobilityHistorySection';
@@ -135,6 +139,10 @@ function formatClock(seconds: number): string {
 
 export default function GuidedMobilityScreen() {
   const { t } = useTranslation();
+  const [accent, danger] = useCSSVariable([
+    '--color-accent-primary',
+    '--color-icon-danger',
+  ]) as [string, string];
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused();
   const focused = useRef(isFocused);
@@ -573,7 +581,7 @@ export default function GuidedMobilityScreen() {
       <KeyboardAwareScrollView
         mode="layout"
         className="flex-1"
-        contentContainerClassName="px-4 py-5 gap-5"
+        contentContainerClassName="px-4 py-3 gap-3"
         contentContainerStyle={{ paddingBottom: insets.bottom + 96 }}
         keyboardShouldPersistTaps="handled"
         bottomOffset={24}
@@ -1047,40 +1055,68 @@ export default function GuidedMobilityScreen() {
             {state?.routines.map((routine) => (
               <View
                 key={routine.id}
-                className="rounded-2xl bg-raised p-4 gap-3"
+                testID={`mobility-routine-${routine.id}`}
+                className="rounded-2xl border border-border-subtle bg-surface p-4 gap-3"
               >
-                <Text className="text-xl font-semibold text-text-primary">
-                  {routine.name}
-                </Text>
-                <Text className="text-sm text-text-secondary">
-                  {t('mobility.stepTotal', {
-                    defaultValue: '{{count}} steps',
-                    count: routine.steps.length,
-                  })}
-                </Text>
-                <Button
-                  disabled={busy}
-                  onPress={() =>
-                    void perform(() =>
-                      startMobilitySession(identity, routine.id)
-                    )
-                  }
-                >
-                  {t('mobility.start', { defaultValue: 'Start routine' })}
-                </Button>
-                <Button
-                  variant="secondary"
-                  onPress={() => setDraft(toDraft(routine))}
-                >
-                  {t('common.edit', { defaultValue: 'Edit' })}
-                </Button>
-                <Button
-                  variant="destructive"
-                  disabled={busy}
-                  onPress={() => confirmDeleteRoutine(routine)}
-                >
-                  {t('common.delete', { defaultValue: 'Delete' })}
-                </Button>
+                <View className="flex-row items-start gap-3">
+                  <Icon name="exercise-yoga" size={24} color={accent} />
+                  <View className="min-w-0 flex-1 gap-1">
+                    <Text className="text-lg font-semibold text-text-primary">
+                      {routine.name}
+                    </Text>
+                    <Text className="text-sm text-text-secondary">
+                      {t('mobility.stepTotal', {
+                        defaultValue: '{{count}} steps',
+                        count: routine.steps.length,
+                      })}
+                      {routine.reminderTime
+                        ? ` · ${routine.reminderTime.slice(0, 5)}`
+                        : ''}
+                    </Text>
+                  </View>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  <NeonButton
+                    className="flex-1 rounded-xl"
+                    icon="play"
+                    size="sm"
+                    disabled={busy}
+                    label={t('mobility.startShort', { defaultValue: 'Start' })}
+                    accessibilityLabel={t('mobility.startNamed', {
+                      defaultValue: 'Start {{name}}',
+                      name: routine.name,
+                    })}
+                    onPress={() =>
+                      void perform(() =>
+                        startMobilitySession(identity, routine.id)
+                      )
+                    }
+                  />
+                  <Pressable
+                    className="h-11 w-11 items-center justify-center rounded-xl border border-border-subtle bg-raised"
+                    disabled={busy}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('mobility.editNamed', {
+                      defaultValue: 'Edit {{name}}',
+                      name: routine.name,
+                    })}
+                    onPress={() => setDraft(toDraft(routine))}
+                  >
+                    <Icon name="pencil" size={20} color={accent} />
+                  </Pressable>
+                  <Pressable
+                    className="h-11 w-11 items-center justify-center rounded-xl"
+                    disabled={busy}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('mobility.deleteNamed', {
+                      defaultValue: 'Delete {{name}}',
+                      name: routine.name,
+                    })}
+                    onPress={() => confirmDeleteRoutine(routine)}
+                  >
+                    <Icon name="trash" size={20} color={danger} />
+                  </Pressable>
+                </View>
               </View>
             ))}
             <MobilityHistorySection

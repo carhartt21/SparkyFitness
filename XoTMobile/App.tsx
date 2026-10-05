@@ -48,6 +48,7 @@ import {
   SafeMealPlans,
   SafeMealPlanForm,
   SafeWaterContainers,
+  SafeWaterLog,
   SafeWaterContainerEdit,
   SafeExercisesLibrary,
   SafeExerciseReview,
@@ -255,6 +256,8 @@ function AppContent() {
     handleLogWorkout,
     handleAddActivity,
     handleAddMeasurements,
+    handleAddWater,
+    handleAddMobility,
     handleLaunchIconAction,
     handleAddProgressPhotos,
     handleAskSparky,
@@ -586,6 +589,14 @@ function AppContent() {
               options={createStackScreenOptions(
                 t('mealPlans.title', { defaultValue: 'Meal plans' }),
                 { headerBackTitle: t('common.back', { defaultValue: 'Back' }) }
+              )}
+            />
+            <Stack.Screen
+              name="WaterLog"
+              component={SafeWaterLog}
+              options={createStackScreenOptions(
+                t('dashboard.quickWater', { defaultValue: 'Log water' }),
+                { headerBackButtonDisplayMode: 'minimal' }
               )}
             />
             <Stack.Screen
@@ -1518,6 +1529,8 @@ function AppContent() {
             onSyncHealthData={handleSyncHealthData}
             onBarcodeScan={handleBarcodeScan}
             onAddMeasurements={handleAddMeasurements}
+            onAddWater={handleAddWater}
+            onAddMobility={handleAddMobility}
             onAddProgressPhotos={handleAddProgressPhotos}
             onAskSparky={handleAskSparky}
             onOpenCycle={handleOpenCycle}

@@ -5,6 +5,7 @@ import {
   applyDisplayValuesToFoodInfo,
   buildExternalVariantOptions,
   buildLocalVariantOptions,
+  localVariantToUnitVariant,
   convertEquivalentVariantQuantity,
   diffSiblingRows,
   foodInfoToDisplayValues,
@@ -185,24 +186,24 @@ describe('selectDisplayVariant', () => {
     expect(result.orderedVariants).toEqual([dv]);
   });
 
-  it('prefers a named serving over a 100g reference serving', () => {
+  it('defaults to grams alongside named servings', () => {
     const dv = makeDisplayVariant(100, 'g');
     const serving = makeDisplayVariant(1, 'Stück', '1 Stück (30 g)');
     const metricEquivalent = makeDisplayVariant(30, 'g');
     const variants = [serving, metricEquivalent];
     const result = selectDisplayVariant(dv, variants);
-    expect(result.displayVariant).toBe(serving);
-    expect(result.orderedVariants).toEqual([serving, dv, metricEquivalent]);
+    expect(result.displayVariant).toBe(dv);
+    expect(result.orderedVariants).toEqual([dv, serving, metricEquivalent]);
   });
 
-  it('prefers a named serving over a 100ml reference serving', () => {
+  it('defaults to milliliters alongside named servings', () => {
     const dv = makeDisplayVariant(100, 'ml');
     const serving = makeDisplayVariant(1, 'cup', '1 cup (250 ml)');
     const metricEquivalent = makeDisplayVariant(250, 'ml');
     const variants = [serving, metricEquivalent];
     const result = selectDisplayVariant(dv, variants);
-    expect(result.displayVariant).toBe(serving);
-    expect(result.orderedVariants).toEqual([serving, dv, metricEquivalent]);
+    expect(result.displayVariant).toBe(dv);
+    expect(result.orderedVariants).toEqual([dv, serving, metricEquivalent]);
   });
 
   it('deduplicates default variant from ordered list', () => {
@@ -211,8 +212,8 @@ describe('selectDisplayVariant', () => {
     const sameAsDv = makeDisplayVariant(100, 'g', 'Reference serving');
     const variants = [descriptive, sameAsDv];
     const result = selectDisplayVariant(dv, variants);
-    expect(result.displayVariant).toBe(descriptive);
-    expect(result.orderedVariants).toEqual([descriptive, dv]);
+    expect(result.displayVariant).toBe(dv);
+    expect(result.orderedVariants).toEqual([dv, descriptive]);
   });
 
   it('deduplicates variants while keeping the serving before the reference', () => {
@@ -223,8 +224,8 @@ describe('selectDisplayVariant', () => {
     const alsoDescriptive = makeDisplayVariant(1, 'Stück', '1 Stück copy');
     const variants = [descriptive, other, alsoDv, alsoDescriptive];
     const result = selectDisplayVariant(dv, variants);
-    expect(result.displayVariant).toBe(descriptive);
-    expect(result.orderedVariants).toEqual([descriptive, dv, other]);
+    expect(result.displayVariant).toBe(dv);
+    expect(result.orderedVariants).toEqual([dv, descriptive, other]);
   });
 
   it('returns default variant when no descriptive variant exists', () => {
@@ -244,7 +245,7 @@ describe('selectDisplayVariant', () => {
     expect(
       selectDisplayVariant(reference, [reference, package200, package400])
         .orderedVariants
-    ).toEqual([package200, reference, package400]);
+    ).toEqual([reference, package200, package400]);
   });
 
   it('ignores variants without meaningful descriptions', () => {
@@ -282,14 +283,14 @@ describe('selectDisplayVariant', () => {
     expect(result.orderedVariants).toEqual([reference, dv, medium]);
   });
 
-  it('falls back to the named-serving heuristic when the preferred serving matches nothing', () => {
+  it('falls back to the metric basis when a requested serving is missing', () => {
     const dv = makeDisplayVariant(100, 'g');
     const serving = makeDisplayVariant(1, 'Stück', '1 Stück (30 g)');
     const result = selectDisplayVariant(dv, [serving], {
       serving_size: 2,
       serving_unit: 'cup',
     });
-    expect(result.displayVariant).toBe(serving);
+    expect(result.displayVariant).toBe(dv);
   });
 
   it('distinguishes same-named preferred servings by metric weight', () => {
@@ -536,7 +537,7 @@ describe('buildExternalVariantOptions', () => {
     expect(options[1].label).toBe('1 large (120 cal)');
   });
 
-  test('groups a provider serving with its metric equivalent', () => {
+  test('retains gram input even when a portion has equivalent nutrition', () => {
     const options = buildExternalVariantOptions([
       makeExternalVariant({
         serving_size: 1,
@@ -570,6 +571,7 @@ describe('buildExternalVariantOptions', () => {
     expect(options.map((option) => option.label)).toEqual([
       '1 Fruit (4.9 g) (3 cal)',
       '100 g (61 cal)',
+      '4.9 g (3 cal)',
     ]);
     expect(options[0].id).toBe('ext-0');
   });
@@ -980,5 +982,26 @@ describe('diffSiblingRows', () => {
     expect(creates).toEqual([]);
     expect(updates).toEqual([]);
     expect(deletes).toEqual(['b']);
+  });
+});
+
+it('retains the known 28 g household portion geometry through local UI mapping', () => {
+  const mapped = localVariantToUnitVariant(
+    makeLocalVariant({
+      serving_size: 1,
+      serving_unit: 'serving',
+      serving_label: 'Small portion',
+      metric_amount: 28,
+      metric_unit: 'g',
+      sort_order: 2,
+    })
+  );
+  expect(mapped).toMatchObject({
+    serving_size: 1,
+    serving_unit: 'serving',
+    serving_label: 'Small portion',
+    metric_amount: 28,
+    metric_unit: 'g',
+    sort_order: 2,
   });
 });

@@ -4,24 +4,44 @@ This section provides an overview of meal-related features in X on Track.
 
 ---
 
+## Mobile diary groups
+
+Foods in the same meal category appear together in the day timeline. Groups
+start collapsed, with time, known calories and the configured meal-state control
+visible in the header. Tap the header to expand the foods and their actual entry
+times. Tap the state icon to cycle states; hold it to choose a state from the menu.
+State controls are available when meal tracking is enabled.
+
+Today and future days include configured meals and actual scheduled tasks.
+Default meal times determine their chronology, consistently with meal reminders.
+Planned supplement intake or workouts remain planned until explicitly recorded.
+Past days contain recorded entries, without filling the day with current plans.
+Recorded activity, water, intake and sleep details can also expand. Food selection,
+swipe actions, photos and serving adjustments remain available inside groups.
+
 ## Suggested Meal Category Times
 
 X on Track dynamically suggests the appropriate meal category (e.g., Breakfast, Lunch, Dinner, Snacks, or custom categories) when you log food based on your current time of day.
 
 ### How Suggested Times Work
+
 Each meal category can have a **Default Time** assigned to it:
+
 - When you log food, the app finds the meal category whose `default_time` is the **latest time that is less than or equal to your current time** ($\le \text{now}$).
 - Each meal category's default time defines the start of its window until the next scheduled meal.
-- For example, if **Snacks** is set to `5:00 PM` (`17:00`) and **Dinner** is set to `7:00 PM` (`19:00`):
-  - Logging food between `5:00 PM` and `6:59 PM` will automatically suggest **Snacks**.
-  - Logging food at or after `7:00 PM` will automatically suggest **Dinner**.
+- For example, if **Snacks** is set to `17:00` and **Dinner** is set to `19:00`:
+  - Logging food between `17:00` and `18:59` will automatically suggest **Snacks**.
+  - Logging food at or after `19:00` will automatically suggest **Dinner**.
 
 ### Customizing Default Times
+
 You can customize the target start time for any meal category on both Web and Mobile:
+
 - **Web**: Go to **Settings → Meal Categories** and edit the **Default Time** (`HH:MM`) for any category.
 - **Mobile**: Go to **Settings → Food Settings → Suggested Meal Times** and adjust the target times (`HH:MM`).
 
 ### Deleting a Custom Meal Category
+
 Custom meal categories can be deleted from **Settings → Meal Categories** on Web. System defaults (Breakfast, Lunch, Dinner, Snacks) cannot be deleted, only hidden.
 
 If the category has never been used, it is removed immediately. If anything still references it, a dialog shows exactly what is affected — diary entries, logged meals, planned items, and meal plan template items — and offers two choices:

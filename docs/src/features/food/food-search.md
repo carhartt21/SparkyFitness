@@ -20,8 +20,14 @@ declared portion remains available with its own correctly scaled nutrition even
 when the metric default stays at 100 g or 100 ml. A provider description without
 a usable weight does not create a guessed gram equivalent.
 
-Existing saved foods can retain older serving information. On mobile, choose a
-fresh provider search result and save or log it to append missing portions. A
-barcode lookup that finds an existing local food returns that saved record first.
-Historical diary nutrition stays unchanged. You can also manage portions from
-the food's edit screen.
+Mobile starts fresh entries in the metric unit (grams or millilitres where
+declared), while keeping provider portions as separate choices. An explicit
+portion selection remains selected as details load. A household portion with a
+known metric weight also retains gram input; an unknown weight is not guessed.
+
+Opening an eligible saved Open Food Facts food on mobile can refresh missing
+portions using its provider identifier or valid barcode. The bounded refresh
+appends missing choices without replacing saved nutrient values or historical
+diary snapshots. Existing choices stay usable if the provider is unavailable.
+A barcode lookup still returns an existing saved food first. You can also manage
+portions from the food's edit screen.

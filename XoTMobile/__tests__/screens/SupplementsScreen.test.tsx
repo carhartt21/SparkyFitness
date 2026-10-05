@@ -30,6 +30,11 @@ jest.mock('../../src/hooks/useMedications', () => ({
   useMedications: jest.fn(),
   useMedicationEntries: jest.fn(),
   useLogDose: jest.fn(),
+  useCreateMedicationEntry: () => ({
+    isPending: false,
+    mutateAsync: jest.fn(),
+  }),
+  useDeleteMedicationEntry: () => ({ isPending: false, mutate: jest.fn() }),
 }));
 jest.mock('../../src/hooks/usePlannedSupplementActions', () => ({
   usePlannedSupplementActions: jest.fn(),

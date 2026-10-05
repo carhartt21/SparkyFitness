@@ -5,8 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View, Text, Pressable, LayoutAnimation } from 'react-native';
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
+import {
+  View,
+  Text,
+  Pressable,
+  LayoutAnimation,
+  useWindowDimensions,
+} from 'react-native';
+import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import { useTranslation } from 'react-i18next';
 
@@ -30,6 +36,8 @@ interface AddSheetProps {
   onSyncHealthData: () => void;
   onBarcodeScan: () => void;
   onAddMeasurements: () => void;
+  onAddWater?: () => void;
+  onAddMobility?: () => void;
   onAddProgressPhotos: () => void;
   onAskSparky: () => void;
   onOpenCycle?: () => void;
@@ -57,6 +65,8 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
       onSyncHealthData,
       onBarcodeScan,
       onAddMeasurements,
+      onAddWater,
+      onAddMobility,
       onAddProgressPhotos,
       onAskSparky,
       onOpenCycle,
@@ -68,6 +78,9 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
     ref
   ) => {
     const { t } = useTranslation();
+    const { height: windowHeight, fontScale } = useWindowDimensions();
+    const largeText = fontScale > 1.35;
+    const columns = largeText ? 1 : 2;
     const bottomSheetRef = useRef<BottomSheetModal>(null);
     const isDismissingRef = useRef(false);
     const isOpenRef = useRef(false);
@@ -229,6 +242,21 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
       },
     ];
 
+    if (onAddWater)
+      cards.push({
+        label: t('addSheet.water', { defaultValue: 'Water' }),
+        icon: 'water',
+        tint: neon.cyan,
+        onPress: onAddWater,
+      });
+    if (onAddMobility)
+      cards.push({
+        label: t('addSheet.mobility', { defaultValue: 'Mobility' }),
+        icon: 'exercise-yoga',
+        tint: neon.green,
+        onPress: onAddMobility,
+      });
+
     // Compact tiles: a raised surface with a hairline border reads apart
     // from the sheet; 12-pt corners and no glow keep the sheet quiet.
     const tileClass =
@@ -237,9 +265,10 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
     const renderCard = (card: ActionCard) => (
       <Pressable
         key={card.label}
+        testID={`add-sheet-${card.icon}`}
         accessibilityRole="button"
         accessibilityLabel={card.label}
-        className={tileClass}
+        className={`${tileClass} ${largeText ? 'flex-row justify-start gap-3 px-4' : ''}`}
         onPress={() => {
           if (card.onPress) {
             handleAction(card.onPress);
@@ -253,8 +282,8 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
       >
         <IconBadge icon={card.icon} color={card.tint} size={36} />
         <Text
-          className="text-text-primary text-sm font-medium mt-1.5 text-center"
-          numberOfLines={2}
+          className={`text-text-primary text-sm font-medium ${largeText ? 'min-w-0 flex-1' : 'mt-1.5 text-center'}`}
+          numberOfLines={largeText ? undefined : 2}
         >
           {card.label}
         </Text>
@@ -352,6 +381,8 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
     return (
       <BottomSheetModal
         ref={bottomSheetRef}
+        accessible={false}
+        maxDynamicContentSize={windowHeight * 0.85}
         enableDynamicSizing
         backdropComponent={renderBackdrop}
         backgroundStyle={{ backgroundColor: surfaceBg }}
@@ -359,74 +390,84 @@ const AddSheet = React.forwardRef<AddSheetRef, AddSheetProps>(
         onAnimate={handleAnimate}
         onDismiss={handleDismiss}
       >
-        <BottomSheetView className="pb-safe-or-4 px-3 pt-1">
-          {showExerciseMenu ? (
-            <>
-              <Pressable
-                className="flex-row items-center mb-3 px-1.5"
-                accessibilityRole="button"
-                accessibilityLabel={t('common.back', { defaultValue: 'Back' })}
-                onPress={() => {
-                  LayoutAnimation.configureNext(
-                    LayoutAnimation.Presets.easeInEaseOut
-                  );
-                  setShowExerciseMenu(false);
-                }}
-              >
-                <Icon name="chevron-back" size={20} color={accentPrimary} />
-                <Text
-                  className="text-sm font-medium ml-1"
-                  style={{ color: accentPrimary }}
+        <BottomSheetScrollView>
+          <View className="pb-safe-or-4 px-3 pt-1">
+            {showExerciseMenu ? (
+              <>
+                <Pressable
+                  className="flex-row items-center mb-3 px-1.5"
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.back', {
+                    defaultValue: 'Back',
+                  })}
+                  onPress={() => {
+                    LayoutAnimation.configureNext(
+                      LayoutAnimation.Presets.easeInEaseOut
+                    );
+                    setShowExerciseMenu(false);
+                  }}
                 >
-                  {t('common.back', { defaultValue: 'Back' })}
-                </Text>
-              </Pressable>
-              <View className="flex-row">
-                {renderExerciseOption(
-                  t('addSheet.workout', { defaultValue: 'Workout' }),
-                  t('addSheet.liveSets', { defaultValue: 'Live sets & reps' }),
-                  'exercise-weights',
-                  onStartWorkout
-                )}
-                {renderExerciseOption(
-                  t('addSheet.activity', { defaultValue: 'Activity' }),
-                  t('addSheet.durationDistance', {
-                    defaultValue: 'Duration & distance',
-                  }),
-                  'exercise-running-filled',
-                  onAddActivity
-                )}
-                {renderExerciseOption(
-                  t('addSheet.logWorkout', { defaultValue: 'Log Workout' }),
-                  t('addSheet.pastSets', { defaultValue: 'Past sets & reps' }),
-                  'pencil',
-                  onLogWorkout
-                )}
-              </View>
-            </>
-          ) : (
-            <>
-              <View className="flex-row mb-2">
-                {renderCard(cards[0])}
-                {renderCard(cards[1])}
-              </View>
-              <View className="flex-row mb-3">
-                {renderCard(cards[2])}
-                {renderCard(cards[3])}
-              </View>
-              <View className="mx-1 overflow-hidden rounded-xl border border-border-subtle bg-raised">
-                {secondaryRows.map((row, index) =>
-                  renderSecondaryRow(
-                    row.label,
-                    row.icon,
-                    row.onPress,
-                    index === secondaryRows.length - 1
+                  <Icon name="chevron-back" size={20} color={accentPrimary} />
+                  <Text
+                    className="text-sm font-medium ml-1"
+                    style={{ color: accentPrimary }}
+                  >
+                    {t('common.back', { defaultValue: 'Back' })}
+                  </Text>
+                </Pressable>
+                <View className={largeText ? 'gap-2' : 'flex-row'}>
+                  {renderExerciseOption(
+                    t('addSheet.workout', { defaultValue: 'Workout' }),
+                    t('addSheet.liveSets', {
+                      defaultValue: 'Live sets & reps',
+                    }),
+                    'exercise-weights',
+                    onStartWorkout
+                  )}
+                  {renderExerciseOption(
+                    t('addSheet.activity', { defaultValue: 'Activity' }),
+                    t('addSheet.durationDistance', {
+                      defaultValue: 'Duration & distance',
+                    }),
+                    'exercise-running-filled',
+                    onAddActivity
+                  )}
+                  {renderExerciseOption(
+                    t('addSheet.logWorkout', { defaultValue: 'Log Workout' }),
+                    t('addSheet.pastSets', {
+                      defaultValue: 'Past sets & reps',
+                    }),
+                    'pencil',
+                    onLogWorkout
+                  )}
+                </View>
+              </>
+            ) : (
+              <>
+                {Array.from(
+                  { length: Math.ceil(cards.length / columns) },
+                  (_, index) => (
+                    <View key={index} className="flex-row mb-2">
+                      {cards
+                        .slice(index * columns, index * columns + columns)
+                        .map(renderCard)}
+                    </View>
                   )
                 )}
-              </View>
-            </>
-          )}
-        </BottomSheetView>
+                <View className="mx-1 overflow-hidden rounded-xl border border-border-subtle bg-raised">
+                  {secondaryRows.map((row, index) =>
+                    renderSecondaryRow(
+                      row.label,
+                      row.icon,
+                      row.onPress,
+                      index === secondaryRows.length - 1
+                    )
+                  )}
+                </View>
+              </>
+            )}
+          </View>
+        </BottomSheetScrollView>
       </BottomSheetModal>
     );
   }

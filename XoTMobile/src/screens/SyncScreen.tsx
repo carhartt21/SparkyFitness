@@ -10,7 +10,6 @@ import { useAppLocale } from '../localization';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   Platform,
   Alert,
@@ -18,6 +17,7 @@ import {
   AppState,
 } from 'react-native';
 import Button from '../components/ui/Button';
+import NeonButton from '../components/ui/NeonButton';
 import Icon from '../components/Icon';
 import SettingsRow from '../components/SettingsRow';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
@@ -171,7 +171,6 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const accentPrimary = useCSSVariable('--color-accent-primary') as
     string | undefined;
-  const accentText = useCSSVariable('--color-accent-text') as string;
   const usesNativeHeader = useNativeIOSHeadersActive();
   const [healthMetricStates, setHealthMetricStates] =
     useState<HealthMetricStates>({});
@@ -849,8 +848,8 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         }
       >
         {/* Sync Range */}
-        <View className="bg-surface rounded-xl p-4 py-3 mb-4 shadow-sm">
-          <View className="flex-row items-center justify-between">
+        <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-4">
+          <View className="gap-3">
             <Text className="text-base font-semibold text-text-primary">
               {t('syncScreen.range.title', { defaultValue: 'Sync Range' })}
             </Text>
@@ -864,7 +863,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
               title={t('syncScreen.range.selectTitle', {
                 defaultValue: 'Select Sync Range',
               })}
-              containerStyle={{ flex: 1, maxWidth: 180, marginLeft: 16 }}
+              containerStyle={{ width: '100%' }}
             />
           </View>
           <Text className="text-text-secondary text-xs mt-1">
@@ -881,35 +880,20 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
             </Text>
           )}
         </View>
-        {/* Sync Now Button */}
-        <Button
-          variant="primary"
-          className="flex-row items-center mb-2"
+        <NeonButton
+          testID="sync-now"
+          icon="sync"
+          className="rounded-xl mb-2"
+          loading={syncMutation.isPending}
+          disabled={isSyncClaimed() || !isHealthConnectInitialized}
           onPress={handleSync}
-          disabled={
-            syncMutation.isPending ||
-            isSyncClaimed() ||
-            !isHealthConnectInitialized
-          }
-        >
-          <Image
-            source={require('../../assets/icons/sync_now_alt.png')}
-            className="w-6 h-6 mr-3"
-            tintColor={accentText}
-          />
-          <View className="flex-1">
-            <Text className="text-accent-text text-lg font-semibold">
-              {syncMutation.isPending
-                ? t('syncScreen.syncing', { defaultValue: 'Syncing…' })
-                : t('syncScreen.syncNow', { defaultValue: 'Sync Now' })}
-            </Text>
-            <Text className="text-accent-text/80 text-sm mt-0.5">
-              {t('syncScreen.sendToServer', {
-                defaultValue: 'Send your health data to your server',
-              })}
-            </Text>
-          </View>
-        </Button>
+          label={t('syncScreen.syncNow', { defaultValue: 'Sync Now' })}
+        />
+        <Text className="text-sm text-text-secondary mb-4">
+          {t('syncScreen.sendToServer', {
+            defaultValue: 'Send your health data to your server',
+          })}
+        </Text>
 
         {!isHealthConnectInitialized && (
           <Text className="text-red-500 mt-2.5 text-center">

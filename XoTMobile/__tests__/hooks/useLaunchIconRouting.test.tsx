@@ -7,6 +7,7 @@ import { queryClient } from '../../src/hooks/queryClient';
 import { serverConnectionQueryKey } from '../../src/hooks/queryKeys';
 import { loadActiveDraft } from '../../src/services/workoutDraftService';
 import { checkServerConnection } from '../../src/services/api/healthDataApi';
+import { useDiaryDateStore } from '../../src/stores/diaryDateStore';
 
 jest.mock('../../src/hooks/useSyncHealthData', () => ({
   useSyncHealthData: () => ({ isPending: false, mutate: jest.fn() }),
@@ -117,4 +118,33 @@ it('keeps the existing connection recovery prompt when offline', async () => {
   expect(alert).toHaveBeenCalled();
   expect(navigationRef.dispatch).not.toHaveBeenCalled();
   alert.mockRestore();
+});
+
+it('opens the existing water logger for the diary day and mobility without assigning fake completion', () => {
+  useDiaryDateStore.setState({ selectedDate: '2020-01-01' });
+  const { result } = renderHook(() =>
+    useAddSheetActions({ syncMutation: useSyncHealthData() })
+  );
+  act(() => result.current.handleAddWater());
+  expect(navigationRef.dispatch).toHaveBeenCalledWith({
+    type: 'NAVIGATE',
+    payload: { name: 'WaterLog', params: { date: '2020-01-01' } },
+  });
+  act(() => result.current.handleAddMobility());
+  expect(navigationRef.dispatch).toHaveBeenCalledWith({
+    type: 'NAVIGATE',
+    payload: { name: 'GuidedMobility', params: undefined },
+  });
+});
+
+it('uses the current selected day for water even when a retained diary route has an older date', () => {
+  useDiaryDateStore.setState({ selectedDate: '2026-10-04' });
+  const { result } = renderHook(() =>
+    useAddSheetActions({ syncMutation: useSyncHealthData() })
+  );
+  act(() => result.current.handleAddWater());
+  expect(navigationRef.dispatch).toHaveBeenCalledWith({
+    type: 'NAVIGATE',
+    payload: { name: 'WaterLog', params: { date: '2026-10-04' } },
+  });
 });

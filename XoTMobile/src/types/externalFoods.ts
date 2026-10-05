@@ -41,7 +41,10 @@ export interface PaginatedExternalFoodSearchResult {
   pagination: ExternalFoodSearchPagination;
 }
 
-export interface ExternalFoodItem {
+export interface ExternalFoodItem extends Pick<
+  ExternalFoodVariant,
+  'serving_label' | 'metric_amount' | 'metric_unit' | 'sort_order'
+> {
   custom_nutrients?: Record<string, string | number> | null;
   id: string;
   name: string;

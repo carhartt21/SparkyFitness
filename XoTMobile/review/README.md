@@ -231,3 +231,21 @@ playback, real backend persistence or Apple Health/Fitness export.
 ## Cloud review UI
 
 `--interactions --coaching-review --case '^(390-de-dark|390-de-light|430-de-large)$'` uses the actual Recommendations screen and schema-validated synthetic protocol-2 recaps/settings. It accepts only enumerated coaching reads and marking the synthetic recap read; it never connects ChatGPT, a real account or changes a plan. The recap list omits retained evidence, matching the strict public contract; a real-client regression test checks list/detail/read responses. The tour targets the accessible recap card and scrolls slowly to the cloud-setup heading. Normal and enlarged German tours passed during v43 preparation; see `../../docs/implementation/v43-release-2026-10-05.md` for evidence and device/cloud limitations.
+
+## v43 inbox corrections
+
+`--interactions --v43-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+opens the collapsed diary, expands a meal, opens Quick Add → Water Log, then
+captures the additional supplement intake form, compact mobility list and sync
+range controls. It checks meal and routine targets are at least 44 points.
+Quick Add scrolls at accessibility text sizes; it uses full-width rows there.
+The scenario combines the existing synthetic tracking, water and provider
+fixtures and respects medication-entry date filters. It does not submit the
+additional intake, start a mobility workout or synchronize real health data.
+
+Use `--interactions --food-details-review --case '^(390-de-dark|430-de-large)$'`
+separately to check metric and portion choices, including two 21.5 g portions
+totalling 43 g. Server persistence, provider refresh on the owner's account,
+physical Health permissions and offline restart/replay remain separate checks.
+See `../../docs/implementation/v43-inbox-corrections-2026-10-05.md` for the
+actual validation record and synthetic captures.

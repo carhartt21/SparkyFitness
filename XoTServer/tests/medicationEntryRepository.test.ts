@@ -133,6 +133,88 @@ describe('medicationEntryRepository.createEntry — nutrient snapshot', () => {
     expect(insertParams[8]).toBe(2);
   });
 
+  it('records the confirmed amount for unscheduled extra intake without changing the plan or nutrient snapshot', async () => {
+    const nutrients = { water_ml: 100, calcium: 5 };
+    mockClient.query
+      .mockResolvedValueOnce({
+        rows: [
+          {
+            name: 'Electrolytes',
+            dose_amount: 1,
+            dose_unit: 'dose',
+            is_supplement: true,
+            nutrients,
+          },
+        ],
+      })
+      .mockResolvedValueOnce({ rows: [{ id: entryId }] });
+    await medicationEntryRepository.createEntry(userId, {
+      medication_id: medicationId,
+      schedule_id: null,
+      status: 'prn_taken',
+      dose_amount_snapshot: 2.5,
+      dose_unit_snapshot: 'dose',
+    });
+    const insert = mockClient.query.mock.calls.find((call) =>
+      String(call[0]).includes('INSERT INTO medication_entries')
+    )!;
+    const params = insert[1] as unknown[];
+    expect(params[1]).toBeNull();
+    expect(params[3]).toBe('prn_taken');
+    expect(params[8]).toBe(2.5);
+    expect(params[9]).toBe('dose');
+    expect(params[13]).toBe(JSON.stringify(nutrients));
+    expect(
+      mockClient.query.mock.calls.some((call) =>
+        String(call[0]).includes('UPDATE medications')
+      )
+    ).toBe(false);
+  });
+  it.each([0, -1, NaN, Infinity])(
+    'rejects invalid extra supplement quantity %s before writing',
+    async (amount) => {
+      mockClient.query.mockResolvedValueOnce({
+        rows: [
+          {
+            name: 'Electrolytes',
+            dose_amount: 1,
+            dose_unit: 'dose',
+            is_supplement: true,
+          },
+        ],
+      });
+      await expect(
+        medicationEntryRepository.createEntry(userId, {
+          medication_id: medicationId,
+          status: 'prn_taken',
+          dose_amount_snapshot: amount,
+        })
+      ).rejects.toMatchObject({ name: 'ValidationError' });
+      expect(mockClient.query).toHaveBeenCalledTimes(1);
+      expect(mockClient.release).toHaveBeenCalled();
+    }
+  );
+  it('rejects a different unit rather than scaling supplement nutrition incorrectly', async () => {
+    mockClient.query.mockResolvedValueOnce({
+      rows: [
+        {
+          name: 'Electrolytes',
+          dose_amount: 1,
+          dose_unit: 'dose',
+          is_supplement: true,
+        },
+      ],
+    });
+    await expect(
+      medicationEntryRepository.createEntry(userId, {
+        medication_id: medicationId,
+        status: 'prn_taken',
+        dose_amount_snapshot: 5,
+        dose_unit_snapshot: 'mg',
+      })
+    ).rejects.toMatchObject({ name: 'ValidationError' });
+    expect(mockClient.query).toHaveBeenCalledTimes(1);
+  });
   it('locks the schedule and rejects a concurrent manual duplicate for a supplement slot', async () => {
     mockClient.query
       .mockResolvedValueOnce({ rows: [] }) // BEGIN

@@ -11,12 +11,12 @@ interface SyncOnOpenProps {
 const SyncOnOpen: React.FC<SyncOnOpenProps> = ({ isEnabled, onToggle }) => {
   const { t } = useTranslation();
   return (
-    <View className="bg-surface rounded-xl p-4 mb-4 shadow-sm">
+    <View className="bg-surface rounded-xl border border-border-subtle p-4 mb-4">
       <Text className="text-lg font-bold mb-3 text-text-primary">
         {t('syncOnOpen.title', { defaultValue: 'Sync on Open' })}
       </Text>
-      <View className="flex-row justify-between items-center">
-        <Text className="text-base text-text-primary">
+      <View className="flex-row justify-between items-center gap-3">
+        <Text className="min-w-0 flex-1 text-base text-text-primary">
           {t('syncOnOpen.enable', { defaultValue: 'Sync when app opens' })}
         </Text>
         <Switch
@@ -31,7 +31,7 @@ const SyncOnOpen: React.FC<SyncOnOpenProps> = ({ isEnabled, onToggle }) => {
           value={isEnabled}
         />
       </View>
-      <Text className="text-[13px] text-text-muted leading-4.5 mt-1">
+      <Text className="text-sm text-text-secondary mt-3">
         {t('syncOnOpen.description', {
           defaultValue:
             'When enabled, health data will sync automatically when you open the app.',

@@ -1,3 +1,4 @@
+import { useDiaryScheduledEntries } from '../hooks/useDiaryScheduledEntries';
 import PlannedMealsCard from '../components/coaching/PlannedMealsCard';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import type { CompositeScreenProps } from '@react-navigation/native';
@@ -35,7 +36,6 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
-import { addSheetRef } from '../components/AddSheet';
 import CalendarSheet, {
   type CalendarSheetRef,
 } from '../components/CalendarSheet';
@@ -47,7 +47,6 @@ import ScreenBackground from '../components/ui/ScreenBackground';
 import { settingsButtonLabel } from '../components/SettingsHeaderButton';
 import DiaryCalorieMacroSummary from '../components/DiaryCalorieMacroSummary';
 import EmptyDayIllustration from '../components/EmptyDayIllustration';
-import ExerciseSummary from '../components/ExerciseSummary';
 import MobilityDiarySection from '../components/MobilityDiarySection';
 import { useMobilityDiary } from '../hooks/useMobilityDiary';
 import FoodSummary from '../components/FoodSummary';
@@ -73,7 +72,6 @@ import {
   useServerConnection,
 } from '../hooks';
 import { useActiveWorkoutPlans } from '../hooks/useActiveWorkoutPlan';
-import { useStartWorkoutPlanAssignment } from '../hooks/useStartWorkoutPlanAssignment';
 import {
   useCheckInPhotoDates,
   useCheckInPhotosByDate,
@@ -98,7 +96,7 @@ import { useDiaryDateStore } from '../stores/diaryDateStore';
 import type { FoodEntry } from '../types/foodEntries';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 import { isManualSource } from '../utils/customMeasurementsForm';
-import { formatDateLabel } from '../utils/dateUtils';
+import { formatDateLabel, getTodayDate } from '../utils/dateUtils';
 import {
   calculateEntryNutrition,
   getHistoricalMealTypeLabel,
@@ -127,7 +125,12 @@ import DiaryTimeline, {
 import SwipeableFoodRow from '../components/SwipeableFoodRow';
 import SwipeableExerciseRow from '../components/SwipeableExerciseRow';
 import MealStatusControl from '../components/tracking/MealStatusControl';
-import { diaryTimestamp, wellnessTimestamp } from '../utils/diaryTimeline';
+import {
+  diaryTimestamp,
+  wellnessTimestamp,
+  diaryMealGroups,
+} from '../utils/diaryTimeline';
+import { getWorkoutSummary } from '../utils/workoutSession';
 import { formatClockTime, resolveSleepZone } from '../utils/sleepDay';
 import { useMedications, useMedicationEntries } from '../hooks/useMedications';
 import { fetchHydrationDetails } from '../services/api/measurementsApi';
@@ -480,11 +483,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   );
 
   const { plans: activePlans } = useActiveWorkoutPlans(selectedDate);
-  const handleStartPlanAssignment = useStartWorkoutPlanAssignment(
-    navigation,
-    selectedDate
-  );
-
   const [refreshing, setRefreshing] = useState(false);
   const [editingFoods, setEditingFoods] = useState(false);
   const [selectedFoodIds, setSelectedFoodIds] = useState<ReadonlySet<string>>(
@@ -602,6 +600,19 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     );
   }, [runBulkAction, selectedFoodIds.size, t]);
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
+  const timezone =
+    hydration.data?.timezone ??
+    preferences?.timezone ??
+    Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const scheduledEntries = useDiaryScheduledEntries(
+    selectedDate,
+    isConnected,
+    timezone,
+    wellnessHabits.data ?? [],
+    intakeDefinitions.data ?? [],
+    intakeEntries.data ?? [],
+    () => setHydrationVisible(true)
+  );
   const onRefresh = useCallback(async () => {
     if (!isConnected) return;
     setRefreshing(true);
@@ -620,6 +631,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         hydration.refetch(),
         intakeEntries.refetch(),
         wellnessLogs.refetch(),
+        scheduledEntries.refetch(),
+        mealStatusQuery.refetch(),
       ]);
     } finally {
       setRefreshing(false);
@@ -636,6 +649,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     hydration,
     intakeEntries,
     wellnessLogs,
+    scheduledEntries,
+    mealStatusQuery,
   ]);
 
   const isRefreshing = refreshing;
@@ -707,18 +722,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     }
   };
 
-  const timezone =
-    hydration.data?.timezone ??
-    preferences?.timezone ??
-    Intl.DateTimeFormat().resolvedOptions().timeZone;
-  const timelineEntries: DiaryTimelineEntry[] = [];
+  const timelineEntries: DiaryTimelineEntry[] = [...scheduledEntries.entries];
   const addTimelineEntry = (
     id: string,
     at: string | null | undefined,
     label: string,
     content: React.ReactNode,
     clock?: string,
-    timestamp?: number | null
+    timestamp?: number | null,
+    options?: Pick<DiaryTimelineEntry, 'summary' | 'accessory' | 'collapsible'>
   ) => {
     const time =
       timestamp === undefined
@@ -736,28 +748,90 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               : formatClockTime(at, 'HH:mm', { kind: 'tz', tz: timezone }))),
       label,
       content,
+      collapsible: /^(exercise|mobility|water|intake|wake|bed|nap):/.test(id),
+      ...options,
     });
   };
   if (summary) {
-    for (const entry of [...summary.foodEntries, ...pendingPhotoDiaryEntries]) {
-      const meal = mealTypes.find((item) => item.id === entry.meal_type_id);
+    for (const group of diaryMealGroups(
+      [...summary.foodEntries, ...pendingPhotoDiaryEntries],
+      mealTypes,
+      selectedDate,
+      getTodayDate(),
+      timezone
+    )) {
+      const meal = mealTypes.find((item) => item.id === group.mealTypeId);
+      const label = meal
+        ? getMealTypeDisplayLabel(meal, t)
+        : getHistoricalMealTypeLabel(group.name, t);
+      const calories = group.entries.reduce(
+        (total, entry) => total + calculateEntryNutrition(entry).calories,
+        0
+      );
       addTimelineEntry(
-        `food:${entry.id}`,
-        entry.entry_time,
-        meal
-          ? getMealTypeDisplayLabel(meal, t)
-          : getHistoricalMealTypeLabel(entry.meal_type, t),
-        <SwipeableFoodRow
-          entry={entry}
-          showTime={false}
-          nutrition={calculateEntryNutrition(entry)}
-          capturePhoto={
-            entry.nutrition_capture_id
-              ? capturePhotos[entry.nutrition_capture_id]
-              : undefined
-          }
-          onAdjustServing={(food) => servingSheetRef.current?.present(food)}
-        />
+        `meal:${group.mealTypeId ?? group.name}`,
+        null,
+        label,
+        <View className="gap-2">
+          {group.entries.map((entry) => (
+            <SwipeableFoodRow
+              key={entry.id}
+              entry={entry}
+              showTime
+              nutrition={calculateEntryNutrition(entry)}
+              capturePhoto={
+                entry.nutrition_capture_id
+                  ? capturePhotos[entry.nutrition_capture_id]
+                  : undefined
+              }
+              onAdjustServing={(food) => servingSheetRef.current?.present(food)}
+            />
+          ))}
+          {meal && (
+            <Button
+              variant="secondary"
+              className="rounded-xl"
+              onPress={() =>
+                navigation.navigate('FoodSearch', {
+                  date: selectedDate,
+                  mealTypeId: meal.id,
+                })
+              }
+            >
+              {t('foodSummary.addFood', { defaultValue: 'Add food' })}
+            </Button>
+          )}
+        </View>,
+        group.clock ??
+          (group.timestamp === null
+            ? undefined
+            : formatClockTime(
+                new Date(group.timestamp).toISOString(),
+                'HH:mm',
+                { kind: 'tz', tz: timezone }
+              )),
+        group.timestamp,
+        {
+          collapsible: true,
+          summary: (
+            <Text className="text-sm text-text-secondary">
+              {group.entries.length
+                ? `${formatLocalizedNumber(calories, { maximumFractionDigits: 0 })} kcal`
+                : t('diary.timeline.planned', {
+                    defaultValue: 'Planned · nothing logged yet',
+                  })}
+            </Text>
+          ),
+          accessory:
+            meal && isConnected && mealStates.has(meal.id) ? (
+              <MealStatusControl
+                mealLabel={label}
+                state={mealStates.get(meal.id)!}
+                onChange={(status) => onSetMealStatus(meal.id, status)}
+                busy={setMealStatus.isPending}
+              />
+            ) : undefined,
+        }
       );
     }
     for (const session of summary.exerciseEntries) {
@@ -776,7 +850,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       addTimelineEntry(
         `exercise:${session.id}`,
         time,
-        t('exerciseSummary.title', { defaultValue: 'Exercise' }),
+        getWorkoutSummary(session, t).name,
         <SwipeableExerciseRow
           session={session}
           entryDate={selectedDate}
@@ -784,7 +858,17 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           getImageSource={getImageSource}
           weightUnit={weightUnit}
           distanceUnit={distanceUnit}
-        />
+        />,
+        undefined,
+        undefined,
+        {
+          summary: (
+            <Text className="text-sm text-text-secondary">
+              {formatLocalizedNumber(getWorkoutSummary(session, t).duration)}{' '}
+              {t('dashboard.minutesUnit', { defaultValue: 'min' })}
+            </Text>
+          ),
+        }
       );
     }
   }
@@ -792,7 +876,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     addTimelineEntry(
       `mobility:${session.id}`,
       session.startedAt,
-      t('mobility.diaryTitle', { defaultValue: 'Mobility workouts' }),
+      session.routine.name,
       <Pressable
         accessibilityRole="button"
         onPress={() => navigation.navigate('GuidedMobility')}
@@ -872,7 +956,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     addTimelineEntry(
       `intake:${entry.id}`,
       entry.taken_at,
-      label,
+      entry.med_name_snapshot ?? definition?.name ?? label,
       <Pressable
         accessibilityRole="button"
         onPress={() =>
@@ -1191,7 +1275,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           />
         }
       >
-        <PlannedMealsCard day={selectedDate} />
+        {selectedDate >= getTodayDate() && (
+          <PlannedMealsCard day={selectedDate} />
+        )}
         <PendingNutritionActions
           actions={[]}
           storageError={nutritionStorageError}
@@ -1256,6 +1342,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         )}
         {!editingFoods && (
           <DiaryTimeline
+            key={selectedDate}
             entries={timelineEntries}
             onEditFoods={
               summary.foodEntries.length > 0
@@ -1264,7 +1351,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             }
           />
         )}
-        {(hydration.isError ||
+        {(scheduledEntries.isError ||
+          hydration.isError ||
           intakeEntries.isError ||
           wellnessHabits.isError ||
           wellnessLogs.isError) && (
@@ -1292,9 +1380,12 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             onPress={() => navigation.navigate('GuidedMobility')}
           />
         )}
-        {isDayEmpty && <EmptyDayIllustration />}
+        {isDayEmpty &&
+          timelineEntries.length === 0 &&
+          !scheduledEntries.isLoading &&
+          !scheduledEntries.isError && <EmptyDayIllustration />}
         <MealCoverageLine coverage={mealStatusQuery.data?.coverage} />
-        {editingFoods ? (
+        {editingFoods && (
           <FoodSummary
             foodEntries={[...summary.foodEntries, ...pendingPhotoDiaryEntries]}
             capturePhotos={capturePhotos}
@@ -1317,63 +1408,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             onSelectEntry={toggleFoodSelection}
             onDropFood={moveDroppedFood}
           />
-        ) : (
-          isConnected && (
-            <View className="mb-4 rounded-2xl border border-border-subtle bg-surface px-4">
-              {mealTypes.map((meal) => {
-                const entries = summary.foodEntries.filter(
-                  (entry) => entry.meal_type_id === meal.id
-                );
-                const label = getMealTypeDisplayLabel(meal, t);
-                const state = mealStates.get(meal.id);
-                return (
-                  <View
-                    key={meal.id}
-                    className="min-h-14 flex-row items-center gap-2 border-b border-border-subtle py-2"
-                  >
-                    <Pressable
-                      accessibilityRole="button"
-                      onPress={() =>
-                        openMealTypeDetail(meal.id, meal.name, entries)
-                      }
-                      className="min-h-11 flex-1 flex-row items-center gap-2"
-                    >
-                      <Text className="flex-1 text-base font-medium text-text-primary">
-                        {label}
-                      </Text>
-                      <Icon
-                        name="chevron-forward"
-                        size={16}
-                        color={textPrimaryColor}
-                      />
-                    </Pressable>
-                    {state && (
-                      <MealStatusControl
-                        mealLabel={label}
-                        state={state}
-                        onChange={(status) => onSetMealStatus(meal.id, status)}
-                        busy={setMealStatus.isPending}
-                      />
-                    )}
-                  </View>
-                );
-              })}
-            </View>
-          )
         )}
-        <ExerciseSummary
-          planningOnly
-          exerciseEntries={summary.exerciseEntries}
-          entryDate={selectedDate}
-          getImageSource={getImageSource}
-          weightUnit={weightUnit}
-          distanceUnit={distanceUnit}
-          onAddExercise={() =>
-            addSheetRef.current?.present({ initialMenu: 'exercise' })
-          }
-          onPressPlanAssignment={handleStartPlanAssignment}
-          onPressWorkout={openWorkout}
-        />
         <MeasurementsSummary
           measurements={measurements}
           customMeasurements={manualCustomMeasurements}

@@ -65,6 +65,7 @@ export default function ReviewApp() {
         v40Review?: boolean;
         v41Review?: boolean;
         v42Review?: boolean;
+        v43Review?: boolean;
         motionReview?: boolean;
         mobilityReview?: boolean;
         coachingReview?: boolean;
@@ -124,12 +125,15 @@ export default function ReviewApp() {
               ? trackingReviewResponse(
                   url.pathname,
                   'populated',
-                  getTodayDate()
+                  getTodayDate(),
+                  undefined,
+                  url.searchParams
                 )
               : undefined;
-          const mobilityResult = config.mobilityReview
-            ? mobilityFixture.respond(url, method, options?.body)
-            : undefined;
+          const mobilityResult =
+            config.mobilityReview || config.v43Review
+              ? mobilityFixture.respond(url, method, options?.body)
+              : undefined;
           const coachingResult = config.coachingReview
             ? coachingFixture(url, method)
             : undefined;
@@ -199,7 +203,7 @@ export default function ReviewApp() {
         authType: 'apiKey',
       });
       await rememberActiveNutritionUser('review-user');
-      if (config.mobilityReview) {
+      if (config.mobilityReview || config.v43Review) {
         const identity = { serverConfigId: 'ui-review', userId: 'review-user' };
         await saveHealthPreference('writebackWorkoutEnabled', false);
         const routine = await saveMobilityRoutine(identity, {
@@ -228,18 +232,20 @@ export default function ReviewApp() {
         mobilityFixture.allowRoutine(routine.id);
         // Pin the diary date so a review crossing midnight cannot move the
         // fixture's workout off the selected day. The paused timer resumes now.
-        const startedAt = new Date(`${reviewDate}T10:00:00Z`);
-        const session = await startMobilitySession(
-          identity,
-          routine.id,
-          startedAt
-        );
-        await applyMobilitySessionAction(
-          identity,
-          session.id,
-          'pause',
-          startedAt
-        );
+        if (config.mobilityReview) {
+          const startedAt = new Date(`${reviewDate}T10:00:00Z`);
+          const session = await startMobilitySession(
+            identity,
+            routine.id,
+            startedAt
+          );
+          await applyMobilitySessionAction(
+            identity,
+            session.id,
+            'pause',
+            startedAt
+          );
+        }
       }
       if (config.scenario === 'saved') {
         await saveDashboardSnapshot(

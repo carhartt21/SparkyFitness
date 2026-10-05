@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { formatDose } from '@workspace/shared';
+import AdditionalSupplementIntake from '../components/AdditionalSupplementIntake';
 import TrackingScreen from '../components/tracking/TrackingScreen';
 import TrackingSummaryCard, {
   type SummaryStat,
@@ -253,6 +254,13 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
         Promise.all([medicationsQuery.refetch(), entriesQuery.refetch()])
       }
     >
+      {supplements.length > 0 && (
+        <AdditionalSupplementIntake
+          supplements={supplements}
+          entries={dayEntries}
+          date={date}
+        />
+      )}
       {focusedId && (
         <NeonButton
           label={t('common.showAll', { defaultValue: 'Show all' })}

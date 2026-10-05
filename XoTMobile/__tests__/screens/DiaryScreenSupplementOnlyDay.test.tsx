@@ -1,3 +1,10 @@
+jest.mock('../../src/hooks/useDiaryScheduledEntries', () => ({
+  useDiaryScheduledEntries: () => ({
+    entries: [],
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}));
 jest.mock('../../src/hooks/useMedications', () => ({
   useMedications: () => ({
     data: [],

@@ -244,12 +244,24 @@ export function trackingReviewResponse(
   path: string,
   scenario: string,
   today: string,
-  mealStatus?: MealTrackingStatus
+  mealStatus?: MealTrackingStatus,
+  filters?: URLSearchParams
 ): unknown {
   const populated = scenario === 'populated';
   if (path === '/api/v2/medications') return populated ? SUPPLEMENTS : [];
   if (path === '/api/v2/medications/entries')
-    return populated ? supplementEntries(today) : [];
+    return populated
+      ? supplementEntries(today).filter((entry) => {
+          const from = filters?.get('fromDate');
+          const to = filters?.get('toDate');
+          const medication = filters?.get('medicationId');
+          return (
+            (!from || entry.entry_date >= from) &&
+            (!to || entry.entry_date <= to) &&
+            (!medication || entry.medication_id === medication)
+          );
+        })
+      : [];
   if (!path.startsWith('/api/v2/tracking/')) return undefined;
   const rest = path.slice('/api/v2/tracking/'.length);
   if (rest === 'preferences')

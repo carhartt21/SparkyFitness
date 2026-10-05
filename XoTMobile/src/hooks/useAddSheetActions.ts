@@ -20,6 +20,7 @@ import { NON_ADD_TABS, type NonAddTabName } from '../components/TabsLayout';
 import type { RootStackParamList } from '../types/navigation';
 import type { LaunchIconAction } from '../services/launchIconActions';
 import { getTodayDate } from '../utils/dateUtils';
+import { useDiaryDateStore } from '../stores/diaryDateStore';
 import { checkServerConnection } from '../services/api/healthDataApi';
 
 function getServerConnectionMessage(
@@ -164,6 +165,15 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
     const date = getActiveDiaryDate();
     navigateFromSheet('FoodSearch', { date });
   }, [getActiveDiaryDate, navigateFromSheet]);
+
+  const handleAddWater = useCallback(() => {
+    navigateFromSheet('WaterLog', {
+      date: useDiaryDateStore.getState().selectedDate,
+    });
+  }, [navigateFromSheet]);
+  const handleAddMobility = useCallback(() => {
+    navigateFromSheet('GuidedMobility');
+  }, [navigateFromSheet]);
 
   const handleBarcodeScan = useCallback(() => {
     const date = getActiveDiaryDate();
@@ -414,6 +424,8 @@ export function useAddSheetActions({ syncMutation }: AddSheetActionsArgs) {
     handleLogWorkout,
     handleAddActivity,
     handleAddMeasurements,
+    handleAddWater,
+    handleAddMobility,
     handleLaunchIconAction,
     handleAddProgressPhotos,
     handleAskSparky,
