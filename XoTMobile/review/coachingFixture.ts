@@ -25,6 +25,7 @@ const recap = coachingRecapSchema.parse({
   ],
   evidence: [],
 });
+const { evidence: _evidence, ...recapSummary } = recap;
 export function createCoachingReviewFixture() {
   let readAt: string | null = null;
   return (url: URL, method: string): unknown | undefined => {
@@ -61,7 +62,7 @@ export function createCoachingReviewFixture() {
     if (method === 'GET' && path === '/connections') return { connections: [] };
     if (method === 'GET' && path === '/recaps')
       return coachingRecapListSchema.parse({
-        recaps: [{ ...recap, readAt }],
+        recaps: [{ ...recapSummary, readAt }],
         nextOffset: null,
         unreadCount: readAt ? 0 : 1,
       });

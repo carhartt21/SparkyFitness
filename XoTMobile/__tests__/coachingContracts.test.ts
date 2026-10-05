@@ -17,7 +17,9 @@ import {
   cloudCoachingTaskPrompt,
   coachingCadenceSchema,
   coachingContextPermissionSchema,
+  createCoachingClientV2,
 } from '@workspace/shared';
+import { createCoachingReviewFixture } from '../review/coachingFixture';
 import en from '../src/localization/locales/en/translation.json';
 import de from '../src/localization/locales/de/translation.json';
 
@@ -142,6 +144,24 @@ describe('shared owner review editor contracts', () => {
 });
 
 describe('calendar review owner contracts', () => {
+  it('uses the real client contract for the native recap list, detail and read transition', async () => {
+    const respond = createCoachingReviewFixture();
+    const api = createCoachingClientV2(
+      async ({ path, method }) =>
+        respond(
+          new URL(`/api/v2/coaching${path}`, 'https://ui-review.invalid'),
+          method
+        ),
+      () => '00000000-0000-4000-8000-000000000092'
+    );
+    const page = await api.loadCoachingRecaps();
+    expect(page.unreadCount).toBe(1);
+    expect(page.recaps[0]).not.toHaveProperty('evidence');
+    const detail = await api.loadCoachingRecap(page.recaps[0]!.id);
+    expect(detail.evidence).toEqual([]);
+    await api.readCoachingRecap(detail.id);
+    expect((await api.loadCoachingRecaps()).unreadCount).toBe(0);
+  });
   it('rejects empty schedules, invalid 24-hour times and duplicate independent permissions', () => {
     expect(
       coachingSettingsV2Schema.safeParse({

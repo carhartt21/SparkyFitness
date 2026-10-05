@@ -10,9 +10,9 @@ final class DashboardReview: XCTestCase {
     let link = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Empfehlungen")).firstMatch
     for _ in 0..<12 { if link.isHittable { break }; app.swipeUp() }
     XCTAssertTrue(link.isHittable); link.tap()
-    let open = app.buttons["Rückblick öffnen"]
-    XCTAssertTrue(open.waitForExistence(timeout: 15))
-    for _ in 0..<8 { if open.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(app.otherElements["coaching-screen"].waitForExistence(timeout: 15))
+    let open = app.buttons["Dein Tagesrückblick"]
+    for _ in 0..<8 { if open.exists && open.isHittable { break }; app.swipeUp() }
     capture("coaching-recaps", app)
     XCTAssertTrue(open.isHittable); open.tap()
     XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Dein Tagesrückblick")).firstMatch.waitForExistence(timeout: 15))
@@ -22,8 +22,8 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(settings.isHittable); settings.tap()
     XCTAssertTrue(app.staticTexts["Prüfzeiten"].waitForExistence(timeout: 15))
     capture("coaching-settings", app)
-    let setup = app.staticTexts["Cloud-Prüfung verbinden"]
-    for _ in 0..<12 { if setup.isHittable { break }; app.swipeUp() }
+    let setup = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Cloud-Prüfung verbinden")).firstMatch
+    for _ in 0..<12 { if setup.exists && setup.isHittable { break }; app.swipeUp(velocity: .slow) }
     XCTAssertTrue(setup.isHittable)
     capture("coaching-cloud-setup", app)
   }

@@ -5,6 +5,12 @@ import { addDays, type ActivityPlanningResponse } from '@workspace/shared';
 import WeeklyActivityOverview from '@/components/WeeklyActivityOverview';
 import { useActivityPlanning } from '@/hooks/Tracking/useActivityPlanning';
 jest.mock('@/hooks/Tracking/useActivityPlanning');
+jest.mock('@workspace/shared', () => ({
+  ...jest.requireActual<typeof import('@workspace/shared')>(
+    '@workspace/shared'
+  ),
+  todayInZone: () => '2026-10-01',
+}));
 jest.mock('@/contexts/PreferencesContext', () => ({
   usePreferences: () => ({
     timezone: 'UTC',
