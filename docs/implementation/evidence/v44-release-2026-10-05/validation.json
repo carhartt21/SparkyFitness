@@ -1,0 +1,26 @@
+{
+  "sourceCommit": "ab1d1434a442d457e2498dbcae63abe4c6852f72",
+  "allValidationPassed": true,
+  "phone": {
+    "suites": 563,
+    "passed": 7862,
+    "testedCommit": "80896495b6162213e8a87115c87cc488cf5caa66"
+  },
+  "focusedServer": {
+    "files": 3,
+    "passed": 85,
+    "testedCommit": "80896495b6162213e8a87115c87cc488cf5caa66"
+  },
+  "testSourceTreeMatchesReleaseSource": true,
+  "fullBackendSuite": "skipped by owner",
+  "migrationsAdded": 0,
+  "logSha256": {
+    "mobileValidate": "ad9d9f21b6e62c2d9d58dcd6cc169416e167e1d65e5ee7102f1a67ba94e1d0e6",
+    "serverValidate": "6979e72a2bf6a6f6690582e9d9746a4b784092ca5ee27040f1f27893b3f3a406",
+    "frontendBuild": "62dfd4b43406ce7a60e5007a075b001023413b2c93d70ca6d1793f25ccec9f2b",
+    "docsBuild": "de453ae3a8bf71eec7abfc2a9017ad6529e73c422b2adcf08d7ef296f8c737fe",
+    "phoneTests": "a75849a7ed45dca4dea1ccda6fe24343c54b9e65c043ccb7fdc233bed2eac9c5",
+    "focusedServerTests": "462a68868a58c0458995b3eed27678855f5330593228364e5c7224f62f43260d",
+    "iosExport": "e27e9edf74dc59e3270e2c6219212c1a015ee0a02ba274a96f86cb5562fbd1d2"
+  }
+}
