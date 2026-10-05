@@ -11,6 +11,12 @@ import {
   coachingWorkoutPlanSchema,
   mobilityStepSchema,
   coachingActionSchema,
+  coachingSettingsV2Schema,
+  defaultCoachingSettingsV2,
+  coachingRunReportV2Schema,
+  cloudCoachingTaskPrompt,
+  coachingCadenceSchema,
+  coachingContextPermissionSchema,
 } from '@workspace/shared';
 import en from '../src/localization/locales/en/translation.json';
 import de from '../src/localization/locales/de/translation.json';
@@ -132,5 +138,48 @@ describe('shared owner review editor contracts', () => {
       coachingChangeField({ metric: 'protein', unit: 'g' }, 'metric', 'steps')
         .unit
     ).toBe(coachingMetricUnits.steps);
+  });
+});
+
+describe('calendar review owner contracts', () => {
+  it('rejects empty schedules, invalid 24-hour times and duplicate independent permissions', () => {
+    expect(
+      coachingSettingsV2Schema.safeParse({
+        ...defaultCoachingSettingsV2,
+        cadences: [],
+      }).success
+    ).toBe(false);
+    expect(
+      coachingSettingsV2Schema.safeParse({
+        ...defaultCoachingSettingsV2,
+        reviewTime: '8 PM',
+      }).success
+    ).toBe(false);
+    expect(
+      coachingSettingsV2Schema.safeParse({
+        ...defaultCoachingSettingsV2,
+        contextPermissions: ['notification_history', 'notification_history'],
+      }).success
+    ).toBe(false);
+  });
+  it('requires a recap and feedback acknowledgment for successful cloud reports', () => {
+    expect(
+      coachingRunReportV2Schema.safeParse({
+        operationId: '00000000-0000-4000-8000-000000000001',
+        runId: '00000000-0000-4000-8000-000000000001',
+        leaseToken: 'synthetic',
+        status: 'succeeded',
+      }).success
+    ).toBe(false);
+  });
+  it('provides reviewed German copy for all new controls and a safe copy-ready task', () => {
+    for (const cadence of coachingCadenceSchema.options)
+      expect(de.coaching.options[cadence]).toBeTruthy();
+    for (const permission of coachingContextPermissionSchema.options)
+      expect(de.coachingLoop[permission]).toBeTruthy();
+    expect(de.coaching.tabs.recaps).toBe('Rückblicke');
+    expect(cloudCoachingTaskPrompt('08:00', 'Europe/Berlin', 'de')).toContain(
+      '08:00 (Europe/Berlin)'
+    );
   });
 });

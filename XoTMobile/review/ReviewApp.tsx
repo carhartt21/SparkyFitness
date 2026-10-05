@@ -18,6 +18,7 @@ import { createWellnessReviewFixture } from './wellnessFixture';
 import { trackingReviewResponse } from './trackingFixture';
 import { getTodayDate } from '../src/utils/dateUtils';
 import MotionReview from './MotionReview';
+import { createCoachingReviewFixture } from './coachingFixture';
 import { createMobilityReviewFixture } from './mobilityFixture';
 import {
   saveMobilityRoutine,
@@ -65,7 +66,9 @@ export default function ReviewApp() {
         v41Review?: boolean;
         motionReview?: boolean;
         mobilityReview?: boolean;
+        coachingReview?: boolean;
       };
+      const coachingFixture = createCoachingReviewFixture();
       const fixture = createNutritionFixture(config.scenario);
       const mobilityFixture = createMobilityReviewFixture();
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
@@ -126,14 +129,19 @@ export default function ReviewApp() {
           const mobilityResult = config.mobilityReview
             ? mobilityFixture.respond(url, method, options?.body)
             : undefined;
+          const coachingResult = config.coachingReview
+            ? coachingFixture(url, method)
+            : undefined;
           const result =
-            mobilityResult !== undefined
-              ? mobilityResult
-              : supplementResult !== undefined
-                ? supplementResult
-                : wellnessResult === undefined
-                  ? fixture.respond(url, method, options?.body)
-                  : wellnessResult;
+            coachingResult !== undefined
+              ? coachingResult
+              : mobilityResult !== undefined
+                ? mobilityResult
+                : supplementResult !== undefined
+                  ? supplementResult
+                  : wellnessResult === undefined
+                    ? fixture.respond(url, method, options?.body)
+                    : wellnessResult;
           if (method !== 'GET' || url.pathname === '/api/daily-summary') {
             await transport('http://127.0.0.1:43991/event', {
               method: 'POST',

@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-04_
+_Last updated: 2026-10-05_
 
 This is the repo-root monorepo guide for X on Track. Use it to choose the right package, understand shared repo-level rules, and find the next guide to read.
 
@@ -194,3 +194,5 @@ Mobility uses owner-only `/api/v2/mobility` and `Mobility.api.zod.ts`, account-l
 ## Wellness activity logging
 
 Wellness entries reuse `/api/v2/tracking/habits` and its dated completion logs with `category: 'wellness'`. They have an empty weekday schedule, no reminder, and no session metrics. They never count toward Daily Progress, exercise calories, or HealthKit/Health Connect workouts. Mobile logs wellness activities from More → Wellness, with a date picker, presets, literal custom names and 30-day history. Diary shows only the selected day’s recorded entries with undo; its empty wellness card is hidden. Web retains its Diary logging card. Undo affects only the selected day. Definitions and logs retain the existing check-in permissions and RLS. Shared orchestration lives in `shared/src/tracking/wellness.ts`; keep wellness activities out of the routine habit editors.
+
+Calendar coaching protocol 2: read `docs/src/developer/mcp/recommendations.md` before changing external review contracts. `CoachingV2.api.zod.ts` and `coaching/calendar.ts` define calendar cadence and independent context permissions; server `coachingCalendarEvidence` and `coachingRecapService` own bounded aggregates and durable owner-only recaps. Phone/web coaching screens expose cloud connection setup and recaps; approval remains an owner app-session action. Preserve strict protocol-1 responses, frozen feedback cursors and per-cadence completion through cleanup. Cloud task activation/device delivery require separate verification; never claim a connection proves a working schedule.

@@ -47,11 +47,12 @@ import { CustomCategoryReport } from './CustomCategoryReport';
 import { ChartErrorBoundary } from '../Errors/ChartErrorFallback';
 import { CustomCategoriesResponse } from '@workspace/shared';
 import { useDailyGoalsRange } from '@/hooks/Goals/useGoals';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 
 const Reports = () => {
   const { t } = useTranslation();
-  const { activeUserId } = useActiveUser();
+  const { activeUserId, isActingOnBehalf } = useActiveUser();
   const {
     formatDateInUserTimezone,
     loggingLevel,
@@ -420,6 +421,15 @@ const Reports = () => {
 
   return (
     <div className="space-y-6">
+      {!isActingOnBehalf && (
+        <Button asChild variant="outline" className="mb-4">
+          <Link to="/coaching">
+            {t('coachingLoop.insightsTitle', {
+              defaultValue: 'Recaps and recommendations',
+            })}
+          </Link>
+        </Button>
+      )}
       {startDate && endDate ? (
         <ReportsControls
           startDate={startDate}

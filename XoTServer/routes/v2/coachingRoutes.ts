@@ -2,6 +2,8 @@ import express from 'express';
 import { z } from 'zod';
 import {
   coachingSettingsPatchSchema,
+  coachingSettingsPatchV2Schema,
+  coachingAgentCreateV2Schema,
   coachingAgentCreateSchema,
   coachingPreviewRequestSchema,
   coachingReviewSchema,
@@ -27,6 +29,8 @@ import {
 } from '../../schemas/coachingSchemas.js';
 import {
   getCoachingSettings,
+  getCoachingSettingsV2,
+  patchCoachingSettingsV2,
   getCoachingContext,
   patchCoachingSettings,
   createCoachingAgent,
@@ -52,6 +56,14 @@ import {
   CoachingNotFoundError,
   CoachingValidationError,
 } from '../../models/coachingRepository.js';
+
+import { listMcpConnections } from '../../services/mcpConnectionService.js';
+import {
+  listCoachingRecaps,
+  getCoachingRecap,
+  markCoachingRecapRead,
+  deleteCoachingRecap,
+} from '../../services/coachingRecapService.js';
 
 /**
  * @openapi
@@ -292,11 +304,94 @@ const handler =
  */
 router.get(
   '/settings',
-  handler((req) => getCoachingSettings(req.authenticatedUserId))
+  handler((req) =>
+    req.query.version === '2'
+      ? getCoachingSettingsV2(req.authenticatedUserId)
+      : getCoachingSettings(req.authenticatedUserId)
+  )
 );
 router.get(
   '/context',
-  handler((req) => getCoachingContext(req.authenticatedUserId, null))
+  handler((req) =>
+    getCoachingContext(req.authenticatedUserId, null, {
+      version: req.query.version === '2' ? 2 : 1,
+    })
+  )
+);
+/**
+ * @openapi
+ * /v2/coaching/connections:
+ *   get:
+ *     summary: List owner-authorized OAuth connections with read and proposal consent
+ *     tags: [Coaching]
+ *     responses:
+ *       '200': { description: Authorized connection metadata, no tokens }
+ * /v2/coaching/recaps:
+ *   get:
+ *     summary: Read durable owner-only recaps, newest first
+ *     tags: [Coaching]
+ *     responses:
+ *       '200': { description: Paginated recaps and unread count }
+ * /v2/coaching/recaps/{id}:
+ *   get:
+ *     summary: Read a recap and its retained cited evidence
+ *     tags: [Coaching]
+ *     responses:
+ *       '200': { description: Owner recap }
+ *   delete:
+ *     summary: Delete a recap without deleting logged health data or proposals
+ *     tags: [Coaching]
+ *     responses:
+ *       '200': { description: Deleted }
+ * /v2/coaching/recaps/{id}/read:
+ *   post:
+ *     summary: Mark an owner recap read
+ *     tags: [Coaching]
+ *     responses:
+ *       '200': { description: Updated recap }
+ */
+router.get(
+  '/connections',
+  handler((req) => listMcpConnections(req.authenticatedUserId))
+);
+router.get(
+  '/recaps',
+  handler((req) => {
+    const page = z
+      .object({
+        offset: z.coerce.number().int().min(0).max(100000).default(0),
+        limit: z.coerce.number().int().min(1).max(50).default(20),
+      })
+      .parse(req.query);
+    return listCoachingRecaps(req.authenticatedUserId, page.offset, page.limit);
+  })
+);
+router.get(
+  '/recaps/:id',
+  handler((req) =>
+    getCoachingRecap(
+      req.authenticatedUserId,
+      coachingIdParamsSchema.parse(req.params).id
+    )
+  )
+);
+router.post(
+  '/recaps/:id/read',
+  handler((req) =>
+    markCoachingRecapRead(
+      req.authenticatedUserId,
+      coachingIdParamsSchema.parse(req.params).id
+    )
+  )
+);
+router.delete(
+  '/recaps/:id',
+  handler((req) =>
+    deleteCoachingRecap(
+      req.authenticatedUserId,
+      coachingIdParamsSchema.parse(req.params).id
+    )
+  )
 );
 router.get(
   '/planned-meals',
@@ -334,10 +429,15 @@ router.post(
 router.patch(
   '/settings',
   handler((req) =>
-    patchCoachingSettings(
-      req.authenticatedUserId,
-      coachingSettingsPatchSchema.parse(req.body)
-    )
+    req.query.version === '2'
+      ? patchCoachingSettingsV2(
+          req.authenticatedUserId,
+          coachingSettingsPatchV2Schema.parse(req.body)
+        )
+      : patchCoachingSettings(
+          req.authenticatedUserId,
+          coachingSettingsPatchSchema.parse(req.body)
+        )
   )
 );
 router.post(
@@ -345,7 +445,9 @@ router.post(
   handler((req) =>
     createCoachingAgent(
       req.authenticatedUserId,
-      coachingAgentCreateSchema.parse(req.body)
+      req.query.version === '2'
+        ? coachingAgentCreateV2Schema.parse(req.body)
+        : coachingAgentCreateSchema.parse(req.body)
     )
   )
 );

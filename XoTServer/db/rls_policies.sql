@@ -77,6 +77,7 @@ BEGIN
     'engagement_deliveries',
     'engagement_action_receipts',
     'engagement_change_events',
+    'coaching_recaps',
     'coaching_settings',
     'coaching_agents',
     'coaching_runs',
@@ -617,6 +618,7 @@ SELECT create_owner_policy('engagement_occurrences');
 SELECT create_owner_policy('engagement_deliveries');
 SELECT create_owner_policy('engagement_action_receipts');
 SELECT create_owner_policy('engagement_change_events');
+SELECT create_owner_policy('coaching_recaps');
 SELECT create_owner_policy('coaching_settings');
 SELECT create_owner_policy('coaching_agents');
 SELECT create_owner_policy('coaching_runs');

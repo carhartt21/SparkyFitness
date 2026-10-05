@@ -47,15 +47,15 @@ function flatten(object, prefix = "", result = {}) {
 // Keep the existing formal-copy gate everywhere else, including web content.
 function isNotificationCopy({ surface, key } = {}) {
   return (
-    surface === "mobile" &&
-    (key?.startsWith("notifications.") ||
-      key?.startsWith("notificationSettings.") ||
-      /^engagement\.[a-zA-Z]+Reminder(?:Title|Body|Setting|SettingSubtitle|Time)$/.test(
-        key ?? "",
-      ) ||
-      /^medications\.notification/.test(key ?? "") ||
-      /^coaching\.(?:digest|action)(?:Title|Body)$/.test(key ?? "") ||
-      /^mobility\.reminder(?:Title|Body)$/.test(key ?? ""))
+    /^coaching\.(?:digest|action)(?:Title|Body)$/.test(key ?? "") ||
+    (surface === "mobile" &&
+      (key?.startsWith("notifications.") ||
+        key?.startsWith("notificationSettings.") ||
+        /^engagement\.[a-zA-Z]+Reminder(?:Title|Body|Setting|SettingSubtitle|Time)$/.test(
+          key ?? "",
+        ) ||
+        /^medications\.notification/.test(key ?? "") ||
+        /^mobility\.reminder(?:Title|Body)$/.test(key ?? "")))
   );
 }
 

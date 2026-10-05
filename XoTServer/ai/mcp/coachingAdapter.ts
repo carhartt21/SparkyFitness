@@ -3,6 +3,8 @@ import {
   coachingRunClaimSchema,
   coachingSubmitSchema,
   coachingRunReportSchema,
+  coachingRunReportV2Schema,
+  coachingRecapInputSchema,
 } from '@workspace/shared';
 import {
   getCoachingContext,
@@ -41,7 +43,8 @@ export function registerCoachingTools(
   userId: string,
   agentId: string,
   authorize: () => Promise<void>,
-  canPropose = true
+  canPropose = true,
+  version: 1 | 2 = 1
 ): void {
   const register = <T>(
     name: string,
@@ -98,7 +101,7 @@ export function registerCoachingTools(
       commitmentOffset: z.number().int().min(0).max(100000).optional(),
     }),
     true,
-    (args) => getCoachingContext(userId, agentId, args)
+    (args) => getCoachingContext(userId, agentId, { ...args, version })
   );
   register(
     'xot_get_coaching_snapshot',
@@ -128,10 +131,10 @@ export function registerCoachingTools(
   if (!canPropose) return;
   register(
     'xot_claim_coaching_run',
-    'Explicitly claim the latest eligible daily/weekly/manual review and create its immutable evidence snapshot. Returns null if nothing is due or another agent holds a lease. Stable operationId makes retries safe.',
+    'Explicitly claim the latest eligible daily/weekly/monthly/yearly/manual review and create its immutable evidence snapshot. Returns null if nothing is due or another agent holds a lease. Stable operationId makes retries safe.',
     coachingRunClaimSchema,
     false,
-    (args) => claimCoachingRun(userId, agentId, args.operationId)
+    (args) => claimCoachingRun(userId, agentId, args.operationId, version)
   );
   register(
     'xot_submit_coaching_proposals',
@@ -142,9 +145,13 @@ export function registerCoachingTools(
   );
   register(
     'xot_report_coaching_run',
-    'Renew a run lease, report failure, or atomically publish all staged proposals on successful completion. A failed run publishes nothing. Every report requires a stable operationId.',
-    coachingRunReportSchema,
+    'Renew a run lease, report failure, or atomically publish a typed recap and all staged proposals on successful completion. A failed run publishes nothing. Every report requires a stable operationId.',
+    version === 2
+      ? coachingRunReportV2Schema
+      : coachingRunReportSchema.extend({
+          recap: coachingRecapInputSchema.optional(),
+        }),
     false,
-    (args) => reportCoachingRun(userId, agentId, args)
+    (args) => reportCoachingRun(userId, agentId, args, version)
   );
 }

@@ -4,7 +4,7 @@
 
 `/mcp` accepts owner-bound **mcp-agent** keys (`xotagent_…`), while `/mcp/chatgpt` accepts an OAuth access token with current `mcp:propose` consent and an enabled owner/client binding. Both are restricted to selected wellness areas. Domain settings, expiry, binding and revocation are rechecked at tool execution. MCP-only keys cannot create REST sessions or approve actions, even alongside an owner cookie. Legacy direct-write tools are a separate opt-in contract.
 
-The owner app-session API lives at `/api/v2/coaching`. Every route rejects family/delegated contexts and API keys. Strict shared schemas are in `Coaching.api.zod.ts` and `MealPlanning.api.zod.ts`; PostgreSQL owner RLS independently enforces isolation. Activation uses canonical repositories/services within the proposal transaction, with revision checks, a five-minute preview fingerprint, library-reference validation and durable idempotency receipts.
+The owner app-session API lives at `/api/v2/coaching`. Every route rejects family/delegated contexts and API keys. Strict shared schemas are in `Coaching.api.zod.ts`, `CoachingV2.api.zod.ts` and `MealPlanning.api.zod.ts`; PostgreSQL owner RLS independently enforces isolation. Activation uses canonical repositories/services within the proposal transaction, with revision checks, a five-minute preview fingerprint, library-reference validation and durable idempotency receipts.
 
 ## MCP tools
 
@@ -23,7 +23,31 @@ Every proposal includes a stable topic, selected domain, title/rationale, impact
 
 Workout adherence shares the Weekly activities projection: all saved exercise requirements must be met in one session, or actual duration/distance must meet every whole-activity target. Started sets, prefills and timers do not establish completion. Optional, rest and skipped sessions are excluded; unknown prescriptions reduce coverage rather than counting as failures. Today's sessions remain open. Only elapsed days with `completionBasis: "saved_prescription"` enter workout outcomes; older attendance-only snapshots are ignored. Reviewed workout actions retain activity type, optional status, local time and duration/distance targets without recording Diary activity.
 
+## Cloud calendar protocol 2
+
+The primary setup is an owner-created ChatGPT cloud task. The application lists currently authorized OAuth read/proposal consents, binds a selected client and provides copy-ready schedule instructions; there is no verified public scheduling API installed. Eligibility follows [OpenAI automations](https://learn.chatgpt.com/docs/automations). MCP Events are outside this implementation.
+
+Settings, context and agent creation negotiate `?version=2`. Older clients receive strict protocol-1 projections; legacy settings patches retain new fields. The OAuth/key agent binding records protocol 1 or 2, selected wellness domains and independently scoped `supplement_adherence`/`notification_history` permissions. An OAuth binding requires current owner read and propose consent. Bound OAuth transport never exposes legacy direct-write tools, including after disable/revocation or feature-flag shutdown.
+
+`calendarCoachingSlots` uses account-local boundaries and a saved `HH:mm` review time (default 08:00). Latest prior year, month, week and day are independently tracked; manual queued work comes first. Successful slot keys are retained in `coaching_settings.completed_slots`, independently of 90-day run cleanup. Old agents cannot claim protocol-2 calendar work. A protocol-2 agent uses the calendar policy even if a legacy settings row has not yet been saved through the new UI.
+
+A protocol-2 claim adds `instructions`, `feedbackCursor` and `feedbackThrough` to its frozen snapshot/lease. Context event pages are bounded by that run's frozen feedback endpoint. Read every page from `feedbackCursor`, and follow all proposal/commitment and snapshot pages. The server retains later events for the next run.
+
+A successful `xot_report_coaching_run` requires:
+
+- `recap`: title (160 characters), summary (4,000), up to 12 observations with actual frozen row IDs, and up to 12 limitations.
+- `processedEventCursor`: exactly the claimed `feedbackThrough`, acknowledged only after reading all frozen feedback.
+- The existing run ID, lease token, succeeded status and stable operation UUID.
+
+The transaction validates current domain/context permission, retains only cited recap evidence, inserts the recap, publishes staged proposals, advances the agent cursor and completes the cadence slot together. An invalid recap/cursor or failed run publishes nothing and acknowledges nothing. A repeated operation returns its original result. No-change success still needs a recap. Permission revocation cancels running reviews and staged proposals; visible evidence also respects current permissions. Recaps are intentionally retained until owner deletion, including after connection revocation; revocation is not a data-erasure operation.
+
+Monthly/yearly retrieval aggregates before reading into memory (at most 12 rows per existing projection). Food energy excludes unconfirmed planned entries and preserves unknown nutrients; supplement nutrient totals are explicitly excluded from that aggregate. Daily active energy already includes workouts. Optional supplement adherence requires an extant explicitly marked supplement definition; medications/doses never enter it. Optional notification context includes current server settings and bounded grouped occurrence/provider/action counts. It excludes push tokens, subject identities and phone-only history; accepted rescheduling requests are distinct from delivery and receipt.
+
+Every plan, goal and notification change remains a typed staged proposal needing the owner's app-session preview and acceptance. The existing future-effective plan versions, library references, scope, receipts and confirmed outcome rules remain authoritative. A declined topic requires explicit reconsideration. A digest considers unread recaps or pending proposals, reuses Engagement v3 delivery/quiet-hours/quota, and remains at most one attempt per account/local day.
+
 ## Mac subscription runner
+
+This is an optional, separately configured alternative, not an automatic cloud fallback. Each CLI invocation reviews one eligible period. The runner supports both protocols and persists its existing summary as a recap; protocol 2 acknowledges only the frozen feedback boundary after its read audit.
 
 This reference runner uses the owner's **saved Codex ChatGPT login**. It does not use the app's AI provider, a server model worker or a paid API fallback. The server schedules work; the Mac polls every 15 minutes. It coalesces missed windows and resumes after sleep/network loss. Subscription availability and limits still apply; a quota/authentication failure publishes nothing.
 
@@ -71,18 +95,19 @@ Official Codex references: [configuration](https://learn.chatgpt.com/docs/config
 
 ## Owner REST routes
 
-| Route (under `/api/v2/coaching`)                        | Methods    | Contract                                                                                   |
-| ------------------------------------------------------- | ---------- | ------------------------------------------------------------------------------------------ |
-| `/settings`                                             | GET, PATCH | Feature availability, account timezone, schedule/domain/digest settings, expected revision |
-| `/context`                                              | GET        | Owner review/run status                                                                    |
-| `/agents`, `/agents/:id/key`, `/agents/:id/revoke`      | POST       | Create binding, issue/rotate key once, revoke                                              |
-| `/runs`                                                 | POST       | Explicit manual request, optional reconsidered topics                                      |
-| `/inbox`, `/planning`, `/proposals/:id/evidence`        | GET        | Paged inbox, accessible references, retained cited evidence                                |
-| `/proposals/:id/preview`, `/proposals/:id/review`       | POST       | Validate edit and obtain fingerprint; accept or decline with operation UUID                |
-| `/actions/:id`                                          | PATCH      | Revisioned task completion/skip/stop with optional feedback                                |
-| `/proposals/:id`                                        | DELETE     | Owner deletes inactive recommendation history                                              |
-| `/planned-meals`, `/planned-meals/prepare`              | GET, POST  | Pure dated read; explicit rolling materialization                                          |
-| `/planned-meals/:id/confirm`, `/planned-meals/:id/skip` | POST       | Explicit consumption receipt or skip without intake                                        |
+| Route (under `/api/v2/coaching`)                             | Methods           | Contract                                                                                    |
+| ------------------------------------------------------------ | ----------------- | ------------------------------------------------------------------------------------------- |
+| `/settings`                                                  | GET, PATCH        | Feature availability, account timezone, schedule/domain/digest settings, expected revision  |
+| `/connections`, `/recaps`, `/recaps/:id`, `/recaps/:id/read` | GET, POST, DELETE | Authorized OAuth metadata; owner-only recap paging/detail, read and explicit recap deletion |
+| `/context`                                                   | GET               | Owner review/run status                                                                     |
+| `/agents`, `/agents/:id/key`, `/agents/:id/revoke`           | POST              | Create binding, issue/rotate key once, revoke                                               |
+| `/runs`                                                      | POST              | Explicit manual request, optional reconsidered topics                                       |
+| `/inbox`, `/planning`, `/proposals/:id/evidence`             | GET               | Paged inbox, accessible references, retained cited evidence                                 |
+| `/proposals/:id/preview`, `/proposals/:id/review`            | POST              | Validate edit and obtain fingerprint; accept or decline with operation UUID                 |
+| `/actions/:id`                                               | PATCH             | Revisioned task completion/skip/stop with optional feedback                                 |
+| `/proposals/:id`                                             | DELETE            | Owner deletes inactive recommendation history                                               |
+| `/planned-meals`, `/planned-meals/prepare`                   | GET, POST         | Pure dated read; explicit rolling materialization                                           |
+| `/planned-meals/:id/confirm`, `/planned-meals/:id/skip`      | POST              | Explicit consumption receipt or skip without intake                                         |
 
 Consult the shared schemas for exact payloads. A preview is mandatory for acceptance; errors are 400 (invalid), 403 (wrong identity/access), 404 (not found), or 409 (stale/conflicting). Do not turn success metrics, reminders, taps or timers into diary writes. New meal/workout plans are prompt-only and historical diary snapshots are preserved.
 
@@ -90,4 +115,4 @@ Consult the shared schemas for exact payloads. A preview is mandatory for accept
 
 Start the isolated sample with `XOT_COACHING_ENABLED=true scripts/visual-sample.sh serve`. Database workflow tests require `XOT_COACHING_DB_TEST=1` and exactly the local disposable sample database; they never accept production configuration. Validate/test all three packages because shared-only edits do not trigger path-gated CI. Build the web and documentation sites. An iOS build and device push check remain separate from TypeScript/Jest gates.
 
-Deploy server/shared migrations and compatible clients together, initially leaving `XOT_COACHING_ENABLED=false`. Reconcile the running release revision with the candidate, retain exact image/backup rollback references, boot migrations through normal startup, verify health/auth/legacy MCP, then opt in a test owner and install its private runner. Enable production scheduling after authenticated review/editor/meal flows and Engagement v3 delivery have been accepted. Disabling the flag stops new coaching processing; already accepted canonical configurations and diary logs persist. Roll back images with the forward-compatible schema retained; never drop populated coaching/version/receipt tables as a rollback.
+Deploy server/shared migrations and compatible clients together, initially leaving `XOT_COACHING_ENABLED=false`. Reconcile the running release revision with the candidate, retain exact image/backup rollback references, boot migrations through normal startup, verify health/auth/legacy MCP, then opt in a test owner and configure/test one eligible cloud task (or an explicitly chosen private runner). Verify an unattended authenticated cloud round-trip before announcing cloud scheduling as active. Enable production scheduling after authenticated review/editor/meal flows and Engagement v3 delivery have been accepted. Disabling the flag stops new coaching processing; already accepted canonical configurations and diary logs persist. Roll back images with the forward-compatible schema retained; never drop populated coaching/version/receipt tables as a rollback.

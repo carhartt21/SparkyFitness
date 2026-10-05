@@ -1,0 +1,26 @@
+[
+  {
+    "viewport": "desktop",
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "errors": []
+  },
+  {
+    "viewport": "desktop",
+    "theme": "light",
+    "horizontalOverflow": false,
+    "errors": []
+  },
+  {
+    "viewport": "narrow",
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "errors": []
+  },
+  {
+    "viewport": "narrow",
+    "theme": "light",
+    "horizontalOverflow": false,
+    "errors": []
+  }
+]

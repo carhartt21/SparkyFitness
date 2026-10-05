@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   coachingDomainSchema,
-  type CoachingSettings as Settings,
+  type CoachingSettingsV2 as Settings,
+  coachingCadenceSchema,
+  coachingContextPermissionSchema,
   type CoachingDomain,
 } from '@workspace/shared';
 import {
@@ -11,6 +13,7 @@ import {
   useCoachingContext,
   useCoachingRefresh,
 } from '@/hooks/Coaching/useCoaching';
+import { CloudSetup } from './CloudSetup';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -85,55 +88,60 @@ export function CoachingSettings() {
               'Pausing stops new agent runs. Accepted actions remain available for you to manage.',
           })}
         </p>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {(
-            ['morningTime', 'eveningTime', 'weeklyTime', 'digestTime'] as const
-          ).map((field) => (
-            <div key={field} className="space-y-2">
-              <Label htmlFor={field}>
-                {t(`coaching.${field}`, {
-                  defaultValue:
-                    field === 'morningTime'
-                      ? 'Morning review'
-                      : field === 'eveningTime'
-                        ? 'Evening review'
-                        : field === 'weeklyTime'
-                          ? 'Weekly review'
-                          : 'Daily digest',
-                })}
-              </Label>
-              <Input
-                id={field}
-                type="time"
-                value={settings[field]}
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-2">
+            <Label htmlFor="reviewTime">
+              {t('coachingLoop.reviewTime', {
+                defaultValue: 'Daily cloud task (24-hour)',
+              })}
+            </Label>
+            <Input
+              id="reviewTime"
+              type="time"
+              value={settings.reviewTime}
+              onChange={(event) =>
+                setDraft({ ...settings, reviewTime: event.target.value })
+              }
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="digestTime">
+              {t('coaching.digestTime', { defaultValue: 'Daily digest' })}
+            </Label>
+            <Input
+              id="digestTime"
+              type="time"
+              value={settings.digestTime}
+              onChange={(event) =>
+                setDraft({ ...settings, digestTime: event.target.value })
+              }
+            />
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground">
+          {t('coachingLoop.calendarHint', {
+            defaultValue:
+              'Daily: yesterday. Monday: the previous week. First of the month: the previous month. January 1: the previous year. Missed periods coalesce to the latest period for each cadence.',
+          })}
+        </p>
+        <div className="flex flex-wrap gap-x-6">
+          {coachingCadenceSchema.options.map((cadence) => (
+            <label key={cadence} className="flex min-h-11 items-center gap-2">
+              <input
+                type="checkbox"
+                checked={settings.cadences.includes(cadence)}
                 onChange={(event) =>
-                  setDraft({ ...settings, [field]: event.target.value })
+                  setDraft({
+                    ...settings,
+                    cadences: event.target.checked
+                      ? [...settings.cadences, cadence]
+                      : settings.cadences.filter((item) => item !== cadence),
+                  })
                 }
               />
-            </div>
+              {t(`coaching.options.${cadence}`, { defaultValue: cadence })}
+            </label>
           ))}
-        </div>
-        <div className="max-w-xs space-y-2">
-          <Label htmlFor="weeklyDay">
-            {t('coaching.weeklyDay', { defaultValue: 'Weekly review day' })}
-          </Label>
-          <select
-            id="weeklyDay"
-            className="min-h-11 w-full rounded-md border bg-background px-3"
-            value={settings.weeklyDay}
-            onChange={(event) =>
-              setDraft({ ...settings, weeklyDay: Number(event.target.value) })
-            }
-          >
-            {Array.from({ length: 7 }, (_, day) => (
-              <option key={day} value={day}>
-                {new Intl.DateTimeFormat(i18n.language, {
-                  weekday: 'long',
-                  timeZone: 'UTC',
-                }).format(new Date(Date.UTC(2026, 8, 27 + day)))}
-              </option>
-            ))}
-          </select>
         </div>
         <label className="flex min-h-11 items-center gap-3">
           <input
@@ -179,8 +187,40 @@ export function CoachingSettings() {
             ))}
           </div>
         </fieldset>
+        <p className="text-sm text-muted-foreground">
+          {t('coachingLoop.optionalContext', {
+            defaultValue:
+              'Optional context is shared only when enabled here and in the connection. Medications and dose changes are excluded. Supplement history requires Nutrition; reminder history requires Habits.',
+          })}
+        </p>
+        <div className="flex flex-wrap gap-x-6">
+          {coachingContextPermissionSchema.options.map((permission) => (
+            <label
+              key={permission}
+              className="flex min-h-11 items-center gap-2"
+            >
+              <input
+                type="checkbox"
+                checked={settings.contextPermissions.includes(permission)}
+                onChange={(event) =>
+                  setDraft({
+                    ...settings,
+                    contextPermissions: event.target.checked
+                      ? [...settings.contextPermissions, permission]
+                      : settings.contextPermissions.filter(
+                          (item) => item !== permission
+                        ),
+                  })
+                }
+              />
+              {t(`coachingLoop.${permission}`, { defaultValue: permission })}
+            </label>
+          ))}
+        </div>
         <Button
-          disabled={busy || !settings.domains.length}
+          disabled={
+            busy || !settings.domains.length || !settings.cadences.length
+          }
           onClick={() =>
             run(async () => {
               const { revision, ...body } = settings;
@@ -195,6 +235,10 @@ export function CoachingSettings() {
           {t('coaching.save', { defaultValue: 'Save schedule' })}
         </Button>
       </GlowCard>
+      <CloudSetup
+        settings={query.data?.settings ?? settings}
+        timezone={query.data?.timezone ?? 'UTC'}
+      />
       <GlowCard className="space-y-4 p-5">
         <h2 className="text-xl font-semibold">
           {t('coaching.connections', { defaultValue: 'Agent connections' })}
@@ -221,10 +265,26 @@ export function CoachingSettings() {
                   .map((d) => t(`coaching.domains.${d}`, { defaultValue: d }))
                   .join(', ')}
               </p>
+              <p className="text-sm text-muted-foreground">
+                {t('coachingLoop.connectionContext', {
+                  defaultValue: 'Additional connection context',
+                })}
+                :{' '}
+                {agent.contextPermissions
+                  .map((permission) =>
+                    t(`coachingLoop.${permission}`, {
+                      defaultValue: permission,
+                    })
+                  )
+                  .join(', ') || '—'}
+              </p>
               <p className="text-sm">
                 {t('coaching.lastSeen', { defaultValue: 'Last contact' })}:{' '}
                 {agent.lastSeenAt
-                  ? new Date(agent.lastSeenAt).toLocaleString(i18n.language)
+                  ? new Date(agent.lastSeenAt).toLocaleString(i18n.language, {
+                      hour12: false,
+                      timeZone: query.data?.timezone,
+                    })
                   : '—'}
               </p>
               {agent.expiresAt && (
@@ -346,6 +406,8 @@ export function CoachingSettings() {
               await addCoachingAgent({
                 name,
                 domains,
+                protocolVersion: 2,
+                contextPermissions: settings.contextPermissions,
                 ...(oauthClientId.trim()
                   ? { oauthClientId: oauthClientId.trim() }
                   : {}),
@@ -392,7 +454,7 @@ export function CoachingSettings() {
           <p>
             {t('coaching.noRuns', {
               defaultValue:
-                'No reviews have run yet. Keep the Mac runner signed in and running.',
+                'No reviews have run yet. Test the connected ChatGPT review, then verify an unattended cloud run.',
             })}
           </p>
         )}

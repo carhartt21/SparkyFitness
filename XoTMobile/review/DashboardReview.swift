@@ -1,6 +1,33 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  func testCoachingReviews() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    app.buttons["Mehr"].tap()
+    let link = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Empfehlungen")).firstMatch
+    for _ in 0..<12 { if link.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(link.isHittable); link.tap()
+    let open = app.buttons["Rückblick öffnen"]
+    XCTAssertTrue(open.waitForExistence(timeout: 15))
+    for _ in 0..<8 { if open.isHittable { break }; app.swipeUp() }
+    capture("coaching-recaps", app)
+    XCTAssertTrue(open.isHittable); open.tap()
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label == %@", "Dein Tagesrückblick")).firstMatch.waitForExistence(timeout: 15))
+    capture("coaching-recap-detail", app)
+    let settings = app.buttons["Prüfzeiten und Verbindungen"]
+    for _ in 0..<10 { if settings.isHittable { break }; app.swipeDown() }
+    XCTAssertTrue(settings.isHittable); settings.tap()
+    XCTAssertTrue(app.staticTexts["Prüfzeiten"].waitForExistence(timeout: 15))
+    capture("coaching-settings", app)
+    let setup = app.staticTexts["Cloud-Prüfung verbinden"]
+    for _ in 0..<12 { if setup.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(setup.isHittable)
+    capture("coaching-cloud-setup", app)
+  }
+
   /// Exercises the real mobile runner and diary against isolated synthetic records.
   func testMobilityFlow() throws {
     continueAfterFailure = false

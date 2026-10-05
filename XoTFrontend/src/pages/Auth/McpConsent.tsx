@@ -64,17 +64,19 @@ export default function McpConsent() {
     setPending(true);
     setError(null);
     try {
-      if (accept && clientId && scopes.includes('mcp:propose'))
-        await addCoachingAgent({
-          name: clientName,
-          domains,
-          oauthClientId: clientId,
-        });
       const response = await submitMcpConsent(query, accept);
       const redirectUrl = await readMcpAuthorizationRedirect(
         response,
         'Authorization could not be completed.'
       );
+      if (accept && clientId && scopes.includes('mcp:propose'))
+        await addCoachingAgent({
+          name: clientName,
+          domains,
+          oauthClientId: clientId,
+          protocolVersion: 2,
+          contextPermissions: [],
+        });
       window.location.assign(redirectUrl);
     } catch (cause) {
       setError(

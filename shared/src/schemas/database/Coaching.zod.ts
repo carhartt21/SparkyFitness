@@ -2,7 +2,6 @@ import { z } from "zod";
 import {
   coachingSettingsSchema,
   coachingDomainSchema,
-  coachingRunKindSchema,
   coachingRunStatusSchema,
   coachingProposalInputSchema,
   coachingActionSchema,
@@ -11,14 +10,25 @@ import {
   coachingEvidenceRowSchema,
 } from "../api/Coaching.api.zod.ts";
 
+import {
+  coachingSettingsV2Schema,
+  coachingRunKindV2Schema,
+  coachingContextPermissionSchema,
+  coachingRecapInputSchema,
+} from "../api/CoachingV2.api.zod.ts";
+
 const user_id = z.uuid();
 const id = z.uuid();
 const date = z.date();
 export const coachingSettingsDatabaseSchema = z.object({
   user_id,
   revision: z.number().int(),
-  data: coachingSettingsSchema.omit({ revision: true }),
+  data: z.union([
+    coachingSettingsSchema.omit({ revision: true }),
+    coachingSettingsV2Schema.omit({ revision: true }),
+  ]),
   reconsider_topics: z.array(z.string()),
+  completed_slots: z.record(z.string(), z.string()).optional(),
   updated_at: date,
 });
 export const coachingAgentDatabaseSchema = z.object({
@@ -32,12 +42,15 @@ export const coachingAgentDatabaseSchema = z.object({
   expires_at: date.nullable(),
   last_seen_at: date.nullable(),
   created_at: date,
+  protocol_version: z.union([z.literal(1), z.literal(2)]).optional(),
+  context_permissions: z.array(coachingContextPermissionSchema).optional(),
+  processed_event_cursor: z.union([z.string(), z.number()]).optional(),
 });
 export const coachingRunDatabaseSchema = z.object({
   id,
   user_id,
   agent_id: id.nullable(),
-  kind: coachingRunKindSchema,
+  kind: coachingRunKindV2Schema,
   slot_key: z.string(),
   from_day: z.union([z.string(), date]),
   to_day: z.union([z.string(), date]),
@@ -47,6 +60,8 @@ export const coachingRunDatabaseSchema = z.object({
   started_at: date.nullable(),
   finished_at: date.nullable(),
   attempt_count: z.number().int(),
+  feedback_cursor: z.union([z.string(), z.number()]).optional(),
+  feedback_through: z.union([z.string(), z.number()]).optional(),
   failure_code: z.string().nullable(),
   created_at: date,
 });
@@ -142,3 +157,18 @@ export const coachingActionsSchema = coachingActionDatabaseSchema;
 export const coachingEventsSchema = coachingEventDatabaseSchema;
 export const coachingOperationsSchema = coachingOperationDatabaseSchema;
 export const coachingPreviewsSchema = coachingPreviewDatabaseSchema;
+
+export const coachingRecapsSchema = z.object({
+  id,
+  user_id,
+  source_run_id: id,
+  kind: coachingRunKindV2Schema,
+  from_day: z.union([z.string(), date]),
+  to_day: z.union([z.string(), date]),
+  data: coachingRecapInputSchema,
+  evidence: z.array(coachingEvidenceRowSchema),
+  proposal_ids: z.array(id),
+  created_at: date,
+  read_at: date.nullable(),
+});
+export type CoachingRecapRow = z.infer<typeof coachingRecapsSchema>;

@@ -1,7 +1,12 @@
-import { createCoachingClient } from '@workspace/shared';
+import { createCoachingClientV2 } from '@workspace/shared';
 import { apiCall } from '@/api/api';
 export const {
   loadCoachingSettings,
+  loadCoachingConnections,
+  loadCoachingRecaps,
+  loadCoachingRecap,
+  readCoachingRecap,
+  deleteCoachingRecap,
   saveCoachingSettings,
   loadCoachingContext,
   loadCoachingInbox,
@@ -18,7 +23,7 @@ export const {
   loadPlannedMeals,
   confirmCoachingMeal,
   skipCoachingMeal,
-} = createCoachingClient(
+} = createCoachingClientV2(
   ({ path, method, body, params }) =>
     apiCall('/v2/coaching' + path, {
       method,

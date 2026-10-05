@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { createCoachingClient } from '@workspace/shared';
+import { createCoachingClientV2 } from '@workspace/shared';
 import { apiFetch } from '../services/api/apiClient';
 import {
   getActiveNutritionIdentity,
@@ -32,7 +32,7 @@ export function useCoaching() {
   }, []);
   const api = useMemo(
     () =>
-      createCoachingClient(async ({ path, method, body, params }) => {
+      createCoachingClientV2(async ({ path, method, body, params }) => {
         const assert = async () => {
           const current = await getActiveNutritionIdentity();
           if (

@@ -129,7 +129,7 @@ The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `enga
 | `check_in_measurements`   | Weight, body composition, BMR, and circumference measurements                                                                                                                          |
 | `check_in_photos`         | Progress photos                                                                                                                                                                        |
 | `custom_measurements`     | User-defined custom measurement types                                                                                                                                                  |
-| `custom_categories`       | User-defined measurement categories; rows with `habit_type` are habits or unscheduled wellness activities (`habit_category = wellness`)                                                                                                                 |
+| `custom_categories`       | User-defined measurement categories; rows with `habit_type` are habits or unscheduled wellness activities (`habit_category = wellness`)                                                |
 | `water_intake`            | Total water logged for the day                                                                                                                                                         |
 | `water_intake_entries`    | Individual logged water cups                                                                                                                                                           |
 | `water_container_actions` | Immutable retry receipts for container water and linked food logs                                                                                                                      |
@@ -457,21 +457,23 @@ WHERE tablename = 'table_name';
 ### Micronutrient metadata
 
 `user_custom_nutrients.catalog_id` is nullable and unique per user when bound. `archived` retains name/unit reservations for diary history. `food_variants.provider_dataset_sha256` records the source dataset for conservative BLS repair. No micronutrient-specific numeric columns or new user tables are added. See [security tiers](./database-security-tiers.md#micronutrient-identity-and-native-snapshots) for native snapshot permissions and the orphan-key guard.
+
 ### Owner-reviewed agent recommendations
 
-| Table                         | Purpose                                                                     | Permission |
-| ----------------------------- | --------------------------------------------------------------------------- | ---------- |
-| `coaching_settings`           | Account-local schedule, selected domains, reconsidered topics               | Owner only |
-| `coaching_agents`             | Expiring/revocable owner-agent or OAuth-client binding                      | Owner only |
-| `coaching_runs`               | Coalesced review slots, bounded leases and failure metadata                 | Owner only |
-| `coaching_snapshots`          | Immutable frozen wellness projection, seven-day retention                   | Owner only |
-| `coaching_proposals`          | Impact-sorted pending/reviewed proposals and retained cited evidence        | Owner only |
-| `coaching_actions`            | Accepted commitments, canonical activation references and evidence outcomes | Owner only |
-| `coaching_events`             | Owner decisions, feedback and outcome audit trail                           | Owner only |
-| `coaching_operations`         | Request fingerprints and idempotent results                                 | Owner only |
-| `coaching_previews`           | Five-minute revision/action/reference fingerprint                           | Owner only |
-| `meal_plan_template_versions` | Immutable forward-effective meal definitions                                | Owner only |
-| `meal_plan_log_receipts`      | Exactly-once explicit consumption receipts                                  | Owner only |
+| Table                         | Purpose                                                                            | Permission |
+| ----------------------------- | ---------------------------------------------------------------------------------- | ---------- |
+| `coaching_settings`           | Account-local schedule, selected domains, reconsidered topics                      | Owner only |
+| `coaching_agents`             | Expiring/revocable owner-agent or OAuth-client binding                             | Owner only |
+| `coaching_runs`               | Coalesced review slots, bounded leases and failure metadata                        | Owner only |
+| `coaching_snapshots`          | Immutable frozen wellness projection, seven-day retention                          | Owner only |
+| `coaching_proposals`          | Impact-sorted pending/reviewed proposals and retained cited evidence               | Owner only |
+| `coaching_actions`            | Accepted commitments, canonical activation references and evidence outcomes        | Owner only |
+| `coaching_events`             | Owner decisions, feedback and outcome audit trail                                  | Owner only |
+| `coaching_operations`         | Request fingerprints and idempotent results                                        | Owner only |
+| `coaching_recaps`             | Durable owner recap, cited evidence, read status; independent of agent/run cleanup | Owner only |
+| `coaching_previews`           | Five-minute revision/action/reference fingerprint                                  | Owner only |
+| `meal_plan_template_versions` | Immutable forward-effective meal definitions                                       | Owner only |
+| `meal_plan_log_receipts`      | Exactly-once explicit consumption receipts                                         | Owner only |
 
 Schemas are exported from `shared/src/schemas/database/{Coaching,MealPlanning}.zod.ts`. `meal_plan_templates.entry_mode` defaults to legacy `prefill`; reviewed plans use `prompt`. `meal_plans` has nullable version/assignment IDs, state and an item snapshot for prompt occurrences. A plan never establishes intake. Historical diary entries and immutable versions survive future revisions. Nutrition is revalidated from the library on explicit consumption.
 
@@ -480,3 +482,5 @@ All new tables have Tier 1 owner RLS and app-session-only review routes. Proposa
 Workout version ownership references Better Auth's public `user` table. Migration `20261001120000_workout_plan_version_owner_identity.sql` corrects the earlier reference to retired `auth.users` without changing the version contract, RLS, or retained diary records. Retention cleanup continues when coaching processing is disabled.
 
 Migration `20261002120000_activity_coaching_prescriptions.sql` retains activity type, duration/distance targets, local time and optional-session metadata in new immutable workout prescriptions. Earlier versions remain unchanged. Coach outcomes and Daily Progress use the same saved-prescription completion rules; a started set or a scheduled prefill does not establish completion. Missing historical prescriptions remain unknown.
+
+Calendar protocol 2 adds agent protocol/context permissions and processed feedback cursors, frozen run feedback boundaries, and independent `coaching_settings.completed_slots`. Migration `20261005120000_coaching_review_loop.sql` is additive. `coaching_recaps.source_run_id` has no cascading run or agent foreign key: run/snapshot cleanup must not delete recaps. Only account deletion cascades or an explicit owner recap delete removes them. The CI schema sync owns `db_schema_backup.sql`.
