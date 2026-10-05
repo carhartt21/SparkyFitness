@@ -61,7 +61,7 @@ export default function DashboardSummaryCard({
         <Icon name={headingIcon} size={18} color={muted} />
         <Text
           accessibilityRole="header"
-          className="shrink text-center text-base font-semibold text-text-primary"
+          className="shrink text-center text-base font-bold text-text-primary"
           maxFontSizeMultiplier={1.8}
         >
           {title}
@@ -79,7 +79,7 @@ export default function DashboardSummaryCard({
       testID={testID}
       glowColor={cardGlow}
       accessibilityLabel={onOpen ? undefined : accessibilityLabel}
-      className="mb-2 px-3 py-2"
+      className="mb-1 px-3 py-2"
     >
       {onOpen ? (
         <Pressable

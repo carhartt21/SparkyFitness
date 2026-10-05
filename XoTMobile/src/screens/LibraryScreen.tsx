@@ -282,6 +282,7 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
               subtitle={t('screens.library.subtitle', {
                 defaultValue: 'Your entries and plans.',
               })}
+              onHome={() => navigation.navigate('Dashboard')}
               onSettings={() => navigation.navigate('Settings')}
             />
           </View>

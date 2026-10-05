@@ -1,4 +1,11 @@
 import React from 'react';
+jest.mock('../../src/hooks/useProviderServingRefresh', () => ({
+  useProviderServingRefresh: () => ({
+    isLoading: false,
+    isError: false,
+    retry: jest.fn(),
+  }),
+}));
 import {
   act,
   fireEvent,

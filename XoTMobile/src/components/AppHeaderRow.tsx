@@ -66,7 +66,8 @@ export default function AppHeaderRow({
       )}
       <View className="flex-1" accessible accessibilityRole="header">
         <Text
-          className="text-[26px] font-bold text-text-primary"
+          className="text-[28px] font-extrabold text-text-primary"
+          style={{ letterSpacing: -0.4 }}
           numberOfLines={1}
           adjustsFontSizeToFit
           maxFontSizeMultiplier={1.4}
@@ -75,7 +76,7 @@ export default function AppHeaderRow({
         </Text>
         {subtitle ? (
           <Text
-            className="text-sm text-text-secondary"
+            className="text-sm font-medium text-text-secondary"
             maxFontSizeMultiplier={1.6}
             numberOfLines={1}
             ellipsizeMode="tail"

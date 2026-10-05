@@ -198,6 +198,7 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
         subtitle={t('insights.subtitle', {
           defaultValue: 'Trends from your data.',
         })}
+        onHome={() => navigation.navigate('Dashboard')}
         onSettings={() => navigation.navigate('Settings')}
       />
     </View>

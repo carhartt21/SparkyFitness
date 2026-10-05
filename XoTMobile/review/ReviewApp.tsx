@@ -63,10 +63,11 @@ export default function ReviewApp() {
         nativeTabs?: boolean;
         v40Review?: boolean;
         v41Review?: boolean;
+        v42Review?: boolean;
         motionReview?: boolean;
         mobilityReview?: boolean;
       };
-      const fixture = createNutritionFixture(config.scenario);
+      const fixture = createNutritionFixture(config.scenario, config.v42Review);
       const mobilityFixture = createMobilityReviewFixture();
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
       global.fetch = async (input, options) => {

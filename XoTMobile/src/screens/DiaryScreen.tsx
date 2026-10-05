@@ -18,7 +18,6 @@ import React, {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import WellnessCard from '../components/tracking/WellnessCard';
 import {
   Alert,
   Pressable,
@@ -27,7 +26,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Directions,
   Gesture,
@@ -57,7 +56,6 @@ import { applyBulkFoodEntryAction } from '../services/api/foodEntriesApi';
 import { invalidateFoodCache } from '../hooks/invalidateFoodCache';
 import { nutritionCapturePhotoRefs } from '../utils/nutritionCapturePhotoRefs';
 import PendingNutritionActions from '../components/PendingNutritionActions';
-import NutritionQuickActions from '../components/NutritionQuickActions';
 import NutritionPhotoEntries from '../components/NutritionPhotoEntries';
 import MeasurementsSummary from '../components/MeasurementsSummary';
 import ServingAdjustSheet, {
@@ -87,7 +85,12 @@ import { useMeasurements } from '../hooks/useMeasurements';
 import { usePreferences } from '../hooks/usePreferences';
 import { useSleepDay } from '../hooks/useSleepDay';
 import { useNativeIOSTabsActive } from '../services/nativeTabBarPreference';
-import { useAppLocale } from '../localization/i18n';
+import { formatLocalizedNumber, useAppLocale } from '../localization/i18n';
+import {
+  formatVolumeForUnit,
+  volumeFromMl,
+  WATER_UNIT_LABELS,
+} from '../utils/unitConversions';
 import { useNutritionDiaryActions } from '../hooks/useNutritionDiaryActions';
 import { useNutritionCapturesByDate } from '../hooks/useNutritionCapturesByDate';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
@@ -95,8 +98,9 @@ import { useDiaryDateStore } from '../stores/diaryDateStore';
 import type { FoodEntry } from '../types/foodEntries';
 import type { RootStackParamList, TabParamList } from '../types/navigation';
 import { isManualSource } from '../utils/customMeasurementsForm';
-import { formatDateLabel, getTodayDate } from '../utils/dateUtils';
+import { formatDateLabel } from '../utils/dateUtils';
 import {
+  calculateEntryNutrition,
   getHistoricalMealTypeLabel,
   getMealTypeDisplayLabel,
 } from '../utils/mealNutrition';
@@ -114,7 +118,21 @@ import {
   useHabits,
   useHabitLogs,
   useSetMealStatus,
+  useLogHabit,
 } from '../hooks/useDailyTracking';
+import HydrationDetailsModal from '../components/HydrationDetailsModal';
+import DiaryTimeline, {
+  type DiaryTimelineEntry,
+} from '../components/DiaryTimeline';
+import SwipeableFoodRow from '../components/SwipeableFoodRow';
+import SwipeableExerciseRow from '../components/SwipeableExerciseRow';
+import MealStatusControl from '../components/tracking/MealStatusControl';
+import { diaryTimestamp, wellnessTimestamp } from '../utils/diaryTimeline';
+import { formatClockTime, resolveSleepZone } from '../utils/sleepDay';
+import { useMedications, useMedicationEntries } from '../hooks/useMedications';
+import { fetchHydrationDetails } from '../services/api/measurementsApi';
+import { hydrationDetailsQueryKey } from '../hooks/queryKeys';
+import { useRefetchOnFocus } from '../hooks/useRefetchOnFocus';
 import MealCoverageLine from '../components/tracking/MealCoverageLine';
 
 type DiaryScreenProps = CompositeScreenProps<
@@ -127,6 +145,7 @@ const EMPTY_FOOD_ENTRIES: FoodEntry[] = [];
 const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const [hydrationVisible, setHydrationVisible] = useState(false);
   const dateLocale = useAppLocale();
   const insets = useSafeAreaInsets();
   const { isConnected, isLoading: isConnectionLoading } = useServerConnection();
@@ -140,6 +159,20 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const wellnessLogs = useHabitLogs(selectedDate, selectedDate, {
     enabled: isConnected,
   });
+  const undoWellness = useLogHabit(selectedDate, selectedDate);
+  const intakeDefinitions = useMedications({ enabled: isConnected });
+  const intakeEntries = useMedicationEntries({
+    fromDate: selectedDate,
+    toDate: selectedDate,
+    enabled: isConnected,
+  });
+  const hydration = useQuery({
+    queryKey: hydrationDetailsQueryKey(selectedDate),
+    queryFn: () => fetchHydrationDetails(selectedDate),
+    enabled: isConnected,
+    staleTime: 30_000,
+  });
+  useRefetchOnFocus(hydration.refetch, isConnected);
   const hasWellnessActivity =
     wellnessEntries(wellnessHabits.data ?? [], wellnessLogs.data ?? []).length >
     0;
@@ -584,6 +617,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         refetchNutrientPrefs(),
         refetchSleep(),
         mobilityDiary.refetch(),
+        hydration.refetch(),
+        intakeEntries.refetch(),
+        wellnessLogs.refetch(),
       ]);
     } finally {
       setRefreshing(false);
@@ -597,6 +633,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     refetchNutrientPrefs,
     refetchSleep,
     mobilityDiary,
+    hydration,
+    intakeEntries,
+    wellnessLogs,
   ]);
 
   const isRefreshing = refreshing;
@@ -614,6 +653,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       summary?.exerciseEntries.length === 0 &&
       !hasAnyMeasurement &&
       !hasWellnessActivity &&
+      !intakeEntries.isLoading &&
+      (intakeEntries.data?.length ?? 0) === 0 &&
+      (hydration.data?.entries.length ?? 0) === 0 &&
+      (summary?.waterConsumed ?? 0) === 0 &&
       !mobilityDiary.isLoading &&
       mobilityDiary.sessions.length === 0 &&
       // A progress photo is something the user recorded for this day, so it
@@ -636,6 +679,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     remotePhotoCaptures,
     hasAnyMeasurement,
     hasWellnessActivity,
+    intakeEntries.isLoading,
+    intakeEntries.data,
+    hydration.data,
     mobilityDiary.isLoading,
     mobilityDiary.sessions.length,
     isPhotosLoading,
@@ -645,6 +691,353 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     activePlans,
   ]);
 
+  const openWorkout = (
+    session: NonNullable<typeof summary>['exerciseEntries'][number]
+  ) => {
+    if (session.type === 'preset') {
+      // The live workout's surface is the active screen; detail is
+      // for reviewing past or planned sessions.
+      if (useActiveWorkoutStore.getState().sessionId === session.id) {
+        navigation.navigate('ActiveWorkout');
+        return;
+      }
+      navigation.navigate('WorkoutDetail', { session });
+    } else {
+      navigation.navigate('ActivityDetail', { session });
+    }
+  };
+
+  const timezone =
+    hydration.data?.timezone ??
+    preferences?.timezone ??
+    Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const timelineEntries: DiaryTimelineEntry[] = [];
+  const addTimelineEntry = (
+    id: string,
+    at: string | null | undefined,
+    label: string,
+    content: React.ReactNode,
+    clock?: string,
+    timestamp?: number | null
+  ) => {
+    const time =
+      timestamp === undefined
+        ? diaryTimestamp(selectedDate, at, timezone)
+        : timestamp;
+    timelineEntries.push({
+      id,
+      timestamp: time,
+      clock:
+        time === null
+          ? null
+          : (clock ??
+            (at && /^\d{2}:\d{2}/.test(at)
+              ? at.slice(0, 5)
+              : formatClockTime(at, 'HH:mm', { kind: 'tz', tz: timezone }))),
+      label,
+      content,
+    });
+  };
+  if (summary) {
+    for (const entry of [...summary.foodEntries, ...pendingPhotoDiaryEntries]) {
+      const meal = mealTypes.find((item) => item.id === entry.meal_type_id);
+      addTimelineEntry(
+        `food:${entry.id}`,
+        entry.entry_time,
+        meal
+          ? getMealTypeDisplayLabel(meal, t)
+          : getHistoricalMealTypeLabel(entry.meal_type, t),
+        <SwipeableFoodRow
+          entry={entry}
+          showTime={false}
+          nutrition={calculateEntryNutrition(entry)}
+          capturePhoto={
+            entry.nutrition_capture_id
+              ? capturePhotos[entry.nutrition_capture_id]
+              : undefined
+          }
+          onAdjustServing={(food) => servingSheetRef.current?.present(food)}
+        />
+      );
+    }
+    for (const session of summary.exerciseEntries) {
+      const times = (
+        session.type === 'individual'
+          ? [session.entry_time]
+          : session.exercises.map((exercise) => exercise.entry_time)
+      ).filter((value): value is string => !!value);
+      const time = times
+        .map((value) => ({
+          value,
+          timestamp: diaryTimestamp(selectedDate, value, timezone),
+        }))
+        .filter((item) => item.timestamp !== null)
+        .sort((a, b) => a.timestamp! - b.timestamp!)[0]?.value;
+      addTimelineEntry(
+        `exercise:${session.id}`,
+        time,
+        t('exerciseSummary.title', { defaultValue: 'Exercise' }),
+        <SwipeableExerciseRow
+          session={session}
+          entryDate={selectedDate}
+          onPress={() => openWorkout(session)}
+          getImageSource={getImageSource}
+          weightUnit={weightUnit}
+          distanceUnit={distanceUnit}
+        />
+      );
+    }
+  }
+  for (const session of mobilityDiary.sessions) {
+    addTimelineEntry(
+      `mobility:${session.id}`,
+      session.startedAt,
+      t('mobility.diaryTitle', { defaultValue: 'Mobility workouts' }),
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => navigation.navigate('GuidedMobility')}
+        className="min-h-14 flex-row items-center gap-3"
+      >
+        <Icon name="exercise-yoga" size={22} color={accentColor} />
+        <View className="flex-1 gap-1">
+          <Text className="text-base font-semibold text-text-primary">
+            {session.routine.name}
+          </Text>
+          <Text className="text-sm text-text-secondary">
+            {t('mobility.historyCounts', {
+              defaultValue: '{{completed}} completed · {{skipped}} skipped',
+              completed: session.outcomes.filter(
+                (item) => item.result === 'completed'
+              ).length,
+              skipped: session.outcomes.filter(
+                (item) => item.result === 'skipped'
+              ).length,
+            })}
+            {session.state === 'cancelled'
+              ? ` · ${t('mobility.historyEndedEarly', { defaultValue: 'Ended early' })}`
+              : ''}
+          </Text>
+        </View>
+        <Icon name="chevron-forward" size={16} color={textPrimaryColor} />
+      </Pressable>
+    );
+  }
+  for (const action of localFoodActions) {
+    addTimelineEntry(
+      `pending-food:${action.clientOperationId}`,
+      action.payload.entry_time,
+      t('nutritionOutbox.title', { defaultValue: 'Saved on this device' }),
+      <PendingNutritionActions actions={[action]} />
+    );
+  }
+  const foodIds = new Set(summary?.foodEntries.map((entry) => entry.id));
+  const waterUnit = preferences?.water_display_unit ?? 'ml';
+  for (const entry of hydration.data?.entries ?? []) {
+    // Linked drinks already appear as food entries; supplement drinks appear as intake.
+    if (
+      !['water', 'imported'].includes(entry.kind) ||
+      (entry.food_entry_id && foodIds.has(entry.food_entry_id))
+    )
+      continue;
+    addTimelineEntry(
+      `water:${entry.id}`,
+      entry.logged_at,
+      t('dashboard.water', { defaultValue: 'Water' }),
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setHydrationVisible(true)}
+        className="min-h-14 flex-row items-center gap-3"
+      >
+        <Icon name="water" size={22} color={accentColor} />
+        <Text className="flex-1 text-base text-text-primary">
+          {entry.name ?? t('dashboard.water', { defaultValue: 'Water' })}
+          {entry.water_ml === null
+            ? ''
+            : ` · ${formatVolumeForUnit(volumeFromMl(entry.water_ml, waterUnit), waterUnit)} ${WATER_UNIT_LABELS[waterUnit] ?? waterUnit}`}
+        </Text>
+        <Icon name="chevron-forward" size={16} color={textPrimaryColor} />
+      </Pressable>
+    );
+  }
+  for (const entry of intakeEntries.data ?? []) {
+    if (entry.status !== 'taken' && entry.status !== 'prn_taken') continue;
+    const definition = intakeDefinitions.data?.find(
+      (item) => item.id === entry.medication_id
+    );
+    const label = definition
+      ? definition.is_supplement
+        ? t('supplements.singular', { defaultValue: 'Supplement' })
+        : t('medications.medication', { defaultValue: 'Medication' })
+      : t('diary.timeline.intake', { defaultValue: 'Intake' });
+    addTimelineEntry(
+      `intake:${entry.id}`,
+      entry.taken_at,
+      label,
+      <Pressable
+        accessibilityRole="button"
+        onPress={() =>
+          entry.medication_id
+            ? navigation.navigate('MedicationDetail', {
+                medicationId: entry.medication_id,
+              })
+            : navigation.navigate('MedicationsList')
+        }
+        className="min-h-14 flex-row items-center gap-3"
+      >
+        <Icon name="medication" size={22} color={accentColor} />
+        <View className="flex-1 gap-1">
+          <Text className="text-base font-semibold text-text-primary">
+            {entry.med_name_snapshot ?? definition?.name ?? label}
+          </Text>
+          <Text className="text-sm text-text-secondary">
+            {entry.dose_amount_snapshot === null
+              ? '—'
+              : formatLocalizedNumber(entry.dose_amount_snapshot)}{' '}
+            {entry.dose_unit_snapshot ?? ''}
+          </Text>
+        </View>
+        <Icon name="chevron-forward" size={16} color={textPrimaryColor} />
+      </Pressable>
+    );
+  }
+  for (const entry of wellnessEntries(
+    wellnessHabits.data ?? [],
+    wellnessLogs.data ?? []
+  )) {
+    const log = wellnessLogs.data?.find(
+      (item) =>
+        item.habit_id === entry.activityId && item.entry_date === selectedDate
+    );
+    addTimelineEntry(
+      `wellness:${entry.activityId}`,
+      log?.recorded_at,
+      t('wellness.title', { defaultValue: 'Wellness' }),
+      <View className="min-h-14 flex-row items-center gap-3">
+        <Icon name="wellness" size={22} color={accentColor} />
+        <Text className="flex-1 text-base text-text-primary">{entry.name}</Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('diary.timeline.undoWellness', {
+            defaultValue: 'Undo {{name}}',
+            name: entry.name,
+          })}
+          disabled={undoWellness.isPending}
+          className="min-h-11 min-w-11 items-center justify-center px-2"
+          onPress={() =>
+            undoWellness.mutate(
+              {
+                habitId: entry.activityId,
+                body: { entry_date: selectedDate, value: null },
+              },
+              {
+                onError: () =>
+                  Toast.show({
+                    type: 'error',
+                    text1: t('wellness.removeFailed', {
+                      defaultValue:
+                        'Could not remove the activity. Please try again.',
+                    }),
+                  }),
+              }
+            )
+          }
+        >
+          <Text className="text-sm font-semibold text-accent-primary">
+            {t('wellness.undo', { defaultValue: 'Undo' })}
+          </Text>
+        </Pressable>
+      </View>,
+      undefined,
+      log?.recorded_at
+        ? wellnessTimestamp(selectedDate, log.recorded_at, timezone)
+        : null
+    );
+  }
+  const completedCaptureIds = new Set([
+    ...(summary?.foodEntries ?? []).map((entry) => entry.nutrition_capture_id),
+    ...pendingPhotoDiaryEntries.map((entry) => entry.nutrition_capture_id),
+    ...photoCompletionActions.map((action) => action.payload.captureId),
+  ]);
+  const captureIds = new Set<string>();
+  for (const capture of remotePhotoCaptures) {
+    captureIds.add(capture.id);
+    if (completedCaptureIds.has(capture.id)) continue;
+    addTimelineEntry(
+      `photo:${capture.id}`,
+      capture.consumed_at,
+      t('nutritionPhotos.title', { defaultValue: 'Meal photos' }),
+      <NutritionPhotoEntries
+        local={localPhotoActions.filter(
+          (action) => action.payload.id === capture.id
+        )}
+        remote={[capture]}
+        completions={photoCompletionActions}
+        completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
+        isConnected={isConnected}
+      />
+    );
+  }
+  for (const action of localPhotoActions) {
+    if (
+      captureIds.has(action.payload.id) ||
+      completedCaptureIds.has(action.payload.id)
+    )
+      continue;
+    addTimelineEntry(
+      `photo:${action.payload.id}`,
+      action.payload.consumedAt,
+      t('nutritionPhotos.title', { defaultValue: 'Meal photos' }),
+      <NutritionPhotoEntries
+        local={[action]}
+        remote={[]}
+        completions={photoCompletionActions}
+        completedFoodEntries={summary?.foodEntries ?? EMPTY_FOOD_ENTRIES}
+        isConnected={isConnected}
+      />
+    );
+  }
+  if (wakeUp)
+    addTimelineEntry(
+      `wake:${wakeUp.id}`,
+      wakeUp.wake_time,
+      t('sleep.wakeUp', { defaultValue: 'Wake Up' }),
+      <WakeUpCard entry={wakeUp} day={selectedDate} navigation={navigation} />,
+      formatClockTime(
+        wakeUp.wake_time,
+        'HH:mm',
+        resolveSleepZone(wakeUp, timezone)
+      )
+    );
+  for (const nap of naps)
+    addTimelineEntry(
+      `nap:${nap.id}`,
+      nap.bedtime,
+      t('sleep.napCount', {
+        defaultValue: '{{count}} naps',
+        defaultValue_one: '{{count}} nap',
+        defaultValue_other: '{{count}} naps',
+        count: 1,
+      }),
+      <NapsCard naps={[nap]} day={selectedDate} navigation={navigation} />,
+      formatClockTime(nap.bedtime, 'HH:mm', resolveSleepZone(nap, timezone))
+    );
+  if (bedTime)
+    addTimelineEntry(
+      `bed:${bedTime.id}`,
+      bedTime.bedtime,
+      t('sleep.bedTime', { defaultValue: 'Bedtime' }),
+      <BedTimeCard
+        entry={bedTime}
+        day={selectedDate}
+        navigation={navigation}
+      />,
+      formatClockTime(
+        bedTime.bedtime,
+        'HH:mm',
+        resolveSleepZone(bedTime, timezone)
+      )
+    );
+
   const renderContent = () => {
     if (!isConnectionLoading && !isConnected) {
       return (
@@ -652,17 +1045,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           className="flex-1 bg-background"
           contentContainerStyle={{ padding: 16 }}
         >
-          <NutritionQuickActions
-            defaultExpanded={false}
-            onTakePhoto={
-              selectedDate === getTodayDate()
-                ? () => navigation.navigate('QuickMealPhoto')
-                : undefined
-            }
-            onSearchFood={() =>
-              navigation.navigate('FoodSearch', { date: selectedDate })
-            }
-          />
           <NutritionPhotoEntries
             local={localPhotoActions}
             remote={remotePhotoCaptures}
@@ -737,17 +1119,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               actions={localFoodActions}
               storageError={nutritionStorageError}
             />
-            <NutritionQuickActions
-              defaultExpanded={false}
-              onTakePhoto={
-                selectedDate === getTodayDate()
-                  ? () => navigation.navigate('QuickMealPhoto')
-                  : undefined
-              }
-              onSearchFood={() =>
-                navigation.navigate('FoodSearch', { date: selectedDate })
-              }
-            />
             <NutritionPhotoEntries
               local={localPhotoActions}
               remote={remotePhotoCaptures}
@@ -821,52 +1192,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         }
       >
         <PlannedMealsCard day={selectedDate} />
-        {(summary.foodEntries.length > 0 ||
-          pendingPhotoDiaryEntries.length > 0 ||
-          hasSupplementNutrition(summary.supplementTotals) ||
-          summary.exerciseEntries.length > 0 ||
-          summary.calorieGoal > 0) && (
-          <DiaryCalorieMacroSummary
-            summary={visibleSummary ?? summary}
-            showNetCarbs={preferences?.show_net_carbs === true}
-            customNutrientKeys={customNutrientKeys}
-            customNutrients={customNutrients}
-          />
-        )}
-        <MobilityDiarySection
-          sessions={mobilityDiary.sessions}
-          timezone={mobilityDiary.timezone}
-          failed={mobilityDiary.isError}
-          onRetry={() => void mobilityDiary.refetch()}
-          onPress={() => navigation.navigate('GuidedMobility')}
-        />
-        {isConnected && <WellnessCard date={selectedDate} mode="diary" />}
         <PendingNutritionActions
-          actions={localFoodActions}
+          actions={[]}
           storageError={nutritionStorageError}
         />
-        <NutritionQuickActions
-          defaultExpanded={false}
-          onTakePhoto={
-            selectedDate === getTodayDate()
-              ? () => navigation.navigate('QuickMealPhoto')
-              : undefined
-          }
-          onSearchFood={() =>
-            navigation.navigate('FoodSearch', { date: selectedDate })
-          }
-        />
-        <NutritionPhotoEntries
-          local={localPhotoActions}
-          remote={remotePhotoCaptures}
-          completions={photoCompletionActions}
-          completedFoodEntries={summary.foodEntries}
-          isConnected={isConnected}
-        />
-        {summary.foodEntries.length > 0 && (
+
+        {summary.foodEntries.length > 0 && editingFoods && (
           <View className="px-4 mb-3 gap-2">
             <View className="flex-row justify-between items-center">
-              <Text className="text-base font-semibold text-text-primary">
+              <Text className="min-w-0 flex-1 text-base font-semibold text-text-primary">
                 {t('diary.bulk.foods', { defaultValue: 'Foods' })}
               </Text>
               <Pressable
@@ -920,123 +1254,172 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             )}
           </View>
         )}
-        {isDayEmpty ? (
-          <>
-            <EmptyDayIllustration />
-            <FoodSummary
-              foodEntries={EMPTY_FOOD_ENTRIES}
-              mealTypes={mealTypes}
-              goals={summary.goals}
-              calorieGoal={summary.calorieGoal}
-              onAddFood={(mealTypeId) =>
-                navigation.navigate('FoodSearch', {
-                  date: selectedDate,
-                  mealTypeId,
-                })
-              }
-              onPressMealType={openMealTypeDetail}
-              mealStates={isConnected ? mealStates : undefined}
-              onSetMealStatus={isConnected ? onSetMealStatus : undefined}
-              mealStatusBusy={setMealStatus.isPending}
-              selectionMode={editingFoods}
-              selectedEntryIds={selectedFoodIds}
-              onSelectEntry={toggleFoodSelection}
-              onDropFood={moveDroppedFood}
-            />
-          </>
+        {!editingFoods && (
+          <DiaryTimeline
+            entries={timelineEntries}
+            onEditFoods={
+              summary.foodEntries.length > 0
+                ? () => setEditingFoods(true)
+                : undefined
+            }
+          />
+        )}
+        {(hydration.isError ||
+          intakeEntries.isError ||
+          wellnessHabits.isError ||
+          wellnessLogs.isError) && (
+          <View className="mb-4 gap-2">
+            <Text
+              accessibilityRole="alert"
+              className="text-sm text-text-secondary"
+            >
+              {t('diary.timeline.partialError', {
+                defaultValue:
+                  'Some water, intake or wellness entries could not be refreshed. Pull to refresh and try again.',
+              })}
+            </Text>
+            <Button variant="secondary" onPress={() => void onRefresh()}>
+              {t('common.retry', { defaultValue: 'Retry' })}
+            </Button>
+          </View>
+        )}
+        {mobilityDiary.isError && (
+          <MobilityDiarySection
+            sessions={[]}
+            timezone={mobilityDiary.timezone}
+            failed
+            onRetry={() => void mobilityDiary.refetch()}
+            onPress={() => navigation.navigate('GuidedMobility')}
+          />
+        )}
+        {isDayEmpty && <EmptyDayIllustration />}
+        <MealCoverageLine coverage={mealStatusQuery.data?.coverage} />
+        {editingFoods ? (
+          <FoodSummary
+            foodEntries={[...summary.foodEntries, ...pendingPhotoDiaryEntries]}
+            capturePhotos={capturePhotos}
+            mealTypes={mealTypes}
+            goals={summary.goals}
+            calorieGoal={summary.calorieGoal}
+            onAddFood={(mealTypeId) =>
+              navigation.navigate('FoodSearch', {
+                date: selectedDate,
+                mealTypeId,
+              })
+            }
+            onAdjustServing={(entry) => servingSheetRef.current?.present(entry)}
+            onPressMealType={openMealTypeDetail}
+            mealStates={isConnected ? mealStates : undefined}
+            onSetMealStatus={isConnected ? onSetMealStatus : undefined}
+            mealStatusBusy={setMealStatus.isPending}
+            selectionMode
+            selectedEntryIds={selectedFoodIds}
+            onSelectEntry={toggleFoodSelection}
+            onDropFood={moveDroppedFood}
+          />
         ) : (
-          <>
-            <WakeUpCard
-              entry={wakeUp}
-              day={selectedDate}
-              navigation={navigation}
-            />
-            <MealCoverageLine coverage={mealStatusQuery.data?.coverage} />
-            <FoodSummary
-              foodEntries={[
-                ...summary.foodEntries,
-                ...pendingPhotoDiaryEntries,
-              ]}
-              capturePhotos={capturePhotos}
-              mealTypes={mealTypes}
-              goals={summary.goals}
-              calorieGoal={summary.calorieGoal}
-              onAddFood={(mealTypeId) =>
-                navigation.navigate('FoodSearch', {
-                  date: selectedDate,
-                  mealTypeId,
-                })
-              }
-              onAdjustServing={(entry) =>
-                servingSheetRef.current?.present(entry)
-              }
-              onPressMealType={openMealTypeDetail}
-              mealStates={isConnected ? mealStates : undefined}
-              onSetMealStatus={isConnected ? onSetMealStatus : undefined}
-              mealStatusBusy={setMealStatus.isPending}
-              selectionMode={editingFoods}
-              selectedEntryIds={selectedFoodIds}
-              onSelectEntry={toggleFoodSelection}
-              onDropFood={moveDroppedFood}
-            />
-            <ExerciseSummary
-              exerciseEntries={summary.exerciseEntries}
-              entryDate={selectedDate}
-              getImageSource={getImageSource}
-              weightUnit={weightUnit}
-              distanceUnit={distanceUnit}
-              onAddExercise={() =>
-                addSheetRef.current?.present({ initialMenu: 'exercise' })
-              }
-              onPressPlanAssignment={handleStartPlanAssignment}
-              onPressWorkout={(session) => {
-                if (session.type === 'preset') {
-                  // The live workout's surface is the active screen; detail is
-                  // for reviewing past or planned sessions.
-                  if (
-                    useActiveWorkoutStore.getState().sessionId === session.id
-                  ) {
-                    navigation.navigate('ActiveWorkout');
-                    return;
-                  }
-                  navigation.navigate('WorkoutDetail', { session });
-                } else {
-                  navigation.navigate('ActivityDetail', { session });
-                }
-              }}
-            />
-            <NapsCard naps={naps} day={selectedDate} navigation={navigation} />
-            <BedTimeCard
-              entry={bedTime}
-              day={selectedDate}
-              navigation={navigation}
-            />
-            <MeasurementsSummary
-              measurements={measurements}
-              customMeasurements={manualCustomMeasurements}
-              weightMode={weightMode}
-              bodyUnit={bodyUnit}
-              heightMode={heightMode}
-              onPress={() =>
-                navigation.navigate('MeasurementsAdd', { date: selectedDate })
-              }
-            />
-            {/* Below the measurements: both are the same check-in, keyed on
-                (user_id, entry_date) server-side. */}
-            <CheckInPhotosSummary
-              date={selectedDate}
-              photos={dayPhotos}
-              onPress={() =>
-                navigation.navigate('ProgressPhotos', { date: selectedDate })
-              }
-            />
-          </>
+          isConnected && (
+            <View className="mb-4 rounded-2xl border border-border-subtle bg-surface px-4">
+              {mealTypes.map((meal) => {
+                const entries = summary.foodEntries.filter(
+                  (entry) => entry.meal_type_id === meal.id
+                );
+                const label = getMealTypeDisplayLabel(meal, t);
+                const state = mealStates.get(meal.id);
+                return (
+                  <View
+                    key={meal.id}
+                    className="min-h-14 flex-row items-center gap-2 border-b border-border-subtle py-2"
+                  >
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() =>
+                        openMealTypeDetail(meal.id, meal.name, entries)
+                      }
+                      className="min-h-11 flex-1 flex-row items-center gap-2"
+                    >
+                      <Text className="flex-1 text-base font-medium text-text-primary">
+                        {label}
+                      </Text>
+                      <Icon
+                        name="chevron-forward"
+                        size={16}
+                        color={textPrimaryColor}
+                      />
+                    </Pressable>
+                    {state && (
+                      <MealStatusControl
+                        mealLabel={label}
+                        state={state}
+                        onChange={(status) => onSetMealStatus(meal.id, status)}
+                        busy={setMealStatus.isPending}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          )
+        )}
+        <ExerciseSummary
+          planningOnly
+          exerciseEntries={summary.exerciseEntries}
+          entryDate={selectedDate}
+          getImageSource={getImageSource}
+          weightUnit={weightUnit}
+          distanceUnit={distanceUnit}
+          onAddExercise={() =>
+            addSheetRef.current?.present({ initialMenu: 'exercise' })
+          }
+          onPressPlanAssignment={handleStartPlanAssignment}
+          onPressWorkout={openWorkout}
+        />
+        <MeasurementsSummary
+          measurements={measurements}
+          customMeasurements={manualCustomMeasurements}
+          weightMode={weightMode}
+          bodyUnit={bodyUnit}
+          heightMode={heightMode}
+          onPress={() =>
+            navigation.navigate('MeasurementsAdd', { date: selectedDate })
+          }
+        />
+        <CheckInPhotosSummary
+          date={selectedDate}
+          photos={dayPhotos}
+          onPress={() =>
+            navigation.navigate('ProgressPhotos', { date: selectedDate })
+          }
+        />
+        {(summary.foodEntries.length > 0 ||
+          pendingPhotoDiaryEntries.length > 0 ||
+          hasSupplementNutrition(summary.supplementTotals) ||
+          summary.exerciseEntries.length > 0 ||
+          summary.calorieGoal > 0) && (
+          <DiaryCalorieMacroSummary
+            summary={visibleSummary ?? summary}
+            showNetCarbs={preferences?.show_net_carbs === true}
+            customNutrientKeys={customNutrientKeys}
+            customNutrients={customNutrients}
+          />
         )}
       </ScrollView>
     );
   };
 
-  const renderedContent = renderContent();
+  const renderedContent = (
+    <>
+      {renderContent()}
+      <HydrationDetailsModal
+        visible={hydrationVisible}
+        date={selectedDate}
+        unit={preferences?.water_display_unit ?? 'ml'}
+        goal={summary?.waterGoal}
+        onClose={() => setHydrationVisible(false)}
+        onConfigure={() => navigation.navigate('WaterContainers')}
+      />
+    </>
+  );
 
   if (usesNativeTabs) {
     return (
@@ -1089,6 +1472,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           subtitle={t('diary.subtitle', {
             defaultValue: 'Log your meals and activity.',
           })}
+          onHome={() => navigation.navigate('Dashboard')}
           onSettings={() => navigation.navigate('Settings')}
           right={
             hasFamilyDiaries ? (

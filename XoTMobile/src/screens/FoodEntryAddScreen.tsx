@@ -1,3 +1,4 @@
+import { useProviderServingRefresh } from '../hooks/useProviderServingRefresh';
 import React, {
   useState,
   useRef,
@@ -418,6 +419,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     );
   };
 
+  const providerServings = useProviderServingRefresh(activeItem, isConnected);
   const isLocalFood = activeItem.source === 'local';
   const hasExternalVariants = !!(
     activeItem.externalVariants && activeItem.externalVariants.length >= 1
@@ -2340,6 +2342,28 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                 </Pressable>
               ) : null}
             </View>
+
+            {providerServings.isLoading && (
+              <Text className="text-xs text-text-secondary">
+                {t('foodEntryAdd.labels.loadingProviderServings', {
+                  defaultValue: 'Checking provider portions…',
+                })}
+              </Text>
+            )}
+            {providerServings.isError && (
+              <Pressable
+                accessibilityRole="button"
+                className="min-h-11 justify-center"
+                onPress={() => void providerServings.retry()}
+              >
+                <Text className="text-xs text-text-secondary">
+                  {t('foodEntryAdd.labels.providerServingsFailed', {
+                    defaultValue:
+                      'Provider portions unavailable. Tap to retry; you can still use the saved units.',
+                  })}
+                </Text>
+              </Pressable>
+            )}
 
             <View>
               <View

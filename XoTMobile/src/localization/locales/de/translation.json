@@ -1680,7 +1680,14 @@
       "failed": "Die ausgewählten Lebensmittel konnten nicht aktualisiert werden",
       "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen."
     },
-    "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten."
+    "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten.",
+    "timeline": {
+      "title": "Tagesverlauf",
+      "withoutTime": "Ohne erfasste Uhrzeit",
+      "partialError": "Einige Wasser-, Einnahme- oder Wellness-Einträge konnten nicht aktualisiert werden. Zum Aktualisieren nach unten ziehen oder erneut versuchen.",
+      "intake": "Einnahme",
+      "undoWellness": "{{name}} rückgängig machen"
+    }
   },
   "scheduleSummary": {
     "daily": "Täglich",
@@ -3617,7 +3624,9 @@
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
       "goalShareTip": "Anteil am Tagesziel",
-      "unit": "Einheit"
+      "unit": "Einheit",
+      "loadingProviderServings": "Portionen des Anbieters werden geprüft …",
+      "providerServingsFailed": "Portionen des Anbieters derzeit nicht verfügbar. Erneut versuchen; gespeicherte Einheiten bleiben nutzbar."
     },
     "pickers": {
       "selectServing": "Portion auswählen",

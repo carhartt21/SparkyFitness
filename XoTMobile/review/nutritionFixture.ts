@@ -8,7 +8,7 @@ import {
   type MealTrackingStatus,
   setMealDayStatusRequestSchema,
 } from '@workspace/shared';
-import type { FoodItem } from '../src/types/foods';
+import type { FoodItem, FoodVariantDetail } from '../src/types/foods';
 import type { FoodEntry } from '../src/types/foodEntries';
 import type {
   CreateFoodEntryPayload,
@@ -39,9 +39,10 @@ export const reviewFood: FoodItem = {
 };
 
 // Saved portions of the review food (synthetic; values derived from 100 g).
-export const reviewVariants = [
+export const reviewVariants: FoodVariantDetail[] = [
   {
     ...reviewFood.default_variant,
+    id: 'review-variant',
     food_id: reviewFood.id,
     metric_amount: 100,
     metric_unit: 'g' as const,
@@ -99,7 +100,21 @@ export const reviewVariants = [
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 /** In-memory simulator fixture. Never imports a network or persistence client. */
-export function createNutritionFixture(scenario: string) {
+export function createNutritionFixture(
+  scenario: string,
+  legacyPortions = false
+) {
+  const food: FoodItem = legacyPortions
+    ? {
+        ...reviewFood,
+        is_custom: false,
+        provider_type: 'openfoodfacts',
+        provider_external_id: 'synthetic-review-provider',
+      }
+    : reviewFood;
+  const variants: FoodVariantDetail[] = clone(
+    legacyPortions ? [reviewVariants[0]] : reviewVariants
+  );
   let entries: FoodEntry[] = clone(
     (reviewResponse('/api/daily-summary', scenario) as typeof summaryFixture)
       .foodEntries
@@ -347,6 +362,35 @@ export function createNutritionFixture(scenario: string) {
         });
         return { water_ml: waterMl };
       }
+      if (
+        legacyPortions &&
+        method === 'GET' &&
+        path === '/api/v2/foods/details/openfoodfacts/synthetic-review-provider'
+      ) {
+        return { ...food, variants: [reviewVariants[0], reviewVariants[3]] };
+      }
+      if (
+        legacyPortions &&
+        method === 'POST' &&
+        path === '/api/foods/food-variants'
+      ) {
+        const payload = JSON.parse(
+          body ?? '{}'
+        ) as import('../src/services/api/foodsApi').CreateFoodVariantPayload;
+        if (
+          payload.food_id !== food.id ||
+          payload.source !== 'imported' ||
+          payload.metric_amount !== 21.5 ||
+          payload.metric_unit !== 'g'
+        )
+          throw new Error('Unexpected synthetic provider portion');
+        const created: FoodVariantDetail = {
+          ...payload,
+          id: 'review-refreshed-portion',
+        };
+        variants.push(created);
+        return created;
+      }
       if (method === 'GET') {
         if (
           /^\/api\/v2\/measurements\/water-intake\/[^/]+\/details$/.test(path)
@@ -515,14 +559,13 @@ export function createNutritionFixture(scenario: string) {
             },
           };
         }
-        if (path === '/api/foods')
-          return { recentFoods: [reviewFood], topFoods: [] };
+        if (path === '/api/foods') return { recentFoods: [food], topFoods: [] };
         if (path === '/api/foods/foods-paginated') {
           const match = reviewFood.name
             .toLowerCase()
             .includes((url.searchParams.get('searchTerm') ?? '').toLowerCase());
           return {
-            foods: match ? [reviewFood] : [],
+            foods: match ? [food] : [],
             totalCount: match ? 1 : 0,
           };
         }
@@ -530,7 +573,7 @@ export function createNutritionFixture(scenario: string) {
           path === '/api/foods/food-variants' &&
           url.searchParams.get('food_id') === reviewFood.id
         )
-          return reviewVariants;
+          return variants;
         if (path === `/api/foods/${reviewFood.id}/last-serving`)
           return scenario === 'populated'
             ? {
@@ -545,7 +588,7 @@ export function createNutritionFixture(scenario: string) {
                 used_at: `${reviewDate}T07:30:00Z`,
               }
             : null;
-        if (path === '/api/foods/review-food') return reviewFood;
+        if (path === '/api/foods/review-food') return food;
         // Edit Food asks whether AI unit estimates are available; they are off.
         if (path === '/api/global-settings/allow-user-ai-config')
           return { allow_user_ai_config: false };
@@ -583,7 +626,7 @@ export function createNutritionFixture(scenario: string) {
         return reviewResponse(path, scenario);
       }
       if (method === 'PUT' && path === `/api/foods/${reviewFood.id}/servings`)
-        return reviewVariants;
+        return variants;
       if (method === 'POST' && path === '/api/food-entries') {
         const data = JSON.parse(body ?? '{}') as CreateFoodEntryPayload;
         if (
@@ -599,8 +642,7 @@ export function createNutritionFixture(scenario: string) {
           );
         if (previous) return previous;
         const variant =
-          reviewVariants.find((row) => row.id === data.variant_id) ??
-          reviewVariants[0];
+          variants.find((row) => row.id === data.variant_id) ?? variants[0];
         const entry: FoodEntry = {
           ...reviewFood.default_variant,
           ...variant,
