@@ -454,6 +454,43 @@ final class DashboardReview: XCTestCase {
   }
 
   /// Focused dashboard/provider/keyboard review; only synthetic records.
+  func testV42Corrections() throws {
+    try testSummaryCards()
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.buttons.matching(NSPredicate(format: "label IN %@", ["Zurück", "Back"])).firstMatch.tap()
+    app.buttons["Tagebuch"].tap()
+    let timeline = app.descendants(matching: .any)["diary-timeline"]
+    XCTAssertTrue(timeline.waitForExistence(timeout: 15))
+    let edit = app.buttons["diary-edit-foods"]
+    XCTAssertTrue(edit.exists)
+    XCTAssertGreaterThanOrEqual(edit.frame.width, 44)
+    XCTAssertLessThanOrEqual(edit.frame.maxX, app.frame.maxX - 8)
+    capture("v42-diary-timeline", app)
+    XCTAssertFalse(app.descendants(matching: .any)["nutrition-quick-actions"].exists)
+    let firstFood = app.descendants(matching: .any)["diary-event-food:review-breakfast"]
+    let water = app.descendants(matching: .any)["diary-event-water:review-water"]
+    XCTAssertTrue(firstFood.exists); XCTAssertTrue(water.exists)
+    XCTAssertLessThan(firstFood.frame.minY, water.frame.minY)
+    XCTAssertLessThanOrEqual(firstFood.frame.maxX, app.frame.maxX - 8)
+    let logo = app.buttons["app-header-logo"]
+    XCTAssertTrue(logo.exists); logo.tap()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 10))
+    let dashboard = app.otherElements["dashboard-scroll"]
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<6 { if food.isHittable { break }; dashboard.swipeUp() }
+    food.tap()
+    let search = app.textFields.firstMatch
+    XCTAssertTrue(search.waitForExistence(timeout: 10))
+    capture("v42-search-field", app)
+    search.tap(); search.typeText("Review yogurt")
+    let result = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt with berries and toasted pumpkin seeds")).firstMatch
+    XCTAssertTrue(result.waitForExistence(timeout: 15)); result.tap()
+    let portion = app.buttons.matching(NSPredicate(format: "identifier BEGINSWITH %@", "food-entry-quick-add-button-review-refreshed-portion")).firstMatch
+    for _ in 0..<8 { if portion.exists && portion.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(portion.exists, "A gram-only local import must acquire a provider portion")
+    capture("v42-provider-portion-refreshed", app)
+  }
+
   func testUIRefinements() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

@@ -15,6 +15,7 @@ import type {
 import BottomSheetPicker from './BottomSheetPicker';
 
 interface ExerciseSummaryProps {
+  planningOnly?: boolean;
   exerciseEntries: ExerciseSessionResponse[];
   entryDate: string;
   onPressWorkout?: (session: ExerciseSessionResponse) => void;
@@ -29,6 +30,7 @@ interface ExerciseSummaryProps {
 }
 
 const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
+  planningOnly = false,
   exerciseEntries,
   entryDate,
   onPressWorkout,
@@ -283,6 +285,8 @@ const ExerciseSummary: React.FC<ExerciseSummaryProps> = ({
         })}
       </View>
     ) : null;
+
+  if (planningOnly) return planBanners;
 
   if (exerciseEntries.length === 0) {
     const emptyContent = (

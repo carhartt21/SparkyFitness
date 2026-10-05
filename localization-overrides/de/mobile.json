@@ -518,7 +518,14 @@
     },
     "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten.",
     "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihr Tagebuch anzuzeigen.",
-    "checkConnection": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+    "checkConnection": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+    "timeline": {
+      "title": "Tagesverlauf",
+      "withoutTime": "Ohne erfasste Uhrzeit",
+      "partialError": "Einige Wasser-, Einnahme- oder Wellness-Einträge konnten nicht aktualisiert werden. Zum Aktualisieren nach unten ziehen oder erneut versuchen.",
+      "intake": "Einnahme",
+      "undoWellness": "{{name}} rückgängig machen"
+    }
   },
   "privacyPolicy": {
     "storageSummary": "X on Track speichert die von Ihnen protokollierten Datensätze auf Ihrem Gerät und, wenn die Synchronisierung aktiviert ist, auf Ihrem ausgewählten selbst gehosteten Server.",
@@ -640,7 +647,9 @@
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}} % Ihres Tagesziels",
       "entryNotesPlaceholder": "Was möchten Sie zu diesem Eintrag festhalten?",
       "goalShareTip": "Anteil am Tagesziel",
-      "unit": "Einheit"
+      "unit": "Einheit",
+      "loadingProviderServings": "Portionen des Anbieters werden geprüft …",
+      "providerServingsFailed": "Portionen des Anbieters derzeit nicht verfügbar. Erneut versuchen; gespeicherte Einheiten bleiben nutzbar."
     },
     "errors": {
       "savedFoodUnitFailedDetails": "Sie können das Lebensmittel trotzdem hinzufügen und die Einheit später erneut speichern.",

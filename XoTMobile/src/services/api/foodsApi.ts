@@ -1,4 +1,5 @@
 import { apiFetch } from './apiClient';
+import type { NutritionActionIdentity } from '../nutritionActionOutbox';
 import { postPayloadWithImages } from './imageUploadClient';
 import type { ImageUploadArgs } from '../../utils/pickerImages';
 import {
@@ -80,12 +81,14 @@ export const searchFoods = async (
  * Fetches all variants for a given food item.
  */
 export const fetchFoodVariants = async (
-  foodId: string
+  foodId: string,
+  expectedIdentity?: NutritionActionIdentity
 ): Promise<FoodVariantDetail[]> => {
   return apiFetch<FoodVariantDetail[]>({
     endpoint: `/api/foods/food-variants?food_id=${foodId}`,
     serviceName: 'Foods API',
     operation: 'fetch food variants',
+    expectedIdentity,
   });
 };
 
@@ -157,12 +160,14 @@ export interface CreateFoodVariantPayload {
  * Creates a new food variant for an existing food.
  */
 export const createFoodVariant = async (
-  payload: CreateFoodVariantPayload
+  payload: CreateFoodVariantPayload,
+  expectedIdentity?: NutritionActionIdentity
 ): Promise<FoodVariantDetail> => {
   return apiFetch<FoodVariantDetail>({
     endpoint: '/api/foods/food-variants',
     serviceName: 'Foods API',
     operation: 'create food variant',
+    expectedIdentity,
     method: 'POST',
     body: payload,
   });

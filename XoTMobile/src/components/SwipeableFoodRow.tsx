@@ -6,6 +6,7 @@ import {
   Text,
   TouchableOpacity,
   PanResponder,
+  useWindowDimensions,
 } from 'react-native';
 import Button from './ui/Button';
 import { useNavigation } from '@react-navigation/native';
@@ -38,6 +39,7 @@ export type { CapturePhotoRef } from './NutritionCaptureThumbnail';
 
 interface SwipeableFoodRowProps {
   readOnly?: boolean;
+  showTime?: boolean;
   entry: FoodEntry;
   nutrition: EntryNutrition;
   capturePhoto?: CapturePhotoRef;
@@ -52,6 +54,7 @@ interface SwipeableFoodRowProps {
 const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   entry,
   readOnly: requestedReadOnly = false,
+  showTime = true,
   nutrition,
   capturePhoto,
   onAdjustServing,
@@ -64,6 +67,8 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   const readOnly = requestedReadOnly || entry.source === 'fddb';
   const { t } = useTranslation();
   const { preferences } = usePreferences();
+  const { fontScale } = useWindowDimensions();
+  const stacked = fontScale > 1.3;
   const navigation = useNavigation();
   const swipeableRef = useRef<SwipeableMethods>(null);
   const invalidateCacheRef = useRef<() => void>(() => {});
@@ -260,59 +265,80 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               }
             />
           )}
-          <TouchableOpacity
-            className="flex-1 min-h-11 justify-center mr-2"
-            activeOpacity={0.7}
-            onPress={handlePress}
-            onLongPress={handleLongPress}
-            accessibilityRole="button"
-            accessibilityLabel={`${name}, ${entry.quantity} ${entry.unit}`}
-            accessibilityState={
-              !readOnly && selectionMode && onSelect ? { selected } : undefined
-            }
+          <View
+            className="min-w-0 flex-1"
+            style={{
+              flexDirection: stacked ? 'column' : 'row',
+              alignItems: stacked ? 'stretch' : 'center',
+            }}
           >
-            <View className="gap-0.5">
-              <Text className="text-md text-text-primary" numberOfLines={2}>
-                {name}
-              </Text>
-              <Text className="text-sm text-text-secondary" numberOfLines={1}>
-                {entry.quantity} {entry.unit}
-              </Text>
-              {timeLabel && (
+            <TouchableOpacity
+              className="min-w-0 min-h-11 justify-center mr-2"
+              style={stacked ? undefined : { flex: 1 }}
+              activeOpacity={0.7}
+              onPress={handlePress}
+              onLongPress={handleLongPress}
+              accessibilityRole="button"
+              accessibilityLabel={`${name}, ${entry.quantity} ${entry.unit}`}
+              accessibilityState={
+                !readOnly && selectionMode && onSelect
+                  ? { selected }
+                  : undefined
+              }
+            >
+              <View className="gap-0.5">
+                <Text
+                  className="text-md text-text-primary"
+                  numberOfLines={stacked ? undefined : 2}
+                >
+                  {name}
+                </Text>
+                <Text
+                  className="text-sm text-text-secondary"
+                  numberOfLines={stacked ? undefined : 1}
+                >
+                  {entry.quantity} {entry.unit}
+                </Text>
+                {showTime && timeLabel && (
+                  <Text
+                    className="text-xs text-text-secondary"
+                    numberOfLines={1}
+                  >
+                    {timeLabel}
+                  </Text>
+                )}
+              </View>
+              {sourceLabel && (
                 <Text className="text-xs text-text-secondary" numberOfLines={1}>
-                  {timeLabel}
+                  {sourceLabel}
                 </Text>
               )}
-            </View>
-            {sourceLabel && (
-              <Text className="text-xs text-text-secondary" numberOfLines={1}>
-                {sourceLabel}
+              {isPending && (
+                <Text className="text-xs text-text-muted">
+                  {t('nutritionOutbox.savedOnDevice', {
+                    defaultValue: 'Saved on this device',
+                  })}
+                </Text>
+              )}
+            </TouchableOpacity>
+            {canQuickAdjust && !selectionMode ? (
+              <Button
+                variant="ghost"
+                onPress={() => onAdjustServing!(entry)}
+                hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+                className="min-h-11 justify-center px-2"
+                textClassName="text-sm text-text-secondary font-medium"
+                style={stacked ? { alignSelf: 'flex-start' } : undefined}
+              >
+                {`${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })} ▾`}
+              </Button>
+            ) : (
+              <Text className="text-sm text-text-secondary font-medium mr-2">
+                {Math.round(nutrition.calories)}{' '}
+                {t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}
               </Text>
             )}
-            {isPending && (
-              <Text className="text-xs text-text-muted">
-                {t('nutritionOutbox.savedOnDevice', {
-                  defaultValue: 'Saved on this device',
-                })}
-              </Text>
-            )}
-          </TouchableOpacity>
-          {canQuickAdjust && !selectionMode ? (
-            <Button
-              variant="ghost"
-              onPress={() => onAdjustServing!(entry)}
-              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
-              className="min-h-11 justify-center px-2"
-              textClassName="text-sm text-text-secondary font-medium"
-            >
-              {`${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })} ▾`}
-            </Button>
-          ) : (
-            <Text className="text-sm text-text-secondary font-medium mr-2">
-              {Math.round(nutrition.calories)}{' '}
-              {t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}
-            </Text>
-          )}
+          </View>
           {!readOnly && selectionMode && onDragEnd && onSelect && (
             <View
               {...dragResponder.panHandlers}

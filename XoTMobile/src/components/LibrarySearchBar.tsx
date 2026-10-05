@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, TextInput, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
+import SearchFieldInput from './SearchFieldInput';
 import { useCSSVariable } from 'uniwind';
 import Icon from './Icon';
 
@@ -33,9 +34,8 @@ const LibrarySearchBar: React.FC<LibrarySearchBarProps> = ({
       >
         <Icon name="search" size={18} color={textMuted} />
         <View className="flex-1 ml-2">
-          <TextInput
+          <SearchFieldInput
             className="text-text-primary"
-            style={{ fontSize: 16, padding: 0, includeFontPadding: false }}
             placeholder={placeholder}
             placeholderTextColor={textMuted}
             value={value}

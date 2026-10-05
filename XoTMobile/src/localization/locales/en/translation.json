@@ -1417,7 +1417,14 @@
       "apply": "Apply",
       "failed": "Could not update selected foods"
     },
-    "subtitle": "Log your meals and activity."
+    "subtitle": "Log your meals and activity.",
+    "timeline": {
+      "title": "Your day",
+      "withoutTime": "Without a recorded time",
+      "partialError": "Some water, intake or wellness entries could not be refreshed. Pull to refresh and try again.",
+      "intake": "Intake",
+      "undoWellness": "Undo {{name}}"
+    }
   },
   "medications": {
     "title": "Medications & supplements",
@@ -3832,7 +3839,9 @@
       "nutrientAmountA11y": "{{label}}: {{amount}} {{unit}}",
       "nutrientGoalA11y": "{{label}}: {{amount}} {{unit}}, {{percent}}% of your daily goal",
       "goalShareTip": "Percent of your daily goal",
-      "unit": "Unit"
+      "unit": "Unit",
+      "loadingProviderServings": "Checking provider portions…",
+      "providerServingsFailed": "Provider portions unavailable. Tap to retry; you can still use the saved units."
     },
     "pickers": {
       "selectServing": "Select Serving",

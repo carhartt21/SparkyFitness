@@ -1,3 +1,4 @@
+import { useProviderServingRefresh } from '../hooks/useProviderServingRefresh';
 import React, {
   useCallback,
   useEffect,
@@ -81,6 +82,7 @@ const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({
   const showNetCarbs = preferences?.show_net_carbs === true;
   const [food, setFood] = useState(item);
 
+  useProviderServingRefresh(food, isConnected);
   const isLocalFood = food.source === 'local';
   const hasExternalVariants = !!(
     food.externalVariants && food.externalVariants.length > 1

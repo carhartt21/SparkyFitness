@@ -1,3 +1,21 @@
+jest.mock('../../src/hooks/useMedications', () => ({
+  useMedications: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+  useMedicationEntries: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+}));
+jest.mock('../../src/components/HydrationDetailsModal', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 import { render, screen } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import DiaryScreen from '../../src/screens/DiaryScreen';

@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v42 inbox corrections](v42-inbox-corrections-2026-10-05.md): unreleased chronological diary, compact energy text, header/search polish and bounded serving refresh for older saved OFF foods.
+
 - [v42 release](v42-release-2026-10-05.md): integrated dashboard, reminders, mobility and serving ingestion; combined validation and release boundaries.
 
 - [Mobility session flow](mobility-session-flow-2026-10-04.md): halfway cues, setup transitions, phone/web diary history, confirmed calorie estimates and optional Apple Health/Fitness export.

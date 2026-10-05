@@ -11,7 +11,6 @@ import {
   Text,
   ActivityIndicator,
   SectionList,
-  TextInput,
   Platform,
   Linking,
   Pressable,
@@ -63,6 +62,7 @@ import {
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
 import Toast from 'react-native-toast-message';
 import { fetchExternalFoodDetails } from '../services/api/externalFoodSearchApi';
+import SearchFieldInput from '../components/SearchFieldInput';
 import { getApiErrorMessage } from '../services/api/errors';
 import { FoodItem } from '../types/foods';
 import { ExternalFoodItem } from '../types/externalFoods';
@@ -1422,9 +1422,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
             )}
           </View>
           <View className="flex-1 ml-2">
-            <TextInput
+            <SearchFieldInput
               className="text-text-primary"
-              style={{ fontSize: 16, padding: 0, includeFontPadding: false }}
               placeholder={t('foodSearch.search.placeholder', {
                 defaultValue: 'Search foods...',
               })}

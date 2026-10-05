@@ -1,3 +1,30 @@
+jest.mock('../../src/components/SwipeableFoodRow', () => {
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: ({ entry }: { entry: { id: string } }) => (
+      <View testID={`food-row-${entry.id}`} />
+    ),
+  };
+});
+jest.mock('../../src/hooks/useMedications', () => ({
+  useMedications: () => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  }),
+  useMedicationEntries: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  })),
+}));
+jest.mock('../../src/components/HydrationDetailsModal', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, fireEvent, render } from '@testing-library/react-native';
@@ -21,7 +48,13 @@ import { useNutritionCapturesByDate } from '../../src/hooks/useNutritionCaptures
 import { getTodayDate } from '../../src/utils/dateUtils';
 import { useNativeIOSTabsActive } from '../../src/services/nativeTabBarPreference';
 import { setNativeHeaderDatePickerOptions } from '../../src/utils/nativeHeaderDatePicker';
-import { EMPTY_SUPPLEMENT_TOTALS } from '@workspace/shared';
+import {
+  EMPTY_SUPPLEMENT_TOTALS,
+  type HydrationDayDetails,
+  type MedicationEntry,
+} from '@workspace/shared';
+import { useMedicationEntries } from '../../src/hooks/useMedications';
+import { hydrationDetailsQueryKey } from '../../src/hooks/queryKeys';
 import type { DailySummary, MacroSummary } from '../../src/types/dailySummary';
 import type { FoodEntry } from '../../src/types/foodEntries';
 import { buildSleepEntry } from '../helpers/sleepFixtures';
@@ -397,10 +430,15 @@ const configureOnlineData = (
 const insets = { top: 0, bottom: 0, left: 0, right: 0 };
 const frame = { x: 0, y: 0, width: 390, height: 844 };
 
-const renderScreen = () => {
+const renderScreen = (hydration?: HydrationDayDetails) => {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
+  if (hydration)
+    queryClient.setQueryData(
+      hydrationDetailsQueryKey(hydration.date),
+      hydration
+    );
   return render(
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider initialMetrics={{ frame, insets }}>
@@ -411,6 +449,12 @@ const renderScreen = () => {
 };
 
 beforeEach(() => {
+  jest.mocked(useMedicationEntries).mockReturnValue({
+    data: [],
+    isLoading: false,
+    isError: false,
+    refetch: jest.fn(),
+  } as ReturnType<typeof useMedicationEntries>);
   jest.mocked(useMobilityDiary).mockReturnValue({
     sessions: [],
     isLoading: false,
@@ -463,6 +507,125 @@ describe('DiaryScreen custom queries', () => {
       expect.objectContaining({ enabled: true })
     );
     expect(useNutritionCapturesByDate).toHaveBeenCalledWith('2024-06-15', true);
+  });
+  test('interleaves recorded intake, food, water and mobility, without duplicating linked food hydration or showing scheduled intake as taken', () => {
+    const entry: MedicationEntry = {
+      id: 'taken',
+      medication_id: 'supplement',
+      schedule_id: null,
+      user_id: 'user',
+      status: 'taken',
+      taken_at: '2024-06-15T05:00:00Z',
+      scheduled_for: null,
+      entry_date: baseSummary.date,
+      med_name_snapshot: 'Electrolytes',
+      dose_amount_snapshot: 2.5,
+      dose_unit_snapshot: 'g',
+      notes: null,
+      source: 'manual',
+      custom_fields: {},
+      created_at: '2024-06-15T05:00:00Z',
+      updated_at: '2024-06-15T05:00:00Z',
+    };
+    jest.mocked(useMedicationEntries).mockReturnValue({
+      data: [entry, { ...entry, id: 'skipped', status: 'skipped' }],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useMedicationEntries>);
+    mockUseDailySummary.mockReturnValue({
+      summary: {
+        ...baseSummary,
+        foodEntries: [{ ...buildFoodEntry('breakfast'), entry_time: '08:30' }],
+      },
+      isLoading: false,
+      isError: false,
+      refetch: refetchSummary,
+    } as ReturnType<typeof useDailySummary>);
+    jest.mocked(useMobilityDiary).mockReturnValue({
+      sessions: [mobilitySession({ startedAt: '2024-06-15T10:00:00Z' })],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    const water = {
+      id: 'water',
+      entry_date: baseSummary.date,
+      kind: 'water' as const,
+      name: 'Glass',
+      water_ml: 250,
+      logged_at: '2024-06-15T08:00:00Z',
+      source: 'manual',
+      water_entry_id: 'water',
+      food_entry_id: null,
+      medication_id: null,
+      amount_basis: 'recorded' as const,
+      counts_toward_goal: true,
+    };
+    const screen = renderScreen({
+      date: baseSummary.date,
+      timezone: 'Europe/Berlin',
+      entries: [
+        water,
+        { ...water, id: 'food-water', food_entry_id: 'breakfast' },
+      ],
+      totals: {
+        water_ml: 250,
+        manual_ml: 250,
+        ledger_ml: 250,
+        food_ml: 0,
+        drink_ml: 0,
+        supplement_ml: 0,
+        solid_food_ml: 0,
+        unknown_count: 0,
+      },
+    });
+    expect(
+      screen.getAllByTestId(/^diary-event-/).map((row) => row.props.testID)
+    ).toEqual([
+      'diary-event-intake:taken',
+      'diary-event-food:breakfast',
+      'diary-event-water:water',
+      'diary-event-mobility:00000000-0000-4000-8000-000000000003',
+    ]);
+    expect(screen.queryByTestId('empty-day')).toBeNull();
+    fireEvent.press(screen.getByTestId('diary-edit-foods'));
+    expect(screen.getByTestId('food-summary')).toBeTruthy();
+    expect(screen.queryByTestId('diary-timeline')).toBeNull();
+  });
+  test('a water ledger entry keeps the day non-empty even if the summary total has not refreshed', () => {
+    const screen = renderScreen({
+      date: baseSummary.date,
+      timezone: 'Europe/Berlin',
+      entries: [
+        {
+          id: 'water',
+          entry_date: baseSummary.date,
+          kind: 'water',
+          name: 'Glass',
+          water_ml: 250,
+          logged_at: '2024-06-15T08:00:00Z',
+          source: 'manual',
+          water_entry_id: 'water',
+          food_entry_id: null,
+          medication_id: null,
+          amount_basis: 'recorded',
+          counts_toward_goal: true,
+        },
+      ],
+      totals: {
+        water_ml: 250,
+        manual_ml: 250,
+        ledger_ml: 250,
+        food_ml: 0,
+        drink_ml: 0,
+        supplement_ml: 0,
+        solid_food_ml: 0,
+        unknown_count: 0,
+      },
+    });
+    expect(screen.getByTestId('diary-event-water:water')).toBeTruthy();
+    expect(screen.queryByTestId('empty-day')).toBeNull();
   });
 
   test('Test C — pull-to-refresh refetches custom data', async () => {
@@ -656,9 +819,17 @@ describe('DiaryScreen sleep cards', () => {
     overrides: Partial<ReturnType<typeof useSleepDay>> = {}
   ) => {
     mockUseSleepDay.mockReturnValue({
-      wakeUp: buildSleepEntry({ id: 'overnight' }),
+      wakeUp: buildSleepEntry({
+        id: 'overnight',
+        entry_date: '2024-06-15',
+        wake_time: '2024-06-15T06:45:00Z',
+      }),
       naps: [napEntry],
-      bedTime: buildSleepEntry({ id: 'tonight', entry_date: '2024-06-16' }),
+      bedTime: buildSleepEntry({
+        id: 'tonight',
+        entry_date: '2024-06-16',
+        bedtime: '2024-06-15T22:45:00Z',
+      }),
       isLoading: false,
       isError: false,
       isForbidden: false,
@@ -709,7 +880,7 @@ describe('DiaryScreen sleep cards', () => {
     expect(queryByTestId('empty-day')).toBeNull();
     expect(getByTestId('wake-up-card')).toBeTruthy();
     // The food and exercise sections still render, empty, as the day's scaffolding.
-    expect(getByTestId('food-summary')).toBeTruthy();
+    expect(queryByTestId('status-view')).toBeNull();
     expect(getByTestId('exercise-summary')).toBeTruthy();
   });
 
@@ -734,7 +905,7 @@ describe('DiaryScreen sleep cards', () => {
     const { getByTestId, queryByTestId } = renderScreen();
 
     expect(queryByTestId('status-view')).toBeNull();
-    expect(getByTestId('food-summary')).toBeTruthy();
+    expect(queryByTestId('status-view')).toBeNull();
     expect(getByTestId('exercise-summary')).toBeTruthy();
   });
 
@@ -766,7 +937,11 @@ describe('DiaryScreen sleep cards', () => {
     configureSleep({
       wakeUp: null,
       naps: [],
-      bedTime: buildSleepEntry({ id: 'tonight', entry_date: '2024-06-16' }),
+      bedTime: buildSleepEntry({
+        id: 'tonight',
+        entry_date: '2024-06-16',
+        bedtime: '2024-06-15T22:45:00Z',
+      }),
     });
 
     const { getByTestId, queryByTestId } = renderScreen();
@@ -775,7 +950,7 @@ describe('DiaryScreen sleep cards', () => {
     expect(getByTestId('bed-time-card')).toBeTruthy();
   });
 
-  test('orders the day chronologically, with Bed Time last before the measurements', () => {
+  test('keeps timed sleep events before an untimed food, and puts totals last', () => {
     // A populated day so the food/exercise/measurements branch renders.
     mockUseDailySummary.mockReturnValue({
       summary: { ...baseSummary, foodEntries: [buildFoodEntry('f1')] },
@@ -788,10 +963,9 @@ describe('DiaryScreen sleep cards', () => {
 
     const order = [
       'wake-up-card',
-      'food-summary',
-      'exercise-summary',
       'naps-card',
       'bed-time-card',
+      'food-row-f1',
       'measurements-summary',
     ];
     const positions = order.map((testID) => {

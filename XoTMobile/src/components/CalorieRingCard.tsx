@@ -152,32 +152,34 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
               >
                 {kcal}
               </Text>
-              <Text
-                className="w-full text-text-secondary text-xs text-center"
-                maxFontSizeMultiplier={1.8}
-              >
-                {hasGoal
-                  ? isOverTarget
-                    ? t('dashboard.overTarget', { defaultValue: 'over target' })
-                    : t('dashboard.remaining', { defaultValue: 'remaining' })
-                  : t('dashboard.consumed', { defaultValue: 'Consumed' })}
-              </Text>
             </View>
           </View>
-          {onEditGoal ? (
-            <Pressable
-              testID="dashboard-edit-goal"
-              accessibilityRole="button"
-              accessibilityLabel={t('dashboard.editGoal', {
-                defaultValue: 'Edit goal',
-              })}
-              className="min-h-11 min-w-11 items-center justify-center rounded-xl active:opacity-70"
-              style={expanded ? undefined : { marginTop: -20 }}
-              onPress={onEditGoal}
+          <View className="w-full flex-row items-center gap-1">
+            <Text
+              testID="dashboard-energy-status"
+              className="min-w-0 flex-1 text-text-secondary text-xs text-center"
+              maxFontSizeMultiplier={1.8}
             >
-              <Icon name="target" size={22} color={neutral} />
-            </Pressable>
-          ) : null}
+              {hasGoal
+                ? isOverTarget
+                  ? t('dashboard.overTarget', { defaultValue: 'over target' })
+                  : t('dashboard.remaining', { defaultValue: 'remaining' })
+                : t('dashboard.consumed', { defaultValue: 'Consumed' })}
+            </Text>
+            {onEditGoal ? (
+              <Pressable
+                testID="dashboard-edit-goal"
+                accessibilityRole="button"
+                accessibilityLabel={t('dashboard.editGoal', {
+                  defaultValue: 'Edit goal',
+                })}
+                className="min-h-11 min-w-11 items-center justify-center rounded-xl active:opacity-70"
+                onPress={onEditGoal}
+              >
+                <Icon name="target" size={22} color={neutral} />
+              </Pressable>
+            ) : null}
+          </View>
         </View>
       )}
       footer={
