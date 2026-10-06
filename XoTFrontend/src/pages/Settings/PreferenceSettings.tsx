@@ -80,6 +80,12 @@ export const PreferenceSettings = () => {
 
   const handlePreferencesUpdate = async () => {
     if (!user) return;
+    const bedtimeInput = document.getElementById('target_bedtime');
+    if (
+      bedtimeInput instanceof HTMLInputElement &&
+      !bedtimeInput.reportValidity()
+    )
+      return;
     setLoading(true);
     try {
       await saveAllPreferences({

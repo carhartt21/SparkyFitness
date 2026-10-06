@@ -286,6 +286,26 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
           />
         </View>
 
+        <View className="mb-4 flex-row flex-wrap gap-2">
+          {(['trends', 'caffeine'] as const).map((section) => (
+            <Pressable
+              key={section}
+              accessibilityRole="button"
+              onPress={() =>
+                navigation.navigate('HealthOverview', { section, date: today })
+              }
+              className="min-h-11 flex-1 items-center justify-center rounded-xl border border-border-subtle bg-surface px-3 py-2"
+            >
+              <Text className="text-sm font-semibold text-text-primary">
+                {section === 'trends'
+                  ? t('dashboard.healthTrends', {
+                      defaultValue: 'Health Trends',
+                    })
+                  : t('caffeine.title', { defaultValue: 'Active Caffeine' })}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
         <InsightCard
           testID="insights-coaching"
           icon="sparkles"

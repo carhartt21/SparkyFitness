@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter } from 'react-router-dom';
 import HevyWorkoutImportCSV from '@/pages/Exercises/HevyWorkoutImportCSV';
 
 const previewCsv = jest.fn();
@@ -12,7 +13,23 @@ jest.mock('@/hooks/Exercises/useHevyCsvImport', () => ({
   useHevyCsvImport: () => ({ preview: previewCsv, importCsv }),
 }));
 jest.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (_key: string, fallback: string) => fallback }),
+  useTranslation: () => ({
+    t: (
+      key: string,
+      fallback: string | { defaultValue?: string; [key: string]: unknown },
+      values?: Record<string, unknown>
+    ) => {
+      let text =
+        typeof fallback === 'string'
+          ? fallback
+          : (fallback?.defaultValue ?? key);
+      for (const [name, value] of Object.entries(
+        typeof fallback === 'object' ? fallback : (values ?? {})
+      ))
+        text = text.replaceAll(`{{${name}}}`, String(value));
+      return text;
+    },
+  }),
 }));
 
 describe('Hevy completed-workout CSV import', () => {
@@ -255,5 +272,47 @@ describe('Hevy completed-workout CSV import', () => {
       screen.getByRole('button', { name: 'Import these workouts' })
     ).toBeEnabled();
     expect(importCsv).not.toHaveBeenCalled();
+  });
+
+  it('shows the successful save range and opens that diary day for a historical import', async () => {
+    importCsv.mockResolvedValueOnce({
+      submitted: 205,
+      imported: 205,
+      skipped: 0,
+      failed: [],
+      savedRoutinesIncluded: false,
+      importedDateRange: { from: '2025-04-01', to: '2026-09-23' },
+    });
+    render(
+      <MemoryRouter>
+        <HevyWorkoutImportCSV />
+      </MemoryRouter>
+    );
+    const file = new File(['csv content'], 'workouts.csv', {
+      type: 'text/csv',
+    });
+    Object.defineProperty(file, 'text', {
+      value: jest.fn().mockResolvedValue('csv content'),
+    });
+    fireEvent.change(screen.getByLabelText('Hevy workout CSV'), {
+      target: { files: [file] },
+    });
+    await waitFor(() =>
+      expect(
+        screen.getByRole('button', { name: 'Preview workouts' })
+      ).toBeEnabled()
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Preview workouts' }));
+    const button = await screen.findByRole('button', {
+      name: 'Import these workouts',
+    });
+    fireEvent.click(button);
+    const link = await screen.findByRole('link', {
+      name: 'View imported workouts',
+    });
+    expect(link).toHaveAttribute('href', '/diary?date=2025-04-01');
+    expect(
+      screen.getByText('Saved to your diary: 2025-04-01 – 2026-09-23')
+    ).toBeInTheDocument();
   });
 });

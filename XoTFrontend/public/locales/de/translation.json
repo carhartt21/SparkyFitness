@@ -881,7 +881,9 @@
         "routineNote": "Diese Datei enthält nur abgeschlossene Trainingseinheiten. Es werden keine gespeicherten Routinen erstellt.",
         "timezone": "Trainingszeitzone",
         "timezoneHint": "Hevy-CSV-Zeitangaben enthalten keinen UTC-Offset. Geben Sie die IANA-Zeitzone an, in der Sie trainiert haben. Uneindeutige Zeiten beim Wechsel zur Sommerzeit können nicht importiert werden.",
-        "title": "Hevy-Trainingsverlauf (CSV)"
+        "title": "Hevy-Trainingsverlauf (CSV)",
+        "savedDates": "Im Tagebuch gespeichert: {{from}} – {{to}}",
+        "openDiary": "Importierte Trainings ansehen"
       }
     },
     "developerResources": {
@@ -2410,7 +2412,8 @@
     "retry": "Versuchen Sie es erneut",
     "avg": "Durchschn",
     "max": "Max",
-    "showAll": "Alle anzeigen"
+    "showAll": "Alle anzeigen",
+    "time24HourHint": "24-Stunden-Uhrzeit, z. B. 14:30. Die Eingabe 1430 ist ebenfalls möglich."
   },
   "diary": {
     "nutritionSummary": "Ernährungsübersicht",

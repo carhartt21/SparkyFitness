@@ -130,7 +130,7 @@ import {
   wellnessTimestamp,
   diaryMealGroups,
 } from '../utils/diaryTimeline';
-import { getWorkoutSummary } from '../utils/workoutSession';
+import { getWorkoutSummary, formatDuration } from '../utils/workoutSession';
 import { formatClockTime, resolveSleepZone } from '../utils/sleepDay';
 import { useMedications, useMedicationEntries } from '../hooks/useMedications';
 import { fetchHydrationDetails } from '../services/api/measurementsApi';
@@ -215,6 +215,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const goToToday = useDiaryDateStore((s) => s.goToToday);
   const syncTodayRollover = useDiaryDateStore((s) => s.syncTodayRollover);
   const scrollViewRef = useRef<ScrollView>(null);
+  const dragPosition = useRef<number | null>(null);
+  const scrollOffset = useRef(0);
+  const scrollBounds = useRef({ top: 0, bottom: 0 });
   const calendarRef = useRef<CalendarSheetRef>(null);
   const servingSheetRef = useRef<ServingAdjustSheetRef>(null);
 
@@ -326,19 +329,42 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     }, [syncNativeHeaderDatePicker])
   );
 
+  const [editingFoods, setEditingFoods] = useState(false);
+  useEffect(() => {
+    if (!editingFoods) return;
+    const timer = setInterval(() => {
+      const y = dragPosition.current;
+      if (y === null) return;
+      const { top, bottom } = scrollBounds.current;
+      const step = y < top + 72 ? -12 : y > bottom - 72 ? 12 : 0;
+      if (step) {
+        scrollOffset.current = Math.max(0, scrollOffset.current + step);
+        scrollViewRef.current?.scrollTo({
+          y: scrollOffset.current,
+          animated: false,
+        });
+      }
+    }, 50);
+    return () => {
+      clearInterval(timer);
+      dragPosition.current = null;
+    };
+  }, [editingFoods]);
   const swipeGesture = useMemo(
     () =>
       Gesture.Race(
         Gesture.Fling()
+          .enabled(!editingFoods)
           .direction(Directions.RIGHT)
           .onEnd(goToPreviousDay)
           .runOnJS(true),
         Gesture.Fling()
+          .enabled(!editingFoods)
           .direction(Directions.LEFT)
           .onEnd(goToNextDay)
           .runOnJS(true)
       ),
-    [goToPreviousDay, goToNextDay]
+    [goToPreviousDay, goToNextDay, editingFoods]
   );
 
   const handleCalendarSelect = useCallback(
@@ -484,7 +510,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
   const { plans: activePlans } = useActiveWorkoutPlans(selectedDate);
   const [refreshing, setRefreshing] = useState(false);
-  const [editingFoods, setEditingFoods] = useState(false);
   const [selectedFoodIds, setSelectedFoodIds] = useState<ReadonlySet<string>>(
     () => new Set()
   );
@@ -730,7 +755,10 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     content: React.ReactNode,
     clock?: string,
     timestamp?: number | null,
-    options?: Pick<DiaryTimelineEntry, 'summary' | 'accessory' | 'collapsible'>
+    options?: Pick<
+      DiaryTimelineEntry,
+      'summary' | 'accessory' | 'collapsible' | 'section' | 'icon' | 'onPress'
+    >
   ) => {
     const time =
       timestamp === undefined
@@ -748,7 +776,22 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
               : formatClockTime(at, 'HH:mm', { kind: 'tz', tz: timezone }))),
       label,
       content,
-      collapsible: /^(exercise|mobility|water|intake|wake|bed|nap):/.test(id),
+      collapsible: true,
+      icon: id.startsWith('meal:')
+        ? 'meal'
+        : id.startsWith('exercise:')
+          ? 'exercise-running'
+          : id.startsWith('mobility:')
+            ? 'exercise-yoga'
+            : id.startsWith('water:')
+              ? 'water'
+              : id.startsWith('intake:')
+                ? 'medication'
+                : /^(wake|bed|nap):/.test(id)
+                  ? 'moon'
+                  : id.startsWith('wellness:')
+                    ? 'wellness'
+                    : 'camera',
       ...options,
     });
   };
@@ -758,12 +801,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       mealTypes,
       selectedDate,
       getTodayDate(),
-      timezone
+      timezone,
+      mealStates
     )) {
       const meal = mealTypes.find((item) => item.id === group.mealTypeId);
       const label = meal
         ? getMealTypeDisplayLabel(meal, t)
         : getHistoricalMealTypeLabel(group.name, t);
+      const state = meal ? mealStates.get(meal.id) : undefined;
+      const resolved = state !== undefined && state !== 'pending';
       const calories = group.entries.reduce(
         (total, entry) => total + calculateEntryNutrition(entry).calories,
         0
@@ -810,18 +856,30 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
                 'HH:mm',
                 { kind: 'tz', tz: timezone }
               )),
-        group.timestamp,
+        !group.entries.length && resolved ? null : group.timestamp,
         {
           collapsible: true,
-          summary: (
-            <Text className="text-sm text-text-secondary">
-              {group.entries.length
-                ? `${formatLocalizedNumber(calories, { maximumFractionDigits: 0 })} kcal`
-                : t('diary.timeline.planned', {
-                    defaultValue: 'Planned · nothing logged yet',
-                  })}
-            </Text>
-          ),
+          section: group.entries.length || resolved ? 'recorded' : 'planned',
+          icon: 'meal',
+          summary: group.entries.length
+            ? t('diary.timeline.mealSummary', {
+                calories: formatLocalizedNumber(calories, {
+                  maximumFractionDigits: 0,
+                }),
+                count: group.entries.length,
+                defaultValue: '{{calories}} kcal · {{count}} items',
+              })
+            : resolved
+              ? state === 'complete'
+                ? t('mealStatus.complete', { defaultValue: 'Complete' })
+                : state === 'skipped'
+                  ? t('mealStatus.skipped', { defaultValue: 'No meal' })
+                  : t('mealStatus.incomplete', {
+                      defaultValue: 'Incomplete',
+                    })
+              : t('diary.timeline.planned', {
+                  defaultValue: 'Planned · nothing logged yet',
+                }),
           accessory:
             meal && isConnected && mealStates.has(meal.id) ? (
               <MealStatusControl
@@ -862,12 +920,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         undefined,
         undefined,
         {
-          summary: (
-            <Text className="text-sm text-text-secondary">
-              {formatLocalizedNumber(getWorkoutSummary(session, t).duration)}{' '}
-              {t('dashboard.minutesUnit', { defaultValue: 'min' })}
-            </Text>
-          ),
+          onPress: () => openWorkout(session),
+          summary: formatDuration(getWorkoutSummary(session, t).duration),
         }
       );
     }
@@ -927,20 +981,18 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       `water:${entry.id}`,
       entry.logged_at,
       t('dashboard.water', { defaultValue: 'Water' }),
-      <Pressable
-        accessibilityRole="button"
-        onPress={() => setHydrationVisible(true)}
-        className="min-h-14 flex-row items-center gap-3"
-      >
-        <Icon name="water" size={22} color={accentColor} />
-        <Text className="flex-1 text-base text-text-primary">
-          {entry.name ?? t('dashboard.water', { defaultValue: 'Water' })}
-          {entry.water_ml === null
-            ? ''
-            : ` · ${formatVolumeForUnit(volumeFromMl(entry.water_ml, waterUnit), waterUnit)} ${WATER_UNIT_LABELS[waterUnit] ?? waterUnit}`}
-        </Text>
-        <Icon name="chevron-forward" size={16} color={textPrimaryColor} />
-      </Pressable>
+      null,
+      undefined,
+      undefined,
+      {
+        onPress: () => setHydrationVisible(true),
+        summary:
+          entry.water_ml === null
+            ? t('diary.timeline.unknownAmount', {
+                defaultValue: 'Amount unknown',
+              })
+            : `${formatVolumeForUnit(volumeFromMl(entry.water_ml, waterUnit), waterUnit)} ${WATER_UNIT_LABELS[waterUnit] ?? waterUnit}`,
+      }
     );
   }
   for (const entry of intakeEntries.data ?? []) {
@@ -957,31 +1009,19 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       `intake:${entry.id}`,
       entry.taken_at,
       entry.med_name_snapshot ?? definition?.name ?? label,
-      <Pressable
-        accessibilityRole="button"
-        onPress={() =>
+      null,
+      undefined,
+      undefined,
+      {
+        onPress: () =>
           entry.medication_id
             ? navigation.navigate('MedicationDetail', {
                 medicationId: entry.medication_id,
               })
-            : navigation.navigate('MedicationsList')
-        }
-        className="min-h-14 flex-row items-center gap-3"
-      >
-        <Icon name="medication" size={22} color={accentColor} />
-        <View className="flex-1 gap-1">
-          <Text className="text-base font-semibold text-text-primary">
-            {entry.med_name_snapshot ?? definition?.name ?? label}
-          </Text>
-          <Text className="text-sm text-text-secondary">
-            {entry.dose_amount_snapshot === null
-              ? '—'
-              : formatLocalizedNumber(entry.dose_amount_snapshot)}{' '}
-            {entry.dose_unit_snapshot ?? ''}
-          </Text>
-        </View>
-        <Icon name="chevron-forward" size={16} color={textPrimaryColor} />
-      </Pressable>
+            : navigation.navigate('MedicationsList'),
+        summary:
+          `${label} · ${entry.dose_amount_snapshot === null ? '—' : formatLocalizedNumber(entry.dose_amount_snapshot)} ${entry.dose_unit_snapshot ?? ''}`.trim(),
+      }
     );
   }
   for (const entry of wellnessEntries(
@@ -1035,6 +1075,26 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       log?.recorded_at
         ? wellnessTimestamp(selectedDate, log.recorded_at, timezone)
         : null
+    );
+  }
+  if (hasAnyMeasurement) {
+    addTimelineEntry(
+      'measurement:day',
+      null,
+      t('diary.timeline.measurements', { defaultValue: 'Measurements' }),
+      <MeasurementsSummary
+        measurements={measurements}
+        customMeasurements={manualCustomMeasurements}
+        weightMode={weightMode}
+        bodyUnit={bodyUnit}
+        heightMode={heightMode}
+        onPress={() =>
+          navigation.navigate('MeasurementsAdd', { date: selectedDate })
+        }
+      />,
+      undefined,
+      null,
+      { icon: 'scale' }
     );
   }
   const completedCaptureIds = new Set([
@@ -1255,6 +1315,16 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
     return (
       <ScrollView
+        onLayout={() =>
+          scrollViewRef.current
+            ?.getNativeScrollRef()
+            ?.measureInWindow((_, y, __, height) => {
+              scrollBounds.current = { top: y, bottom: y + height };
+            })
+        }
+        onScroll={(event) => {
+          scrollOffset.current = event.nativeEvent.contentOffset.y;
+        }}
         ref={scrollViewRef}
         className="flex-1"
         style={{ flex: 1 }}
@@ -1407,18 +1477,11 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             selectedEntryIds={selectedFoodIds}
             onSelectEntry={toggleFoodSelection}
             onDropFood={moveDroppedFood}
+            onDragPosition={(y) => {
+              dragPosition.current = y;
+            }}
           />
         )}
-        <MeasurementsSummary
-          measurements={measurements}
-          customMeasurements={manualCustomMeasurements}
-          weightMode={weightMode}
-          bodyUnit={bodyUnit}
-          heightMode={heightMode}
-          onPress={() =>
-            navigation.navigate('MeasurementsAdd', { date: selectedDate })
-          }
-        />
         <CheckInPhotosSummary
           date={selectedDate}
           photos={dayPhotos}

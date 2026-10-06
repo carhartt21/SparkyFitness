@@ -2,8 +2,6 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useCSSVariable } from 'uniwind';
-import type { CompositeNavigationProp } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import Icon from './Icon';
@@ -17,7 +15,7 @@ import { usePreferences } from '../hooks/usePreferences';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import { getDueDosesForDate, formatDose } from '@workspace/shared';
 import { getDeviceTimezone } from '../utils/dateUtils';
-import type { RootStackParamList, TabParamList } from '../types/navigation';
+import type { RootStackParamList } from '../types/navigation';
 import { formatLocalizedTimeOfDay } from '../utils/medicationScheduleLocalization';
 
 import {
@@ -30,9 +28,9 @@ import {
 } from '../utils/medications';
 import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
 
-type MedicationsCardNavigation = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Dashboard'>,
-  NativeStackNavigationProp<RootStackParamList>
+type MedicationsCardNavigation = Pick<
+  NativeStackNavigationProp<RootStackParamList>,
+  'navigate'
 >;
 
 interface MedicationsCardProps {

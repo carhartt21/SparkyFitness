@@ -2367,7 +2367,9 @@
         "routineNote": "This file contains completed workouts only. It will not create saved routines.",
         "timezone": "Workout timezone",
         "timezoneHint": "Hevy CSV times have no UTC offset. Enter the IANA timezone where the workouts were recorded; ambiguous daylight-saving times cannot be imported.",
-        "title": "Hevy Workout History (CSV)"
+        "title": "Hevy Workout History (CSV)",
+        "savedDates": "Saved to your diary: {{from}} – {{to}}",
+        "openDiary": "View imported workouts"
       },
       "importButton": "Import",
       "title": "Data Import"
@@ -3014,7 +3016,8 @@
     "unknown": "Unknown",
     "avg": "Avg",
     "max": "Max",
-    "showAll": "Show all"
+    "showAll": "Show all",
+    "time24HourHint": "24-hour time, e.g. 14:30. You can also enter 1430."
   },
   "diary": {
     "addFood": "Add Food",

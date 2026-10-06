@@ -53,6 +53,8 @@ import {
   SafeExercisesLibrary,
   SafeExerciseReview,
   SafeWorkoutPlans,
+  SafeTrainingHub,
+  SafeHealthOverview,
   SafeWorkoutPlanForm,
   SafeWorkoutPresetsLibrary,
   SafeFoodDetail,
@@ -386,6 +388,8 @@ function AppContent() {
           Coaching: 'coaching',
           WorkoutPresetsLibrary: 'routines',
           WorkoutPlans: 'training-plans',
+          TrainingHub: 'training',
+          HealthOverview: 'health-overview',
           FoodSearch: 'search',
           // Tapping the workout Live Activity opens its associated URL.
           ActiveWorkout: 'active-workout',
@@ -633,6 +637,24 @@ function AppContent() {
                     defaultValue: 'Library',
                   }),
                 }
+              )}
+            />
+            <Stack.Screen
+              name="TrainingHub"
+              component={SafeTrainingHub}
+              options={createStackScreenOptions(
+                t('trainingHub.title', { defaultValue: 'Training & routines' }),
+                { headerBackButtonDisplayMode: 'minimal' }
+              )}
+            />
+            <Stack.Screen
+              name="HealthOverview"
+              component={SafeHealthOverview}
+              options={createStackScreenOptions(
+                t('healthOverview.routines', {
+                  defaultValue: 'Health & routines',
+                }),
+                { headerBackButtonDisplayMode: 'minimal' }
               )}
             />
             <Stack.Screen

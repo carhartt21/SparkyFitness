@@ -14,7 +14,11 @@ import type {
   CreateFoodEntryPayload,
   UpdateFoodEntryPayload,
 } from '../src/services/api/foodEntriesApi';
-import { reviewDate, reviewResponse, summaryFixture } from './fixtures';
+import {
+  reviewDate as historicalReviewDate,
+  reviewResponse,
+  summaryFixture,
+} from './fixtures';
 
 export const reviewFood: FoodItem = {
   id: 'review-food',
@@ -97,13 +101,19 @@ export const reviewVariants: FoodVariantDetail[] = [
   },
 ];
 
+import { getTodayDate } from '../src/utils/dateUtils';
+
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 
 /** In-memory simulator fixture. Never imports a network or persistence client. */
 export function createNutritionFixture(
   scenario: string,
-  legacyPortions = false
+  legacyPortions = false,
+  diaryRefinement = false
 ) {
+  // Empty planned meals only exist on current/future days in production.
+  // Use today for this isolated interaction fixture, not a historic default.
+  const reviewDate = diaryRefinement ? getTodayDate() : historicalReviewDate;
   const food: FoodItem = legacyPortions
     ? {
         ...reviewFood,
@@ -119,6 +129,8 @@ export function createNutritionFixture(
     (reviewResponse('/api/daily-summary', scenario) as typeof summaryFixture)
       .foodEntries
   );
+  if (diaryRefinement)
+    entries = entries.map((entry) => ({ ...entry, entry_date: reviewDate }));
   let nextId = 1;
   const mealTypes = [
     ...(reviewResponse('/api/meal-types', scenario) as object[]),
@@ -169,6 +181,17 @@ export function createNutritionFixture(
     return day;
   };
 
+  if (diaryRefinement)
+    mealTypes.push({
+      id: lunchId,
+      name: 'lunch',
+      user_id: null,
+      sort_order: 1,
+      is_visible: true,
+      show_in_quick_log: true,
+      created_at: '2026-01-01T00:00:00Z',
+      default_time: '12:30',
+    });
   const snapshot = () => clone(entries);
   return {
     snapshot,
@@ -176,6 +199,43 @@ export function createNutritionFixture(
       if (url.origin !== 'https://ui-review.invalid')
         throw new Error('Review blocked network origin');
       const path = url.pathname.replace(/\/$/, '');
+      if (diaryRefinement) {
+        if (
+          method === 'GET' &&
+          path.startsWith('/api/v2/tracking/meal-status/')
+        )
+          return clone(mealDay(path.split('/').at(-1)!));
+        if (method === 'PUT' && path === '/api/v2/tracking/meal-status') {
+          const data = setMealDayStatusRequestSchema.parse(
+            JSON.parse(body ?? '{}')
+          );
+          if (data.meal_type_id !== lunchId)
+            throw new Error('Unknown review meal');
+          const day = mealDay(data.entry_date);
+          day.meals[0].state = data.status ?? 'pending';
+          return clone(day);
+        }
+        if (method === 'POST' && path === '/api/food-entries/bulk-action') {
+          const data = JSON.parse(
+            body ?? '{}'
+          ) as import('../src/services/api/foodEntriesApi').BulkFoodEntryAction;
+          if (
+            data.action !== 'move' ||
+            data.sourceDate !== reviewDate ||
+            data.targetDate !== reviewDate ||
+            data.targetMealTypeId !== lunchId ||
+            data.ids.length !== 1 ||
+            data.ids[0] !== 'review-breakfast'
+          )
+            throw new Error('Unexpected synthetic bulk move');
+          entries = entries.map((entry) =>
+            data.ids.includes(entry.id)
+              ? { ...entry, meal_type_id: lunchId, meal_type: 'lunch' }
+              : entry
+          );
+          return { count: 1 };
+        }
+      }
       if (scenario === 'v38-review') {
         if (method === 'GET' && path.startsWith('/api/v2/tracking/')) {
           const response = trackingReviewResponse(

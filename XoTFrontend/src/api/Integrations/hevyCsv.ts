@@ -1,4 +1,7 @@
 import { apiCall } from '@/api/api';
+import { hevyCsvImportResultSchema } from '@workspace/shared';
+import type { HevyCsvImportResult } from '@workspace/shared';
+export type { HevyCsvImportResult } from '@workspace/shared';
 
 export interface HevyCsvPreview {
   rowCount: number;
@@ -29,14 +32,6 @@ export interface HevyCsvPreview {
   }>;
 }
 
-export interface HevyCsvImportResult {
-  submitted: number;
-  imported: number;
-  skipped: number;
-  failed: Array<{ id: string; message: string }>;
-  savedRoutinesIncluded: false;
-}
-
 export function previewHevyCsv(csv: string, timezone: string) {
   return apiCall<HevyCsvPreview>('/integrations/hevy/csv/preview', {
     method: 'POST',
@@ -45,10 +40,14 @@ export function previewHevyCsv(csv: string, timezone: string) {
   });
 }
 
-export function importHevyCsv(csv: string, timezone: string) {
-  return apiCall<HevyCsvImportResult>('/integrations/hevy/csv/import', {
-    method: 'POST',
-    body: { csv, timezone },
-    omitRequestBodyFromLogs: true,
-  });
+export async function importHevyCsv(csv: string, timezone: string) {
+  const result = await apiCall<HevyCsvImportResult>(
+    '/integrations/hevy/csv/import',
+    {
+      method: 'POST',
+      body: { csv, timezone },
+      omitRequestBodyFromLogs: true,
+    }
+  );
+  return hevyCsvImportResultSchema.parse(result);
 }

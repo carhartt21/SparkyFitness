@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import EnergyGauge from './EnergyGauge';
-import Icon, { type IconName } from './Icon';
+import type { IconName } from './Icon';
 import DashboardSummaryCard, {
   DashboardSummaryRow,
 } from './ui/DashboardSummaryCard';
@@ -105,6 +105,11 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
     ? Math.round(remainingCalories - (calorieGoal - caloriesConsumed))
     : 0;
   const kcal = t('dashboard.kcal', { defaultValue: 'kcal' });
+  const centerStatus = hasGoal
+    ? isOverTarget
+      ? t('dashboard.overTarget', { defaultValue: 'over target' })
+      : t('dashboard.remaining', { defaultValue: 'remaining' })
+    : t('dashboard.consumed', { defaultValue: 'Consumed' });
 
   return (
     <DashboardSummaryCard
@@ -115,7 +120,14 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
         defaultValue: 'Daily energy',
       })}
       renderVisual={({ size: gaugeSize, stacked: expanded, trackColor }) => (
-        <View className="items-center">
+        <Pressable
+          testID="dashboard-edit-goal"
+          accessibilityRole="button"
+          accessibilityLabel={`${formatLocalizedNumber(centerValue)} ${kcal} ${centerStatus}. ${t('dashboard.editGoal', { defaultValue: 'Edit goal' })}`}
+          disabled={!onEditGoal}
+          onPress={onEditGoal}
+          className="items-center active:opacity-70"
+        >
           <View className="items-center justify-center">
             {!expanded && (
               <EnergyGauge
@@ -152,35 +164,16 @@ const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
               >
                 {kcal}
               </Text>
+              <Text
+                testID="dashboard-energy-status"
+                className="text-center text-xs text-text-secondary"
+                maxFontSizeMultiplier={1.8}
+              >
+                {centerStatus}
+              </Text>
             </View>
           </View>
-          <View className="w-full flex-row items-center gap-1">
-            <Text
-              testID="dashboard-energy-status"
-              className="min-w-0 flex-1 text-text-secondary text-xs text-center"
-              maxFontSizeMultiplier={1.8}
-            >
-              {hasGoal
-                ? isOverTarget
-                  ? t('dashboard.overTarget', { defaultValue: 'over target' })
-                  : t('dashboard.remaining', { defaultValue: 'remaining' })
-                : t('dashboard.consumed', { defaultValue: 'Consumed' })}
-            </Text>
-            {onEditGoal ? (
-              <Pressable
-                testID="dashboard-edit-goal"
-                accessibilityRole="button"
-                accessibilityLabel={t('dashboard.editGoal', {
-                  defaultValue: 'Edit goal',
-                })}
-                className="min-h-11 min-w-11 items-center justify-center rounded-xl active:opacity-70"
-                onPress={onEditGoal}
-              >
-                <Icon name="target" size={22} color={neutral} />
-              </Pressable>
-            ) : null}
-          </View>
-        </View>
+        </Pressable>
       )}
       footer={
         balanceAdjustment !== 0 ? (

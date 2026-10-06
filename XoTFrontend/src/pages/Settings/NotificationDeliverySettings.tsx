@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import { Input } from '@/components/ui/input';
+import { Input, TimeCommitInput } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   engagementStatusSchema,
@@ -288,13 +288,10 @@ export default function NotificationDeliverySettings() {
                   <Label htmlFor={`schedule-${key}`}>
                     {t(`settings.notificationDelivery.time.${key}`)}
                   </Label>
-                  <Input
+                  <TimeCommitInput
                     id={`schedule-${key}`}
-                    type="time"
                     value={settings[key]}
-                    onChange={(event) =>
-                      void update({ [key]: event.target.value })
-                    }
+                    onCommit={(value) => void update({ [key]: value })}
                   />
                 </div>
               ))}
@@ -402,28 +399,22 @@ export default function NotificationDeliverySettings() {
                 <Label htmlFor="quiet-start">
                   {t('settings.notificationDelivery.from', 'From')}
                 </Label>
-                <input
+                <TimeCommitInput
                   id="quiet-start"
-                  type="time"
                   className="block rounded-md border bg-background px-3 py-2"
                   value={settings.quiet_start}
-                  onChange={(event) =>
-                    void update({ quiet_start: event.target.value })
-                  }
+                  onCommit={(value) => void update({ quiet_start: value })}
                 />
               </div>
               <div className="space-y-1">
                 <Label htmlFor="quiet-end">
                   {t('settings.notificationDelivery.until', 'Until')}
                 </Label>
-                <input
+                <TimeCommitInput
                   id="quiet-end"
-                  type="time"
                   className="block rounded-md border bg-background px-3 py-2"
                   value={settings.quiet_end}
-                  onChange={(event) =>
-                    void update({ quiet_end: event.target.value })
-                  }
+                  onCommit={(value) => void update({ quiet_end: value })}
                 />
               </div>
             </fieldset>

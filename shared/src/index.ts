@@ -249,3 +249,4 @@ export * from "./schemas/api/ActivityPlanning.api.zod.ts";
 export * from "./schemas/database/ActivityPlanResolutions.zod.ts";
 
 export * from "./activityPlanning.ts";
+export * from "./schemas/api/Hevy.api.zod.ts";

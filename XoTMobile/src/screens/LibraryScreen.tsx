@@ -603,13 +603,33 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
             <Icon name="chevron-forward" size={20} color="#999" />
           </Pressable>
           <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              navigation.navigate('HealthOverview', {
+                section: 'routines',
+                date: selectedDate,
+              })
+            }
+            className="mb-3 min-h-14 flex-row items-center gap-3 rounded-2xl border border-border-subtle bg-surface p-4"
+          >
+            <Icon name="heart" size={22} color={accentColor} />
+            <Text className="min-w-0 flex-1 text-base font-semibold text-text-primary">
+              {t('healthOverview.routines', {
+                defaultValue: 'Health & routines',
+              })}
+            </Text>
+            <Icon name="chevron-forward" size={16} color={accentColor} />
+          </Pressable>
+          <Pressable
             className="min-h-11 px-4 py-4 border-b border-border-subtle"
             accessibilityRole="button"
             testID="more-training-plans"
-            onPress={() => navigation.navigate('WorkoutPlans')}
+            onPress={() =>
+              navigation.navigate('TrainingHub', { date: selectedDate })
+            }
           >
             <Text className="text-text-primary font-semibold">
-              {t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
+              {t('trainingHub.title', { defaultValue: 'Training & routines' })}
             </Text>
           </Pressable>
           <Pressable

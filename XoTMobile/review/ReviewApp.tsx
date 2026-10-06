@@ -66,12 +66,17 @@ export default function ReviewApp() {
         v41Review?: boolean;
         v42Review?: boolean;
         v43Review?: boolean;
+        v44Review?: boolean;
         motionReview?: boolean;
         mobilityReview?: boolean;
         coachingReview?: boolean;
       };
       const coachingFixture = createCoachingReviewFixture();
-      const fixture = createNutritionFixture(config.scenario, config.v42Review);
+      const fixture = createNutritionFixture(
+        config.scenario,
+        config.v42Review,
+        config.v44Review
+      );
       const mobilityFixture = createMobilityReviewFixture();
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
       global.fetch = async (input, options) => {
@@ -271,7 +276,9 @@ export default function ReviewApp() {
       await setThemePreference(config.theme);
       await initializeI18n(config.language);
       setMotionReview(config.motionReview === true);
-      useDiaryDateStore.getState().setSelectedDate(reviewDate);
+      useDiaryDateStore
+        .getState()
+        .setSelectedDate(config.v44Review ? getTodayDate() : reviewDate);
       setReady(true);
       if (config.motionReview) await SplashScreen.hideAsync();
     }

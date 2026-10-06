@@ -1,9 +1,11 @@
 import * as React from 'react';
+import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
 import { ChevronUp, ChevronDown } from 'lucide-react';
 
 const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
   ({ className, type, ...props }, ref) => {
+    const { t } = useTranslation();
     const innerRef = React.useRef<HTMLInputElement>(null);
 
     React.useImperativeHandle(ref, () => innerRef.current!);
@@ -22,7 +24,7 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
 
     const inputElement = (
       <input
-        type={type}
+        type={type === 'time' ? 'text' : type}
         className={cn(
           'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
           'dark:[color-scheme:dark]',
@@ -36,6 +38,26 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
         )}
         ref={innerRef}
         {...props}
+        {...(type === 'time'
+          ? {
+              inputMode: 'numeric' as const,
+              placeholder: 'HH:mm',
+              pattern: '(?:[01][0-9]|2[0-3]):[0-5][0-9]',
+              maxLength: 5,
+              title: t('common.time24HourHint', {
+                defaultValue:
+                  'Enter a time from 00:00 to 23:59 (for example, 14:30).',
+              }),
+              onChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                // Numeric mobile keyboards can enter 1430; the wire value remains
+                // 14:30. Partial input is retained and fails native form validity.
+                if (/^\d{4}$/.test(event.target.value)) {
+                  event.target.value = `${event.target.value.slice(0, 2)}:${event.target.value.slice(2)}`;
+                }
+                props.onChange?.(event);
+              },
+            }
+          : {})}
       />
     );
 
@@ -70,4 +92,37 @@ const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<'input'>>(
 );
 Input.displayName = 'Input';
 
-export { Input };
+/** Autosaving clocks commit only a complete 24-hour value, on blur/Enter. */
+function TimeCommitInput({
+  value,
+  onCommit,
+  ...props
+}: Omit<React.ComponentProps<'input'>, 'value' | 'type' | 'onChange'> & {
+  value: string;
+  onCommit: (value: string) => void;
+}) {
+  const [draft, setDraft] = React.useState(value);
+  React.useEffect(() => setDraft(value), [value]);
+  return (
+    <Input
+      {...props}
+      type="time"
+      value={draft}
+      required
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={(event) => {
+        props.onBlur?.(event);
+        if (!event.currentTarget.reportValidity()) return;
+        if (draft !== value) onCommit(draft);
+      }}
+      onKeyDown={(event) => {
+        props.onKeyDown?.(event);
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          event.currentTarget.blur();
+        }
+      }}
+    />
+  );
+}
+export { Input, TimeCommitInput };

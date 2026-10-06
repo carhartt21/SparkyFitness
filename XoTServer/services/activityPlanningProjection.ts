@@ -17,6 +17,22 @@ const recordedActivity = (row: PlanningEntry) =>
   row.source !== 'Workout Plan' &&
   ((row.duration_minutes ?? 0) > 0 || (row.distance ?? 0) > 0);
 
+// Durations are attributed to exercise rows by logging/import; aggregate only
+// within one session, never across separate workouts to satisfy one plan.
+const meetsActivityTargets = (
+  rows: PlanningEntry[],
+  duration: number | null | undefined,
+  distance: number | null | undefined
+) =>
+  rows.length > 0 &&
+  (duration === null ||
+    duration === undefined ||
+    rows.reduce((sum, row) => sum + (row.duration_minutes ?? 0), 0) >=
+      duration) &&
+  (distance === null ||
+    distance === undefined ||
+    rows.reduce((sum, row) => sum + (row.distance ?? 0), 0) >= distance);
+
 /** Pure projection: reads never generate plans, completion or diary rows. */
 export function projectActivityPlanning(
   data: ActivityPlanningData,
@@ -36,35 +52,62 @@ export function projectActivityPlanning(
     rows.push(entry);
     grouped.set(entry.record_id, rows);
   }
-  const records: ActivityRecord[] = [...grouped].map(([id, rows]) => ({
-    id,
-    date: rows[0].entry_date,
-    label: rows[0].session_name,
-    activity_type: classifyActivitySport({
-      exerciseName: rows[0].exercise_name,
-      category: rows[0].category,
-      notes: rows[0].notes,
-      providerName: rows[0].provider_name,
-      detailData: rows[0].detail_data,
-    }).sport,
-    entry_ids: rows.map((row) => row.id),
-    origin_assignment_ids: [
-      ...new Set(
-        rows.flatMap((row) => (row.origin_id === null ? [] : [row.origin_id]))
-      ),
-    ],
-    confirmed:
-      rows[0].entry_date <= today &&
-      rows.some((row) => row.completed_count > 0 || recordedActivity(row)),
-    linked_occurrence_id:
-      data.resolutions.find(
-        (row) =>
-          row.action === 'link' &&
-          row.entry_id &&
-          row.record_id === id &&
-          rows.some((e) => e.id === row.entry_id)
-      )?.occurrence_id ?? null,
-  }));
+  const records: ActivityRecord[] = [...grouped].map(([id, rows]) => {
+    const sports = new Set(
+      rows
+        .map((row) => {
+          const classified = classifyActivitySport({
+            exerciseName: row.exercise_name,
+            category: row.category,
+            notes: row.notes,
+            providerName: row.provider_name,
+            detailData: row.detail_data,
+          });
+          const category = classifyActivitySport({
+            category: row.category,
+          }).sport;
+          // A strength exercise named "Rows" is not a rowing workout. Keep
+          // explicit provider sport evidence first, then the specific category.
+          return classified.confidence === 'declared'
+            ? classified.sport
+            : category === 'strength'
+              ? category
+              : classified.sport;
+        })
+        .filter((sport) => sport !== 'other')
+    );
+    // Mixed-sport sessions need an owner link; arbitrary child row order must
+    // not decide which activity the whole session satisfies.
+    const activityType =
+      sports.size > 1
+        ? 'other'
+        : sports.size === 1
+          ? [...sports][0]!
+          : classifyActivitySport({ exerciseName: rows[0].session_name }).sport;
+    return {
+      id,
+      date: rows[0].entry_date,
+      label: rows[0].session_name,
+      activity_type: activityType,
+      entry_ids: rows.map((row) => row.id),
+      origin_assignment_ids: [
+        ...new Set(
+          rows.flatMap((row) => (row.origin_id === null ? [] : [row.origin_id]))
+        ),
+      ],
+      confirmed:
+        rows[0].entry_date <= today &&
+        rows.some((row) => row.completed_count > 0 || recordedActivity(row)),
+      linked_occurrence_id:
+        data.resolutions.find(
+          (row) =>
+            row.action === 'link' &&
+            row.entry_id &&
+            row.record_id === id &&
+            rows.some((e) => e.id === row.entry_id)
+        )?.occurrence_id ?? null,
+    };
+  });
   const reserved = new Set(
     records
       .filter(
@@ -87,7 +130,6 @@ export function projectActivityPlanning(
       !reserved.has(record.id) &&
       record.date === date &&
       record.activity_type === sport &&
-      grouped.get(record.id)!.length === 1 &&
       recordedActivity(entry) &&
       entry.recorded_at !== null &&
       new Date(entry.recorded_at).getTime() >= new Date(capturedAt).getTime()
@@ -282,18 +324,13 @@ export function projectActivityPlanning(
         const actualActivity = confirmedEvidence.filter(recordedActivity);
         const activityComplete =
           wholeActivity &&
-          actualActivity.some(
-            (row) =>
-              (assignment.plannedDurationMinutes === null ||
-                assignment.plannedDurationMinutes === undefined ||
-                (row.duration_minutes !== null &&
-                  row.duration_minutes !== undefined &&
-                  row.duration_minutes >= assignment.plannedDurationMinutes)) &&
-              (assignment.plannedDistanceKm === null ||
-                assignment.plannedDistanceKm === undefined ||
-                (row.distance !== null &&
-                  row.distance !== undefined &&
-                  row.distance >= assignment.plannedDistanceKm))
+          [...new Set(actualActivity.map((row) => row.record_id))].some(
+            (recordId) =>
+              meetsActivityTargets(
+                actualActivity.filter((row) => row.record_id === recordId),
+                assignment.plannedDurationMinutes,
+                assignment.plannedDistanceKm
+              )
           );
         const complete = wholeActivity ? activityComplete : setsComplete;
         const started =
@@ -470,14 +507,16 @@ export function projectActivityPlanning(
               target.capturedAt
             )
           );
-        if (evidence.length !== 1) return [];
-        const entry = evidence[0];
-        const complete =
-          (target.duration === null ||
-            (entry.duration_minutes ?? -1) >= target.duration) &&
-          (target.distance === null ||
-            (entry.distance ?? -1) >= target.distance);
-        return [{ record, entry, complete }];
+        if (!evidence.length) return [];
+        const entry = [...evidence].sort((a, b) =>
+          a.recorded_at!.localeCompare(b.recorded_at!)
+        )[0];
+        const complete = meetsActivityTargets(
+          evidence,
+          target.duration,
+          target.distance
+        );
+        return [{ record, entry, evidence, complete }];
       })
       .sort(
         (a, b) =>
@@ -485,7 +524,14 @@ export function projectActivityPlanning(
           a.entry.recorded_at!.localeCompare(b.entry.recorded_at!) ||
           a.record.id.localeCompare(b.record.id)
       );
-    const match = eligible[0];
+    // More than one plausible session needs the owner's explicit link.
+    const plausible = eligible.filter((candidate) => candidate.complete);
+    const match =
+      plausible.length === 1
+        ? plausible[0]
+        : eligible.length === 1
+          ? eligible[0]
+          : undefined;
     if (!match) continue;
     reserved.add(match.record.id);
     occurrence.state = match.complete ? 'complete' : 'started';
@@ -493,7 +539,7 @@ export function projectActivityPlanning(
       ? 'compatible_activity_recorded'
       : 'partial_activity_targets';
     occurrence.recorded_at = match.entry.recorded_at;
-    occurrence.evidence_ids = [match.entry.id];
+    occurrence.evidence_ids = match.evidence.map((entry) => entry.id);
   }
   occurrences.sort(
     (a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id)

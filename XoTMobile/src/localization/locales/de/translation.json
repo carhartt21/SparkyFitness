@@ -1051,7 +1051,8 @@
     "healthTrendsSettings": "Gesundheit Trends",
     "progressPhotos": "Fortschrittsfotos",
     "progressPhotoCompare": "Vergleichen",
-    "progressPhotoTimelapse": "Zeitraffer"
+    "progressPhotoTimelapse": "Zeitraffer",
+    "dailyNutritionDetails": "Nährstoffdetails"
   },
   "healthCategories": {
     "Common": "Allgemein",
@@ -1691,7 +1692,17 @@
       "undoWellness": "{{name}} rückgängig machen",
       "planned": "Geplant · noch nicht erfasst",
       "recordIntake": "{{name}} als eingenommen erfassen",
-      "plannedIntakeHint": "Geplante Einnahme. Erst nach der tatsächlichen Einnahme erfassen."
+      "plannedIntakeHint": "Geplante Einnahme. Erst nach der tatsächlichen Einnahme erfassen.",
+      "recorded": "Erfasst",
+      "plannedSection": "Geplant",
+      "foodCount_one": "{{count}} Lebensmittel",
+      "foodCount_other": "{{count}} Lebensmittel",
+      "withoutPlannedTime": "Ohne feste Uhrzeit",
+      "incompleteNutrition": "Nährwerte unvollständig · {{count}} Lebensmittel",
+      "mealSummary_one": "{{calories}} kcal · {{count}} Lebensmittel",
+      "mealSummary_other": "{{calories}} kcal · {{count}} Lebensmittel",
+      "unknownAmount": "Menge unbekannt",
+      "measurements": "Messungen"
     }
   },
   "scheduleSummary": {
@@ -7026,5 +7037,24 @@
   "waterLog": {
     "offline": "Zum Erfassen von Wasser mit Ihrem Server verbinden.",
     "error": "Trinkdaten konnten nicht geladen werden."
+  },
+  "home": {
+    "pendingWater": "Wasser auf diesem Gerät gespeichert · zum erneuten Synchronisieren tippen"
+  },
+  "hydration": {
+    "title": "Flüssigkeit"
+  },
+  "healthOverview": {
+    "routines": "Gesundheit & Routinen",
+    "noCaffeine": "Für diesen Tag wurde kein Koffein erfasst.",
+    "noRoutines": "Keine Übersichtskarten aktiviert. Die Auswahl lässt sich in den Einstellungen ändern.",
+    "offline": "Eine Serververbindung ist erforderlich, um diese Übersicht zu laden. Fehlende Daten sind nicht null."
+  },
+  "trainingHub": {
+    "title": "Training & Routinen",
+    "history": "Erfasstes Training",
+    "thisWeek": "Diese Woche",
+    "noPlans": "Für diese Woche ist kein Training geplant.",
+    "noRecorded": "Für diesen Tag wurde kein Training erfasst."
   }
 }

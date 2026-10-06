@@ -2139,6 +2139,21 @@ describe('workoutSession', () => {
       }
     }
 
+    it('preserves a recorded time and never assigns a historic clock unless a genuine live-start fallback is supplied', () => {
+      const session = makePreset({ exercises: [makeExercise()] });
+      expect(
+        buildSessionExercisesPayload(session, {}, {}, Date.now())[0].entry_time
+      ).toBeUndefined();
+      expect(
+        buildSessionExercisesPayload(session, {}, {}, Date.now(), '13:25')[0]
+          .entry_time
+      ).toBe('13:25');
+      session.exercises[0].entry_time = '09:15';
+      expect(
+        buildSessionExercisesPayload(session, {}, {}, Date.now(), '13:25')[0]
+          .entry_time
+      ).toBe('09:15');
+    });
     it('reconcile path: keeps exercise + set ids and emits every set column explicitly', () => {
       const session = makePreset({
         exercises: [
@@ -5701,4 +5716,17 @@ describe('workoutSession', () => {
       ).toBeNull();
     });
   });
+});
+
+describe('rounded duration boundaries', () => {
+  it.each([
+    [59.9, '1h'],
+    [119.9, '2h'],
+    [50.22, '50 min'],
+  ])(
+    'formats %s without fractional or sixty-minute remainders',
+    (minutes, expected) => {
+      expect(formatDuration(minutes)).toBe(expected);
+    }
+  );
 });

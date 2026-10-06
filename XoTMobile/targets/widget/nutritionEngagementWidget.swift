@@ -69,7 +69,7 @@ private struct NutritionEngagementView: View {
     let entry: NutritionEngagementEntry
 
     private let photoURL = URL(string: "sparkyfitnessmobile://meal-photo")!
-    private let searchURL = URL(string: "sparkyfitnessmobile://search")!
+    private let searchURL = URL(string: "sparkyfitnessmobile://search?initialBrowseTab=favorites")!
 
     private var status: String {
         guard let payload = entry.payload else {
@@ -123,7 +123,7 @@ private struct NutritionEngagementView: View {
                                     .modifier(WidgetActionStyle())
                             }
                             Link(destination: searchURL) {
-                                Label(localizedWidgetString("widget.nutrition.search"), systemImage: "magnifyingglass")
+                                Label(localizedWidgetString("widget.quick_add"), systemImage: "star")
                                     .modifier(WidgetActionStyle())
                             }
                         }.labelStyle(.titleAndIcon)

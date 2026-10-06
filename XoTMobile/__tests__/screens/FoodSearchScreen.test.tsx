@@ -344,6 +344,49 @@ describe('FoodSearchScreen', () => {
     expect(screen.getByText('Recent chicken')).toBeTruthy();
   });
 
+  it('opens widget favorites without logging and accepts a recent-food link on the reused route', () => {
+    const favorite = buildFood({ id: 'widget-fav', name: 'Favorite chicken' });
+    const recent = buildFood({ id: 'widget-recent', name: 'Recent chicken' });
+    mockUseFoodSearch.mockReturnValue({
+      searchResults: [favorite, recent],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+    } as ReturnType<typeof useFoodSearch>);
+    mockUseFavorites.mockReturnValue({
+      favoriteFoods: [favorite],
+      favoriteMeals: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFavorites>);
+    mockUseFoods.mockReturnValue({
+      recentFoods: [recent],
+      topFoods: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFoods>);
+    const screen = renderSearching({
+      ...route,
+      params: { initialBrowseTab: 'favorites' },
+    });
+    expect(screen.getByText('Favorite chicken')).toBeTruthy();
+    expect(screen.queryByText('Recent chicken')).toBeNull();
+    expect(mockQuickAddPresent).not.toHaveBeenCalled();
+    screen.rerender(
+      <SafeAreaProvider initialMetrics={{ insets, frame }}>
+        <FoodSearchScreen
+          navigation={navigation}
+          route={{ ...route, params: { initialBrowseTab: 'recent' } }}
+        />
+      </SafeAreaProvider>
+    );
+    expect(screen.getByText('Recent chicken')).toBeTruthy();
+    expect(screen.queryByText('Favorite chicken')).toBeNull();
+    expect(mockQuickAddPresent).not.toHaveBeenCalled();
+  });
+
   it('keeps the quick photo action on today and avoids silently logging a historical day as today', () => {
     const todayScreen = render(
       <SafeAreaProvider initialMetrics={{ insets, frame }}>
