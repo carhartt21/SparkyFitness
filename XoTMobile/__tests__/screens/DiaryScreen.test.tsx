@@ -987,7 +987,7 @@ describe('DiaryScreen sleep cards', () => {
     expect(getByTestId('bed-time-card')).toBeTruthy();
   });
 
-  test('keeps timed sleep events before an untimed food, and puts totals last', () => {
+  test('keeps timed sleep events before untimed food and recorded measurements', () => {
     // A populated day so the food/exercise/measurements branch renders.
     mockUseDailySummary.mockReturnValue({
       summary: { ...baseSummary, foodEntries: [buildFoodEntry('f1')] },
@@ -995,6 +995,16 @@ describe('DiaryScreen sleep cards', () => {
       isError: false,
       refetch: refetchSummary,
     } as ReturnType<typeof useDailySummary>);
+
+    mockUseMeasurements.mockReturnValue({
+      measurements: {
+        entry_date: useDiaryDateStore.getState().selectedDate,
+        weight: 81.6,
+      },
+      isLoading: false,
+      isError: false,
+      refetch: refetchMeasurements,
+    } as ReturnType<typeof useMeasurements>);
 
     const screen = renderScreen();
     expandTimeline(screen);

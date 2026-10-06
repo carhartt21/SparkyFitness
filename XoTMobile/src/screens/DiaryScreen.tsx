@@ -1074,7 +1074,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       undefined,
       log?.recorded_at
         ? wellnessTimestamp(selectedDate, log.recorded_at, timezone)
-        : null
+        : null,
+      { summary: entry.name }
     );
   }
   if (hasAnyMeasurement) {

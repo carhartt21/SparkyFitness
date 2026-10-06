@@ -19,6 +19,7 @@ const responseDataSchema = z.strictObject({
   entryDate: z.iso.date(),
   clientOperationId: z.uuid(),
   waterMl: z.literal(250),
+  scheduledAt: z.number().int().positive().optional(),
 });
 
 let initialized = false;

@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v45 release](v45-release-2026-10-06.md): combined diary/navigation and coaching corrections, notification payload and widget fallback fixes, validation and parallel release evidence.
+
 - [v44 diary refinement](v44-diary-refinement-2026-10-06.md): unreleased compact Home, recorded/planned diary, native food moves, workout clocks and matching, 24-hour web inputs and import receipts; simulator and remaining owner/device checks.
 - [Follow-up coaching claim correction](coaching-followup-claim-2026-10-06.md): JSON-safe saved goal preferences, distinct validation errors, monthly/weekly/daily regression checks and verified API-only production rollout.
 - [v44 release](v44-release-2026-10-05.md): integrated v43 inbox corrections, release validation and guarded parallel TestFlight/production delivery.

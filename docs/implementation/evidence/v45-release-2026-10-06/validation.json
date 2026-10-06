@@ -1,0 +1,29 @@
+{
+  "sourceScope": "Merged v44 diary refinement and coaching corrections plus release regressions",
+  "frozenOfflineInstall": "passed",
+  "mobileValidate": "passed",
+  "mobileTests": {
+    "suites": 565,
+    "tests": 7879,
+    "status": "passed"
+  },
+  "webValidate": "passed",
+  "webProductionBuild": "passed",
+  "webTests": {
+    "suites": 178,
+    "tests": 1510,
+    "status": "passed"
+  },
+  "serverValidate": "passed",
+  "serverFocusedTests": {
+    "files": 5,
+    "tests": 100,
+    "status": "passed"
+  },
+  "fullBackendSuite": "skipped at owner request",
+  "repositoryLayout": "passed",
+  "reviewedGermanOverlays": "passed",
+  "docsBuild": "passed",
+  "initialFailures": "Resolved missing native widget fallback and collapsed wellness name; updated measurement fixture and i18next mock; corrected web test invocation. Initial failing runs are not counted as acceptance.",
+  "deviceAcceptance": "unverified; see release record"
+}

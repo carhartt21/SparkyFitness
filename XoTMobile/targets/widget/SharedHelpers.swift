@@ -82,6 +82,7 @@ private func fallbackWidgetString(_ key: String) -> String {
     case "widget.a11y.kcal": return "%@ kcal"
     case "widget.search_food": return "Search food"
     case "widget.meal_photo": return "Take meal photo"
+    case "widget.quick_add": return "Quick add food"
     case "widget.scan_barcode": return "Scan barcode"
     case "widget.nutrition.name": return "Meal capture"
     case "widget.nutrition.description": return "Meal capture and photo review status."

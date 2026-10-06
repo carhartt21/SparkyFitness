@@ -53,6 +53,7 @@ function response(
             entryDate: today,
             clientOperationId: operationId,
             waterMl: 250,
+            scheduledAt: Date.parse(`${today}T12:00:00Z`),
             ...changes,
           },
         },
@@ -92,6 +93,23 @@ it('rejects a stale day, another account, and a default notification tap', async
   await handleHydrationQuickLogResponse(response({ userId: 'user-B' }));
   await handleHydrationQuickLogResponse(response({}, 'default'));
   expect(enqueueManualWaterAction).not.toHaveBeenCalled();
+});
+
+it('accepts older payloads without scheduling metadata and rejects invalid metadata', async () => {
+  await handleHydrationQuickLogResponse(
+    response({
+      scheduledAt: 'invalid',
+      clientOperationId: '39eff9b9-9323-47b5-8c97-84259c6fe09d',
+    })
+  );
+  expect(enqueueManualWaterAction).not.toHaveBeenCalled();
+  await handleHydrationQuickLogResponse(
+    response({
+      scheduledAt: undefined,
+      clientOperationId: 'a3cd140c-9f41-4662-8e41-6cbe8e19c94c',
+    })
+  );
+  expect(enqueueManualWaterAction).toHaveBeenCalledTimes(1);
 });
 
 it('recognizes an already persisted operation after a process restart', async () => {

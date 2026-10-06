@@ -13,10 +13,14 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({
     t: (
       key: string,
-      defaultValue?: string,
+      defaultValue?: string | { defaultValue?: string },
       values?: Record<string, string | number>
     ) =>
-      (defaultValue || key).replace(
+      (
+        (typeof defaultValue === 'string'
+          ? defaultValue
+          : defaultValue?.defaultValue) || key
+      ).replace(
         '{{setNumber}}',
         String(values?.['setNumber'] ?? '{{setNumber}}')
       ),
