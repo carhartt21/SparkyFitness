@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-02_
+_Last updated: 2026-10-06_
 
 `@workspace/shared` is a source-first TypeScript workspace library package for schemas, constants, and timezone/day helpers consumed by XoTServer, XoTFrontend, and XoTMobile.
 
@@ -32,6 +32,7 @@ activity queries under the Daily Progress family. See
 - `src/ai/`, `src/cycle/`, `src/medications/`, `src/mood/` - domain-specific helpers.
 - `src/foodSearch/relevance.ts` - shared deterministic food-query normalization and candidate ranking for server, web, and mobile; keep provider I/O in each consumer.
 - `src/foodImages/foodArtwork.ts` - display-only fallback resolution by retained BLS source identity, then OFF groups/name. `blsArtworkRules.ts` classifies the pinned archive for the versioned manifest; validate it using `XoTServer/scripts/audit_bls_artwork.ts`. Never persist illustrations as food photos or rewrite historical snapshots.
+- `src/coaching/oauth.ts` - canonical proposal-only OAuth path/scopes used by server discovery/auth configuration and phone/web setup. Keep `/mcp/coaching` distinct from the compatibility endpoint `/mcp/chatgpt`; proposal access requires owner consent and binding.
 
 ## Naming Convention
 

@@ -136,6 +136,7 @@ export type RootStackParamList = {
     | {
         date?: string;
         pickerMode?: FoodPickerMode;
+        initialBrowseTab?: 'favorites' | 'recent';
         photoCapture?: PhotoCompletionRouteContext;
         /** Optional canonical meal type id to pre-select when logging. */
         mealTypeId?: string;
@@ -263,6 +264,11 @@ export type RootStackParamList = {
   ExerciseSearch: { returnKey: string };
   PresetSearch:
     { selectedExercise?: Exercise; selectionNonce?: number } | undefined;
+  TrainingHub: { date?: string } | undefined;
+  HealthOverview: {
+    section: 'trends' | 'caffeine' | 'routines';
+    date?: string;
+  };
   WorkoutPlans: { date?: string; assignmentId?: string } | undefined;
   WorkoutPlanForm:
     { plan?: import('./workoutPlans').WorkoutPlanTemplate } | undefined;

@@ -197,7 +197,25 @@ export async function collectCoachingEvidence(
           value: {
             stored: projectGoals(stored, domain),
             displayed: projectGoals(displayed, domain),
-            directions: domain === 'nutrition' ? directions : {},
+            // Saved minimum/maximum overrides have absent numeric bounds.
+            // Omit them explicitly before validating the frozen JSON evidence.
+            directions:
+              domain === 'nutrition'
+                ? Object.fromEntries(
+                    Object.entries(directions).map(([key, preference]) => [
+                      key,
+                      {
+                        goalType: preference.goalType,
+                        ...(preference.targetMin !== undefined
+                          ? { targetMin: preference.targetMin }
+                          : {}),
+                        ...(preference.targetMax !== undefined
+                          ? { targetMax: preference.targetMax }
+                          : {}),
+                      },
+                    ])
+                  )
+                : {},
             limitation:
               'Displayed goals may be calculated. Acceptance updates stored targets only, preserving goal-mode settings.',
           },

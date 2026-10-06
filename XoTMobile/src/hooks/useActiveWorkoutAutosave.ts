@@ -8,8 +8,11 @@ import { syncExerciseSessionInCache } from './syncExerciseSessionInCache';
 import { invalidateExerciseCache } from './invalidateExerciseCache';
 import { buildSessionExercisesPayload } from '../utils/workoutSession';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
+import { utcToLocalDateTimeInput } from '@workspace/shared';
 import { addLog } from '../services/LogService';
-import { normalizeDate } from '../utils/dateUtils';
+import { getDeviceTimezone, normalizeDate } from '../utils/dateUtils';
+import { preferencesQueryKey } from './queryKeys';
+import type { UserPreferences } from '../types/preferences';
 
 export const AUTOSAVE_DEBOUNCE_MS = 1500;
 
@@ -100,7 +103,14 @@ async function performActiveWorkoutSave(
         state.session,
         state.completedSetIds,
         state.prSetIds,
-        state.startedAt
+        state.startedAt,
+        state.createdByLiveStart && state.startedAt !== null
+          ? utcToLocalDateTimeInput(
+              new Date(state.startedAt).toISOString(),
+              queryClient.getQueryData<UserPreferences>(preferencesQueryKey)
+                ?.timezone || getDeviceTimezone()
+            ).slice(11, 16)
+          : undefined
       ),
       activity_details: activityDetails,
     });

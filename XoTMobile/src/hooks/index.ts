@@ -2,17 +2,13 @@ export { queryClient } from './queryClient';
 export {
   serverConnectionQueryKey,
   serverConfigsQueryKey,
-  fastingRootQueryKey,
   chatHistoryQueryKey,
-  medicationsRootQueryKey,
-  caffeineActiveRootQueryKey,
 } from './queryKeys';
 export { useServerConnection } from './useServerConnection';
 export { useServerConfigs } from './useServerConfigs';
 export { useSyncHealthData } from './useSyncHealthData';
 export { useDailySummary } from './useDailySummary';
 export { useFamilyUsers, useFamilyDailySummary } from './useFamilyDiary';
-export { useMeasurements } from './useMeasurements';
 
 // Only `useWatchCheckInBridge` is re-exported here: App.tsx mounts it through
 // this barrel. `useUpsertCheckIn` and `useWatchConnectivity` are imported by

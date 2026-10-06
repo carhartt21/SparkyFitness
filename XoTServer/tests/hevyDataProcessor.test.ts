@@ -605,9 +605,40 @@ describe('processHevyWorkouts — import outcomes', () => {
       'UTC'
     );
 
-    expect(result).toEqual({ imported: 1, skipped: 1, failed: [] });
+    expect(result).toEqual({
+      imported: 1,
+      skipped: 1,
+      failed: [],
+      importedDateRange: { from: '2026-07-13', to: '2026-07-13' },
+    });
   });
 
+  it('reports the saved date range for more than 200 independent history sessions', async () => {
+    const workouts = Array.from({ length: 205 }, (_, index) => ({
+      ...sampleWorkout(),
+      id: `csv-${index}`,
+    }));
+    const result = await processHevyWorkouts(
+      UID,
+      CID,
+      workouts,
+      'Europe/Berlin'
+    );
+    expect(result.imported).toBe(205);
+    expect(result.failed).toEqual([]);
+    expect(result.importedDateRange).toEqual({
+      from: '2026-07-13',
+      to: '2026-07-13',
+    });
+    expect(
+      exercisePresetEntryRepository.createExercisePresetEntry
+    ).toHaveBeenCalledTimes(205);
+    expect(
+      vi
+        .mocked(exercisePresetEntryRepository.createExercisePresetEntry)
+        .mock.calls.every((call) => call[1].workout_preset_id === null)
+    ).toBe(true);
+  });
   it('removes a newly created partial session and reports the failure', async () => {
     vi.mocked(exerciseEntryRepository.createExerciseEntry)
       .mockResolvedValueOnce({ id: 'entry-1' })

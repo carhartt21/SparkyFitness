@@ -136,6 +136,9 @@ import mobilityRoutesV2 from './routes/v2/mobilityRoutes.js';
 import dailyTrackingRoutesV2 from './routes/v2/dailyTrackingRoutes.js';
 import mcpConnectionsRoutesV2 from './routes/v2/mcpConnectionsRoutes.js';
 import chatgptMcpRoutes from './routes/chatgptMcpRoutes.js';
+import coachingMcpRoutes, {
+  coachingMcpDiscovery,
+} from './routes/coachingMcpRoutes.js';
 import {
   deliverEngagementOccurrences,
   planEngagementOccurrences,
@@ -237,6 +240,7 @@ const OAUTH_DISCOVERY_PATHS = new Set([
   '/.well-known/oauth-authorization-server',
   '/.well-known/oauth-protected-resource',
 ]);
+app.use(coachingMcpDiscovery);
 app.use((req, res, next) => {
   // Strip an optional /mcp prefix: clients probe both the origin root and the
   // MCP mount point, and Express has not applied the mount prefix yet here.
@@ -268,6 +272,13 @@ app.use(
   express.json({ limit: '1mb' }),
   demoRestrictionGuard,
   chatgptMcpRoutes
+);
+app.use(
+  '/mcp/coaching',
+  requestLogger({ logCompletion: true }),
+  express.json({ limit: '1mb' }),
+  demoRestrictionGuard,
+  coachingMcpRoutes
 );
 app.use(
   '/mcp',

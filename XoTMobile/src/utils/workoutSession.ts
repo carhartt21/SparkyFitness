@@ -161,9 +161,10 @@ export function getSourceLabel(source: string | null | undefined): string {
 }
 
 export function formatDuration(minutes: number): string {
-  if (minutes < 60) return `${Math.round(minutes)} min`;
-  const hrs = Math.floor(minutes / 60);
-  const mins = Math.round(minutes % 60);
+  const rounded = Math.max(0, Math.round(minutes));
+  if (rounded < 60) return `${rounded} min`;
+  const hrs = Math.floor(rounded / 60);
+  const mins = rounded % 60;
   return mins > 0 ? `${hrs}h ${mins}m` : `${hrs}h`;
 }
 
@@ -1071,7 +1072,8 @@ export function buildSessionExercisesPayload(
   session: PresetSessionResponse,
   completedSetIds: CompletedSetMap,
   prSetIds: PrSetMap,
-  startedAtMs?: number | null
+  startedAtMs?: number | null,
+  fallbackEntryTime?: string
 ): PresetSessionExerciseRequest[] {
   const durationByEntryId = buildSessionDurationMinutes(
     session,
@@ -1082,6 +1084,7 @@ export function buildSessionExercisesPayload(
   return session.exercises.map((exercise, index) => ({
     id: exercise.id,
     exercise_id: exercise.exercise_id,
+    entry_time: exercise.entry_time ?? fallbackEntryTime,
     sort_order: index,
     duration_minutes: isCardioModality(
       resolveSnapshotModality(exercise.exercise_snapshot)

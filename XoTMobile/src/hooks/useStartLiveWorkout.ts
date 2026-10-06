@@ -10,9 +10,10 @@ import type {
   PresetSessionExerciseRequest,
   WorkoutFormat,
 } from '@workspace/shared';
+import { instantToDay, utcToLocalDateTimeInput } from '@workspace/shared';
 import { useCreateWorkout } from './useExerciseMutations';
 import { flushActiveWorkoutBeforeClear } from './useActiveWorkoutAutosave';
-import { serverConnectionQueryKey } from './queryKeys';
+import { serverConnectionQueryKey, preferencesQueryKey } from './queryKeys';
 import { defaultWorkoutName } from './useWorkoutForm';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
 import {
@@ -20,11 +21,12 @@ import {
   maybePromptForExactAlarmPermission,
 } from '../services/notifications';
 import { getActiveServerConfig } from '../services/storage';
-import { getTodayDate } from '../utils/dateUtils';
+import { getDeviceTimezone } from '../utils/dateUtils';
 import {
   extractPlannedSetValues,
   stripPlannedSetValues,
 } from '../utils/workoutSession';
+import type { UserPreferences } from '../types/preferences';
 import type { RootStackParamList } from '../types/navigation';
 
 type StartLiveWorkoutNavigation = Pick<
@@ -143,7 +145,15 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
       inFlightRef.current = true;
       setIsStarting(true);
 
-      const entryDate = getTodayDate();
+      const startedAt = new Date();
+      const timezone =
+        queryClient.getQueryData<UserPreferences>(preferencesQueryKey)
+          ?.timezone || getDeviceTimezone();
+      const entryDate = instantToDay(startedAt, timezone);
+      const entryTime = utcToLocalDateTimeInput(
+        startedAt.toISOString(),
+        timezone
+      ).slice(11, 16);
       try {
         // Resolved before the create so a storage failure can't strand an
         // already-created session. Preset links and the Watch workout mirror
@@ -202,7 +212,12 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
           name: name ?? defaultWorkoutName(entryDate),
           entry_date: entryDate,
           source: 'sparky',
-          exercises: stripPlannedSetValues(resolvedExercises),
+          exercises: stripPlannedSetValues(resolvedExercises).map(
+            (exercise) => ({
+              ...exercise,
+              entry_time: entryTime,
+            })
+          ),
           // Tags the created session to the preset (recentSessions stats
           // scoping, server-side) without changing how it's built — the
           // server keeps the client-supplied exercises verbatim when both
@@ -240,7 +255,7 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
         setIsStarting(false);
       }
     },
-    [createSession, invalidateCache, navigation, t]
+    [createSession, invalidateCache, navigation, queryClient, t]
   );
 
   const startLiveWorkout = useCallback(

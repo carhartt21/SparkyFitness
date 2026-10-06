@@ -5,7 +5,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  PanResponder,
   useWindowDimensions,
 } from 'react-native';
 import Button from './ui/Button';
@@ -13,7 +12,11 @@ import { useNavigation } from '@react-navigation/native';
 import ReanimatedSwipeable, {
   type SwipeableMethods,
 } from 'react-native-gesture-handler/ReanimatedSwipeable';
-import Animated from 'react-native-reanimated';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { DeleteRowAction } from './SwipeableDeleteRow';
 import { useRowCollapse } from '../hooks/useRowCollapse';
 import { useDeleteFoodEntry } from '../hooks/useDeleteFoodEntry';
@@ -49,6 +52,7 @@ interface SwipeableFoodRowProps {
   onSelect?: (entry: FoodEntry) => void;
   onDragStart?: () => void;
   onDragEnd?: (entry: FoodEntry, pageX: number, pageY: number) => void;
+  onDragMove?: (pageX: number, pageY: number) => void;
 }
 
 const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
@@ -63,6 +67,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   onSelect,
   onDragStart,
   onDragEnd,
+  onDragMove,
 }) => {
   const readOnly = requestedReadOnly || entry.source === 'fddb';
   const { t } = useTranslation();
@@ -82,19 +87,39 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   const entryImage = diaryEntryImage(entry);
   const openLightbox = useOpenLightbox();
   const mutedColor = useCSSVariable('--color-text-muted') as string;
-  const dragResponder = React.useMemo(
-    () =>
-      PanResponder.create({
-        onStartShouldSetPanResponder: () => true,
-        onMoveShouldSetPanResponder: () => true,
-        onPanResponderGrant: () => onDragStart?.(),
-        onPanResponderRelease: (event) =>
-          onDragEnd?.(entry, event.nativeEvent.pageX, event.nativeEvent.pageY),
-        onPanResponderTerminate: () =>
-          onDragEnd?.(entry, Number.NaN, Number.NaN),
-      }),
-    [entry, onDragEnd, onDragStart]
-  );
+  const dragX = useSharedValue(0);
+  const dragY = useSharedValue(0);
+  const dragging = useSharedValue(false);
+  const dragStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: dragX.value }, { translateY: dragY.value }],
+    zIndex: dragging.value ? 10 : 0,
+    opacity: dragging.value ? 0.85 : 1,
+  }));
+  const dragGesture = Gesture.Pan()
+    .minDistance(3)
+    .runOnJS(true)
+    .onStart(() => {
+      dragging.value = true;
+      onDragStart?.();
+    })
+    .onUpdate((event) => {
+      dragX.value = event.translationX;
+      dragY.value = event.translationY;
+      onDragMove?.(event.absoluteX, event.absoluteY);
+    })
+    .onEnd((event, success) =>
+      onDragEnd?.(
+        entry,
+        success ? event.absoluteX : Number.NaN,
+        success ? event.absoluteY : Number.NaN
+      )
+    )
+    .onFinalize((_, success) => {
+      if (!success) onDragEnd?.(entry, Number.NaN, Number.NaN);
+      dragX.value = 0;
+      dragY.value = 0;
+      dragging.value = false;
+    });
 
   const onDeleteSuccess = () => {
     swipeableRef.current?.close();
@@ -214,7 +239,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   };
 
   return (
-    <Animated.View style={animatedStyle} onLayout={handleLayout}>
+    <Animated.View style={[animatedStyle, dragStyle]} onLayout={handleLayout}>
       <ReanimatedSwipeable
         ref={swipeableRef}
         renderRightActions={
@@ -340,18 +365,20 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
             )}
           </View>
           {!readOnly && selectionMode && onDragEnd && onSelect && (
-            <View
-              {...dragResponder.panHandlers}
-              accessible
-              accessibilityRole="button"
-              accessibilityLabel={t('foodRow.dragFood', {
-                defaultValue: 'Drag {{name}} to another meal',
-                name,
-              })}
-              className="min-h-11 min-w-11 items-center justify-center"
-            >
-              <Icon name="reorder-handle" size={20} color={mutedColor} />
-            </View>
+            <GestureDetector gesture={dragGesture}>
+              <View
+                testID={`food-drag-${entry.id}`}
+                accessible
+                accessibilityRole="button"
+                accessibilityLabel={t('foodRow.dragFood', {
+                  defaultValue: 'Drag {{name}} to another meal',
+                  name,
+                })}
+                className="min-h-11 min-w-11 items-center justify-center"
+              >
+                <Icon name="reorder-handle" size={20} color={mutedColor} />
+              </View>
+            </GestureDetector>
           )}
         </View>
       </ReanimatedSwipeable>

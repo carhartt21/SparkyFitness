@@ -38,7 +38,30 @@ describe('CalorieRingCard', () => {
     expect(consumed).toHaveBeenCalledTimes(1);
     expect(burned).toHaveBeenCalledTimes(1);
     expect(screen.getByText('remaining')).toBeTruthy();
+    expect(
+      screen.getByLabelText('1,400 kcal remaining. Edit goal')
+    ).toBeTruthy();
   });
+  it.each([
+    [2000, -200, '200 kcal over target. Edit goal'],
+    [0, 0, '600 kcal Consumed. Edit goal'],
+  ])(
+    'announces the energy meaning when goal=%s and remaining=%s',
+    (goal, remaining, label) => {
+      const screen = render(
+        <CalorieRingCard
+          caloriesConsumed={600}
+          caloriesBurned={0}
+          burnedIncludesBmr={false}
+          calorieGoal={goal}
+          remainingCalories={remaining}
+          progressPercent={0}
+          onEditGoal={jest.fn()}
+        />
+      );
+      expect(screen.getByLabelText(label)).toBeTruthy();
+    }
+  );
   it('distinguishes credited allowance from activity burn so the balance reconciles', () => {
     const screen = render(
       <CalorieRingCard

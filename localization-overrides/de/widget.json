@@ -7,5 +7,6 @@
   "widget.routine.empty": "Noch keine Routinen",
   "widget.routine.one": "%d Routine verfügbar",
   "widget.routine.count": "%d Routinen verfügbar",
-  "widget.routine.open": "Routinen öffnen"
+  "widget.routine.open": "Routinen öffnen",
+  "widget.quick_add": "Schnell hinzufügen"
 }

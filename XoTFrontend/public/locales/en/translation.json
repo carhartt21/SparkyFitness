@@ -2367,7 +2367,9 @@
         "routineNote": "This file contains completed workouts only. It will not create saved routines.",
         "timezone": "Workout timezone",
         "timezoneHint": "Hevy CSV times have no UTC offset. Enter the IANA timezone where the workouts were recorded; ambiguous daylight-saving times cannot be imported.",
-        "title": "Hevy Workout History (CSV)"
+        "title": "Hevy Workout History (CSV)",
+        "savedDates": "Saved to your diary: {{from}} – {{to}}",
+        "openDiary": "View imported workouts"
       },
       "importButton": "Import",
       "title": "Data Import"
@@ -3014,7 +3016,8 @@
     "unknown": "Unknown",
     "avg": "Avg",
     "max": "Max",
-    "showAll": "Show all"
+    "showAll": "Show all",
+    "time24HourHint": "24-hour time, e.g. 14:30. You can also enter 1430."
   },
   "diary": {
     "addFood": "Add Food",
@@ -7088,7 +7091,7 @@
   },
   "coachingLoop": {
     "cloudTitle": "Connect a cloud review",
-    "cloudStep1": "In ChatGPT, connect X on Track using this MCP address and allow reading and proposals.",
+    "cloudStep1": "In ChatGPT, add the proposal-only coaching MCP address below and approve reading and proposals. The consent screen must show selectable review areas.",
     "cloudStep2": "Refresh this list and choose the authorized connection. The selected data is all it can review; it cannot approve changes.",
     "cloudStep3": "Test this prompt in a normal ChatGPT conversation using the selected connection. Then create one daily cloud task at the time shown. Scheduling availability depends on your ChatGPT account.",
     "copyAddress": "Copy MCP address",
@@ -7115,6 +7118,8 @@
     "insightsTitle": "Recaps & recommendations",
     "openRecaps": "Open recaps",
     "insightsHint": "Review your data, consider suggestions and follow up on accepted changes.",
-    "connectionContext": "Additional connection context"
+    "connectionContext": "Additional connection context",
+    "noAuthorizedConnection": "No coaching connection is authorized yet. Add the coaching address above in ChatGPT and approve reading and proposals. Reconnecting an older read/write connection may retain its existing permissions.",
+    "legacyConsent": "This request does not include coaching proposals. To set up reviews, add the coaching MCP address shown in Recommendations in ChatGPT."
   }
 }

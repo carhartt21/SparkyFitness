@@ -14,7 +14,7 @@ The administrator enables `XOT_COACHING_ENABLED=true` after release checks. Open
 
 ChatGPT cloud tasks can use eligible connected tools where supported; see [OpenAI's automation guide](https://learn.chatgpt.com/docs/automations). An unavailable task/connection stops the run without silently installing an API or Mac fallback. An optional, explicitly configured [Mac subscription runner](../developer/mcp/recommendations.md#mac-subscription-runner) remains supported separately.
 
-OAuth clients request **`mcp:propose`** at `/mcp/chatgpt`. A bound coaching connection exposes only the six coaching tools, even if an older consent included broad write access. Consent never permits the external reviewer to approve plan, goal or notification changes. Revoke the connection to stop its calls, and remove the external ChatGPT task separately.
+For a new ChatGPT coaching connection, use **`https://<your-host>/mcp/coaching`**, copied from Recommendations. It requests **`mcp:read mcp:propose`** and the consent screen shows selectable review areas. A screen offering only read/write access belongs to the older `/mcp/chatgpt` connection; refreshing that connection does not add proposal permission. Existing bound coaching connections on the older address still work. A bound coaching connection exposes only the six coaching tools. Consent never permits the external reviewer to approve plan, goal or notification changes. Revoke the connection to stop its calls, and remove the external ChatGPT task separately.
 
 ## Read a recap or request a review
 

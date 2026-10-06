@@ -242,9 +242,11 @@ export * from "./schemas/api/MealPlanning.api.zod.ts";
 
 export * from "./coaching/client.ts";
 export * from "./coaching/calendar.ts";
+export * from "./coaching/oauth.ts";
 export * from "./schemas/api/CoachingV2.api.zod.ts";
 
 export * from "./schemas/api/ActivityPlanning.api.zod.ts";
 export * from "./schemas/database/ActivityPlanResolutions.zod.ts";
 
 export * from "./activityPlanning.ts";
+export * from "./schemas/api/Hevy.api.zod.ts";

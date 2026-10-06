@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -142,8 +143,16 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
   const { isConnected } = useServerConnection();
   const [browseTab, setBrowseTab] = useState<'all' | 'recent' | 'favorites'>(
-    'all'
+    route.params?.initialBrowseTab === 'favorites' ||
+      route.params?.initialBrowseTab === 'recent'
+      ? route.params.initialBrowseTab
+      : 'all'
   );
+  useEffect(() => {
+    const tab = route.params?.initialBrowseTab;
+    if (tab === 'favorites' || tab === 'recent') setBrowseTab(tab);
+  }, [route.params?.initialBrowseTab]);
+
   const { profile } = useProfile();
   const ownershipFilter = useAppPreferencesStore(
     (s) => s.foodSearchOwnershipFilter

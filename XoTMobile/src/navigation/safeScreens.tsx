@@ -1,3 +1,5 @@
+import TrainingHubScreen from '../screens/TrainingHubScreen';
+import HealthOverviewScreen from '../screens/HealthOverviewScreen';
 import WorkoutPlansScreen from '../screens/WorkoutPlansScreen';
 import WorkoutPlanFormScreen from '../screens/WorkoutPlanFormScreen';
 import WidgetGuideScreen from '../screens/WidgetGuideScreen';
@@ -528,3 +530,12 @@ export const SafeWorkoutPlanForm = withErrorBoundary(
 );
 
 export const SafeWaterLog = withErrorBoundary(WaterLogScreen, 'WaterLog');
+
+export const SafeTrainingHub = withErrorBoundary(
+  TrainingHubScreen,
+  'TrainingHub'
+);
+export const SafeHealthOverview = withErrorBoundary(
+  HealthOverviewScreen,
+  'HealthOverview'
+);

@@ -116,6 +116,23 @@ describe('meal groups on the diary timeline', () => {
     serving_size: 100,
     calories: 120,
   });
+  it('retains explicitly resolved empty historical meals without inventing a time', () => {
+    const groups = diaryMealGroups(
+      [],
+      [breakfast, lunch],
+      '2026-10-04',
+      '2026-10-05',
+      'Europe/Berlin',
+      new Map([['breakfast', 'skipped']])
+    );
+    expect(groups).toHaveLength(1);
+    expect(groups[0]).toMatchObject({
+      mealTypeId: 'breakfast',
+      entries: [],
+      timestamp: null,
+      clock: null,
+    });
+  });
   it('shows empty configured meals today/future and positions them by the reminder meal time', () => {
     const groups = diaryMealGroups(
       [food('late', 'breakfast', '10:00'), food('early', 'breakfast', '09:00')],
@@ -132,7 +149,11 @@ describe('meal groups on the diary timeline', () => {
       'early',
       'late',
     ]);
-    expect(groups[0].clock).toBe('08:00');
+    expect(groups[0].clock).toBeNull();
+    expect(groups[0].timestamp).toBe(
+      diaryTimestamp('2026-10-05', '09:00', 'Europe/Berlin')
+    );
+    expect(groups[1].clock).toBe('12:30');
     expect(groups[1].entries).toHaveLength(0);
     expect(
       diaryMealGroups(

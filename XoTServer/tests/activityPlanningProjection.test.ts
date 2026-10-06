@@ -411,7 +411,7 @@ describe('imported whole-activity completion', () => {
       expect(project(data).occurrences[0].state).toBe('started');
     }
   );
-  it('requires one whole record and never sums several short sessions', () => {
+  it('requires explicit linking for ambiguous sessions but aggregates rows of one session', () => {
     const data = runningPlan();
     data.entries[0].duration_minutes = 15;
     data.entries.push(
@@ -421,9 +421,34 @@ describe('imported whole-activity completion', () => {
         record_id: randomUUID(),
       })
     );
-    expect(project(data).occurrences[0].state).toBe('started');
-    data.entries[1].record_id = data.entries[0].record_id;
     expect(project(data).occurrences[0].state).toBe('pending');
+    data.entries[1].record_id = data.entries[0].record_id;
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'complete',
+      evidence_ids: data.entries.map((row) => row.id),
+    });
+  });
+  it('aggregates assigned strength durations within a session and never combines different sessions', () => {
+    const data = activityData();
+    Object.assign(data.versions[0].assignments[0], {
+      exerciseId: null,
+      workoutPresetId: null,
+      exercises: [],
+      activityType: 'strength',
+      plannedDurationMinutes: 45,
+    });
+    data.entries = [
+      activityEntry({ duration_minutes: 20, completed_count: 1 }),
+      activityEntry({
+        id: randomUUID(),
+        duration_minutes: 25,
+        completed_count: 1,
+      }),
+    ];
+    data.entries[1].record_id = data.entries[0].record_id;
+    expect(project(data).occurrences[0].state).toBe('complete');
+    data.entries[1].record_id = randomUUID();
+    expect(project(data).occurrences[0].state).toBe('started');
   });
   it('uses a record once and gives a constrained goal priority over attendance', () => {
     const data = runningPlan();
@@ -518,4 +543,42 @@ describe('imported whole-activity completion', () => {
     data.entries = [];
     expect(project(data).occurrences[0].state).toBe('pending');
   });
+});
+
+it('matches a grouped strength session to one whole-activity plan and rejects mixed-sport evidence regardless of row order', () => {
+  const data = activityData();
+  Object.assign(data.versions[0].assignments[0], {
+    exerciseId: null,
+    workoutPresetId: null,
+    exercises: [],
+    activityType: 'strength',
+    plannedDurationMinutes: 45,
+  });
+  const record = randomUUID();
+  data.entries = [
+    activityEntry({
+      record_id: record,
+      origin_id: null,
+      category: 'Strength',
+      exercise_name: 'Bench press',
+      duration_minutes: 20,
+      source: 'manual',
+      recorded_at: '2026-10-01T11:00:00Z',
+    }),
+    activityEntry({
+      record_id: record,
+      origin_id: null,
+      category: 'Strength',
+      exercise_name: 'Rows',
+      duration_minutes: 25,
+      source: 'manual',
+      recorded_at: '2026-10-01T11:00:00Z',
+    }),
+  ];
+  expect(project(data).occurrences[0].state).toBe('complete');
+  data.entries[1].exercise_name = 'Running';
+  data.entries[1].category = 'Cardio';
+  expect(project(data).occurrences[0].state).toBe('pending');
+  data.entries.reverse();
+  expect(project(data).occurrences[0].state).toBe('pending');
 });

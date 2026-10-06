@@ -18,6 +18,7 @@ import {
 import {
   engagementSettingsPatchV2Schema,
   engagementActionSchema,
+  COACHING_MCP_SCOPES,
 } from '@workspace/shared';
 import versionService from '../services/versionService.js';
 import { hasActiveMcpConsent } from '../services/mcpConnectionService.js';
@@ -28,7 +29,6 @@ import {
   hasCoachingOAuthBinding,
 } from '../services/coachingRunService.js';
 
-const router = express.Router();
 const WRITE_TOOLS = new Set([
   'xot_update_mobility',
   'sparky_manage_food',
@@ -161,93 +161,125 @@ function registerTools(
   );
 }
 
-if (mcpOAuthResource) {
-  const protectedHandler = requireMcpAuth(
-    auth,
-    async (request, claims) => {
-      if (typeof claims.sub !== 'string' || !claims.sub) {
-        return new Response('Missing account identity', { status: 403 });
-      }
-      // Better Auth verifies signed JWT access tokens offline. The consent
-      // lookup makes a user-initiated disconnect effective immediately.
-      const clientId =
-        typeof claims.azp === 'string'
-          ? claims.azp
-          : typeof claims.client_id === 'string'
-            ? claims.client_id
-            : null;
-      if (!clientId || !(await hasActiveMcpConsent(claims.sub, clientId))) {
-        return new Response('Assistant connection was revoked', {
-          status: 403,
-        });
-      }
-      const userId = claims.sub;
-      const timezone = await loadUserTimezone(userId);
-      const canWrite = hasScope(claims.scope, 'mcp:write');
-      const canPropose =
-        hasScope(claims.scope, 'mcp:propose') &&
-        (await hasActiveMcpConsent(userId, clientId, 'mcp:propose'));
-      const bound = await hasCoachingOAuthBinding(userId, clientId);
-      // A revoked/paused binding must never fall back to broad legacy tools.
-      if (bound && (!canPropose || !coachingFeatureEnabled()))
-        return new Response('Coaching connection is unavailable', {
-          status: 403,
-        });
-      const agent = bound
-        ? await resolveCoachingAgent(userId, { oauthClientId: clientId }).catch(
-            () => null
-          )
-        : null;
-      if (bound && !agent)
-        return new Response('Coaching connection was revoked', { status: 403 });
-      const handler = createMcpHandler(
-        () => {
-          const server = new McpServer({
-            name: 'x-on-track-chatgpt',
-            version: versionService.getAppVersion(),
-          });
-          if (!bound) registerTools(server, userId, timezone, canWrite);
-          if (agent)
-            registerCoachingTools(
-              server,
-              userId,
-              agent.id,
-              async () => {
-                if (
-                  !(await hasActiveMcpConsent(userId, clientId, 'mcp:propose'))
-                )
-                  throw new Error('Proposal consent was revoked.');
-                await resolveCoachingAgent(userId, { oauthClientId: clientId });
-              },
-              true,
-              agent.protocol_version ?? 1
-            );
-          return server;
-        },
-        {
-          legacy: 'reject',
-          responseMode: 'json',
-          maxRequestBodySize: 1_048_576,
+/** Share transport and live revocation checks without broadening either profile. */
+export function createChatgptMcpRoutes(
+  resource: string | null,
+  coachingOnly = false
+) {
+  const router = express.Router();
+  if (resource) {
+    const protectedHandler = requireMcpAuth(
+      auth,
+      async (request, claims) => {
+        if (typeof claims.sub !== 'string' || !claims.sub) {
+          return new Response('Missing account identity', { status: 403 });
         }
-      );
-      return handler.fetch(request);
-    },
-    {
-      resource: mcpOAuthResource,
-      requiredScopes: ['mcp:read'],
-      challengeScopes: ['mcp:read', 'mcp:write', 'mcp:propose'],
-    }
-  );
-  const nodeHandler = toNodeHandler({ fetch: protectedHandler });
-  router.post('/', (req, res) => {
-    void nodeHandler(req, res, req.body);
-  });
-} else {
-  router.post('/', (_req, res) =>
-    res.status(503).json({ error: 'mcp_oauth_not_configured' })
-  );
-}
-router.get('/', (_req, res) => res.set('Allow', 'POST').status(405).end());
-router.delete('/', (_req, res) => res.set('Allow', 'POST').status(405).end());
+        // Better Auth verifies signed JWT access tokens offline. The consent
+        // lookup makes a user-initiated disconnect effective immediately.
+        const clientId =
+          typeof claims.azp === 'string'
+            ? claims.azp
+            : typeof claims.client_id === 'string'
+              ? claims.client_id
+              : null;
+        if (!clientId || !(await hasActiveMcpConsent(claims.sub, clientId))) {
+          return new Response('Assistant connection was revoked', {
+            status: 403,
+          });
+        }
+        const userId = claims.sub;
+        const timezone = await loadUserTimezone(userId);
+        const canWrite = hasScope(claims.scope, 'mcp:write');
+        const canPropose =
+          hasScope(claims.scope, 'mcp:propose') &&
+          (await hasActiveMcpConsent(userId, clientId, 'mcp:propose'));
+        const bound = await hasCoachingOAuthBinding(userId, clientId);
+        if (coachingOnly && !coachingFeatureEnabled())
+          return new Response('Coaching is not enabled on this server.', {
+            status: 503,
+          });
+        if (coachingOnly && !bound)
+          return new Response(
+            'Complete the coaching connection in Recommendations.',
+            { status: 403 }
+          );
+        // A revoked/paused binding must never fall back to broad legacy tools.
+        if (bound && (!canPropose || !coachingFeatureEnabled()))
+          return new Response('Coaching connection is unavailable', {
+            status: 403,
+          });
+        const agent = bound
+          ? await resolveCoachingAgent(userId, {
+              oauthClientId: clientId,
+            }).catch(() => null)
+          : null;
+        if (bound && !agent)
+          return new Response('Coaching connection was revoked', {
+            status: 403,
+          });
+        if (coachingOnly && agent?.protocol_version !== 2)
+          return new Response(
+            'Upgrade this coaching connection to protocol 2 in Recommendations.',
+            { status: 409 }
+          );
+        const handler = createMcpHandler(
+          () => {
+            const server = new McpServer({
+              name: 'x-on-track-chatgpt',
+              version: versionService.getAppVersion(),
+            });
+            if (!bound) registerTools(server, userId, timezone, canWrite);
+            if (agent)
+              registerCoachingTools(
+                server,
+                userId,
+                agent.id,
+                async () => {
+                  if (
+                    !(await hasActiveMcpConsent(
+                      userId,
+                      clientId,
+                      'mcp:propose'
+                    ))
+                  )
+                    throw new Error('Proposal consent was revoked.');
+                  await resolveCoachingAgent(userId, {
+                    oauthClientId: clientId,
+                  });
+                },
+                true,
+                agent.protocol_version ?? 1
+              );
+            return server;
+          },
+          {
+            legacy: 'reject',
+            responseMode: 'json',
+            maxRequestBodySize: 1_048_576,
+          }
+        );
+        return handler.fetch(request);
+      },
+      {
+        resource,
+        requiredScopes: coachingOnly ? COACHING_MCP_SCOPES : ['mcp:read'],
+        challengeScopes: coachingOnly
+          ? COACHING_MCP_SCOPES
+          : ['mcp:read', 'mcp:write', 'mcp:propose'],
+      }
+    );
+    const nodeHandler = toNodeHandler({ fetch: protectedHandler });
+    router.post('/', (req, res) => {
+      void nodeHandler(req, res, req.body);
+    });
+  } else {
+    router.post('/', (_req, res) =>
+      res.status(503).json({ error: 'mcp_oauth_not_configured' })
+    );
+  }
+  router.get('/', (_req, res) => res.set('Allow', 'POST').status(405).end());
+  router.delete('/', (_req, res) => res.set('Allow', 'POST').status(405).end());
 
-export default router;
+  return router;
+}
+export default createChatgptMcpRoutes(mcpOAuthResource);

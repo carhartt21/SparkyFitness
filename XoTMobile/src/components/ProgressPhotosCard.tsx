@@ -2,8 +2,6 @@ import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useCSSVariable } from 'uniwind';
-import type { CompositeNavigationProp } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import Icon from './Icon';
@@ -19,11 +17,11 @@ import {
   type WeightDisplayMode,
 } from '../utils/unitConversions';
 import { PHOTO_TYPES, type PhotoType } from '../types/checkInPhotos';
-import type { RootStackParamList, TabParamList } from '../types/navigation';
+import type { RootStackParamList } from '../types/navigation';
 
-type ProgressPhotosCardNavigation = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Dashboard'>,
-  NativeStackNavigationProp<RootStackParamList>
+type ProgressPhotosCardNavigation = Pick<
+  NativeStackNavigationProp<RootStackParamList>,
+  'navigate'
 >;
 
 interface ProgressPhotosCardProps {

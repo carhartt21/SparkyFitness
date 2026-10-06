@@ -730,7 +730,8 @@
     "healthTrendsSettings": "Health Trends",
     "progressPhotos": "Progress Photos",
     "progressPhotoCompare": "Compare",
-    "progressPhotoTimelapse": "Time-lapse"
+    "progressPhotoTimelapse": "Time-lapse",
+    "dailyNutritionDetails": "Nutrition details"
   },
   "healthMetrics": {
     "steps": "Steps",
@@ -1432,7 +1433,16 @@
       "undoWellness": "Undo {{name}}",
       "planned": "Planned · nothing logged yet",
       "recordIntake": "Record {{name}} as taken",
-      "plannedIntakeHint": "Planned intake. Record it only after you have taken it."
+      "plannedIntakeHint": "Planned intake. Record it only after you have taken it.",
+      "recorded": "Recorded",
+      "plannedSection": "Planned",
+      "foodCount_one": "{{count}} item",
+      "foodCount_other": "{{count}} items",
+      "withoutPlannedTime": "Without a scheduled time",
+      "mealSummary_one": "{{calories}} kcal · {{count}} item",
+      "mealSummary_other": "{{calories}} kcal · {{count}} items",
+      "unknownAmount": "Amount unknown",
+      "measurements": "Measurements"
     }
   },
   "medications": {
@@ -6981,7 +6991,7 @@
   },
   "coachingLoop": {
     "cloudTitle": "Connect a cloud review",
-    "cloudStep1": "In ChatGPT, connect X on Track using this MCP address and allow reading and proposals.",
+    "cloudStep1": "In ChatGPT, add the proposal-only coaching MCP address below and approve reading and proposals. The consent screen must show selectable review areas.",
     "cloudStep2": "Refresh this list and choose the authorized connection. The selected data is all it can review; it cannot approve changes.",
     "cloudStep3": "Test this prompt in a normal ChatGPT conversation using the selected connection. Then create one daily cloud task at the time shown. Scheduling availability depends on your ChatGPT account.",
     "copyAddress": "Copy MCP address",
@@ -7008,10 +7018,31 @@
     "insightsTitle": "Recaps & recommendations",
     "openRecaps": "Open recaps",
     "insightsHint": "Review your data, consider suggestions and follow up on accepted changes.",
-    "connectionContext": "Additional connection context"
+    "connectionContext": "Additional connection context",
+    "noAuthorizedConnection": "No coaching connection is authorized yet. Add the coaching address above in ChatGPT and approve reading and proposals. Reconnecting an older read/write connection may retain its existing permissions.",
+    "legacyConsent": "This request does not include coaching proposals. To set up reviews, add the coaching MCP address shown in Recommendations in ChatGPT."
   },
   "waterLog": {
     "offline": "Connect to your server to log water.",
     "error": "Could not load hydration details."
+  },
+  "home": {
+    "pendingWater": "Water saved on this device · tap to retry syncing"
+  },
+  "hydration": {
+    "title": "Hydration"
+  },
+  "healthOverview": {
+    "routines": "Health & routines",
+    "noCaffeine": "No caffeine recorded for this day.",
+    "noRoutines": "No overview cards enabled. Manage them in settings.",
+    "offline": "Connect to your server to load this overview. Missing data is not zero."
+  },
+  "trainingHub": {
+    "title": "Training & routines",
+    "history": "Recorded training",
+    "thisWeek": "This week",
+    "noPlans": "No training planned for this week.",
+    "noRecorded": "No training recorded for this day."
   }
 }

@@ -64,13 +64,19 @@ export function diaryMealGroups(
   mealTypes: import('../types/mealTypes').MealType[],
   day: string,
   today: string,
-  timezone: string
+  timezone: string,
+  states?: ReadonlyMap<string, import('@workspace/shared').MealTrackingState>
 ) {
   const groups = groupFoodEntriesByMealType(entries, mealTypes);
-  if (day >= today) {
+  if (day >= today || states?.size) {
     for (const meal of mealTypes) {
       if (
-        meal.is_visible &&
+        (meal.is_visible ||
+          (states?.get(meal.id) !== undefined &&
+            states.get(meal.id) !== 'pending')) &&
+        (day >= today ||
+          (states?.get(meal.id) !== undefined &&
+            states.get(meal.id) !== 'pending')) &&
         meal.purpose !== 'import' &&
         !groups.some((group) => group.mealTypeId === meal.id)
       ) {
@@ -100,9 +106,13 @@ export function diaryMealGroups(
     return {
       ...group,
       entries: recorded,
-      timestamp: scheduled ?? recorded[0]?.timestamp ?? null,
+      timestamp: group.entries.length
+        ? (recorded[0]?.timestamp ?? null)
+        : scheduled,
       clock:
-        scheduled !== null ? (meal?.default_time?.slice(0, 5) ?? null) : null,
+        !group.entries.length && scheduled !== null
+          ? (meal?.default_time?.slice(0, 5) ?? null)
+          : null,
     };
   });
 }

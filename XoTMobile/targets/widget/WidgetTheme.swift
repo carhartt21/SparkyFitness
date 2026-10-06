@@ -110,6 +110,8 @@ struct WidgetShortcuts: View {
                 accessibilityLabel: localizedWidgetString("widget.meal_photo"))
             ActionButton(icon: "magnifyingglass", destination: URL(string: "sparkyfitnessmobile://search")!,
                 accessibilityLabel: localizedWidgetString("widget.search_food"))
+            ActionButton(icon: "star", destination: URL(string: "sparkyfitnessmobile://search?initialBrowseTab=favorites")!,
+                accessibilityLabel: localizedWidgetString("widget.quick_add"))
             ActionButton(icon: "barcode.viewfinder", destination: URL(string: "sparkyfitnessmobile://scan")!,
                 accessibilityLabel: localizedWidgetString("widget.scan_barcode"))
         }

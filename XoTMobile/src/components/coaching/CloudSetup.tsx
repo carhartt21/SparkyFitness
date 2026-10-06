@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslation } from 'react-i18next';
 import {
   cloudCoachingTaskPrompt,
+  COACHING_MCP_PATH,
   type CoachingSettingsV2,
 } from '@workspace/shared';
 import { useCoaching } from '../../hooks/useCoaching';
@@ -41,7 +42,7 @@ export default function CloudSetup({
     void getActiveServerConfig()
       .then((config) => {
         if (active && config)
-          setEndpoint(config.url.replace(/\/$/, '') + '/mcp/chatgpt');
+          setEndpoint(config.url.replace(/\/$/, '') + COACHING_MCP_PATH);
       })
       .catch(() => {
         if (active) setError(true);
@@ -68,7 +69,7 @@ export default function CloudSetup({
       <Text className="text-base text-text-secondary">
         {t('coachingLoop.cloudStep1', {
           defaultValue:
-            'In ChatGPT, connect X on Track using this MCP address and allow reading and proposals.',
+            'In ChatGPT, add the proposal-only coaching MCP address below and approve reading and proposals. The consent screen must show selectable review areas.',
         })}
       </Text>
       <Text selectable className="text-sm text-text-secondary">
@@ -96,6 +97,16 @@ export default function CloudSetup({
           })}
         </Text>
       )}
+      {!query.isPending &&
+        !query.isError &&
+        !query.data?.connections.length && (
+          <Text className="text-sm text-text-secondary">
+            {t('coachingLoop.noAuthorizedConnection', {
+              defaultValue:
+                'No coaching connection is authorized yet. Add the coaching address above in ChatGPT and approve reading and proposals. Reconnecting an older read/write connection may retain its existing permissions.',
+            })}
+          </Text>
+        )}
       <BottomSheetPicker
         title={t('coachingLoop.chooseConnection', {
           defaultValue: 'Authorized ChatGPT connection',

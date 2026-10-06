@@ -39,6 +39,7 @@ import { expoSsoCookieRelay } from './utils/expoSsoCookieRelay.js';
 import { passkey } from '@better-auth/passkey';
 import { isDemoMode } from './middleware/demoGuardMiddleware.js';
 import { isEmailLoginDisabled } from './utils/emailLogin.js';
+import { COACHING_MCP_PATH, COACHING_MCP_SCOPES } from '@workspace/shared';
 
 const { Pool } = pg;
 /**
@@ -323,6 +324,9 @@ export const mcpOAuthResource = (() => {
     return null;
   }
 })();
+export const mcpCoachingOAuthResource = mcpOAuthResource
+  ? new URL(COACHING_MCP_PATH, mcpOAuthResource).toString()
+  : null;
 let passkeyRpID: string | undefined;
 try {
   const frontendUrl = process.env.SPARKY_FITNESS_FRONTEND_URL;
@@ -862,6 +866,22 @@ const auth = betterAuth({
             loginPage: '/login',
             consentPage: '/assistant/consent',
             resource: mcpOAuthResource,
+            resources: mcpCoachingOAuthResource
+              ? [
+                  {
+                    identifier: mcpCoachingOAuthResource,
+                    allowedScopes: [
+                      'openid',
+                      'profile',
+                      'offline_access',
+                      ...COACHING_MCP_SCOPES,
+                    ],
+                  },
+                ]
+              : [],
+            clientRegistrationDefaultResources: mcpCoachingOAuthResource
+              ? [mcpCoachingOAuthResource]
+              : [],
             scopes: [
               'openid',
               'profile',

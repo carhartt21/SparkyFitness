@@ -31,3 +31,5 @@
 "widget.routine.one" = "%d routine available";
 "widget.routine.count" = "%d routines available";
 "widget.routine.open" = "Open routines";
+
+"widget.quick_add" = "Quick add food";

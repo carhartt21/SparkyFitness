@@ -1,0 +1,118 @@
+{
+  "date": "2026-10-06",
+  "branch": "feat/v44-diary-refinement-20261006",
+  "baseRevision": "3d7aa80be27b74b6c455b721388abe66b6dd4fae",
+  "sourceState": "v44 corrective implementation before its final commit",
+  "checks": [
+    {
+      "check": "frozen offline pnpm installation",
+      "result": "passed",
+      "lockfileChanged": false
+    },
+    {
+      "command": "pnpm --dir XoTMobile validate",
+      "result": "passed",
+      "evidence": "/private/tmp/xot-v44-mobile-validate-final.log"
+    },
+    {
+      "command": "pnpm --dir XoTServer validate",
+      "result": "passed",
+      "evidence": "/private/tmp/xot-v44-corrective-server-validate.log"
+    },
+    {
+      "command": "pnpm --dir XoTFrontend build",
+      "result": "passed",
+      "includes": "frontend validate",
+      "evidence": "/private/tmp/xot-v44-corrective-web-build.log"
+    },
+    {
+      "command": "pnpm --dir docs build",
+      "result": "passed",
+      "evidence": "/private/tmp/xot-v44-docs-build.log"
+    },
+    {
+      "check": "focused server tests: activity planning projection and Hevy import paths",
+      "result": "passed",
+      "testsInRun": 101,
+      "suitesInRun": 5
+    },
+    {
+      "check": "initial mobile diary, navigation and workout targeted run",
+      "result": "passed",
+      "testsInRun": 412,
+      "suitesInRun": 9
+    },
+    {
+      "check": "mobile food detail, multi-selection, startup and widget contract run",
+      "result": "passed",
+      "testsInRun": 105,
+      "suitesInRun": 5
+    },
+    {
+      "command": "pnpm --dir XoTMobile test --runInBand __tests__/components/DiaryTimeline.test.tsx __tests__/components/CalorieRingCard.test.tsx __tests__/hooks/useDiaryScheduledEntries.test.tsx",
+      "result": "passed",
+      "testsInRun": 17,
+      "suitesInRun": 3,
+      "evidence": "/private/tmp/xot-v44-review-fix-tests-final.log"
+    },
+    {
+      "command": "pnpm --dir XoTMobile test --runInBand __tests__/screens/FoodSearchScreen.test.tsx",
+      "result": "passed",
+      "testsInRun": 31,
+      "suitesInRun": 1,
+      "evidence": "/private/tmp/xot-v44-widget-search-tests.log"
+    },
+    {
+      "check": "web clock, Hevy receipt, numeric input, weekly activity and time-format targeted tests",
+      "result": "passed",
+      "testsInRun": 33,
+      "suitesInRun": 5
+    },
+    {
+      "command": "node scripts/review-widget-content.mjs --output /private/tmp/xot-v44-widget-final",
+      "cwd": "XoTMobile",
+      "result": "passed",
+      "variants": 6,
+      "boundary": "SwiftUI content compile/preview only; no WidgetKit hosting or signed extension"
+    },
+    {
+      "check": "native iOS UI interactions",
+      "result": "passed",
+      "cases": ["390-de-dark", "390-de-light", "430-de-large"],
+      "evidence": "native-results.json",
+      "boundary": "branch JavaScript, existing compatible development app, isolated synthetic transport"
+    },
+    {
+      "check": "single design detector pass on changed web targets",
+      "result": "passed",
+      "findings": [],
+      "nativeDetectorUsed": false
+    },
+    {
+      "command": "git diff --check",
+      "result": "passed"
+    }
+  ],
+  "testCountNote": "Run counts overlap. Repeated suites are not a unique cumulative test count.",
+  "omitted": [
+    "full backend suite as requested",
+    "fresh signed iOS archive/TestFlight",
+    "physical phone and Watch",
+    "Android build/device gestures",
+    "installed WidgetKit cold/resumed deep links",
+    "actual Apple Health/Fitness writes",
+    "owner-account diagnosis of the original Hevy import"
+  ],
+  "releaseActionsPerformed": false,
+  "migrationRequirements": null,
+  "finishReview": {
+    "disposition": "ship",
+    "scope": "three listed material fixes only",
+    "resolved": [
+      "enlarged-text clock reflow and separate actions",
+      "visible/spoken data meaning",
+      "built design system record"
+    ],
+    "evidence": "finish-verdict.md"
+  }
+}

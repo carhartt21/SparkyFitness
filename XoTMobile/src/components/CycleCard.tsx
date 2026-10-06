@@ -19,14 +19,12 @@ import { localizeBabyWeek } from '../utils/pregnancyContentLocalization';
 import { useAppLocale, formatLocalizedNumber } from '../localization';
 import CycleRing from './wellness/CycleRing';
 import { useWellnessTokens } from './wellness/theme/wellnessTokens';
-import type { CompositeNavigationProp } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import type { RootStackParamList, TabParamList } from '../types/navigation';
+import type { RootStackParamList } from '../types/navigation';
 
-type CycleCardNavigation = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Dashboard'>,
-  NativeStackNavigationProp<RootStackParamList>
+type CycleCardNavigation = Pick<
+  NativeStackNavigationProp<RootStackParamList>,
+  'navigate'
 >;
 
 interface CycleCardProps {

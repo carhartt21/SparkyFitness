@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -321,6 +322,24 @@ export default function HevyWorkoutImportCSV() {
                 }
               )}
             </p>
+            {result.importedDateRange && (
+              <div className="mt-3 space-y-2">
+                <p>
+                  {t('settings.dataImport.hevy.savedDates', {
+                    defaultValue: 'Saved to your diary: {{from}} – {{to}}',
+                    from: result.importedDateRange.from,
+                    to: result.importedDateRange.to,
+                  })}
+                </p>
+                <Button asChild variant="secondary">
+                  <Link to={`/diary?date=${result.importedDateRange.from}`}>
+                    {t('settings.dataImport.hevy.openDiary', {
+                      defaultValue: 'View imported workouts',
+                    })}
+                  </Link>
+                </Button>
+              </div>
+            )}
             {result.failed.map((failure) => (
               <p key={failure.id} className="mt-1 text-destructive">
                 {failure.id}: {failure.message}

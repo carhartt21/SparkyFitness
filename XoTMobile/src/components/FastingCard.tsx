@@ -8,8 +8,6 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { useCSSVariable } from 'uniwind';
-import type { CompositeNavigationProp } from '@react-navigation/native';
-import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import Icon from './Icon';
@@ -28,15 +26,15 @@ import {
   METABOLIC_STAGES,
   getMetabolicStageIndex,
 } from '../constants/fasting';
-import type { RootStackParamList, TabParamList } from '../types/navigation';
+import type { RootStackParamList } from '../types/navigation';
 import {
   localizeFastingStage,
   localizeProtocolBadge,
 } from '../utils/fastingLocalization';
 
-type FastingCardNavigation = CompositeNavigationProp<
-  BottomTabNavigationProp<TabParamList, 'Dashboard'>,
-  NativeStackNavigationProp<RootStackParamList>
+type FastingCardNavigation = Pick<
+  NativeStackNavigationProp<RootStackParamList>,
+  'navigate'
 >;
 
 interface FastingCardProps {

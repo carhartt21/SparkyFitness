@@ -1,6 +1,69 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// v44 uses the real gesture and existing bulk API; the acknowledgement is synthetic.
+  func testV44DiaryRefinement() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let gauge = app.buttons["dashboard-edit-goal"]
+    XCTAssertTrue(gauge.isHittable); gauge.tap()
+    XCTAssertTrue(app.staticTexts.matching(NSPredicate(format: "label BEGINSWITH %@", "Kalorien- und Grundumsatz")).firstMatch.waitForExistence(timeout: 15))
+    app.buttons["Zurück"].firstMatch.tap()
+    let training = app.buttons["dashboard-detail-exercise-running"]
+    for _ in 0..<8 { if training.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(training.isHittable); training.tap()
+    capture("v44-training-hub", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    app.buttons["Tagebuch"].tap()
+    let meal = app.buttons["diary-expand-meal:review-breakfast-type"]
+    XCTAssertTrue(meal.waitForExistence(timeout: 15))
+    capture("v44-diary-recorded", app)
+    let lunch = app.buttons["diary-expand-meal:b3333333-3333-4333-8333-333333333333"]
+    for _ in 0..<12 { if lunch.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(lunch.isHittable)
+    capture("v44-diary-planned", app)
+    let status = app.buttons["meal-status-control"].firstMatch
+    for _ in 0..<8 { if status.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(status.isHittable); status.tap()
+    capture("v44-diary-resolved", app)
+    for _ in 0..<15 { if app.buttons["diary-edit-foods"].isHittable { break }; app.swipeDown() }
+    app.buttons["diary-edit-foods"].tap()
+    let handle = app.buttons["food-drag-review-breakfast"]
+    for _ in 0..<12 { if handle.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(handle.isHittable)
+    let target = app.otherElements["food-drop-meal:b3333333-3333-4333-8333-333333333333"]
+    if target.isHittable {
+      handle.press(forDuration: 0.2, thenDragTo: target)
+    } else {
+      // Large text puts the next meal below the viewport. Exercise edge scrolling
+      // with the same real gesture rather than reducing Dynamic Type to fit it.
+      let edge = app.coordinate(withNormalizedOffset: CGVector(dx: 0.7, dy: 0.89))
+      let edgeY = app.frame.minY + app.frame.height * 0.89
+      // Match the production 12pt/50ms scroll step; a fixed hold can scroll past
+      // an empty meal and release in the background instead of on its target.
+      let hold = max(0.05, (target.frame.midY - edgeY) / 240)
+      print("v44 drag target=\(target.frame) handle=\(handle.frame) edge=\(edgeY) hold=\(hold)")
+      handle.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+        .press(forDuration: 0.2, thenDragTo: edge, withVelocity: .slow, thenHoldForDuration: hold)
+    }
+    let deadline = Date().addingTimeInterval(12)
+    var moved: [String: Any]? = nil
+    repeat {
+      moved = try events().last(where: { $0["path"] as? String == "/api/food-entries/bulk-action" })
+      if moved != nil { break }
+      Thread.sleep(forTimeInterval: 0.25)
+    } while Date() < deadline
+    let rows = try XCTUnwrap(moved?["entries"] as? [[String: Any]])
+    let entry = try XCTUnwrap(rows.first)
+    XCTAssertEqual(entry["meal_type_id"] as? String, "b3333333-3333-4333-8333-333333333333")
+    XCTAssertEqual(entry["entry_time"] as? String, "08:30")
+    XCTAssertEqual(entry["quantity"] as? Int, 1)
+    XCTAssertEqual(entry["calories"] as? Int, 600)
+    capture("v44-food-moved", app)
+  }
+
   /// Native layout/navigation gate, using isolated records only; no Health writes.
   func testV43Corrections() throws {
     continueAfterFailure = false

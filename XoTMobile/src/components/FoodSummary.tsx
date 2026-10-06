@@ -34,6 +34,7 @@ interface FoodSummaryProps {
   selectedEntryIds?: ReadonlySet<string>;
   onSelectEntry?: (entry: FoodEntry) => void;
   onDropFood?: (entry: FoodEntry, mealTypeId: string) => void;
+  onDragPosition?: (pageY: number | null) => void;
   onPressMealType?: (
     mealTypeId: string | null,
     mealTypeName: string,
@@ -59,6 +60,7 @@ interface MealSectionProps {
   onSelectEntry?: (entry: FoodEntry) => void;
   onDragStart?: () => void;
   onDragEnd?: (entry: FoodEntry, pageX: number, pageY: number) => void;
+  onDragMove?: (pageX: number, pageY: number) => void;
   registerDropTarget?: (mealTypeId: string, view: View | null) => void;
   draggingFood?: boolean;
   onAddFood?: (mealTypeId: string) => void;
@@ -101,6 +103,7 @@ const MealSection: React.FC<MealSectionProps> = ({
   onSelectEntry,
   onDragStart,
   onDragEnd,
+  onDragMove,
   registerDropTarget,
   draggingFood,
   onAddFood,
@@ -174,11 +177,13 @@ const MealSection: React.FC<MealSectionProps> = ({
 
   return (
     <View
+      testID={`food-drop-meal:${group.mealTypeId ?? group.name}`}
+      collapsable={false}
       ref={(view) => {
         if (group.mealTypeId && onAddFood)
           registerDropTarget?.(group.mealTypeId, view);
       }}
-      className={`bg-surface rounded-2xl p-4 overflow-hidden ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : 'border border-border-subtle'}`}
+      className={`bg-surface rounded-2xl p-4 ${selectionMode ? 'overflow-visible' : 'overflow-hidden'} ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : 'border border-border-subtle'}`}
       style={
         draggingFood && onAddFood
           ? undefined
@@ -229,6 +234,7 @@ const MealSection: React.FC<MealSectionProps> = ({
                 : undefined
             }
             onDragStart={onDragStart}
+            onDragMove={onDragMove}
             onDragEnd={
               !entry.food_entry_meal_id &&
               !entry.meal_plan_template_id &&
@@ -288,10 +294,16 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
   selectedEntryIds,
   onSelectEntry,
   onDropFood,
+  onDragPosition,
   onPressMealType,
 }) => {
   const { t } = useTranslation();
   const [draggingFood, setDraggingFood] = React.useState(false);
+  const [activeDropTarget, setActiveDropTarget] = React.useState<string | null>(
+    null
+  );
+  const hoverGeneration = React.useRef(0);
+  const lastHoverCheck = React.useRef(0);
   const dropTargets = React.useRef(new Map<string, View>());
   const registerDropTarget = React.useCallback(
     (mealTypeId: string, view: View | null) => {
@@ -303,6 +315,9 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
   const handleDragEnd = React.useCallback(
     async (entry: FoodEntry, pageX: number, pageY: number) => {
       setDraggingFood(false);
+      setActiveDropTarget(null);
+      hoverGeneration.current += 1;
+      onDragPosition?.(null);
       if (!onDropFood || !Number.isFinite(pageX) || !Number.isFinite(pageY))
         return;
       const bounds = await Promise.all(
@@ -333,7 +348,26 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
       );
       if (target) onDropFood(entry, target.mealTypeId);
     },
-    [onDropFood]
+    [onDropFood, onDragPosition]
+  );
+  const handleDragMove = React.useCallback(
+    (x: number, y: number) => {
+      onDragPosition?.(y);
+      if (Date.now() - lastHoverCheck.current < 80) return;
+      lastHoverCheck.current = Date.now();
+      const generation = ++hoverGeneration.current;
+      for (const [id, view] of dropTargets.current) {
+        view.measureInWindow?.((left, top, width, height) => {
+          if (generation !== hoverGeneration.current) return;
+          const inside =
+            x >= left && x <= left + width && y >= top && y <= top + height;
+          setActiveDropTarget((current) =>
+            inside ? id : current === id ? null : current
+          );
+        });
+      }
+    },
+    [onDragPosition]
   );
   const entryGroups = groupFoodEntriesByMealType(foodEntries, mealTypes);
   // When logging is available, keep every visible category available even on
@@ -403,10 +437,14 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
             onSelectEntry={
               isFddbImportMeal(group.name) ? undefined : onSelectEntry
             }
-            onDragStart={() => setDraggingFood(true)}
+            onDragStart={() => {
+              setDraggingFood(true);
+              setActiveDropTarget(null);
+            }}
+            onDragMove={handleDragMove}
             onDragEnd={isFddbImportMeal(group.name) ? undefined : handleDragEnd}
             registerDropTarget={registerDropTarget}
-            draggingFood={draggingFood}
+            draggingFood={draggingFood && activeDropTarget === group.mealTypeId}
             onAddFood={
               !isFddbImportMeal(group.name) &&
               mealTypes.some((type) => type.id === group.mealTypeId)

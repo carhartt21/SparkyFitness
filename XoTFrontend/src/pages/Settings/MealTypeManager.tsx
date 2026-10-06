@@ -324,6 +324,7 @@ const MealTypeManager = () => {
                       key={`${item.id}-${item.default_time}`}
                       defaultValue={toHourMinute(item.default_time) || ''}
                       onBlur={async (e) => {
+                        if (!e.currentTarget.reportValidity()) return;
                         const val = e.target.value;
                         if (val !== (toHourMinute(item.default_time) || '')) {
                           await updateMealType({

@@ -50,6 +50,7 @@ export function useDiaryScheduledEntries(
   };
   for (const item of progress.progress?.items ?? []) {
     if (['meal', 'supplement', 'goal'].includes(item.domain)) continue;
+    if (item.domain === 'measurement' && item.state === 'complete') continue;
     if (
       !scheduledDay &&
       !(item.domain === 'habit' || item.domain === 'checkin')
@@ -73,15 +74,19 @@ export function useDiaryScheduledEntries(
             (assignment) => assignment.id === activity.assignment_id
           )
       : undefined;
-    const clock = scheduledDay
-      ? (habit?.reminder_time?.slice(0, 5) ??
-        prescription?.plannedTime?.slice(0, 5))
-      : null;
+    const isRecorded =
+      item.state === 'complete' &&
+      !['workout', 'activity'].includes(item.domain);
+    const clock =
+      scheduledDay && !isRecorded
+        ? (habit?.reminder_time?.slice(0, 5) ??
+          prescription?.plannedTime?.slice(0, 5))
+        : null;
     const label = itemLabel(item);
     const binary = habit?.habit_type === 'completion';
     const timestamp = clock
       ? diaryTimestamp(date, clock, timezone)
-      : item.recorded_at
+      : item.recorded_at && item.domain !== 'measurement'
         ? wellnessTimestamp(date, item.recorded_at, timezone)
         : null;
     entries.push({
@@ -93,12 +98,17 @@ export function useDiaryScheduledEntries(
           ? utcToLocalDateTimeInput(item.recorded_at, timezone).slice(11, 16)
           : null),
       timestamp,
+      section: isRecorded ? 'recorded' : 'planned',
+      icon:
+        item.domain === 'measurement'
+          ? 'scale'
+          : item.domain === 'workout' || item.domain === 'activity'
+            ? 'exercise-running'
+            : item.domain === 'checkin'
+              ? 'daily-checkin'
+              : 'habit',
       collapsible: true,
-      summary: (
-        <Text className="text-sm text-text-secondary">
-          {stateLabels[item.state]}
-        </Text>
-      ),
+      summary: stateLabels[item.state],
       accessory: binary ? (
         <Pressable
           testID={`diary-check-${item.id}`}
@@ -150,15 +160,13 @@ export function useDiaryScheduledEntries(
       const skipped = entry?.status === 'skipped';
       entries.push({
         id: `dose:${dose.schedule.id}`,
+        section: 'planned',
+        icon: 'medication',
         label,
         clock,
         timestamp: diaryTimestamp(date, clock, timezone),
         collapsible: true,
-        summary: (
-          <Text className="text-sm text-text-secondary">
-            {skipped ? stateLabels.excluded : stateLabels.pending}
-          </Text>
-        ),
+        summary: skipped ? stateLabels.excluded : stateLabels.pending,
         accessory: (
           <Pressable
             testID={`diary-check-dose-${dose.schedule.id}`}

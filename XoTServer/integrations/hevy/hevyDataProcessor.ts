@@ -81,6 +81,7 @@ export interface HevyWorkoutImportResult {
   imported: number;
   skipped: number;
   failed: Array<{ id: string; message: string }>;
+  importedDateRange?: { from: string; to: string };
 }
 
 export type HevyRoutineImportResult = HevyWorkoutImportResult;
@@ -244,6 +245,16 @@ async function processHevyWorkouts(
         startTime
       );
       result.imported++;
+      result.importedDateRange = {
+        from:
+          result.importedDateRange && result.importedDateRange.from < entryDate
+            ? result.importedDateRange.from
+            : entryDate,
+        to:
+          result.importedDateRange && result.importedDateRange.to > entryDate
+            ? result.importedDateRange.to
+            : entryDate,
+      };
     } catch (error) {
       result.failed.push({ id: workout.id, message: errorMessage(error) });
       log(

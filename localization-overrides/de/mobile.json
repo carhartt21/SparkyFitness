@@ -359,7 +359,8 @@
       "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihre Mediathek anzuzeigen.",
       "medications": "Medikamente & Ergänzungsmittel"
     },
-    "medications": "Medikamente & Ergänzungsmittel"
+    "medications": "Medikamente & Ergänzungsmittel",
+    "dailyNutritionDetails": "Nährstoffdetails"
   },
   "syncScreen": {
     "syncChoice": {
@@ -543,7 +544,16 @@
       "undoWellness": "{{name}} rückgängig machen",
       "planned": "Geplant · noch nicht erfasst",
       "recordIntake": "{{name}} als eingenommen erfassen",
-      "plannedIntakeHint": "Geplante Einnahme. Erst nach der tatsächlichen Einnahme erfassen."
+      "plannedIntakeHint": "Geplante Einnahme. Erst nach der tatsächlichen Einnahme erfassen.",
+      "recorded": "Erfasst",
+      "plannedSection": "Geplant",
+      "foodCount_one": "{{count}} Lebensmittel",
+      "foodCount_other": "{{count}} Lebensmittel",
+      "withoutPlannedTime": "Ohne feste Uhrzeit",
+      "mealSummary_one": "{{calories}} kcal · {{count}} Lebensmittel",
+      "mealSummary_other": "{{calories}} kcal · {{count}} Lebensmittel",
+      "unknownAmount": "Menge unbekannt",
+      "measurements": "Messungen"
     }
   },
   "privacyPolicy": {
@@ -4752,7 +4762,7 @@
   },
   "coachingLoop": {
     "cloudTitle": "Cloud-Prüfung verbinden",
-    "cloudStep1": "X on Track in ChatGPT über diese MCP-Adresse verbinden und Lesen sowie Vorschläge erlauben.",
+    "cloudStep1": "Die unten angegebene MCP-Adresse für Coaching in ChatGPT hinzufügen und Lesen sowie Vorschläge erlauben. Die Zustimmungsseite muss auswählbare Prüfbereiche anzeigen.",
     "cloudStep2": "Liste aktualisieren und die autorisierte Verbindung auswählen. Sie darf nur die ausgewählten Daten prüfen und keine Änderungen freigeben.",
     "cloudStep3": "Diesen Auftrag zuerst in einem normalen ChatGPT-Chat mit der ausgewählten Verbindung testen. Anschließend eine tägliche Cloud-Aufgabe zur angegebenen Uhrzeit einrichten. Die Verfügbarkeit hängt vom ChatGPT-Konto ab.",
     "copyAddress": "MCP-Adresse kopieren",
@@ -4779,7 +4789,9 @@
     "insightsTitle": "Rückblicke & Empfehlungen",
     "openRecaps": "Rückblicke öffnen",
     "insightsHint": "Daten einordnen, Vorschläge prüfen und angenommene Änderungen nachverfolgen.",
-    "connectionContext": "Zusätzlicher Verbindungskontext"
+    "connectionContext": "Zusätzlicher Verbindungskontext",
+    "noAuthorizedConnection": "Noch keine Coaching-Verbindung autorisiert. Die oben angegebene Coaching-Adresse in ChatGPT hinzufügen und Lesen sowie Vorschläge erlauben. Beim erneuten Verbinden einer älteren Lese-/Schreibverbindung können deren bisherige Berechtigungen erhalten bleiben.",
+    "legacyConsent": "Diese Anfrage enthält keine Berechtigung für Coaching-Vorschläge. Für regelmäßige Prüfungen die unter Empfehlungen angegebene Coaching-MCP-Adresse in ChatGPT hinzufügen."
   },
   "addSheet": {
     "water": "Wasser",
@@ -4788,5 +4800,24 @@
   "waterLog": {
     "offline": "Zum Erfassen von Wasser mit Ihrem Server verbinden.",
     "error": "Trinkdaten konnten nicht geladen werden."
+  },
+  "home": {
+    "pendingWater": "Wasser auf diesem Gerät gespeichert · zum erneuten Synchronisieren tippen"
+  },
+  "hydration": {
+    "title": "Flüssigkeit"
+  },
+  "healthOverview": {
+    "routines": "Gesundheit & Routinen",
+    "noCaffeine": "Für diesen Tag wurde kein Koffein erfasst.",
+    "noRoutines": "Keine Übersichtskarten aktiviert. Die Auswahl lässt sich in den Einstellungen ändern.",
+    "offline": "Eine Serververbindung ist erforderlich, um diese Übersicht zu laden. Fehlende Daten sind nicht null."
+  },
+  "trainingHub": {
+    "title": "Training & Routinen",
+    "history": "Erfasstes Training",
+    "thisWeek": "Diese Woche",
+    "noPlans": "Für diese Woche ist kein Training geplant.",
+    "noRecorded": "Für diesen Tag wurde kein Training erfasst."
   }
 }

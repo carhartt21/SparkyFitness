@@ -12,7 +12,10 @@ import { invalidateExerciseCache } from '../../src/hooks/invalidateExerciseCache
 import { ensureNotificationPermission } from '../../src/services/notifications';
 import { flushActiveWorkoutBeforeClear } from '../../src/hooks/useActiveWorkoutAutosave';
 import { getActiveServerConfig } from '../../src/services/storage';
-import { serverConnectionQueryKey } from '../../src/hooks/queryKeys';
+import {
+  serverConnectionQueryKey,
+  preferencesQueryKey,
+} from '../../src/hooks/queryKeys';
 import { defaultWorkoutName } from '../../src/hooks/useWorkoutForm';
 import { getTodayDate } from '../../src/utils/dateUtils';
 import { buildSingleExerciseStartPayload } from '../../src/utils/workoutSession';
@@ -159,7 +162,12 @@ describe('useStartLiveWorkout', () => {
       name: 'Push Day',
       entry_date: getTodayDate(),
       source: 'sparky',
-      exercises: EXERCISES,
+      exercises: EXERCISES.map((exercise) => ({
+        ...exercise,
+        entry_time: expect.stringMatching(/^\d{2}:\d{2}$/),
+      })),
+      workout_preset_id: undefined,
+      workoutPlanAssignmentId: undefined,
     });
     expect(mockInvalidate).toHaveBeenCalledWith(queryClient, getTodayDate());
     expect(mockEnsurePermission).toHaveBeenCalled();
@@ -170,6 +178,32 @@ describe('useStartLiveWorkout', () => {
     expect(navigation.replace).toHaveBeenCalledWith('ActiveWorkout');
   });
 
+  it('records the account-local day and 24-hour start time across midnight', async () => {
+    jest.useFakeTimers({
+      doNotFake: ['setTimeout', 'setImmediate', 'nextTick'],
+    });
+    jest.setSystemTime(new Date('2026-10-05T23:30:00Z'));
+    try {
+      const { result, queryClient } = setup();
+      queryClient.setQueryData(preferencesQueryKey, {
+        timezone: 'Europe/Berlin',
+      });
+      await act(async () => {
+        await result.current.startLiveWorkout({ exercises: EXERCISES });
+      });
+      expect(mockCreateWorkout).toHaveBeenCalledWith(
+        expect.objectContaining({
+          entry_date: '2026-10-06',
+          exercises: EXERCISES.map((exercise) => ({
+            ...exercise,
+            entry_time: '01:30',
+          })),
+        })
+      );
+    } finally {
+      jest.useRealTimers();
+    }
+  });
   it('strips planned weight/reps/duration from the create payload and seeds them as the store plan', async () => {
     const { result } = setup();
     const plannedExercises = [
