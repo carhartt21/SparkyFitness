@@ -175,6 +175,60 @@ describe.skipIf(!enabled)(
         await claimCoachingRun(owner, agentId, randomUUID(), 2)
       ).toBeNull();
     });
+    it('claims monthly then weekly and daily reviews with saved unbounded nutrient preferences', async () => {
+      await patchCoachingSettingsV2(owner, {
+        expectedRevision: 1,
+        cadences: ['monthly', 'weekly', 'daily'],
+      });
+      await db.query(
+        `INSERT INTO user_nutrient_goal_preferences(user_id,nutrient_key,goal_type,target_min,target_max)
+         VALUES($1,'calories','maximum',NULL,NULL),($1,'protein','minimum',NULL,NULL),($1,'carbs','target',0,265)`,
+        [owner]
+      );
+      const kinds: string[] = [];
+      for (let index = 0; index < 3; index++) {
+        const value = await claim();
+        kinds.push(value.run.kind);
+        const snapshot = await getCoachingSnapshot(
+          owner,
+          agentId,
+          value.snapshotId
+        );
+        const goal = snapshot.rows.find((row) =>
+          row.id.startsWith('goals:nutrition:')
+        );
+        if (value.run.kind === 'monthly') {
+          expect(goal).toBeUndefined();
+        } else {
+          expect(goal?.value).toMatchObject({
+            directions: {
+              calories: { goalType: 'maximum' },
+              protein: { goalType: 'minimum' },
+              carbs: { goalType: 'target', targetMin: 0, targetMax: 265 },
+            },
+          });
+        }
+        await report(value);
+      }
+      expect(kinds).toEqual(['monthly', 'weekly', 'daily']);
+      expect(
+        await claimCoachingRun(owner, agentId, randomUUID(), 2)
+      ).toBeNull();
+      expect((await listCoachingRecaps(owner)).recaps).toHaveLength(3);
+      const preferences = await db.query<{
+        nutrient_key: string;
+        target_min: number | null;
+        target_max: number | null;
+      }>(
+        'SELECT nutrient_key,target_min,target_max FROM user_nutrient_goal_preferences WHERE user_id=$1 ORDER BY nutrient_key',
+        [owner]
+      );
+      expect(preferences.rows).toEqual([
+        { nutrient_key: 'calories', target_min: null, target_max: null },
+        { nutrient_key: 'carbs', target_min: 0, target_max: 265 },
+        { nutrient_key: 'protein', target_min: null, target_max: null },
+      ]);
+    });
     it('does not publish or acknowledge feedback after failure or invalid recap', async () => {
       const value = await claim();
       await expect(

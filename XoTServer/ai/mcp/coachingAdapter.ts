@@ -16,6 +16,7 @@ import {
 } from '../../services/coachingRunService.js';
 import { getCoachingPlanningContext } from '../../services/coachingPlanningService.js';
 import { coachingPlanningQuerySchema } from '../../schemas/coachingSchemas.js';
+import { log } from '../../config/logging.js';
 
 interface CoachingToolResult extends Record<string, unknown> {
   content: Array<{ type: 'text'; text: string }>;
@@ -66,24 +67,44 @@ export function registerCoachingTools(
         },
       },
       async (args) => {
+        let stage: 'authorization' | 'arguments' | 'operation' =
+          'authorization';
         try {
           requireCoachingEnabled();
           await authorize();
-          const result = await work(schema.parse(args));
+          stage = 'arguments';
+          const input = schema.parse(args);
+          stage = 'operation';
+          const result = await work(input);
           return { content: [{ type: 'text', text: JSON.stringify(result) }] };
         } catch (error) {
+          const validationError = error instanceof z.ZodError;
+          if (validationError && stage !== 'arguments')
+            log('error', 'Coaching MCP validation failed.', {
+              tool: name,
+              stage,
+            });
           return {
             isError: true,
             content: [
               {
                 type: 'text',
                 text: JSON.stringify({
-                  error:
-                    error instanceof z.ZodError
+                  error: validationError
+                    ? stage === 'arguments'
                       ? 'Invalid tool arguments.'
-                      : error instanceof Error
-                        ? error.message
-                        : 'Coaching operation failed.',
+                      : 'Coaching operation failed internal validation.'
+                    : error instanceof Error
+                      ? error.message
+                      : 'Coaching operation failed.',
+                  ...(validationError
+                    ? {
+                        code:
+                          stage === 'arguments'
+                            ? 'invalid_arguments'
+                            : 'internal_validation',
+                      }
+                    : {}),
                 }),
               },
             ],
@@ -131,7 +152,7 @@ export function registerCoachingTools(
   if (!canPropose) return;
   register(
     'xot_claim_coaching_run',
-    'Explicitly claim the latest eligible daily/weekly/monthly/yearly/manual review and create its immutable evidence snapshot. Returns null if nothing is due or another agent holds a lease. Stable operationId makes retries safe.',
+    'Explicitly claim the latest eligible daily/weekly/monthly/yearly/manual review and create its immutable evidence snapshot. Pass only operationId (a UUID). Use a fresh UUID for each new claim; reuse it only when retrying that same claim. Returns null if nothing is due or another agent holds a lease.',
     coachingRunClaimSchema,
     false,
     (args) => claimCoachingRun(userId, agentId, args.operationId, version)
