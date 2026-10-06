@@ -12,7 +12,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
-- [Follow-up coaching claim correction](coaching-followup-claim-2026-10-06.md): JSON-safe saved goal preferences, distinct validation errors and monthly/weekly/daily regression checks; production rollout remains separate.
+- [Follow-up coaching claim correction](coaching-followup-claim-2026-10-06.md): JSON-safe saved goal preferences, distinct validation errors, monthly/weekly/daily regression checks and verified API-only production rollout.
 - [v44 release](v44-release-2026-10-05.md): integrated v43 inbox corrections, release validation and guarded parallel TestFlight/production delivery.
 - [v43 inbox corrections](v43-inbox-corrections-2026-10-05.md): serving metadata/default input, collapsed chronological meals, explicit additional supplement intake, Quick Add water/mobility and sync presentation; regression and simulator evidence.
 - [v43 release](v43-release-2026-10-05.md): integrated v42 feedback and calendar coaching, combined checks, additive migration and guarded parallel release.

@@ -43,11 +43,37 @@ remains required; unattended execution is a separate acceptance check.
   no-change recap with saved unbounded direction preferences and a zero-inclusive
   target range. The next claim returned null; original preferences were unchanged.
   Nine unrelated cases in that file were intentionally skipped by the filter.
-- No full backend suite, owner-account claim, new TestFlight build or production
-  deployment was performed for this correction.
+- No full backend suite, owner-account claim or new TestFlight build was performed
+  for this correction.
 
 After deploying the server correction, resume eligible work with a new claim
 operation ID; do not delete the successful monthly recap or recreate its completed
 slot. Obtain the failed tool invocation when available to distinguish this
 data-validation defect from an independently malformed request. Verify an
 authenticated sequential review and then one scheduled unattended review.
+
+
+## Production rollout
+
+The server correction deployed from `22f8f98058cec6cf4858ebd1da94314260c6cf4b`
+at 13:54 UTC on 2026-10-06. A source-layer image uses the exact verified OAuth
+hotfix base (`a38f44a3a`) and copies only the two reviewed TypeScript files. The
+runtime executes TypeScript through the existing `tsx` entrypoint; dependencies,
+shared contracts and runtime image configuration are unchanged. All runtime
+TypeScript hashes were compared before/after, with exactly those two changes.
+The small context retained the backup capacity guard on the space-constrained
+host. Running and rollback images, source archives and backups were retained.
+
+A fresh matched encrypted backup was checksum-verified off-host before switching
+the server. The frontend image, PostgreSQL image, protected environment, private
+routing, mounts, migration ledger, BLS catalogue count and mobility owner policies
+were verified preserved. All services are healthy; public API health and both
+OAuth discovery endpoints return 200. Coaching GET returns 405 and anonymous POST
+returns 401 with the correct read/propose resource challenge. No new owner grant,
+review claim, goal adjustment or scheduled ChatGPT task was performed during
+rollout. Existing completed reviews were not rerun or deleted.
+
+Resume eligible work through the existing authorized coaching connection; this
+server correction needs no new phone build. The authenticated sequential and
+unattended checks remain outstanding. Sanitized deployment facts are in
+[evidence/coaching-claim-2026-10-06/production-verification.json](evidence/coaching-claim-2026-10-06/production-verification.json).
