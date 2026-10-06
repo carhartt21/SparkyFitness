@@ -15,7 +15,7 @@ The VitePress site serves user guides and developer contracts from `src/`. Dated
 
 Keep evergreen guides about supported behavior. Put version/build numbers, deployment outcomes, screenshots and unperformed device checks into dated evidence, not installation instructions. Preserve historical results as historical; an old branch's acceptance verdict is not current release acceptance.
 
-Verify tool names/actions against the endpoint that publishes them. `/mcp` API keys and `/mcp/chatgpt` OAuth have different surfaces. Retained `sparky_` tool names, environment variables, bundle IDs and the `/SparkyFitness/` documentation base path are compatibility identifiers, not permission to use the old display brand.
+Verify tool names/actions against the endpoint that publishes them. `/mcp` API keys, `/mcp/chatgpt` legacy OAuth and `/mcp/coaching` proposal-only protocol-2 OAuth have different surfaces. Retained `sparky_` tool names, environment variables, bundle IDs and the `/SparkyFitness/` documentation base path are compatibility identifiers, not permission to use the old display brand.
 
 Update the navigation in `.vitepress/config.mts` and link new pages from the relevant feature guide. Avoid “coming soon” placeholders where code already implements the feature. Mark real limitations clearly rather than documenting an unmerged branch as shipped. Keep provider/user-entered names literal and private credentials or health records out of examples.
 

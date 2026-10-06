@@ -1,0 +1,89 @@
+{
+  "checkedAtUtc": "2026-10-06T13:54:01.235658+00:00",
+  "sourceCommit": "22f8f98058cec6cf4858ebd1da94314260c6cf4b",
+  "baseImageId": "sha256:c157c339bec2e08c0ca7f7860101b5b72dbc5180e4b63374601d79a3ebaca52c",
+  "runtimeSourceHashesVerified": true,
+  "images": {
+    "frontend": {
+      "reference": "x-on-track-frontend:a38f44a3a",
+      "imageId": "sha256:39a74dfce59d1fbd6ef775097ed9341a36f26dbcb1a67410a34091eefbbf116d",
+      "revision": "a38f44a3a1e0576ac3eda2eaeaf79804bc90a600"
+    },
+    "server": {
+      "reference": "x-on-track-server:22f8f9805",
+      "imageId": "sha256:68554ce9095c634b875e0c7227ace26134141507a8dd1b955466df08179c5e87",
+      "revision": "22f8f98058cec6cf4858ebd1da94314260c6cf4b"
+    },
+    "postgres": {
+      "reference": "postgres:18.3-alpine",
+      "indexDigest": "sha256:54451ecb8ab38c24c3ec123f2fd501303a3a1856a5c66e98cecf2460d5e1e9d7",
+      "linuxAmd64Digest": "sha256:1b13c640ae11f2f165d1e89667e5862b0017baf4c80fec2fb7377d86319859ba"
+    }
+  },
+  "preserved": [
+    "database image",
+    "persistent mounts",
+    "protected settings",
+    "private routing",
+    "existing migration ledger unchanged",
+    "BLS catalogue count",
+    "mobility owner policies"
+  ],
+  "deploymentKind": "API-only immutable base plus two reviewed TypeScript source files",
+  "backupVerifiedOffHost": true,
+  "publicChecks": {
+    "/api/health": {
+      "status": 200
+    },
+    "/.well-known/oauth-protected-resource/mcp/coaching": {
+      "status": 200,
+      "metadata": {
+        "resource": "https://health.ilmtech.de/mcp/coaching",
+        "authorization_servers": [
+          "https://health.ilmtech.de/api/auth"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "scopes_supported": [
+          "mcp:read",
+          "mcp:propose"
+        ]
+      }
+    },
+    "/.well-known/oauth-protected-resource/mcp/chatgpt": {
+      "status": 200,
+      "metadata": {
+        "resource": "https://health.ilmtech.de/mcp/chatgpt",
+        "authorization_servers": [
+          "https://health.ilmtech.de/api/auth"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "dpop_signing_alg_values_supported": [
+          "EdDSA",
+          "ES256",
+          "ES512",
+          "PS256",
+          "RS256"
+        ],
+        "scopes_supported": [
+          "mcp:read",
+          "mcp:write",
+          "mcp:propose"
+        ]
+      }
+    },
+    "/mcp/coaching": {
+      "status": 405
+    },
+    "anonymousCoachingPost": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer resource_metadata=\"https://health.ilmtech.de/.well-known/oauth-protected-resource/mcp/coaching\", scope=\"mcp:read mcp:propose\""
+    }
+  },
+  "authenticatedSequentialReview": "not performed after deployment",
+  "unattendedTask": "not verified",
+  "testFlight": "not required for this server-only correction"
+}

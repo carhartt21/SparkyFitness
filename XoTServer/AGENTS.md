@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-05_
+_Last updated: 2026-10-06_
 
 X on Track Server is the backend API package for the X on Track monorepo. Use this file as the primary guide for work inside `XoTServer/`.
 
@@ -70,6 +70,7 @@ pnpm exec eslint routes/v2/foodRoutes.ts services/foodCoreService.ts
 ## Source Map
 
 - `routes/v2/coachingRoutes.ts`, `ai/mcp/coachingAdapter.ts`, `services/coaching*Service.ts`, and `models/coachingRepository.ts` - owner review, scoped proposals and frozen evidence. `tools/coachingRunner{,Schema,Reads}.ts` owns the external subscription runner and read audit.
+- `routes/coachingMcpRoutes.ts` publishes public discovery and strict protocol-2 OAuth at `/mcp/coaching`, requiring the distinct resource audience, read/propose scopes, live consent and active binding. `routes/chatgptMcpRoutes.ts` retains legacy OAuth compatibility; never fall back to direct-write tools on the coaching address. Endpoint/scope constants are shared in `shared/src/coaching/oauth.ts`.
 - `services/coachingWorkoutEvidence.ts` consumes the same immutable-prescription activity projection as Daily Progress. Started sets are not completion; whole activities require actual saved targets, and optional/skipped/rest or unknown prescriptions do not become missed sessions. Legacy attendance-only snapshots cannot establish a completion outcome.
 - `index.ts` - real dev entrypoint; loads env, secrets, and preflight checks before booting the app
 - `XoTServer.ts` - Express app shell, route mounting, Swagger/ReDoc, cron setup, graceful shutdown

@@ -11,6 +11,7 @@ For practical workflows, start with [MCP-based training](/features/exercises/mcp
 | MCP read-only API key | `/mcp`         | Reviewed query tools only. This key cannot authenticate normal protected REST routes.                                                                   |
 | Full API key          | `/mcp`         | Full registry, including mixed read/write management tools. Use only when the integration needs this access.                                            |
 | Account OAuth         | `/mcp/chatgpt` | Reviewed reads with `mcp:read`; selected food, exercise, water, mobility and notification writes with `mcp:write`. Requires server OAuth configuration. |
+| Reviewed coaching OAuth | `/mcp/coaching` | Protocol-2 coaching only, with `mcp:read mcp:propose`, owner consent and selected review areas. No direct-write tools. |
 
 Both use Streamable HTTP. The server exposes POST endpoints; opening the URL in a browser is not a connection test. Tool names beginning with `sparky_` remain compatibility identifiers. X on Track is the product name; do not rename a tool when configuring a client.
 
