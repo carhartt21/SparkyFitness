@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   cloudCoachingTaskPrompt,
+  COACHING_MCP_PATH,
   type CoachingSettingsV2,
 } from '@workspace/shared';
 import {
@@ -33,7 +34,7 @@ export function CloudSetup({
       timezone,
       i18n.language
     ),
-    endpoint = window.location.origin + '/mcp/chatgpt';
+    endpoint = window.location.origin + COACHING_MCP_PATH;
   const copy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -54,7 +55,7 @@ export function CloudSetup({
           <p>
             {t('coachingLoop.cloudStep1', {
               defaultValue:
-                'In ChatGPT, connect X on Track using this MCP address and allow reading and proposals.',
+                'In ChatGPT, add the proposal-only coaching MCP address below and approve reading and proposals. The consent screen must show selectable review areas.',
             })}
           </p>
           <code className="block break-all rounded-xl border p-3 text-sm">
@@ -81,6 +82,16 @@ export function CloudSetup({
               })}
             </p>
           )}
+          {!query.isPending &&
+            !query.isError &&
+            !query.data?.connections.length && (
+              <p role="status" className="text-sm text-muted-foreground">
+                {t('coachingLoop.noAuthorizedConnection', {
+                  defaultValue:
+                    'No coaching connection is authorized yet. Add the coaching address above in ChatGPT and approve reading and proposals. Reconnecting an older read/write connection may retain its existing permissions.',
+                })}
+              </p>
+            )}
           <Label htmlFor="coaching-cloud-connection">
             {t('coachingLoop.chooseConnection', {
               defaultValue: 'Authorized ChatGPT connection',

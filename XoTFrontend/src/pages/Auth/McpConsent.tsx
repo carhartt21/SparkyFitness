@@ -50,10 +50,10 @@ export default function McpConsent() {
         if (
           data &&
           typeof data === 'object' &&
-          'name' in data &&
-          typeof data.name === 'string'
+          'client_name' in data &&
+          typeof data.client_name === 'string'
         ) {
-          setClientName(data.name);
+          setClientName(data.client_name);
         }
       })
       .catch(() => undefined);
@@ -119,6 +119,14 @@ export default function McpConsent() {
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2 text-sm">
+            {!scopes.includes('mcp:propose') && (
+              <p role="status" className="text-muted-foreground">
+                {t('coachingLoop.legacyConsent', {
+                  defaultValue:
+                    'This request does not include coaching proposals. To set up reviews, add the coaching MCP address shown in Recommendations in ChatGPT.',
+                })}
+              </p>
+            )}
             {scopes.includes('mcp:propose') && (
               <fieldset className="space-y-3">
                 <legend>
@@ -148,7 +156,7 @@ export default function McpConsent() {
                 ))}
               </fieldset>
             )}
-            {scopes.includes('mcp:read') && (
+            {scopes.includes('mcp:read') && !scopes.includes('mcp:propose') && (
               <p>
                 {de
                   ? 'Lebensmittel-, Trainings- und Benachrichtigungsdaten lesen.'
