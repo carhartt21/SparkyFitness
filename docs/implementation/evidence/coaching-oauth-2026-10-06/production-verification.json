@@ -1,0 +1,109 @@
+{
+  "checkedAtUtc": "2026-10-06T12:33:52.233184+00:00",
+  "sourceCommit": "a38f44a3a1e0576ac3eda2eaeaf79804bc90a600",
+  "images": {
+    "frontend": {
+      "reference": "x-on-track-frontend:a38f44a3a",
+      "imageId": "sha256:39a74dfce59d1fbd6ef775097ed9341a36f26dbcb1a67410a34091eefbbf116d",
+      "revision": "a38f44a3a1e0576ac3eda2eaeaf79804bc90a600"
+    },
+    "server": {
+      "reference": "x-on-track-server:a38f44a3a",
+      "imageId": "sha256:c157c339bec2e08c0ca7f7860101b5b72dbc5180e4b63374601d79a3ebaca52c",
+      "revision": "a38f44a3a1e0576ac3eda2eaeaf79804bc90a600"
+    },
+    "postgres": {
+      "reference": "postgres:18.3-alpine",
+      "indexDigest": "sha256:54451ecb8ab38c24c3ec123f2fd501303a3a1856a5c66e98cecf2460d5e1e9d7",
+      "linuxAmd64Digest": "sha256:1b13c640ae11f2f165d1e89667e5862b0017baf4c80fec2fb7377d86319859ba"
+    }
+  },
+  "publicSmokePassed": true,
+  "preserved": [
+    "database image",
+    "persistent mounts",
+    "protected settings",
+    "private routing",
+    "existing migration ledger unchanged",
+    "BLS catalogue count",
+    "mobility owner policies"
+  ],
+  "backupVerifiedOffHost": true,
+  "publicCoachingChecks": {
+    "/.well-known/oauth-protected-resource/mcp/coaching": {
+      "status": 200,
+      "metadata": {
+        "resource": "https://health.ilmtech.de/mcp/coaching",
+        "authorization_servers": [
+          "https://health.ilmtech.de/api/auth"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "scopes_supported": [
+          "mcp:read",
+          "mcp:propose"
+        ]
+      }
+    },
+    "/.well-known/oauth-protected-resource/mcp/chatgpt": {
+      "status": 200,
+      "metadata": {
+        "resource": "https://health.ilmtech.de/mcp/chatgpt",
+        "authorization_servers": [
+          "https://health.ilmtech.de/api/auth"
+        ],
+        "bearer_methods_supported": [
+          "header"
+        ],
+        "dpop_signing_alg_values_supported": [
+          "EdDSA",
+          "ES256",
+          "ES512",
+          "PS256",
+          "RS256"
+        ],
+        "scopes_supported": [
+          "mcp:read",
+          "mcp:write",
+          "mcp:propose"
+        ]
+      }
+    },
+    "/api/health": {
+      "status": 200
+    },
+    "/mcp/coaching": {
+      "status": 405
+    },
+    "anonymousCoachingPost": {
+      "status": 401,
+      "wwwAuthenticate": "Bearer resource_metadata=\"https://health.ilmtech.de/.well-known/oauth-protected-resource/mcp/coaching\", scope=\"mcp:read mcp:propose\""
+    },
+    "web": {
+      "publicAppAssetReferencesMatchImage": true,
+      "publicEntryScriptMatchesImage": true,
+      "entryScript": "/assets/index-B6gFiGlp.js",
+      "entryScriptSha256": "58b2bf247aa228c8bdf4f883ba6690cd79124ce313e6268a8002524843a9646e",
+      "note": "The public gateway adds HTML markup; origin HTML matches the image exactly."
+    },
+    "registeredResource": {
+      "resourceExists": true,
+      "allowedScopes": [
+        [
+          "openid",
+          "profile",
+          "offline_access",
+          "mcp:read",
+          "mcp:propose"
+        ]
+      ],
+      "disabled": [
+        false
+      ]
+    }
+  },
+  "ownerOAuthRoundTrip": "not performed",
+  "unattendedTask": "not verified",
+  "testFlight": "not published for this correction"
+}

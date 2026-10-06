@@ -31,3 +31,19 @@ An isolated PostgreSQL-backed sample booted normally and registered a synthetic 
 Add the new coaching address as a new ChatGPT connection, approve read/proposal access and selected review areas, then refresh Recommendations and choose that connection. Older dynamically registered clients may need fresh registration for the additional resource; current metadata-based client registrations receive the resource through the provider's normal refresh/registration flow. Do not modify consent directly to simulate approval.
 
 Verify that the selected connection lists the six protocol-2 tools, completes one manual review with a recap, and then completes an unattended run before treating a cloud schedule as operational. No owner production review, scheduled ChatGPT task, physical-device test or new TestFlight publication was performed for this correction.
+
+## Production rollout
+
+The focused server/web hotfix deployed from `a38f44a3a1e0576ac3eda2eaeaf79804bc90a600` at 12:33 UTC on 2026-10-06. The reviewed branch is `fix/coaching-oauth-bootstrap-20261006`; its phone setup change awaits the next mobile release.
+
+A fresh matched encrypted backup was checksum-verified off-host before the image switch. Disk-capacity gates stopped the initial attempts before changing app images. Only unused build cache and reproducible extracted build sources were removed; the source archive, running/rollback images and backups were retained. Protected environment, private routing, persistent mounts, PostgreSQL image, migration ledger, BLS count and mobility owner policies were verified unchanged. The existing coaching flag remains enabled.
+
+Public HTTPS checks verified:
+
+- New protected-resource discovery returns 200 with only `mcp:read mcp:propose`, the correct audience and auth issuer.
+- Anonymous coaching POST returns 401 with the new resource metadata URL and required scopes; GET returns 405 with `Allow: POST`.
+- Legacy discovery and public API health return 200. Origin legacy MCP authentication checks passed.
+- Public app asset references and entry-script bytes match the built image. The public gateway adds HTML markup; origin HTML matches the image exactly.
+- A read-only registry query confirms the new OAuth resource is enabled and allows OpenID/session scopes plus read/propose, without direct-write scope. No account consent was edited.
+
+The Notion operational setup guide was corrected to the new address. Public endpoint checks are not evidence of an owner-authenticated review or a working unattended task. See `evidence/coaching-oauth-2026-10-06/production-verification.json` for sanitized deployment facts.
