@@ -1,0 +1,37 @@
+{
+  "sourceScope": "Five merged phone refinement and deferred completion commits through e2a46b675; release preparation documentation follows",
+  "frozenOfflineInstall": "passed",
+  "repositoryLayout": "passed",
+  "mobileValidate": "passed",
+  "mobileTests": {
+    "suites": 572,
+    "tests": 7907,
+    "status": "passed"
+  },
+  "webValidate": "passed",
+  "webProductionBuild": "passed",
+  "webTests": {
+    "suites": 178,
+    "tests": 1510,
+    "status": "passed"
+  },
+  "serverValidate": "passed",
+  "serverFocusedTests": {
+    "files": 14,
+    "tests": 239,
+    "status": "passed",
+    "scope": [
+      "mobility MCP argument compatibility and actionable errors",
+      "MCP/router/tool regressions",
+      "Hevy CSV ingestion",
+      "imported workout clocks",
+      "Health data handlers and telemetry derivation"
+    ]
+  },
+  "fullBackendSuite": "skipped at owner request",
+  "reviewedGermanOverlays": "passed in phone/web validation",
+  "docsBuild": "passed",
+  "sourceMigrationsAdded": 0,
+  "nativeAndVisualEvidence": "Prior feature iOS simulator build, phone dark/light/enlarged captures, Watch compile and 19 native assertions reused; the release cloud archive remains to be verified",
+  "physicalDeviceAcceptance": "not performed; three existing Todoist acceptance tasks remain open"
+}

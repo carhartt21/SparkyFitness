@@ -4,6 +4,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current user guides and runbooks
 
+- [v46 release](v46-release-2026-10-07.md): merged phone refinement and deferred completion, release checks and parallel delivery evidence.
 - [Deferred task completion](deferred-tasks-completion-2026-10-07.md): Todoist reconciliation, Watch ordering, mobility assistant argument/error fixes, supplement timing guide and remaining acceptance gates.
 
 - [Compact Home intake progress](intake-card-progress-2026-10-07.md): macro and water rails around the unchanged-size gauge, smaller allowance typography, intake-only threshold glow and simulator evidence.
