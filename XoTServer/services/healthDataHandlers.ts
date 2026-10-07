@@ -29,6 +29,7 @@ import {
 } from './workoutTelemetryDerivation.js';
 import { upsertSamplesByDay } from './healthMetricSampleWriter.js';
 import { loadUserTimezone } from '../utils/timezoneLoader.js';
+import { importedWorkoutClock } from '@workspace/shared';
 import * as genericHealthRepository from '../models/genericHealthRepository.js';
 import {
   BUILT_IN_MOODS,
@@ -1767,6 +1768,10 @@ const workoutHandler: HealthTypeHandler = {
           duration_minutes: duration ? duration / 60 : 0,
           calories_burned: caloriesBurned,
           entry_date: ctx.parsedDate,
+          entry_time: importedWorkoutClock(
+            entry,
+            await loadUserTimezone(ctx.userId)
+          ),
           notes: `Source: ${source}, Activity Type: ${activityType}`,
           distance: distance,
           sets, // Pass sets if present for mobile workout sync

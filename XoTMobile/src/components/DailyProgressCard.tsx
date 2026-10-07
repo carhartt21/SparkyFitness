@@ -84,6 +84,7 @@ export default function DailyProgressCard({
         completed: progress.completed,
         applicable: progress.applicable,
       })}
+      compactHeader
       renderVisual={({ size, light }) => (
         <>
           <ProgressTrackX

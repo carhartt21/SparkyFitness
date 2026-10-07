@@ -1,7 +1,7 @@
 import { isFddbImportMeal, shouldShowDiaryMeal } from '@workspace/shared';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text, Pressable, useWindowDimensions } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import type { FoodEntry } from '../types/foodEntries';
 import type { DailyGoals } from '../types/goals';
@@ -23,6 +23,10 @@ import {
 } from '../utils/mealNutrition';
 
 interface FoodSummaryProps {
+  groups?: MealGroup[];
+  collapsible?: boolean;
+  focusedMealTypeId?: string;
+  onSavePreset?: (entries: FoodEntry[], label: string) => void;
   foodEntries: FoodEntry[];
   capturePhotos?: Record<string, CapturePhotoRef>;
   mealTypes: MealType[];
@@ -50,6 +54,9 @@ interface FoodSummaryProps {
 }
 
 interface MealSectionProps {
+  collapsible?: boolean;
+  initiallyExpanded?: boolean;
+  onSavePreset?: (entries: FoodEntry[], label: string) => void;
   group: MealGroup;
   capturePhotos?: Record<string, CapturePhotoRef>;
   goals?: DailyGoals;
@@ -93,6 +100,9 @@ const EmptyState: React.FC<{ onAddFood?: () => void }> = ({ onAddFood }) => {
 };
 
 const MealSection: React.FC<MealSectionProps> = ({
+  collapsible,
+  initiallyExpanded,
+  onSavePreset,
   group,
   capturePhotos,
   goals,
@@ -113,7 +123,12 @@ const MealSection: React.FC<MealSectionProps> = ({
   mealStatusBusy,
 }) => {
   const { t } = useTranslation();
+  const [expandedByUser, setExpanded] = React.useState(
+    initiallyExpanded ?? false
+  );
+  const expanded = !collapsible || selectionMode || expandedByUser;
   const glowing = useGlowTheme();
+  const expandedText = useWindowDimensions().fontScale > 1.3;
   const [accentPrimary, breakfastColor, lunchColor, dinnerColor, snackColor] =
     useCSSVariable([
       '--color-accent-primary',
@@ -152,25 +167,45 @@ const MealSection: React.FC<MealSectionProps> = ({
     return Math.round((calorieGoal * percentage) / 100);
   }, [group.isSystem, group.name, goals, calorieGoal]);
 
+  const neutral = useCSSVariable('--color-card-glow') as string;
+  const calorieLabel =
+    totalCalories > 0 || targetCalories > 0 ? (
+      <Text className="text-sm text-text-primary font-semibold">
+        {totalCalories}
+        {targetCalories > 0 ? (
+          <Text className="text-text-muted font-normal">{` / ${targetCalories}`}</Text>
+        ) : null}{' '}
+        {t('foodSummary.caloriesUnit', { defaultValue: 'Cal' })}
+      </Text>
+    ) : null;
   const headerContent = (
     <>
       <Icon name={icon} size={20} color={iconColor} />
-      <Text className="text-base font-bold text-text-primary flex-1">
-        {label}
-      </Text>
-      {(totalCalories > 0 || targetCalories > 0) && (
-        <Text className="text-sm text-text-primary font-semibold">
-          {totalCalories}
-          {targetCalories > 0 ? (
-            <Text className="text-text-muted font-normal">
-              {` / ${targetCalories}`}
-            </Text>
-          ) : null}{' '}
-          {t('foodSummary.caloriesUnit', { defaultValue: 'Cal' })}
-        </Text>
+      {expandedText ? (
+        <View className="min-w-0 flex-1 gap-1">
+          <Text className="text-base font-bold text-text-primary">{label}</Text>
+          {calorieLabel}
+        </View>
+      ) : (
+        <>
+          <Text className="text-base font-bold text-text-primary flex-1">
+            {label}
+          </Text>
+          {calorieLabel}
+        </>
       )}
-      {onPressMealType && (
-        <Icon name="chevron-forward" size={14} color={accentPrimary} />
+      {(onPressMealType || collapsible) && (
+        <Icon
+          name={
+            collapsible
+              ? expanded
+                ? 'chevron-up'
+                : 'chevron-down'
+              : 'chevron-forward'
+          }
+          size={14}
+          color={accentPrimary}
+        />
       )}
     </>
   );
@@ -187,99 +222,148 @@ const MealSection: React.FC<MealSectionProps> = ({
       style={
         draggingFood && onAddFood
           ? undefined
-          : glowSurfaceStyle(iconColor, glowing, 'soft')
+          : glowSurfaceStyle(neutral, glowing, 'soft')
       }
     >
-      {onPressMealType ? (
-        <Pressable
-          onPress={() =>
-            onPressMealType(group.mealTypeId, group.name, group.entries)
-          }
-          className="flex-row gap-2 mb-3 items-center"
-          accessibilityRole="button"
-          accessibilityLabel={t('foodSummary.nutritionBreakdown', {
-            defaultValue: '{{label}} nutrition breakdown',
-            label,
-          })}
-        >
-          {headerContent}
-        </Pressable>
-      ) : (
-        <View className="flex-row gap-2 mb-3 items-center">
-          {headerContent}
-        </View>
-      )}
-      {group.entries.map((entry, index) => {
-        const nutrition = calculateEntryNutrition(entry);
-        return (
-          <SwipeableFoodRow
-            key={entry.id || index}
-            entry={entry}
-            capturePhoto={
-              entry.nutrition_capture_id
-                ? capturePhotos?.[entry.nutrition_capture_id]
-                : undefined
+      <View className="flex-row items-center gap-2">
+        {onPressMealType || collapsible ? (
+          <Pressable
+            onPress={() =>
+              collapsible
+                ? setExpanded(!expandedByUser)
+                : onPressMealType?.(group.mealTypeId, group.name, group.entries)
             }
-            nutrition={nutrition}
-            onAdjustServing={onAdjustServing}
-            selectionMode={selectionMode}
-            selected={selectedEntryIds?.has(entry.id)}
-            onSelect={
-              !entry.food_entry_meal_id &&
-              !entry.meal_plan_template_id &&
-              !entry.nutrition_capture_id &&
-              (!entry.source || entry.source === 'manual') &&
-              !entry.isPendingNutrition
-                ? onSelectEntry
-                : undefined
-            }
-            onDragStart={onDragStart}
-            onDragMove={onDragMove}
-            onDragEnd={
-              !entry.food_entry_meal_id &&
-              !entry.meal_plan_template_id &&
-              !entry.nutrition_capture_id &&
-              (!entry.source || entry.source === 'manual') &&
-              !entry.isPendingNutrition
-                ? onDragEnd
-                : undefined
-            }
+            className="min-h-11 min-w-0 flex-1 flex-row gap-2 items-center"
+            accessibilityRole="button"
+            testID={`daily-meal-group-${group.mealTypeId ?? group.name}`}
+            accessibilityState={collapsible ? { expanded } : undefined}
+            accessibilityLabel={t('foodSummary.nutritionBreakdown', {
+              defaultValue: '{{label}} nutrition breakdown',
+              label,
+            })}
+          >
+            {headerContent}
+          </Pressable>
+        ) : (
+          <View className="flex-row gap-2 mb-3 items-center">
+            {headerContent}
+          </View>
+        )}
+        {collapsible && mealState && onSetMealStatus ? (
+          <MealStatusControl
+            mealLabel={label}
+            state={mealState}
+            onChange={onSetMealStatus}
+            busy={mealStatusBusy}
           />
-        );
-      })}
-      {(onAddFood && group.mealTypeId) || (mealState && onSetMealStatus) ? (
-        <View className="mt-3 flex-row items-center gap-2">
-          {onAddFood && group.mealTypeId ? (
+        ) : null}
+      </View>
+      {expanded && (
+        <>
+          {group.entries.map((entry, index) => {
+            const nutrition = calculateEntryNutrition(entry);
+            return (
+              <SwipeableFoodRow
+                key={entry.id || index}
+                entry={entry}
+                capturePhoto={
+                  entry.nutrition_capture_id
+                    ? capturePhotos?.[entry.nutrition_capture_id]
+                    : undefined
+                }
+                nutrition={nutrition}
+                onAdjustServing={onAdjustServing}
+                selectionMode={selectionMode}
+                selected={selectedEntryIds?.has(entry.id)}
+                onSelect={
+                  !entry.food_entry_meal_id &&
+                  !entry.meal_plan_template_id &&
+                  !entry.nutrition_capture_id &&
+                  (!entry.source || entry.source === 'manual') &&
+                  !entry.isPendingNutrition
+                    ? onSelectEntry
+                    : undefined
+                }
+                onDragStart={onDragStart}
+                onDragMove={onDragMove}
+                onDragEnd={
+                  !entry.food_entry_meal_id &&
+                  !entry.meal_plan_template_id &&
+                  !entry.nutrition_capture_id &&
+                  (!entry.source || entry.source === 'manual') &&
+                  !entry.isPendingNutrition
+                    ? onDragEnd
+                    : undefined
+                }
+              />
+            );
+          })}
+          {(onAddFood && group.mealTypeId) || (mealState && onSetMealStatus) ? (
+            <View className="mt-3 flex-row items-center gap-2">
+              {onAddFood && group.mealTypeId ? (
+                <Pressable
+                  onPress={() => onAddFood(group.mealTypeId!)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('foodSummary.addFoodToMeal', {
+                    defaultValue: 'Add food to {{meal}}',
+                    meal: label,
+                  })}
+                  className="min-h-11 min-w-0 flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised px-2 py-2 active:opacity-70"
+                >
+                  <Icon name="add" size={18} color={accentPrimary} />
+                  <Text className="shrink text-center text-sm font-semibold text-text-primary">
+                    {t('foodSummary.addFood', { defaultValue: 'Add food' })}
+                  </Text>
+                </Pressable>
+              ) : null}
+              {!collapsible && mealState && onSetMealStatus ? (
+                <MealStatusControl
+                  mealLabel={label}
+                  state={mealState}
+                  onChange={onSetMealStatus}
+                  busy={mealStatusBusy}
+                />
+              ) : null}
+            </View>
+          ) : null}
+          {collapsible && onPressMealType && (
             <Pressable
-              onPress={() => onAddFood(group.mealTypeId!)}
+              onPress={() =>
+                onPressMealType(group.mealTypeId, group.name, group.entries)
+              }
               accessibilityRole="button"
-              accessibilityLabel={t('foodSummary.addFoodToMeal', {
-                defaultValue: 'Add food to {{meal}}',
-                meal: label,
-              })}
-              className="min-h-11 min-w-0 flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised px-2 py-2 active:opacity-70"
+              className="min-h-11 justify-center"
             >
-              <Icon name="add" size={18} color={accentPrimary} />
-              <Text className="shrink text-center text-sm font-semibold text-text-primary">
-                {t('foodSummary.addFood', { defaultValue: 'Add food' })}
+              <Text className="text-sm font-semibold text-text-link">
+                {t('dailyMeals.details', { defaultValue: 'Meal details' })}
               </Text>
             </Pressable>
-          ) : null}
-          {mealState && onSetMealStatus ? (
-            <MealStatusControl
-              mealLabel={label}
-              state={mealState}
-              onChange={onSetMealStatus}
-              busy={mealStatusBusy}
-            />
-          ) : null}
-        </View>
-      ) : null}
+          )}
+          {onSavePreset && group.entries.length > 0 && (
+            <Pressable
+              onPress={() => onSavePreset(group.entries, label)}
+              accessibilityRole="button"
+              className="min-h-11 flex-row items-center gap-2 border-t border-border-subtle"
+            >
+              <Icon name="bookmark" size={18} color={accentPrimary} />
+              <Text className="flex-1 text-sm font-semibold text-text-primary">
+                {t('dailyMeals.savePreset', {
+                  defaultValue: 'Save as template',
+                })}
+              </Text>
+            </Pressable>
+          )}
+        </>
+      )}
     </View>
   );
 };
 
 const FoodSummary: React.FC<FoodSummaryProps> = ({
+  groups: providedGroups,
+  collapsible,
+  focusedMealTypeId,
+  onSavePreset,
   foodEntries,
   capturePhotos,
   mealStates,
@@ -372,33 +456,35 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
   const entryGroups = groupFoodEntriesByMealType(foodEntries, mealTypes);
   // When logging is available, keep every visible category available even on
   // an empty day. Historical entries remain visible in their own groups.
-  const groups = onAddFood
-    ? [
-        ...mealTypes
-          .filter(
-            (type) =>
-              type.purpose !== 'import' ||
-              entryGroups.some(
-                (group) =>
-                  group.mealTypeId === type.id && group.entries.length > 0
-              )
-          )
-          .map(
-            (type) =>
-              entryGroups.find((group) => group.mealTypeId === type.id) ?? {
-                mealTypeId: type.id,
-                name: type.name,
-                sortOrder: type.sort_order ?? 999,
-                entries: [],
-                isSystem: type.user_id === null,
-                displayName: type.display_name,
-              }
+  const groups =
+    providedGroups ??
+    (onAddFood
+      ? [
+          ...mealTypes
+            .filter(
+              (type) =>
+                type.purpose !== 'import' ||
+                entryGroups.some(
+                  (group) =>
+                    group.mealTypeId === type.id && group.entries.length > 0
+                )
+            )
+            .map(
+              (type) =>
+                entryGroups.find((group) => group.mealTypeId === type.id) ?? {
+                  mealTypeId: type.id,
+                  name: type.name,
+                  sortOrder: type.sort_order ?? 999,
+                  entries: [],
+                  isSystem: type.user_id === null,
+                  displayName: type.display_name,
+                }
+            ),
+          ...entryGroups.filter(
+            (group) => !mealTypes.some((type) => type.id === group.mealTypeId)
           ),
-        ...entryGroups.filter(
-          (group) => !mealTypes.some((type) => type.id === group.mealTypeId)
-        ),
-      ]
-    : entryGroups;
+        ]
+      : entryGroups);
 
   if (groups.length === 0) {
     return <EmptyState onAddFood={onAddFood} />;
@@ -424,6 +510,11 @@ const FoodSummary: React.FC<FoodSummaryProps> = ({
               group.mealTypeId
                 ? `meal:${group.mealTypeId}`
                 : `historical:${group.name.toLowerCase()}`
+            }
+            collapsible={collapsible}
+            initiallyExpanded={focusedMealTypeId === group.mealTypeId}
+            onSavePreset={
+              isFddbImportMeal(group.name) ? undefined : onSavePreset
             }
             group={group}
             capturePhotos={capturePhotos}

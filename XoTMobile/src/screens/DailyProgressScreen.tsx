@@ -1,3 +1,4 @@
+import ProgressItemAction from '../components/tracking/ProgressItemAction';
 import {
   nutritionGoalLabel,
   progressDomainLabel,
@@ -30,8 +31,6 @@ import {
   PROGRESS_DOMAIN_ORDER,
 } from '../hooks/useProgressActions';
 import { useServerConnection } from '../hooks';
-import { usePreferences } from '../hooks/usePreferences';
-import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import { formatLocalizedNumber, useAppLocale } from '../localization';
 import { formatDate, getTodayDate } from '../utils/dateUtils';
 import { useActivityPlanning } from '../hooks/useActivityPlanning';
@@ -58,8 +57,6 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   const celebratedDays = useRef(new Set<string>());
   const [completionProgress, setCompletionProgress] = useState(100);
   const [completionVisible, setCompletionVisible] = useState(false);
-  const [hydrationVisible, setHydrationVisible] = useState(false);
-  const { preferences } = usePreferences();
   const [reducedMotion, setReducedMotion] = useState(false);
   useEffect(() => {
     void AccessibilityInfo.isReduceMotionEnabled().then(setReducedMotion);
@@ -169,7 +166,7 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
   };
 
   const { itemLabel, openItem } = useProgressActions(date, () =>
-    setHydrationVisible(true)
+    navigation.navigate('WaterLog', { date })
   );
 
   const stage = progressionStage(progress?.percent ?? null);
@@ -340,6 +337,14 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                   const undo = occurrence?.state === 'excluded';
                   return (
                     <View key={item.id} className="flex-row items-center">
+                      <ProgressItemAction
+                        item={item}
+                        date={date}
+                        label={itemLabel(item)}
+                        icon={style.icon}
+                        color={style.color}
+                        onOpen={() => openItem(item)}
+                      />
                       <Pressable
                         accessibilityRole="button"
                         className="min-h-12 flex-1 flex-row items-center gap-3 py-2 active:opacity-70"
@@ -352,7 +357,6 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                         accessibilityLabel={`${itemLabel(item)}: ${style.label}`}
                         testID={`daily-progress-item-${item.id}`}
                       >
-                        <Icon name={style.icon} size={22} color={style.color} />
                         <View className="flex-1">
                           <Text className="text-base text-text-primary">
                             {itemLabel(item)}
@@ -435,16 +439,7 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
           />
         </>
       )}
-      <HydrationDetailsModal
-        visible={hydrationVisible}
-        date={date}
-        unit={preferences?.water_display_unit ?? 'ml'}
-        onClose={() => setHydrationVisible(false)}
-        onConfigure={() => {
-          setHydrationVisible(false);
-          navigation.navigate('WaterContainers');
-        }}
-      />
+
       <Modal
         visible={completionVisible}
         transparent

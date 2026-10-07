@@ -89,7 +89,7 @@ it('retains distinct historical meal IDs and reconciles meal calories without do
   expect(screen.getByText(/day may be incomplete/)).toBeTruthy();
 });
 
-it('shows over-target values without describing them as remaining allowance', () => {
+it('shows actual intake and target even when intake exceeds the target', () => {
   const screen = render(
     <CalorieRingCard
       caloriesConsumed={2300}
@@ -100,8 +100,8 @@ it('shows over-target values without describing them as remaining allowance', ()
       progressPercent={1.15}
     />
   );
-  expect(screen.getByText('300')).toBeTruthy();
-  expect(screen.getByText('over target')).toBeTruthy();
+  expect(screen.getByText('2,300 kcal')).toBeTruthy();
+  expect(screen.getByText('of 2,000 kcal')).toBeTruthy();
   expect(screen.queryByText('remaining')).toBeNull();
 });
 
@@ -116,7 +116,8 @@ it('does not invent a remaining allowance when no target is configured', () => {
       progressPercent={0}
     />
   );
-  expect(screen.getByText('—')).toBeTruthy();
+  expect(screen.getByText('600 kcal')).toBeTruthy();
+  expect(screen.getByText('No daily calorie target set')).toBeTruthy();
   expect(screen.queryByText('remaining')).toBeNull();
   expect(screen.queryByText('over target')).toBeNull();
 });

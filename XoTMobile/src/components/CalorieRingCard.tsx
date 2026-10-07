@@ -1,64 +1,10 @@
-import React from 'react';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import EnergyGauge from './EnergyGauge';
-import type { IconName } from './Icon';
-import DashboardSummaryCard, {
-  DashboardSummaryRow,
-} from './ui/DashboardSummaryCard';
+import GlowCard from './ui/GlowCard';
+import Icon from './Icon';
 import { formatLocalizedNumber } from '../localization';
-
-interface StatRowProps {
-  icon: IconName;
-  color: string;
-  label: string;
-  value: number | null;
-  unit: string;
-  onPress?: () => void;
-  testID?: string;
-  last?: boolean;
-}
-
-const StatRow: React.FC<StatRowProps> = ({
-  icon,
-  color,
-  label,
-  value,
-  unit,
-  onPress,
-  testID,
-  last,
-}) => {
-  const shown = value == null ? '—' : formatLocalizedNumber(Math.round(value));
-  return (
-    <DashboardSummaryRow
-      icon={icon}
-      color={color}
-      onPress={onPress}
-      testID={testID}
-      last={last}
-      changeKey={value}
-      accessibilityLabel={`${label}: ${shown} ${value == null ? '' : unit}`.trim()}
-    >
-      <Text className="text-xs text-text-secondary" maxFontSizeMultiplier={1.8}>
-        {label}
-      </Text>
-      <Text
-        className="text-lg leading-tight font-bold text-text-primary"
-        maxFontSizeMultiplier={1.6}
-      >
-        {shown}
-        {value == null ? null : (
-          <Text className="text-xs font-medium text-text-secondary">
-            {' '}
-            {unit}
-          </Text>
-        )}
-      </Text>
-    </DashboardSummaryRow>
-  );
-};
 
 interface CalorieRingCardProps {
   caloriesConsumed: number;
@@ -72,159 +18,122 @@ interface CalorieRingCardProps {
   onBurnedPress?: () => void;
 }
 
-/**
- * The reference's Calories card: a 270° energy gauge with the remaining
- * balance, and consumed / burned / goal rows that open their real details.
- */
-const CalorieRingCard: React.FC<CalorieRingCardProps> = ({
+export default function CalorieRingCard({
   caloriesConsumed,
-  caloriesBurned,
-  burnedIncludesBmr,
   calorieGoal,
   remainingCalories,
   progressPercent,
   onEditGoal,
   onConsumedPress,
-  onBurnedPress,
-}) => {
+}: CalorieRingCardProps) {
   const { t } = useTranslation();
-  const [food, burn, neutral] = useCSSVariable([
+  const expandedText = useWindowDimensions().fontScale > 1.3;
+  const gaugeSize = 130;
+  const [neutral, track, food] = useCSSVariable([
+    '--color-card-glow',
+    '--color-border-subtle',
     '--color-action-food',
-    '--color-neon-green',
-    '--color-text-secondary',
   ]) as string[];
-
-  const hasGoal = calorieGoal > 0;
-  const isOverTarget = hasGoal && remainingCalories < 0;
-  const centerValue = hasGoal
-    ? Math.abs(Math.round(remainingCalories))
-    : Math.round(caloriesConsumed);
-  // This is the server balance's effective adjustment, which can differ from
-  // total energy burned when only part of exercise is credited to the budget.
-  const balanceAdjustment = hasGoal
-    ? Math.round(remainingCalories - (calorieGoal - caloriesConsumed))
-    : 0;
-  const kcal = t('dashboard.kcal', { defaultValue: 'kcal' });
-  const centerStatus = hasGoal
-    ? isOverTarget
-      ? t('dashboard.overTarget', { defaultValue: 'over target' })
-      : t('dashboard.remaining', { defaultValue: 'remaining' })
-    : t('dashboard.consumed', { defaultValue: 'Consumed' });
-
+  const hasGoal = Number.isFinite(calorieGoal) && calorieGoal > 0;
+  // The allowance includes exactly the adjustment already applied by the server.
+  const effectiveGoal = hasGoal ? remainingCalories + caloriesConsumed : null;
+  const intake = `${formatLocalizedNumber(Math.round(caloriesConsumed))} kcal`;
+  const goal =
+    effectiveGoal === null
+      ? t('dashboard.noCalorieGoal', {
+          defaultValue: 'No daily calorie target set',
+        })
+      : t('dashboard.intakeGoal', {
+          defaultValue: 'of {{value}} kcal',
+          value: formatLocalizedNumber(Math.round(effectiveGoal)),
+        });
+  const amount = `${intake}, ${goal}`;
   return (
-    <DashboardSummaryCard
+    <GlowCard
       testID="dashboard-energy"
-      headingIcon="flame"
-      title={t('dashboard.calories', { defaultValue: 'Calories' })}
-      accessibilityLabel={t('dashboard.dailyEnergy', {
-        defaultValue: 'Daily energy',
-      })}
-      renderVisual={({ size: gaugeSize, stacked: expanded, trackColor }) => (
+      glowColor={neutral}
+      className="mb-2 px-3 py-1"
+    >
+      <View className="flex-row items-center gap-3">
+        <Icon name="flame" size={24} color={food} />
+        <Text
+          accessibilityRole="header"
+          className="flex-1 text-lg font-bold text-text-primary"
+        >
+          {t('dashboard.calories', { defaultValue: 'Calories' })}
+        </Text>
         <Pressable
           testID="dashboard-edit-goal"
           accessibilityRole="button"
-          accessibilityLabel={`${formatLocalizedNumber(centerValue)} ${kcal} ${centerStatus}. ${t('dashboard.editGoal', { defaultValue: 'Edit goal' })}`}
-          disabled={!onEditGoal}
+          accessibilityLabel={t('dashboard.editGoal', {
+            defaultValue: 'Edit goal',
+          })}
           onPress={onEditGoal}
-          className="items-center active:opacity-70"
+          disabled={!onEditGoal}
+          className="min-h-11 min-w-11 items-center justify-center"
         >
-          <View className="items-center justify-center">
-            {!expanded && (
-              <EnergyGauge
-                progress={hasGoal ? progressPercent : 0}
-                size={gaugeSize}
-                strokeWidth={14}
-                trackColor={trackColor}
-              />
-            )}
-            <View
-              className="items-center justify-center"
-              style={
-                expanded
-                  ? undefined
-                  : {
-                      position: 'absolute',
-                      width: gaugeSize - 32,
-                      height: gaugeSize - 32,
-                      top: 16,
-                    }
-              }
-            >
-              <Text
-                className="w-full text-center text-[26px] font-bold text-text-primary"
-                maxFontSizeMultiplier={1.6}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-              >
-                {formatLocalizedNumber(centerValue)}
-              </Text>
-              <Text
-                className="w-full text-center text-sm font-medium text-text-primary"
-                maxFontSizeMultiplier={1.8}
-              >
-                {kcal}
-              </Text>
-              <Text
-                testID="dashboard-energy-status"
-                className="text-center text-xs text-text-secondary"
-                maxFontSizeMultiplier={1.8}
-              >
-                {centerStatus}
-              </Text>
-            </View>
-          </View>
+          <Icon name="target" size={22} color={neutral} />
         </Pressable>
-      )}
-      footer={
-        balanceAdjustment !== 0 ? (
-          <Text className="mt-2 text-center text-xs text-text-secondary">
-            {t('dashboard.balanceAdjustment', {
-              defaultValue: 'Allowance adjustment',
-            })}{' '}
-            {balanceAdjustment > 0 ? '+' : '−'}
-            {formatLocalizedNumber(Math.abs(balanceAdjustment))} {kcal}
-          </Text>
-        ) : null
-      }
-    >
-      <StatRow
+      </View>
+      <Pressable
         testID="dashboard-energy-consumed"
-        icon="food"
-        color={food}
-        label={t('dashboard.consumed', { defaultValue: 'Consumed' })}
-        value={caloriesConsumed}
-        unit={kcal}
+        accessibilityRole="button"
+        accessibilityLabel={t('dashboard.openMealsA11y', {
+          defaultValue: '{{amount}}. Open daily meals.',
+          amount,
+        })}
         onPress={onConsumedPress}
-      />
-      <StatRow
-        testID="dashboard-energy-burned"
-        icon="flame"
-        color={burn}
-        label={
-          burnedIncludesBmr
-            ? t('dashboard.totalExpenditure', {
-                defaultValue: 'Total expenditure',
-              })
-            : t('dashboard.activityBurned', {
-                defaultValue: 'Activity burned',
-              })
-        }
-        value={caloriesBurned}
-        unit={kcal}
-        onPress={onBurnedPress}
-      />
-      <StatRow
-        testID="dashboard-energy-goal"
-        icon="target"
-        color={neutral}
-        label={t('dashboard.target', { defaultValue: 'Base target' })}
-        value={hasGoal ? calorieGoal : null}
-        unit={kcal}
-        onPress={onEditGoal}
-        last
-      />
-    </DashboardSummaryCard>
+        disabled={!onConsumedPress}
+        className="items-center active:opacity-70"
+      >
+        <View
+          className="items-center justify-center"
+          style={
+            expandedText
+              ? { width: '100%', paddingVertical: 8 }
+              : { width: gaugeSize, height: gaugeSize }
+          }
+        >
+          {!expandedText && (
+            <EnergyGauge
+              size={gaugeSize}
+              strokeWidth={12}
+              progress={hasGoal ? progressPercent : 0}
+              trackColor={track}
+            />
+          )}
+          <View
+            pointerEvents="none"
+            className="items-center justify-center"
+            style={
+              expandedText
+                ? { width: '100%' }
+                : { position: 'absolute', width: 106 }
+            }
+          >
+            <Text
+              className={
+                expandedText
+                  ? 'w-full text-center text-[34px] font-bold text-text-primary'
+                  : 'w-full text-center text-[24px] font-bold text-text-primary'
+              }
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              maxFontSizeMultiplier={expandedText ? undefined : 1.6}
+            >
+              {intake}
+            </Text>
+            <Text
+              testID="dashboard-energy-goal"
+              className={`w-full text-center text-text-secondary ${expandedText ? 'text-base' : 'text-xs'}`}
+              numberOfLines={effectiveGoal === null ? undefined : 1}
+              adjustsFontSizeToFit={!expandedText && effectiveGoal !== null}
+            >
+              {goal}
+            </Text>
+          </View>
+        </View>
+      </Pressable>
+    </GlowCard>
   );
-};
-
-export default CalorieRingCard;
+}

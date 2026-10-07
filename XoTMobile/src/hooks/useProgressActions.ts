@@ -94,10 +94,9 @@ export function useProgressActions(date: string, onHydration: () => void) {
         else navigation.navigate('DailyNutritionDetails', { date });
         break;
       case 'meal':
-        navigation.navigate('MealTypeDetail', {
+        navigation.navigate('DailyMeals', {
           date,
           mealTypeId: item.reference_id ?? undefined,
-          mealLabel: itemLabel(item),
         });
         break;
     }

@@ -48,6 +48,8 @@ interface EnergyGaugeProps {
   strokeWidth: number;
   /** Optional neutral baseline when paired with another progress visual. */
   trackColor?: string;
+  /** Single categorical color for a related gauge, e.g. hydration. */
+  color?: string;
 }
 
 /**
@@ -60,6 +62,7 @@ export default function EnergyGauge({
   size,
   strokeWidth,
   trackColor,
+  color,
 }: EnergyGaugeProps) {
   const glowing = useGlowTheme();
   const [track, red, yellow, green] = useCSSVariable([
@@ -121,7 +124,7 @@ export default function EnergyGauge({
                     key={layer.extra}
                     testID="energy-gauge-glow"
                     d={fillPath}
-                    stroke="url(#energyGauge)"
+                    stroke={color ?? 'url(#energyGauge)'}
                     strokeOpacity={layer.opacity}
                     strokeWidth={fillWidth + layer.extra}
                     strokeLinecap="round"
@@ -132,7 +135,7 @@ export default function EnergyGauge({
           <Path
             testID="energy-gauge-fill"
             d={fillPath}
-            stroke="url(#energyGauge)"
+            stroke={color ?? 'url(#energyGauge)'}
             strokeWidth={fillWidth}
             strokeLinecap="round"
             fill="none"

@@ -1,12 +1,14 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import type { HydrationDayDetails } from '@workspace/shared';
-import HydrationDetailsModal from '../../src/components/HydrationDetailsModal';
+import HydrationHistory from '../../src/components/HydrationHistory';
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
 }));
 const mockNavigate = jest.fn();
 const mockRetry = jest.fn();
+const mockInvalidate = jest.fn();
+const mockMutate = jest.fn();
 let mockQuery: {
   data?: HydrationDayDetails;
   isPending: boolean;
@@ -17,7 +19,11 @@ let mockQuery: {
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
-jest.mock('@tanstack/react-query', () => ({ useQuery: () => mockQuery }));
+jest.mock('@tanstack/react-query', () => ({
+  useQuery: () => mockQuery,
+  useMutation: () => ({ mutate: mockMutate, isPending: false }),
+  useQueryClient: () => ({ invalidateQueries: mockInvalidate }),
+}));
 const data: HydrationDayDetails = {
   date: '2026-10-02',
   timezone: 'Europe/Berlin',
@@ -81,20 +87,19 @@ beforeEach(() => {
   };
 });
 it('keeps recorded goal water and solid-food water separate, and unknown content explicit', () => {
-  render(<HydrationDetailsModal {...props} />);
+  render(<HydrationHistory {...props} />);
   expect(screen.getByText('750 ml')).toBeTruthy();
   expect(screen.getByText('160 ml')).toBeTruthy();
   expect(screen.getByText('Water content unknown')).toBeTruthy();
   expect(screen.getByText(/10:30/)).toBeTruthy();
   expect(screen.queryByText(/AM|PM/)).toBeNull();
 });
-it('opens the actual diary day from a drink source', () => {
-  render(<HydrationDetailsModal {...props} />);
-  fireEvent.press(screen.getByText('View in diary'));
+it('opens the actual meals day from a drink source', () => {
+  render(<HydrationHistory {...props} />);
+  fireEvent.press(screen.getByText('Open daily meals'));
   expect(props.onClose).toHaveBeenCalled();
-  expect(mockNavigate).toHaveBeenCalledWith('Tabs', {
-    screen: 'Diary',
-    params: { selectedDate: '2026-10-02' },
+  expect(mockNavigate).toHaveBeenCalledWith('DailyMeals', {
+    date: '2026-10-02',
   });
 });
 it('offers retry instead of claiming an empty history on failure', () => {
@@ -104,8 +109,31 @@ it('offers retry instead of claiming an empty history on failure', () => {
     isSuccess: false,
     refetch: mockRetry,
   };
-  render(<HydrationDetailsModal {...props} />);
+  render(<HydrationHistory {...props} />);
   fireEvent.press(screen.getByText('Retry'));
   expect(mockRetry).toHaveBeenCalled();
   expect(screen.queryByText('0 ml')).toBeNull();
+});
+
+it('shows an explicit offline state instead of a perpetual loading message for a disabled uncached query', () => {
+  mockQuery = {
+    isPending: true,
+    isError: false,
+    isSuccess: false,
+    refetch: mockRetry,
+  };
+  render(<HydrationHistory {...props} visible={false} />);
+  expect(
+    screen.getByText(
+      'No history saved for this day. Connect to your server to load it.'
+    )
+  ).toBeTruthy();
+  expect(screen.queryByText('Loading...')).toBeNull();
+  expect(screen.queryByText('0 ml')).toBeNull();
+});
+it('retains cached history offline', () => {
+  render(<HydrationHistory {...props} visible={false} />);
+  expect(screen.getByText('750 ml')).toBeTruthy();
+  expect(screen.queryByText(/No history saved/)).toBeNull();
+  expect(screen.queryByText('Loading...')).toBeNull();
 });

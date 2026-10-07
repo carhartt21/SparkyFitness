@@ -28,6 +28,7 @@ export default function DashboardSummaryCard({
   renderVisual,
   children,
   footer,
+  compactHeader = false,
 }: {
   title: string;
   headingIcon: IconName;
@@ -40,6 +41,8 @@ export default function DashboardSummaryCard({
   renderVisual?: (layout: SummaryVisualLayout) => ReactNode;
   children: ReactNode;
   footer?: ReactNode;
+  /** At ordinary text size, place the heading above the left visual to reduce repeated empty space. */
+  compactHeader?: boolean;
 }) {
   const { width, fontScale } = useWindowDimensions();
   const [contentWidth, setContentWidth] = useState<number | null>(null);
@@ -50,10 +53,11 @@ export default function DashboardSummaryCard({
   const light = !useGlowTheme();
   const available = contentWidth ?? width - 64;
   const stacked = fontScale > 1.3 || available < 280;
-  const size = Math.min(
-    120,
-    Math.max(104, Math.round((available - 12) * 0.36))
-  );
+  const inlineHeading = compactHeader && !!renderVisual && !stacked;
+  const visualWidth = inlineHeading ? 128 : undefined;
+  const size = inlineHeading
+    ? 100
+    : Math.min(120, Math.max(104, Math.round((available - 12) * 0.36)));
   const heading = (
     <>
       <View style={{ width: 18 }} />
@@ -81,19 +85,22 @@ export default function DashboardSummaryCard({
       accessibilityLabel={onOpen ? undefined : accessibilityLabel}
       className="mb-1 px-3 py-2"
     >
-      {onOpen ? (
-        <Pressable
-          testID={openTestID}
-          accessibilityRole="button"
-          accessibilityLabel={accessibilityLabel}
-          onPress={onOpen}
-          className="min-h-11 flex-row items-center gap-3 active:opacity-70"
-        >
-          {heading}
-        </Pressable>
-      ) : (
-        <View className="min-h-11 flex-row items-center gap-3">{heading}</View>
-      )}
+      {!inlineHeading &&
+        (onOpen ? (
+          <Pressable
+            testID={openTestID}
+            accessibilityRole="button"
+            accessibilityLabel={accessibilityLabel}
+            onPress={onOpen}
+            className="min-h-11 flex-row items-center gap-3 active:opacity-70"
+          >
+            {heading}
+          </Pressable>
+        ) : (
+          <View className="min-h-11 flex-row items-center gap-3">
+            {heading}
+          </View>
+        ))}
       <View
         onLayout={(event) => setContentWidth(event.nativeEvent.layout.width)}
         style={{
@@ -107,9 +114,28 @@ export default function DashboardSummaryCard({
             testID={`${testID}-visual`}
             className="items-center justify-center"
             style={
-              stacked ? { width: size } : { width: size, alignSelf: 'stretch' }
+              stacked
+                ? { width: size }
+                : { width: visualWidth ?? size, alignSelf: 'stretch' }
             }
           >
+            {inlineHeading && (
+              <Pressable
+                testID={openTestID}
+                onPress={onOpen}
+                accessibilityRole="button"
+                accessibilityLabel={accessibilityLabel}
+                className="min-h-11 w-full flex-row items-center justify-center gap-1 active:opacity-70"
+              >
+                <Icon name={headingIcon} size={14} color={muted} />
+                <Text
+                  accessibilityRole="header"
+                  className="min-w-0 flex-1 text-center text-base font-bold text-text-primary"
+                >
+                  {title}
+                </Text>
+              </Pressable>
+            )}
             {renderVisual({
               size,
               stacked,
@@ -125,7 +151,7 @@ export default function DashboardSummaryCard({
           style={
             stacked || !renderVisual
               ? { width: '100%' }
-              : { width: available - size - 12, minWidth: 0 }
+              : { width: available - (visualWidth ?? size) - 12, minWidth: 0 }
           }
         >
           {children}

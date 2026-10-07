@@ -4,7 +4,11 @@ A training plan schedules whole activities or saved workouts. It does not record
 
 ## Create and activate a plan
 
-On mobile, open the Library's **Weekly training plan** entry. Exercise Review and Daily Progress also link to planned sessions. On web, open **Exercises → Workout Plans**.
+On mobile, open **Home → Training → Weekly training plan**, or the Library's
+**Weekly training plan** entry. The week strip and dated rows separate recorded
+sessions from scheduled assignments; choose a day for its daily details or open
+an assignment to edit the existing plan. Exercise Review and Daily Progress also
+link to planned sessions. On web, open **Exercises → Workout Plans**.
 
 1. Create a plan and give it a name and start date. An end date is optional.
 2. Choose a weekday and add a session. Choose **one** activity type or saved workout preset per assignment. Add another session when you want both on the same day.

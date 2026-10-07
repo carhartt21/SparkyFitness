@@ -19,6 +19,30 @@ Past days contain recorded entries, without filling the day with current plans.
 Recorded activity, water, intake and sleep details can also expand. Food selection,
 swipe actions, photos and serving adjustments remain available inside groups.
 
+## Daily Meals on the phone
+
+Tap the Home calorie gauge to open **Meals** for the selected day. The compact
+summary shows known nutrition and the day's exercise-adjusted allowance using
+the same policy as Home. A missing goal does not create an allowance. Pending
+meal photos remain captured, rather than becoming completed zero-calorie meals.
+
+Meal groups start collapsed. Expand one to inspect its foods and recorded times;
+the separate state icon cycles states on tap and opens explicit choices on hold.
+Daily Progress meal links open this same screen with the selected meal expanded.
+Use **Add food** or the camera action for existing search and photo flows.
+
+Use **Edit** to select foods, then move or copy them to another meal/day, or delete
+the selected entries. Edit mode also permits dragging foods between meals. Tap a
+portion to use the existing serving adjustment sheet. These actions update actual
+entries and the affected daily summaries; changing a meal state does not change
+its food quantities.
+
+**Save as template** opens the existing meal editor with the recorded ingredient
+quantities, units and nutrient snapshots. It does not save automatically or copy
+entry dates, times or photographs. Ingredients without confirmed nutrition or a
+reusable library food need review. Resolve them first or explicitly continue with
+the resolved ingredients; missing nutrition is never invented.
+
 ## Suggested Meal Category Times
 
 X on Track dynamically suggests the appropriate meal category (e.g., Breakfast, Lunch, Dinner, Snacks, or custom categories) when you log food based on your current time of day.

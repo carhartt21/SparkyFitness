@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
@@ -43,6 +43,7 @@ export default function HabitRow({
   showDivider,
 }: HabitRowProps) {
   const { t } = useTranslation();
+  const amountRef = useRef<TextInput>(null);
   const [textPrimary, textSecondary, green, border] = useCSSVariable([
     '--color-text-primary',
     '--color-text-secondary',
@@ -123,10 +124,23 @@ export default function HabitRow({
         showDivider ? { borderTopWidth: 1, borderTopColor: border } : undefined
       }
     >
-      <View
-        accessibilityElementsHidden
-        importantForAccessibility="no-hide-descendants"
-        className="h-8 w-8 items-center justify-center rounded-full"
+      <Pressable
+        testID={`habit-state-${habit.id}`}
+        accessibilityRole="button"
+        accessibilityLabel={t('progress.openAction', {
+          defaultValue: 'Open action for {{name}}',
+          name: habit.name,
+        })}
+        disabled={saving}
+        onPress={() =>
+          habit.habit_type === 'completion'
+            ? complete
+              ? openMenu()
+              : onSave(true)
+            : amountRef.current?.focus()
+        }
+        onLongPress={openMenu}
+        className="h-11 w-11 items-center justify-center rounded-full"
         style={
           complete
             ? { backgroundColor: green }
@@ -134,7 +148,7 @@ export default function HabitRow({
         }
       >
         {complete ? <Icon name="checkmark" size={16} color="#08130d" /> : null}
-      </View>
+      </Pressable>
       <Icon name={habitIcon(habit.icon)} size={24} color={tint} />
       <View
         className={`flex-1 ${habit.habit_type === 'count' ? 'min-w-[45%]' : ''}`}
@@ -201,7 +215,7 @@ export default function HabitRow({
           </Text>
         </Pressable>
       ) : (
-        <View className="ml-auto flex-row items-center gap-1.5">
+        <View className="ml-auto flex-row flex-wrap items-center gap-1.5 max-w-full">
           {habit.step ? (
             <Pressable
               testID={`habit-decrement-${habit.id}`}
@@ -210,13 +224,14 @@ export default function HabitRow({
                 defaultValue: 'Decrease',
               })}
               onPress={() => stepBy(-1)}
-              className="h-11 w-9 items-center justify-center rounded-lg border border-border-subtle"
+              className="h-11 w-11 items-center justify-center rounded-lg border border-border-subtle"
             >
               <Icon name="remove" size={16} color={textPrimary} />
             </Pressable>
           ) : null}
           <View className="items-center rounded-lg border border-border-subtle px-2">
             <TextInput
+              ref={amountRef}
               testID={`habit-amount-${habit.id}`}
               value={text}
               onChangeText={setText}
@@ -246,7 +261,7 @@ export default function HabitRow({
                 defaultValue: 'Increase',
               })}
               onPress={() => stepBy(1)}
-              className="h-11 w-9 items-center justify-center rounded-lg border border-border-subtle"
+              className="h-11 w-11 items-center justify-center rounded-lg border border-border-subtle"
             >
               <Icon name="add" size={16} color={textPrimary} />
             </Pressable>
@@ -283,7 +298,7 @@ export default function HabitRow({
           name: habit.name,
         })}
         onPress={openMenu}
-        className="h-11 w-8 items-center justify-center"
+        className="h-11 w-11 items-center justify-center"
       >
         <Icon name="ellipsis-horizontal" size={18} color={textPrimary} />
       </Pressable>

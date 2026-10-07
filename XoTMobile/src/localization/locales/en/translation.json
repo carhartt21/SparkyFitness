@@ -1029,7 +1029,11 @@
     "todayOverview": "Today at a glance",
     "viewAll": "View all",
     "workout": "Workout",
-    "water": "Water"
+    "water": "Water",
+    "mealPhoto": "Meal photo",
+    "openMealsA11y": "{{amount}}. Open daily meals.",
+    "noCalorieGoal": "No daily calorie target set",
+    "intakeGoal": "of {{value}} kcal"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",
@@ -6164,7 +6168,8 @@
     },
     "partialShort": "Partial",
     "noCountedTasks": "No counted tasks",
-    "uncountedExplanation": "Items below do not count toward this day’s progress. Review them or choose what counts in Tracking settings."
+    "uncountedExplanation": "Items below do not count toward this day’s progress. Review them or choose what counts in Tracking settings.",
+    "openAction": "Open action for {{name}}"
   },
   "habits": {
     "targetLabel": "Target {{value}} {{unit}}",
@@ -6467,7 +6472,10 @@
     "openDay": "Progress for the selected day"
   },
   "foodDetails": {
-    "caloriesAbbreviation": "{{value}} cal"
+    "caloriesAbbreviation": "{{value}} cal",
+    "protein": "Protein",
+    "carbs": "Carbs",
+    "fat": "Fat"
   },
   "widgetGuide": {
     "title": "Widgets & Live Activities",
@@ -6576,7 +6584,13 @@
     "openSupplement": "Open supplement",
     "openDiary": "View in diary",
     "unknownNote_one": "{{count}} entry has no known water content.",
-    "unknownNote_other": "{{count}} entries have no known water content."
+    "unknownNote_other": "{{count}} entries have no known water content.",
+    "deleteTitle": "Delete this drink?",
+    "deleteMessage": "Only this logged drink is removed. Linked food or supplement entries stay unchanged.",
+    "deleteAction": "Delete logged drink",
+    "deleteFailed": "Could not delete the drink. Please try again.",
+    "offline": "No history saved for this day. Connect to your server to load it.",
+    "daily": "Daily hydration"
   },
   "micronutrients": {
     "title": "Micronutrient coverage",
@@ -7044,5 +7058,52 @@
     "thisWeek": "This week",
     "noPlans": "No training planned for this week.",
     "noRecorded": "No training recorded for this day."
+  },
+  "dailyMeals": {
+    "title": "Meals",
+    "open": "Open daily meals",
+    "addFood": "Add food",
+    "savePreset": "Save as template",
+    "newTemplate": "Meal template",
+    "reviewTemplate": "Review template ingredients",
+    "continueKnown": "Use resolved ingredients",
+    "noSummary": "No saved summary for this day.",
+    "knownNutrition": "Known nutrition only. Captured photos remain pending until nutrition is confirmed.",
+    "unresolved_other": "{{count}} ingredients need confirmed nutrition and a reusable food serving variant. Resolve them first, or explicitly continue with the other ingredients.",
+    "unresolved_one": "{{count}} ingredient needs confirmed nutrition and a reusable food serving variant. Resolve it first, or explicitly continue with the other ingredients.",
+    "details": "Meal details",
+    "allowance": "Daily allowance"
+  },
+  "dailyTraining": {
+    "title": "Training",
+    "open": "Open daily training",
+    "sessionCount_one": "{{count}} session",
+    "sessionCount_other": "{{count}} sessions",
+    "planned": "Planned",
+    "log": "Log training",
+    "review": "Review & history",
+    "noPlans": "No training planned for this day.",
+    "unavailable": "Training summary unavailable",
+    "partial": "Some training data could not be refreshed.",
+    "weekCounts": "{{recorded}} recorded · {{planned}} scheduled",
+    "dayDetails": "Daily details",
+    "loadingSources": "Loading training sources…",
+    "types": {
+      "walking": "Walking",
+      "running": "Running",
+      "cycling": "Cycling",
+      "soccer": "Soccer",
+      "swimming": "Swimming",
+      "hiking": "Hiking",
+      "yoga": "Yoga",
+      "pilates": "Pilates",
+      "strength": "Strength training",
+      "rowing": "Rowing",
+      "mobility": "Mobility"
+    },
+    "duration": "{{value}} min",
+    "mi": "mi",
+    "km": "km",
+    "start": "Start training"
   }
 }

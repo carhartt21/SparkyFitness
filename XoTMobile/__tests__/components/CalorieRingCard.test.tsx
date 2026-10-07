@@ -1,96 +1,55 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import CalorieRingCard from '../../src/components/CalorieRingCard';
-
-jest.mock('uniwind', () => ({
-  useCSSVariable: (keys: string | string[]) =>
-    Array.isArray(keys) ? keys.map(() => '#175b43') : '#175b43',
-}));
-
-jest.mock('../../src/components/ProgressRing', () => {
-  const { View } = require('react-native');
-  return { __esModule: true, default: () => <View testID="progress-ring" /> };
-});
-
-describe('CalorieRingCard', () => {
-  it('keeps the moved goal action and all energy destinations working', () => {
-    const editGoal = jest.fn();
-    const consumed = jest.fn();
-    const burned = jest.fn();
-    const screen = render(
-      <CalorieRingCard
-        caloriesConsumed={600}
-        caloriesBurned={0}
-        burnedIncludesBmr={false}
-        calorieGoal={2000}
-        remainingCalories={1400}
-        progressPercent={0.3}
-        onEditGoal={editGoal}
-        onConsumedPress={consumed}
-        onBurnedPress={burned}
-      />
-    );
-    fireEvent.press(screen.getByTestId('dashboard-edit-goal'));
-    fireEvent.press(screen.getByTestId('dashboard-energy-goal'));
-    fireEvent.press(screen.getByTestId('dashboard-energy-consumed'));
-    fireEvent.press(screen.getByTestId('dashboard-energy-burned'));
-    expect(editGoal).toHaveBeenCalledTimes(2);
-    expect(consumed).toHaveBeenCalledTimes(1);
-    expect(burned).toHaveBeenCalledTimes(1);
-    expect(screen.getByText('remaining')).toBeTruthy();
-    expect(
-      screen.getByLabelText('1,400 kcal remaining. Edit goal')
-    ).toBeTruthy();
-  });
-  it.each([
-    [2000, -200, '200 kcal over target. Edit goal'],
-    [0, 0, '600 kcal Consumed. Edit goal'],
-  ])(
-    'announces the energy meaning when goal=%s and remaining=%s',
-    (goal, remaining, label) => {
-      const screen = render(
-        <CalorieRingCard
-          caloriesConsumed={600}
-          caloriesBurned={0}
-          burnedIncludesBmr={false}
-          calorieGoal={goal}
-          remainingCalories={remaining}
-          progressPercent={0}
-          onEditGoal={jest.fn()}
-        />
-      );
-      expect(screen.getByLabelText(label)).toBeTruthy();
-    }
+const base = {
+  caloriesConsumed: 600,
+  caloriesBurned: 0,
+  burnedIncludesBmr: false,
+  calorieGoal: 2000,
+  remainingCalories: 1400,
+  progressPercent: 0.3,
+};
+it('opens meals from the gauge and keeps editing the target separate', () => {
+  const meals = jest.fn(),
+    edit = jest.fn();
+  const view = render(
+    <CalorieRingCard {...base} onConsumedPress={meals} onEditGoal={edit} />
   );
-  it('distinguishes credited allowance from activity burn so the balance reconciles', () => {
-    const screen = render(
-      <CalorieRingCard
-        caloriesConsumed={1500}
-        caloriesBurned={500}
-        burnedIncludesBmr={false}
-        calorieGoal={2000}
-        remainingCalories={800}
-        progressPercent={0.6}
-      />
-    );
-
-    expect(screen.getByText('Activity burned')).toBeTruthy();
-    expect(screen.getByText(/Allowance adjustment/)).toBeTruthy();
-    expect(screen.getByText(/\+300/)).toBeTruthy();
-  });
-
-  it('names total expenditure when BMR is included', () => {
-    const screen = render(
-      <CalorieRingCard
-        caloriesConsumed={1500}
-        caloriesBurned={1700}
-        burnedIncludesBmr
-        calorieGoal={2000}
-        remainingCalories={2200}
-        progressPercent={0}
-      />
-    );
-
-    expect(screen.getByText('Total expenditure')).toBeTruthy();
-  });
+  fireEvent.press(view.getByTestId('dashboard-energy-consumed'));
+  expect(meals).toHaveBeenCalledTimes(1);
+  expect(edit).not.toHaveBeenCalled();
+  fireEvent.press(view.getByTestId('dashboard-edit-goal'));
+  expect(edit).toHaveBeenCalledTimes(1);
+  expect(view.getByText('600 kcal')).toBeTruthy();
+  expect(view.getByTestId('dashboard-energy-goal')).toHaveTextContent(
+    'of 2,000 kcal'
+  );
+  expect(view.getByTestId('dashboard-energy-consumed')).toHaveAccessibleName(
+    '600 kcal, of 2,000 kcal. Open daily meals.'
+  );
+  expect(view.queryByTestId('dashboard-energy-burned')).toBeNull();
+});
+it('uses the existing credited allowance without crediting burned energy again', () => {
+  const view = render(
+    <CalorieRingCard
+      {...base}
+      caloriesConsumed={1500}
+      caloriesBurned={500}
+      remainingCalories={800}
+    />
+  );
+  expect(view.getByText('1,500 kcal')).toBeTruthy();
+  expect(view.getByText('of 2,300 kcal')).toBeTruthy();
+  expect(view.queryByText('800')).toBeNull();
+});
+it('keeps actual intake visible above goal and distinguishes an unavailable goal', () => {
+  const view = render(<CalorieRingCard {...base} remainingCalories={-200} />);
+  expect(view.getByText('600 kcal')).toBeTruthy();
+  expect(view.getByText('of 400 kcal')).toBeTruthy();
+  view.rerender(
+    <CalorieRingCard {...base} calorieGoal={0} remainingCalories={0} />
+  );
+  expect(view.getByText('600 kcal')).toBeTruthy();
+  expect(view.getByText('No daily calorie target set')).toBeTruthy();
+  expect(view.queryByText('of 0 kcal')).toBeNull();
 });

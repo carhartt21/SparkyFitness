@@ -37,6 +37,10 @@ vi.mock('../services/healthMetricSampleWriter.js', () => ({
 vi.mock('../models/measurementRepository.js', () => ({ default: {} }));
 vi.mock('../models/waterContainerRepository.js', () => ({ default: {} }));
 
+vi.mock('../utils/timezoneLoader.js', () => ({
+  loadUserTimezone: vi.fn().mockResolvedValue('UTC'),
+}));
+
 const { HEALTH_TYPE_HANDLERS } =
   await import('../services/healthDataHandlers.js');
 const exerciseDb = (await import('../models/exercise.js')).default;
@@ -563,5 +567,29 @@ describe('workoutHandler — failure isolation', () => {
     const result = await workoutHandler.handle(baseEntry(), makeCtx());
 
     expect(result.status).toBe('error');
+  });
+});
+
+describe('imported session clock', () => {
+  it('persists the source start clock instead of synchronization time', async () => {
+    await workoutHandler.handle(
+      baseEntry({
+        timestamp: '2026-08-04T06:30:00Z',
+        record_timezone: 'Europe/Berlin',
+      }),
+      makeCtx()
+    );
+    expect(
+      vi.mocked(exerciseEntryDb.createExerciseEntry).mock.calls[0][1]
+    ).toMatchObject({ entry_time: '08:30', entry_date: '2026-08-04' });
+  });
+  it('leaves time unknown when only a day was supplied', async () => {
+    await workoutHandler.handle(
+      baseEntry({ timestamp: '2026-08-04' }),
+      makeCtx()
+    );
+    expect(
+      vi.mocked(exerciseEntryDb.createExerciseEntry).mock.calls[0][1]
+    ).toMatchObject({ entry_time: null });
   });
 });

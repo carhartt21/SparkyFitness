@@ -257,6 +257,7 @@ export type RootStackParamList = {
       }
     | {
         mode?: 'create';
+        initialDraft?: { name: string; ingredients: MealIngredientDraft[] };
         selectedIngredient?: MealIngredientDraft;
         ingredientIndex?: number;
       }
@@ -264,6 +265,8 @@ export type RootStackParamList = {
   ExerciseSearch: { returnKey: string };
   PresetSearch:
     { selectedExercise?: Exercise; selectionNonce?: number } | undefined;
+  DailyMeals: { date?: string; mealTypeId?: string } | undefined;
+  DailyTraining: { date?: string } | undefined;
   TrainingHub: { date?: string } | undefined;
   HealthOverview: {
     section: 'trends' | 'caffeine' | 'routines';

@@ -1,3 +1,9 @@
+import { useFoodDragScroll } from '../hooks/useFoodDragScroll';
+import { useDiaryFoodEditing } from '../hooks/useDiaryFoodEditing';
+import {
+  isDailyEnergyAggregate,
+  workoutRecordedTime,
+} from '../utils/workoutPresentation';
 import { useDiaryScheduledEntries } from '../hooks/useDiaryScheduledEntries';
 import PlannedMealsCard from '../components/coaching/PlannedMealsCard';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
@@ -20,14 +26,13 @@ import React, {
 } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
-  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
   Text,
   View,
 } from 'react-native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Directions,
   Gesture,
@@ -51,8 +56,6 @@ import MobilityDiarySection from '../components/MobilityDiarySection';
 import { useMobilityDiary } from '../hooks/useMobilityDiary';
 import FoodSummary from '../components/FoodSummary';
 import DiaryBulkActionSheet from '../components/DiaryBulkActionSheet';
-import { applyBulkFoodEntryAction } from '../services/api/foodEntriesApi';
-import { invalidateFoodCache } from '../hooks/invalidateFoodCache';
 import { nutritionCapturePhotoRefs } from '../utils/nutritionCapturePhotoRefs';
 import PendingNutritionActions from '../components/PendingNutritionActions';
 import NutritionPhotoEntries from '../components/NutritionPhotoEntries';
@@ -118,7 +121,6 @@ import {
   useSetMealStatus,
   useLogHabit,
 } from '../hooks/useDailyTracking';
-import HydrationDetailsModal from '../components/HydrationDetailsModal';
 import DiaryTimeline, {
   type DiaryTimelineEntry,
 } from '../components/DiaryTimeline';
@@ -130,7 +132,11 @@ import {
   wellnessTimestamp,
   diaryMealGroups,
 } from '../utils/diaryTimeline';
-import { getWorkoutSummary, formatDuration } from '../utils/workoutSession';
+import {
+  getWorkoutSummary,
+  getWorkoutIcon,
+  formatDuration,
+} from '../utils/workoutSession';
 import { formatClockTime, resolveSleepZone } from '../utils/sleepDay';
 import { useMedications, useMedicationEntries } from '../hooks/useMedications';
 import { fetchHydrationDetails } from '../services/api/measurementsApi';
@@ -147,8 +153,8 @@ const EMPTY_FOOD_ENTRIES: FoodEntry[] = [];
 
 const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
-  const queryClient = useQueryClient();
-  const [hydrationVisible, setHydrationVisible] = useState(false);
+  const openHydration = () =>
+    navigation.navigate('WaterLog', { date: selectedDate });
   const dateLocale = useAppLocale();
   const insets = useSafeAreaInsets();
   const { isConnected, isLoading: isConnectionLoading } = useServerConnection();
@@ -214,10 +220,9 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const goToNextDay = useDiaryDateStore((s) => s.goToNextDay);
   const goToToday = useDiaryDateStore((s) => s.goToToday);
   const syncTodayRollover = useDiaryDateStore((s) => s.syncTodayRollover);
-  const scrollViewRef = useRef<ScrollView>(null);
-  const dragPosition = useRef<number | null>(null);
-  const scrollOffset = useRef(0);
-  const scrollBounds = useRef({ top: 0, bottom: 0 });
+  const edit = useDiaryFoodEditing(selectedDate);
+  const drag = useFoodDragScroll(edit.editingFoods);
+  const scrollViewRef = drag.scrollRef;
   const calendarRef = useRef<CalendarSheetRef>(null);
   const servingSheetRef = useRef<ServingAdjustSheetRef>(null);
 
@@ -236,7 +241,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         scrollViewRef.current?.scrollTo({ y: 0, animated: true });
       }
     });
-  }, [navigation, goToToday]);
+  }, [navigation, goToToday, scrollViewRef]);
 
   useEffect(() => {
     navigation.setParams({ selectedDate });
@@ -262,6 +267,14 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
   const familyDiariesAccessibilityLabel = t('familyDiary.openFamilyDiaries', {
     defaultValue: 'Open family diaries',
   });
+  const [foodColor, waterColor, trainingColor, sleepColor, supplementColor] =
+    useCSSVariable([
+      '--color-action-food',
+      '--color-hydration',
+      '--color-action-training',
+      '--color-macro-carbs',
+      '--color-accent-primary',
+    ]) as string[];
   const [accentColor, textPrimaryColor] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-primary',
@@ -329,27 +342,19 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     }, [syncNativeHeaderDatePicker])
   );
 
-  const [editingFoods, setEditingFoods] = useState(false);
-  useEffect(() => {
-    if (!editingFoods) return;
-    const timer = setInterval(() => {
-      const y = dragPosition.current;
-      if (y === null) return;
-      const { top, bottom } = scrollBounds.current;
-      const step = y < top + 72 ? -12 : y > bottom - 72 ? 12 : 0;
-      if (step) {
-        scrollOffset.current = Math.max(0, scrollOffset.current + step);
-        scrollViewRef.current?.scrollTo({
-          y: scrollOffset.current,
-          animated: false,
-        });
-      }
-    }, 50);
-    return () => {
-      clearInterval(timer);
-      dragPosition.current = null;
-    };
-  }, [editingFoods]);
+  const {
+    editingFoods,
+    setEditingFoods,
+    selectedFoodIds,
+    toggleFoodSelection,
+    bulkAction,
+    setBulkAction,
+    bulkBusy,
+    finishFoodEditing,
+    runBulkAction,
+    moveDroppedFood,
+    confirmBulkDelete,
+  } = edit;
   const swipeGesture = useMemo(
     () =>
       Gesture.Race(
@@ -510,120 +515,6 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
   const { plans: activePlans } = useActiveWorkoutPlans(selectedDate);
   const [refreshing, setRefreshing] = useState(false);
-  const [selectedFoodIds, setSelectedFoodIds] = useState<ReadonlySet<string>>(
-    () => new Set()
-  );
-  const [bulkAction, setBulkAction] = useState<'move' | 'copy' | null>(null);
-  const [bulkBusy, setBulkBusy] = useState(false);
-  useEffect(() => {
-    setEditingFoods(false);
-    setSelectedFoodIds(new Set());
-    setBulkAction(null);
-  }, [selectedDate]);
-  const toggleFoodSelection = useCallback((entry: FoodEntry) => {
-    setEditingFoods(true);
-    setSelectedFoodIds((previous) => {
-      const next = new Set(previous);
-      if (next.has(entry.id)) next.delete(entry.id);
-      else next.add(entry.id);
-      return next;
-    });
-  }, []);
-  const finishFoodEditing = useCallback(() => {
-    setEditingFoods(false);
-    setSelectedFoodIds(new Set());
-    setBulkAction(null);
-  }, []);
-  const runBulkAction = useCallback(
-    async (
-      action: 'move' | 'copy' | 'delete',
-      targetDate?: string,
-      targetMealTypeId?: string
-    ) => {
-      if (selectedFoodIds.size === 0 || bulkBusy) return;
-      setBulkBusy(true);
-      try {
-        await applyBulkFoodEntryAction({
-          ids: [...selectedFoodIds],
-          action,
-          sourceDate: selectedDate,
-          targetDate,
-          targetMealTypeId,
-        });
-        invalidateFoodCache(queryClient, selectedDate);
-        if (targetDate && targetDate !== selectedDate) {
-          invalidateFoodCache(queryClient, targetDate);
-        }
-        finishFoodEditing();
-      } catch (error) {
-        Alert.alert(
-          t('diary.bulk.failed', {
-            defaultValue: 'Could not update selected foods',
-          }),
-          error instanceof Error
-            ? error.message
-            : t('common.tryAgain', { defaultValue: 'Please try again.' })
-        );
-      } finally {
-        setBulkBusy(false);
-      }
-    },
-    [bulkBusy, finishFoodEditing, queryClient, selectedDate, selectedFoodIds, t]
-  );
-  const moveDroppedFood = useCallback(
-    async (entry: FoodEntry, targetMealTypeId: string) => {
-      if (bulkBusy) return;
-      const ids = selectedFoodIds.has(entry.id)
-        ? [...selectedFoodIds]
-        : [entry.id];
-      if (ids.length === 1 && entry.meal_type_id === targetMealTypeId) return;
-      setBulkBusy(true);
-      try {
-        await applyBulkFoodEntryAction({
-          ids,
-          action: 'move',
-          sourceDate: selectedDate,
-          targetDate: selectedDate,
-          targetMealTypeId,
-        });
-        invalidateFoodCache(queryClient, selectedDate);
-        setSelectedFoodIds(new Set());
-      } catch (error) {
-        Alert.alert(
-          t('diary.bulk.failed', {
-            defaultValue: 'Could not update selected foods',
-          }),
-          error instanceof Error
-            ? error.message
-            : t('common.tryAgain', { defaultValue: 'Please try again.' })
-        );
-      } finally {
-        setBulkBusy(false);
-      }
-    },
-    [bulkBusy, queryClient, selectedDate, selectedFoodIds, t]
-  );
-  const confirmBulkDelete = useCallback(() => {
-    if (selectedFoodIds.size === 0) return;
-    Alert.alert(
-      t('diary.bulk.deleteTitle', { defaultValue: 'Delete selected foods?' }),
-      t('diary.bulk.deleteMessage', {
-        defaultValue: 'This removes {{count}} logged foods from this day.',
-        count: selectedFoodIds.size,
-      }),
-      [
-        {
-          text: t('common.cancel', { defaultValue: 'Cancel' }),
-          style: 'cancel',
-        },
-        {
-          text: t('common.delete', { defaultValue: 'Delete' }),
-          style: 'destructive',
-          onPress: () => void runBulkAction('delete'),
-        },
-      ]
-    );
-  }, [runBulkAction, selectedFoodIds.size, t]);
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding();
   const timezone =
     hydration.data?.timezone ??
@@ -636,7 +527,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     wellnessHabits.data ?? [],
     intakeDefinitions.data ?? [],
     intakeEntries.data ?? [],
-    () => setHydrationVisible(true)
+    openHydration
   );
   const onRefresh = useCallback(async () => {
     if (!isConnected) return;
@@ -778,7 +669,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       content,
       collapsible: true,
       icon: id.startsWith('meal:')
-        ? 'meal'
+        ? 'fork-knife'
         : id.startsWith('exercise:')
           ? 'exercise-running'
           : id.startsWith('mobility:')
@@ -792,6 +683,15 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
                   : id.startsWith('wellness:')
                     ? 'wellness'
                     : 'camera',
+      color: id.startsWith('meal:')
+        ? foodColor
+        : id.startsWith('water:')
+          ? waterColor
+          : /^(exercise|mobility):/.test(id)
+            ? trainingColor
+            : /^(wake|bed|nap):/.test(id)
+              ? sleepColor
+              : supplementColor,
       ...options,
     });
   };
@@ -860,7 +760,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         {
           collapsible: true,
           section: group.entries.length || resolved ? 'recorded' : 'planned',
-          icon: 'meal',
+          icon: 'fork-knife',
           summary: group.entries.length
             ? t('diary.timeline.mealSummary', {
                 calories: formatLocalizedNumber(calories, {
@@ -893,18 +793,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       );
     }
     for (const session of summary.exerciseEntries) {
-      const times = (
-        session.type === 'individual'
-          ? [session.entry_time]
-          : session.exercises.map((exercise) => exercise.entry_time)
-      ).filter((value): value is string => !!value);
-      const time = times
-        .map((value) => ({
-          value,
-          timestamp: diaryTimestamp(selectedDate, value, timezone),
-        }))
-        .filter((item) => item.timestamp !== null)
-        .sort((a, b) => a.timestamp! - b.timestamp!)[0]?.value;
+      if (isDailyEnergyAggregate(session)) continue;
+      const time = workoutRecordedTime(session, timezone);
       addTimelineEntry(
         `exercise:${session.id}`,
         time,
@@ -921,6 +811,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
         undefined,
         {
           onPress: () => openWorkout(session),
+          icon: getWorkoutIcon(session),
           summary: formatDuration(getWorkoutSummary(session, t).duration),
         }
       );
@@ -985,7 +876,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
       undefined,
       undefined,
       {
-        onPress: () => setHydrationVisible(true),
+        onPress: openHydration,
         summary:
           entry.water_ml === null
             ? t('diary.timeline.unknownAmount', {
@@ -1316,16 +1207,8 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
 
     return (
       <ScrollView
-        onLayout={() =>
-          scrollViewRef.current
-            ?.getNativeScrollRef()
-            ?.measureInWindow((_, y, __, height) => {
-              scrollBounds.current = { top: y, bottom: y + height };
-            })
-        }
-        onScroll={(event) => {
-          scrollOffset.current = event.nativeEvent.contentOffset.y;
-        }}
+        onLayout={drag.onLayout}
+        onScroll={drag.onScroll}
         ref={scrollViewRef}
         className="flex-1"
         style={{ flex: 1 }}
@@ -1478,9 +1361,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             selectedEntryIds={selectedFoodIds}
             onSelectEntry={toggleFoodSelection}
             onDropFood={moveDroppedFood}
-            onDragPosition={(y) => {
-              dragPosition.current = y;
-            }}
+            onDragPosition={drag.onDragPosition}
           />
         )}
         <CheckInPhotosSummary
@@ -1506,19 +1387,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
     );
   };
 
-  const renderedContent = (
-    <>
-      {renderContent()}
-      <HydrationDetailsModal
-        visible={hydrationVisible}
-        date={selectedDate}
-        unit={preferences?.water_display_unit ?? 'ml'}
-        goal={summary?.waterGoal}
-        onClose={() => setHydrationVisible(false)}
-        onConfigure={() => navigation.navigate('WaterContainers')}
-      />
-    </>
-  );
+  const renderedContent = <>{renderContent()}</>;
 
   if (usesNativeTabs) {
     return (

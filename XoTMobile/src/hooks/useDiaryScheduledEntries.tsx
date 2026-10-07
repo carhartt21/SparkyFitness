@@ -30,7 +30,11 @@ export function useDiaryScheduledEntries(
   onHydration: () => void
 ) {
   const { t } = useTranslation();
-  const accent = useCSSVariable('--color-accent-primary') as string;
+  const [accent, trainingColor, sleepColor] = useCSSVariable([
+    '--color-accent-primary',
+    '--color-action-training',
+    '--color-macro-carbs',
+  ]) as string[];
   const scheduledDay = date >= getTodayDate();
   const progress = useProjectedDailyProgress(date, enabled);
   const activities = useActivityPlanning(date, date, enabled && scheduledDay);
@@ -107,6 +111,12 @@ export function useDiaryScheduledEntries(
             : item.domain === 'checkin'
               ? 'daily-checkin'
               : 'habit',
+      color:
+        item.domain === 'workout' || item.domain === 'activity'
+          ? trainingColor
+          : item.domain === 'checkin'
+            ? sleepColor
+            : accent,
       collapsible: true,
       summary: stateLabels[item.state],
       accessory: binary ? (

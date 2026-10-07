@@ -249,3 +249,17 @@ totalling 43 g. Server persistence, provider refresh on the owner's account,
 physical Health permissions and offline restart/replay remain separate checks.
 See `../../docs/implementation/v43-inbox-corrections-2026-10-05.md` for the
 actual validation record and synthetic captures.
+
+## Daily Meals, Training and hydration refinement
+
+`--interactions --v45-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+checks Home → Daily Meals, collapsed/expanded meal groups, real meal-state
+controls, Home → Daily Training → weekly itinerary, inline hydration source history
+and Diary. The dated training fixture contains an imported walk, a custom strength
+session, an excluded daily energy aggregate and a planned mobility assignment.
+Meal status mutations are accepted only for synthetic fixture records. The tour
+uses **hydration Details**, preserving the separate one-tap logging action.
+No production account, import, real health writeback or release upload is involved.
+Bulk food movement/template draft behavior is also covered by focused unit tests;
+physical drag accuracy, offline restart/replay and paired Watch checks remain
+manual acceptance gates.

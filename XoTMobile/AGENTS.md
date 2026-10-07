@@ -1,6 +1,6 @@
 # AGENTS.md
 
-_Last updated: 2026-10-05_
+_Last updated: 2026-10-07_
 
 X on Track Mobile is a React Native 0.86 + Expo SDK 57 app for syncing Apple Health / Health Connect data with the SparkyFitness backend, tracking nutrition, hydration, fasting, measurements, exercise, saved foods, meal templates, custom exercises, workout presets, iOS / Android widgets, the active workout HUD, and Trackbot chat.
 
@@ -114,6 +114,8 @@ including sync-state and accessibility labels. See `review/README.md` for isolat
 native render checks and remaining paired-device gates.
 
 ## Source Map
+
+- `DailyMealsScreen`, `DailyTrainingScreen` and `WaterLogScreen` are pushed, selected-day detail routes using `DailyDetailScreen`; Home keeps Daily Progress first and a compact energy gauge. `useDiaryFoodEditing` and `useFoodDragScroll` share selection/move/copy/delete and drag behavior between Daily Meals and Diary. Meal templates preserve recorded ingredient snapshots; incomplete or deleted-library ingredients require explicit review. `HydrationHistory` reads the existing source ledger inline; it does not create another hydration store. `WeeklyTrainingItinerary` reuses activity planning inside `WorkoutPlansScreen`. Never count planned sessions or daily active-energy aggregates as performed training. Imported clocks use source timestamps through `shared/utils/workoutClock`, never import/sync creation times.
 
 - `src/screens/CoachingScreen.tsx`, `src/components/coaching/`, and `src/hooks/useCoaching.ts` - owner recommendation inbox, typed review/preview, follow-up and prompt meal consumption. Engagement v3 taps open the owner inbox without logging or completing actions.
 - `src/components/ui/` - shared primitives: `Button`, sheet chrome, and the neon design system (`glow.ts`, `GlowCard`, `NeonButton`, `ActionTile`, `IconBadge`, `ScreenBackground`). Compose these for cards, capsule buttons and glows instead of restating classes; see `DESIGN.md` → Mobile neon component system.

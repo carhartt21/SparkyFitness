@@ -150,7 +150,9 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
       '--color-macro-fat',
     ]) as [string, string, string, string, string];
 
-  const [mealName, setMealName] = useState('');
+  const initialDraft =
+    route.params?.mode !== 'edit' ? route.params?.initialDraft : undefined;
+  const [mealName, setMealName] = useState(initialDraft?.name ?? '');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
   // serving_size = quantity of ONE serving in serving_unit (e.g. 250 for 250 ml,
@@ -161,7 +163,9 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
   // For non-serving units we ask the user for the BATCH amount and derive
   // total_servings = totalAmount / servingSize on save.
   const [totalAmountText, setTotalAmountText] = useState('1');
-  const [ingredients, setIngredients] = useState<MealIngredientDraft[]>([]);
+  const [ingredients, setIngredients] = useState<MealIngredientDraft[]>(
+    initialDraft?.ingredients ?? []
+  );
   const [pickerImages, setPickerImages] = useState<PickerImage[]>([]);
   const [initializedMealId, setInitializedMealId] = useState<string | null>(
     null

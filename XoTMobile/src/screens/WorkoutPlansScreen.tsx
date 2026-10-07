@@ -1,3 +1,4 @@
+import WeeklyTrainingItinerary from '../components/WeeklyTrainingItinerary';
 import { plannedActivityLabel } from '../components/tracking/trackingLabels';
 import { useRef, useState } from 'react';
 import { Alert, Text, View } from 'react-native';
@@ -93,6 +94,20 @@ export default function WorkoutPlansScreen({
       onBack={navigation.goBack}
       onRefresh={query.refetch}
     >
+      {!focusedId && (
+        <WeeklyTrainingItinerary
+          date={date}
+          enabled={isConnected}
+          onDateChange={setDate}
+          onOpenDay={(day) =>
+            navigation.navigate('DailyTraining', { date: day })
+          }
+          onOpenPlan={(day, id) => {
+            setDate(day);
+            setFocusedId(id);
+          }}
+        />
+      )}
       {focusedId && (
         <NeonButton
           label={t('common.showAll', { defaultValue: 'Show all' })}

@@ -1,6 +1,101 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Daily-detail navigation and real meal status controls on isolated fixtures.
+  func testV45DailyDetails() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    // Ordinary Home must expose the complete logging row above the tab bar.
+    let progressVisual = app.descendants(matching: .any)["dashboard-daily-progress-visual"]
+    let progressRows = app.descendants(matching: .any)["dashboard-daily-progress-rows"]
+    XCTAssertTrue(progressVisual.exists); XCTAssertTrue(progressRows.exists)
+    if progressRows.frame.minY < progressVisual.frame.maxY {
+      let tabsTop = app.buttons["Zuhause"].frame.minY
+      for id in ["food", "exercise-running", "water", "scan"] {
+        let action = app.buttons["dashboard-\(id)"]
+        XCTAssertTrue(action.isHittable, "Home logging action \(id)")
+        XCTAssertLessThanOrEqual(action.frame.maxY, tabsTop, "Logging action covered by tab bar: \(id)")
+        XCTAssertGreaterThanOrEqual(action.frame.height, 44)
+      }
+    }
+    capture("v45-home-top", app)
+    let energy = app.buttons["dashboard-energy-consumed"]
+    for _ in 0..<10 { if energy.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(energy.isHittable)
+    capture("v45-home-energy", app)
+    energy.tap()
+    XCTAssertTrue(app.otherElements["daily-meals-summary"].waitForExistence(timeout: 15))
+    capture("v45-meals-top", app)
+    let breakfast = app.buttons["daily-meal-group-review-breakfast-type"]
+    for _ in 0..<10 { if breakfast.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(breakfast.isHittable); XCTAssertGreaterThanOrEqual(breakfast.frame.height, 44)
+    breakfast.tap()
+    let foodRow = app.otherElements["food-row-surface"].firstMatch
+    XCTAssertTrue(foodRow.waitForExistence(timeout: 10))
+    for _ in 0..<14 {
+      if breakfast.frame.minY >= 185 && foodRow.frame.maxY <= app.frame.height - 45 { break }
+      let startY: CGFloat = breakfast.frame.minY < 185 ? 0.45 : 0.75
+      let endY: CGFloat = breakfast.frame.minY < 185 ? 0.58 : 0.62
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+        .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY)))
+    }
+    XCTAssertGreaterThanOrEqual(breakfast.frame.minY, 185)
+    XCTAssertLessThanOrEqual(foodRow.frame.maxY, app.frame.height - 45)
+    capture("v45-meal-expanded", app)
+    let lunch = app.buttons["daily-meal-group-b3333333-3333-4333-8333-333333333333"]
+    for _ in 0..<10 { if lunch.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(lunch.isHittable)
+    let status = app.buttons["meal-status-control"].firstMatch
+    for _ in 0..<10 { if status.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(status.isHittable); status.tap()
+    capture("v45-meal-status", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    let training = app.buttons["dashboard-training"]
+    for _ in 0..<12 { if training.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(training.isHittable); training.tap()
+    XCTAssertTrue(app.otherElements["daily-training-summary"].waitForExistence(timeout: 15))
+    capture("v45-training", app)
+    let weekly = app.buttons["daily-training-weekly"]
+    for _ in 0..<10 { if weekly.isHittable { break }; app.swipeDown() }
+    XCTAssertTrue(weekly.isHittable); weekly.tap()
+    XCTAssertTrue(app.otherElements["weekly-training-itinerary"].waitForExistence(timeout: 15))
+    capture("v45-weekly-training", app)
+    app.swipeUp(velocity: .slow)
+    capture("v45-weekly-training-lower", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    app.buttons["Zurück"].firstMatch.tap()
+    let water = app.buttons["dashboard-detail-water"]
+    for _ in 0..<14 { if water.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(water.isHittable); water.tap()
+    XCTAssertTrue(app.otherElements["hydration-inline-history"].waitForExistence(timeout: 15))
+    capture("v45-hydration-log", app)
+    app.swipeUp(velocity: .slow)
+    capture("v45-hydration-sources", app)
+    let historyAction = app.buttons["hydration-delete-review-water"]
+    for _ in 0..<16 {
+      if historyAction.isHittable { break }
+      if historyAction.exists && historyAction.frame.minY < 180 { app.swipeDown(velocity: .slow) }
+      else { app.swipeUp(velocity: .slow) }
+    }
+    XCTAssertTrue(historyAction.isHittable)
+    capture("v45-hydration-history", app)
+    let supplementAction = app.descendants(matching: .any).matching(NSPredicate(format: "label CONTAINS %@", "Supplement öffnen")).firstMatch
+    for _ in 0..<16 {
+      if supplementAction.exists && supplementAction.isHittable { break }
+      app.swipeUp(velocity: .slow)
+    }
+    XCTAssertTrue(supplementAction.isHittable)
+    capture("v45-hydration-supplement", app)
+    app.buttons["Zurück"].firstMatch.tap()
+    app.buttons["Tagebuch"].tap()
+    XCTAssertTrue(app.buttons["diary-expand-meal:review-breakfast-type"].waitForExistence(timeout: 15))
+    capture("v45-diary-top", app)
+    app.swipeUp(velocity: .slow)
+    capture("v45-diary-lower", app)
+  }
+
   /// v44 uses the real gesture and existing bulk API; the acknowledgement is synthetic.
   func testV44DiaryRefinement() throws {
     continueAfterFailure = false
@@ -519,7 +614,7 @@ final class DashboardReview: XCTestCase {
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
     app.activate()
     XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
-    let water = app.buttons["dashboard-water"]
+    let water = app.buttons["dashboard-detail-water"]
     for _ in 0..<8 { if water.isHittable && water.frame.maxY < app.frame.maxY - 120 { break }; app.swipeUp() }
     XCTAssertTrue(water.isHittable)
     water.tap()

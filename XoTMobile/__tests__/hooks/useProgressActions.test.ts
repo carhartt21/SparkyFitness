@@ -50,10 +50,9 @@ it('retains calendar date, subject IDs and literal meal labels in task navigatio
     useProgressActions('2026-09-29', hydration)
   );
   result.current.openItem(task('meal'));
-  expect(mockNavigate).toHaveBeenCalledWith('MealTypeDetail', {
+  expect(mockNavigate).toHaveBeenCalledWith('DailyMeals', {
     date: '2026-09-29',
     mealTypeId: 'meal-id',
-    mealLabel: 'Custom snack',
   });
   result.current.openItem({ ...task('goal'), label: 'hydration' });
   expect(hydration).toHaveBeenCalledTimes(1);

@@ -17,6 +17,7 @@ import { createNutritionFixture } from './nutritionFixture';
 import { createWellnessReviewFixture } from './wellnessFixture';
 import { trackingReviewResponse } from './trackingFixture';
 import { getTodayDate } from '../src/utils/dateUtils';
+import { dailyDetailPlanning, dailyDetailSessions } from './dailyDetailFixture';
 import MotionReview from './MotionReview';
 import { createCoachingReviewFixture } from './coachingFixture';
 import { createMobilityReviewFixture } from './mobilityFixture';
@@ -67,6 +68,7 @@ export default function ReviewApp() {
         v42Review?: boolean;
         v43Review?: boolean;
         v44Review?: boolean;
+        v45Review?: boolean;
         motionReview?: boolean;
         mobilityReview?: boolean;
         coachingReview?: boolean;
@@ -75,7 +77,7 @@ export default function ReviewApp() {
       const fixture = createNutritionFixture(
         config.scenario,
         config.v42Review,
-        config.v44Review
+        config.v44Review || config.v45Review
       );
       const mobilityFixture = createMobilityReviewFixture();
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
@@ -143,15 +145,19 @@ export default function ReviewApp() {
             ? coachingFixture(url, method)
             : undefined;
           const result =
-            coachingResult !== undefined
-              ? coachingResult
-              : mobilityResult !== undefined
-                ? mobilityResult
-                : supplementResult !== undefined
-                  ? supplementResult
-                  : wellnessResult === undefined
-                    ? fixture.respond(url, method, options?.body)
-                    : wellnessResult;
+            config.v45Review &&
+            method === 'GET' &&
+            url.pathname === '/api/v2/activity-planning'
+              ? dailyDetailPlanning(url, getTodayDate())
+              : coachingResult !== undefined
+                ? coachingResult
+                : mobilityResult !== undefined
+                  ? mobilityResult
+                  : supplementResult !== undefined
+                    ? supplementResult
+                    : wellnessResult === undefined
+                      ? fixture.respond(url, method, options?.body)
+                      : wellnessResult;
           if (method !== 'GET' || url.pathname === '/api/daily-summary') {
             await transport('http://127.0.0.1:43991/event', {
               method: 'POST',
@@ -164,7 +170,21 @@ export default function ReviewApp() {
               }),
             });
           }
-          return new Response(JSON.stringify(result), {
+          const body =
+            config.v45Review &&
+            method === 'GET' &&
+            url.pathname === '/api/daily-summary' &&
+            result &&
+            typeof result === 'object'
+              ? {
+                  ...result,
+                  exerciseSessions:
+                    url.searchParams.get('date') === getTodayDate()
+                      ? dailyDetailSessions(getTodayDate())
+                      : [],
+                }
+              : result;
+          return new Response(JSON.stringify(body), {
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {
@@ -278,7 +298,9 @@ export default function ReviewApp() {
       setMotionReview(config.motionReview === true);
       useDiaryDateStore
         .getState()
-        .setSelectedDate(config.v44Review ? getTodayDate() : reviewDate);
+        .setSelectedDate(
+          config.v44Review || config.v45Review ? getTodayDate() : reviewDate
+        );
       setReady(true);
       if (config.motionReview) await SplashScreen.hideAsync();
     }

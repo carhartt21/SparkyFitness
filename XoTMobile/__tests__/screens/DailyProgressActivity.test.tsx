@@ -80,10 +80,6 @@ jest.mock('../../src/components/WeeklyActivityOverview', () => ({
   __esModule: true,
   default: () => null,
 }));
-jest.mock('../../src/components/HydrationDetailsModal', () => ({
-  __esModule: true,
-  default: () => null,
-}));
 jest.mock('../../src/components/brand/ProgressTrackX', () => ({
   __esModule: true,
   default: () => null,

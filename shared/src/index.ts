@@ -137,6 +137,7 @@ export * from "./nutrients/alcoholUnits.ts";
 export * from "./nutrients/caffeineKinetics.ts";
 export * from "./utils/bodyComposition.ts";
 export * from "./utils/timezone.ts";
+export * from "./utils/workoutClock.ts";
 export * from "./utils/calendar.ts";
 export * from "./utils/entryTime.ts";
 export * from "./utils/hydrationExample.ts";

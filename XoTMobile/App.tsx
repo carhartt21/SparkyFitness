@@ -49,6 +49,8 @@ import {
   SafeMealPlanForm,
   SafeWaterContainers,
   SafeWaterLog,
+  SafeDailyMeals,
+  SafeDailyTraining,
   SafeWaterContainerEdit,
   SafeExercisesLibrary,
   SafeExerciseReview,
@@ -389,6 +391,8 @@ function AppContent() {
           WorkoutPresetsLibrary: 'routines',
           WorkoutPlans: 'training-plans',
           TrainingHub: 'training',
+          DailyMeals: 'daily-meals',
+          DailyTraining: 'daily-training',
           HealthOverview: 'health-overview',
           FoodSearch: 'search',
           // Tapping the workout Live Activity opens its associated URL.
@@ -637,6 +641,22 @@ function AppContent() {
                     defaultValue: 'Library',
                   }),
                 }
+              )}
+            />
+            <Stack.Screen
+              name="DailyMeals"
+              component={SafeDailyMeals}
+              options={createStackScreenOptions(
+                t('dailyMeals.title', { defaultValue: 'Meals' }),
+                { headerBackButtonDisplayMode: 'minimal' }
+              )}
+            />
+            <Stack.Screen
+              name="DailyTraining"
+              component={SafeDailyTraining}
+              options={createStackScreenOptions(
+                t('dailyTraining.title', { defaultValue: 'Training' }),
+                { headerBackButtonDisplayMode: 'minimal' }
               )}
             />
             <Stack.Screen

@@ -1,3 +1,4 @@
+import { workoutDisplayName } from './workoutPresentation';
 import type { TFunction } from 'i18next';
 import type {
   ExerciseEntrySetRequest,
@@ -101,11 +102,20 @@ const NAME_KEYWORDS: [string, IconName][] = [
   ['run', 'exercise-running'],
 ];
 
+export function plannedWorkoutIcon(activityType: string): IconName {
+  if (activityType.toLowerCase() === 'mobility') return 'exercise-yoga';
+  return (
+    Object.entries(CATEGORY_ICON_MAP).find(
+      ([category]) => category.toLowerCase() === activityType.toLowerCase()
+    )?.[1] ?? 'exercise-default'
+  );
+}
+
 export function getWorkoutIcon(session: ExerciseSessionResponse): IconName {
   if (session.type === 'preset') return 'exercise-weights';
 
   const name = session.name ?? session.exercise_snapshot?.name ?? '';
-  const category = session.exercise_snapshot?.category;
+  const category = session.exercise_snapshot?.category ?? session.category;
 
   // Exact name match (handles synced workouts where name is the activity type)
   if (name in CATEGORY_ICON_MAP) return CATEGORY_ICON_MAP[name];
@@ -266,10 +276,13 @@ export function getWorkoutSummary(
     };
   }
   return {
-    name:
+    name: workoutDisplayName(
+      session,
       session.name ??
-      session.exercise_snapshot?.name ??
-      t('workout.unknownExercise', { defaultValue: 'Unknown exercise' }),
+        session.exercise_snapshot?.name ??
+        t('workout.unknownExercise', { defaultValue: 'Unknown exercise' }),
+      t
+    ),
     duration: session.duration_minutes,
     calories: session.calories_burned,
   };

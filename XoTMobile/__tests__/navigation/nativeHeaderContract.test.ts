@@ -90,6 +90,12 @@ const NATIVE_TABS_ROUTE_EXCLUSIONS = {
     'Root-stack context period form with its own back button, presented above the tab host.',
   DailyProgress:
     'Root-stack daily tracking screen with its own date bar and back button, presented above the tab host.',
+  DailyMeals:
+    'Root-stack daily meals with date navigation, presented above the tab host.',
+  DailyTraining:
+    'Root-stack daily training with date navigation, presented above the tab host.',
+  WaterLog:
+    'Root-stack hydration logger and history with date navigation, presented above the tab host.',
   WorkoutPlans:
     'Root-stack weekly training list with its own date bar and back button, presented above the tab host.',
   WorkoutPlanForm:

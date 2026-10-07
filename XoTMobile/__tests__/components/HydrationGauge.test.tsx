@@ -302,3 +302,40 @@ describe('HydrationGauge headline totals', () => {
     expect(screen.queryByText('of 0 ml')).toBeNull();
   });
 });
+
+describe('daily hydration arc', () => {
+  it('uses one confirmed scalar and retains the actual logger and preset actions', () => {
+    const onIncrement = jest.fn(),
+      onQuickAdd = jest.fn();
+    render(
+      <HydrationGauge
+        variant="daily"
+        consumed={500}
+        goal={2000}
+        pendingMl={250}
+        containerVolume={250}
+        onIncrement={onIncrement}
+        onQuickAdd={onQuickAdd}
+        quickAddPresets={[{ id: 7, name: 'Latte', pressLabel: '350 ml' }]}
+      />
+    );
+    expect(screen.getByRole('progressbar').props.accessibilityValue).toEqual({
+      min: 0,
+      max: 2000,
+      now: 500,
+      text: '500 ml',
+    });
+    expect(screen.getByText('250 ml awaiting sync')).toBeTruthy();
+    fireEvent.press(screen.getByLabelText('Add water'));
+    fireEvent.press(screen.getByLabelText('Log Latte'));
+    expect(onIncrement).toHaveBeenCalledTimes(1);
+    expect(onQuickAdd).toHaveBeenCalledWith(7);
+  });
+  it('shows consumption without inventing a progress denominator when the daily goal is absent', () => {
+    render(<HydrationGauge variant="daily" consumed={500} goal={0} />);
+    expect(screen.getByText('No daily target set')).toBeTruthy();
+    expect(screen.getByRole('progressbar').props.accessibilityValue).toEqual({
+      text: '500 ml',
+    });
+  });
+});

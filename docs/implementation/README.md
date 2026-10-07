@@ -4,6 +4,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current user guides and runbooks
 
+- [V45 diary, meals and training refinement](v45-diary-meals-training-refinement-2026-10-07.md): unreleased phone-first daily details, unified hydration, snapshot templates, source clocks and simulator/test evidence.
+
 - [Documentation map](../README.md): where current usage, technical contracts and dated evidence belong.
 - [MCP-based training](../src/features/exercises/mcp-training.md), [weekly training plans](../src/features/exercises/weekly-planning.md), [notifications and MCP updates](../src/features/settings/notifications.md), and [widgets/Live Activities](../src/mobile-app/widgets-live-activities.md): current user-facing workflows.
 - [Notification delivery and assistant access](../src/developer/engagement-delivery.md): versioned contracts, local/remote ownership and OAuth deployment boundaries.

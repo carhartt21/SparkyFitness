@@ -18,6 +18,7 @@ export interface DiaryTimelineEntry extends DiaryTimelineItem {
   collapsible?: boolean;
   section?: 'recorded' | 'planned';
   icon?: IconName;
+  color?: string;
   onPress?: () => void;
 }
 
@@ -146,7 +147,11 @@ function TimelineRow({
               )}
             </View>
           )}
-          <Icon name={entry.icon ?? 'list'} size={20} color={accent} />
+          <Icon
+            name={entry.icon ?? 'list'}
+            size={20}
+            color={entry.color ?? accent}
+          />
           <View className="min-w-0 flex-1 gap-1">
             {stacked && entry.clock && (
               <Text

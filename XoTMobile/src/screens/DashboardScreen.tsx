@@ -1,3 +1,4 @@
+import TrainingSummaryCard from '../components/TrainingSummaryCard';
 /** Home: daily essentials first; detailed history belongs in dedicated screens. */
 import {
   useCallback,
@@ -338,23 +339,6 @@ export default function DashboardScreen({ navigation }: Props) {
           />
         ) : (
           <>
-            <CalorieRingCard
-              caloriesConsumed={summary.calorieBalance.eaten}
-              caloriesBurned={summary.calorieBalance.burned}
-              burnedIncludesBmr={
-                preferences.include_bmr_in_net_calories === true
-              }
-              calorieGoal={summary.calorieBalance.goal}
-              remainingCalories={summary.calorieBalance.remaining}
-              progressPercent={summary.calorieBalance.progress / 100}
-              onEditGoal={() => navigation.navigate('CalorieSettings')}
-              onConsumedPress={() =>
-                navigation.navigate('Diary', { selectedDate })
-              }
-              onBurnedPress={() =>
-                navigation.navigate('ExerciseReview', { date: selectedDate })
-              }
-            />
             {progressVisible && (
               <DailyProgressCard
                 date={selectedDate}
@@ -367,6 +351,30 @@ export default function DashboardScreen({ navigation }: Props) {
                 }
               />
             )}
+            <CalorieRingCard
+              caloriesConsumed={summary.calorieBalance.eaten}
+              caloriesBurned={summary.calorieBalance.burned}
+              burnedIncludesBmr={
+                preferences.include_bmr_in_net_calories === true
+              }
+              calorieGoal={summary.calorieBalance.goal}
+              remainingCalories={summary.calorieBalance.remaining}
+              progressPercent={summary.calorieBalance.progress / 100}
+              onEditGoal={() => navigation.navigate('CalorieSettings')}
+              onConsumedPress={() =>
+                navigation.navigate('DailyMeals', { date: selectedDate })
+              }
+              onBurnedPress={() =>
+                navigation.navigate('ExerciseReview', { date: selectedDate })
+              }
+            />
+            <TrainingSummaryCard
+              date={selectedDate}
+              enabled={!offline}
+              onPress={() =>
+                navigation.navigate('DailyTraining', { date: selectedDate })
+              }
+            />
           </>
         )}
         <View

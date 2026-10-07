@@ -1,0 +1,70 @@
+{
+  "branch": "feat/v45-diary-meals-training-refinement-20261007",
+  "base": "6f9bee426",
+  "unreleased": true,
+  "mobile": {
+    "validate": "passed",
+    "suites": 571,
+    "tests": 7901,
+    "command": "pnpm exec jest --runInBand",
+    "postLayoutRegression": "5 suites / 49 tests passed after the final compact-heading and category-color changes",
+    "ownerFollowupRegression": "3 suites / 40 tests passed after the intake-gauge and Diary icon changes",
+    "ownerFollowupValidate": "passed"
+  },
+  "server": {
+    "validate": "passed",
+    "suites": 6,
+    "tests": 103,
+    "scope": "workoutClock, workoutHandlerTelemetry, hevyDataProcessor, hevyCsvReview, hevyCsvPreview, hevyService.pagination",
+    "fullSuite": "not run by requested scope"
+  },
+  "frontend": {
+    "validate": "passed",
+    "tests": "not run; no web UI code changed"
+  },
+  "native": {
+    "build": "iOS Simulator Debug succeeded, includes generated Watch targets",
+    "caseDimensions": [
+      "390x844 German dark",
+      "390x844 German light",
+      "430x932 German accessibility text"
+    ],
+    "interactions": "3 passed, synthetic fixtures",
+    "physicalDevice": "not performed",
+    "androidBuild": "not performed",
+    "signedArchive": "not performed",
+    "captureCorrection": "Enlarged expanded meal recaptured with complete header and food row. Final tour asserts ordinary Home logging targets above tabs.",
+    "supplementalInteraction": "passed: 390 German dark complete tour including supplement-history action/glyph capture",
+    "supplementalLocatorCorrection": "Two initial supplemental selector attempts failed; descendant label matching resolves the accessible compound action. No production UI change.",
+    "ownerFollowupInteractions": "3 passed: German dark/light390 and accessibility430; see owner-followup-simulator-results.json",
+    "ownerFollowupHarnessCorrection": "Energy-height ordinary-layout predicate replaced with actual stacked progress-row geometry; enlarged content intentionally scrolls."
+  },
+  "release": {
+    "merge": false,
+    "testflightUpload": false,
+    "productionDeployment": false
+  },
+  "accountData": "No production account data used; Hevy owner-history reconciliation remains manual",
+  "documentation": {
+    "build": "passed after final design-record update",
+    "command": "pnpm run build in docs",
+    "warnings": "Existing VitePress chunk size warning",
+    "designMerge": "DESIGN.md and .impeccable/design.json updated from final source/captures; incumbent tokens and unrelated patterns preserved"
+  },
+  "finishReview": {
+    "disposition": "ship",
+    "scope": "All eight original material fixes resolved after two bounded correction rounds; not whole-app or physical-device acceptance",
+    "verdict": "verdict-round2.md",
+    "matrixScreenshots": 39,
+    "supplementalScreenshots": 1,
+    "detector": "Not run: native-only React Native interface",
+    "ownerFollowupScreenshots": 12,
+    "ownerFollowupVerdict": "ship at the two-change scope; finish-owner-followup.md",
+    "ownerFollowupReviewer": "Fresh narrow review completed after one replacement due to model capacity; all 12 required PNGs inspected"
+  },
+  "repositoryLayout": "passed: 5 packages, 5891 tracked paths",
+  "nextCycle": {
+    "main": "Closer daily Meals and daily/weekly Training fidelity to approved boards: buttons, information tables, layout",
+    "later": "Watch training page directly after food intake; not implemented in this batch"
+  }
+}

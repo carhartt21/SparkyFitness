@@ -1,7 +1,7 @@
 import { useTweenedValue } from '../hooks/useTweenedValue';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import { formatLocalizedNumber } from '../localization';
 import {
@@ -10,6 +10,7 @@ import {
   volumeFromMl,
 } from '../utils/unitConversions';
 import Icon from './Icon';
+import EnergyGauge from './EnergyGauge';
 import DashboardSectionHeader from './DashboardSectionHeader';
 import GlowCard from './ui/GlowCard';
 import NeonButton from './ui/NeonButton';
@@ -26,11 +27,11 @@ interface QuickAddPreset extends ContainerOption {
 }
 
 /**
- * `full` renders everything in one card. The Dashboard uses `full`. Compact clients may use `tile` (totals,
+ * `daily` centers an open hydration arc above the shared logger. `full` retains the compact bar/cups. Compact clients may use `tile` (totals,
  * cups, log buttons) with an `options` card (sync state, containers, presets),
  * which renders nothing when there is nothing to show.
  */
-type HydrationVariant = 'full' | 'tile' | 'options';
+type HydrationVariant = 'full' | 'daily' | 'tile' | 'options';
 
 const CUP_COUNT = 5;
 
@@ -91,6 +92,8 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
   onQuickAdd,
 }) => {
   const { t } = useTranslation();
+  const expandedText = useWindowDimensions().fontScale > 1.3;
+  const daily = variant === 'daily';
   const glowing = useGlowTheme();
   const [hydrationColor, trackColor] = useCSSVariable([
     '--color-hydration',
@@ -148,97 +151,170 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
         <>
           <DashboardSectionHeader
             compact={compact}
-            title={t('dashboard.hydration', { defaultValue: 'Hydration' })}
+            title={
+              daily
+                ? t('hydrationDetails.daily', {
+                    defaultValue: 'Daily hydration',
+                  })
+                : t('dashboard.hydration', { defaultValue: 'Hydration' })
+            }
             icon="water"
             color={hydrationColor}
             onDetails={onDetails}
             testID="dashboard-hydration-details"
           />
-          <View style={compact ? { minHeight: 92 } : undefined}>
-            <Text
-              className={`${variant === 'tile' ? 'text-2xl' : 'text-xl'} font-bold text-text-primary mb-2`}
-            >
-              {displayConsumed} {unitLabel}
-            </Text>
-
-            {progress != null ? (
-              <>
-                <View className="flex-row items-center gap-2">
-                  <View
-                    className="h-2 flex-1 rounded-full bg-progress-track"
-                    accessibilityRole="progressbar"
-                    accessibilityLabel={t('dashboard.hydration', {
-                      defaultValue: 'Hydration',
-                    })}
-                    accessibilityValue={{
+          {daily ? (
+            <View
+              className="items-center py-3"
+              accessible
+              accessibilityRole="progressbar"
+              accessibilityLabel={t('dashboard.hydration', {
+                defaultValue: 'Hydration',
+              })}
+              accessibilityValue={
+                goal > 0
+                  ? {
                       min: 0,
                       max: goal,
                       now: Math.min(Math.max(consumed, 0), goal),
-                    }}
-                  >
-                    <View
-                      className="h-full rounded-full"
-                      style={{
-                        width: `${shownProgress * 100}%` as `${number}%`,
-                        backgroundColor: hydrationColor,
-                        boxShadow: glowing
-                          ? `0px 0px 8px 0px ${withAlpha(hydrationColor, 0.6)}`
-                          : undefined,
-                      }}
-                    />
-                  </View>
-                  <Text className="text-xs text-text-secondary">
-                    {formatLocalizedNumber(Math.round(progress * 100))}%
+                      text: `${displayConsumed} ${unitLabel}`,
+                    }
+                  : { text: `${displayConsumed} ${unitLabel}` }
+              }
+            >
+              <View
+                className="items-center justify-center"
+                style={
+                  expandedText ? { width: '100%' } : { width: 212, height: 212 }
+                }
+              >
+                {!expandedText && (
+                  <EnergyGauge
+                    color={hydrationColor}
+                    trackColor={trackColor}
+                    size={212}
+                    strokeWidth={15}
+                    progress={progress ?? 0}
+                  />
+                )}
+                <View
+                  className="items-center gap-1"
+                  style={
+                    expandedText
+                      ? { width: '100%' }
+                      : { position: 'absolute', width: 156 }
+                  }
+                >
+                  <Text className="text-center text-3xl font-bold text-text-primary">
+                    {displayConsumed}
+                  </Text>
+                  <Text className="text-center text-base text-text-primary">
+                    {unitLabel}
+                  </Text>
+                  <Text className="text-center text-xs text-text-secondary">
+                    {progress == null
+                      ? t('dashboard.noHydrationGoal', {
+                          defaultValue: 'No daily target set',
+                        })
+                      : t('dashboard.ofVolume', {
+                          defaultValue: 'of {{value}} {{unit}}',
+                          value: displayGoal,
+                          unit: unitLabel,
+                        })}
                   </Text>
                 </View>
-                <Text className="text-sm text-text-secondary mt-2">
-                  {t('dashboard.ofVolume', {
-                    defaultValue: 'of {{value}} {{unit}}',
-                    value: displayGoal,
-                    unit: unitLabel,
+              </View>
+            </View>
+          ) : (
+            <View style={compact ? { minHeight: 92 } : undefined}>
+              <Text
+                className={`${variant === 'tile' ? 'text-2xl' : 'text-xl'} font-bold text-text-primary mb-2`}
+              >
+                {displayConsumed} {unitLabel}
+              </Text>
+
+              {progress != null ? (
+                <>
+                  <View className="flex-row items-center gap-2">
+                    <View
+                      className="h-2 flex-1 rounded-full bg-progress-track"
+                      accessibilityRole="progressbar"
+                      accessibilityLabel={t('dashboard.hydration', {
+                        defaultValue: 'Hydration',
+                      })}
+                      accessibilityValue={{
+                        min: 0,
+                        max: goal,
+                        now: Math.min(Math.max(consumed, 0), goal),
+                      }}
+                    >
+                      <View
+                        className="h-full rounded-full"
+                        style={{
+                          width: `${shownProgress * 100}%` as `${number}%`,
+                          backgroundColor: hydrationColor,
+                          boxShadow: glowing
+                            ? `0px 0px 8px 0px ${withAlpha(hydrationColor, 0.6)}`
+                            : undefined,
+                        }}
+                      />
+                    </View>
+                    <Text className="text-xs text-text-secondary">
+                      {formatLocalizedNumber(Math.round(progress * 100))}%
+                    </Text>
+                  </View>
+                  <Text className="text-sm text-text-secondary mt-2">
+                    {t('dashboard.ofVolume', {
+                      defaultValue: 'of {{value}} {{unit}}',
+                      value: displayGoal,
+                      unit: unitLabel,
+                    })}
+                  </Text>
+                  <View
+                    className="mt-3 flex-row justify-between"
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
+                  >
+                    {Array.from({ length: CUP_COUNT }, (_, index) => {
+                      const filled = progress >= (index + 1) / CUP_COUNT - 1e-6;
+                      return (
+                        <ValueChangeFade
+                          key={index}
+                          changeKey={filled}
+                          duration={200}
+                          testID={
+                            filled ? 'hydration-cup-filled' : 'hydration-cup'
+                          }
+                          className="h-8 w-6 rounded-b-md border-2 border-t-0 overflow-hidden justify-end"
+                          style={{
+                            borderColor: filled ? hydrationColor : trackColor,
+                          }}
+                        >
+                          {filled ? (
+                            <View
+                              style={{
+                                height: '72%',
+                                backgroundColor: withAlpha(
+                                  hydrationColor,
+                                  0.85
+                                ),
+                              }}
+                            />
+                          ) : null}
+                        </ValueChangeFade>
+                      );
+                    })}
+                  </View>
+                </>
+              ) : (
+                <Text className="text-sm text-text-secondary">
+                  {t('dashboard.noHydrationGoal', {
+                    defaultValue: 'No daily target set',
                   })}
                 </Text>
-                <View
-                  className="mt-3 flex-row justify-between"
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                >
-                  {Array.from({ length: CUP_COUNT }, (_, index) => {
-                    const filled = progress >= (index + 1) / CUP_COUNT - 1e-6;
-                    return (
-                      <ValueChangeFade
-                        key={index}
-                        changeKey={filled}
-                        duration={200}
-                        testID={
-                          filled ? 'hydration-cup-filled' : 'hydration-cup'
-                        }
-                        className="h-8 w-6 rounded-b-md border-2 border-t-0 overflow-hidden justify-end"
-                        style={{
-                          borderColor: filled ? hydrationColor : trackColor,
-                        }}
-                      >
-                        {filled ? (
-                          <View
-                            style={{
-                              height: '72%',
-                              backgroundColor: withAlpha(hydrationColor, 0.85),
-                            }}
-                          />
-                        ) : null}
-                      </ValueChangeFade>
-                    );
-                  })}
-                </View>
-              </>
-            ) : (
-              <Text className="text-sm text-text-secondary">
-                {t('dashboard.noHydrationGoal', {
-                  defaultValue: 'No daily target set',
-                })}
-              </Text>
-            )}
-          </View>
+              )}
+            </View>
+          )}
 
           {showButtons && !noContainer ? (
             <View className="flex-row items-center gap-2 mt-3">

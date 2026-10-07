@@ -961,7 +961,8 @@
     },
     "partialShort": "Teilweise",
     "noCountedTasks": "Keine zählenden Aufgaben",
-    "uncountedExplanation": "Die Einträge unten zählen nicht zum Tagesfortschritt. Prüfen Sie sie oder wählen Sie in den Tracking-Einstellungen aus, was zählt."
+    "uncountedExplanation": "Die Einträge unten zählen nicht zum Tagesfortschritt. Prüfen Sie sie oder wählen Sie in den Tracking-Einstellungen aus, was zählt.",
+    "openAction": "Aktion für {{name}} öffnen"
   },
   "habits": {
     "targetLabel": "Ziel {{value}} {{unit}}",
@@ -1264,7 +1265,10 @@
     "openDay": "Fortschritt für den ausgewählten Tag"
   },
   "foodDetails": {
-    "caloriesAbbreviation": "{{value}} kcal"
+    "caloriesAbbreviation": "{{value}} kcal",
+    "protein": "Protein",
+    "carbs": "Kohlenhydrate",
+    "fat": "Fett"
   },
   "medications": {
     "schedule": {
@@ -4078,7 +4082,11 @@
     "loggedOnly": "Basierend auf erfassten Einträgen. Der Tag kann unvollständig sein.",
     "offlineEmpty": "Für diesen Tag ist auf diesem Gerät noch keine Zusammenfassung gespeichert. Stellen Sie die Verbindung wieder her, um sie zu laden.",
     "retrySavedWaterFailed": "Die gespeicherten Getränke konnten nicht synchronisiert werden. Versuchen Sie es erneut.",
-    "waterFromFood": "Enthält {{value}} {{unit}} aus Getränken und Supplementen"
+    "waterFromFood": "Enthält {{value}} {{unit}} aus Getränken und Supplementen",
+    "mealPhoto": "Mahlzeitenfoto",
+    "openMealsA11y": "{{amount}}. Mahlzeiten des Tages öffnen.",
+    "noCalorieGoal": "Kein Kalorienziel festgelegt",
+    "intakeGoal": "von {{value}} kcal"
   },
   "importHistory": {
     "paused": {
@@ -4290,7 +4298,13 @@
     "openSupplement": "Supplement öffnen",
     "openDiary": "Im Tagebuch ansehen",
     "unknownNote_one": "Bei {{count}} Eintrag ist der Wassergehalt unbekannt.",
-    "unknownNote_other": "Bei {{count}} Einträgen ist der Wassergehalt unbekannt."
+    "unknownNote_other": "Bei {{count}} Einträgen ist der Wassergehalt unbekannt.",
+    "deleteTitle": "Dieses Getränk löschen?",
+    "deleteMessage": "Nur dieser Getränkeeintrag wird entfernt. Verknüpfte Lebensmittel und Einnahmen bleiben erhalten.",
+    "deleteAction": "Erfasstes Getränk löschen",
+    "deleteFailed": "Das Getränk konnte nicht gelöscht werden. Bitte erneut versuchen.",
+    "offline": "Für diesen Tag ist kein Verlauf gespeichert. Zum Laden mit dem Server verbinden.",
+    "daily": "Tägliche Flüssigkeit"
   },
   "micronutrients": {
     "title": "Mikronährstoffabdeckung",
@@ -4819,5 +4833,52 @@
     "thisWeek": "Diese Woche",
     "noPlans": "Für diese Woche ist kein Training geplant.",
     "noRecorded": "Für diesen Tag wurde kein Training erfasst."
+  },
+  "dailyMeals": {
+    "title": "Mahlzeiten",
+    "open": "Mahlzeiten des Tages öffnen",
+    "addFood": "Lebensmittel hinzufügen",
+    "savePreset": "Als Vorlage speichern",
+    "newTemplate": "Mahlzeitenvorlage",
+    "reviewTemplate": "Zutaten der Vorlage prüfen",
+    "continueKnown": "Bekannte Zutaten verwenden",
+    "noSummary": "Für diesen Tag ist keine Zusammenfassung gespeichert.",
+    "knownNutrition": "Nur bekannte Nährwerte. Mahlzeitenfotos bleiben offen, bis ihre Nährwerte bestätigt sind.",
+    "unresolved_other": "Bei {{count}} Zutaten fehlen bestätigte Nährwerte oder eine wiederverwendbare Lebensmittelportion. Zuerst ergänzen oder ausdrücklich nur die übrigen Zutaten verwenden.",
+    "unresolved_one": "Bei {{count}} Zutat fehlen bestätigte Nährwerte oder eine wiederverwendbare Lebensmittelportion. Zuerst ergänzen oder ausdrücklich nur die übrigen Zutaten verwenden.",
+    "details": "Mahlzeitendetails",
+    "allowance": "Tagesziel"
+  },
+  "dailyTraining": {
+    "title": "Training",
+    "open": "Training des Tages öffnen",
+    "sessionCount_one": "{{count}} Einheit",
+    "sessionCount_other": "{{count}} Einheiten",
+    "planned": "Geplant",
+    "log": "Training eintragen",
+    "review": "Auswertung und Verlauf",
+    "noPlans": "Für diesen Tag ist kein Training geplant.",
+    "unavailable": "Trainingsübersicht nicht verfügbar",
+    "partial": "Ein Teil der Trainingsdaten konnte nicht aktualisiert werden.",
+    "weekCounts": "{{recorded}} erfasst · {{planned}} geplant",
+    "dayDetails": "Tagesübersicht",
+    "loadingSources": "Trainingsquellen werden geladen …",
+    "types": {
+      "walking": "Gehen",
+      "running": "Laufen",
+      "cycling": "Radfahren",
+      "soccer": "Fußball",
+      "swimming": "Schwimmen",
+      "hiking": "Wandern",
+      "yoga": "Yoga",
+      "pilates": "Pilates",
+      "strength": "Krafttraining",
+      "rowing": "Rudern",
+      "mobility": "Mobilität"
+    },
+    "duration": "{{value}} min",
+    "mi": "mi",
+    "km": "km",
+    "start": "Training starten"
   }
 }

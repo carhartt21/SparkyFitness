@@ -1,3 +1,5 @@
+import DailyMealsScreen from '../screens/DailyMealsScreen';
+import DailyTrainingScreen from '../screens/DailyTrainingScreen';
 import TrainingHubScreen from '../screens/TrainingHubScreen';
 import HealthOverviewScreen from '../screens/HealthOverviewScreen';
 import WorkoutPlansScreen from '../screens/WorkoutPlansScreen';
@@ -538,4 +540,10 @@ export const SafeTrainingHub = withErrorBoundary(
 export const SafeHealthOverview = withErrorBoundary(
   HealthOverviewScreen,
   'HealthOverview'
+);
+
+export const SafeDailyMeals = withErrorBoundary(DailyMealsScreen, 'DailyMeals');
+export const SafeDailyTraining = withErrorBoundary(
+  DailyTrainingScreen,
+  'DailyTraining'
 );
