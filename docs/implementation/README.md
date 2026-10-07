@@ -12,6 +12,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [Coaching report permissions and diagnostics](coaching-report-permissions-2026-10-07.md): bounded private recap writes, safe invocation diagnostics, English/German task scope and unresolved unattended platform rejection.
+
 - [v45 release](v45-release-2026-10-06.md): combined diary/navigation and coaching corrections, notification payload and widget fallback fixes, validation and parallel release evidence.
 
 - [v44 diary refinement](v44-diary-refinement-2026-10-06.md): compact Home, recorded/planned diary, native food moves, workout clocks and matching, 24-hour web inputs and import receipts; delivered in v45, with simulator and remaining owner/device checks.

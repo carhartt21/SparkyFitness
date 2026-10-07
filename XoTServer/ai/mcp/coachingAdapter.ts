@@ -69,6 +69,15 @@ export function registerCoachingTools(
       async (args) => {
         let stage: 'authorization' | 'arguments' | 'operation' =
           'authorization';
+        const diagnose = (outcome: 'received' | 'completed' | 'failed') => {
+          if (!readOnly)
+            log('info', 'Coaching MCP write invocation.', {
+              tool: name,
+              stage,
+              outcome,
+            });
+        };
+        diagnose('received');
         try {
           requireCoachingEnabled();
           await authorize();
@@ -76,8 +85,11 @@ export function registerCoachingTools(
           const input = schema.parse(args);
           stage = 'operation';
           const result = await work(input);
-          return { content: [{ type: 'text', text: JSON.stringify(result) }] };
+          const text = JSON.stringify(result);
+          diagnose('completed');
+          return { content: [{ type: 'text', text }] };
         } catch (error) {
+          diagnose('failed');
           const validationError = error instanceof z.ZodError;
           if (validationError && stage !== 'arguments')
             log('error', 'Coaching MCP validation failed.', {
@@ -166,7 +178,7 @@ export function registerCoachingTools(
   );
   register(
     'xot_report_coaching_run',
-    'Renew a run lease, report failure, or atomically publish a typed recap and all staged proposals on successful completion. A failed run publishes nothing. Every report requires a stable operationId.',
+    "Write review progress inside the connected owner's private X on Track account. status=heartbeat renews only the run lease; status=failed closes the run and discards its staged proposals; status=succeeded completes the review, saves any supplied owner-only recap and exposes staged proposals for owner review. This does not publish publicly, send messages, log intake, or activate changes to goals, plans, reminders, medications or doses. A successful protocol-2 report requires recap and processedEventCursor equal to the claimed feedbackThrough. Every report requires runId, leaseToken and a stable operationId; reuse the same operationId and payload only for a retry of the same report.",
     version === 2
       ? coachingRunReportV2Schema
       : coachingRunReportSchema.extend({

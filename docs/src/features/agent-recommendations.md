@@ -16,6 +16,34 @@ ChatGPT cloud tasks can use eligible connected tools where supported; see [OpenA
 
 For a new ChatGPT coaching connection, use **`https://<your-host>/mcp/coaching`**, copied from Recommendations. It requests **`mcp:read mcp:propose`** and the consent screen shows selectable review areas. A screen offering only read/write access belongs to the older `/mcp/chatgpt` connection; refreshing that connection does not add proposal permission. Existing bound coaching connections on the older address still work. A bound coaching connection exposes only the six coaching tools. Consent never permits the external reviewer to approve plan, goal or notification changes. Revoke the connection to stop its calls, and remove the external ChatGPT task separately.
 
+### When a review reads data but cannot save its recap
+
+X on Track consent and ChatGPT action approval are separate checks. Claiming a
+review, staging proposals and reporting progress are writes. A heartbeat updates
+the run lease; a successful report saves a recap privately in your account and
+makes staged proposals available for your review. It does not publish publicly,
+send messages to other people or activate a plan, goal or reminder change.
+
+The copied task prompt names these three bounded write operations. Review that
+scope before saving it in ChatGPT. Explicit task instructions do not override
+ChatGPT's safeguards, plugin permissions or workspace requirements. A manual
+approval may apply only to that conversation; it does not prove that a subsequent
+unattended run can write. See [OpenAI's custom MCP guide](https://developers.openai.com/api/docs/guides/custom-mcp-server).
+
+If an unattended report is blocked, open **Scheduled → the task → the affected
+run** and inspect its tool activity. Record the tool name and exact available
+rejection reason, without lease tokens, request arguments or health data. The
+reason may not be exposed in the interface. Verify the permitted tools on the
+selected ChatGPT connection, then test one bounded manual review before testing
+an unattended run again. Refresh tool metadata after server descriptions change;
+that refresh does not itself grant permission. Do not repeatedly retry a denied
+write or switch to another connection/API to bypass the check.
+
+A blocked invocation must not claim that its recap was saved or change the
+recurring schedule on its own. A timed-out run publishes nothing and does not
+acknowledge unread feedback. The owner decides whether to pause or resume the
+external task; changing it is separate from the X on Track account schedule.
+
 ## Read a recap or request a review
 
 **Recaps** contains daily, weekly, monthly, yearly and manual reviews. A successful no-change review still publishes a recap. Open it to mark it read, inspect observations/limitations and optionally expand retained evidence. Delete removes only that recap, not diary records, accepted configurations or recommendations.

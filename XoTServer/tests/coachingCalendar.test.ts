@@ -8,6 +8,7 @@ import {
   coachingSettingsSchema,
   coachingSettingsV2Schema,
   cloudCoachingTaskPrompt,
+  cloudCoachingInstructions,
 } from '@workspace/shared';
 import { recordedEvidenceDays } from '../services/coachingCalendarEvidence.js';
 const settings = { ...defaultCoachingSettingsV2, enabled: true };
@@ -107,4 +108,36 @@ describe('calendar review protocol', () => {
     expect(prompt).toContain('Freigabe erfolgt immer in X on Track');
     expect(prompt).not.toContain('xotagent_');
   });
+  it.each(['de-DE', 'en'])(
+    'bounds recurring write permission and denial handling in %s',
+    (locale) => {
+      const prompt = cloudCoachingTaskPrompt('08:00', 'Europe/Berlin', locale);
+      for (const tool of [
+        'xot_claim_coaching_run',
+        'xot_submit_coaching_proposals',
+        'xot_report_coaching_run',
+      ])
+        expect(prompt).toContain(tool);
+      for (const status of ['heartbeat', 'failed', 'succeeded'])
+        expect(prompt).toContain(status);
+      expect(prompt).toContain(
+        locale.startsWith('de')
+          ? 'ersetzt keine Plattformfreigabe'
+          : 'does not replace platform approval'
+      );
+      expect(prompt).toContain(
+        locale.startsWith('de')
+          ? 'wenn ich dies gesondert beauftrage'
+          : 'unless I separately ask'
+      );
+      expect(cloudCoachingInstructions).toContain(
+        'Do not retry a denied action'
+      );
+      expect(cloudCoachingInstructions).toContain(
+        'Never acknowledge unread feedback'
+      );
+      expect(cloudCoachingInstructions).toContain('owner separately asks');
+      expect(cloudCoachingInstructions).toContain('status=succeeded');
+    }
+  );
 });

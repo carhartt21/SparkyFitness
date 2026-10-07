@@ -47,6 +47,37 @@ Monthly/yearly retrieval aggregates before reading into memory (at most 12 rows 
 
 Every plan, goal and notification change remains a typed staged proposal needing the owner's app-session preview and acceptance. The existing future-effective plan versions, library references, scope, receipts and confirmed outcome rules remain authoritative. A declined topic requires explicit reconsideration. A digest considers unread recaps or pending proposals, reuses Engagement v3 delivery/quiet-hours/quota, and remains at most one attempt per account/local day.
 
+### Diagnose a blocked report
+
+All three write tools retain `readOnlyHint: false`, `idempotentHint: true` and a
+bounded private-account surface. Do not label lease renewal or recap persistence
+as a read to remove a confirmation. The report description distinguishes private
+recap storage from public publication and distinguishes proposal visibility from
+owner activation. No extra tool, credential, transport or scheduling service is
+needed for this clarification.
+
+The adapter records `Coaching MCP write invocation.` at INFO with only `tool`,
+`stage` (`authorization`, `arguments`, `operation`) and `outcome` (`received`,
+`completed`, `failed`). It never logs payloads, recap text, exception text,
+account/run/operation IDs or lease tokens. Read-tool payloads/results are not
+logged. `received` establishes that an authenticated transport dispatched the
+write handler, not that authorization, validation or persistence succeeded.
+`completed` establishes that the service returned successfully. Failed reports
+identify their failing boundary without exposing data.
+
+Missing saved report receipts show that no report committed; they do not by
+themselves distinguish a platform denial from authentication, schema, lease or
+transaction failure. Missing adapter events also do not exclude rejection before
+MCP dispatch, a logging configuration that suppresses INFO, or a transport
+failure. Correlate the platform's exact rejection and sanitized request/server
+diagnostics. Never enable payload/debug logging to obtain a lease token.
+
+The copy-ready task names claim, stage and heartbeat/failure/success reports within
+the owner's private connection. It requires stopping after a platform denial,
+without changing wording to bypass it, switching transports or changing the task
+schedule. Existing ChatGPT tasks need an owner-reviewed prompt update; changing
+this server code does not silently rewrite saved tasks or grant platform approval.
+
 ## Mac subscription runner
 
 This is an optional, separately configured alternative, not an automatic cloud fallback. Each CLI invocation reviews one eligible period. The runner supports both protocols and persists its existing summary as a recap; protocol 2 acknowledges only the frozen feedback boundary after its read audit.
