@@ -1034,7 +1034,11 @@
     "openMealsA11y": "{{amount}}. Open daily meals.",
     "noCalorieGoal": "No daily calorie target set",
     "intakeGoal": "of {{value}} kcal",
-    "intakeOf": "of"
+    "intakeOf": "of",
+    "intakeWater": "Water",
+    "intakeProgressUnavailable": "{{label}} unavailable.",
+    "intakeProgressNoGoal": "{{label}}: {{value}} {{unit}}. No target set.",
+    "intakeProgressA11y": "{{label}}: {{value}} of {{goal}} {{unit}}, {{percent}}%."
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",

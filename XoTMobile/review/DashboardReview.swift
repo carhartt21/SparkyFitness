@@ -1,6 +1,47 @@
 import XCTest
 
 final class DashboardReview: XCTestCase {
+  /// Focused intake layout, progress accessibility and retained Meals navigation.
+  func testIntakeCard() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    let card = app.descendants(matching: .any)["dashboard-energy"]
+    let body = app.descendants(matching: .any)["dashboard-intake-body"]
+    XCTAssertTrue(card.waitForExistence(timeout: 15)); XCTAssertTrue(body.exists)
+    if app.frame.width < 400 {
+      XCTAssertLessThanOrEqual(body.frame.height, 131)
+      XCTAssertLessThanOrEqual(card.frame.height.rounded(), 184)
+    }
+    for _ in 0..<16 {
+      if card.frame.minY >= dashboard.frame.minY + 8 && card.frame.maxY <= app.frame.height - 125 { break }
+      let startY: CGFloat = card.frame.minY < dashboard.frame.minY + 8 ? 0.40 : 0.70
+      let endY: CGFloat = card.frame.minY < dashboard.frame.minY + 8 ? 0.52 : 0.58
+      app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: startY))
+        .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: endY)))
+    }
+    XCTAssertGreaterThanOrEqual(card.frame.minY, dashboard.frame.minY + 8)
+    XCTAssertLessThanOrEqual(card.frame.maxY, app.frame.height - 125)
+    for id in ["protein", "carbs", "fat", "water"] {
+      let bar = app.descendants(matching: .any)["intake-progress-\(id)"]
+      XCTAssertTrue(bar.exists)
+      XCTAssertGreaterThanOrEqual(bar.frame.minX, card.frame.minX)
+      XCTAssertLessThanOrEqual(bar.frame.maxX, card.frame.maxX)
+      XCTAssertGreaterThanOrEqual(bar.frame.minY, body.frame.minY)
+      XCTAssertLessThanOrEqual(bar.frame.maxY, body.frame.maxY)
+    }
+    let measure = XCTAttachment(string: "Card: \(card.frame); body: \(body.frame)")
+    measure.name = "intake-card-measurement"; measure.lifetime = .keepAlways; add(measure)
+    capture("intake-card", app)
+    let goal = app.buttons["dashboard-edit-goal"]
+    XCTAssertGreaterThanOrEqual(goal.frame.height.rounded(), 44)
+    let intake = app.buttons["dashboard-energy-consumed"]
+    XCTAssertTrue(intake.isHittable); intake.tap()
+    XCTAssertTrue(app.otherElements["daily-meals-summary"].waitForExistence(timeout: 15))
+  }
+
   /// Daily-detail navigation and real meal status controls on isolated fixtures.
   func testV45DailyDetails() throws {
     continueAfterFailure = false

@@ -110,6 +110,24 @@ export function reviewResponse(path: string, scenario: string): unknown {
           progress: 0,
         },
       };
+    if (scenario === 'no-goals')
+      return {
+        ...summaryFixture,
+        goals: {
+          ...summaryFixture.goals,
+          calories: 0,
+          protein: 0,
+          carbs: 0,
+          fat: 0,
+          water_goal_ml: 0,
+        },
+        calorieBalance: {
+          ...summaryFixture.calorieBalance,
+          goal: 0,
+          remaining: -600,
+          progress: 0,
+        },
+      };
     if (scenario === 'over-target')
       return {
         ...summaryFixture,

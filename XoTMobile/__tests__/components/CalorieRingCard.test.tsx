@@ -1,6 +1,8 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import CalorieRingCard from '../../src/components/CalorieRingCard';
+import { StyleSheet } from 'react-native';
+import { useCSSVariable } from 'uniwind';
 const base = {
   caloriesConsumed: 600,
   caloriesBurned: 0,
@@ -50,4 +52,107 @@ it('keeps actual intake visible above goal and distinguishes an unavailable goal
   expect(view.getByText('600')).toBeTruthy();
   expect(view.getByText('No daily calorie target set')).toBeTruthy();
   expect(view.queryByText('of')).toBeNull();
+});
+
+it('shows separate bounded progress for macros and water with actual amounts in accessible names', () => {
+  const view = render(
+    <CalorieRingCard
+      {...base}
+      protein={{ consumed: 30, goal: 150 }}
+      carbs={{ consumed: 80, goal: 250 }}
+      fat={{ consumed: 100, goal: 67 }}
+      water={{ consumed: 1000, goal: 2500 }}
+    />
+  );
+  expect(view.getByTestId('intake-progress-protein')).toHaveAccessibleName(
+    'Protein: 30 of 150 g, 20%.'
+  );
+  expect(view.getByTestId('intake-progress-water')).toHaveAccessibleName(
+    'Water: 1,000 of 2,500 ml, 40%.'
+  );
+  expect(view.getByTestId('intake-progress-fat')).toHaveProp(
+    'accessibilityValue',
+    { min: 0, max: 100, now: 100, text: '149%' }
+  );
+  expect(
+    StyleSheet.flatten(view.getByTestId('intake-progress-fat-fill').props.style)
+      .width
+  ).toBe('100%');
+});
+
+it('distinguishes unknown values and missing denominators from known zero progress', () => {
+  const view = render(
+    <CalorieRingCard
+      {...base}
+      protein={{ consumed: 0, goal: 150 }}
+      carbs={{ consumed: 80, goal: 0 }}
+      water={{ consumed: NaN, goal: 2500 }}
+    />
+  );
+  expect(view.getByTestId('intake-progress-protein')).toHaveAccessibleName(
+    'Protein: 0 of 150 g, 0%.'
+  );
+  expect(view.getByTestId('intake-progress-carbs')).toHaveAccessibleName(
+    'Carbs: 80 g. No target set.'
+  );
+  expect(view.getByTestId('intake-progress-fat')).toHaveAccessibleName(
+    'Fat unavailable.'
+  );
+  expect(view.getByTestId('intake-progress-water')).toHaveAccessibleName(
+    'Water unavailable.'
+  );
+  expect(view.getByTestId('intake-progress-water')).not.toHaveProp(
+    'accessibilityValue'
+  );
+});
+
+it('changes only the intake glow against the adjusted allowance and omits it without a goal', () => {
+  const original = jest.mocked(useCSSVariable).getMockImplementation();
+  const colors: Record<string, string> = {
+    '--color-neon-green': '#11cc66',
+    '--color-neon-red': '#ee3344',
+  };
+  jest
+    .mocked(useCSSVariable)
+    .mockImplementation((variables) =>
+      Array.isArray(variables)
+        ? variables.map((key) => colors[key] ?? '#888888')
+        : (colors[variables] ?? '#888888')
+    );
+  try {
+    const view = render(
+      <CalorieRingCard
+        {...base}
+        caloriesConsumed={2200}
+        remainingCalories={300}
+      />
+    );
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('dashboard-energy-intake').props.style
+      ).textShadowColor
+    ).toMatch(/^#11cc66/);
+    view.rerender(
+      <CalorieRingCard
+        {...base}
+        caloriesConsumed={2200}
+        remainingCalories={-200}
+      />
+    );
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('dashboard-energy-intake').props.style
+      ).textShadowColor
+    ).toMatch(/^#ee3344/);
+    view.rerender(
+      <CalorieRingCard {...base} calorieGoal={0} remainingCalories={0} />
+    );
+    expect(
+      StyleSheet.flatten(
+        view.getByTestId('dashboard-energy-intake').props.style
+      )?.textShadowColor
+    ).toBeUndefined();
+  } finally {
+    jest.mocked(useCSSVariable).mockImplementation(original!);
+  }
 });

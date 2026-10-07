@@ -125,10 +125,11 @@ export function createNutritionFixture(
   const variants: FoodVariantDetail[] = clone(
     legacyPortions ? [reviewVariants[0]] : reviewVariants
   );
-  let entries: FoodEntry[] = clone(
-    (reviewResponse('/api/daily-summary', scenario) as typeof summaryFixture)
-      .foodEntries
-  );
+  const baseSummary = reviewResponse(
+    '/api/daily-summary',
+    scenario
+  ) as typeof summaryFixture;
+  let entries: FoodEntry[] = clone(baseSummary.foodEntries);
   if (diaryRefinement)
     entries = entries.map((entry) => ({ ...entry, entry_date: reviewDate }));
   let nextId = 1;
@@ -594,7 +595,7 @@ export function createNutritionFixture(
             today
           );
         }
-        if (path === '/api/goals/for-date') return summaryFixture.goals;
+        if (path === '/api/goals/for-date') return baseSummary.goals;
         if (path === '/api/workout-presets') return { presets: [], total: 0 };
         if (path === '/api/daily-summary') {
           const foodEntries = entries.filter(
@@ -607,15 +608,18 @@ export function createNutritionFixture(
             0
           );
           return {
-            ...summaryFixture,
+            ...baseSummary,
             foodEntries,
             waterIntake: waterMl,
             calorieBalance: {
-              ...summaryFixture.calorieBalance,
+              ...baseSummary.calorieBalance,
               eaten,
               net: eaten,
-              remaining: 2000 - eaten,
-              progress: eaten / 20,
+              remaining: baseSummary.goals.calories - eaten,
+              progress:
+                baseSummary.goals.calories > 0
+                  ? (eaten / baseSummary.goals.calories) * 100
+                  : 0,
             },
           };
         }

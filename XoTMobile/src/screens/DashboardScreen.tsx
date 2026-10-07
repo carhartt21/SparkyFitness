@@ -68,6 +68,7 @@ import {
   WATER_UNIT_LABELS,
 } from '../utils/unitConversions';
 import { useAppLocale } from '../localization';
+import { getNetCarbsValue } from '../utils/nutrientUtils';
 
 type Props = CompositeScreenProps<
   BottomTabScreenProps<TabParamList, 'Dashboard'>,
@@ -361,6 +362,23 @@ export default function DashboardScreen({ navigation }: Props) {
               calorieGoal={summary.calorieBalance.goal}
               remainingCalories={summary.calorieBalance.remaining}
               progressPercent={summary.calorieBalance.progress / 100}
+              protein={summary.protein}
+              carbs={{
+                ...summary.carbs,
+                consumed: preferences.show_net_carbs
+                  ? getNetCarbsValue(
+                      summary.carbs.consumed,
+                      summary.fiber.consumed
+                    )
+                  : summary.carbs.consumed,
+              }}
+              showNetCarbs={preferences.show_net_carbs === true}
+              fat={summary.fat}
+              water={{
+                consumed: volumeFromMl(summary.waterConsumed, unit),
+                goal: volumeFromMl(summary.waterGoal, unit),
+              }}
+              waterUnit={WATER_UNIT_LABELS[unit] ?? unit}
               onEditGoal={() => navigation.navigate('CalorieSettings')}
               onConsumedPress={() =>
                 navigation.navigate('DailyMeals', { date: selectedDate })
