@@ -437,10 +437,18 @@ try {
       texts = JSON.parse(run(path.join(output, 'recognize'), [screenshot]));
       assertRuntimeClean(readFileSync(path.join(output, 'metro.log'), 'utf8'));
       const text = texts.map((t) => t.text).join('\n');
+      // The current gauge shows consumed intake, then the goal on a separate
+      // line. OCR also emits each line separately; 1,400 remaining is no longer
+      // visible. Keep both fixture values in this smoke check.
+      const populatedIntake =
+        /Calories|Kalorien/.test(text) &&
+        /\b600\b/.test(text) &&
+        /2[.,]000/.test(text) &&
+        /kcal/.test(text);
       passed = v45Review
         ? /Fortschritt/.test(text)
         : process.argv.includes('--mobility-review')
-          ? /Calories|Kalorien/.test(text) && /1[.,]400/.test(text)
+          ? populatedIntake
           : process.argv.includes('--motion-review') ||
               process.argv.includes('--summary-cards-review') ||
               process.argv.includes('--supplements-review') ||
@@ -452,11 +460,11 @@ try {
             ? // OCR sometimes joins the arc with the large balance digits. Check
               // independent fixture content here; XCTest asserts the actual value
               // and scrolls to tasks below the enlarged-text viewport.
-              /Calories|Kalorien/.test(text) && /600\s*kcal/.test(text)
+              populatedIntake
             : item.scenario === 'error'
               ? /Server unavailable/.test(text)
               : item.scenario === 'saved'
-                ? /Saved summary/.test(text) && /1[.,]400/.test(text)
+                ? /Saved summary/.test(text) && populatedIntake
                 : ([
                     'populated',
                     'hydration-options',
@@ -465,7 +473,7 @@ try {
                     'meal-status',
                     'v38-review',
                   ].includes(item.scenario)
-                    ? /1[.,]400/.test(text)
+                    ? populatedIntake
                     : item.scenario === 'empty'
                       ? /2[.,]000/.test(text)
                       : /300/.test(text)) && /kcal/.test(text);
@@ -559,6 +567,11 @@ try {
       process.argv.includes('--interactions')
     )
       results.at(-1).interactionScenario = 'intake-card';
+    else if (
+      process.argv.includes('--activity-notes-review') &&
+      process.argv.includes('--interactions')
+    )
+      results.at(-1).interactionScenario = 'activity-notes-copy';
     else if (v45Review && process.argv.includes('--interactions'))
       results.at(-1).interactionScenario = 'v45-daily-details';
     else if (item.v43Review && process.argv.includes('--interactions'))
@@ -629,7 +642,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--intake-card-review') ? 'testIntakeCard' : v45Review ? 'testV45DailyDetails' : process.argv.includes('--v44-review') ? 'testV44DiaryRefinement' : v43Review ? 'testV43Corrections' : process.argv.includes('--coaching-review') ? 'testCoachingReviews' : process.argv.includes('--v42-review') ? 'testV42Corrections' : process.argv.includes('--mobility-review') ? 'testMobilityFlow' : process.argv.includes('--motion-review') ? 'testWidgetMotion' : process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--hydration-review') ? 'testHydrationSources' : process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--supplements-review') ? 'testSupplementLayout' : process.argv.includes('--v41-review') || process.argv.includes('--v42-review') ? 'testV41Corrections' : process.argv.includes('--v40-review') ? 'testV40Corrections' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--activity-notes-review') ? 'testActivityNotesCopy' : process.argv.includes('--intake-card-review') ? 'testIntakeCard' : v45Review ? 'testV45DailyDetails' : process.argv.includes('--v44-review') ? 'testV44DiaryRefinement' : v43Review ? 'testV43Corrections' : process.argv.includes('--coaching-review') ? 'testCoachingReviews' : process.argv.includes('--v42-review') ? 'testV42Corrections' : process.argv.includes('--mobility-review') ? 'testMobilityFlow' : process.argv.includes('--motion-review') ? 'testWidgetMotion' : process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--hydration-review') ? 'testHydrationSources' : process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--supplements-review') ? 'testSupplementLayout' : process.argv.includes('--v41-review') || process.argv.includes('--v42-review') ? 'testV41Corrections' : process.argv.includes('--v40-review') ? 'testV40Corrections' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

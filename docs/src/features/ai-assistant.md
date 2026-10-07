@@ -9,6 +9,7 @@
 - **Exercise Logging**: Log exercises with duration, distance, and calorie estimates
 - **Measurement Logging**: Log standard and custom body measurements
 - **Water Intake Logging**: Track daily water consumption
+- **Supplement timing review**: Read existing intake plans and recorded nutrition, suggest timing for owner review, and save only explicitly requested schedule changes. See [Medications and supplements](/features/supplements).
 
 ### Chat Interface
 

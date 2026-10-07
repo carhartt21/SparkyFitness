@@ -1,0 +1,29 @@
+{
+  "revision": "ce4e8f4e465256e4f7dda40027ef42ba1569e563",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "scenario": "populated",
+      "device": "iPhone-13",
+      "nativeTabs": false,
+      "v45Review": false,
+      "v44Review": false,
+      "v43Review": false,
+      "v42Review": false,
+      "v41Review": false,
+      "motionReview": false,
+      "mobilityReview": false,
+      "coachingReview": false,
+      "reducedMotion": false,
+      "v40Review": false,
+      "screenshot": "390-de-dark.png",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "launch-icon-actions",
+      "logicalViewport": "390x844"
+    }
+  ],
+  "limitation": "Synthetic in-memory transport. Native tests exercise app writes and refreshed summaries, not backend persistence. OCR is a render smoke check, not visual approval."
+}

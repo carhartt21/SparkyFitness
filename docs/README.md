@@ -8,6 +8,7 @@ The VitePress site serves user guides and developer contracts from `src/`. Dated
 - Training: [weekly plans](src/features/exercises/weekly-planning.md), [MCP workflow](src/features/exercises/mcp-training.md), [exercise tool contracts](src/developer/mcp/exercise.md).
 - External reviews: [cloud setup and recaps](src/features/agent-recommendations.md), [versioned MCP review contract](src/developer/mcp/recommendations.md).
 - Notifications: [setup/troubleshooting and MCP updates](src/features/settings/notifications.md), [tool payloads](src/developer/mcp/engagement.md), [delivery architecture](src/developer/engagement-delivery.md).
+- Intake routines: [medications and supplements](src/features/supplements.md), including explicit classification and owner-reviewed assistant timing.
 - Native presentation: [widgets, Watch and Live Activities](src/mobile-app/widgets-live-activities.md).
 - Evidence and historical notes: [implementation index](implementation/README.md).
 

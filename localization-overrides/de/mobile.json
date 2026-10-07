@@ -1484,7 +1484,8 @@
     "servingSize": "Portionsgröße ({{unit}}) *",
     "createTitle": "Mahlzeit erstellen",
     "loading": "Mahlzeit wird geladen …",
-    "selectUnit": "Einheit auswählen"
+    "selectUnit": "Einheit auswählen",
+    "notes": "Notizen (optional)"
   },
   "familyDiary": {
     "manageOnWeb": "Der Zugriff auf das Familientagebuch wird in der Web-App verwaltet.",
@@ -1946,7 +1947,8 @@
     "exerciseNamePlaceholder": "z. B. Bulgarische Kniebeuge",
     "noServer": "Kein Server eingerichtet",
     "commaSeparatedMuscles": "Durch Kommas getrennt (z. B. Quadrizeps, Gesäßmuskulatur)",
-    "categoryOlympicWeightlifting": "Olympisches Gewichtheben"
+    "categoryOlympicWeightlifting": "Olympisches Gewichtheben",
+    "notes": "Notizen"
   },
   "cycleCard": {
     "setupA11y": "Richten Sie die Zyklus- und Schwangerschaftsverfolgung ein",
@@ -2208,7 +2210,8 @@
     "selectCervicalMucus": "Zervixschleim auswählen",
     "selectCervicalPosition": "Position des Muttermunds auswählen",
     "invalidTemperature": "Ungültige Temperaturangabe",
-    "menstrualFlow": "Menstruationsstärke"
+    "menstrualFlow": "Menstruationsstärke",
+    "notes": "Notizen"
   },
   "cycleInsights": {
     "forecastHint": "Protokollieren Sie die Symptome über mehrere Zyklen hinweg, um die kommenden Tage vorherzusagen.",
@@ -2710,7 +2713,8 @@
     "madePrivate": "Mahlzeit als privat gespeichert",
     "shareWithPublic": "Öffentlich teilen",
     "sharedPublicly": "Mahlzeit öffentlich geteilt",
-    "calories": "kcal"
+    "calories": "kcal",
+    "notes": "Notizen"
   },
   "exerciseSearch": {
     "actions": {
@@ -2780,6 +2784,9 @@
     },
     "placeholders": {
       "notes": "Notizen hinzufügen …"
+    },
+    "labels": {
+      "notes": "Notizen"
     }
   },
   "foodSettings": {
@@ -2863,7 +2870,8 @@
     "sharedPublicly": "Lebensmittel öffentlich geteilt",
     "selectServing": "Portion auswählen",
     "servingOptions": "Verfügbare Portionen",
-    "loadingServingOptions": "Portionen werden geladen …"
+    "loadingServingOptions": "Portionen werden geladen …",
+    "notes": "Notizen"
   },
   "presetSearch": {
     "noPresetsYetMessage": "Starten Sie ein leeres Training oder speichern Sie ein Training als Voreinstellung, um es hier anzuzeigen",
@@ -3307,7 +3315,8 @@
     "replaceExercise": "Übung ersetzen",
     "removeExercise": "Übung entfernen",
     "addExercise": "Übung hinzufügen",
-    "clearLoggedSets": "Erfasste Sätze leeren"
+    "clearLoggedSets": "Erfasste Sätze leeren",
+    "notes": "Notizen"
   },
   "whatsNew": {
     "seeUpdate": "Sehen Sie, was es Neues in diesem Update gibt",
@@ -3879,7 +3888,8 @@
       "strikethrough": "Durchgestrichen",
       "heading": "Überschrift"
     },
-    "placeholder": "Notiz hinzufügen … (Markdown möglich)"
+    "placeholder": "Notiz hinzufügen … (Markdown möglich)",
+    "label": "Notizen"
   },
   "healthTrendsSettings": {
     "description": "Ziehen Sie ein Diagramm an seinem Griff, um es neu anzuordnen. Legen Sie es unter der Zeile „Ausgeblendet“ ab, um es aus dem Dashboard zu entfernen.",
@@ -4038,6 +4048,9 @@
     },
     "placeholders": {
       "notes": "Notizen hinzufügen …"
+    },
+    "labels": {
+      "notes": "Notizen"
     }
   },
   "activityAdd": {
@@ -4058,6 +4071,9 @@
       "notes": "Notizen zur Aktivität",
       "duration": "Dauer in Minuten",
       "selectExercise": "Übung auswählen"
+    },
+    "fields": {
+      "notes": "Notizen"
     }
   },
   "foodEntryMeal": {

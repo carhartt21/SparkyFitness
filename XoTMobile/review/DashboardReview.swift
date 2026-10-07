@@ -1,4 +1,5 @@
 import XCTest
+import Vision
 
 final class DashboardReview: XCTestCase {
   /// Focused intake layout, progress accessibility and retained Meals navigation.
@@ -1226,7 +1227,7 @@ final class DashboardReview: XCTestCase {
         XCTAssertTrue(app.textFields.firstMatch.waitForExistence(timeout: 30))
         XCTAssertTrue(app.textFields.firstMatch.isHittable)
       case 2:
-        let activityForm = app.otherElements.matching(NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "Edit activity name", "Bearbeiten activity Name")).firstMatch
+        let activityForm = app.otherElements.matching(NSPredicate(format: "label CONTAINS %@ OR label CONTAINS %@", "Edit activity name", "Name der Aktivität bearbeiten")).firstMatch
         XCTAssertTrue(activityForm.waitForExistence(timeout: 20))
         XCTAssertTrue(activityForm.isHittable)
       default:
@@ -1234,6 +1235,33 @@ final class DashboardReview: XCTestCase {
       }
       capture("launch-icon-destination-\(index)", app)
     }
+  }
+
+  /// Render the actual German activity form after the known Notes corruption.
+  func testActivityNotesCopy() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let add = app.buttons.matching(NSPredicate(format: "label IN %@", ["Add", "Hinzufügen"])).firstMatch
+    XCTAssertTrue(add.isHittable); add.tap()
+    let exercise = app.buttons["add-sheet-exercise-weights"]
+    XCTAssertTrue(exercise.waitForExistence(timeout: 10)); exercise.tap()
+    let activity = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@ OR label BEGINSWITH %@", "Activity,", "Aktivität,")).firstMatch
+    XCTAssertTrue(activity.waitForExistence(timeout: 10)); activity.tap()
+    XCTAssertTrue(app.buttons["activity-add-cancel"].waitForExistence(timeout: 15))
+    // This dismiss-editing Pressable groups form labels in native accessibility.
+    // Verify visible copy from the actual frame rather than inventing a child.
+    for _ in 0..<3 { app.swipeUp() }
+    capture("activity-notes-de-corrected", app)
+    let screenshot = try XCTUnwrap(app.screenshot().image.cgImage)
+    let request = VNRecognizeTextRequest()
+    request.recognitionLevel = .accurate
+    request.recognitionLanguages = ["de-DE"]
+    try VNImageRequestHandler(cgImage: screenshot).perform([request])
+    let words = (request.results ?? []).compactMap { $0.topCandidates(1).first?.string }
+    XCTAssertTrue(words.contains("Notizen"), "Visible notes label: \(words)")
+    XCTAssertFalse(words.contains { $0.contains("Neintes") })
   }
   func testDashboardScrollAndFoodNavigation() throws {
     try reviewDashboard(logFood: true)

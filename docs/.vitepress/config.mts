@@ -168,6 +168,10 @@ export default defineConfig({
             },
             { text: "Features Index", link: "/features/" },
             { text: "Check-in", link: "/features/check-in" },
+            {
+              text: "Medications & Supplements",
+              link: "/features/supplements",
+            },
             { text: "Reports", link: "/features/reports" },
             { text: "Goals", link: "/features/goals" },
             {

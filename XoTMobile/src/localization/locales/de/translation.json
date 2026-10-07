@@ -607,7 +607,7 @@
       "piece": "Stück"
     },
     "unitPickerLabel": "Einheit, {{unit}}",
-    "notes": "Neintes (optional)",
+    "notes": "Notizen (optional)",
     "notesPlaceholder": "z.B. das Rezept oder wie Sie es zubereiten"
   },
   "healthMetrics": {
@@ -1849,7 +1849,7 @@
     "useYesterday": "Gestern verwenden",
     "namePlaceholder": "Training",
     "workoutNamePlaceholder": "Trainingsname",
-    "notes": "Neintes",
+    "notes": "Notizen",
     "addExercise": "Übung hinzufügen",
     "reorderExercises": "Übungen neu anordnen",
     "addExerciseBeforeSave": "Fügen Sie vor dem Speichern mindestens eine Übung mit einem Satz hinzu.",
@@ -2647,7 +2647,7 @@
     "basalTemperature": "Grund- Körpertemperatur",
     "basalTemperatureHint": "Verfolgen Sie Ihre Aufwachtemperatur (°C), um biphasische Veränderungen nach dem Eisprung zu erkennen.",
     "temperatureExample": "z. B. 36,5",
-    "notes": "Neintes",
+    "notes": "Notizen",
     "notesPlaceholder": "Notieren Sie, wie Sie sich fühlen, Ihr Energielevel und weitere Details …",
     "saving": "Speichern...",
     "save": "Tagesprotokoll speichern",
@@ -3565,7 +3565,7 @@
     "makesSummary_other": "Ergibt {{servings}} {{servingLabel}} · {{count}} {{ingredientLabel}}",
     "items_one": "{{formattedCount}} Element",
     "items_other": "{{formattedCount}} Elemente",
-    "notes": "Neintes"
+    "notes": "Notizen"
   },
   "dailyNutritionDetails": {
     "title": "Ernährungsdetails",
@@ -3918,7 +3918,7 @@
     "labels": {
       "details": "Details",
       "name": "Name",
-      "notes": "Neintes"
+      "notes": "Notizen"
     },
     "placeholders": {
       "workoutName": "Training Name",
@@ -3956,7 +3956,7 @@
       "secondsShort": "Sek.",
       "weight": "Gewicht",
       "reps": "Wiederholungen",
-      "notes": "Neintes"
+      "notes": "Notizen"
     },
     "placeholders": {
       "activityName": "Aktivitätsname",
@@ -4101,7 +4101,7 @@
     "barcode": "Barcode",
     "logFood": "Eintragen Ernährung",
     "deleteFood": "Lebensmittel löschen",
-    "notes": "Neintes",
+    "notes": "Notizen",
     "deleteSheetTitle": "Lebensmittel löschen"
   },
   "foodEntryView": {
@@ -4492,7 +4492,7 @@
       "distance": "Entfernung ({{unit}})",
       "calories": "Kalorien",
       "avgHeartRate": "Durchschn. Herzfrequenz (bpm)",
-      "notes": "Neintes",
+      "notes": "Notizen",
       "notesPlaceholder": "Optional Notizen..."
     },
     "actions": {
@@ -4908,7 +4908,7 @@
   },
   "workoutForm": {
     "viewExercise": "Übung anzeigen",
-    "notes": "Neintes",
+    "notes": "Notizen",
     "supersetWith": "Superset mit…",
     "removeFromSuperset": "Aus Obermenge entfernen",
     "replaceExercise": "Übung ersetzen",
@@ -5665,7 +5665,7 @@
     "aiEstimateAccessibility": "Nährwerte durch KI geschätzt"
   },
   "notes": {
-    "label": "Neintes",
+    "label": "Notizen",
     "placeholder": "Notiz hinzufügen … (Markdown möglich)",
     "write": "Schreiben",
     "preview": "Zurückiew",

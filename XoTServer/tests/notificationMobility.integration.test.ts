@@ -14,6 +14,9 @@ import {
   getMobilitySnapshot,
   materializeMobilityPlans,
 } from '../services/mobilityService.js';
+import { buildMobilityTools } from '../ai/tools/mobilityTools.js';
+import { normalizeMcpToolArguments } from '../utils/mcpArguments.js';
+import { mobilityOperationSchema } from '@workspace/shared';
 import {
   patchEngagementSettings,
   getEngagementSettings,
@@ -28,7 +31,8 @@ const enabled = process.env.XOT_CORRECTIVE_DB_TEST === '1';
 if (
   enabled &&
   (process.env.SPARKY_FITNESS_DB_HOST !== '127.0.0.1' ||
-    process.env.SPARKY_FITNESS_DB_PORT !== '55432' ||
+    process.env.SPARKY_FITNESS_DB_PORT !==
+      (process.env.XOT_VISUAL_DB_PORT ?? '55432') ||
     process.env.SPARKY_FITNESS_DB_NAME !== 'sparkyfitness_visual')
 )
   throw new Error(
@@ -133,6 +137,43 @@ describe.skipIf(!enabled)(
       expect((await getMobilitySnapshot(bob, today, today)).routines).toEqual(
         []
       );
+    });
+    it('saves a five-minute assistant routine with nullable fields exactly once on retry', async () => {
+      const fiveMinute = {
+        ...routine,
+        id: randomUUID(),
+        name: 'Synthetic assistant five-minute routine',
+        steps: [
+          {
+            ...routine.steps[0],
+            id: randomUUID(),
+            durationSeconds: 300,
+            exerciseId: null,
+          },
+        ],
+      };
+      const request = op({ kind: 'routine', data: fiveMinute, deleted: false });
+      const parsed = mobilityOperationSchema.parse(
+        normalizeMcpToolArguments('xot_update_mobility', request)
+      );
+      const tool = buildMobilityTools(alice).xot_update_mobility;
+      const options = {
+        toolCallId: 'synthetic-mobility',
+        messages: [],
+        context: {},
+      };
+      expect(await tool.execute!(parsed, options)).toBe('{"revision":1}');
+      expect(await tool.execute!(parsed, options)).toBe('{"revision":1}');
+      const stored = await owner.query<{
+        data: typeof fiveMinute;
+        revision: number;
+      }>(
+        'SELECT data,revision FROM mobility_routines WHERE user_id=$1 AND id=$2',
+        [alice, fiveMinute.id]
+      );
+      expect(stored.rows).toHaveLength(1);
+      expect(stored.rows[0].revision).toBe(1);
+      expect(stored.rows[0].data.steps).toEqual(fiveMinute.steps);
     });
     it('materializes one recurring plan per date, preserving a snapshot when the routine changes', async () => {
       await applyMobilityOperation(

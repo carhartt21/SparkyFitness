@@ -197,3 +197,17 @@ This is fix-list approval, not whole-app or physical-device acceptance.
 Later minor task: move the Watch training page directly after the food-intake
 page while retaining page identifiers, navigation state, session commands and
 phone–Watch synchronization. No Watch page reordering was implemented here.
+
+### Deferred-task follow-up — 7 October
+
+The separate [completion batch](deferred-tasks-completion-2026-10-07.md) now
+implements that Watch page reorder, preserving tags and initial/deep-link
+destinations. Native compilation and synthetic rendering passed; physical
+swiping and paired-device behavior remain unverified.
+
+The owner-authorized Hevy check also confirms that the imported CSV workouts
+exist and appear through the historical diary read path with recorded sets.
+They retain original training dates rather than their import date. This
+supersedes the earlier account-visibility gap, not the unperformed line-by-line
+source comparison or device checks. No health records were changed or
+reimported; private record content is excluded from repository evidence.

@@ -1,11 +1,11 @@
 import { isCoachingMcpTool } from '@workspace/shared';
 
-/** Legacy clients send optional null placeholders; typed coaching keeps clears. */
+/** Legacy tools accept null placeholders; typed writes retain real null values. */
 export function normalizeMcpToolArguments(
   name: unknown,
   value: unknown
 ): unknown {
-  if (isCoachingMcpTool(name)) return value;
+  if (isCoachingMcpTool(name) || name === 'xot_update_mobility') return value;
   const stripNulls = (input: unknown): unknown => {
     if (Array.isArray(input)) return input.map(stripNulls);
     if (input && typeof input === 'object')

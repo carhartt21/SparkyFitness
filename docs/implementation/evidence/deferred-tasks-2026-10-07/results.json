@@ -1,0 +1,13 @@
+{
+  "nativeAssertionsPassed": 19,
+  "synthetic": true,
+  "device": "FAA9B8E8-349A-491B-BF49-2D94617B449F",
+  "sourceSha256": "b6b5516c2a888c2f5ed5ef1242ec1be6960ab3642810c8fcd34c39fddd53c328",
+  "screenshots": [
+    "watch-goals-de.png",
+    "watch-intake-de.png",
+    "watch-intake-unknown-de.png",
+    "watch-intake-over-de.png"
+  ],
+  "limits": "Synthetic simulator; no phone/server round-trip or physical Watch delivery verified."
+}

@@ -63,6 +63,9 @@ export function checkGermanCopy(value, context) {
   let text = value.replace(/\{\{[^{}]*\}\}/g, "");
   for (const name of protectedNames) text = text.replaceAll(name, "");
   const reasons = [];
+  // Catch the known "Notes" corruption ("Neintes") in active labels;
+  // ordinary English-word detection cannot recognize this malformed word.
+  if (/\bNeintes\b/i.test(text)) reasons.push("corrupted German label");
   if (isNotificationCopy(context) && formalAddress.test(text))
     reasons.push("formal notification address");
   if (!isNotificationCopy(context) && informalAddress.test(text))

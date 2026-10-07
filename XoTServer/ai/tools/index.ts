@@ -40,6 +40,7 @@ import { buildProfileTools } from './profileTools.js';
 import { buildReportTools } from './reportTools.js';
 import { buildVisionTools } from './visionTools.js';
 import type { FoodPhotoEstimateSink } from './foodPhotoEstimateSink.js';
+import { normalizeMcpToolArguments } from '../../utils/mcpArguments.js';
 import { buildWizardTools } from './wizardTools.js';
 import { buildWorkoutPlanTools } from './workoutPlanTools.js';
 
@@ -216,40 +217,22 @@ function composeAllToolsWithIndex(
   return { tools, toolNamesByCategory };
 }
 
-// Recursively drops null-valued keys so a model that emits an optional field
-// as `null` (small local models do this constantly) doesn't trip the AI SDK's
-// pre-execute input validation, which rejects null against `.optional()` and
-// surfaces a raw "Type validation failed" the model rarely recovers from. The
-// MCP surface does the same via stripNulls() in routes/mcpRoutes.ts before it
-// reaches the tool, so this is the chat-path equivalent.
-function stripNullValues(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(stripNullValues);
-  }
-  if (value && typeof value === 'object') {
-    const out: Record<string, unknown> = {};
-    for (const [key, val] of Object.entries(value as Record<string, unknown>)) {
-      if (val !== null) out[key] = stripNullValues(val);
-    }
-    return out;
-  }
-  return value;
-}
-
 // Applies chat-provider tuning that only matters when the tools are sent to an
 // LLM provider through the AI SDK. The MCP surface skips this — MCP publishes
 // the schemas over JSON-RPC where strict-mode flags and Anthropic cache
 // markers are meaningless.
 function applyChatProviderTuning(tools: ToolMap): void {
   // Null-tolerant input: wrap each published schema so null-valued optional
-  // fields are stripped before validation. z.preprocess preserves the emitted
+  // fields are stripped before validation. Typed mobility/coaching mutations
+  // retain required nullable fields and explicit clears, just as MCP does.
+  // z.preprocess preserves the emitted
   // JSON schema (object type, properties, enums) the model sees — only the
-  // runtime parse changes. Chat-only: MCP strips nulls upstream itself.
+  // runtime parse changes. MCP uses the same name-aware normalizer upstream.
   for (const name of Object.keys(tools)) {
     const t = tools[name] as Tool & { inputSchema?: unknown };
     if (t.inputSchema) {
       t.inputSchema = z.preprocess(
-        stripNullValues,
+        (value) => normalizeMcpToolArguments(name, value),
         t.inputSchema as z.ZodType
       ) as unknown as typeof t.inputSchema;
     }

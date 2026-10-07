@@ -1,14 +1,14 @@
 import SwiftUI
 
 /// Account sync gates new captures; weight entry is optional. Daily goals,
-/// nutrition, workout, water, food, entry and trend are swipeable pages.
+/// nutrition, water, food, workout, entry and trend are swipeable pages.
 struct ContentView: View {
     /// Identifies a page; the cases are `.tag` values, nothing more.
     ///
     /// Swipe order is set by the order the views appear in the `TabView`
     /// below, NOT by the order of these cases — a `.page`-style TabView lays
     /// its children out in body order. Reordering this enum alone changes
-    /// nothing on screen, so change both together or neither.
+    /// nothing on screen. Keep the tag identities stable when moving a page.
     private enum Page: Int { case progress, goals, workout, water, food, entry, trend }
 
     @EnvironmentObject private var store: CheckInStore
@@ -33,7 +33,7 @@ struct ContentView: View {
                     Button(WatchCopy.text("watch.retrySync")) { session.requestContext() }
                 }
             } else {
-                // Daily goals ▸ Nutrition ▸ Workout ▸ Water ▸ Food ▸ Entry ▸ Trend.
+                // Daily goals ▸ Nutrition ▸ Water ▸ Food ▸ Workout ▸ Entry ▸ Trend.
                 TabView(selection: Binding(get: { page ?? initialPage }, set: { page = $0 })) {
                     DailyGoalsView()
                         .tag(Page.progress)
@@ -41,14 +41,14 @@ struct ContentView: View {
                     GoalSummaryView()
                         .tag(Page.goals)
 
-                    WorkoutView()
-                        .tag(Page.workout)
-
                     WaterIntakeView()
                         .tag(Page.water)
 
                     FoodQuickLogView()
                         .tag(Page.food)
+
+                    WorkoutView()
+                        .tag(Page.workout)
 
                     CheckInEntryView { page = .trend }
                         .tag(Page.entry)

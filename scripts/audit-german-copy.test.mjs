@@ -28,6 +28,13 @@ test("active German mobile and web catalogs pass the copy scan", () => {
   assert.deepEqual(auditGermanCopy(), []);
 });
 
+test("rejects corrupted notes labels without rejecting German notes copy", () => {
+  assert.deepEqual(checkGermanCopy("Neintes (optional)"), [
+    "corrupted German label",
+  ]);
+  assert.deepEqual(checkGermanCopy("Notizen (optional)"), []);
+});
+
 test("rejects partially translated phone and Watch copy", () => {
   for (const surface of ["mobile", "watch", "watch-widget"]) {
     for (const text of [

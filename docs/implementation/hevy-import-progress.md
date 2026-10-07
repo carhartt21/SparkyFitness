@@ -12,6 +12,21 @@ This records implementation against the [six-stage plan](https://app.notion.com/
 - The review API also returns calendar-aligned daily, weekly, or monthly sport points with empty intervals retained. The phone can switch running/cycling/strength and inspect session counts plus recorded distance or lifted volume over the chosen period, in preferred units. Future workout-plan entries are excluded until a set has an explicit completion timestamp, so merely scheduling a workout does not inflate the review. Server and phone tests cover the aggregation and sport/metric switching.
 - Workout-plan edits and deletion now preserve entries with completed sets. Dated plan snapshots record the schedule at create, edit, and delete time, and generated entries retain their original assignment ID even when the live plan foreign key is cleared. The review reports scheduled slots with at least one completed set as attended, a numerator/denominator and rate, the earlier period, and the count of elapsed days with known plan history. Today is excluded. Existing plans receive a baseline on the owner's local migration day, used only when that day has elapsed; earlier plans are not reconstructed from their current state. The migration passed an isolated PostgreSQL smoke test for baseline seeding, origin backfill, deletion survival, and forgery protection; application-database migration and RLS verification remain pending. On 25 September 2026, the default local PostgreSQL socket had no server and Docker's daemon socket was absent, so the application-database check could not run in this environment. The policy file does contain report/diary-readable, owner-insert-only policies for the new version table; those still need runtime verification.
 
+## Verification update — 7 October 2026
+
+The [deferred-task completion batch](deferred-tasks-completion-2026-10-07.md)
+confirms the owner's imported CSV workouts exist, have nonempty child records,
+and are returned by an authorized historical diary read with their source and
+recorded sets. Imports retain original workout dates; the import day is not the
+diary day. No reimport or health-data write was performed. This closes the
+reported missing-import/visibility investigation; it does not assert a
+line-by-line comparison against the original CSV or saved routines.
+
+The old unavailable-database note above is historical. Current notification/
+mobility persistence and RLS checks run against the isolated sample database;
+release evidence records migrations and owner policies. Phone and real-provider
+sport/adherence checks below remain device/source acceptance gates.
+
 ## Remaining Stage 3 work
 
 - Compare a real authorized import against the source, including any repeated rows, missing weights, supersets, and saved routines. A saved-routine API sample or authorized connected account is still needed for that side of the comparison.

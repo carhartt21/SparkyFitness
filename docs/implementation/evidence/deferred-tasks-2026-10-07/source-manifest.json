@@ -1,0 +1,29 @@
+{
+  "baseRevision": "ce4e8f4e465256e4f7dda40027ef42ba1569e563",
+  "branch": "feat/deferred-task-completion-20261007",
+  "sourceState": "Working tree on the base revision, verified before commit",
+  "sha256": {
+    "XoTMobile/targets/watch/Presentation/ContentView.swift": "c5d6b00561eeb9dc5b44c6835bade9abb3556b5e738843db7bf39f25a5f5e25d",
+    "XoTMobile/review/DashboardReview.swift": "7d5bea233904dba471881ed51e11391b30d8a2bf341b3320e16d8513894a8af4",
+    "XoTMobile/scripts/review-ios.mjs": "232821b404923ed5bddfc028819a58c8733a16bcf8426fa97035602ce6d7d00e",
+    "localization-overrides/de/mobile.json": "8005220e415b3316d8a123f22dd38dd5c51dca958d56bf3ec4fb80e4dbe39068",
+    "XoTMobile/src/localization/locales/de/translation.json": "0b2d97bcada0fbf3a5c848937c59fe7d2be4a8b8034051b950fd290b2be0b4f0",
+    "XoTServer/utils/mcpArguments.ts": "90465fefaa0c892947bcc675def95854f14a872044dbaca5a8a833bd41b7b737",
+    "XoTServer/ai/tools/index.ts": "53e76da80dc3653ed74da24bb6854cd15d41a50ba9febfefce7c35b5f4d89b44",
+    "XoTServer/ai/tools/mobilityTools.ts": "a105345bb715c2b3b4823b6d71179fbfc0ec5a05bf9bf3e3212b0d182646e291",
+    "XoTServer/tests/mobilityToolArguments.test.ts": "04090ae4a1c97450d004bb9d3d2d0e58b6e399804462ea93061d5e5337d16cf8",
+    "XoTServer/tests/notificationMobility.integration.test.ts": "ec63e4a01fe32e5df7fb23a6599805610f6060443eaf353ddef9939b46a7d7fb"
+  },
+  "captures": {
+    "watch": "results.json",
+    "launchShortcuts": "launch-results.json",
+    "germanNotes": "notes-results.json"
+  },
+  "limitations": [
+    "Synthetic fixtures for all committed screenshots; no private owner data.",
+    "Actual launch actions and Notes-copy navigation passed on iOS Simulator.",
+    "Watch compilation/rendering passed; swipe, pairing and physical devices unverified.",
+    "No signed release archive, upload, deployment or production mutation.",
+    "Authenticated web acceptance pending demo license/evaluation confirmation."
+  ]
+}

@@ -47,6 +47,15 @@ For a preset edit:
 
 For an approved change, `xot_update_mobility` uses the record's `expectedRevision` (`0` for a new record) and a UUID `operationId`. Keep the same operation ID when retrying the same request. After a revision conflict, reread the snapshot and reconcile the change before submitting a new operation. Do not overwrite a running phone session.
 
+New routines and steps need UUID IDs; routines also require ISO `createdAt` and
+`updatedAt` timestamps. A custom step without a linked saved exercise uses
+`exerciseId: null`, not an invented exercise ID. Preserve nullable fields such as
+a schedule's `endDay` and a plan's `scheduleId`/`activeSessionId`. Domain failures
+return `Error [CONFLICT]`, `Error [NOT_FOUND]` or `Error [VALIDATION]` with a
+corrective suggestion. An error is not a saved routine; read again before
+retrying an uncertain request. The in-app assistant and MCP share the same
+argument normalization and retain these meaningful nulls.
+
 A manual completion uses a `result` mutation for the existing plan, with only the step outcomes you actually confirmed. Omitted outcomes stay unknown. Mobility completion does not create exercise calories or an Apple Health workout.
 
 ## Record and verify

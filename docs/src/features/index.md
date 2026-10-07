@@ -6,6 +6,7 @@ X on Track separates plans, captured information and confirmed records. Use the 
 
 - [Meals and logging](/features/diary/meals), [nutrition summaries](/features/diary/nutrition-summary) and [exercise diary](/features/diary/exercise).
 - [Check-in](/features/check-in), [measurements](/features/measurements), [goals](/features/goals) and [reports](/features/reports).
+- [Medications and supplements](/features/supplements): classification, confirmed intake, reminders and assistant timing review.
 - [FDDB import](/features/settings/fddb-import) for reviewing imported records separately from current daily meal routines.
 
 ## Plan and train
