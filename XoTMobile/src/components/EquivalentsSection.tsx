@@ -93,10 +93,10 @@ const EquivalentsSection: React.FC<EquivalentsSectionProps> = ({
                 })}
                 placeholder={t('foodForm.unit', { defaultValue: 'unit' })}
                 renderTrigger={({ onPress, selectedOption }) => (
-                  <TouchableOpacity
+                  <Button
+                    variant="secondary"
                     onPress={onPress}
-                    activeOpacity={0.7}
-                    className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+                    className="px-3 py-2.5 flex-row items-center justify-between"
                     style={{ height: 44 }}
                   >
                     <Text
@@ -114,7 +114,7 @@ const EquivalentsSection: React.FC<EquivalentsSectionProps> = ({
                       color={textMuted}
                       weight="medium"
                     />
-                  </TouchableOpacity>
+                  </Button>
                 )}
               />
             </View>

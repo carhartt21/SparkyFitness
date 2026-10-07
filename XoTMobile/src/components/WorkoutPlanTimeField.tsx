@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useRef } from 'react';
 import { Keyboard, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,8 @@ export default function WorkoutPlanTimeField({
     <>
       <Text className="text-text-secondary">{label}</Text>
       <View className="flex-row items-center gap-2">
-        <Pressable
+        <Button
+          variant="secondary"
           testID="weekly-plan-time"
           accessibilityRole="button"
           accessibilityLabel={label}
@@ -35,13 +37,13 @@ export default function WorkoutPlanTimeField({
             Keyboard.dismiss();
             picker.current?.present();
           }}
-          className="min-h-12 flex-1 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-3 py-3"
+          className="min-h-12 flex-1 flex-row items-center justify-between px-3 py-3"
         >
           <Text className="text-base text-text-primary">
             {time || t('weeklyPlan.timeFormat', { defaultValue: 'HH:mm' })}
           </Text>
           <Icon name="clock" size={20} color={iconColor} />
-        </Pressable>
+        </Button>
         {time ? (
           <Pressable
             testID="weekly-plan-clear-time"

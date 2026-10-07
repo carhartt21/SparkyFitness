@@ -883,7 +883,7 @@ const SyncScreen: React.FC<SyncScreenProps> = ({ navigation }) => {
         <NeonButton
           testID="sync-now"
           icon="sync"
-          className="rounded-xl mb-2"
+          className="mb-2"
           loading={syncMutation.isPending}
           disabled={isSyncClaimed() || !isHealthConnectInitialized}
           onPress={handleSync}

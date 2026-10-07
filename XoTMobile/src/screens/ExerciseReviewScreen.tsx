@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useCallback, useState } from 'react';
@@ -503,12 +504,13 @@ export default function ExerciseReviewScreen({
               'A look at the activity you recorded, compared with the previous period.',
           })}
         </Text>
-        <TouchableOpacity
+        <Button
+          variant="secondary"
           accessibilityRole="button"
           accessibilityLabel={t('weeklyPlan.title', {
             defaultValue: 'Weekly training plan',
           })}
-          className="min-h-11 rounded-xl bg-raised p-3 mb-3"
+          className="min-h-11 p-3 mb-3"
           onPress={() =>
             navigation.navigate('WorkoutPlans', { date: getTodayDate() })
           }
@@ -516,7 +518,7 @@ export default function ExerciseReviewScreen({
           <Text className="text-accent-primary font-semibold">
             {t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
           </Text>
-        </TouchableOpacity>
+        </Button>
         <SegmentedControl<ExerciseReviewWindow>
           segments={[
             {
@@ -586,7 +588,8 @@ export default function ExerciseReviewScreen({
             range: previousPeriodLabel,
           })}
         </Text>
-        <TouchableOpacity
+        <Button
+          variant="primary"
           onPress={() =>
             addSheetRef.current?.present({ initialMenu: 'exercise' })
           }
@@ -594,13 +597,13 @@ export default function ExerciseReviewScreen({
           accessibilityLabel={t('exerciseReview.logExercise', {
             defaultValue: 'Log exercise',
           })}
-          className="min-h-12 flex-row items-center justify-center gap-2 rounded-xl bg-accent-primary px-4"
+          className="min-h-12 flex-row items-center justify-center gap-2 px-4"
         >
           <Icon name="add" size={19} color={accentTextColor} />
-          <Text className="text-base font-semibold text-accent-text">
+          <Text className="text-base font-semibold text-text-primary">
             {t('exerciseReview.logExercise', { defaultValue: 'Log exercise' })}
           </Text>
-        </TouchableOpacity>
+        </Button>
         {connectionLoading || (isConnected && query.isPending) ? (
           <StatusView
             loading

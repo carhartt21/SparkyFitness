@@ -736,7 +736,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
           {meal && (
             <Button
               variant="secondary"
-              className="rounded-xl"
+              className=""
               onPress={() =>
                 navigation.navigate('FoodSearch', {
                   date: selectedDate,
@@ -1266,30 +1266,32 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
                   })}
                 </Text>
                 {(['move', 'copy'] as const).map((action) => (
-                  <Pressable
+                  <Button
+                    variant="secondary"
                     key={action}
                     accessibilityRole="button"
                     disabled={selectedFoodIds.size === 0 || bulkBusy}
                     onPress={() => setBulkAction(action)}
-                    className="min-h-11 justify-center rounded-xl border border-border bg-surface px-4"
+                    className="min-h-11 justify-center px-4"
                   >
                     <Text className="text-text-primary font-medium">
                       {action === 'move'
                         ? t('diary.bulk.move', { defaultValue: 'Move' })
                         : t('diary.bulk.copy', { defaultValue: 'Copy' })}
                     </Text>
-                  </Pressable>
+                  </Button>
                 ))}
-                <Pressable
+                <Button
+                  variant="destructive"
                   accessibilityRole="button"
                   disabled={selectedFoodIds.size === 0 || bulkBusy}
                   onPress={confirmBulkDelete}
-                  className="min-h-11 justify-center rounded-xl border border-border bg-surface px-4"
+                  className="min-h-11 justify-center px-4"
                 >
                   <Text className="text-text-danger font-medium">
                     {t('common.delete', { defaultValue: 'Delete' })}
                   </Text>
-                </Pressable>
+                </Button>
               </View>
             )}
           </View>

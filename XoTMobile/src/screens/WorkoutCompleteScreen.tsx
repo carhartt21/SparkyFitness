@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQuery } from '@tanstack/react-query';
 import { useCSSVariable } from 'uniwind';
@@ -45,11 +45,12 @@ function DockedActionButton({
 }) {
   const textMuted = String(useCSSVariable('--color-text-muted'));
   return (
-    <Pressable
+    <Button
+      variant="secondary"
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={label}
-      className="min-h-11 min-w-0 flex-row items-center justify-center gap-1.5 bg-raised rounded-xl px-3 py-3"
+      className="min-h-11 min-w-0 flex-row items-center justify-center gap-1.5 px-3 py-3"
       style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
     >
       <Icon name={icon} size={16} color={textMuted} />
@@ -60,7 +61,7 @@ function DockedActionButton({
       >
         {label}
       </Text>
-    </Pressable>
+    </Button>
   );
 }
 

@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -173,11 +174,12 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
               defaultValue: 'Add a medication or supplement to start tracking.',
             })}
           </Text>
-          <TouchableOpacity
-            className="mt-4 bg-accent-primary px-6 py-3 rounded-xl"
+          <Button
+            variant="primary"
+            className="mt-4 px-6 py-3"
             onPress={addItem}
           >
-            <Text className="text-accent-text font-semibold">
+            <Text className="text-text-primary font-semibold">
               {category === 'supplements'
                 ? t('supplements.add', {
                     defaultValue: 'Add supplement',
@@ -186,7 +188,7 @@ const MedicationsListScreen: React.FC<MedicationsListScreenProps> = ({
                     defaultValue: 'Add Medication',
                   })}
             </Text>
-          </TouchableOpacity>
+          </Button>
         </View>
       ) : (
         <SectionList

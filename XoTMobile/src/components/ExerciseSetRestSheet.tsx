@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Platform, Pressable, Text, View } from 'react-native';
+import { Alert, Platform, Text, View } from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import DurationWheel from './DurationWheel';
@@ -206,13 +206,10 @@ const ExerciseSetRestSheet = forwardRef<
         </Text>
 
         <View className="flex-row flex-wrap" style={{ gap: 8 }}>
-          <Pressable
+          <Button
+            variant="secondary"
             onPress={() => setSelectedKey(ALL_KEY)}
-            className="px-3 py-2 rounded-lg border items-center"
-            style={{
-              borderColor: selectedKey === ALL_KEY ? accentPrimary : textMuted,
-              backgroundColor: 'transparent',
-            }}
+            className="px-3 py-2 items-center"
           >
             <Text
               className={
@@ -242,19 +239,16 @@ const ExerciseSetRestSheet = forwardRef<
                 t('restPeriod.off', { defaultValue: 'Off' })
               )}
             </Text>
-          </Pressable>
+          </Button>
           {sets.map((set) => {
             const selected = selectedKey === set.setId;
             const setRest = draftBySetId[set.setId] ?? getDefaultRestSec();
             return (
-              <Pressable
+              <Button
+                variant={selected ? 'primary' : 'secondary'}
                 key={set.setId}
                 onPress={() => setSelectedKey(set.setId)}
-                className="px-3 py-2 rounded-lg border items-center"
-                style={{
-                  borderColor: selected ? accentPrimary : textMuted,
-                  backgroundColor: 'transparent',
-                }}
+                className="px-3 py-2 items-center"
               >
                 <Text
                   className={
@@ -279,7 +273,7 @@ const ExerciseSetRestSheet = forwardRef<
                     t('restPeriod.off', { defaultValue: 'Off' })
                   )}
                 </Text>
-              </Pressable>
+              </Button>
             );
           })}
         </View>

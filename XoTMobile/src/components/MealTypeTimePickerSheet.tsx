@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
@@ -117,9 +117,10 @@ const MealTypeTimePickerSheet = forwardRef<MealTypeTimePickerSheetRef>(
           />
 
           <View className="flex-row gap-3 mb-4">
-            <TouchableOpacity
+            <Button
+              variant="secondary"
               onPress={() => commit(null)}
-              className="flex-1 items-center justify-center py-3 rounded-lg border border-border-subtle"
+              className="flex-1 items-center justify-center py-3"
               accessibilityRole="button"
               accessibilityLabel={t('mealTypeTime.clearHint', {
                 defaultValue: 'Clear default time',
@@ -131,7 +132,7 @@ const MealTypeTimePickerSheet = forwardRef<MealTypeTimePickerSheetRef>(
                   {t('common.clear', { defaultValue: 'Clear' })}
                 </Text>
               </View>
-            </TouchableOpacity>
+            </Button>
             <Button
               variant="primary"
               className="flex-1"

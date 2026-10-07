@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
@@ -488,18 +489,19 @@ export default function NutritionPhotoEntries({
               />
             ))}
             {error && <Text className="text-text-danger">{error}</Text>}
-            <Pressable
+            <Button
+              variant="secondary"
               accessibilityRole="button"
               onPress={() => void saveCompletion()}
               disabled={saving}
-              className="border border-border rounded-lg p-3"
+              className="p-3"
             >
               <Text className="text-center text-text-primary">
                 {t('nutritionPhotos.saveManual', {
                   defaultValue: 'Save manual nutrition',
                 })}
               </Text>
-            </Pressable>
+            </Button>
             <Pressable
               accessibilityRole="button"
               onPress={() => setSelected(null)}

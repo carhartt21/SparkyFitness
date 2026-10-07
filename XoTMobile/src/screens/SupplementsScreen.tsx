@@ -265,7 +265,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
         <NeonButton
           label={t('common.showAll', { defaultValue: 'Show all' })}
           variant="subtle"
-          className="mb-3 rounded-xl"
+          className="mb-3"
           onPress={() => setFocusedId(undefined)}
         />
       )}
@@ -522,7 +522,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
             <View className="gap-3">
               <NeonButton
                 variant="subtle"
-                className="rounded-xl"
+                className=""
                 size="sm"
                 icon="bell"
                 label={t('supplements.notificationSettings', {
@@ -532,7 +532,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
               />
               <NeonButton
                 variant="subtle"
-                className="rounded-xl"
+                className=""
                 size="sm"
                 icon="pencil"
                 label={t('supplements.editRoutine', {

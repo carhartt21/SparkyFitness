@@ -8,6 +8,9 @@ import type { DailyGoals } from '../types/goals';
 import type { MealType } from '../types/mealTypes';
 import type { MealDayStatusValue, MealTrackingState } from '@workspace/shared';
 import Icon from './Icon';
+import Button from './ui/Button';
+import { formatLocalizedNumber } from '../localization';
+import { formatTimeLabel } from '../utils/entryTimeDisplay';
 import MealStatusControl from './tracking/MealStatusControl';
 import { glowSurfaceStyle, useGlowTheme } from './ui/glow';
 import { MEAL_CONFIG } from '../constants/meals';
@@ -158,6 +161,17 @@ const MealSection: React.FC<MealSectionProps> = ({
     accentPrimary;
 
   const totalCalories = calculateMealNutrition(group.entries).values.calories;
+  const clock = formatTimeLabel(group.entries[0]?.entry_time) ?? group.clock;
+  const pendingNutrition = group.entries.some(
+    (entry) => entry.isPendingNutrition
+  );
+  const groupSummary = group.entries.length
+    ? t('dailyMeals.groupSummary', {
+        defaultValue: '{{calories}} kcal · {{count}} foods',
+        calories: formatLocalizedNumber(Math.round(totalCalories)),
+        count: group.entries.length,
+      })
+    : t('dailyMeals.noEntries', { defaultValue: 'Nothing recorded yet' });
   const targetCalories = React.useMemo(() => {
     // Target-calorie percentages are only meaningful for SYSTEM meal types: a
     // custom type named "breakfast" (or a historical group) must never inherit
@@ -181,7 +195,19 @@ const MealSection: React.FC<MealSectionProps> = ({
   const headerContent = (
     <>
       <Icon name={icon} size={20} color={iconColor} />
-      {expandedText ? (
+      {collapsible ? (
+        <View className="min-w-0 flex-1 gap-0.5">
+          <Text className="text-base font-bold text-text-primary">{label}</Text>
+          <Text className="text-xs text-text-secondary">
+            {clock ? `${clock} · ` : ''}
+            {pendingNutrition
+              ? t('dailyMeals.pendingNutrition', {
+                  defaultValue: 'Nutrition pending',
+                })
+              : groupSummary}
+          </Text>
+        </View>
+      ) : expandedText ? (
         <View className="min-w-0 flex-1 gap-1">
           <Text className="text-base font-bold text-text-primary">{label}</Text>
           {calorieLabel}
@@ -218,7 +244,7 @@ const MealSection: React.FC<MealSectionProps> = ({
         if (group.mealTypeId && onAddFood)
           registerDropTarget?.(group.mealTypeId, view);
       }}
-      className={`bg-surface rounded-2xl p-4 ${selectionMode ? 'overflow-visible' : 'overflow-hidden'} ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : 'border border-border-subtle'}`}
+      className={`bg-surface rounded-2xl ${collapsible ? 'px-3 py-2' : 'p-4'} ${selectionMode ? 'overflow-visible' : 'overflow-hidden'} ${draggingFood && onAddFood ? 'border-2 border-dashed border-accent-primary' : 'border border-border-subtle'}`}
       style={
         draggingFood && onAddFood
           ? undefined
@@ -233,7 +259,7 @@ const MealSection: React.FC<MealSectionProps> = ({
                 ? setExpanded(!expandedByUser)
                 : onPressMealType?.(group.mealTypeId, group.name, group.entries)
             }
-            className="min-h-11 min-w-0 flex-1 flex-row gap-2 items-center"
+            className={`${collapsible ? 'min-h-14' : 'min-h-11'} min-w-0 flex-1 flex-row gap-2 items-center`}
             accessibilityRole="button"
             testID={`daily-meal-group-${group.mealTypeId ?? group.name}`}
             accessibilityState={collapsible ? { expanded } : undefined}
@@ -263,60 +289,125 @@ const MealSection: React.FC<MealSectionProps> = ({
           {group.entries.map((entry, index) => {
             const nutrition = calculateEntryNutrition(entry);
             return (
-              <SwipeableFoodRow
+              <View
                 key={entry.id || index}
-                entry={entry}
-                capturePhoto={
-                  entry.nutrition_capture_id
-                    ? capturePhotos?.[entry.nutrition_capture_id]
-                    : undefined
+                className={
+                  collapsible ? 'border-t border-border-subtle' : undefined
                 }
-                nutrition={nutrition}
-                onAdjustServing={onAdjustServing}
-                selectionMode={selectionMode}
-                selected={selectedEntryIds?.has(entry.id)}
-                onSelect={
-                  !entry.food_entry_meal_id &&
-                  !entry.meal_plan_template_id &&
-                  !entry.nutrition_capture_id &&
-                  (!entry.source || entry.source === 'manual') &&
-                  !entry.isPendingNutrition
-                    ? onSelectEntry
-                    : undefined
-                }
-                onDragStart={onDragStart}
-                onDragMove={onDragMove}
-                onDragEnd={
-                  !entry.food_entry_meal_id &&
-                  !entry.meal_plan_template_id &&
-                  !entry.nutrition_capture_id &&
-                  (!entry.source || entry.source === 'manual') &&
-                  !entry.isPendingNutrition
-                    ? onDragEnd
-                    : undefined
-                }
-              />
+              >
+                <SwipeableFoodRow
+                  compact={collapsible}
+                  entry={entry}
+                  capturePhoto={
+                    entry.nutrition_capture_id
+                      ? capturePhotos?.[entry.nutrition_capture_id]
+                      : undefined
+                  }
+                  nutrition={nutrition}
+                  onAdjustServing={onAdjustServing}
+                  selectionMode={selectionMode}
+                  selected={selectedEntryIds?.has(entry.id)}
+                  onSelect={
+                    !entry.food_entry_meal_id &&
+                    !entry.meal_plan_template_id &&
+                    !entry.nutrition_capture_id &&
+                    (!entry.source || entry.source === 'manual') &&
+                    !entry.isPendingNutrition
+                      ? onSelectEntry
+                      : undefined
+                  }
+                  onDragStart={onDragStart}
+                  onDragMove={onDragMove}
+                  onDragEnd={
+                    !entry.food_entry_meal_id &&
+                    !entry.meal_plan_template_id &&
+                    !entry.nutrition_capture_id &&
+                    (!entry.source || entry.source === 'manual') &&
+                    !entry.isPendingNutrition
+                      ? onDragEnd
+                      : undefined
+                  }
+                />
+              </View>
             );
           })}
-          {(onAddFood && group.mealTypeId) || (mealState && onSetMealStatus) ? (
+          {collapsible && (onAddFood || onPressMealType || onSavePreset) ? (
+            <View
+              className={`border-t border-border-subtle gap-2 pt-1 ${expandedText ? 'flex-col' : 'flex-row items-center'}`}
+            >
+              <View className="flex-row gap-2">
+                {onAddFood && group.mealTypeId ? (
+                  <Button
+                    variant="secondary"
+                    className="h-11 w-11 p-0"
+                    onPress={() => onAddFood(group.mealTypeId!)}
+                    accessibilityLabel={t('foodSummary.addFoodToMeal', {
+                      defaultValue: 'Add food to {{meal}}',
+                      meal: label,
+                    })}
+                  >
+                    <Icon name="add" size={20} color={accentPrimary} />
+                  </Button>
+                ) : null}
+                {onPressMealType ? (
+                  <Button
+                    variant="secondary"
+                    className="h-11 w-11 p-0"
+                    accessibilityLabel={t('dailyMeals.details', {
+                      defaultValue: 'Meal details',
+                    })}
+                    onPress={() =>
+                      onPressMealType(
+                        group.mealTypeId,
+                        group.name,
+                        group.entries
+                      )
+                    }
+                  >
+                    <Icon
+                      name="document-text"
+                      size={20}
+                      color={accentPrimary}
+                    />
+                  </Button>
+                ) : null}
+              </View>
+              {onSavePreset && group.entries.length > 0 && (
+                <Button
+                  variant="ghost"
+                  tone="neutral"
+                  icon="bookmark"
+                  className={`${expandedText ? 'w-full' : 'min-w-0 flex-1'} px-1 py-2`}
+                  textClassName="text-sm"
+                  onPress={() => onSavePreset(group.entries, label)}
+                >
+                  {t('dailyMeals.savePreset', {
+                    defaultValue: 'Save as template',
+                  })}
+                </Button>
+              )}
+            </View>
+          ) : null}
+          {!collapsible &&
+          ((onAddFood && group.mealTypeId) ||
+            (mealState && onSetMealStatus)) ? (
             <View className="mt-3 flex-row items-center gap-2">
               {onAddFood && group.mealTypeId ? (
-                <Pressable
+                <Button
+                  variant="secondary"
+                  icon="add"
                   onPress={() => onAddFood(group.mealTypeId!)}
-                  accessibilityRole="button"
                   accessibilityLabel={t('foodSummary.addFoodToMeal', {
                     defaultValue: 'Add food to {{meal}}',
                     meal: label,
                   })}
-                  className="min-h-11 min-w-0 flex-1 flex-row items-center justify-center gap-2 rounded-lg border border-border-subtle bg-raised px-2 py-2 active:opacity-70"
+                  className="min-w-0 flex-1 py-2"
+                  textClassName="text-sm"
                 >
-                  <Icon name="add" size={18} color={accentPrimary} />
-                  <Text className="shrink text-center text-sm font-semibold text-text-primary">
-                    {t('foodSummary.addFood', { defaultValue: 'Add food' })}
-                  </Text>
-                </Pressable>
+                  {t('foodSummary.addFood', { defaultValue: 'Add food' })}
+                </Button>
               ) : null}
-              {!collapsible && mealState && onSetMealStatus ? (
+              {mealState && onSetMealStatus ? (
                 <MealStatusControl
                   mealLabel={label}
                   state={mealState}
@@ -326,20 +417,7 @@ const MealSection: React.FC<MealSectionProps> = ({
               ) : null}
             </View>
           ) : null}
-          {collapsible && onPressMealType && (
-            <Pressable
-              onPress={() =>
-                onPressMealType(group.mealTypeId, group.name, group.entries)
-              }
-              accessibilityRole="button"
-              className="min-h-11 justify-center"
-            >
-              <Text className="text-sm font-semibold text-text-link">
-                {t('dailyMeals.details', { defaultValue: 'Meal details' })}
-              </Text>
-            </Pressable>
-          )}
-          {onSavePreset && group.entries.length > 0 && (
+          {!collapsible && onSavePreset && group.entries.length > 0 && (
             <Pressable
               onPress={() => onSavePreset(group.entries, label)}
               accessibilityRole="button"

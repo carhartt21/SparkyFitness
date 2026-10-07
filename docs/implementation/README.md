@@ -4,6 +4,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current user guides and runbooks
 
+- [Phone button theme and Meals/Training alignment](phone-buttons-meals-training-alignment-2026-10-07.md): shared action material, enforced caller rules, compact daily/week layouts and bounded visual review.
 - [V45 diary, meals and training refinement](v45-diary-meals-training-refinement-2026-10-07.md): unreleased phone-first daily details, unified hydration, snapshot templates, source clocks and simulator/test evidence.
 
 - [Documentation map](../README.md): where current usage, technical contracts and dated evidence belong.

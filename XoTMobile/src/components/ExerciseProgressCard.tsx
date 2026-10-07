@@ -1,10 +1,11 @@
+import Button from './ui/Button';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { formatLocalizedNumber } from '../localization';
 import Icon from './Icon';
 import DashboardSectionHeader from './DashboardSectionHeader';
 import GlowCard from './ui/GlowCard';
-import { View, Text, Pressable } from 'react-native';
+import { View, Text } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 
 interface ExerciseProgressCardProps {
@@ -77,15 +78,16 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
           )}
         </View>
         {onLog && (
-          <Pressable
+          <Button
+            variant="primary"
             accessibilityRole="button"
             onPress={onLog}
-            className="min-h-11 mt-3 rounded-md bg-accent-primary px-2 justify-center items-center"
+            className="min-h-11 mt-3 px-2 justify-center items-center"
           >
-            <Text className="text-sm font-semibold text-accent-text text-center">
+            <Text className="text-sm font-semibold text-text-primary text-center">
               {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
             </Text>
-          </Pressable>
+          </Button>
         )}
       </GlowCard>
     );
@@ -153,15 +155,16 @@ const ExerciseProgressCard: React.FC<ExerciseProgressCardProps> = ({
         </Text>
       )}
       {onLog && (
-        <Pressable
+        <Button
+          variant={'secondary'}
           accessibilityRole="button"
           onPress={onLog}
-          className="min-h-11 mt-3 rounded-full bg-accent-primary px-2 justify-center items-center"
+          className="min-h-11 mt-3 px-2 justify-center items-center"
         >
           <Text className="text-sm font-semibold text-accent-text">
             {t('dashboard.logExercise', { defaultValue: 'Log exercise' })}
           </Text>
-        </Pressable>
+        </Button>
       )}
     </GlowCard>
   );

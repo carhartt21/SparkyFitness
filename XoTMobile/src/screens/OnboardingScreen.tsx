@@ -683,7 +683,7 @@ export default function OnboardingScreen({ navigation }: Props) {
             accessibilityLabel={t('auth.pasteUrl', {
               defaultValue: 'Paste URL from clipboard',
             })}
-            className="p-2 py-2 px-2 rounded-lg"
+            className="p-2 py-2 px-2"
           >
             <Icon name="paste" size={20} color={textSecondary} />
           </Button>
@@ -870,7 +870,7 @@ export default function OnboardingScreen({ navigation }: Props) {
                       variant="outline"
                       onPress={() => handleOidcLogin(provider.id)}
                       disabled={loading}
-                      className="w-full flex-row items-center justify-center p-2.5 rounded-lg border bg-raised"
+                      className="w-full flex-row items-center justify-center p-2.5"
                       style={{
                         borderWidth: 1,
                         borderColor: borderSubtle,
@@ -900,7 +900,7 @@ export default function OnboardingScreen({ navigation }: Props) {
                   variant="outline"
                   onPress={handlePasskeyLogin}
                   disabled={loading}
-                  className="w-full flex-row items-center justify-center p-2.5 rounded-lg border bg-raised"
+                  className="w-full flex-row items-center justify-center p-2.5"
                   style={{
                     borderWidth: 1,
                     borderColor: borderSubtle,
@@ -977,7 +977,7 @@ export default function OnboardingScreen({ navigation }: Props) {
                 accessibilityLabel={t('auth.pasteApiKey', {
                   defaultValue: 'Paste API key from clipboard',
                 })}
-                className="p-2 py-2 px-2 rounded-lg"
+                className="p-2 py-2 px-2"
               >
                 <Icon name="paste" size={20} color={textSecondary} />
               </Button>

@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useRef, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -306,7 +307,8 @@ const HabitFormScreen: React.FC<Props> = ({ navigation, route }) => {
             {ALL_DAYS.map((day) => {
               const selected = days.includes(day);
               return (
-                <Pressable
+                <Button
+                  variant={selected ? 'primary' : 'secondary'}
                   key={day}
                   testID={`habit-form-day-${day}`}
                   accessibilityRole="checkbox"
@@ -319,18 +321,12 @@ const HabitFormScreen: React.FC<Props> = ({ navigation, route }) => {
                         : [...current, day]
                     )
                   }
-                  className="h-11 min-w-11 items-center justify-center rounded-full border px-2"
-                  style={{
-                    borderColor: selected ? scale.green : border,
-                    backgroundColor: selected
-                      ? withAlpha(scale.green, 0.18)
-                      : 'transparent',
-                  }}
+                  className="h-11 min-w-11 items-center justify-center px-2"
                 >
                   <Text className="text-sm text-text-primary">
                     {weekdays[day]?.slice(0, 2)}
                   </Text>
-                </Pressable>
+                </Button>
               );
             })}
           </View>

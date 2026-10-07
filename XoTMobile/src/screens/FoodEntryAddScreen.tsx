@@ -1010,7 +1010,6 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   const [
     accentColor,
     textPrimary,
-    accentText,
     caloriesHighlight,
     proteinHighlight,
     carbsHighlight,
@@ -1019,7 +1018,6 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
   ] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-primary',
-    '--color-accent-text',
     '--color-calories',
     '--color-macro-protein',
     '--color-macro-carbs',
@@ -2611,23 +2609,9 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
               loading={isActionPending || isPhotoCompletionPending}
               accessibilityLabel={addLabel}
               className="min-h-14"
-              style={
-                glowing && !addDisabled
-                  ? {
-                      boxShadow: `0px 0px 16px 0px ${withAlpha(accentColor, 0.45)}`,
-                    }
-                  : undefined
-              }
+              icon="add"
             >
-              <View className="flex-row items-center justify-center gap-2">
-                <Icon name="add" size={20} color={accentText} />
-                <Text
-                  className="text-base font-semibold text-accent-text"
-                  numberOfLines={1}
-                >
-                  {addButtonLabel}
-                </Text>
-              </View>
+              {addButtonLabel}
             </Button>
 
             {!isSelectionMode && !photoCapture ? (
@@ -2980,7 +2964,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                     <Button
                       variant="secondary"
                       onPress={handleEditFood}
-                      className="min-h-11 flex-1 rounded-xl"
+                      className="min-h-11 flex-1"
                       accessibilityLabel={t(
                         'foodEntryAdd.moreOptions.editFood',
                         {
@@ -2995,7 +2979,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
                     <Button
                       variant="secondary"
                       onPress={handleAdjustNutrition}
-                      className="min-h-11 flex-1 rounded-xl"
+                      className="min-h-11 flex-1"
                       accessibilityLabel={t(
                         'foodEntryAdd.moreOptions.adjustEntry',
                         { defaultValue: 'Adjust this entry only' }

@@ -903,7 +903,7 @@ const ExerciseDetailScreen: React.FC<ExerciseDetailScreenProps> = ({
                     onPress={handleStartWorkout}
                     disabled={isStarting}
                   >
-                    <Text className="text-accent-text text-base font-semibold">
+                    <Text className="text-text-primary text-base font-semibold">
                       {isStarting
                         ? t('exerciseDetail.starting', {
                             defaultValue: 'Starting…',

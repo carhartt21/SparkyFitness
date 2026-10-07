@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
@@ -430,14 +431,13 @@ const WaterContainerEditScreen: React.FC<WaterContainerEditScreenProps> = ({
       >
         <View className="flex-row bg-surface rounded-xl p-1 mb-4">
           {(['water', 'food'] as const).map((option) => (
-            <Pressable
+            <Button
+              variant={mode === option ? 'primary' : 'secondary'}
               key={option}
               accessibilityRole="button"
               accessibilityState={{ selected: mode === option }}
               onPress={() => selectMode(option)}
-              className={`flex-1 py-2 rounded-lg ${
-                mode === option ? 'bg-background' : ''
-              }`}
+              className={`flex-1 py-2  ${mode === option ? '' : ''}`}
               style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
             >
               <Text
@@ -451,7 +451,7 @@ const WaterContainerEditScreen: React.FC<WaterContainerEditScreenProps> = ({
                       defaultValue: 'Drink (linked food)',
                     })}
               </Text>
-            </Pressable>
+            </Button>
           ))}
         </View>
 

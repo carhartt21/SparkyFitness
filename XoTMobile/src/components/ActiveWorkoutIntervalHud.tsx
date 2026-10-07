@@ -1,5 +1,6 @@
+import Button from './ui/Button';
 import { useEffect, useMemo, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { resolvePhaseAt } from '@workspace/shared';
 import { useActiveWorkoutStore } from '../stores/activeWorkoutStore';
@@ -234,9 +235,10 @@ export default function ActiveWorkoutIntervalHud({ now }: Props) {
           </Text>
         </View>
 
-        <Pressable
-          className={`px-3 py-1.5 rounded-lg flex-row items-center gap-1.5 ${
-            isIntervalPaused ? 'bg-emerald-600' : 'bg-surface-elevated'
+        <Button
+          variant="secondary"
+          className={`px-3 py-1.5  flex-row items-center gap-1.5 ${
+            isIntervalPaused ? '' : ''
           }`}
           onPress={() => {
             if (isIntervalPaused) {
@@ -265,7 +267,7 @@ export default function ActiveWorkoutIntervalHud({ now }: Props) {
               ? t('interval.resume', { defaultValue: 'Resume' })
               : t('interval.pause', { defaultValue: 'Pause' })}
           </Text>
-        </Pressable>
+        </Button>
       </View>
 
       {/* Main HUD: Big Countdown Clock & Phase Pill */}
@@ -306,34 +308,36 @@ export default function ActiveWorkoutIntervalHud({ now }: Props) {
             {t('interval.wodScoring', { defaultValue: 'WOD Scoring' })}
           </Text>
           <View className="flex-row bg-surface-elevated rounded-lg p-0.5 border border-border/30">
-            <Pressable
-              className={`px-3 py-1 rounded-md ${
-                intervalStatus === 'rx' ? 'bg-primary' : ''
-              }`}
+            <Button
+              variant={intervalStatus === 'rx' ? 'primary' : 'secondary'}
+              className={`px-3 py-1  ${intervalStatus === 'rx' ? '' : ''}`}
               onPress={() => setIntervalStatus('rx')}
             >
               <Text
                 className={`text-xs font-bold ${
-                  intervalStatus === 'rx' ? 'text-white' : 'text-text-muted'
+                  intervalStatus === 'rx'
+                    ? 'text-text-primary'
+                    : 'text-text-muted'
                 }`}
               >
                 {t('interval.rx', { defaultValue: 'Rx' })}
               </Text>
-            </Pressable>
-            <Pressable
-              className={`px-3 py-1 rounded-md ${
-                intervalStatus === 'scaled' ? 'bg-amber-600' : ''
-              }`}
+            </Button>
+            <Button
+              variant={intervalStatus === 'scaled' ? 'primary' : 'secondary'}
+              className={`px-3 py-1  ${intervalStatus === 'scaled' ? '' : ''}`}
               onPress={() => setIntervalStatus('scaled')}
             >
               <Text
                 className={`text-xs font-bold ${
-                  intervalStatus === 'scaled' ? 'text-white' : 'text-text-muted'
+                  intervalStatus === 'scaled'
+                    ? 'text-text-primary'
+                    : 'text-text-muted'
                 }`}
               >
                 {t('interval.scaled', { defaultValue: 'Scaled' })}
               </Text>
-            </Pressable>
+            </Button>
           </View>
         </View>
 
@@ -341,8 +345,9 @@ export default function ActiveWorkoutIntervalHud({ now }: Props) {
         {workoutFormat === 'amrap' && (
           <>
             <View className="flex-row items-center gap-2 mb-2">
-              <Pressable
-                className="flex-1 bg-primary/15 border border-primary/40 rounded-xl py-3 items-center justify-center active:opacity-70 active:scale-[0.99]"
+              <Button
+                variant="primary"
+                className="flex-1 py-3 items-center justify-center active:opacity-70 active:scale-[0.99]"
                 onPress={() => {
                   fireSelectionHaptic();
                   incrementIntervalRound();
@@ -354,11 +359,12 @@ export default function ActiveWorkoutIntervalHud({ now }: Props) {
                     current: intervalRoundsCompleted,
                   })}
                 </Text>
-              </Pressable>
+              </Button>
 
               {intervalRoundsCompleted > 0 && (
-                <Pressable
-                  className="bg-surface-elevated border border-border/30 px-3 py-3 rounded-xl items-center justify-center active:opacity-70"
+                <Button
+                  variant="primary"
+                  className="px-3 py-3 items-center justify-center active:opacity-70"
                   onPress={() => {
                     fireSelectionHaptic();
                     decrementIntervalRound();
@@ -367,50 +373,54 @@ export default function ActiveWorkoutIntervalHud({ now }: Props) {
                   <Text className="text-xs font-semibold text-text-muted">
                     -1
                   </Text>
-                </Pressable>
+                </Button>
               )}
             </View>
 
-            <View className="flex-row items-center justify-between bg-surface-elevated/60 px-3 py-2 rounded-xl">
+            <View className="items-start gap-2 bg-surface-elevated/60 px-3 py-2 rounded-xl">
               <Text className="text-xs text-text-secondary font-medium">
                 {t('interval.extraReps', { defaultValue: 'Additional Reps' })}:
               </Text>
               <View className="flex-row items-center gap-1.5">
-                <Pressable
-                  className="w-7 h-7 bg-surface-elevated rounded-lg items-center justify-center border border-border/30"
+                <Button
+                  variant="secondary"
+                  className="min-w-11 min-h-11 items-center justify-center"
                   onPress={() =>
                     setIntervalReps(Math.max(0, intervalRepsCompleted - 5))
                   }
                 >
                   <Text className="text-xs font-bold text-text-muted">-5</Text>
-                </Pressable>
-                <Pressable
-                  className="w-7 h-7 bg-surface-elevated rounded-lg items-center justify-center border border-border/30"
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="min-w-11 min-h-11 items-center justify-center"
                   onPress={() =>
                     setIntervalReps(Math.max(0, intervalRepsCompleted - 1))
                   }
                 >
                   <Text className="text-xs font-bold text-text-muted">-1</Text>
-                </Pressable>
+                </Button>
                 <Text className="text-sm font-bold text-text-primary px-2 font-mono">
                   {intervalRepsCompleted}
                 </Text>
-                <Pressable
-                  className="w-7 h-7 bg-surface-elevated rounded-lg items-center justify-center border border-border/30"
+                <Button
+                  variant="secondary"
+                  className="min-w-11 min-h-11 items-center justify-center"
                   onPress={() => setIntervalReps(intervalRepsCompleted + 1)}
                 >
                   <Text className="text-xs font-bold text-text-primary">
                     +1
                   </Text>
-                </Pressable>
-                <Pressable
-                  className="w-7 h-7 bg-surface-elevated rounded-lg items-center justify-center border border-border/30"
+                </Button>
+                <Button
+                  variant="secondary"
+                  className="min-w-11 min-h-11 items-center justify-center"
                   onPress={() => setIntervalReps(intervalRepsCompleted + 5)}
                 >
                   <Text className="text-xs font-bold text-text-primary">
                     +5
                   </Text>
-                </Pressable>
+                </Button>
               </View>
             </View>
           </>

@@ -1,4 +1,4 @@
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { activityWeekRange, addDays } from '@workspace/shared';
 import { useCSSVariable } from 'uniwind';
@@ -9,6 +9,7 @@ import { plannedWorkoutIcon } from '../utils/workoutSession';
 import Icon from './Icon';
 import Button from './ui/Button';
 import StatusView from './StatusView';
+import TrainingSessionRow from './TrainingSessionRow';
 import { progressActivityLabel } from './tracking/trackingLabels';
 
 export default function WeeklyTrainingItinerary({
@@ -25,38 +26,29 @@ export default function WeeklyTrainingItinerary({
   onOpenPlan: (day: string, id?: string) => void;
 }) {
   const { t } = useTranslation();
+  const expandedText = useWindowDimensions().fontScale > 1.3;
   const locale = useAppLocale();
   const range = activityWeekRange(date);
   const data = useActivityPlanning(range.start_date, range.end_date, enabled);
   const color = useCSSVariable('--color-action-training') as string;
   return (
-    <View testID="weekly-training-itinerary" className="mb-6 gap-3">
-      <View className="flex-row flex-wrap gap-2">
-        <Button
-          variant="secondary"
-          onPress={() => onDateChange(addDays(date, -7))}
-        >
-          {t('activityPlanning.previous', { defaultValue: 'Previous week' })}
-        </Button>
-        <Button
-          variant="secondary"
-          onPress={() => onDateChange(addDays(date, 7))}
-        >
-          {t('activityPlanning.next', { defaultValue: 'Next week' })}
-        </Button>
-      </View>
+    <View testID="weekly-training-itinerary" className="mb-3 gap-2">
       <View className="flex-row gap-1">
         {Array.from({ length: 7 }, (_, index) =>
           addDays(range.start_date, index)
         ).map((day) => (
-          <Pressable
+          <Button
+            variant={date === day ? 'primary' : 'secondary'}
             key={day}
             testID={`weekly-day-${day}`}
             accessibilityRole="button"
-            accessibilityLabel={formatDate(day, locale)}
+            accessibilityLabel={new Date(`${day}T12:00:00`).toLocaleDateString(
+              locale,
+              { weekday: 'short', day: 'numeric', month: 'short' }
+            )}
             accessibilityState={{ selected: date === day }}
             onPress={() => onDateChange(day)}
-            className={`min-h-16 flex-1 items-center justify-center rounded-xl border ${date === day ? 'border-accent-primary bg-raised' : 'border-border-subtle bg-surface'}`}
+            className="min-h-16 flex-1 items-center justify-center px-0 py-2"
           >
             <Text className="text-xs text-text-secondary">
               {new Date(`${day}T12:00:00`).toLocaleDateString(locale, {
@@ -66,13 +58,37 @@ export default function WeeklyTrainingItinerary({
             <Text className="text-base font-bold text-text-primary">
               {new Date(`${day}T12:00:00`).getDate()}
             </Text>
-          </Pressable>
+            {data.query.data && (
+              <View
+                className="mt-1 h-1 w-1 rounded-full"
+                style={{
+                  backgroundColor: data.query.data.records.some(
+                    (record) => record.date === day && record.confirmed
+                  )
+                    ? color
+                    : 'transparent',
+                }}
+              />
+            )}
+          </Button>
         ))}
       </View>
-      <Text className="text-base font-semibold text-text-primary">
-        {formatDate(range.start_date, locale)} –{' '}
-        {formatDate(range.end_date, locale)}
-      </Text>
+      {data.query.data && (
+        <View className="rounded-xl border border-border-subtle bg-surface px-3 py-3">
+          <Text className="text-sm text-text-primary">
+            {formatDate(date, locale)} ·{' '}
+            {t('dailyTraining.weekCounts', {
+              defaultValue: '{{recorded}} recorded · {{planned}} scheduled',
+              recorded: data.query.data.records.filter(
+                (item) => item.date === date
+              ).length,
+              planned: data.query.data.occurrences.filter(
+                (item) => item.date === date
+              ).length,
+            })}
+          </Text>
+        </View>
+      )}
       {data.query.isLoading && (
         <StatusView
           loading
@@ -110,21 +126,50 @@ export default function WeeklyTrainingItinerary({
                 accessibilityRole="button"
                 accessibilityState={{ expanded: selected }}
                 onPress={() => onDateChange(day)}
-                className="min-h-12 flex-row items-center gap-2"
+                className={`flex-row items-center gap-2 ${expandedText ? 'min-h-12' : 'min-h-11'}`}
               >
-                <Icon name="calendar" size={18} color={color} />
+                <Icon
+                  name={
+                    records[0] || planned[0]
+                      ? plannedWorkoutIcon(
+                          records[0]?.activity_type ??
+                            planned[0]?.activity_type ??
+                            'other'
+                        )
+                      : 'calendar'
+                  }
+                  size={20}
+                  color={color}
+                />
                 <View className="min-w-0 flex-1">
                   <Text className="text-sm font-semibold text-text-primary">
-                    {formatDate(day, locale)}
-                  </Text>
-                  <Text className="text-xs text-text-secondary">
-                    {t('dailyTraining.weekCounts', {
-                      defaultValue:
-                        '{{recorded}} recorded · {{planned}} scheduled',
-                      recorded: records.length,
-                      planned: planned.length,
+                    {new Date(`${day}T12:00:00`).toLocaleDateString(locale, {
+                      weekday: 'short',
+                      day: 'numeric',
+                      month: 'short',
                     })}
+                    {!expandedText && (
+                      <Text className="text-xs font-normal text-text-secondary">
+                        {' · '}
+                        {t('dailyTraining.weekCounts', {
+                          defaultValue:
+                            '{{recorded}} recorded · {{planned}} scheduled',
+                          recorded: records.length,
+                          planned: planned.length,
+                        })}
+                      </Text>
+                    )}
                   </Text>
+                  {expandedText && (
+                    <Text className="text-xs text-text-secondary">
+                      {t('dailyTraining.weekCounts', {
+                        defaultValue:
+                          '{{recorded}} recorded · {{planned}} scheduled',
+                        recorded: records.length,
+                        planned: planned.length,
+                      })}
+                    </Text>
+                  )}
                 </View>
                 <Icon
                   name={selected ? 'chevron-up' : 'chevron-down'}
@@ -133,35 +178,27 @@ export default function WeeklyTrainingItinerary({
                 />
               </Pressable>
               {selected && (
-                <View className="pb-3 gap-2">
+                <View className="pb-1">
                   {records.map((record) => (
-                    <Pressable
+                    <View
                       key={record.id}
-                      accessibilityRole="button"
-                      onPress={() => onOpenDay(day)}
-                      className="min-h-11 flex-row items-center gap-2 border-t border-border-subtle py-2"
+                      className="border-t border-border-subtle"
                     >
-                      <Icon
-                        name={plannedWorkoutIcon(record.activity_type)}
-                        size={18}
-                        color={color}
+                      <TrainingSessionRow
+                        compact
+                        inlineDetails
+                        title={progressActivityLabel(
+                          t,
+                          record.label,
+                          record.activity_type
+                        )}
+                        details={t('diary.timeline.recorded', {
+                          defaultValue: 'Recorded',
+                        })}
+                        icon={plannedWorkoutIcon(record.activity_type)}
+                        onPress={() => onOpenDay(day)}
                       />
-                      <View className="flex-1">
-                        <Text className="text-base text-text-primary">
-                          {progressActivityLabel(
-                            t,
-                            record.label,
-                            record.activity_type
-                          )}
-                        </Text>
-                        <Text className="text-xs text-text-secondary">
-                          {t('diary.timeline.recorded', {
-                            defaultValue: 'Recorded',
-                          })}
-                        </Text>
-                      </View>
-                      <Icon name="chevron-forward" size={16} color={color} />
-                    </Pressable>
+                    </View>
                   ))}
                   {planned.map((item) => {
                     const prescription = data.query
@@ -169,57 +206,57 @@ export default function WeeklyTrainingItinerary({
                       .find(
                         (assignment) => assignment.id === item.assignment_id
                       );
+                    const state =
+                      item.state === 'complete'
+                        ? t('progress.state.complete', {
+                            defaultValue: 'Complete',
+                          })
+                        : item.state === 'excluded'
+                          ? t('progress.state.excluded', {
+                              defaultValue: 'Skipped, not counted',
+                            })
+                          : t('dailyTraining.planned', {
+                              defaultValue: 'Planned',
+                            });
                     return (
-                      <Pressable
+                      <View
                         key={item.id}
-                        accessibilityRole="button"
-                        onPress={() =>
-                          item.source === 'mobility'
-                            ? onOpenDay(day)
-                            : onOpenPlan(
-                                day,
-                                item.assignment_id == null
-                                  ? undefined
-                                  : String(item.assignment_id)
-                              )
-                        }
-                        className="min-h-11 flex-row items-center gap-2 border-t border-border-subtle py-2"
+                        className="border-t border-border-subtle"
                       >
-                        <Icon
-                          name={plannedWorkoutIcon(item.activity_type)}
-                          size={18}
-                          color={color}
-                        />
-                        <View className="flex-1">
-                          <Text className="text-base text-text-primary">
-                            {progressActivityLabel(
-                              t,
-                              item.label,
-                              item.activity_type
-                            )}
-                          </Text>
-                          <Text className="text-xs text-text-secondary">
-                            {prescription?.plannedTime
-                              ? `${prescription.plannedTime} · `
-                              : ''}
-                            {prescription?.plannedDurationMinutes != null
-                              ? `${t('dailyTraining.duration', { defaultValue: '{{value}} min', value: formatLocalizedNumber(prescription.plannedDurationMinutes) })} · `
-                              : ''}
-                            {item.state === 'complete'
-                              ? t('progress.state.complete', {
-                                  defaultValue: 'Complete',
+                        <TrainingSessionRow
+                          compact
+                          title={progressActivityLabel(
+                            t,
+                            item.label,
+                            item.activity_type
+                          )}
+                          clock={prescription?.plannedTime}
+                          details={[
+                            prescription?.plannedDurationMinutes != null
+                              ? t('dailyTraining.duration', {
+                                  defaultValue: '{{value}} min',
+                                  value: formatLocalizedNumber(
+                                    prescription.plannedDurationMinutes
+                                  ),
                                 })
-                              : item.state === 'excluded'
-                                ? t('progress.state.excluded', {
-                                    defaultValue: 'Skipped, not counted',
-                                  })
-                                : t('dailyTraining.planned', {
-                                    defaultValue: 'Planned',
-                                  })}
-                          </Text>
-                        </View>
-                        <Icon name="chevron-forward" size={16} color={color} />
-                      </Pressable>
+                              : null,
+                            state,
+                          ]
+                            .filter(Boolean)
+                            .join(' · ')}
+                          icon={plannedWorkoutIcon(item.activity_type)}
+                          onPress={() =>
+                            item.source === 'mobility'
+                              ? onOpenDay(day)
+                              : onOpenPlan(
+                                  day,
+                                  item.assignment_id == null
+                                    ? undefined
+                                    : String(item.assignment_id)
+                                )
+                          }
+                        />
+                      </View>
                     );
                   })}
                   {!records.length && !planned.length && (
@@ -229,11 +266,6 @@ export default function WeeklyTrainingItinerary({
                       })}
                     </Text>
                   )}
-                  <Button variant="secondary" onPress={() => onOpenDay(day)}>
-                    {t('dailyTraining.dayDetails', {
-                      defaultValue: 'Daily details',
-                    })}
-                  </Button>
                 </View>
               )}
             </View>

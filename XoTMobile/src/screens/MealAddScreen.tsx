@@ -1,13 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-  ScrollView,
-  Alert,
-} from 'react-native';
+import { View, Text, Platform, ScrollView, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useFocusEffect } from '@react-navigation/native';
 import { TouchableOpacity as GHTouchableOpacity } from 'react-native-gesture-handler';
@@ -672,9 +665,9 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
                   defaultValue: 'Select Unit',
                 })}
                 renderTrigger={({ onPress, selectedOption }) => (
-                  <TouchableOpacity
+                  <Button
+                    variant="secondary"
                     onPress={onPress}
-                    activeOpacity={0.7}
                     accessibilityRole="button"
                     accessibilityLabel={t('mealBuilder.unitPickerLabel', {
                       defaultValue: 'Unit, {{unit}}',
@@ -683,7 +676,7 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
                     accessibilityHint={t('common.openSelectionMenu', {
                       defaultValue: 'Opens selection menu',
                     })}
-                    className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+                    className="px-3 py-2.5 flex-row items-center justify-between"
                     style={{ minHeight: 44 }}
                   >
                     <Text
@@ -699,7 +692,7 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
                       color={textMuted}
                       weight="medium"
                     />
-                  </TouchableOpacity>
+                  </Button>
                 )}
               />
             </View>
@@ -763,10 +756,11 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
                     rightThreshold={40}
                     renderRightActions={() => (
                       <View className="pl-3 py-1" style={{ width: 84 }}>
-                        <TouchableOpacity
-                          className="bg-bg-danger rounded-lg flex-1 justify-center items-center"
+                        <Button
+                          variant="destructive"
+                          className="flex-1 justify-center items-center"
                           onPress={() => removeIngredient(index)}
-                          activeOpacity={0.7}
+
                           accessibilityLabel={t(
                             'mealBuilder.removeIngredient',
                             {
@@ -783,7 +777,7 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
                           <Text className="text-text-danger font-semibold text-sm">
                             {t('common.delete', { defaultValue: 'Delete' })}
                           </Text>
-                        </TouchableOpacity>
+                        </Button>
                       </View>
                     )}
                   >
@@ -879,7 +873,7 @@ const MealAddScreen: React.FC<MealAddScreenProps> = ({ navigation, route }) => {
             <Button
               variant="ghost"
               onPress={openIngredientPicker}
-              className="min-h-11 flex-row items-center gap-1.5 rounded-xl px-3 py-2"
+              className="min-h-11 flex-row items-center gap-1.5 px-3 py-2"
               accessibilityLabel={t('mealBuilder.addFood', {
                 defaultValue: 'Add Food',
               })}

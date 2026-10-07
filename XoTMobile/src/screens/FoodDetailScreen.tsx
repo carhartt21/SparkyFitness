@@ -529,7 +529,7 @@ const FoodDetailScreen: React.FC<FoodDetailScreenProps> = ({
             })
           }
         >
-          <Text className="text-accent-text text-base font-semibold">
+          <Text className="text-text-primary text-base font-semibold">
             {t('foodDetail.logFood', { defaultValue: 'Log Food' })}
           </Text>
         </Button>

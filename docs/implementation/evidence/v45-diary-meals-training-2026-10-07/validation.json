@@ -69,7 +69,32 @@
   },
   "repositoryLayout": "passed: 5 packages, 5891 tracked paths",
   "nextCycle": {
-    "main": "Closer daily Meals and daily/weekly Training fidelity to approved boards: buttons, information tables, layout",
+    "main": "Phone Meals/daily and weekly Training fidelity follow-up implemented; see phone-buttons-meals-training-alignment-2026-10-07.md",
     "later": "Watch training page directly after food intake; not implemented in this batch"
+  },
+  "phoneButtonFollowup": {
+    "scope": "Phone shared action material and Meals/daily Training/weekly Training composition; web and Watch styling excluded",
+    "mobileValidate": "passed after final visible-label correction",
+    "fullJest": {
+      "suites": 572,
+      "tests": 7904,
+      "status": "passed before bounded review corrections"
+    },
+    "postReviewFocusedJest": {
+      "suites": 5,
+      "tests": 24,
+      "status": "passed after first correction batch",
+      "scope": "SharedButtonTheme, MealStatusControl, FoodSummary, DailyMealsScreen, DailyTrainingAvailability"
+    },
+    "nativeInteractions": "3 cases passed: German 390 dark/light and 430 enlarged; aligned-simulator-results.json",
+    "footerRecapture": "Supplemental German 430 enlarged tour passed; aligned-footer-simulator-results.json. Capture harness now fully frames both weekly actions.",
+    "nativeRuntime": "Existing iOS Simulator Debug shell with current JavaScript and synthetic in-memory transport; no backend persistence or signed release proof",
+    "screenshots": 30,
+    "review": "ship for four scored corrections plus introduced Daily details label break; finish-button-alignment.md",
+    "designRecord": "Bounded merge into DESIGN.md and .impeccable/design.json",
+    "limitations": "No physical phone/Watch, Android build, signed archive, real-account, hardware Health export or offline replay verification; no merge/upload/deploy",
+    "documentationBuild": "passed: pnpm run build in docs; existing VitePress chunk-size warning",
+    "repositoryLayout": "passed: 5 packages, 6073 tracked paths",
+    "rasterProvenance": "143 rasters checked; 0 missing embedded origin/prompt"
   }
 }

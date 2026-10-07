@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -334,12 +335,13 @@ function MarkdownNotesField({
               contentContainerStyle={{ gap: 4, paddingVertical: 2 }}
             >
               {BUTTONS.map((button) => (
-                <Pressable
+                <Button
+                  variant="secondary"
                   key={button.id}
                   onPress={() => runAction(NOTE_TOOLBAR_ACTIONS[button.id])}
                   accessibilityRole="button"
                   accessibilityLabel={button.label(t)}
-                  className="min-w-[36px] h-9 px-2 rounded-lg bg-raised border border-border-subtle items-center justify-center"
+                  className="min-w-[36px] min-h-11 px-2 items-center justify-center"
                 >
                   <Text
                     className="text-sm text-text-primary"
@@ -353,7 +355,7 @@ function MarkdownNotesField({
                   >
                     {button.glyph}
                   </Text>
-                </Pressable>
+                </Button>
               ))}
 
               {photos.length > 0 ? (

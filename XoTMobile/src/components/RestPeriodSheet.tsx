@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Text, TouchableOpacity, View } from 'react-native';
+import { Text, View } from 'react-native';
 import {
   BottomSheetModal,
   BottomSheetTextInput,
@@ -45,11 +45,10 @@ const RestPeriodSheet = forwardRef<RestPeriodSheetRef, RestPeriodSheetProps>(
   ({ onChange }, ref) => {
     const { t } = useTranslation();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-    const [accentPrimary, surfaceBg, textMuted] = useCSSVariable([
-      '--color-accent-primary',
+    const [surfaceBg, textMuted] = useCSSVariable([
       '--color-surface',
       '--color-text-muted',
-    ]) as [string, string, string];
+    ]) as [string, string];
 
     const [currentValue, setCurrentValue] = useState<number>(90);
     const [customOpen, setCustomOpen] = useState(false);
@@ -134,26 +133,22 @@ const RestPeriodSheet = forwardRef<RestPeriodSheetRef, RestPeriodSheetProps>(
             {REST_PRESETS.map((preset) => {
               const selected = preset === currentValue;
               return (
-                <TouchableOpacity
+                <Button
+                  variant={selected ? 'primary' : 'secondary'}
                   key={preset}
                   onPress={() => commitPreset(preset)}
-                  activeOpacity={0.7}
-                  className="rounded-md py-2 px-4 border"
-                  style={{
-                    backgroundColor: selected ? accentPrimary : 'transparent',
-                    borderColor: selected ? accentPrimary : textMuted,
-                  }}
+                  className="py-2 px-4"
                 >
                   <Text
                     className="text-sm font-medium"
-                    style={{ color: selected ? '#fff' : textMuted }}
+                    style={{ color: textMuted }}
                   >
                     {formatRestLabel(
                       preset,
                       t('restPeriod.off', { defaultValue: 'Off' })
                     )}
                   </Text>
-                </TouchableOpacity>
+                </Button>
               );
             })}
           </View>

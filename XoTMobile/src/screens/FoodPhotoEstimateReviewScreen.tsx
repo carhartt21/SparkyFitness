@@ -618,10 +618,10 @@ const FoodPhotoEstimateReviewScreen: React.FC<Props> = ({
               defaultValue: 'Unit',
             })}
             renderTrigger={({ onPress }) => (
-              <TouchableOpacity
+              <Button
+                variant="secondary"
                 onPress={onPress}
-                activeOpacity={0.7}
-                className="flex-row items-center justify-between rounded-lg bg-raised p-3"
+                className="flex-row items-center justify-between p-3"
                 accessibilityRole="button"
                 accessibilityLabel={t('foodPhotoEstimate.servings.unit', {
                   defaultValue: 'Unit',
@@ -631,7 +631,7 @@ const FoodPhotoEstimateReviewScreen: React.FC<Props> = ({
                   {servingUnit}
                 </Text>
                 <Icon name="chevron-down" size={12} color={textPrimary} />
-              </TouchableOpacity>
+              </Button>
             )}
           />
         </View>
@@ -902,10 +902,10 @@ const FoodPhotoEstimateReviewScreen: React.FC<Props> = ({
         onSelect={(value) => setSaveMode(value as SaveMode)}
         title={t('foodPhotoEstimate.mode.label', { defaultValue: 'Save as' })}
         renderTrigger={({ onPress }) => (
-          <TouchableOpacity
+          <Button
+            variant="secondary"
             onPress={onPress}
-            activeOpacity={0.7}
-            className="flex-row items-center justify-between rounded-lg bg-raised p-3"
+            className="flex-row items-center justify-between p-3"
             accessibilityRole="button"
             accessibilityLabel={t('foodPhotoEstimate.mode.label', {
               defaultValue: 'Save as',
@@ -915,7 +915,7 @@ const FoodPhotoEstimateReviewScreen: React.FC<Props> = ({
               {activeOption.label}
             </Text>
             <Icon name="chevron-down" size={12} color={textPrimary} />
-          </TouchableOpacity>
+          </Button>
         )}
       />
       <Text className="text-text-secondary text-xs mt-2 px-1">

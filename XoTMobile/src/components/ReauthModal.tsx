@@ -529,7 +529,7 @@ const ReauthModal: React.FC<ReauthModalProps> = ({
                 accessibilityLabel={t('common.close', {
                   defaultValue: 'Close',
                 })}
-                className="absolute p-2 py-2 px-2 rounded-lg"
+                className="absolute p-2 py-2 px-2"
                 // Sits in the card's corner padding, clear of long titles.
                 style={{ right: -12, top: -12 }}
               >
@@ -604,7 +604,7 @@ const ReauthModal: React.FC<ReauthModalProps> = ({
                       variant="outline"
                       onPress={() => handleOidcLogin(provider.id)}
                       disabled={loading}
-                      className="w-full flex-row items-center justify-center p-2.5 rounded-lg border border-border-subtle bg-raised"
+                      className="w-full flex-row items-center justify-center p-2.5"
                     >
                       <View className="flex-row items-center">
                         <OidcProviderLogo
@@ -625,7 +625,7 @@ const ReauthModal: React.FC<ReauthModalProps> = ({
                     variant="outline"
                     onPress={handlePasskeySignIn}
                     disabled={loading}
-                    className="w-full flex-row items-center justify-center p-2.5 rounded-lg border border-border-subtle bg-raised"
+                    className="w-full flex-row items-center justify-center p-2.5"
                   >
                     <View className="flex-row items-center">
                       <View className="mr-2">

@@ -1061,10 +1061,10 @@ const FoodForm: React.FC<FoodFormProps> = ({
                     })}
                     onSelect={handleUnitSelectorSelection}
                     renderTrigger={({ onPress }) => (
-                      <TouchableOpacity
+                      <Button
+                        variant="secondary"
                         onPress={onPress}
-                        activeOpacity={0.7}
-                        className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+                        className="px-3 py-2.5 flex-row items-center justify-between"
                         style={{ height: 44 }}
                       >
                         <Text
@@ -1082,7 +1082,7 @@ const FoodForm: React.FC<FoodFormProps> = ({
                           color={textMuted}
                           weight="medium"
                         />
-                      </TouchableOpacity>
+                      </Button>
                     )}
                   />
                 ) : (
@@ -1095,10 +1095,10 @@ const FoodForm: React.FC<FoodFormProps> = ({
                     })}
                     placeholder={t('foodForm.unit', { defaultValue: 'unit' })}
                     renderTrigger={({ onPress, selectedOption }) => (
-                      <TouchableOpacity
+                      <Button
+                        variant="secondary"
                         onPress={onPress}
-                        activeOpacity={0.7}
-                        className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+                        className="px-3 py-2.5 flex-row items-center justify-between"
                         style={{ height: 44 }}
                       >
                         <Text
@@ -1118,7 +1118,7 @@ const FoodForm: React.FC<FoodFormProps> = ({
                           color={textMuted}
                           weight="medium"
                         />
-                      </TouchableOpacity>
+                      </Button>
                     )}
                   />
                 )}
@@ -1186,11 +1186,11 @@ const FoodForm: React.FC<FoodFormProps> = ({
                         </Text>
                       </View>
                       {canAiConvert ? (
-                        <TouchableOpacity
+                        <Button
+                          variant="secondary"
                           onPress={handleAiEstimate}
                           disabled={isEstimatingAi}
-                          activeOpacity={0.7}
-                          className={`bg-raised rounded-xl py-3 items-center justify-center ${isEstimatingAi ? 'opacity-50' : ''}`}
+                          className={`  py-3 items-center justify-center ${isEstimatingAi ? 'opacity-50' : ''}`}
                         >
                           {isEstimatingAi ? (
                             <View className="flex-row items-center gap-2">
@@ -1219,7 +1219,7 @@ const FoodForm: React.FC<FoodFormProps> = ({
                               </Text>
                             </View>
                           )}
-                        </TouchableOpacity>
+                        </Button>
                       ) : null}
                     </View>
                   );

@@ -297,7 +297,8 @@ const MealTypeFormSheet = forwardRef<
               />
             </>
           ) : (
-            <TouchableOpacity
+            <Button
+              variant="secondary"
               onPress={() => {
                 if (timePickerRef?.current) {
                   // Seed from the CURRENT form value so an unsaved selection
@@ -312,7 +313,7 @@ const MealTypeFormSheet = forwardRef<
                   );
                 }
               }}
-              className="flex-row items-center justify-between rounded-lg border border-border-subtle bg-background px-3 py-3 mb-4"
+              className="flex-row items-center justify-between px-3 py-3 mb-4"
               accessibilityRole="button"
               accessibilityLabel={t('mealTypeForm.accessibility.defaultTime', {
                 defaultValue: 'Default time for {{name}}{{time}}',
@@ -329,7 +330,7 @@ const MealTypeFormSheet = forwardRef<
                   : t('mealTypeForm.notSet', { defaultValue: 'Not set' })}
               </Text>
               <Icon name="chevron-forward" size={18} color={textSecondary} />
-            </TouchableOpacity>
+            </Button>
           )}
 
           {mode === 'create' ? (

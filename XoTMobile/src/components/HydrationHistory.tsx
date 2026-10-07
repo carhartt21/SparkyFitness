@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../types/navigation';
@@ -365,15 +366,16 @@ export default function HydrationHistory({
             )}
           </View>
         ))}
-      <Pressable
+      <Button
+        variant="secondary"
         accessibilityRole="button"
         onPress={onConfigure}
-        className="min-h-11 bg-raised rounded-xl px-4 justify-center"
+        className="min-h-11 px-4 justify-center"
       >
         <Text className="text-text-link">
           {t('waterContainers.title', { defaultValue: 'Water containers' })}
         </Text>
-      </Pressable>
+      </Button>
     </View>
   );
 }

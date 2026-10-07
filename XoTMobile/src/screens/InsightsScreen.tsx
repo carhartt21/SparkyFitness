@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useCallback, useMemo, useState } from 'react';
 import {
   Pressable,
@@ -288,13 +289,14 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
 
         <View className="mb-4 flex-row flex-wrap gap-2">
           {(['trends', 'caffeine'] as const).map((section) => (
-            <Pressable
+            <Button
+              variant="secondary"
               key={section}
               accessibilityRole="button"
               onPress={() =>
                 navigation.navigate('HealthOverview', { section, date: today })
               }
-              className="min-h-11 flex-1 items-center justify-center rounded-xl border border-border-subtle bg-surface px-3 py-2"
+              className="min-h-11 flex-1 items-center justify-center px-3 py-2"
             >
               <Text className="text-sm font-semibold text-text-primary">
                 {section === 'trends'
@@ -303,7 +305,7 @@ const InsightsScreen: React.FC<InsightsScreenProps> = ({ navigation }) => {
                     })
                   : t('caffeine.title', { defaultValue: 'Active Caffeine' })}
               </Text>
-            </Pressable>
+            </Button>
           ))}
         </View>
         <InsightCard

@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import {
   forwardRef,
   useCallback,
@@ -6,14 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  Alert,
-  Platform,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Alert, Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
@@ -339,26 +333,28 @@ const FastingEditSheet = forwardRef<FastingEditSheetRef, FastingEditSheetProps>(
             </Text>
           )}
 
-          <Pressable
+          <Button
+            variant="primary"
             onPress={handleSave}
             disabled={isPending || !isValid}
-            className={`flex-row items-center justify-center rounded-xl py-3.5 mt-4 bg-accent-primary ${
+            className={`flex-row items-center justify-center  py-3.5 mt-4  ${
               isPending || !isValid ? 'opacity-50' : ''
             }`}
           >
-            <Text className="text-accent-text text-base font-semibold">
+            <Text className="text-text-primary text-base font-semibold">
               {isSavePending
                 ? t('fastingEdit.saving', { defaultValue: 'Saving...' })
                 : t('fastingEdit.saveChanges', {
                     defaultValue: 'Save changes',
                   })}
             </Text>
-          </Pressable>
+          </Button>
 
-          <Pressable
+          <Button
+            variant="destructive"
             onPress={handleDelete}
             disabled={isPending}
-            className={`flex-row items-center justify-center rounded-xl py-3.5 mt-3 mb-2 ${
+            className={`flex-row items-center justify-center  py-3.5 mt-3 mb-2 ${
               isPending ? 'opacity-50' : ''
             }`}
           >
@@ -370,7 +366,7 @@ const FastingEditSheet = forwardRef<FastingEditSheetRef, FastingEditSheetProps>(
                     defaultValue: 'Delete fast',
                   })}
             </Text>
-          </Pressable>
+          </Button>
         </BottomSheetScrollView>
       </BottomSheetModal>
     );

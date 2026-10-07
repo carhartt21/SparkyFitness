@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import { plannedActivityLabel } from '../components/tracking/trackingLabels';
 import { useRef, useState } from 'react';
 import { Keyboard, Pressable, Switch, Text, View } from 'react-native';
@@ -161,7 +162,8 @@ export default function WorkoutPlanFormScreen({
       <Text className="text-text-primary">
         {t('weeklyPlan.startDate', { defaultValue: 'Start date' })}
       </Text>
-      <Pressable
+      <Button
+        variant="secondary"
         testID="weekly-plan-start-date"
         onPress={() => openCalendar(startCalendar)}
         accessibilityRole="button"
@@ -169,17 +171,18 @@ export default function WorkoutPlanFormScreen({
           defaultValue: 'Start date',
         })}
         accessibilityValue={{ text: dateLabel(startDate) }}
-        className="min-h-12 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-3 py-3"
+        className="min-h-12 flex-row items-center justify-between px-3 py-3"
       >
         <Text className="text-base text-text-primary">
           {dateLabel(startDate)}
         </Text>
         <Icon name="calendar" size={20} color={iconColor} />
-      </Pressable>
+      </Button>
       <Text className="text-text-primary">
         {t('weeklyPlan.endDate', { defaultValue: 'End date (optional)' })}
       </Text>
-      <Pressable
+      <Button
+        variant="secondary"
         testID="weekly-plan-end-date"
         onPress={() => openCalendar(endCalendar)}
         accessibilityRole="button"
@@ -191,7 +194,7 @@ export default function WorkoutPlanFormScreen({
             ? dateLabel(endDate)
             : t('weeklyPlan.noEndDate', { defaultValue: 'No end date' }),
         }}
-        className="min-h-12 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-3 py-3"
+        className="min-h-12 flex-row items-center justify-between px-3 py-3"
       >
         <Text className="text-base text-text-primary">
           {endDate
@@ -199,7 +202,7 @@ export default function WorkoutPlanFormScreen({
             : t('weeklyPlan.noEndDate', { defaultValue: 'No end date' })}
         </Text>
         <Icon name="calendar" size={20} color={iconColor} />
-      </Pressable>
+      </Button>
       {endDate ? (
         <Pressable
           testID="weekly-plan-clear-end-date"

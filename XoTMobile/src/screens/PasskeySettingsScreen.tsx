@@ -58,11 +58,10 @@ const PasskeySettingsScreen: React.FC<PasskeySettingsScreenProps> = () => {
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const usesNativeHeader = useNativeIOSHeadersActive();
 
-  const [accentPrimary, textMuted, accentText] = useCSSVariable([
+  const [accentPrimary, textMuted] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-muted',
-    '--color-accent-text',
-  ]) as [string, string, string];
+  ]) as [string, string];
 
   const { activeConfig } = useServerConfigs();
 
@@ -405,22 +404,11 @@ const PasskeySettingsScreen: React.FC<PasskeySettingsScreenProps> = () => {
                 setNewPasskeyName('');
                 setModalVisible(true);
               }}
-              className="w-full flex-row items-center justify-center"
+              className="w-full"
+              icon="fingerprint"
+              loading={actionLoading}
             >
-              {actionLoading ? (
-                <ActivityIndicator
-                  size="small"
-                  color={accentText}
-                  style={{ marginRight: 8 }}
-                />
-              ) : (
-                <View style={{ marginRight: 8 }}>
-                  <Icon name="fingerprint" size={20} color={accentText} />
-                </View>
-              )}
-              <Text className="text-base font-semibold text-accent-text">
-                {t('passkeySettings.add', { defaultValue: 'Add Passkey' })}
-              </Text>
+              {t('passkeySettings.add', { defaultValue: 'Add Passkey' })}
             </Button>
 
             <Text className="text-xs text-text-muted mt-4">
@@ -486,7 +474,6 @@ const PasskeySettingsScreen: React.FC<PasskeySettingsScreenProps> = () => {
                   variant="primary"
                   onPress={handleAddPasskey}
                   className="flex-1 py-2.5"
-                  style={{ backgroundColor: accentPrimary }}
                 >
                   {t('common.continue', { defaultValue: 'Continue' })}
                 </Button>

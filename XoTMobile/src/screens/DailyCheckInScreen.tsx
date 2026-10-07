@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, {
   useCallback,
   useEffect,
@@ -37,7 +38,6 @@ import {
 } from '../components/tracking/useNeonScale';
 import GlowCard from '../components/ui/GlowCard';
 import NeonButton from '../components/ui/NeonButton';
-import { withAlpha } from '../components/ui/glow';
 import Icon, { type IconName } from '../components/Icon';
 import StatusView from '../components/StatusView';
 import {
@@ -452,7 +452,9 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
             const selected = draft.overall_day === option.value;
             const label = overallDayLabel(t, option.value);
             return (
-              <Pressable
+              <Button
+                variant={selected ? 'primary' : 'secondary'}
+                color={color}
                 key={option.value}
                 testID={`daily-checkin-overall-${option.value}`}
                 accessibilityRole="radio"
@@ -461,14 +463,7 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
                 onPress={() =>
                   update({ overall_day: selected ? null : option.value })
                 }
-                className="flex-1 items-center gap-1 rounded-xl border py-3"
-                style={{
-                  borderColor: withAlpha(color, selected ? 0.95 : 0.45),
-                  backgroundColor: withAlpha(color, selected ? 0.24 : 0.08),
-                  boxShadow: selected
-                    ? `0px 0px 12px 0px ${withAlpha(color, 0.45)}`
-                    : undefined,
-                }}
+                className="flex-1 items-center gap-1 py-3"
               >
                 <CheckinFace value={option.value} color={color} />
                 <Text
@@ -478,7 +473,7 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
                 >
                   {label}
                 </Text>
-              </Pressable>
+              </Button>
             );
           })}
         </View>
@@ -539,7 +534,9 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
                   );
                   const selected = value === rating;
                   return (
-                    <Pressable
+                    <Button
+                      variant={selected ? 'primary' : 'secondary'}
+                      color={color}
                       key={rating}
                       testID={`daily-checkin-${question.key}-${rating}`}
                       accessibilityRole="radio"
@@ -552,19 +549,12 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
                       onPress={() =>
                         update({ [question.key]: selected ? null : rating })
                       }
-                      className="min-h-11 flex-1 items-center justify-center rounded-lg border py-1"
-                      style={{
-                        borderColor: withAlpha(color, selected ? 0.95 : 0.5),
-                        backgroundColor: withAlpha(
-                          color,
-                          selected ? 0.3 : 0.06
-                        ),
-                      }}
+                      className="min-h-11 flex-1 items-center justify-center py-1"
                     >
                       <Text className="text-base font-semibold text-text-primary">
                         {rating}
                       </Text>
-                    </Pressable>
+                    </Button>
                   );
                 })}
               </View>
@@ -615,24 +605,19 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
           {[...DAILY_CHECKIN_BUILT_IN_TAGS, ...customTags].map((tag) => {
             const selected = draft.tags.includes(tag);
             return (
-              <Pressable
+              <Button
+                variant={selected ? 'primary' : 'secondary'}
                 key={tag}
                 testID={`daily-checkin-tag-${tag}`}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: selected }}
                 onPress={() => toggleTag(tag)}
-                className="min-h-11 justify-center rounded-full border px-4"
-                style={{
-                  borderColor: selected ? scale.mint : border,
-                  backgroundColor: selected
-                    ? withAlpha(scale.mint, 0.18)
-                    : 'transparent',
-                }}
+                className="min-h-11 justify-center px-4"
               >
                 <Text className="text-sm text-text-primary">
                   {tagLabel(tag)}
                 </Text>
-              </Pressable>
+              </Button>
             );
           })}
           {addingTag ? (
@@ -655,17 +640,18 @@ const DailyCheckInScreen: React.FC<Props> = ({ navigation, route }) => {
               className="min-h-11 min-w-28 rounded-full border border-border-subtle px-4 text-sm text-text-primary"
             />
           ) : (
-            <Pressable
+            <Button
+              variant={'secondary'}
               testID="daily-checkin-add-tag"
               accessibilityRole="button"
               onPress={() => setAddingTag(true)}
-              className="min-h-11 flex-row items-center gap-1 rounded-full border border-dashed border-border-subtle px-4"
+              className="min-h-11 flex-row items-center gap-1 px-4"
             >
               <Icon name="add" size={14} color={textSecondary} />
               <Text className="text-sm text-text-secondary">
                 {t('checkin.addTag', { defaultValue: 'Add tag' })}
               </Text>
-            </Pressable>
+            </Button>
           )}
         </View>
       </GlowCard>

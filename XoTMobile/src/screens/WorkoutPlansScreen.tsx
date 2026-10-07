@@ -1,19 +1,20 @@
 import WeeklyTrainingItinerary from '../components/WeeklyTrainingItinerary';
 import { plannedActivityLabel } from '../components/tracking/trackingLabels';
 import { useRef, useState } from 'react';
-import { Alert, Text, View } from 'react-native';
+import { Alert, Text, View, useWindowDimensions } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useTranslation } from 'react-i18next';
-import { weekdayOfDay } from '@workspace/shared';
-import TrackingScreen from '../components/tracking/TrackingScreen';
+import { activityWeekRange, weekdayOfDay } from '@workspace/shared';
+import DailyDetailScreen from '../components/DailyDetailScreen';
 import NeonButton from '../components/ui/NeonButton';
+import Button from '../components/ui/Button';
 import GlowCard from '../components/ui/GlowCard';
 import StatusView from '../components/StatusView';
 import { useWorkoutPlans } from '../hooks/useWorkoutPlans';
 import { useServerConnection } from '../hooks';
 import { useStartWorkoutPlanAssignment } from '../hooks/useStartWorkoutPlanAssignment';
 import { getTodayDate } from '../utils/dateUtils';
-import { formatLocalizedNumber } from '../localization';
+import { formatLocalizedNumber, useAppLocale } from '../localization';
 import type { RootStackScreenProps } from '../types/navigation';
 import type {
   WorkoutPlanAssignment,
@@ -25,6 +26,8 @@ export default function WorkoutPlansScreen({
   route,
 }: RootStackScreenProps<'WorkoutPlans'>) {
   const { t } = useTranslation();
+  const expandedText = useWindowDimensions().fontScale > 1.3;
+  const locale = useAppLocale();
   const [date, setDate] = useState(route.params?.date ?? getTodayDate());
   const { isConnected } = useServerConnection();
   const query = useWorkoutPlans(isConnected);
@@ -82,16 +85,22 @@ export default function WorkoutPlansScreen({
       ]
     );
   return (
-    <TrackingScreen
-      testID="workout-plans"
-      title={t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
-      subtitle={t('weeklyPlan.subtitle', {
-        defaultValue:
-          'Plan whole activities and saved workouts. Planned sessions are not completed workouts.',
-      })}
+    <DailyDetailScreen
+      title={t('dailyTraining.title', { defaultValue: 'Training' })}
       date={date}
+      dateStep={7}
+      dateLabel={[
+        activityWeekRange(date).start_date,
+        activityWeekRange(date).end_date,
+      ]
+        .map((day) =>
+          new Date(`${day}T12:00:00`).toLocaleDateString(locale, {
+            day: 'numeric',
+            month: 'short',
+          })
+        )
+        .join(' – ')}
       onDateChange={setDate}
-      onBack={navigation.goBack}
       onRefresh={query.refetch}
     >
       {!focusedId && (
@@ -115,12 +124,28 @@ export default function WorkoutPlansScreen({
           onPress={() => setFocusedId(undefined)}
         />
       )}
-      <NeonButton
-        label={t('weeklyPlan.create', { defaultValue: 'Create plan' })}
-        icon="add"
-        onPress={() => navigation.navigate('WorkoutPlanForm')}
-        disabled={!isConnected}
-      />
+      <View className={`gap-2 ${expandedText ? 'flex-col' : 'flex-row'}`}>
+        <Button
+          className={expandedText ? 'w-full' : 'flex-1'}
+          icon="add"
+          onPress={() => navigation.navigate('WorkoutPlanForm')}
+          disabled={!isConnected}
+        >
+          {t('weeklyPlan.create', { defaultValue: 'Create plan' })}
+        </Button>
+        <Button
+          testID="weekly-day-details"
+          className={expandedText ? 'w-full' : 'flex-1'}
+          icon="list"
+          variant="secondary"
+          accessibilityLabel={t('dailyTraining.dayDetails', {
+            defaultValue: 'Daily details',
+          })}
+          onPress={() => navigation.navigate('DailyTraining', { date })}
+        >
+          {t('dailyTraining.dayDetailsAction', { defaultValue: 'Day details' })}
+        </Button>
+      </View>
       {!isConnected ? (
         <StatusView
           icon="cloud-offline"
@@ -258,6 +283,6 @@ export default function WorkoutPlansScreen({
             </GlowCard>
           );
         })}
-    </TrackingScreen>
+    </DailyDetailScreen>
   );
 }

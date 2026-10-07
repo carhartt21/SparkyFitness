@@ -1,6 +1,7 @@
+import Button from '../components/ui/Button';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, ScrollView, Pressable } from 'react-native';
+import { View, Text, ScrollView } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { CommonActions } from '@react-navigation/native';
 import type { WorkoutFormat } from '@workspace/shared';
@@ -190,14 +191,11 @@ const PresetFormBody: React.FC<PresetFormBodyProps> = ({
           {FORMATS.map((fmt) => {
             const isSelected = (state.workoutFormat ?? 'standard') === fmt;
             return (
-              <Pressable
+              <Button
+                variant={isSelected ? 'primary' : 'secondary'}
                 key={fmt}
                 onPress={() => setWorkoutFormat(fmt)}
-                className={`px-3 py-2 rounded-xl border ${
-                  isSelected
-                    ? 'bg-primary/15 border-primary'
-                    : 'bg-surface border-border/50'
-                }`}
+                className={`px-3 py-2   ${isSelected ? ' ' : ' '}`}
               >
                 <Text
                   className={`text-xs font-semibold ${
@@ -206,7 +204,7 @@ const PresetFormBody: React.FC<PresetFormBodyProps> = ({
                 >
                   {getFormatLabel(fmt, t)}
                 </Text>
-              </Pressable>
+              </Button>
             );
           })}
         </ScrollView>

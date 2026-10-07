@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import type { ToastConfigParams } from 'react-native-toast-message';
 import { toastConfig } from '../../../src/components/ui/toastConfig';
@@ -53,7 +54,9 @@ describe('toastConfig', () => {
     );
 
     expect(screen.getByText('Details about the saved entry')).toBeTruthy();
-    expect(screen.getByLabelText('Undo').props.style).toMatchObject({
+    expect(
+      StyleSheet.flatten(screen.getByLabelText('Undo').props.style)
+    ).toMatchObject({
       minHeight: 44,
     });
     fireEvent.press(screen.getByLabelText('Undo'));

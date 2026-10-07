@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import { useAppLocale } from '../localization';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
@@ -513,12 +514,13 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
         />
 
         <View className="flex-row gap-3 mt-3">
-          <TouchableOpacity
+          <Button
+            variant="secondary"
             onPress={() =>
               navigation.navigate('ProgressPhotoCompare', { angle })
             }
             disabled={!canCompare}
-            className="flex-1 flex-row items-center justify-center bg-surface rounded-lg py-2.5 shadow-sm"
+            className="flex-1 flex-row items-center justify-center py-2.5"
             style={!canCompare ? { opacity: 0.4 } : undefined}
             accessibilityRole="button"
             accessibilityState={{ disabled: !canCompare }}
@@ -530,14 +532,15 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               {t('progressPhotos.compare', { defaultValue: 'Compare' })}
             </Text>
-          </TouchableOpacity>
+          </Button>
 
-          <TouchableOpacity
+          <Button
+            variant="secondary"
             onPress={() =>
               navigation.navigate('ProgressPhotoTimelapse', { angle })
             }
             disabled={!canCompare}
-            className="flex-1 flex-row items-center justify-center bg-surface rounded-lg py-2.5 shadow-sm"
+            className="flex-1 flex-row items-center justify-center py-2.5"
             style={!canCompare ? { opacity: 0.4 } : undefined}
             accessibilityRole="button"
             accessibilityState={{ disabled: !canCompare }}
@@ -549,7 +552,7 @@ const ProgressPhotosScreen: React.FC<Props> = ({ navigation, route }) => {
             >
               {t('progressPhotos.timelapse', { defaultValue: 'Time-lapse' })}
             </Text>
-          </TouchableOpacity>
+          </Button>
         </View>
       </View>
 

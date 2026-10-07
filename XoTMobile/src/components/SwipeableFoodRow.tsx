@@ -43,6 +43,7 @@ export type { CapturePhotoRef } from './NutritionCaptureThumbnail';
 interface SwipeableFoodRowProps {
   readOnly?: boolean;
   showTime?: boolean;
+  compact?: boolean;
   entry: FoodEntry;
   nutrition: EntryNutrition;
   capturePhoto?: CapturePhotoRef;
@@ -59,6 +60,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
   entry,
   readOnly: requestedReadOnly = false,
   showTime = true,
+  compact = false,
   nutrition,
   capturePhoto,
   onAdjustServing,
@@ -281,7 +283,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               image={entryImage}
               name={name}
               getImageSource={getImageSource}
-              size={48}
+              size={compact ? 40 : 48}
               style={{ marginRight: 12 }}
               onPress={
                 entryImage
@@ -313,16 +315,27 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
             >
               <View className="gap-0.5">
                 <Text
-                  className="text-md text-text-primary"
+                  className={
+                    compact
+                      ? 'text-sm font-medium text-text-primary'
+                      : 'text-md text-text-primary'
+                  }
                   numberOfLines={stacked ? undefined : 2}
                 >
                   {name}
                 </Text>
                 <Text
-                  className="text-sm text-text-secondary"
+                  className={
+                    compact
+                      ? 'text-xs text-text-secondary'
+                      : 'text-sm text-text-secondary'
+                  }
                   numberOfLines={stacked ? undefined : 1}
                 >
                   {entry.quantity} {entry.unit}
+                  {compact && !isPending
+                    ? ` · ${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}`
+                    : ''}
                 </Text>
                 {showTime && timeLabel && (
                   <Text
@@ -349,15 +362,28 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
             {canQuickAdjust && !selectionMode ? (
               <Button
                 variant="ghost"
+                accessibilityLabel={
+                  t('foodRow.adjustServing', {
+                    defaultValue: 'Adjust serving',
+                  }) + `: ${name}`
+                }
                 onPress={() => onAdjustServing!(entry)}
                 hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
                 className="min-h-11 justify-center px-2"
                 textClassName="text-sm text-text-secondary font-medium"
                 style={stacked ? { alignSelf: 'flex-start' } : undefined}
               >
-                {`${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })} ▾`}
+                {compact ? (
+                  <Icon
+                    name="ellipsis-horizontal"
+                    size={20}
+                    color={mutedColor}
+                  />
+                ) : (
+                  `${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })} ▾`
+                )}
               </Button>
-            ) : (
+            ) : compact ? null : (
               <Text className="text-sm text-text-secondary font-medium mr-2">
                 {Math.round(nutrition.calories)}{' '}
                 {t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}

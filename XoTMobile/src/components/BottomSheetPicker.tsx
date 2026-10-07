@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -46,11 +47,11 @@ export function PickerTrigger({
   const { t } = useTranslation();
   const [textMuted] = useCSSVariable(['--color-text-muted']) as [string];
   return (
-    <TouchableOpacity
-      className="flex-row items-center justify-between px-3 py-2.5 rounded-lg border border-border-subtle bg-raised min-h-11"
+    <Button
+      variant="secondary"
+      className="flex-row items-center justify-between px-3 py-2.5 min-h-11"
       style={containerStyle}
       onPress={onPress}
-      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       accessibilityHint={
@@ -60,7 +61,7 @@ export function PickerTrigger({
     >
       <Text className="text-base flex-1 text-text-primary">{label}</Text>
       <Icon name="chevron-down" size={16} color={textMuted} />
-    </TouchableOpacity>
+    </Button>
   );
 }
 

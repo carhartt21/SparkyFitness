@@ -901,7 +901,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
               accessibilityLabel={t('auth.pasteUrl', {
                 defaultValue: 'Paste URL from clipboard',
               })}
-              className="absolute right-1 p-2 py-2 px-2 rounded-lg"
+              className="absolute right-1 p-2 py-2 px-2"
             >
               <Icon name="paste" size={20} color={textSecondary} />
             </Button>
@@ -967,7 +967,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                                   defaultValue: 'Show password',
                                 })
                           }
-                          className="absolute right-1 p-2 py-2 px-2 rounded-lg"
+                          className="absolute right-1 p-2 py-2 px-2"
                         >
                           <Icon
                             name={showPassword ? 'eye-off' : 'eye'}
@@ -1001,7 +1001,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                           variant="outline"
                           onPress={() => handleOidcLogin(provider.id)}
                           disabled={loading}
-                          className="w-full flex-row items-center justify-center p-2.5 rounded-lg border border-border-subtle bg-raised"
+                          className="w-full flex-row items-center justify-center p-2.5"
                         >
                           <View className="flex-row items-center">
                             <OidcProviderLogo
@@ -1023,7 +1023,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                     variant="outline"
                     onPress={handlePasskeyLogin}
                     disabled={loading}
-                    className="w-full flex-row items-center justify-center p-2.5 rounded-lg border border-border-subtle bg-raised"
+                    className="w-full flex-row items-center justify-center p-2.5"
                   >
                     <View className="flex-row items-center">
                       <View className="mr-2">
@@ -1080,7 +1080,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                     accessibilityLabel={t('auth.pasteApiKey', {
                       defaultValue: 'Paste API key from clipboard',
                     })}
-                    className="absolute right-9 p-2 py-2 px-2 rounded-lg"
+                    className="absolute right-9 p-2 py-2 px-2"
                   >
                     <Icon name="paste" size={20} color={textSecondary} />
                   </Button>
@@ -1092,7 +1092,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                         ? t('auth.hideApiKey', { defaultValue: 'Hide API key' })
                         : t('auth.showApiKey', { defaultValue: 'Show API key' })
                     }
-                    className="absolute right-1 p-2 py-2 px-2 rounded-lg"
+                    className="absolute right-1 p-2 py-2 px-2"
                   >
                     <Icon
                       name={showApiKey ? 'eye-off' : 'eye'}
@@ -1146,7 +1146,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                 accessibilityLabel={t('common.close', {
                   defaultValue: 'Close',
                 })}
-                className="absolute p-2 py-2 px-2 rounded-lg"
+                className="absolute p-2 py-2 px-2"
                 // Sits in the card's corner padding, clear of long titles.
                 style={{ right: -12, top: -12 }}
               >
@@ -1270,7 +1270,7 @@ const ServerConfigModal: React.FC<ServerConfigModalProps> = ({
                                     defaultValue: 'Show header value',
                                   })
                             }
-                            className="absolute right-1 p-2 py-2 px-2 rounded-lg"
+                            className="absolute right-1 p-2 py-2 px-2"
                           >
                             <Icon
                               name={showHeaders[index] ? 'eye-off' : 'eye'}

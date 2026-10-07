@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, Pressable, Platform } from 'react-native';
+import { View, Text, Platform } from 'react-native';
 import Toast from 'react-native-toast-message';
 import Button from './ui/Button';
 import {
@@ -463,7 +463,7 @@ const DevTools: React.FC = () => {
       <View className="flex-row gap-2 flex-wrap justify-between">
         <Button
           variant="primary"
-          className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+          className="py-2 px-4 my-1 self-center min-w-20"
           onPress={() => handleSeedData(7)}
           loading={isSeeding}
           textClassName="font-bold"
@@ -473,7 +473,7 @@ const DevTools: React.FC = () => {
 
         <Button
           variant="primary"
-          className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+          className="py-2 px-4 my-1 self-center min-w-20"
           onPress={() => handleSeedData(14)}
           disabled={isSeeding}
         >
@@ -484,7 +484,7 @@ const DevTools: React.FC = () => {
 
         <Button
           variant="primary"
-          className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+          className="py-2 px-4 my-1 self-center min-w-20"
           onPress={() => handleSeedData(30)}
           disabled={isSeeding}
         >
@@ -495,7 +495,7 @@ const DevTools: React.FC = () => {
 
         <Button
           variant="primary"
-          className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+          className="py-2 px-4 my-1 self-center min-w-20"
           onPress={handleSeedHistoricalSteps}
           disabled={isSeeding}
         >
@@ -508,7 +508,7 @@ const DevTools: React.FC = () => {
 
         <Button
           variant="primary"
-          className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+          className="py-2 px-4 my-1 self-center min-w-20"
           onPress={handleSeedOldData}
           disabled={isSeeding}
         >
@@ -522,7 +522,7 @@ const DevTools: React.FC = () => {
         {Platform.OS === 'android' && (
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+            className="py-2 px-4 my-1 self-center min-w-20"
             onPress={handleSeedRichWorkout}
             disabled={isSeeding}
           >
@@ -539,7 +539,7 @@ const DevTools: React.FC = () => {
         {Platform.OS === 'android' && (
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+            className="py-2 px-4 my-1 self-center min-w-20"
             onPress={handleSeedRichStrengthWorkout}
             disabled={isSeeding}
           >
@@ -558,7 +558,7 @@ const DevTools: React.FC = () => {
         {Platform.OS === 'ios' && (
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+            className="py-2 px-4 my-1 self-center min-w-20"
             onPress={handleSeedRichWorkoutIOS}
             disabled={isSeeding}
           >
@@ -575,7 +575,7 @@ const DevTools: React.FC = () => {
         {Platform.OS === 'ios' && (
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-20"
+            className="py-2 px-4 my-1 self-center min-w-20"
             onPress={handleSeedRichStrengthWorkoutIOS}
             disabled={isSeeding}
           >
@@ -593,8 +593,9 @@ const DevTools: React.FC = () => {
       </View>
       {Platform.OS === 'android' && (
         <View className="flex-row gap-2 flex-wrap justify-between mt-4">
-          <Pressable
-            className="bg-accent-primary py-2 px-4 rounded-lg my-1 items-center self-center min-w-20"
+          <Button
+            variant="primary"
+            className="py-2 px-4 my-1 items-center self-center min-w-20"
             onPress={() => openHealthConnectSettings()}
           >
             <Text className="text-white text-base font-bold">
@@ -602,9 +603,10 @@ const DevTools: React.FC = () => {
                 defaultValue: 'Health Connect',
               })}
             </Text>
-          </Pressable>
-          <Pressable
-            className="bg-accent-primary py-2 px-4 rounded-lg my-1 items-center self-center min-w-20"
+          </Button>
+          <Button
+            variant="primary"
+            className="py-2 px-4 my-1 items-center self-center min-w-20"
             onPress={() => openHealthConnectDataManagement()}
           >
             <Text className="text-white text-base font-bold">
@@ -612,7 +614,7 @@ const DevTools: React.FC = () => {
                 defaultValue: 'Health Connect Data',
               })}
             </Text>
-          </Pressable>
+          </Button>
         </View>
       )}
       <View className="mt-5">
@@ -627,7 +629,7 @@ const DevTools: React.FC = () => {
         <View className="flex-row gap-2 flex-wrap justify-between">
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-30"
+            className="py-2 px-4 my-1 self-center min-w-30"
             onPress={handleTriggerSync}
             loading={isSyncing}
             textClassName="font-bold"
@@ -637,7 +639,7 @@ const DevTools: React.FC = () => {
           {Platform.OS === 'android' && (
             <Button
               variant="primary"
-              className="py-2 px-4 rounded-lg my-1 self-center min-w-30"
+              className="py-2 px-4 my-1 self-center min-w-30"
               onPress={handleCheckBackgroundPermissions}
             >
               <Text className="text-white text-base font-bold">
@@ -710,7 +712,7 @@ const DevTools: React.FC = () => {
         <View className="flex-row gap-2 flex-wrap">
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-30"
+            className="py-2 px-4 my-1 self-center min-w-30"
             onPress={async () => {
               const config = await getActiveServerConfig();
               notifySessionExpired(config?.id ?? 'dev-test');
@@ -736,7 +738,7 @@ const DevTools: React.FC = () => {
         <View className="flex-row gap-2 flex-wrap">
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-30"
+            className="py-2 px-4 my-1 self-center min-w-30"
             onPress={async () => {
               await resetWhatsNewBanner();
               Toast.show({
@@ -770,7 +772,7 @@ const DevTools: React.FC = () => {
         <View className="flex-row gap-2 flex-wrap">
           <Button
             variant="primary"
-            className="py-2 px-4 rounded-lg my-1 self-center min-w-30"
+            className="py-2 px-4 my-1 self-center min-w-30"
             onPress={async () => {
               try {
                 await resetAnnouncementModal();

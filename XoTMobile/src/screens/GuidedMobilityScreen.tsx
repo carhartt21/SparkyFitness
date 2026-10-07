@@ -1077,7 +1077,7 @@ export default function GuidedMobilityScreen() {
                 </View>
                 <View className="flex-row items-center gap-2">
                   <NeonButton
-                    className="flex-1 rounded-xl"
+                    className="flex-1"
                     icon="play"
                     size="sm"
                     disabled={busy}

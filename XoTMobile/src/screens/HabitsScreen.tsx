@@ -1,5 +1,6 @@
+import Button from '../components/ui/Button';
 import React, { useMemo, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import Toast from 'react-native-toast-message';
@@ -372,23 +373,18 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
                 {habits.map((habit) => {
                   const selected = habit.id === trendHabit.id;
                   return (
-                    <Pressable
+                    <Button
+                      variant={selected ? 'primary' : 'secondary'}
                       key={habit.id}
                       accessibilityRole="radio"
                       accessibilityState={{ checked: selected }}
                       onPress={() => setTrendHabitId(habit.id)}
-                      className="min-h-9 justify-center rounded-full border px-3"
-                      style={{
-                        borderColor: selected ? scale.cyan : border,
-                        backgroundColor: selected
-                          ? withAlpha(scale.cyan, 0.16)
-                          : 'transparent',
-                      }}
+                      className="min-h-11 justify-center px-3"
                     >
                       <Text className="text-xs text-text-primary">
                         {habit.name}
                       </Text>
-                    </Pressable>
+                    </Button>
                   );
                 })}
               </View>

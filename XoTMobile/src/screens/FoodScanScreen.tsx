@@ -5,7 +5,6 @@ import {
   Text,
   TouchableOpacity,
   Platform,
-  Button,
   StyleSheet,
   ActivityIndicator,
   Image,
@@ -797,12 +796,9 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
             defaultValue: 'We need your permission to show the camera',
           })}
         </Text>
-        <Button
-          onPress={requestPermission}
-          title={t('foodScan.permission.grant', {
-            defaultValue: 'Grant Permission',
-          })}
-        />
+        <UIButton onPress={requestPermission}>
+          {t('foodScan.permission.grant', { defaultValue: 'Grant Permission' })}
+        </UIButton>
         <UIButton
           accessibilityRole="button"
           variant="ghost"
@@ -955,24 +951,25 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
             className="absolute bottom-12 left-4 right-4 flex-row gap-3"
             style={{ paddingBottom: insets.bottom }}
           >
-            <TouchableOpacity
+            <UIButton
+              variant="secondary"
               onPress={handleRetake}
               accessibilityRole="button"
               accessibilityLabel={t('foodScan.accessibility.retakePhoto', {
                 defaultValue: 'Retake photo',
               })}
-              className="flex-1 bg-white/20 py-4 rounded-lg items-center"
+              className="flex-1 py-4 items-center"
             >
               <Text className="text-white font-semibold text-base">
                 {t('foodScan.label.retake', { defaultValue: 'Retake' })}
               </Text>
-            </TouchableOpacity>
+            </UIButton>
             <UIButton
               variant="primary"
               onPress={() => {
                 void handleUsePhoto();
               }}
-              className="flex-1 py-4 rounded-lg"
+              className="flex-1 py-4"
             >
               {t('foodScan.label.usePhoto', { defaultValue: 'Use Photo' })}
             </UIButton>
@@ -1011,7 +1008,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
               <UIButton
                 variant="primary"
                 onPress={handleScanLabel}
-                className="rounded-lg"
+                className=""
                 textClassName="text-sm"
               >
                 {t('foodScan.lookup.scanLabel', {
@@ -1029,7 +1026,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
                     })
                   )
                 }
-                className="rounded-lg"
+                className=""
               >
                 <Text
                   style={{
@@ -1101,7 +1098,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
               <UIButton
                 variant="primary"
                 onPress={handlePhotoGateLogManually}
-                className="rounded-lg"
+                className=""
                 textClassName="text-sm"
               >
                 {t('foodScan.photo.logManually', {
@@ -1111,7 +1108,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
               <UIButton
                 variant="ghost"
                 onPress={handleDismissPhotoGate}
-                className="rounded-lg"
+                className=""
                 textClassName="text-sm"
               >
                 {t('common.later', { defaultValue: 'Later' })}
@@ -1138,20 +1135,21 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
           !(scanMode === 'photo' && photoGateVisible) ? (
             <View className="h-20 items-center justify-center self-stretch">
               {scanMode === 'barcode' ? (
-                <TouchableOpacity
+                <UIButton
+                  variant="secondary"
                   onPress={handleShowManualEntry}
                   accessibilityRole="button"
                   accessibilityLabel={t('foodScan.barcode.typeInstead', {
                     defaultValue: 'Type Barcode Instead',
                   })}
-                  className="bg-raised px-6 py-3 rounded-xl"
+                  className="px-6 py-3"
                 >
                   <Text className="text-text-primary text-sm font-semibold">
                     {t('foodScan.barcode.typeInstead', {
                       defaultValue: 'Type Barcode Instead',
                     })}
                   </Text>
-                </TouchableOpacity>
+                </UIButton>
               ) : null}
 
               {scanMode === 'label' ? (
@@ -1312,7 +1310,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
                 <UIButton
                   variant="ghost"
                   onPress={handleDismissManualEntry}
-                  className="flex-1 py-3 rounded-lg"
+                  className="flex-1 py-3"
                   textClassName="text-sm"
                 >
                   {t('common.cancel', { defaultValue: 'Cancel' })}
@@ -1323,7 +1321,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
                   onPress={() => {
                     void handleManualSubmit();
                   }}
-                  className="flex-1 py-3 rounded-lg"
+                  className="flex-1 py-3"
                   textClassName="text-sm"
                 >
                   {isCaptureBarcodeMode

@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useTranslation } from 'react-i18next';
 import React, {
   forwardRef,
@@ -7,13 +8,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Keyboard,
-  LayoutAnimation,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Keyboard, LayoutAnimation, Text, View } from 'react-native';
 import Animated, {
   FadeIn,
   FadeOut,
@@ -781,10 +776,10 @@ const WorkoutFormExerciseList = forwardRef<
       })}
 
       <Animated.View className="py-4" layout={LinearTransition.duration(300)}>
-        <TouchableOpacity
-          className="flex-row items-center self-center py-2 px-3 rounded-lg"
+        <Button
+          variant="secondary"
+          className="flex-row items-center self-center py-2 px-3"
           onPress={onAddExercisePress}
-          activeOpacity={0.6}
         >
           <Icon name="add-circle" size={20} color={accentPrimary} />
           <Text
@@ -793,7 +788,7 @@ const WorkoutFormExerciseList = forwardRef<
           >
             {t('workoutForm.addExercise', { defaultValue: 'Add Exercise' })}
           </Text>
-        </TouchableOpacity>
+        </Button>
       </Animated.View>
 
       <ExerciseSetRestSheet ref={restSheetRef} onApply={handleRestApply} />

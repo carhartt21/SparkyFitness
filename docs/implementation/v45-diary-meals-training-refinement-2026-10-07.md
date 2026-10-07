@@ -127,7 +127,7 @@ The later [owner follow-up review](evidence/v45-diary-meals-training-2026-10-07/
 independently inspected all 12 new captures and returned **ship for the two gauge
 and meal-icon changes**, with no material correction. Its first reviewer was
 replaced once after a capacity error; the replacement completed the narrow review.
-Closer Meals/Training fidelity remains the next cycle’s priority below.
+The later phone button and Meals/Training fidelity batch is recorded below.
 
 The initial evidence packet contains 39 final matrix screenshots plus a supplemental
 hydration screenshot confirming the green supplement glyph and complete source
@@ -184,29 +184,15 @@ reimport, real-account Hevy reconciliation, or offline process-restart/replay on
 hardware. Food bulk movement/template behavior has regression coverage; physical
 drag accuracy and real-server persistence remain manual acceptance checks.
 
-## Owner priorities for the next cycle
+## Subsequent phone button and fidelity batch
 
-The primary follow-up is closer visual fidelity for daily Meals and daily/weekly
-Training, using the approved boards above as the target for buttons, information
-tables and composition. This remains pending rather than being claimed as solved
-by the bounded finish verdict.
-
-1. **Daily Meals:** match the compact intake/remaining/goal table and separate
-   macro row; align the primary food action and camera button; tighten meal
-   headers, thumbnail/amount/action rows and the template-save footer. Preserve
-   independent state controls, selected-day navigation, nutrition uncertainty,
-   snapshot eligibility and existing bulk/drag behavior.
-2. **Daily Training:** match the week-plan row, paired count/minutes table,
-   primary/secondary start/log buttons, compact mobility shortcut and recorded
-   versus planned row anatomy. Keep actual clocks and available metrics visible;
-   withhold combined totals when a source failed rather than manufacturing zero.
-3. **Weekly Training:** prioritize the horizontal seven-day selector, selected-day
-   focus and compact occurrence rows, plus distinct planning and daily-details
-   controls. Reuse existing plan management and completion semantics; no mockup
-   rest day or sample occurrence becomes application data.
-4. Compare those surfaces side by side with their approved panels at ordinary
-   dark/light phone widths, then adapt the same hierarchy for enlarged text.
-   Validate editing, navigation and real-source summaries alongside render evidence.
+The owner-directed follow-up is implemented in the same branch: one enforced
+phone action theme plus compact daily Meals and daily/weekly Training tables,
+actions and rows. The [follow-up implementation record](phone-buttons-meals-training-alignment-2026-10-07.md)
+contains component usage, changed surfaces, reference adaptations, tests and
+manual gates. The [bounded finish verdict](evidence/v45-diary-meals-training-2026-10-07/finish-button-alignment.md)
+scored the four requested corrections and introduced label break resolved.
+This is fix-list approval, not whole-app or physical-device acceptance.
 
 Later minor task: move the Watch training page directly after the food-intake
 page while retaining page identifiers, navigation state, session commands and

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { todayInZone } from '@workspace/shared';
-import { Alert, Text, View, useWindowDimensions } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import Toast from 'react-native-toast-message';
@@ -14,6 +14,7 @@ import PendingNutritionActions from '../components/PendingNutritionActions';
 import NutritionPhotoEntries from '../components/NutritionPhotoEntries';
 import StatusView from '../components/StatusView';
 import Button from '../components/ui/Button';
+import DailyMetricTable from '../components/DailyMetricTable';
 import Icon from '../components/Icon';
 import {
   useDailySummary,
@@ -44,7 +45,6 @@ export default function DailyMealsScreen({
   route,
 }: RootStackScreenProps<'DailyMeals'>) {
   const { t } = useTranslation();
-  const expandedText = useWindowDimensions().fontScale > 1.3;
   const [date, setDate] = useState(route.params?.date ?? getTodayDate());
   const { isConnected } = useServerConnection();
   const daily = useDailySummary({ date, enabled: isConnected });
@@ -146,6 +146,19 @@ export default function DailyMealsScreen({
     <>
       <DailyDetailScreen
         title={t('dailyMeals.title', { defaultValue: 'Meals' })}
+        headerRight={{
+          kind: 'icon',
+          sfSymbol: edit.editingFoods ? 'checkmark' : 'pencil',
+          ionicon: edit.editingFoods ? 'checkmark' : 'pencil',
+          accessibilityLabel: edit.editingFoods
+            ? t('common.done', { defaultValue: 'Done' })
+            : t('common.edit', { defaultValue: 'Edit' }),
+          disabled: !isConnected || edit.bulkBusy,
+          onPress: () =>
+            edit.editingFoods
+              ? edit.finishFoodEditing()
+              : edit.setEditingFoods(true),
+        }}
         date={date}
         onDateChange={(day) => {
           edit.finishFoodEditing();
@@ -163,51 +176,50 @@ export default function DailyMealsScreen({
             testID="daily-meals-summary"
             className="mb-4 rounded-2xl border border-border-subtle bg-surface p-4 gap-3"
           >
-            <View className="flex-row flex-wrap gap-4">
-              <Text className="text-xl font-bold text-text-primary">
-                {formatLocalizedNumber(
-                  Math.round(summary.calorieBalance.eaten)
-                )}{' '}
-                {t('dashboard.kcal', { defaultValue: 'kcal' })}
-                <Text className="text-xs font-normal text-text-secondary">
-                  {'\n'}
-                  {t('dashboard.consumed', { defaultValue: 'Consumed' })}
-                </Text>
-              </Text>
-              {hasGoal && (
-                <Text className="text-xl font-bold text-text-primary">
-                  {formatLocalizedNumber(
-                    Math.abs(Math.round(summary.calorieBalance.remaining))
-                  )}{' '}
-                  {t('dashboard.kcal', { defaultValue: 'kcal' })}
-                  <Text className="text-xs font-normal text-text-secondary">
-                    {'\n'}
-                    {summary.calorieBalance.remaining < 0
-                      ? t('dashboard.overTarget', {
-                          defaultValue: 'over target',
-                        })
-                      : t('dashboard.remaining', { defaultValue: 'remaining' })}
-                  </Text>
-                </Text>
-              )}
-              {hasGoal && (
-                <Text className="text-xl font-bold text-text-primary">
-                  {formatLocalizedNumber(
-                    Math.round(
-                      summary.calorieBalance.eaten +
-                        summary.calorieBalance.remaining
-                    )
-                  )}{' '}
-                  {t('dashboard.kcal', { defaultValue: 'kcal' })}
-                  <Text className="text-xs font-normal text-text-secondary">
-                    {'\n'}
-                    {t('dailyMeals.allowance', {
-                      defaultValue: 'Daily allowance',
-                    })}
-                  </Text>
-                </Text>
-              )}
-            </View>
+            <DailyMetricTable
+              metrics={[
+                {
+                  key: 'consumed',
+                  value: formatLocalizedNumber(
+                    Math.round(summary.calorieBalance.eaten)
+                  ),
+                  unit: 'kcal',
+                  label: t('dashboard.consumed', { defaultValue: 'Consumed' }),
+                },
+                ...(hasGoal
+                  ? [
+                      {
+                        key: 'remaining',
+                        value: formatLocalizedNumber(
+                          Math.abs(Math.round(summary.calorieBalance.remaining))
+                        ),
+                        unit: 'kcal',
+                        label:
+                          summary.calorieBalance.remaining < 0
+                            ? t('dashboard.overTarget', {
+                                defaultValue: 'over target',
+                              })
+                            : t('dashboard.remaining', {
+                                defaultValue: 'remaining',
+                              }),
+                      },
+                      {
+                        key: 'goal',
+                        value: formatLocalizedNumber(
+                          Math.round(
+                            summary.calorieBalance.eaten +
+                              summary.calorieBalance.remaining
+                          )
+                        ),
+                        unit: 'kcal',
+                        label: t('dailyMeals.allowance', {
+                          defaultValue: 'Daily allowance',
+                        }),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
             {!hasGoal && (
               <Text className="text-sm text-text-secondary">
                 {t('dashboard.noCalorieGoal', {
@@ -215,69 +227,65 @@ export default function DailyMealsScreen({
                 })}
               </Text>
             )}
-            <View
-              className={
-                expandedText
-                  ? 'gap-4 border-t border-border-subtle pt-3'
-                  : 'flex-row flex-wrap gap-4 border-t border-border-subtle pt-3'
-              }
-            >
-              {(
-                [
-                  {
-                    key: 'protein',
-                    label: t('foodDetails.protein', {
-                      defaultValue: 'Protein',
-                    }),
-                    color: protein,
-                  },
-                  {
-                    key: 'carbs',
-                    label: t('foodDetails.carbs', { defaultValue: 'Carbs' }),
-                    color: carbs,
-                  },
-                  {
-                    key: 'fat',
-                    label: t('foodDetails.fat', { defaultValue: 'Fat' }),
-                    color: fat,
-                  },
-                ] as const
-              ).map((macro) => (
-                <View
-                  key={macro.key}
-                  className={
-                    expandedText ? 'w-full gap-1' : 'min-w-[25%] flex-1'
-                  }
-                >
-                  <Text className="text-sm text-text-secondary">
-                    {macro.label}
-                  </Text>
-                  <Text
-                    className="text-lg font-bold"
-                    style={{ color: macro.color }}
-                  >
-                    {formatLocalizedNumber(summary[macro.key].consumed, {
-                      maximumFractionDigits: 1,
-                    })}{' '}
-                    g
-                  </Text>
-                </View>
-              ))}
+            <View className="border-t border-border-subtle pt-3">
+              <DailyMetricTable
+                labelFirst
+                metrics={(
+                  [
+                    {
+                      key: 'protein',
+                      label: t('foodDetails.protein', {
+                        defaultValue: 'Protein',
+                      }),
+                      color: protein,
+                    },
+                    {
+                      key: 'carbs',
+                      label: t('dailyMeals.carbsLabel', {
+                        defaultValue: 'Carbs',
+                      }),
+                      color: carbs,
+                    },
+                    {
+                      key: 'fat',
+                      label: t('foodDetails.fat', { defaultValue: 'Fat' }),
+                      color: fat,
+                    },
+                  ] as const
+                ).map((macro) => ({
+                  ...macro,
+                  dot: true,
+                  value: formatLocalizedNumber(summary[macro.key].consumed, {
+                    maximumFractionDigits: 1,
+                  }),
+                  unit: 'g',
+                }))}
+              />
             </View>
-            <Text className="text-xs text-text-secondary">
-              {t('dailyMeals.knownNutrition', {
-                defaultValue:
-                  'Known nutrition only. Captured photos remain pending until nutrition is confirmed.',
-              })}
-            </Text>
+            {summary.foodEntries.some(
+              (entry) =>
+                entry.isPendingNutrition ||
+                (entry.nutrition_capture_id && !entry.food_id)
+            ) && (
+              <Text className="text-xs text-text-secondary">
+                {t('dailyMeals.knownNutrition', {
+                  defaultValue:
+                    'Known nutrition only. Captured photos remain pending until nutrition is confirmed.',
+                })}
+              </Text>
+            )}
           </View>
         )}
         <View className="mb-4 flex-row flex-wrap items-center gap-2">
           <Button
-            className={expandedText ? 'w-full' : 'flex-1'}
+            className="flex-1"
+            icon="add"
+            accessibilityLabel={t('dailyMeals.addFood', {
+              defaultValue: 'Add food',
+            })}
             onPress={() => navigation.navigate('FoodSearch', { date })}
           >
-            {t('dailyMeals.addFood', { defaultValue: 'Add food' })}
+            {t('dailyMeals.foodAction', { defaultValue: 'Food' })}
           </Button>
           <Button
             variant="secondary"
@@ -287,19 +295,6 @@ export default function DailyMealsScreen({
             onPress={() => navigation.navigate('FoodPhotoIntro', { date })}
           >
             <Icon name="camera" size={22} color={accent} />
-          </Button>
-          <Button
-            variant="secondary"
-            disabled={!isConnected || edit.bulkBusy}
-            onPress={() =>
-              edit.editingFoods
-                ? edit.finishFoodEditing()
-                : edit.setEditingFoods(true)
-            }
-          >
-            {edit.editingFoods
-              ? t('common.done', { defaultValue: 'Done' })
-              : t('common.edit', { defaultValue: 'Edit' })}
           </Button>
         </View>
         {!summary && (

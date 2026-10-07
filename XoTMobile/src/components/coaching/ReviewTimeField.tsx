@@ -1,5 +1,6 @@
+import Button from '../ui/Button';
 import { useRef } from 'react';
-import { Keyboard, Pressable, Text } from 'react-native';
+import { Keyboard, Text } from 'react-native';
 import TimeSheet, { type TimeSheetRef } from '../TimeSheet';
 export default function ReviewTimeField({
   label,
@@ -14,18 +15,19 @@ export default function ReviewTimeField({
   return (
     <>
       <Text className="text-base text-text-primary">{label}</Text>
-      <Pressable
+      <Button
+        variant="secondary"
         accessibilityRole="button"
         accessibilityLabel={label}
         accessibilityValue={{ text: value }}
-        className="min-h-12 rounded-xl border border-border-subtle bg-surface px-4 py-3"
+        className="min-h-12 px-4 py-3"
         onPress={() => {
           Keyboard.dismiss();
           picker.current?.present();
         }}
       >
         <Text className="text-base text-text-primary">{value}</Text>
-      </Pressable>
+      </Button>
       <TimeSheet
         ref={picker}
         value={value}

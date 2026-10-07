@@ -81,9 +81,10 @@ const CycleHistoryList: React.FC = () => {
             <Text className="text-text-secondary text-xs mb-1">
               {t('cycleHistory.startDate', { defaultValue: 'Start Date' })}
             </Text>
-            <TouchableOpacity
+            <Button
+              variant="secondary"
               onPress={() => calendarSheetRef.current?.present()}
-              className="bg-raised rounded-lg p-2.5 text-text-primary border border-border-subtle flex-row justify-between items-center"
+              className="p-2.5 text-text-primary flex-row justify-between items-center"
             >
               <Text className="text-text-primary">
                 {startDate
@@ -93,7 +94,7 @@ const CycleHistoryList: React.FC = () => {
                     })}
               </Text>
               <Icon name="calendar" size={18} color={accentColor} />
-            </TouchableOpacity>
+            </Button>
           </View>
 
           <View className="flex-row gap-3">

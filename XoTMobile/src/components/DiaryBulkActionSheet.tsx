@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useState } from 'react';
 import {
   KeyboardAvoidingView,
@@ -112,22 +113,26 @@ export default function DiaryBulkActionSheet({
             {mealTypes
               .filter((meal) => meal.is_visible)
               .map((meal) => (
-                <Pressable
+                <Button
+                  variant={
+                    targetMealTypeId === meal.id ? 'primary' : 'secondary'
+                  }
                   key={meal.id}
                   onPress={() => setTargetMealTypeId(meal.id)}
                   accessibilityRole="radio"
                   accessibilityState={{
                     selected: targetMealTypeId === meal.id,
                   }}
-                  className={`min-h-11 rounded-xl border px-4 py-3 ${targetMealTypeId === meal.id ? 'border-accent-primary bg-accent-primary/10' : 'border-border bg-surface'}`}
+                  className={`min-h-11   px-4 py-3 ${targetMealTypeId === meal.id ? ' ' : ' '}`}
                 >
                   <Text className="text-text-primary">
                     {getMealTypeDisplayLabel(meal, t)}
                   </Text>
-                </Pressable>
+                </Button>
               ))}
           </ScrollView>
-          <Pressable
+          <Button
+            variant="primary"
             disabled={busy || !action || !targetMealTypeId || !dateIsValid}
             onPress={() =>
               action &&
@@ -135,14 +140,14 @@ export default function DiaryBulkActionSheet({
               onApply(action, targetDate, targetMealTypeId)
             }
             accessibilityRole="button"
-            className="min-h-12 items-center justify-center rounded-xl bg-accent-primary mt-4 disabled:opacity-50"
+            className="min-h-12 items-center justify-center mt-4 disabled:opacity-50"
           >
             <Text className="font-semibold text-white">
               {busy
                 ? t('common.saving', { defaultValue: 'Saving…' })
                 : t('diary.bulk.apply', { defaultValue: 'Apply' })}
             </Text>
-          </Pressable>
+          </Button>
         </View>
       </KeyboardAvoidingView>
     </Modal>

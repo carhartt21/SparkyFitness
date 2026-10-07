@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import Toast from 'react-native-toast-message';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
@@ -55,7 +55,7 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
         '--color-text-primary',
         '--color-text-secondary',
       ]) as [string, string, string, string, string];
-    const accentText = useCSSVariable('--color-accent-text') as string;
+    const accentText = useCSSVariable('--color-text-primary') as string;
 
     const [source, setSource] = useState<{
       date: string;
@@ -256,29 +256,25 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
                 {mealTypes.map((mt) => {
                   const isSelected = mt.id === targetMealTypeId;
                   return (
-                    <TouchableOpacity
+                    <Button
+                      variant={isSelected ? 'primary' : 'secondary'}
                       key={mt.id}
                       accessibilityRole="button"
                       accessibilityLabel={displayMealType(mt)}
                       accessibilityState={{ selected: isSelected }}
                       onPress={() => setTargetMealTypeId(mt.id)}
-                      activeOpacity={0.7}
-                      className={`px-4 py-2 rounded-md border ${
-                        isSelected
-                          ? 'bg-accent-primary border-accent-primary'
-                          : 'bg-raised border-border-subtle'
-                      }`}
+                      className={`px-4 py-2   ${isSelected ? ' ' : ' '}`}
                     >
                       <Text
                         className={`text-sm ${
                           isSelected
-                            ? 'text-accent-text font-semibold'
+                            ? 'text-text-primary font-semibold'
                             : 'text-text-primary'
                         }`}
                       >
                         {displayMealType(mt)}
                       </Text>
-                    </TouchableOpacity>
+                    </Button>
                   );
                 })}
               </View>

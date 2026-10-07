@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, ScrollView, TouchableOpacity, Alert } from 'react-native';
@@ -371,13 +372,14 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
                     action.syncState === 'attentionRequired'
                 )
                 .map((action) => (
-                  <TouchableOpacity
+                  <Button
+                    variant="secondary"
                     key={action.clientOperationId}
                     onPress={() =>
                       handleDiscardRejected(action.clientOperationId)
                     }
                     accessibilityRole="button"
-                    className="rounded-lg bg-raised p-3 my-2"
+                    className="p-3 my-2"
                   >
                     <Text className="text-sm font-semibold text-text-danger">
                       {t('medications.dose.rejectedAction', {
@@ -391,7 +393,7 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
                           'Review the dose, then clear this response',
                       })}
                     </Text>
-                  </TouchableOpacity>
+                  </Button>
                 ))}
               {dueDoses.length === 0 && !isPrn && (
                 <Text className="text-sm text-text-muted py-2">
@@ -579,8 +581,9 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
             </View>
           )}
 
-          <TouchableOpacity
-            className="rounded-xl p-4 mb-3"
+          <Button
+            variant="destructive"
+            className="p-4 mb-3"
             onPress={handleDelete}
           >
             <Text className="text-base font-medium text-center text-text-danger-subtle">
@@ -592,7 +595,7 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
                     defaultValue: 'Delete Medication',
                   })}
             </Text>
-          </TouchableOpacity>
+          </Button>
         </ScrollView>
       )}
     </View>

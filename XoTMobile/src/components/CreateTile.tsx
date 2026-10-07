@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import { type IconName } from './Icon';
 import IconBadge from './ui/IconBadge';
-import { glowSurfaceStyle, useGlowTheme } from './ui/glow';
+import { useButtonAppearance } from './ui/buttonTheme';
 
 interface CreateTileProps {
   icon: IconName;
@@ -31,8 +31,8 @@ const CreateTile: React.FC<CreateTileProps> = ({
   wrapText = false,
 }) => {
   const accentPrimary = useCSSVariable('--color-accent-primary') as string;
-  const glowing = useGlowTheme();
   const tint = color ?? accentPrimary;
+  const appearance = useButtonAppearance('secondary', disabled, tint);
 
   return (
     <TouchableOpacity
@@ -42,11 +42,8 @@ const CreateTile: React.FC<CreateTileProps> = ({
       disabled={disabled}
       activeOpacity={0.7}
       accessibilityState={{ disabled }}
-      style={[
-        glowSurfaceStyle(tint, glowing, 'soft'),
-        disabled ? { opacity: 0.7 } : null,
-      ]}
-      className={`bg-surface rounded-2xl border border-border-subtle px-3 py-3 flex-row items-center ${className}`}
+      style={[appearance.surface, disabled ? { opacity: 0.7 } : null]}
+      className={`px-3 py-3 flex-row items-center ${className}`}
     >
       <IconBadge icon={icon} color={tint} size={40} />
       <View className="flex-1 ml-3">

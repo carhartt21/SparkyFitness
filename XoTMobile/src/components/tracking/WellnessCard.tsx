@@ -1,3 +1,4 @@
+import Button from '../ui/Button';
 import { useRef, useState } from 'react';
 import { Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -185,7 +186,8 @@ export default function WellnessCard({
                     (entry) => entry.name.toLowerCase() === choice.toLowerCase()
                   );
                   return (
-                    <Pressable
+                    <Button
+                      variant={recorded ? 'primary' : 'secondary'}
                       key={choice}
                       accessibilityRole="button"
                       accessibilityLabel={t('wellness.logActivity', {
@@ -198,7 +200,7 @@ export default function WellnessCard({
                       }}
                       disabled={blocked || recorded}
                       onPress={() => void record(choice)}
-                      className="min-h-12 max-w-full justify-center rounded-xl border border-border-subtle bg-raised px-3 py-2"
+                      className="min-h-12 max-w-full justify-center px-3 py-2"
                       style={{ opacity: blocked ? 0.5 : 1 }}
                     >
                       <Text className="text-base text-text-primary">
@@ -207,7 +209,7 @@ export default function WellnessCard({
                           ? ` · ${t('wellness.recorded', { defaultValue: 'Logged' })}`
                           : ''}
                       </Text>
-                    </Pressable>
+                    </Button>
                   );
                 })}
               </View>

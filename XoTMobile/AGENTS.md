@@ -19,6 +19,7 @@ activity queries under the Daily Progress family. See
 ## Scope And Style
 
 - TypeScript is strict. Keep changes type-safe and compiling cleanly.
+- Phone action buttons use `components/ui/Button.tsx` or the compatible `NeonButton.tsx` adapter. `buttonTheme.ts` owns their 12-point rounded rectangle, translucent material, restrained glow, pressed and disabled behavior. Callers may set layout, labels and semantic variants/tints, never radius, fill or glow overrides. Reuse this material for quick-action tiles and picker/filter controls. Native navigation chrome, camera shutters, state circles, progress graphics and tappable content cards keep their own semantics. Run `pnpm run button-theme:check` (also part of `validate`) after button changes.
 - Prefer small, direct changes that fit the existing screen, hook, and service boundaries.
 - For ambiguous bugs, prove which layer is failing before patching. One narrow diagnostic check beats speculative edits across multiple layers.
 - Do not replace a working implementation with a rewrite unless the requester explicitly approves that direction.

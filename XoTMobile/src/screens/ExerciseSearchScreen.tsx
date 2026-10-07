@@ -801,7 +801,8 @@ const ExerciseSearchScreen: React.FC<ExerciseSearchScreenProps> = ({
           {providers.map((provider) => {
             const isActive = provider.id === selectedProvider;
             return (
-              <TouchableOpacity
+              <Button
+                variant={isActive ? 'primary' : 'secondary'}
                 key={provider.id}
                 accessibilityRole="tab"
                 accessibilityLabel={t('exerciseSearch.accessibility.provider', {
@@ -813,21 +814,18 @@ const ExerciseSearchScreen: React.FC<ExerciseSearchScreenProps> = ({
                   hasUserSelectedProvider.current = true;
                   setSelectedProvider(provider.id);
                 }}
-                activeOpacity={0.7}
-                className={`flex-row items-center rounded-md px-3 py-1 border ${
-                  isActive
-                    ? 'border-accent-primary bg-accent-primary'
-                    : 'border-border-subtle bg-raised'
+                className={`flex-row items-center  px-3 py-1  ${
+                  isActive ? ' ' : ' '
                 }`}
               >
                 <Text
                   className={`text-sm font-medium ${
-                    isActive ? 'text-accent-text' : 'text-text-primary'
+                    isActive ? 'text-text-primary' : 'text-text-primary'
                   }`}
                 >
                   {provider.provider_name}
                 </Text>
-              </TouchableOpacity>
+              </Button>
             );
           })}
         </ScrollView>

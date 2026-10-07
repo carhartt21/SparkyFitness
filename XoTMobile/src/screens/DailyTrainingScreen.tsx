@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import DailyDetailScreen from '../components/DailyDetailScreen';
 import Button from '../components/ui/Button';
 import Icon from '../components/Icon';
+import DailyMetricTable from '../components/DailyMetricTable';
+import TrainingSessionRow from '../components/TrainingSessionRow';
 import StatusView from '../components/StatusView';
 import MobilityDiarySection from '../components/MobilityDiarySection';
 import { useServerConnection } from '../hooks';
@@ -27,6 +29,7 @@ export default function DailyTrainingScreen({
   route,
 }: RootStackScreenProps<'DailyTraining'>) {
   const { t } = useTranslation();
+  const expandedText = useWindowDimensions().fontScale > 1.3;
   const [date, setDate] = useState(route.params?.date ?? getTodayDate());
   const { isConnected } = useServerConnection();
   const data = useDailyTraining(date, isConnected);
@@ -50,27 +53,44 @@ export default function DailyTrainingScreen({
         className="mb-4"
         onPress={() => navigation.navigate('WorkoutPlans', { date })}
       >
-        {t('weeklyPlan.title', { defaultValue: 'Weekly training plan' })}
+        <View className="w-full flex-row items-center gap-2">
+          <Icon name="calendar" size={20} color={color} />
+          <Text className="min-w-0 flex-1 text-base font-semibold text-text-primary">
+            {t('dailyTraining.weekPlan', { defaultValue: 'Weekly plan' })}
+          </Text>
+          <Icon name="chevron-forward" size={18} color={color} />
+        </View>
       </Button>
       {data.daily.summary &&
       !data.mobility.isLoading &&
       !data.mobility.isError ? (
         <View
           testID="daily-training-summary"
-          className="mb-4 flex-row flex-wrap gap-5 rounded-2xl border border-border-subtle bg-surface p-4"
+          className="mb-3 rounded-2xl border border-border-subtle bg-surface p-4"
         >
-          <Text className="text-2xl font-bold text-text-primary">
-            {t('dailyTraining.sessionCount', {
-              defaultValue: '{{count}} sessions',
-              count: data.count,
-            })}
-          </Text>
-          <Text className="text-2xl font-bold text-text-primary">
-            {t('dailyTraining.duration', {
-              defaultValue: '{{value}} min',
-              value: formatLocalizedNumber(Math.round(data.minutes)),
-            })}
-          </Text>
+          <DailyMetricTable
+            large
+            metrics={[
+              {
+                key: 'sessions',
+                icon: 'exercise-default',
+                color,
+                value: formatLocalizedNumber(data.count),
+                label: t('dailyTraining.sessionsLabel', {
+                  defaultValue: 'Sessions',
+                }),
+              },
+              {
+                key: 'duration',
+                icon: 'timer',
+                color,
+                value: formatLocalizedNumber(Math.round(data.minutes)),
+                label: t('dailyTraining.minutesLabel', {
+                  defaultValue: 'Minutes recorded',
+                }),
+              },
+            ]}
+          />
         </View>
       ) : (
         <StatusView
@@ -87,23 +107,42 @@ export default function DailyTrainingScreen({
           }}
         />
       )}
-      <View className="mb-3 flex-row flex-wrap gap-2">
-        <Button onPress={() => navigation.navigate('WorkoutPresetsLibrary')}>
-          {t('dailyTraining.start', { defaultValue: 'Start training' })}
+      <View className={`mb-3 gap-2 ${expandedText ? 'flex-col' : 'flex-row'}`}>
+        <Button
+          className={expandedText ? 'w-full' : 'flex-1'}
+          icon="play"
+          accessibilityLabel={t('dailyTraining.start', {
+            defaultValue: 'Start training',
+          })}
+          onPress={() => navigation.navigate('WorkoutPresetsLibrary')}
+        >
+          {t('dailyTraining.startAction', { defaultValue: 'Start' })}
         </Button>
         <Button
+          className={expandedText ? 'w-full' : 'flex-1'}
           variant="secondary"
+          icon="add"
+          accessibilityLabel={t('dailyTraining.log', {
+            defaultValue: 'Log training',
+          })}
           onPress={() => navigation.navigate('ActivityAdd', { date })}
         >
-          {t('dailyTraining.log', { defaultValue: 'Log training' })}
-        </Button>
-        <Button
-          variant="secondary"
-          onPress={() => navigation.navigate('GuidedMobility')}
-        >
-          {t('dailyTraining.types.mobility', { defaultValue: 'Mobility' })}
+          {t('dailyTraining.logAction', { defaultValue: 'Record' })}
         </Button>
       </View>
+      <Button
+        variant="secondary"
+        className="mb-3"
+        onPress={() => navigation.navigate('GuidedMobility')}
+      >
+        <View className="w-full flex-row items-center gap-2">
+          <Icon name="exercise-yoga" size={22} color={color} />
+          <Text className="min-w-0 flex-1 text-base font-semibold text-text-primary">
+            {t('dailyTraining.types.mobility', { defaultValue: 'Mobility' })}
+          </Text>
+          <Icon name="chevron-forward" size={18} color={color} />
+        </View>
+      </Button>
       <Text
         accessibilityRole="header"
         className="mt-3 mb-2 text-lg font-bold text-text-primary"
@@ -124,49 +163,41 @@ export default function DailyTrainingScreen({
       {data.sessions.map((session) => {
         const summary = getWorkoutSummary(session, t);
         const clock = workoutRecordedTime(session, data.timezone);
+        const metadata = [
+          formatDuration(summary.duration),
+          session.type === 'individual' && session.distance != null
+            ? `${formatLocalizedNumber(distanceFromKm(session.distance, data.distanceUnit), { maximumFractionDigits: 2 })} ${data.distanceUnit === 'miles' ? t('dailyTraining.mi', { defaultValue: 'mi' }) : t('dailyTraining.km', { defaultValue: 'km' })}`
+            : null,
+          summary.calories > 0
+            ? `${formatLocalizedNumber(Math.round(summary.calories))} ${t('dashboard.kcal', { defaultValue: 'kcal' })}`
+            : t('dailyTraining.energyUnknown', {
+                defaultValue: 'Energy not recorded',
+              }),
+          !clock
+            ? t('hydrationDetails.noTime', {
+                defaultValue: 'Daily record · time unavailable',
+              })
+            : null,
+        ]
+          .filter(Boolean)
+          .join(' · ');
         return (
-          <Pressable
+          <View
             key={`${session.type}:${session.id}`}
-            accessibilityRole="button"
-            onPress={() =>
-              session.type === 'preset'
-                ? navigation.navigate('WorkoutDetail', { session })
-                : navigation.navigate('ActivityDetail', { session })
-            }
-            className="mb-2 min-h-16 flex-row items-center gap-3 rounded-2xl border border-border-subtle bg-surface p-4"
+            className="mb-2 rounded-2xl border border-border-subtle bg-surface px-3"
           >
-            <Icon name={getWorkoutIcon(session)} size={24} color={color} />
-            <View className="min-w-0 flex-1 gap-1">
-              <Text className="text-base font-bold text-text-primary">
-                {summary.name}
-              </Text>
-              <Text className="text-sm text-text-secondary">
-                {clock ??
-                  t('hydrationDetails.noTime', {
-                    defaultValue: 'Daily record · time unavailable',
-                  })}{' '}
-                · {formatDuration(summary.duration)}
-              </Text>
-              {summary.calories > 0 && (
-                <Text className="text-sm text-text-secondary">
-                  {formatLocalizedNumber(Math.round(summary.calories))}{' '}
-                  {t('dashboard.kcal', { defaultValue: 'kcal' })}
-                </Text>
-              )}
-              {session.type === 'individual' && session.distance != null && (
-                <Text className="text-sm text-text-secondary">
-                  {formatLocalizedNumber(
-                    distanceFromKm(session.distance, data.distanceUnit),
-                    { maximumFractionDigits: 2 }
-                  )}{' '}
-                  {data.distanceUnit === 'miles'
-                    ? t('dailyTraining.mi', { defaultValue: 'mi' })
-                    : t('dailyTraining.km', { defaultValue: 'km' })}
-                </Text>
-              )}
-            </View>
-            <Icon name="chevron-forward" size={18} color={color} />
-          </Pressable>
+            <TrainingSessionRow
+              title={summary.name}
+              details={metadata}
+              clock={clock}
+              icon={getWorkoutIcon(session)}
+              onPress={() =>
+                session.type === 'preset'
+                  ? navigation.navigate('WorkoutDetail', { session })
+                  : navigation.navigate('ActivityDetail', { session })
+              }
+            />
+          </View>
         );
       })}
       <MobilityDiarySection
@@ -187,43 +218,40 @@ export default function DailyTrainingScreen({
           .flatMap((plan) => plan.assignments)
           .find((assignment) => assignment.id === item.assignment_id);
         return (
-          <Pressable
+          <View
             key={item.id}
-            accessibilityRole="button"
-            onPress={() =>
-              item.source === 'mobility'
-                ? navigation.navigate('GuidedMobility')
-                : navigation.navigate('WorkoutPlans', {
-                    date,
-                    assignmentId:
-                      item.assignment_id == null
-                        ? undefined
-                        : String(item.assignment_id),
-                  })
-            }
-            className="mb-2 min-h-16 flex-row items-center gap-3 rounded-2xl border border-border-subtle bg-surface p-4"
+            className="mb-2 rounded-2xl border border-border-subtle bg-surface px-3"
           >
-            <Icon
-              name={plannedWorkoutIcon(item.activity_type)}
-              size={24}
-              color={color}
+            <TrainingSessionRow
+              title={progressActivityLabel(t, item.label, item.activity_type)}
+              clock={prescription?.plannedTime}
+              icon={plannedWorkoutIcon(item.activity_type)}
+              details={[
+                prescription?.plannedDurationMinutes != null
+                  ? t('dailyTraining.duration', {
+                      defaultValue: '{{value}} min',
+                      value: formatLocalizedNumber(
+                        prescription.plannedDurationMinutes
+                      ),
+                    })
+                  : null,
+                t('dailyTraining.planned', { defaultValue: 'Planned' }),
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+              onPress={() =>
+                item.source === 'mobility'
+                  ? navigation.navigate('GuidedMobility')
+                  : navigation.navigate('WorkoutPlans', {
+                      date,
+                      assignmentId:
+                        item.assignment_id == null
+                          ? undefined
+                          : String(item.assignment_id),
+                    })
+              }
             />
-            <View className="min-w-0 flex-1 gap-1">
-              <Text className="text-base font-semibold text-text-primary">
-                {progressActivityLabel(t, item.label, item.activity_type)}
-              </Text>
-              <Text className="text-sm text-text-secondary">
-                {prescription?.plannedTime
-                  ? `${prescription.plannedTime} · `
-                  : ''}
-                {prescription?.plannedDurationMinutes != null
-                  ? `${t('dailyTraining.duration', { defaultValue: '{{value}} min', value: formatLocalizedNumber(prescription.plannedDurationMinutes) })} · `
-                  : ''}
-                {t('dailyTraining.planned', { defaultValue: 'Planned' })}
-              </Text>
-            </View>
-            <Icon name="chevron-forward" size={18} color={color} />
-          </Pressable>
+          </View>
         );
       })}
       {!data.planned.length && data.planning.query.isSuccess && (
@@ -253,6 +281,7 @@ export default function DailyTrainingScreen({
       <Button
         className="mt-4"
         variant="secondary"
+        icon="history"
         onPress={() => navigation.navigate('ExerciseReview', { date })}
       >
         {t('dailyTraining.review', { defaultValue: 'Review & history' })}

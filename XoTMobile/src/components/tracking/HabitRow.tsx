@@ -1,3 +1,4 @@
+import Button from '../ui/Button';
 import { useRef, useState } from 'react';
 import { Alert, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -181,7 +182,8 @@ export default function HabitRow({
       </View>
 
       {habit.habit_type === 'completion' ? (
-        <Pressable
+        <Button
+          variant={complete ? 'primary' : 'secondary'}
           testID={`habit-done-${habit.id}`}
           accessibilityRole="button"
           accessibilityState={{ selected: complete, busy: saving }}
@@ -198,11 +200,7 @@ export default function HabitRow({
           }
           disabled={saving}
           onPress={() => onSave(complete ? null : true)}
-          className="min-h-11 flex-row items-center gap-1 rounded-full border px-4"
-          style={{
-            borderColor: complete ? green : border,
-            backgroundColor: complete ? withAlpha(green, 0.14) : 'transparent',
-          }}
+          className="min-h-11 flex-row items-center gap-1 px-4"
         >
           {complete ? <Icon name="checkmark" size={14} color={green} /> : null}
           <Text
@@ -213,7 +211,7 @@ export default function HabitRow({
               ? t('habits.done', { defaultValue: 'Done' })
               : t('habits.markDone', { defaultValue: 'Mark done' })}
           </Text>
-        </Pressable>
+        </Button>
       ) : (
         <View className="ml-auto flex-row flex-wrap items-center gap-1.5 max-w-full">
           {habit.step ? (
@@ -266,18 +264,14 @@ export default function HabitRow({
               <Icon name="add" size={16} color={textPrimary} />
             </Pressable>
           ) : null}
-          <Pressable
+          <Button
+            variant="secondary"
             testID={`habit-save-${habit.id}`}
             accessibilityRole="button"
             accessibilityState={{ disabled: !changed || saving }}
             disabled={!changed || saving}
             onPress={() => pending !== null && onSave(pending)}
-            className="min-h-11 justify-center rounded-xl px-3"
-            style={{
-              backgroundColor: changed ? green : 'transparent',
-              borderWidth: changed ? 0 : 1,
-              borderColor: border,
-            }}
+            className="min-h-11 justify-center px-3"
           >
             <Text
               className="text-sm font-semibold"
@@ -287,7 +281,7 @@ export default function HabitRow({
                 ? t('habits.saved', { defaultValue: 'Saved' })
                 : t('common.save', { defaultValue: 'Save' })}
             </Text>
-          </Pressable>
+          </Button>
         </View>
       )}
       <Pressable

@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useTweenedValue } from '../hooks/useTweenedValue';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -353,18 +354,19 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
           ) : showButtons ? (
             <View className="mt-3">
               {onIncrement ? (
-                <Pressable
+                <Button
+                  variant="secondary"
                   disabled
                   accessibilityRole="button"
                   accessibilityLabel={t('dashboard.addWater', {
                     defaultValue: 'Add water',
                   })}
-                  className="min-h-11 items-center justify-center rounded-md bg-raised border border-border-subtle opacity-50"
+                  className="min-h-11 items-center justify-center opacity-50"
                 >
                   <Text className="text-sm font-semibold text-text-secondary">
                     {t('dashboard.addWater', { defaultValue: 'Add water' })}
                   </Text>
-                </Pressable>
+                </Button>
               ) : null}
               <Pressable
                 accessibilityRole="button"
@@ -474,7 +476,8 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
               {containers.map((container) => {
                 const active = container.id === activeContainerId;
                 return (
-                  <Pressable
+                  <Button
+                    variant={active ? 'primary' : 'secondary'}
                     key={container.id}
                     onPress={() => onSelectContainer?.(container.id)}
                     accessibilityRole="button"
@@ -484,16 +487,13 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                     })}
                     accessibilityState={{ selected: active }}
                     className={
-                      'min-h-11 justify-center rounded-md border px-3 ' +
-                      (active
-                        ? 'bg-accent-primary/15 border-accent-primary'
-                        : 'bg-raised border-border-subtle')
+                      'min-h-11 justify-center   px-3 ' + (active ? ' ' : ' ')
                     }
                   >
                     <Text className="text-sm font-medium text-text-primary">
                       {container.name}
                     </Text>
-                  </Pressable>
+                  </Button>
                 );
               })}
             </View>
@@ -506,7 +506,8 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 {quickAddPresets.map((preset) => (
-                  <Pressable
+                  <Button
+                    variant="secondary"
                     key={preset.id}
                     onPress={() => onQuickAdd?.(preset.id)}
                     disabled={!onQuickAdd}
@@ -515,7 +516,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                       defaultValue: 'Log {{drink}}',
                       drink: preset.name,
                     })}
-                    className="min-h-11 flex-row items-center gap-2 rounded-md border border-border-subtle bg-raised px-3"
+                    className="min-h-11 flex-row items-center gap-2 px-3"
                   >
                     <View>
                       <Text className="text-sm font-medium text-text-primary">
@@ -528,7 +529,7 @@ const HydrationGauge: React.FC<HydrationGaugeProps> = ({
                       ) : null}
                     </View>
                     <Icon name="add-circle" size={18} color={hydrationColor} />
-                  </Pressable>
+                  </Button>
                 ))}
               </View>
             </View>

@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useRef, useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -57,11 +58,10 @@ const ActivityAddScreen: React.FC<Props> = ({ navigation, route }) => {
   const insets = useSafeAreaInsets();
   const calendarSheetRef = useRef<CalendarSheetRef>(null);
 
-  const [accentPrimary, textMuted, raisedBg] = useCSSVariable([
+  const [accentPrimary, textMuted] = useCSSVariable([
     '--color-accent-primary',
     '--color-text-muted',
-    '--color-raised',
-  ]) as [string, string, string];
+  ]) as [string, string];
   const usesNativeHeader = useNativeIOSHeadersActive();
 
   const {
@@ -383,13 +383,12 @@ const ActivityAddScreen: React.FC<Props> = ({ navigation, route }) => {
           </View>
 
           {/* Exercise picker row */}
-          <TouchableOpacity
-            className="rounded-xl p-4 mb-4"
-            style={{ backgroundColor: raisedBg }}
+          <Button
+            variant="secondary"
+            className="p-4 mb-4"
             onPress={() =>
               navigation.navigate('ExerciseSearch', { returnKey: route.key })
             }
-            activeOpacity={0.7}
             accessibilityRole="button"
             accessibilityLabel={t('activityAdd.accessibility.selectExercise', {
               defaultValue: 'Select exercise',
@@ -439,7 +438,7 @@ const ActivityAddScreen: React.FC<Props> = ({ navigation, route }) => {
                 </View>
               </FadeView>
             )}
-          </TouchableOpacity>
+          </Button>
 
           {/* Duration */}
           <View className="mb-4">

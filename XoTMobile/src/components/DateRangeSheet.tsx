@@ -165,7 +165,7 @@ const DateRangeSheet = React.forwardRef<DateRangeSheetRef, DateRangeSheetProps>(
               onPress={confirm}
               disabled={!start || !end}
             >
-              <Text className="text-base font-semibold text-accent-text">
+              <Text className="text-base font-semibold text-text-primary">
                 {confirmLabel ??
                   t('dateRange.removeAction', {
                     defaultValue: 'Remove selected range',

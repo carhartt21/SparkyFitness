@@ -1,3 +1,4 @@
+import Button from '../ui/Button';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
@@ -212,14 +213,12 @@ const CycleSymptomPicker: React.FC<CycleSymptomPickerProps> = ({
           );
 
           return (
-            <TouchableOpacity
+            <Button
+              variant={isActive ? 'primary' : 'secondary'}
               key={s.name}
               onPress={() => onToggle(s)}
-              activeOpacity={0.7}
-              className={`flex-row items-center rounded-md px-3.5 py-2 border ${
-                isActive
-                  ? 'bg-accent-primary/10 border-accent-primary'
-                  : 'bg-raised border-border-subtle'
+              className={`flex-row items-center  px-3.5 py-2  ${
+                isActive ? ' ' : ' '
               }`}
             >
               <CycleIcon id={s.icon} size={20} />
@@ -232,7 +231,7 @@ const CycleSymptomPicker: React.FC<CycleSymptomPickerProps> = ({
               >
                 {symptomLabels[s.name] ?? s.displayName}
               </Text>
-            </TouchableOpacity>
+            </Button>
           );
         })}
       </View>

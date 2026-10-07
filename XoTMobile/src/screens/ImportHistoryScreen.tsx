@@ -364,7 +364,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
 
   const pausedReason = pausedReasonCopy(t, lastOutcome, lastError);
   const iconWarning = useCSSVariable('--color-icon-warning') as string;
-  const accentText = useCSSVariable('--color-accent-text') as string;
+  const accentText = useCSSVariable('--color-text-primary') as string;
 
   return (
     <View
@@ -443,7 +443,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
               onPress={handleStart}
               disabled={startDisabled}
             >
-              <Text className="text-accent-text text-lg font-semibold">
+              <Text className="text-text-primary text-lg font-semibold">
                 {t('importHistory.actions.start', {
                   defaultValue: 'Start Import',
                 })}
@@ -597,7 +597,7 @@ const ImportHistoryScreen: React.FC<ImportHistoryScreenProps> = () => {
             >
               <View className="flex-row items-center gap-2">
                 <Icon name="play" size={18} color={accentText} />
-                <Text className="text-accent-text text-lg font-semibold">
+                <Text className="text-text-primary text-lg font-semibold">
                   {t('importHistory.actions.resume', {
                     defaultValue: 'Resume',
                   })}

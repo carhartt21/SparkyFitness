@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import {
   forwardRef,
   useCallback,
@@ -6,13 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import {
-  Platform,
-  Pressable,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Platform, Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
@@ -283,10 +278,11 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
             </Text>
           )}
 
-          <Pressable
+          <Button
+            variant="destructive"
             onPress={handleEnd}
             disabled={isPending || !isValid}
-            className={`flex-row items-center justify-center rounded-xl py-3.5 mt-4 bg-bg-danger ${
+            className={`flex-row items-center justify-center  py-3.5 mt-4  ${
               isPending || !isValid ? 'opacity-50' : ''
             }`}
           >
@@ -296,7 +292,7 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
                 ? t('fastingEdit.ending', { defaultValue: 'Ending...' })
                 : t('fastingEdit.endAction', { defaultValue: 'End Fast' })}
             </Text>
-          </Pressable>
+          </Button>
         </BottomSheetScrollView>
       </BottomSheetModal>
     );

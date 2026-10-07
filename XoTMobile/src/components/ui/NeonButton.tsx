@@ -5,10 +5,9 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { useCSSVariable } from 'uniwind';
 import Icon, { type IconName } from '../Icon';
-import { glowSurfaceStyle, useGlowTheme, withAlpha } from './glow';
 import MotionPressable from './MotionPressable';
+import { useButtonAppearance } from './buttonTheme';
 
 type NeonButtonVariant = 'primary' | 'outline' | 'subtle';
 
@@ -40,8 +39,8 @@ interface NeonButtonProps {
 }
 
 /**
- * The shared capsule button from the reference: a filled neon primary, a
- * glowing outline and a quiet subtle variant. Minimum 44-pt touch height.
+ * Compatibility adapter for the shared rounded-rectangle action treatment.
+ * Translucent fill, restrained glow and minimum 44-pt touch height.
  */
 export default function NeonButton({
   label,
@@ -58,38 +57,14 @@ export default function NeonButton({
   className = '',
   style,
 }: NeonButtonProps) {
-  const glowing = useGlowTheme();
-  const [accent, accentText, textPrimary] = useCSSVariable([
-    '--color-accent-primary',
-    '--color-accent-text',
-    '--color-text-primary',
-  ]) as [string, string, string];
-  const tint = color ?? accent;
   const inactive = disabled || loading;
+  const appearance = useButtonAppearance(
+    variant === 'subtle' ? 'secondary' : variant,
+    inactive,
+    color
+  );
   const visibleLabel = limitVisibleButtonLabel(label);
-
-  const variantStyle: ViewStyle =
-    variant === 'primary'
-      ? {
-          backgroundColor: tint,
-          borderColor: tint,
-          boxShadow: glowing
-            ? `0px 0px 16px 0px ${withAlpha(tint, 0.55)}`
-            : '0px 2px 6px 0px #00000026',
-        }
-      : variant === 'outline'
-        ? {
-            backgroundColor: withAlpha(tint, glowing ? 0.08 : 0.06),
-            ...glowSurfaceStyle(tint, glowing, 'soft'),
-            experimental_backgroundImage: undefined,
-          }
-        : {};
-  const labelColor =
-    variant === 'primary'
-      ? accentText
-      : variant === 'outline'
-        ? textPrimary
-        : tint;
+  const labelColor = appearance.foreground;
 
   return (
     <MotionPressable
@@ -100,10 +75,8 @@ export default function NeonButton({
       accessibilityLabel={accessibilityLabel ?? label}
       accessibilityHint={accessibilityHint}
       accessibilityState={{ disabled: inactive, busy: loading }}
-      className={`${size === 'sm' ? 'min-h-11 px-4' : 'min-h-12 px-5'} flex-row items-center justify-center gap-2 rounded-full border ${
-        variant === 'subtle' ? 'border-border-subtle bg-raised' : ''
-      } ${inactive ? 'opacity-50' : 'active:opacity-80'} ${className}`}
-      style={[variantStyle, { maxWidth: '100%', minWidth: 0 }, style]}
+      className={`${size === 'sm' ? 'min-h-11 px-4' : 'min-h-12 px-5'} flex-row items-center justify-center gap-2 ${inactive ? 'opacity-50' : 'active:opacity-80'} ${className}`}
+      style={[{ maxWidth: '100%', minWidth: 0 }, style, appearance.surface]}
     >
       {loading ? (
         <ActivityIndicator size="small" color={labelColor} />
@@ -113,7 +86,7 @@ export default function NeonButton({
             <Icon
               name={icon}
               size={size === 'sm' ? 16 : 18}
-              color={variant === 'outline' ? tint : labelColor}
+              color={labelColor}
             />
           ) : null}
           <Text

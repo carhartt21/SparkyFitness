@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, {
   useCallback,
   useEffect,
@@ -552,10 +553,10 @@ const FoodEntryMultiAddScreen: React.FC<FoodEntryMultiAddScreenProps> = ({
                           defaultValue: 'Select Meal',
                         })}
                         renderTrigger={({ onPress }) => (
-                          <TouchableOpacity
+                          <Button
+                            variant="secondary"
                             onPress={onPress}
-                            activeOpacity={0.7}
-                            className="flex-row items-center rounded-md bg-raised px-3 py-1.5"
+                            className="flex-row items-center px-3 py-1.5"
                             accessibilityRole="button"
                             accessibilityLabel={t(
                               'foodEntryMultiAdd.accessibility.mealForRow',
@@ -575,7 +576,7 @@ const FoodEntryMultiAddScreen: React.FC<FoodEntryMultiAddScreenProps> = ({
                               color={textMuted}
                               weight="medium"
                             />
-                          </TouchableOpacity>
+                          </Button>
                         )}
                       />
                     </View>

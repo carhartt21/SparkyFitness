@@ -1,12 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import { View, Text, TextInput, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
 import { useCycleLog } from '../../hooks/useCycleLogs';
 import { useUpsertCycleLog } from '../../hooks/useUpsertCycleLog';
@@ -359,13 +353,12 @@ const CycleTodayView: React.FC<CycleTodayViewProps> = ({
             {FLOW_OPTIONS.map((opt) => {
               const isSelected = flowLevel === opt.value;
               return (
-                <TouchableOpacity
+                <Button
+                  variant={isSelected ? 'primary' : 'secondary'}
                   key={opt.value}
                   onPress={() => setFlowLevel(opt.value)}
-                  className={`items-center justify-center rounded-xl p-2 flex-1 mx-1 border ${
-                    isSelected
-                      ? 'bg-accent-primary/10 border-accent-primary'
-                      : 'bg-raised border-transparent'
+                  className={`items-center justify-center  p-2 flex-1 mx-1  ${
+                    isSelected ? ' ' : ' '
                   }`}
                 >
                   <CycleIcon id={opt.icon} size={24} />
@@ -374,7 +367,7 @@ const CycleTodayView: React.FC<CycleTodayViewProps> = ({
                   >
                     {flowLabel(opt.labelKey)}
                   </Text>
-                </TouchableOpacity>
+                </Button>
               );
             })}
           </View>
@@ -455,21 +448,18 @@ const CycleTodayView: React.FC<CycleTodayViewProps> = ({
               ].map((opt) => {
                 const isSelected = intercourse === opt.val;
                 return (
-                  <TouchableOpacity
+                  <Button
+                    variant={isSelected ? 'primary' : 'secondary'}
                     key={opt.labelKey}
                     onPress={() => setIntercourse(opt.val)}
-                    className={`rounded-md px-4 py-2 border ${
-                      isSelected
-                        ? 'bg-accent-primary/10 border-accent-primary'
-                        : 'bg-raised border-transparent'
-                    }`}
+                    className={` px-4 py-2  ${isSelected ? ' ' : ' '}`}
                   >
                     <Text
                       className={`text-xs font-semibold ${isSelected ? 'text-text-primary font-bold' : 'text-text-secondary'}`}
                     >
                       {intercourseLabel(opt.labelKey)}
                     </Text>
-                  </TouchableOpacity>
+                  </Button>
                 );
               })}
             </View>
@@ -487,21 +477,18 @@ const CycleTodayView: React.FC<CycleTodayViewProps> = ({
                 ].map((opt) => {
                   const isSelected = intercourseProtected === opt.val;
                   return (
-                    <TouchableOpacity
+                    <Button
+                      variant={isSelected ? 'primary' : 'secondary'}
                       key={opt.labelKey}
                       onPress={() => setIntercourseProtected(opt.val)}
-                      className={`rounded-md px-4 py-2 border ${
-                        isSelected
-                          ? 'bg-accent-primary/10 border-accent-primary'
-                          : 'bg-raised border-transparent'
-                      }`}
+                      className={` px-4 py-2  ${isSelected ? ' ' : ' '}`}
                     >
                       <Text
                         className={`text-xs font-semibold ${isSelected ? 'text-text-primary font-bold' : 'text-text-secondary'}`}
                       >
                         {protectionLabel(opt.labelKey)}
                       </Text>
-                    </TouchableOpacity>
+                    </Button>
                   );
                 })}
               </View>

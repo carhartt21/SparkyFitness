@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import React, {
   useCallback,
   useEffect,
@@ -889,7 +890,8 @@ function ActiveWorkoutExerciseCard({
                     ).map((tab) => {
                       const isActive = editMode === tab.key;
                       return (
-                        <Pressable
+                        <Button
+                          variant={isActive ? 'primary' : 'secondary'}
                           key={tab.key}
                           onPress={() => {
                             setEditMode(tab.key);
@@ -903,8 +905,8 @@ function ActiveWorkoutExerciseCard({
                               increment_type: newIncType,
                             });
                           }}
-                          className={`flex-1 py-1.5 rounded-md items-center justify-center ${
-                            isActive ? 'bg-surface shadow-sm' : ''
+                          className={`flex-1 py-1.5  items-center justify-center ${
+                            isActive ? ' ' : ''
                           }`}
                         >
                           <Text
@@ -916,7 +918,7 @@ function ActiveWorkoutExerciseCard({
                           >
                             {tab.label}
                           </Text>
-                        </Pressable>
+                        </Button>
                       );
                     })}
                   </View>

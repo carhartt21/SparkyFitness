@@ -44,6 +44,17 @@ final class DashboardReview: XCTestCase {
     XCTAssertGreaterThanOrEqual(breakfast.frame.minY, 185)
     XCTAssertLessThanOrEqual(foodRow.frame.maxY, app.frame.height - 45)
     capture("v45-meal-expanded", app)
+    let template = app.buttons["Als Vorlage speichern"].firstMatch
+    let footerTop: CGFloat = app.frame.width > 400 ? 300 : 185
+    for _ in 0..<16 {
+      if template.isHittable && template.frame.minY >= footerTop && template.frame.maxY <= app.frame.height - 45 { break }
+      if template.isHittable && template.frame.minY < footerTop { app.swipeDown(velocity: .slow) }
+      else { app.swipeUp(velocity: .slow) }
+    }
+    XCTAssertTrue(template.isHittable)
+    XCTAssertGreaterThanOrEqual(template.frame.minY, footerTop)
+    XCTAssertLessThanOrEqual(template.frame.maxY, app.frame.height - 45)
+    capture("v45-meal-expanded-lower", app)
     let lunch = app.buttons["daily-meal-group-b3333333-3333-4333-8333-333333333333"]
     for _ in 0..<10 { if lunch.isHittable { break }; app.swipeUp() }
     XCTAssertTrue(lunch.isHittable)
@@ -62,7 +73,21 @@ final class DashboardReview: XCTestCase {
     XCTAssertTrue(weekly.isHittable); weekly.tap()
     XCTAssertTrue(app.otherElements["weekly-training-itinerary"].waitForExistence(timeout: 15))
     capture("v45-weekly-training", app)
-    app.swipeUp(velocity: .slow)
+    let dayDetails = app.buttons["weekly-day-details"]
+    let createPlan = app.buttons["Plan erstellen"]
+    for _ in 0..<16 {
+      if createPlan.isHittable && dayDetails.isHittable && createPlan.frame.minY >= footerTop && dayDetails.frame.maxY <= app.frame.height - 45 { break }
+      if createPlan.isHittable && createPlan.frame.minY < footerTop {
+        app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.42))
+          .press(forDuration: 0.1, thenDragTo: app.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.53)))
+      }
+      else { app.swipeUp(velocity: .slow) }
+    }
+    XCTAssertTrue(createPlan.isHittable)
+    XCTAssertGreaterThanOrEqual(createPlan.frame.minY, footerTop)
+    XCTAssertTrue(dayDetails.isHittable)
+    XCTAssertGreaterThanOrEqual(dayDetails.frame.minY, footerTop)
+    XCTAssertLessThanOrEqual(dayDetails.frame.maxY, app.frame.height - 45)
     capture("v45-weekly-training-lower", app)
     app.buttons["Zurück"].firstMatch.tap()
     app.buttons["Zurück"].firstMatch.tap()

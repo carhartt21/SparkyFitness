@@ -1,4 +1,5 @@
 import React from 'react';
+import { StyleSheet } from 'react-native';
 import { act, fireEvent, render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FamilyCopyReviewScreen from '../../src/screens/FamilyCopyReviewScreen';
@@ -198,7 +199,11 @@ describe('FamilyCopyReviewScreen', () => {
     expect(
       screen.getByLabelText('Quantity for Family Pasta').props.style
     ).toEqual({ minHeight: 44 });
-    expect(screen.getByRole('button', { name: 'Dinner' }).props.style).toEqual({
+    expect(
+      StyleSheet.flatten(
+        screen.getByRole('button', { name: 'Dinner' }).props.style
+      )
+    ).toMatchObject({
       minHeight: 44,
       minWidth: 44,
     });
@@ -218,7 +223,7 @@ describe('FamilyCopyReviewScreen', () => {
     expect(
       screen.getByRole('button', { name: 'Copy to my diary' }).props
         .accessibilityState
-    ).toEqual({ disabled: true });
+    ).toMatchObject({ disabled: true });
     expect(
       screen.getByLabelText('Quantity for Family Pasta').props['aria-invalid']
     ).toBe(true);
@@ -288,7 +293,7 @@ describe('FamilyCopyReviewScreen', () => {
 
     expect(
       screen.getByRole('button', { name: 'Breakfast' }).props.accessibilityState
-    ).toEqual({ selected: true });
+    ).toMatchObject({ selected: true });
   });
 
   test('uses the reviewed whole-meal operation with an exact source snapshot', () => {
@@ -377,7 +382,7 @@ describe('FamilyCopyReviewScreen', () => {
     expect(
       duplicateSelection.getByRole('button', { name: 'Copy to my diary' }).props
         .accessibilityState
-    ).toEqual({ disabled: true });
+    ).toMatchObject({ disabled: true });
 
     const missingSelection = renderReview({
       selectedEntryIds: [pasta.id, 'missing-entry-id'],
@@ -385,7 +390,7 @@ describe('FamilyCopyReviewScreen', () => {
     expect(
       missingSelection.getByRole('button', { name: 'Copy to my diary' }).props
         .accessibilityState
-    ).toEqual({ disabled: true });
+    ).toMatchObject({ disabled: true });
   });
 
   test('prevents duplicate submissions and opens the own diary only on success', () => {

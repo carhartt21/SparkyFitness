@@ -1,3 +1,4 @@
+import Button from '../ui/Button';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -299,21 +300,19 @@ const ServingRow: React.FC<{
               onSelect={(value) => onUpdate({ unit: value })}
               title={t('foodForm.selectUnit', { defaultValue: 'Select Unit' })}
               renderTrigger={({ onPress, selectedOption }) => (
-                <TouchableOpacity
+                <Button
+                  variant="secondary"
                   testID={`serving-edit-unit-${index}`}
                   onPress={onPress}
                   disabled={disabled}
-                  activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={t('foodForm.servings.unitA11y', {
                     defaultValue: 'Unit, {{unit}}',
                     unit:
                       selectedOption?.label ?? localizeFoodUnit(draft.unit, t),
                   })}
-                  className="h-10 flex-row items-center justify-between rounded-lg border border-border-subtle bg-background px-1.5"
-                  style={
-                    error === 'unit' ? { borderColor: dangerColor } : undefined
-                  }
+                  className="min-h-11 flex-row items-center justify-between px-1.5"
+                  style={error === 'unit' ? {} : undefined}
                 >
                   <Text
                     className="min-w-0 flex-1 text-[14px] text-text-primary"
@@ -322,7 +321,7 @@ const ServingRow: React.FC<{
                     {selectedOption?.label ?? localizeFoodUnit(draft.unit, t)}
                   </Text>
                   <Icon name="chevron-down" size={12} color={textMuted} />
-                </TouchableOpacity>
+                </Button>
               )}
             />
           </View>
@@ -782,16 +781,16 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                 defaultValue: 'Serving preview',
               })}
               renderTrigger={({ onPress }) => (
-                <TouchableOpacity
+                <Button
+                  variant="secondary"
                   testID="serving-preview-picker"
                   onPress={onPress}
-                  activeOpacity={0.7}
                   accessibilityRole="button"
                   accessibilityLabel={t('foodForm.servings.previewPick', {
                     defaultValue: 'Preview serving, {{serving}}',
                     serving: previewLabel,
                   })}
-                  className="min-h-11 max-w-full flex-row items-center gap-1 rounded-xl border border-border-subtle bg-raised px-3 py-2"
+                  className="min-h-11 max-w-full flex-row items-center gap-1 px-3 py-2"
                 >
                   <Text
                     className="text-sm font-medium text-text-primary"
@@ -801,7 +800,7 @@ const ServingSizesEditor: React.FC<ServingSizesEditorProps> = ({
                     {previewLabel}
                   </Text>
                   <Icon name="chevron-down" size={12} color={textMuted} />
-                </TouchableOpacity>
+                </Button>
               )}
             />
           </View>

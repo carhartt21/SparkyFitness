@@ -1,5 +1,6 @@
+import Button from '../ui/Button';
 import { useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import {
   useAui,
   useAuiState,
@@ -42,21 +43,20 @@ export default function AskUserToolCard({
       <Text className="text-text-secondary text-sm">{question}</Text>
       <View className="flex-row flex-wrap gap-2">
         {options.map((option) => (
-          <Pressable
+          <Button
+            variant="secondary"
             key={option}
             accessibilityRole="button"
             accessibilityLabel={option}
             accessibilityState={{ disabled }}
             disabled={disabled}
             onPress={() => send(option)}
-            className={`rounded-md border border-border-subtle bg-background px-3 py-2 ${
-              disabled ? 'opacity-50' : 'active:bg-surface'
-            }`}
+            className={`    px-3 py-2 ${disabled ? 'opacity-50' : 'active:'}`}
           >
             <Text className="text-text-primary text-sm font-medium">
               {option}
             </Text>
-          </Pressable>
+          </Button>
         ))}
       </View>
     </View>

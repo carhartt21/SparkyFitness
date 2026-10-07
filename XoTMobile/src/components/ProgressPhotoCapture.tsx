@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ActivityIndicator, Modal, Pressable, Text, View } from 'react-native';
@@ -141,7 +142,8 @@ export default function ProgressPhotoCapture({
               >
                 <Icon name="close" size={22} color="#fff" />
               </Pressable>
-              <Pressable
+              <Button
+                variant="secondary"
                 onPress={() => setGuideVisible((current) => !current)}
                 disabled={busy}
                 accessibilityRole="switch"
@@ -149,7 +151,7 @@ export default function ProgressPhotoCapture({
                 accessibilityLabel={t('progressPhotos.poseGuide', {
                   defaultValue: 'Pose guide',
                 })}
-                className="rounded-md bg-black/60 px-4 py-3"
+                className="px-4 py-3"
               >
                 <Text className="text-white font-semibold">
                   {guideVisible
@@ -160,7 +162,7 @@ export default function ProgressPhotoCapture({
                         defaultValue: 'Show guide',
                       })}
                 </Text>
-              </Pressable>
+              </Button>
             </View>
             {guideVisible ? (
               <View
@@ -168,7 +170,10 @@ export default function ProgressPhotoCapture({
                 style={{ top: insets.top + 76 }}
               >
                 {([true, false] as const).map((upperBody) => (
-                  <Pressable
+                  <Button
+                    variant={
+                      upperBodyGuide === upperBody ? 'primary' : 'secondary'
+                    }
                     key={String(upperBody)}
                     onPress={() => setUpperBodyGuide(upperBody)}
                     disabled={busy}
@@ -185,7 +190,7 @@ export default function ProgressPhotoCapture({
                             defaultValue: 'Full body guide',
                           })
                     }
-                    className={`min-h-11 justify-center rounded-md px-4 ${upperBodyGuide === upperBody ? 'bg-white' : 'bg-black/60'}`}
+                    className={`min-h-11 justify-center  px-4 ${upperBodyGuide === upperBody ? '' : ''}`}
                   >
                     <Text
                       className={
@@ -202,7 +207,7 @@ export default function ProgressPhotoCapture({
                             defaultValue: 'Full body',
                           })}
                     </Text>
-                  </Pressable>
+                  </Button>
                 ))}
               </View>
             ) : null}
@@ -252,17 +257,18 @@ export default function ProgressPhotoCapture({
                   'Enable camera access for X on Track in Settings.',
               })}
             </Text>
-            <Pressable
+            <Button
+              variant="secondary"
               onPress={() => void requestPermission()}
               accessibilityRole="button"
-              className="mt-6 rounded-xl bg-white px-5 py-3"
+              className="mt-6 px-5 py-3"
             >
               <Text className="text-black font-semibold">
                 {t('progressPhotos.grantCamera', {
                   defaultValue: 'Allow camera',
                 })}
               </Text>
-            </Pressable>
+            </Button>
             <Pressable
               onPress={onClose}
               accessibilityRole="button"

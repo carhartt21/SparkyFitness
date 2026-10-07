@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import TrainingSummaryCard from '../components/TrainingSummaryCard';
 /** Home: daily essentials first; detailed history belongs in dedicated screens. */
 import {
@@ -401,10 +402,11 @@ export default function DashboardScreen({ navigation }: Props) {
           pendingWater.pendingContainerCount > 0 ||
           pendingWater.attentionContainerCount > 0 ||
           pendingWater.storageError) && (
-          <Pressable
+          <Button
+            variant="secondary"
             onPress={() => retryWater.retry()}
             disabled={retryWater.retrying}
-            className="mb-3 min-h-11 rounded-xl bg-surface p-3"
+            className="mb-3 min-h-11 p-3"
           >
             <Text className="text-sm text-text-secondary">
               {t('home.pendingWater', {
@@ -412,7 +414,7 @@ export default function DashboardScreen({ navigation }: Props) {
                   'Water saved on this device · tap to retry syncing',
               })}
             </Text>
-          </Pressable>
+          </Button>
         )}
         <View className="rounded-2xl border border-border-subtle bg-surface px-3">
           {destinations.map((d, i) => (

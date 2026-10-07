@@ -1,3 +1,4 @@
+import Button from '../ui/Button';
 import {
   forwardRef,
   useImperativeHandle,
@@ -5,14 +6,13 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import Toast from 'react-native-toast-message';
 import { useCSSVariable } from 'uniwind';
 import { sheetContainer, useSheetBackdrop } from '../ui/sheetChrome';
 import NeonButton from '../ui/NeonButton';
-import { useGlowTheme, withAlpha } from '../ui/glow';
 import { useFoodVariants } from '../../hooks/useFoodVariants';
 import { useMealTypes } from '../../hooks/useMealTypes';
 import { useAddFoodEntry } from '../../hooks/useAddFoodEntry';
@@ -58,30 +58,19 @@ const Chip = ({
   accent: string;
   testID?: string;
 }) => {
-  const glowing = useGlowTheme();
   return (
-    <Pressable
+    <Button
+      variant={selected ? 'primary' : 'secondary'}
+      color={accent}
       testID={testID}
       accessibilityRole="button"
       accessibilityState={{ selected }}
       onPress={onPress}
-      className={`min-h-11 justify-center rounded-xl border px-4 ${
-        selected ? '' : 'border-border-subtle bg-raised'
-      }`}
-      style={
-        selected
-          ? {
-              borderColor: accent,
-              backgroundColor: withAlpha(accent, 0.14),
-              boxShadow: glowing
-                ? `0px 0px 10px 0px ${withAlpha(accent, 0.45)}`
-                : undefined,
-            }
-          : undefined
-      }
+      className={`min-h-11 justify-center   px-4 ${selected ? '' : ' '}`}
+      style={selected ? {} : undefined}
     >
       <Text className="text-sm font-medium text-text-primary">{label}</Text>
-    </Pressable>
+    </Button>
   );
 };
 

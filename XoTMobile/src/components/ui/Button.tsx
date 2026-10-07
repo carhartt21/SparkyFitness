@@ -3,21 +3,13 @@ import {
   ActivityIndicator,
   Pressable,
   Text,
+  View,
   type PressableProps,
   type ViewStyle,
 } from 'react-native';
 import { preview } from 'radon-ide';
-import { useCSSVariable } from 'uniwind';
-import { useGlowTheme, withAlpha } from './glow';
-
-type ButtonVariant =
-  | 'primary'
-  | 'secondary'
-  | 'outline'
-  | 'ghost'
-  | 'header'
-  | 'link'
-  | 'destructive';
+import Icon, { type IconName } from '../Icon';
+import { useButtonAppearance, type ButtonVariant } from './buttonTheme';
 type ButtonTone = 'accent' | 'neutral';
 
 interface ButtonProps extends Omit<PressableProps, 'children'> {
@@ -36,6 +28,9 @@ interface ButtonProps extends Omit<PressableProps, 'children'> {
    * width its container gives it.
    */
   loading?: boolean;
+  icon?: IconName;
+  /** Optional semantic tint; geometry and material remain shared. */
+  color?: string;
   children: React.ReactNode;
   className?: string;
   textClassName?: string;
@@ -53,32 +48,32 @@ const variantClasses: Record<
   { container: string; text: string; pressed: string }
 > = {
   primary: {
-    container: 'bg-accent-primary rounded-full',
-    text: 'text-accent-text font-semibold',
+    container: '',
+    text: 'text-text-primary font-semibold',
     pressed: 'opacity-80',
   },
   secondary: {
-    container: 'bg-raised rounded-full border border-border-subtle',
-    text: 'text-accent-primary font-semibold',
+    container: '',
+    text: 'text-text-primary font-semibold',
     pressed: 'opacity-80',
   },
   outline: {
-    container: 'bg-transparent rounded-full border border-accent-primary',
-    text: 'text-accent-primary font-semibold',
+    container: '',
+    text: 'text-text-primary font-semibold',
     pressed: 'opacity-70',
   },
   ghost: {
-    container: 'bg-transparent rounded-md',
+    container: '',
     text: 'text-accent-primary font-semibold',
     pressed: 'opacity-70',
   },
   header: {
-    container: 'bg-transparent',
+    container: '',
     text: 'text-accent-primary font-semibold',
     pressed: 'opacity-70',
   },
   link: {
-    container: 'bg-transparent',
+    container: '',
     text: 'text-text-link font-semibold',
     pressed: 'opacity-70',
   },
@@ -87,7 +82,7 @@ const variantClasses: Record<
   // readable on the app background in every theme, unlike `bg-danger`, which
   // is a fill color and goes near-illegible maroon in dark/AMOLED.
   destructive: {
-    container: 'bg-transparent rounded-md',
+    container: '',
     text: 'text-icon-danger font-medium',
     pressed: 'opacity-70',
   },
@@ -97,17 +92,21 @@ const Button: React.FC<ButtonProps> = ({
   variant = 'primary',
   tone = 'accent',
   loading = false,
+  icon,
+  color,
   children,
   className = '',
   textClassName = '',
   disabled,
   ...rest
 }) => {
-  const [accentText, accent] = useCSSVariable([
-    '--color-accent-text',
-    '--color-accent-primary',
-  ]) as [string, string];
-  const glowing = useGlowTheme();
+  const isDisabled = Boolean(disabled) || loading;
+  const appearance = useButtonAppearance(
+    variant,
+    isDisabled,
+    color,
+    tone === 'neutral'
+  );
   const styles = variantClasses[variant];
   const textClass =
     tone === 'neutral' && neutralToneText[variant]
@@ -115,7 +114,6 @@ const Button: React.FC<ButtonProps> = ({
       : styles.text;
 
   const basePadding = variant === 'header' ? '' : 'py-3.5 px-4';
-  const isDisabled = Boolean(disabled) || loading;
 
   return (
     <Pressable
@@ -127,27 +125,34 @@ const Button: React.FC<ButtonProps> = ({
         ? { hitSlop: { top: 10, bottom: 10, left: 10, right: 10 } }
         : {})}
       {...rest}
+      accessibilityState={{
+        ...rest.accessibilityState,
+        disabled: isDisabled,
+        busy: loading,
+      }}
       style={({ pressed }) => [
-        { maxWidth: '100%', minWidth: 0 },
-        variant === 'primary' && glowing && !isDisabled
-          ? { boxShadow: `0px 0px 16px 0px ${withAlpha(accent, 0.5)}` }
-          : {},
-        pressed && !isDisabled ? { opacity: 0.8 } : {},
+        { maxWidth: '100%', minWidth: 0, minHeight: 44 },
         typeof rest.style === 'function'
           ? rest.style({ pressed })
           : (rest.style as ViewStyle),
+        appearance.surface,
+        pressed && !isDisabled ? { opacity: 0.8 } : {},
       ]}
     >
       {loading ? (
-        <ActivityIndicator size="small" color={accentText} />
+        <ActivityIndicator size="small" color={appearance.foreground} />
       ) : typeof children === 'string' ? (
-        <Text
-          className={`min-w-0 shrink text-base ${textClass} ${textClassName}`}
-          numberOfLines={2}
-          ellipsizeMode="tail"
-        >
-          {children}
-        </Text>
+        <View className="min-w-0 shrink flex-row items-center justify-center gap-2">
+          {icon && <Icon name={icon} size={18} color={appearance.foreground} />}
+          <Text
+            className={`min-w-0 shrink text-center text-base ${textClass} ${textClassName}`}
+            style={{ color: appearance.foreground }}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {children}
+          </Text>
+        </View>
       ) : (
         children
       )}

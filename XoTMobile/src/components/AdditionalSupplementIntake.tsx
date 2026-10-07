@@ -90,7 +90,7 @@ export default function AdditionalSupplementIntake({
         testID="supplements-log-extra"
         icon="add"
         variant="subtle"
-        className="rounded-xl"
+        className=""
         label={t('supplements.extra.add', { defaultValue: 'Log extra intake' })}
         disabled={busy || date > getTodayDate()}
         onPress={() => {
@@ -148,7 +148,7 @@ export default function AdditionalSupplementIntake({
           />
           <NeonButton
             testID="supplements-extra-save"
-            className="rounded-xl"
+            className=""
             loading={creating.isPending}
             disabled={
               !supplement || !Number.isFinite(quantity) || quantity <= 0 || busy
@@ -193,7 +193,7 @@ export default function AdditionalSupplementIntake({
           <NeonButton
             variant="subtle"
             size="sm"
-            className="rounded-xl"
+            className=""
             disabled={busy}
             label={t('wellness.undo', { defaultValue: 'Undo' })}
             onPress={() => {

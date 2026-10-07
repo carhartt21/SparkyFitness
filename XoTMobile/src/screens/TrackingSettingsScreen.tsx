@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useRef, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -13,7 +14,6 @@ import { useNeonScale } from '../components/tracking/useNeonScale';
 import { daypartLabel } from '../components/tracking/trackingLabels';
 import GlowCard from '../components/ui/GlowCard';
 import Switch from '../components/ui/Switch';
-import { withAlpha } from '../components/ui/glow';
 import SegmentedControl from '../components/SegmentedControl';
 import TimeSheet, { type TimeSheetRef } from '../components/TimeSheet';
 import StatusView from '../components/StatusView';
@@ -75,10 +75,7 @@ const ToggleRow: React.FC<{
 const TrackingSettingsScreen: React.FC<Props> = ({ navigation }) => {
   const { t } = useTranslation();
   const scale = useNeonScale();
-  const [secondary, border] = useCSSVariable([
-    '--color-text-secondary',
-    '--color-border-subtle',
-  ]) as [string, string];
+  const secondary = useCSSVariable('--color-text-secondary') as string;
   const { isConnected } = useServerConnection();
   const { preferences: userPreferences } = usePreferences({
     enabled: isConnected,
@@ -349,7 +346,8 @@ const TrackingSettingsScreen: React.FC<Props> = ({ navigation }) => {
                   {[0, 1, 2, 3, 4, 5, 6].map((day) => {
                     const selected = weighInDays.includes(day);
                     return (
-                      <Pressable
+                      <Button
+                        variant={selected ? 'primary' : 'secondary'}
                         key={day}
                         accessibilityRole="checkbox"
                         accessibilityState={{ checked: selected }}
@@ -363,18 +361,12 @@ const TrackingSettingsScreen: React.FC<Props> = ({ navigation }) => {
                             days: next.length === 7 ? null : next.sort(),
                           });
                         }}
-                        className="h-11 min-w-11 items-center justify-center rounded-full border px-2"
-                        style={{
-                          borderColor: selected ? scale.green : border,
-                          backgroundColor: selected
-                            ? withAlpha(scale.green, 0.18)
-                            : 'transparent',
-                        }}
+                        className="h-11 min-w-11 items-center justify-center px-2"
                       >
                         <Text className="text-sm text-text-primary">
                           {weekdays[day]?.slice(0, 2)}
                         </Text>
-                      </Pressable>
+                      </Button>
                     );
                   })}
                 </View>

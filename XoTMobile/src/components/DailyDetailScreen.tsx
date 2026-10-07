@@ -6,7 +6,7 @@ import {
   type ScrollViewProps,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useScreenHeader } from '../hooks/useScreenHeader';
+import { useScreenHeader, type HeaderItem } from '../hooks/useScreenHeader';
 import { useNativeIOSHeadersActive } from '../services/nativeTabBarPreference';
 import { useActiveWorkoutBarPadding } from './ActiveWorkoutBar';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
@@ -24,6 +24,9 @@ export default function DailyDetailScreen({
   children,
   footer,
   onRefresh,
+  headerRight,
+  dateLabel,
+  dateStep = 1,
   scrollRef,
   ...scrollProps
 }: {
@@ -33,6 +36,9 @@ export default function DailyDetailScreen({
   children: ReactNode;
   footer?: ReactNode;
   onRefresh?: () => Promise<unknown>;
+  headerRight?: HeaderItem | HeaderItem[];
+  dateLabel?: string;
+  dateStep?: 1 | 7;
   scrollRef?: RefObject<ScrollView | null>;
 } & Pick<ScrollViewProps, 'onScroll' | 'onLayout'>) {
   const insets = useSafeAreaInsets();
@@ -58,7 +64,11 @@ export default function DailyDetailScreen({
     }
   };
   const calendar = useRef<CalendarSheetRef>(null);
-  const header = useScreenHeader({ title, left: { kind: 'back' } });
+  const header = useScreenHeader({
+    title,
+    left: { kind: 'back' },
+    right: headerRight,
+  });
   return (
     <View
       className="flex-1 bg-background"
@@ -69,13 +79,15 @@ export default function DailyDetailScreen({
       <View className="px-4 pb-3">
         <DateBar
           selectedDate={date}
+          displayDate={dateLabel}
+          weekNavigation={dateStep === 7}
           testIDPrefix="daily-detail"
           chooseDateLabel={t('diary.chooseDate', {
             defaultValue: 'Choose diary date',
           })}
           onToday={() => changeDate(getTodayDate())}
-          onPreviousDay={() => changeDate(addDays(date, -1))}
-          onNextDay={() => changeDate(addDays(date, 1))}
+          onPreviousDay={() => changeDate(addDays(date, -dateStep))}
+          onNextDay={() => changeDate(addDays(date, dateStep))}
           onDatePress={() => calendar.current?.present()}
         />
       </View>

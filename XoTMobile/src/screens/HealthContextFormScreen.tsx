@@ -1,5 +1,6 @@
+import Button from '../components/ui/Button';
 import React, { useRef, useState } from 'react';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import { Alert, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import Toast from 'react-native-toast-message';
@@ -41,11 +42,12 @@ function DateField({
   const locale = useAppLocale();
   const secondary = useCSSVariable('--color-text-secondary') as string;
   return (
-    <Pressable
+    <Button
+      variant="secondary"
       testID={testID}
       accessibilityRole="button"
       onPress={onPress}
-      className="mb-3 min-h-12 flex-row items-center justify-between rounded-xl border border-border-subtle px-3"
+      className="mb-3 min-h-12 flex-row items-center justify-between px-3"
     >
       <Text className="text-sm text-text-secondary">{label}</Text>
       <View className="flex-row items-center gap-2">
@@ -54,7 +56,7 @@ function DateField({
         </Text>
         <Icon name="calendar" size={16} color={secondary} />
       </View>
-    </Pressable>
+    </Button>
   );
 }
 

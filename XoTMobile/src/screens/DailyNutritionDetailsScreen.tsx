@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import MicronutrientCoverage from '../components/MicronutrientCoverage';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -509,8 +510,8 @@ const DailyNutritionDetailsScreen: React.FC<
           fatGoal={summary.fat.goal}
         />
 
-        <TouchableOpacity
-          activeOpacity={0.7}
+        <Button
+          variant="secondary"
           accessibilityRole="button"
           accessibilityLabel={t('dailyNutritionDetails.viewCalorieTrends', {
             defaultValue: 'View calorie trends',
@@ -525,7 +526,7 @@ const DailyNutritionDetailsScreen: React.FC<
               goal: summary.calorieGoal > 0 ? summary.calorieGoal : undefined,
             })
           }
-          className="mt-4 min-h-14 flex-row items-center justify-between rounded-xl border border-border-subtle bg-surface px-4 py-3"
+          className="mt-4 min-h-14 flex-row items-center justify-between px-4 py-3"
         >
           <Text className="text-base font-semibold text-text-primary">
             {t('dailyNutritionDetails.viewCalorieTrends', {
@@ -533,7 +534,7 @@ const DailyNutritionDetailsScreen: React.FC<
             })}
           </Text>
           <Icon name="chevron-forward" size={18} color={accentColor} />
-        </TouchableOpacity>
+        </Button>
 
         {/* Predefined Nutrients Section */}
         {displayGroups && displayGroups.standardItems.length > 0 && (

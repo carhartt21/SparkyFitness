@@ -7085,7 +7085,13 @@
     "unresolved_other": "Bei {{count}} Zutaten fehlen bestätigte Nährwerte oder eine wiederverwendbare Lebensmittelportion. Zuerst ergänzen oder ausdrücklich nur die übrigen Zutaten verwenden.",
     "unresolved_one": "Bei {{count}} Zutat fehlen bestätigte Nährwerte oder eine wiederverwendbare Lebensmittelportion. Zuerst ergänzen oder ausdrücklich nur die übrigen Zutaten verwenden.",
     "details": "Mahlzeitendetails",
-    "allowance": "Tagesziel"
+    "allowance": "Tagesziel",
+    "carbsLabel": "KH",
+    "foodAction": "Lebensmittel",
+    "groupSummary_one": "{{calories}} kcal · {{count}} Lebensmittel",
+    "groupSummary_other": "{{calories}} kcal · {{count}} Lebensmittel",
+    "noEntries": "Noch nichts erfasst",
+    "pendingNutrition": "Nährwerte noch offen"
   },
   "dailyTraining": {
     "title": "Training",
@@ -7117,6 +7123,13 @@
     "duration": "{{value}} min",
     "mi": "mi",
     "km": "km",
-    "start": "Training starten"
+    "start": "Training starten",
+    "weekPlan": "Wochenplan",
+    "sessionsLabel": "Trainings",
+    "minutesLabel": "Minuten erfasst",
+    "startAction": "Starten",
+    "logAction": "Erfassen",
+    "energyUnknown": "Energie nicht erfasst",
+    "dayDetailsAction": "Tagesdetails"
   }
 }

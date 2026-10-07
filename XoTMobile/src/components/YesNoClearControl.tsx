@@ -1,6 +1,6 @@
+import Button from './ui/Button';
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import { useCSSVariable } from 'uniwind';
+import { View, Text } from 'react-native';
 
 interface YesNoClearControlProps {
   /**
@@ -17,35 +17,26 @@ const YesNoClearControl: React.FC<YesNoClearControlProps> = ({
   onChange,
   labels,
 }) => {
-  const [accentPrimary, borderSubtle] = useCSSVariable([
-    '--color-accent-primary',
-    '--color-border-subtle',
-  ]) as [string, string];
-
   const renderOption = (
     label: string,
     selected: boolean,
     onPress: () => void,
     disabled = false
   ) => (
-    <TouchableOpacity
+    <Button
+      variant={selected ? 'primary' : 'secondary'}
       onPress={onPress}
       disabled={disabled}
-      activeOpacity={0.7}
       accessibilityRole="button"
       accessibilityState={{ selected, disabled }}
-      className={`flex-1 rounded-lg border px-3 py-2 items-center ${disabled ? 'opacity-40' : ''}`}
-      style={{
-        borderColor: selected ? accentPrimary : borderSubtle,
-        backgroundColor: selected ? accentPrimary : 'transparent',
-      }}
+      className={`flex-1   px-3 py-2 items-center ${disabled ? 'opacity-40' : ''}`}
     >
       <Text
-        className={`text-sm ${selected ? 'text-accent-text font-semibold' : 'text-text-secondary'}`}
+        className={`text-sm ${selected ? 'text-text-primary font-semibold' : 'text-text-secondary'}`}
       >
         {label}
       </Text>
-    </TouchableOpacity>
+    </Button>
   );
 
   return (

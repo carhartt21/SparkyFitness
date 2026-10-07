@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
@@ -133,12 +134,13 @@ export default function DashboardDayOverview({
           contentContainerStyle={{ gap: 8, paddingVertical: 4 }}
         >
           {chips.map((chip) => (
-            <Pressable
+            <Button
+              variant="secondary"
               key={chip.key}
               accessibilityRole="button"
               accessibilityLabel={`${chip.title}: ${chip.value}`}
               onPress={chip.onPress}
-              className="min-h-14 flex-row items-center gap-2 rounded-xl border border-border-subtle bg-raised py-2 pl-2 pr-3 active:opacity-70"
+              className="min-h-14 flex-row items-center gap-2 py-2 pl-2 pr-3 active:opacity-70"
             >
               <IconBadge icon={chip.icon} color={chip.color} size={36} />
               <View>
@@ -149,7 +151,7 @@ export default function DashboardDayOverview({
                   {chip.value}
                 </Text>
               </View>
-            </Pressable>
+            </Button>
           ))}
         </ScrollView>
       )}

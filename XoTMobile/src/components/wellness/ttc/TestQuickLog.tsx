@@ -1,7 +1,8 @@
+import Button from '../../ui/Button';
 import { useAppLocale } from '../../../localization';
 import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, ActivityIndicator } from 'react-native';
 import Toast from 'react-native-toast-message';
 import {
   useCycleTests,
@@ -147,16 +148,17 @@ const TestQuickLog: React.FC<TestQuickLogProps> = ({ date }) => {
       {/* Result buttons */}
       <View className="flex-row flex-wrap gap-2 mt-1">
         {RESULT_KEYS[testType].map((r) => (
-          <TouchableOpacity
+          <Button
+            variant="secondary"
             key={r.value}
             disabled={isCreating}
             onPress={() => handleLog(r.value)}
-            className="rounded-xl bg-raised px-4 py-2 border border-border-subtle"
+            className="px-4 py-2"
           >
             <Text className="text-text-primary text-xs font-semibold">
               {getResultLabel(t, r.value)}
             </Text>
-          </TouchableOpacity>
+          </Button>
         ))}
       </View>
 

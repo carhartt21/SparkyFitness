@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
@@ -16,6 +17,8 @@ interface DateBarProps {
   /** Prefix for testIDs, e.g. `dashboard` → `dashboard-date`. */
   testIDPrefix: string;
   chooseDateLabel: string;
+  displayDate?: string;
+  weekNavigation?: boolean;
 }
 
 /**
@@ -30,6 +33,8 @@ export default function DateBar({
   onDatePress,
   testIDPrefix,
   chooseDateLabel,
+  displayDate,
+  weekNavigation = false,
 }: DateBarProps) {
   const { t } = useTranslation();
   const locale = useAppLocale();
@@ -47,9 +52,15 @@ export default function DateBar({
       <GlowCard className="flex-row items-center overflow-hidden">
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('familyDiary.previousDay', {
-            defaultValue: 'Previous day',
-          })}
+          accessibilityLabel={
+            weekNavigation
+              ? t('activityPlanning.previous', {
+                  defaultValue: 'Previous week',
+                })
+              : t('familyDiary.previousDay', {
+                  defaultValue: 'Previous day',
+                })
+          }
           testID={`${testIDPrefix}-previous-day`}
           onPress={onPreviousDay}
           className="w-12 min-h-12 items-center justify-center active:bg-raised"
@@ -66,7 +77,7 @@ export default function DateBar({
         >
           <Icon name="calendar" size={18} color={secondary} />
           <Text className="text-base font-medium text-text-primary flex-shrink text-center">
-            {formatDate(selectedDate, locale)}
+            {displayDate ?? formatDate(selectedDate, locale)}
           </Text>
         </Pressable>
         {!isToday && fontScale <= 1.3 ? (
@@ -77,7 +88,7 @@ export default function DateBar({
             className="min-h-12 justify-center px-1 active:opacity-70"
           >
             <View
-              className="rounded-full px-3 py-1.5"
+              className="rounded-xl px-3 py-1.5"
               style={{ backgroundColor: withAlpha(accent, 0.14) }}
             >
               <Text className="text-xs font-semibold text-text-link">
@@ -88,9 +99,13 @@ export default function DateBar({
         ) : null}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={t('familyDiary.nextDay', {
-            defaultValue: 'Next day',
-          })}
+          accessibilityLabel={
+            weekNavigation
+              ? t('activityPlanning.next', { defaultValue: 'Next week' })
+              : t('familyDiary.nextDay', {
+                  defaultValue: 'Next day',
+                })
+          }
           testID={`${testIDPrefix}-next-day`}
           onPress={onNextDay}
           className="w-12 min-h-12 items-center justify-center active:bg-raised"
@@ -99,16 +114,17 @@ export default function DateBar({
         </Pressable>
       </GlowCard>
       {!isToday && fontScale > 1.3 ? (
-        <Pressable
+        <Button
+          variant="secondary"
           accessibilityRole="button"
           testID={`${testIDPrefix}-today`}
           onPress={onToday}
-          className="min-h-11 self-end justify-center rounded-full border border-border-subtle bg-surface px-4 active:opacity-70"
+          className="min-h-11 self-end justify-center px-4 active:opacity-70"
         >
           <Text className="text-sm font-semibold text-text-link">
             {todayLabel}
           </Text>
-        </Pressable>
+        </Button>
       ) : null}
     </View>
   );

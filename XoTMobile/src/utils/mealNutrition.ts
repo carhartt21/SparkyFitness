@@ -9,6 +9,8 @@ import { calculateCustomNutrientTotals } from '../services/api/foodEntriesApi';
 export type MealTypeKey = string;
 
 export interface MealGroup {
+  /** Projected scheduled clock for an empty current/future meal, never a fabricated historical time. */
+  clock?: string | null;
   iconKey?: MealType['icon_key'];
   mealTypeId: string | null;
   name: string;

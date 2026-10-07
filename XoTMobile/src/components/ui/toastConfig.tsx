@@ -1,7 +1,8 @@
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { useCSSVariable } from 'uniwind';
 import type { ToastConfig } from 'react-native-toast-message';
 import Icon from '../Icon';
+import Button from './Button';
 
 type ToastVariant = 'success' | 'error' | 'info';
 
@@ -95,7 +96,8 @@ function ToastContent({
           ) : null}
         </View>
         {onPress && visibleAction ? (
-          <Pressable
+          <Button
+            variant="outline"
             onPress={onPress}
             accessibilityRole="button"
             accessibilityLabel={visibleAction}
@@ -104,15 +106,12 @@ function ToastContent({
               justifyContent: 'center',
               marginLeft: 10,
               paddingHorizontal: 10,
-              borderRadius: 10,
-              borderColor: accent,
-              borderWidth: 1,
             }}
           >
             <Text style={{ color: accent, fontSize: 14, fontWeight: '600' }}>
               {visibleAction}
             </Text>
-          </Pressable>
+          </Button>
         ) : null}
       </View>
     </View>

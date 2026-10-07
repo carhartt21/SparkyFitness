@@ -1,3 +1,4 @@
+import Button from '../components/ui/Button';
 import React, { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { TFunction } from 'i18next';
@@ -221,10 +222,10 @@ const ExerciseFormBody: React.FC<ExerciseFormBodyProps> = ({
         onSelect={onSelect}
         title={t('workout.select', { defaultValue: 'Select {{label}}', label })}
         renderTrigger={({ onPress }) => (
-          <TouchableOpacity
+          <Button
+            variant="secondary"
             onPress={onPress}
-            activeOpacity={0.7}
-            className="bg-raised rounded-lg border border-border-subtle px-3 py-2.5 flex-row items-center justify-between"
+            className="px-3 py-2.5 flex-row items-center justify-between"
             style={{ height: 44 }}
           >
             <Text className="text-text-primary" style={{ fontSize: 16 }}>
@@ -235,7 +236,7 @@ const ExerciseFormBody: React.FC<ExerciseFormBodyProps> = ({
               )}
             </Text>
             <Icon name="chevron-down" size={16} color={textMuted} />
-          </TouchableOpacity>
+          </Button>
         )}
       />
     </View>

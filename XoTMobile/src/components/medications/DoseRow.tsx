@@ -1,3 +1,4 @@
+import Button from '../ui/Button';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -183,21 +184,21 @@ const DoseRow: React.FC<DoseRowProps> = (props) => {
               {t('medications.dose.log', { defaultValue: 'Log' })}
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          <Button
+            variant="secondary"
             onPress={props.onSkip}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            activeOpacity={0.6}
             accessibilityRole="button"
             accessibilityLabel={t('medications.dose.skipTitle', {
               defaultValue: 'Skip {{title}}',
               title,
             })}
-            className="rounded-md px-3 py-1 ml-1 bg-raised"
+            className="px-3 py-1 ml-1"
           >
             <Text className="text-sm font-semibold text-accent-primary">
               {t('medications.dose.skip', { defaultValue: 'Skip' })}
             </Text>
-          </TouchableOpacity>
+          </Button>
         </View>
       );
     }

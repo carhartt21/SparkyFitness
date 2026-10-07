@@ -7073,7 +7073,13 @@
     "unresolved_other": "{{count}} ingredients need confirmed nutrition and a reusable food serving variant. Resolve them first, or explicitly continue with the other ingredients.",
     "unresolved_one": "{{count}} ingredient needs confirmed nutrition and a reusable food serving variant. Resolve it first, or explicitly continue with the other ingredients.",
     "details": "Meal details",
-    "allowance": "Daily allowance"
+    "allowance": "Daily allowance",
+    "carbsLabel": "Carbs",
+    "foodAction": "Food",
+    "groupSummary_one": "{{calories}} kcal · {{count}} food",
+    "groupSummary_other": "{{calories}} kcal · {{count}} foods",
+    "noEntries": "Nothing recorded yet",
+    "pendingNutrition": "Nutrition pending"
   },
   "dailyTraining": {
     "title": "Training",
@@ -7088,6 +7094,7 @@
     "partial": "Some training data could not be refreshed.",
     "weekCounts": "{{recorded}} recorded · {{planned}} scheduled",
     "dayDetails": "Daily details",
+    "dayDetailsAction": "Day details",
     "loadingSources": "Loading training sources…",
     "types": {
       "walking": "Walking",
@@ -7105,6 +7112,12 @@
     "duration": "{{value}} min",
     "mi": "mi",
     "km": "km",
-    "start": "Start training"
+    "start": "Start training",
+    "weekPlan": "Weekly plan",
+    "sessionsLabel": "Sessions",
+    "minutesLabel": "Minutes recorded",
+    "startAction": "Start",
+    "logAction": "Record",
+    "energyUnknown": "Energy not recorded"
   }
 }

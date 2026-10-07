@@ -5,7 +5,6 @@ import { useCSSVariable } from 'uniwind';
 import type { MealDayStatusValue, MealTrackingState } from '@workspace/shared';
 import Icon, { type IconName } from '../Icon';
 import ActionSheet, { type ActionSheetRef } from '../ActionSheet';
-import { withAlpha } from '../ui/glow';
 import { useNeonScale } from './useNeonScale';
 
 interface MealStatusControlProps {
@@ -84,14 +83,8 @@ export default function MealStatusControl({
         onPress={() => onChange(nextStatus[state])}
         onLongPress={open}
         delayLongPress={350}
-        className="h-11 w-11 items-center justify-center rounded-lg border active:opacity-70"
-        style={{
-          borderColor: withAlpha(current.color, 0.6),
-          backgroundColor:
-            state === 'pending'
-              ? 'transparent'
-              : withAlpha(current.color, 0.12),
-        }}
+        className="h-11 w-11 items-center justify-center active:opacity-70"
+        style={{ backgroundColor: 'transparent' }}
       >
         <Icon name={current.icon} size={22} color={current.color} />
       </Pressable>

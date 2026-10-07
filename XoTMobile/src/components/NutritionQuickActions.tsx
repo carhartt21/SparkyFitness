@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import { useEffect, useState } from 'react';
 import { Alert, Modal, Pressable, Text, TextInput, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -250,16 +251,17 @@ export default function NutritionQuickActions({
                 className="rounded-lg bg-background px-3 py-3 text-text-primary"
               />
             ))}
-            <Pressable
+            <Button
+              variant="primary"
               accessibilityRole="button"
               disabled={busy}
               onPress={() => void saveQuick()}
-              className="rounded-lg bg-accent-primary px-3 py-3"
+              className="px-3 py-3"
             >
-              <Text className="text-center font-semibold text-accent-text">
+              <Text className="text-center font-semibold text-text-primary">
                 {t('common.save', { defaultValue: 'Save' })}
               </Text>
-            </Pressable>
+            </Button>
             <Pressable
               accessibilityRole="button"
               onPress={() => setShowQuick(false)}

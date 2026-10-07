@@ -1,3 +1,4 @@
+import Button from './ui/Button';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, Text, View } from 'react-native';
@@ -81,7 +82,7 @@ function ActiveWorkoutRestBar({
       '--color-text-muted',
       '--color-progress-track',
       '--color-chrome-border',
-      '--color-accent-text',
+      '--color-text-primary',
     ]) as [string, string, string, string, string];
 
   const paused = state === 'paused';
@@ -110,15 +111,16 @@ function ActiveWorkoutRestBar({
             </Text>
           )}
         </View>
-        <Pressable
+        <Button
+          variant="secondary"
           onPress={onCompleteSet}
           hitSlop={HIT_SLOP}
           accessibilityRole="button"
           accessibilityLabel={t('activeWorkout.rest.completeSet', {
             defaultValue: 'Complete set',
           })}
-          className="flex-row items-center rounded-md px-4 py-2.5"
-          style={{ backgroundColor: accentPrimary, gap: 6 }}
+          className="flex-row items-center px-4 py-2.5"
+          style={{ gap: 6 }}
         >
           <Icon name="checkmark" size={16} color={accentText} weight="bold" />
           <Text className="text-sm font-semibold" style={{ color: accentText }}>
@@ -126,7 +128,7 @@ function ActiveWorkoutRestBar({
               defaultValue: 'Complete Set',
             })}
           </Text>
-        </Pressable>
+        </Button>
       </View>
     ) : (
       <>
@@ -168,13 +170,14 @@ function ActiveWorkoutRestBar({
                 weight="bold"
               />
             </Pressable>
-            <Pressable
+            <Button
+              variant="secondary"
               onPress={() => onAdjust(-15)}
               accessibilityRole="button"
               accessibilityLabel={t('activeWorkout.rest.shorten', {
                 defaultValue: 'Shorten rest by 15 seconds',
               })}
-              className="rounded-md bg-raised px-3 py-2"
+              className="px-3 py-2"
             >
               <Text
                 className="text-sm font-semibold text-text-primary"
@@ -185,7 +188,7 @@ function ActiveWorkoutRestBar({
                   seconds: 15,
                 })}
               </Text>
-            </Pressable>
+            </Button>
           </View>
 
           <Text
@@ -199,13 +202,14 @@ function ActiveWorkoutRestBar({
             className="flex-1 flex-row items-center justify-end"
             style={{ gap: 7 }}
           >
-            <Pressable
+            <Button
+              variant="secondary"
               onPress={() => onAdjust(15)}
               accessibilityRole="button"
               accessibilityLabel={t('activeWorkout.rest.extend', {
                 defaultValue: 'Extend rest by 15 seconds',
               })}
-              className="rounded-md bg-raised px-3 py-2"
+              className="px-3 py-2"
             >
               <Text
                 className="text-sm font-semibold text-text-primary"
@@ -216,7 +220,7 @@ function ActiveWorkoutRestBar({
                   seconds: 15,
                 })}
               </Text>
-            </Pressable>
+            </Button>
             <Pressable
               onPress={onSkip}
               hitSlop={HIT_SLOP}

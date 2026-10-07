@@ -612,21 +612,22 @@ const MealPlanFormScreen: React.FC<MealPlanFormScreenProps> = ({
               (assignment) => assignment.day_of_week === day
             );
             return (
-              <Pressable
+              <Button
+                variant={isSelected ? 'primary' : 'secondary'}
                 key={label}
                 accessibilityRole="tab"
                 accessibilityState={{ selected: isSelected }}
                 onPress={() => setSelectedDay(day)}
                 className={
                   isSelected
-                    ? 'min-w-24 rounded-xl bg-accent-primary px-3 py-2.5 items-center'
-                    : 'min-w-24 rounded-xl bg-raised px-3 py-2.5 items-center'
+                    ? 'min-w-24   px-3 py-2.5 items-center'
+                    : 'min-w-24   px-3 py-2.5 items-center'
                 }
               >
                 <Text
                   className={
                     isSelected
-                      ? 'text-sm font-semibold text-accent-text'
+                      ? 'text-sm font-semibold text-text-primary'
                       : 'text-sm font-semibold text-text-primary'
                   }
                 >
@@ -641,7 +642,7 @@ const MealPlanFormScreen: React.FC<MealPlanFormScreenProps> = ({
                       : 'w-1.5 h-1.5 mt-1'
                   }
                 />
-              </Pressable>
+              </Button>
             );
           })}
         </ScrollView>

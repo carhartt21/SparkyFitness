@@ -724,7 +724,7 @@ const EditLoggedMealScreen: React.FC<EditLoggedMealScreenProps> = ({
               variant="ghost"
               onPress={openIngredientPicker}
               disabled={isRowBusy}
-              className="min-h-11 flex-row items-center gap-1.5 rounded-xl px-3 py-2"
+              className="min-h-11 flex-row items-center gap-1.5 px-3 py-2"
               accessibilityLabel={t('editLoggedMeal.actions.addFood', {
                 defaultValue: 'Add Food',
               })}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTranslation } from 'react-i18next';
 import { useActiveWorkoutBarPadding } from '../components/ActiveWorkoutBar';
@@ -346,25 +346,24 @@ const FamilyCopyReviewScreen: React.FC<FamilyCopyReviewScreenProps> = ({
           {mealTypes.map((mealType) => {
             const selected = mealType.id === resolvedTargetMealTypeId;
             return (
-              <Pressable
+              <Button
+                variant={selected ? 'primary' : 'secondary'}
                 key={mealType.id}
                 accessibilityRole="button"
                 accessibilityLabel={mealType.name}
                 accessibilityState={{ selected }}
-                className={`rounded-md px-4 py-2 ${
-                  selected ? 'bg-accent-primary' : 'bg-surface'
-                }`}
+                className={` px-4 py-2 ${selected ? '' : ''}`}
                 style={{ minHeight: 44, minWidth: 44 }}
                 onPress={() => setTargetMealTypeId(mealType.id)}
               >
                 <Text
                   className={
-                    selected ? 'text-accent-text' : 'text-text-primary'
+                    selected ? 'text-text-primary' : 'text-text-primary'
                   }
                 >
                   {mealType.name}
                 </Text>
-              </Pressable>
+              </Button>
             );
           })}
         </View>

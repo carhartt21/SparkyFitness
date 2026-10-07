@@ -154,7 +154,7 @@ export function useDiaryScheduledEntries(
       content: (
         <NeonButton
           variant="subtle"
-          className="rounded-xl"
+          className=""
           label={t('common.details', { defaultValue: 'Details' })}
           onPress={() => openItem(item)}
         />
@@ -205,7 +205,7 @@ export function useDiaryScheduledEntries(
               })}
             </Text>
             <NeonButton
-              className="rounded-xl"
+              className=""
               variant="subtle"
               label={t('supplements.skipDose', {
                 defaultValue: 'Skip this dose',

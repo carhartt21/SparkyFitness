@@ -87,7 +87,7 @@ rounded:
   mobile-group: "12px"
   web-profile-card: "12px"
   dashboard-card: "16px"
-  dashboard-action: "16px"
+  dashboard-action: "12px"
 spacing:
   compact: "4px"
   small: "8px"
@@ -127,7 +127,7 @@ components:
     rounded: "{rounded.dashboard-card}"
     padding: "{spacing.medium}"
   mobile-dashboard-quick-action:
-    backgroundColor: "hsl(0, 0%, 100%)"
+    backgroundColor: "rgba(201, 76, 51, 0.07)"
     textColor: "{colors.text-mobile-light}"
     rounded: "{rounded.dashboard-action}"
     padding: "8px 4px"
@@ -137,6 +137,26 @@ components:
   mobile-dashboard-macro-row:
     textColor: "{colors.text-mobile-light}"
     padding: "4px 0"
+  mobile-button-primary:
+    backgroundColor: "rgba(11, 94, 70, 0.16)"
+    textColor: "{colors.text-mobile-light}"
+    rounded: "{rounded.dashboard-action}"
+    padding: "14px 16px"
+  mobile-button-outline:
+    backgroundColor: "rgba(11, 94, 70, 0.07)"
+    textColor: "{colors.text-mobile-light}"
+    rounded: "{rounded.dashboard-action}"
+    padding: "14px 16px"
+  mobile-button-secondary:
+    backgroundColor: "rgba(255, 253, 248, 0.76)"
+    textColor: "{colors.text-mobile-light}"
+    rounded: "{rounded.dashboard-action}"
+    padding: "14px 16px"
+  mobile-button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.brand-green-mobile-light}"
+    rounded: "{rounded.dashboard-action}"
+    padding: "14px 16px"
 ---
 
 # Design System: X on Track Settings and Mobile Dashboard
@@ -153,7 +173,9 @@ The native Home, Diary and daily detail pages are **Operate** surfaces. Home lea
 
 **Verification boundary:** The Settings record remains based on source code, theme tokens, and English locale content; its authenticated appearance and viewport behavior were not verified during that documentation pass. Earlier Dashboard evidence remains historical in `docs/implementation/dashboard-alignment-2026-09-26.md`, `docs/implementation/archive/ui-2026-09-26/mobile-header-controls-2026-09-26.md`, `docs/implementation/archive/ui-2026-09-26/dashboard-stacked-summaries-2026-09-26.md`, and `docs/implementation/v44-diary-refinement-2026-10-06.md`. The current refinement is recorded in [the V45 implementation record](docs/implementation/v45-diary-meals-training-refinement-2026-10-07.md). Its evidence packet includes 39 matrix captures, one supplemental hydration capture and 12 latest `owner-` Home/Diary captures, with German simulator tours at 390 points in dark/light and 430 points with enlarged text. The [owner follow-up results](docs/implementation/evidence/v45-diary-meals-training-2026-10-07/owner-followup-simulator-results.json) record three passing native interaction tours. The latest ordinary Home captures show consumed energy and allowance inside the arc with all four logging tiles; enlarged text shows unrestricted plain intake/allowance, and Diary captures show the fork-and-knife meal glyph. Named captures show their scroll positions. Isolated synthetic fixtures verify navigation, app actions and refreshed summaries; they do not prove real-server persistence. The record reports the mobile full and focused regressions, focused server tests, all three package validations, and a successful iOS Simulator Debug build including generated Watch targets. The [round-two bounded verdict](docs/implementation/evidence/v45-diary-meals-training-2026-10-07/verdict-round2.md) resolves the eight scored UI fixes and predates the owner intake/icon correction; latest source and the separate owner follow-up captures document that correction. The [owner follow-up finish review](docs/implementation/evidence/v45-diary-meals-training-2026-10-07/finish-owner-followup.md) gives a ship disposition only for the Home intake center and Diary meal glyph; it does not accept broader Meals/Training board fidelity or physical-device behavior. Neither bounded review is whole-app or release acceptance. No HTML/CSS detector ran for this native-only batch. Historical web evidence covers the actual shared clock input on an isolated review page, not authenticated Settings; historical widget evidence covers actual SwiftUI content previews with synthetic data and compatible preview environment keys, not WidgetKit hosting. Physical iPhone/Watch interaction, VoiceOver, Android, Health/Fitness export, phone–Watch round-trips, actual widget deep-link lifecycle, hardware offline replay, signed release archives, upload and deployment remain unverified. The owner's real Hevy history of more than 200 workouts still requires account verification despite retained V44 visibility/import tools and passing focused regressions. This documentation refresh adds no new rendering or application test run. Native measurements in the portable frontmatter use px notation for React Native logical layout units.
 
-**Remaining scoped direction:** Closer fidelity of dedicated Meals and Training to the approved boards—button hierarchy, information tables and layout—is the main next-cycle focus. Moving Training after food intake on Watch is a smaller later task; no Watch interaction/order change is implemented in this batch. These follow-ups do not replace the incumbent design system.
+**Current phone alignment:** [The phone button and Meals/Training record](docs/implementation/phone-buttons-meals-training-alignment-2026-10-07.md) captures the shared action material and closer daily/weekly composition now implemented. The current `aligned-` German iOS simulator captures cover 390-point dark/light and 430-point enlarged text, including the lower meal and weekly footers. [The finish review](docs/implementation/evidence/v45-diary-meals-training-2026-10-07/finish-button-alignment.md) resolves the four layout corrections and the introduced German Daily details word break, with ship disposition only at that scored-fix scope. The full mobile run passed 7,904 tests before the bounded corrections; 24 focused tests, mobile validation and three native render/interaction cases cover the follow-up. These are native phone adaptations of the approved boards: platform headers and calendar controls, existing symbols, real data and enlarged-text reflow remain authoritative. Android source shares these patterns, but Android/device behavior and whole-app visual acceptance remain unverified. This documentation merge adds no application test run.
+
+**Remaining scoped direction:** Moving Training after food intake on Watch remains a later task; no Watch interaction/order change is implemented in this phone batch. This bounded merge retains the incumbent identity and unrelated platform patterns.
 
 **Key Characteristics:**
 
@@ -164,6 +186,7 @@ The native Home, Diary and daily detail pages are **Operate** surfaces. Home lea
 - Compact native Home with daily progress, energy, Training and four logging actions above further detail destinations.
 - Recorded-before-planned Diary sections with truthful times, visible meal-state actions, and text that reflows as it grows.
 - Dedicated daily Meals, Training and hydration pages that preserve the selected day and existing recording flows.
+- Shared rounded-rectangle phone actions with translucent material, restrained glow and readable native touch targets.
 
 ## Colors
 
@@ -193,7 +216,7 @@ The Settings surfaces inherit each platform's default font stack; neither target
 
 ### Mobile Dashboard
 
-Home uses the native font stack, a medium-weight date control (14 points), a centered bold energy value, strong summary headings, and readable supporting text. Retained hydration, exercise, and nutrient components keep their existing typography tokens on their own surfaces. At font scales above 1.3, Daily Progress stacks, the energy and daily hydration summaries remove their arcs in favor of plain values, and quick actions wrap into two columns. Daily Meals macro summaries and primary actions take the full width; meal calorie summaries move below their titles. The custom bottom tab bar is a bounded exception: visible labels fit on one line with a maximum multiplier of 1.2 and retain their full accessible names.
+Home uses the native font stack, a medium-weight date control (14 points), a centered bold energy value, strong summary headings, and readable supporting text. Retained hydration, exercise, and nutrient components keep their existing typography tokens on their own surfaces. At font scales above 1.3, Daily Progress stacks, the energy and daily hydration summaries remove their arcs in favor of plain values, and quick actions wrap into two columns. `DailyMetricTable` stacks the Meals energy/macro metrics and Training session/minute metrics; paired daily and weekly Training actions become full-width rows, and the meal footer puts its complete template label below the icon actions. Meal titles and summaries reflow. The custom bottom tab bar is a bounded exception: visible labels fit on one line with a maximum multiplier of 1.2 and retain their full accessible names.
 
 Diary timeline titles use semibold native body text (16 points), with clocks and summaries at 14 points. Clocks use tabular numerals and a single line. Above a font scale of 1.3, `HH:mm` moves above the title and summary in the content column instead of squeezing into the ordinary 44-point gutter. Titles and summaries wrap naturally; disclosure and eligible meal-state controls retain separate targets of at least 44 by 44 points.
 
@@ -215,7 +238,7 @@ The native Home scrolls vertically with a 16-point horizontal gutter over the am
 
 `DailyDetailScreen` gives these pushed pages back navigation, the shared full-width date bar and calendar, safe-area-aware vertical scrolling with a 16-point gutter, and pull-to-refresh. Date changes update the shared selected day; Meals exits selection mode before changing it. Their contents reuse incumbent bordered surfaces and controls. They are detail destinations under the five-tab navigation, not new tabs.
 
-Daily Meals leads with known consumed energy, remaining/over-target energy and the adjusted allowance when a valid goal exists, then categorical macro amounts and the pending-photo coverage note. Add food, photo and Edit actions precede collapsed meal groups. Daily Training places the weekly-plan destination above actual session counts/minutes, start/log/mobility actions, Recorded, then Planned. Unified hydration places its cyan daily gauge and shared logger above source totals, the solid-food details note, and source/history rows. Each page scrolls as text grows; no page-wide scaling or layout constraint from this phone composition applies to Settings or web.
+Daily Meals leads with a compact three-column energy table: known consumption, remaining/over-target energy and adjusted allowance when a valid goal exists. Vertical rules separate those values; a horizontal rule separates the categorical, label-first macro row. The pending-photo coverage note appears only when unresolved nutrition exists. A primary Food action and a secondary camera target precede compact collapsed meal headers; Edit stays in the native header. Daily Training places the weekly-plan destination above a ruled session/minute table, paired primary Start and secondary Record actions, the separate Mobility destination, Recorded, then Planned. Weekly Training uses a seven-day selector, selected-day counts and seven compact expandable day groups; Create plan and Day details sit together after the itinerary. Unified hydration places its cyan daily gauge and shared logger above source totals, the solid-food details note, and source/history rows. Each page scrolls as text grows; no page-wide scaling or layout constraint from this phone composition applies to Settings or web.
 
 ### Mobile Diary
 
@@ -233,11 +256,13 @@ The mobile row group and standalone row use the existing small shadow utility; t
 
 Home's energy, Daily Progress and Training cards, compact detail group, daily meal groups, and Diary timeline groups use the incumbent surface fills, neutral glow, and subtle borders. Daily hydration uses its existing cyan border/glow; retained hydration and exercise variants preserve their own bordered treatments. The custom tab bar's central Add action retains its platform shadow/elevation. These local treatments do not redefine Settings or web elevation.
 
+Phone action depth comes from `buttonTheme.ts`: a restrained 10-point dark/AMOLED glow around the semantic or neutral edge, and a small neutral shadow in light mode. Primary glow uses the edge at 20% opacity; outline and secondary use 10%. Disabled, loading, ghost, header and link actions omit glow. This material is translucent color rather than a blur effect.
+
 ## Shapes
 
 Mobile groups use 12px corners and icon tiles use 8px corners. Web section tabs and accordion items use 8px corners; the profile summary uses 12px. Thin separators and borders mark boundaries without turning each mobile row into a separate card.
 
-Cards use 16-point corners (`GlowCard`). Primary, outline and filter controls are capsules (`NeonButton`, `ui/Button`, `SegmentedControl`), matching the reference; circles remain for progress, icon-only buttons, icon badges and the central Add action. The compact Home energy gauge is a 270° arc (`EnergyGauge`), 130 points across with a 12-point stroke. Daily hydration uses the same open-arc geometry at 212 points with a 15-point stroke and a single cyan color. Both are supplementary to textual values and are omitted at enlarged text sizes. These are local component dimensions, not new system tokens. Floating workout `LiquidGlassSurface` chrome keeps 16-point container corners.
+Cards use 16-point corners (`GlowCard`). Phone action buttons, quick-action and creation tiles, filters and pickers use the shared 12-point rounded rectangle from `buttonTheme.ts`; `NeonButton` is a compatibility adapter for that same material. Native navigation chrome, camera shutters, semantic state circles, icon badges, progress graphics, the central Add action and tappable content cards retain their purpose-specific geometry. `MealStatusControl` displays its state glyph in a transparent 44-by-44-point target without a surrounding button frame. The compact Home energy gauge is a 270° arc (`EnergyGauge`), 130 points across with a 12-point stroke. Daily hydration uses the same open-arc geometry at 212 points with a 15-point stroke and a single cyan color. Both are supplementary to textual values and are omitted at enlarged text sizes. These are local component dimensions, not new system tokens. Floating workout `LiquidGlassSurface` chrome keeps 16-point container corners.
 
 ## Components
 
@@ -260,6 +285,12 @@ Tabs have text labels and decorative icons, with a visible active fill and keybo
 ### Web 24-hour clock input
 
 The shared `XoTFrontend/src/components/ui/input.tsx` preserves the existing bordered input, focus ring, disabled state, and theme roles. Time fields render as text with a numeric keyboard hint and an `HH:mm` placeholder, validate the complete 00:00–23:59 range, and normalize four entered digits such as `1430` to `14:30`. Partial drafts remain visible and invalid rather than becoming saved times. `TimeCommitInput` commits a changed, complete valid draft on blur; Enter triggers that same validation boundary. Existing meal-time and bedtime save flows also check validity. The isolated desktop/mobile captures verify this shared control, not browser keyboards or authenticated settings screens.
+
+### Mobile phone action buttons
+
+`ui/Button` and `NeonButton` share `useButtonAppearance` in `buttonTheme.ts`, with a minimum 44-point touch height. Primary actions use a 16% semantic tint and 65% tinted edge; outline and destructive actions use a 7% tint and 40% edge. Secondary actions use the current elevated-surface token at 76% opacity with a 40% neutral edge. Primary, outline and secondary labels use the primary text role; destructive text uses its danger tint. Ghost, header and link actions keep transparent surfaces and quiet accent text, with the existing neutral option for secondary/header-like copy.
+
+The material is applied after caller styles. Callers supply layout, icons, semantic tint, translated labels and action state; radius, fill and glow stay shared. `ActionTile` uses the outline material and its existing 72-point minimum; `CreateTile` uses secondary material and retains its icon/title/subtitle anatomy. Disabled/loading actions block presses and remove glow; loading replaces the label with a spinner. `Button` allows two visible label lines; `NeonButton` bounds visible labels while keeping the full accessible name. `scripts/check-button-theme.mjs`, included in mobile `validate`, checks shared-button callers for conflicting surface classes and inline overrides.
 
 ### Mobile Dashboard energy and quick actions
 
@@ -313,7 +344,7 @@ Edit replaces the reading timeline with the existing food selection view. `useDi
 
 ### Mobile daily Meals and task recording
 
-`DailyMealsScreen` projects existing food summaries, explicit meal states, captures and outbox entries; it does not create a separate logging store. `FoodSummary`'s daily meal groups start collapsed, with disclosure and eligible `MealStatusControl` as independent targets. Opening a group reveals the existing serving adjustment, entry details, Add food, meal details and Save as template actions. Selection mode exposes the established move/copy/delete and drag controls. Enlarged-text meal headers place calorie summaries below the complete title, and macro/action rows reflow without compressing food names.
+`DailyMealsScreen` projects existing food summaries, explicit meal states, captures and outbox entries; it does not create a separate logging store. `FoodSummary`'s daily meal groups start collapsed, with a category glyph, complete title, compact clock/calorie/food-count or pending summary, disclosure and eligible `MealStatusControl` as independent targets. Expanded groups show compact 40-point food thumbnails with an actual image or fallback, literal food names, amounts, known energy and actual recording clocks, plus the quiet ellipsis serving action. A ruled footer puts secondary Add food and Meal details icon targets (44 by 44 points) beside the quiet Save as template action at ordinary text size; enlarged text moves the complete template label to a full-width row below the icons. Selection mode exposes the established move/copy/delete and drag controls. Metric tables, food rows and headers reflow without compressing food names.
 
 Save as template passes a create-only `diaryMealDraft` to the existing meal editor. It preserves recorded per-serving nutrient snapshots, ingredient quantities and units, while excluding entry IDs, dates/times and photos. A deleted food, missing reusable serving variant or unresolved nutrition requires explicit review; the user can cancel or choose the resolved ingredients when any exist. No library identity or nutrition is fabricated, and the editor remains the save boundary. Pending photos remain pending until nutrition is confirmed. An unavailable calorie goal is not rendered as a zero allowance.
 
@@ -323,13 +354,15 @@ Task circles have a real action: completion habits record completion, numeric ha
 
 `TrainingSummaryCard` opens the selected day's `DailyTrainingScreen`. Actual workout duration and terminal mobility session elapsed time produce the session/minute summary; mobility elapsed time includes pauses and is not measured active time. Planned durations and daily active-energy aggregates never enter those totals. Failed/loading mobility reads withhold exact combined counts/minutes while known records remain visible, and Retry reloads the failed source. Planning errors retain partial-data copy. This page creates no calorie estimate.
 
-Daily Training separates Recorded and Planned with actual activity icons, clocks, known duration/energy/distance, and existing detail/start/log/mobility destinations. `WeeklyTrainingItinerary` extends `WorkoutPlansScreen` with week controls, dated day selectors, recorded/scheduled counts and selected-day sport rows. Records open daily detail; workout occurrences open the retained plan editor and mobility occurrences open daily detail. Existing plan editing, activation and legacy plans remain available. Empty days state that no training is planned; they do not invent rest-day intent. Reads neither create nor complete plan occurrences.
+Daily Training uses `DailyMetricTable` for actual session and recorded-minute values with activity/timer glyphs and a central rule. Start and Record remain paired at ordinary text size and stack above font scale 1.3; Mobility has its own secondary row. `TrainingSessionRow` aligns the actual clock, activity glyph, title, useful known duration/energy/distance and disclosure; enlarged text moves a known clock above the title. Unknown energy and unavailable clocks stay explicit. Recorded and Planned remain separate, with their existing detail/start/log/mobility destinations.
+
+`WeeklyTrainingItinerary` extends `WorkoutPlansScreen` with week navigation and seven day selectors, selected-day recorded/scheduled counts and compact ruled session rows inside dated day groups. Day headers have at least 44-point targets and keep date/count metadata on one line at ordinary size; enlarged text separates them. Recorded rows put their state inline with the title at ordinary size and reflow at enlarged size. Weekly records lack source clocks/durations in the planning response, so those values remain absent; records open actual daily detail. Workout occurrences open the retained plan editor and mobility occurrences open daily detail. Primary Create plan and secondary Day details follow the itinerary and stack at enlarged text size; German uses visible “Tagesdetails” with the full accessible “Tagesübersicht.” Existing plan editing, activation and legacy plans remain available. Empty days state that no training is planned; they do not invent rest-day intent. Reads neither create nor complete plan occurrences.
 
 ### Mobile neon component system
 
 Shared summary motion explains actual changes: the X and energy/hydration gauges retarget from their current endpoint, macro bars update continuously without replaying from zero, and changed status rows/cup markers use a brief opacity transition. Compact Home uses the energy and Daily Progress patterns; hydration and macro patterns remain in their own components. Exact text updates immediately. A separate X halo runs once after a visible known transition to completion. `MotionPressable` gives shared actions and tappable cards a 1.5% compression; native Reduce Motion retains pressed opacity and immediate state updates. Screen blur/backgrounding settles and cancels motion without a deferred replay. Timing, component usage and evidence are in `docs/implementation/dashboard-widget-motion-2026-10-04.md`.
 
-Shared primitives live in `XoTMobile/src/components/ui/`: `glow.ts` (`useGlowTheme`, `withAlpha`, `glowSurfaceStyle`), `GlowCard`, `NeonButton`, `ActionTile`, `IconBadge` and `ScreenBackground`. Dark and AMOLED themes use restrained card glows and a neutral ambient edge light; light uses a soft shadow. The semantic nutrient palette is categorical and stable across percentages: calories slate, protein blue, carbs violet, fat amber and fiber rose. It is separate from the warm-to-green X progress path, which describes distance along the path. `--color-card-glow` governs neutral card light; nutrient, hydration, exercise and action tokens have their own roles. `SettingsRowGroup`, `CreateTile` and Dashboard/Diary cards share the 16-point bordered card.
+Shared primitives live in `XoTMobile/src/components/ui/`: `glow.ts` (`useGlowTheme`, `withAlpha`, `glowSurfaceStyle`), `buttonTheme.ts`, `Button`, `GlowCard`, `NeonButton`, `ActionTile`, `IconBadge` and `ScreenBackground`. Dark and AMOLED themes use restrained card glows and a neutral ambient edge light; light uses a soft shadow. The semantic nutrient palette is categorical and stable across percentages: calories slate, protein blue, carbs violet, fat amber and fiber rose. It is separate from the warm-to-green X progress path, which describes distance along the path. `--color-card-glow` governs neutral card light; nutrient, hydration, exercise and action tokens have their own roles. `SettingsRowGroup` and Dashboard/Diary cards share the 16-point bordered card; creation tiles use the shared action material.
 
 `TabScreenHeader` gives Diary, Insights and More a Settings button, large title and subtitle; Diary's refined identity-led header keeps Settings on the right and the logo opens Home. Dashboard retains its product-name/tagline header. Food search rows offer a quick-add button that opens `QuickAddFoodSheet` (serving, 0.5/1/1.5/2× amount presets, meal, live nutrition) and logs without leaving search; food details offer the same amount presets under the stepper.
 
@@ -360,6 +393,7 @@ Medium iOS energy, macro, and nutrition-capture Home Screen widgets add the star
 - **Do** keep connection and sync information truthful in loading and error states.
 - **Do** preserve accessible names, focus indicators, navigation destinations, and URL section aliases.
 - **Do** keep native Dashboard actions at usable touch sizes and let larger text stack and scroll.
+- **Do** reuse the shared 12-point rounded-rectangle phone action material and minimum 44-point targets across logging, forms, filters and pickers.
 - **Do** derive Dashboard balances, meals, goals, and pending hydration states from actual app data.
 - **Do** preserve the approved X on Track assets and “Keep getting better.” product identity; the Dashboard header shows the logo, name and tagline with Settings in the upper-right corner.
 - **Do** preserve the selected day in Dashboard detail destinations and explain gaps between hydration totals and individual drink entries.
@@ -378,5 +412,5 @@ Medium iOS energy, macro, and nutrition-capture Home Screen widgets add the star
 - **Don't** collapse unrelated settings into one unlabelled group.
 - **Don't** turn the Dashboard reference's sample calculations, profile, bell, imagery, or counts into product facts.
 - **Don't** shrink the Dashboard as a whole to fit a screenshot or apply its native composition to web Settings.
-- **Don't** use capsule shapes for refreshed mobile filters, badges or actions outside the Home and daily-detail patterns recorded here; those pages retain their existing capsule action variants and meaningful circular state/progress controls.
+- **Don't** override phone action radius, fill or glow at the call site; native chrome, state glyphs, shutters, progress graphics and tappable content cards keep their own geometry.
 - **Don't** treat a widget picker shortcut as a logged meal or commit an incomplete web clock draft.
