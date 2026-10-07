@@ -9,6 +9,7 @@ import {
 } from '@workspace/shared';
 import { useActivityPlanning } from '../hooks/useActivityPlanning';
 import Button from './ui/Button';
+import ActivityTargetProgress from './tracking/ActivityTargetProgress';
 import { formatDate } from '../utils/dateUtils';
 import { useAppLocale } from '../localization';
 
@@ -189,6 +190,7 @@ export default function WeeklyActivityOverview({
                 <Text className="text-sm text-text-secondary">
                   {row.plan_label} · {states[row.state]}
                 </Text>
+                <ActivityTargetProgress occurrence={row} />
                 {row.reason === 'prescription_unknown' && (
                   <Text className="text-sm text-text-secondary">
                     {t('activityPlanning.unknownHint', {

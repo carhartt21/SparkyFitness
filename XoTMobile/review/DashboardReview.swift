@@ -2,6 +2,25 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// A recorded session below its target stays started and explains the gap.
+  func testWorkoutGoalProgress() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let progress = app.buttons["dashboard-progress-open"]
+    for _ in 0..<12 { if progress.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(progress.isHittable); progress.tap()
+    XCTAssertTrue(app.otherElements["daily-progress"].waitForExistence(timeout: 15))
+    let target = app.staticTexts["35,3 von 45 min"].firstMatch
+    for _ in 0..<12 { if target.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(target.isHittable)
+    let started = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "Krafttraining: Begonnen")).firstMatch
+    XCTAssertTrue(started.exists)
+    XCTAssertGreaterThanOrEqual(target.frame.minX, 16)
+    XCTAssertLessThanOrEqual(target.frame.maxX, app.frame.width - 16)
+    capture("workout-goal-progress", app)
+  }
   /// Scheduled activity → routine picker retains the plan without recording it.
   func testScheduledRoutineSelection() throws {
     continueAfterFailure = false

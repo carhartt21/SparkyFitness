@@ -28,6 +28,10 @@ import {
 } from '../src/services/mobilityRoutineStore';
 import { saveHealthPreference } from '../src/services/healthkit/preferences';
 import { initializeI18n } from '../src/localization/i18n';
+import {
+  summarizeDailyProgressItems,
+  withActivityProgress,
+} from '@workspace/shared';
 
 const transport = global.fetch;
 export default function ReviewApp() {
@@ -69,6 +73,7 @@ export default function ReviewApp() {
         v43Review?: boolean;
         v44Review?: boolean;
         v45Review?: boolean;
+        workoutGoalReview?: boolean;
         motionReview?: boolean;
         mobilityReview?: boolean;
         coachingReview?: boolean;
@@ -148,7 +153,11 @@ export default function ReviewApp() {
             config.v45Review &&
             method === 'GET' &&
             url.pathname === '/api/v2/activity-planning'
-              ? dailyDetailPlanning(url, getTodayDate())
+              ? dailyDetailPlanning(
+                  url,
+                  getTodayDate(),
+                  config.workoutGoalReview
+                )
               : coachingResult !== undefined
                 ? coachingResult
                 : mobilityResult !== undefined
@@ -184,7 +193,19 @@ export default function ReviewApp() {
                       : [],
                 }
               : result;
-          return new Response(JSON.stringify(body), {
+          const responseBody =
+            config.workoutGoalReview &&
+            method === 'GET' &&
+            url.pathname.startsWith('/api/v2/tracking/daily-progress/')
+              ? withActivityProgress(
+                  summarizeDailyProgressItems(
+                    url.pathname.split('/').at(-1)!,
+                    []
+                  ),
+                  dailyDetailPlanning(url, getTodayDate(), true).occurrences
+                )
+              : body;
+          return new Response(JSON.stringify(responseBody), {
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {

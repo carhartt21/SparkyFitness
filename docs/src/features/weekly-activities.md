@@ -20,7 +20,13 @@ planners. No automatic training program is generated.
    in one record. Optional sessions and rest days do not add required daily tasks.
 4. A confirmed, unassigned whole activity can automatically resolve a goal on
    the same day when its known sport matches and one record meets every saved
-   duration/distance target. A shorter record shows **Started**. Walking cannot
+   duration/distance target. A shorter record shows **Started**. If several
+   shorter sessions exist, progress uses the best single session against the
+   saved target; their times and distances are never added together to complete
+   one planned session. For example, 35 minutes against a 45-minute plan remains
+   started. The phone shows the recorded duration/distance beside that target.
+   If several sessions meet all targets, select the intended one with
+   **Link activity**. Walking cannot
    complete a running goal; planned prefills, ambiguous mixed sessions and
    records from before the goal was configured are excluded. One record resolves
    one task, with explicit assignment/link decisions taking precedence.

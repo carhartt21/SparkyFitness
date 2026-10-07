@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { randomUUID } from 'node:crypto';
 import { evaluateCoachingOutcome } from '@workspace/shared';
 import { activityData, activityEntry } from './fixtures/activityPlanning.js';
 import { projectActivityPlanning } from '../services/activityPlanningProjection.js';
@@ -23,6 +24,45 @@ const outcome = (rows: ReturnType<typeof coachingWorkoutEvidence>) =>
     },
   });
 describe('coaching shares weekly activity completion', () => {
+  it('keeps two shorter lifting sessions started and incomplete until one reaches the saved target', () => {
+    const data = activityData();
+    Object.assign(data.versions[0].assignments[0], {
+      exerciseId: null,
+      workoutPresetId: null,
+      exercises: [],
+      activityType: 'strength',
+      label: 'Strength training',
+      plannedDurationMinutes: 45,
+    });
+    data.entries = [0.6, 35.3].map((minutes) =>
+      activityEntry({
+        record_id: randomUUID(),
+        origin_id: null,
+        category: 'strength',
+        exercise_name: 'Bench press',
+        session_name: 'Split 1',
+        source: 'sparky',
+        completed_count: 1,
+        duration_minutes: minutes,
+        recorded_at: '2026-10-01T20:35:00Z',
+      })
+    );
+    const evidence = () =>
+      coachingWorkoutEvidence(
+        projectActivityPlanning(
+          data,
+          '2026-10-01',
+          '2026-10-01',
+          'Europe/Berlin',
+          '2026-10-02'
+        ).occurrences,
+        '2026-10-02'
+      );
+    expect(evidence()[0].value).toMatchObject({ completed: 0, started: 1 });
+    expect(outcome(evidence()).value).toBe(0);
+    data.entries[1].duration_minutes = 45;
+    expect(outcome(evidence()).value).toBe(1);
+  });
   it('does not treat partial attendance as full prescription completion', () => {
     const data = activityData();
     data.entries = [activityEntry({ completed_count: 1 })];

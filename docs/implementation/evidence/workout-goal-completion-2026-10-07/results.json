@@ -1,0 +1,84 @@
+{
+  "date": "2026-10-07",
+  "branch": "fix/workout-goal-completion-20261007",
+  "baseRevision": "848d182739980e4dd6e433197ceb9dd9ee7de534",
+  "sourceState": "Base revision plus uncommitted working-tree changes at verification time",
+  "sourceSha256": {
+    "XoTServer/services/activityPlanningProjection.ts": "8acb07c7174490cf198a9be5de2234b6c189ff91b322bf8b60e698fd0dc5f5b2",
+    "shared/src/schemas/api/ActivityPlanning.api.zod.ts": "4fdd2a4bb8a94e4b85e385549db852ad8376c6b6bc0703c85e2ec32e9bf2110b",
+    "XoTMobile/src/components/tracking/ActivityTargetProgress.tsx": "63177606a9ca0e860d2da3435e52c0ea314eb07ee86dd685716c9dabc3e593dc",
+    "XoTMobile/src/components/WeeklyActivityOverview.tsx": "3fd88c80ef895047ae609c01830376466ee8e6cb2c3290ebdb6b905e88c7761f",
+    "XoTMobile/src/screens/DailyProgressScreen.tsx": "6e5d54bff38f2750b4b5c0e1909fbacf5e92ae28cf8cf5d55caf12d7f6bb6970",
+    "XoTMobile/src/hooks/useDiaryScheduledEntries.tsx": "38c7d37a055ec14f717fc10317f7934e9206caaaf0c581768f271a40f531a1d5",
+    "XoTMobile/src/localization/locales/en/translation.json": "cd41d401df04b440cf2e72cd49b7fdf637bf0ed0f90a89fcb49c4393e58067d8",
+    "XoTMobile/src/localization/locales/de/translation.json": "be8cd553d72e93c86f306712021ee894c5e98897ef931e6ac9a5c04951625494",
+    "localization-overrides/de/mobile.json": "a76e29445618a5f7f94d776ac37a9eecbf13340f2bd884302352817aa9ca7859",
+    "XoTMobile/review/ReviewApp.tsx": "75607b690ba5ae647b5bf07bb7b08d7349289d0b52b6238af81b24a4188b45c0",
+    "XoTMobile/review/dailyDetailFixture.ts": "2cc4b0b479dbf935e0b5e796ff92dbe80054daae12fe62e0cddf7cd408029d6e",
+    "XoTMobile/review/DashboardReview.swift": "4a113590529cb69cc5f88fb13e0da1d3a3f126d9a61a8c08f3dd46bea02b1a47",
+    "XoTMobile/scripts/review-ios.mjs": "26ab0e588c2ada58bde0524d6034a36f50da97a8eb96c75bd221b9ee8965a382"
+  },
+  "validation": {
+    "server": "passed",
+    "phone": "passed",
+    "web": "passed",
+    "docsBuild": "passed"
+  },
+  "focusedTests": {
+    "server": {
+      "suites": 8,
+      "passed": 132
+    },
+    "phone": {
+      "suites": 5,
+      "passed": 39
+    },
+    "web": {
+      "suites": 2,
+      "passed": 6
+    },
+    "totalPassed": 177
+  },
+  "nativeTest": "testWorkoutGoalProgress",
+  "nativeCases": [
+    {
+      "name": "390-de-dark",
+      "locale": "de",
+      "theme": "Dark",
+      "logicalViewport": "390x844",
+      "enlargedText": false,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "screenshot": "390-de-dark-weekly-progress.png",
+      "screenshotSurface": "Daily Progress weekly activity subsection"
+    },
+    {
+      "name": "390-de-light",
+      "locale": "de",
+      "theme": "Light",
+      "logicalViewport": "390x844",
+      "enlargedText": false,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "screenshot": "390-de-light-weekly-progress.png",
+      "screenshotSurface": "Daily Progress weekly activity subsection"
+    },
+    {
+      "name": "430-de-large",
+      "locale": "de",
+      "theme": "Dark",
+      "logicalViewport": "430x932",
+      "enlargedText": true,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "screenshot": "430-de-large-weekly-progress.png",
+      "screenshotSurface": "Daily Progress weekly activity subsection"
+    }
+  ],
+  "limitations": [
+    "Synthetic in-memory phone fixtures; real server matching is verified by focused tests, not native persistence.",
+    "Captures show the weekly activity subsection; the Started row is verified through an accessibility assertion.",
+    "Full backend suite, physical devices, Android, Watch, signing, TestFlight and Health export were not verified.",
+    "No merge or production deployment was performed."
+  ]
+}

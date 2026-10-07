@@ -18,6 +18,7 @@ import { diaryTimestamp, wellnessTimestamp } from '../utils/diaryTimeline';
 import type { DiaryTimelineEntry } from '../components/DiaryTimeline';
 import Icon from '../components/Icon';
 import NeonButton from '../components/ui/NeonButton';
+import ActivityTargetProgress from '../components/tracking/ActivityTargetProgress';
 
 /** Existing explicit resolution paths; planned values never become logged health data. */
 export function useDiaryScheduledEntries(
@@ -152,12 +153,15 @@ export function useDiaryScheduledEntries(
         </Pressable>
       ) : undefined,
       content: (
-        <NeonButton
-          variant="subtle"
-          className=""
-          label={t('common.details', { defaultValue: 'Details' })}
-          onPress={() => openItem(item)}
-        />
+        <View className="gap-2">
+          <ActivityTargetProgress occurrence={activity} />
+          <NeonButton
+            variant="subtle"
+            className=""
+            label={t('common.details', { defaultValue: 'Details' })}
+            onPress={() => openItem(item)}
+          />
+        </View>
       ),
     });
   }

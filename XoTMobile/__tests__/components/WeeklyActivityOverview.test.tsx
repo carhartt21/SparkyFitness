@@ -4,7 +4,12 @@ import type { ActivityPlanningResponse } from '@workspace/shared';
 import WeeklyActivityOverview from '../../src/components/WeeklyActivityOverview';
 import { useActivityPlanning } from '../../src/hooks/useActivityPlanning';
 jest.mock('../../src/hooks/useActivityPlanning');
-jest.mock('../../src/localization', () => ({ useAppLocale: () => 'en' }));
+jest.mock('../../src/localization', () => ({
+  ...jest.requireActual<typeof import('../../src/localization')>(
+    '../../src/localization'
+  ),
+  useAppLocale: () => 'en',
+}));
 jest.mock('../../src/components/ui/Button', () => {
   const {
     Text,
@@ -109,4 +114,34 @@ it('keeps failures visible and offers retry', () => {
   ).toBeTruthy();
   fireEvent.press(view.getByText('Try again'));
   expect(refetch).toHaveBeenCalled();
+});
+it('shows single-session progress below the planned target instead of implying no workout was logged', () => {
+  const response = result();
+  load.mockReturnValue({
+    ...response,
+    query: {
+      ...response.query,
+      data: {
+        ...data,
+        occurrences: [
+          {
+            ...data.occurrences[0],
+            state: 'started',
+            reason: 'partial_activity_targets',
+            target_progress: {
+              duration_minutes: 35.3,
+              target_duration_minutes: 45,
+              distance_km: null,
+              target_distance_km: null,
+            },
+          },
+        ],
+      },
+    },
+  } as ReturnType<typeof useActivityPlanning>);
+  const view = render(
+    <WeeklyActivityOverview date="2026-10-01" enabled onOpen={jest.fn()} />
+  );
+  expect(view.getByText('Movement · Partly confirmed')).toBeTruthy();
+  expect(view.getByText('35.3 of 45 min')).toBeTruthy();
 });

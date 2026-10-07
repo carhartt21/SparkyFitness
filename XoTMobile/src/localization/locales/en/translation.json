@@ -6983,7 +6983,12 @@
       "fitness_equipment": "Fitness equipment"
     },
     "unknownHint": "This older prescription is unknown and is not counted in completion totals.",
-    "missingHint": "The linked session is no longer available. Undo the decision and choose a saved session on this date."
+    "missingHint": "The linked session is no longer available. Undo the decision and choose a saved session on this date.",
+    "durationProgress": "{{recorded}} of {{target}} min",
+    "distanceProgress": "{{recorded}} of {{target}} km",
+    "ambiguousHint": "Several sessions match. Link the session that should count.",
+    "durationMissing": "Time not recorded · target {{target}} min",
+    "distanceMissing": "Distance not recorded · target {{target}} km"
   },
   "wellness": {
     "title": "Wellness",

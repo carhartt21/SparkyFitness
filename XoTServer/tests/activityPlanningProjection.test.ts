@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import {
   activityWeekRange,
   classifyActivitySport,
+  activityPlanningResponseSchema,
   withActivityProgress,
   summarizeDailyProgressItems,
 } from '@workspace/shared';
@@ -411,7 +412,7 @@ describe('imported whole-activity completion', () => {
       expect(project(data).occurrences[0].state).toBe('started');
     }
   );
-  it('requires explicit linking for ambiguous sessions but aggregates rows of one session', () => {
+  it('shows partial sessions as started without combining them, but aggregates rows of one session', () => {
     const data = runningPlan();
     data.entries[0].duration_minutes = 15;
     data.entries.push(
@@ -421,12 +422,121 @@ describe('imported whole-activity completion', () => {
         record_id: randomUUID(),
       })
     );
-    expect(project(data).occurrences[0].state).toBe('pending');
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'started',
+      reason: 'partial_activity_targets',
+      target_progress: {
+        duration_minutes: 15,
+        target_duration_minutes: 30,
+        distance_km: 5.2,
+        target_distance_km: 5,
+      },
+    });
     data.entries[1].record_id = data.entries[0].record_id;
     expect(project(data).occurrences[0]).toMatchObject({
       state: 'complete',
       evidence_ids: data.entries.map((row) => row.id),
     });
+  });
+  it('recognizes the best of two saved lifting sessions without inventing completion', () => {
+    const data = runningPlan();
+    Object.assign(data.versions[0].assignments[0], {
+      activityType: 'strength',
+      label: 'Strength training',
+      plannedDurationMinutes: 45,
+      plannedDistanceKm: null,
+    });
+    const session = randomUUID();
+    data.entries = [
+      activityEntry({
+        record_id: randomUUID(),
+        origin_id: null,
+        session_name: 'Split 1',
+        exercise_name: 'Bench press',
+        category: 'strength',
+        source: 'sparky',
+        completed_count: 1,
+        duration_minutes: 0.6,
+        recorded_at: '2026-10-01T19:59:00Z',
+      }),
+      ...[12, 12, 11.3].map((minutes) =>
+        activityEntry({
+          record_id: session,
+          origin_id: null,
+          session_name: 'Split 1',
+          exercise_name: 'Bench press',
+          category: 'strength',
+          source: 'sparky',
+          completed_count: 3,
+          duration_minutes: minutes,
+          recorded_at: '2026-10-01T20:35:00Z',
+        })
+      ),
+    ];
+    const original = structuredClone(data);
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'started',
+      reason: 'partial_activity_targets',
+      evidence_ids: data.entries.slice(1).map((row) => row.id),
+      target_progress: {
+        duration_minutes: 35.3,
+        target_duration_minutes: 45,
+        target_distance_km: null,
+      },
+    });
+    expect(data).toEqual(original);
+    data.entries.reverse();
+    expect(project(data).occurrences[0].target_progress?.duration_minutes).toBe(
+      35.3
+    );
+    data.entries[0].duration_minutes = 25;
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'complete',
+      reason: 'compatible_activity_recorded',
+    });
+  });
+  it('requires an owner link when more than one saved session meets the targets', () => {
+    const data = runningPlan();
+    data.entries.push(
+      activityEntry({
+        ...data.entries[0],
+        id: randomUUID(),
+        record_id: randomUUID(),
+      })
+    );
+    expect(project(data).occurrences[0]).toMatchObject({
+      state: 'pending',
+      reason: 'ambiguous_activity_records',
+      evidence_ids: [],
+      target_progress: { duration_minutes: null, target_duration_minutes: 30 },
+    });
+  });
+  it('does not reserve partial evidence needed by a second compatible goal', () => {
+    const data = runningPlan();
+    data.versions[0].assignments[0].plannedDurationMinutes = 45;
+    data.versions[0].assignments.push({
+      ...data.versions[0].assignments[0],
+      id: 2,
+      plannedDurationMinutes: 30,
+    });
+    expect(project(data).occurrences.map((row) => row.state)).toEqual([
+      'started',
+      'complete',
+    ]);
+  });
+  it('reports single-session targets for assigned activities and keeps old response shapes valid', () => {
+    const data = runningPlan();
+    data.entries[0].origin_id = 1;
+    data.entries[0].duration_minutes = 20;
+    const snapshot = project(data);
+    expect(snapshot.occurrences[0]).toMatchObject({
+      state: 'started',
+      target_progress: { duration_minutes: 20, target_duration_minutes: 30 },
+    });
+    delete snapshot.occurrences[0].target_progress;
+    expect(activityPlanningResponseSchema.safeParse(snapshot).success).toBe(
+      true
+    );
   });
   it('aggregates assigned strength durations within a session and never combines different sessions', () => {
     const data = activityData();

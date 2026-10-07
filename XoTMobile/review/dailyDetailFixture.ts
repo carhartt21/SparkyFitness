@@ -55,12 +55,13 @@ export function dailyDetailSessions(date: string): ExerciseSessionResponse[] {
 }
 export function dailyDetailPlanning(
   url: URL,
-  date: string
+  date: string,
+  workoutGoalReview = false
 ): ActivityPlanningResponse {
   const start = url.searchParams.get('start_date') ?? date,
     end = url.searchParams.get('end_date') ?? date;
   const onDay = date >= start && date <= end;
-  return activityPlanningResponseSchema.parse({
+  const snapshot = activityPlanningResponseSchema.parse({
     start_date: start,
     end_date: end,
     timezone: 'Europe/Berlin',
@@ -125,4 +126,41 @@ export function dailyDetailPlanning(
     ],
     note: '',
   });
+  if (workoutGoalReview) {
+    const occurrence = snapshot.occurrences[0];
+    if (occurrence)
+      Object.assign(occurrence, {
+        label: 'Krafttraining',
+        activity_type: 'strength',
+        state: 'started',
+        reason: 'partial_activity_targets',
+        recorded_at: `${date}T20:35:00Z`,
+        evidence_ids: ['a2222222-2222-4222-8222-222222222222'],
+        target_progress: {
+          duration_minutes: 35.3,
+          target_duration_minutes: 45,
+          distance_km: null,
+          target_distance_km: null,
+        },
+      });
+    Object.assign(snapshot.workout_plans[0].assignments[0], {
+      label: 'Krafttraining',
+      activityType: 'strength',
+      plannedDurationMinutes: 45,
+    });
+    snapshot.summary = onDay
+      ? [
+          {
+            activity_type: 'strength',
+            scheduled: 1,
+            completed: 0,
+            started: 1,
+            pending: 0,
+            unknown: 0,
+            excluded: 0,
+          },
+        ]
+      : [];
+  }
+  return activityPlanningResponseSchema.parse(snapshot);
 }

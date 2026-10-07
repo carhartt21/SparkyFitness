@@ -31,6 +31,15 @@ export const activityOccurrenceSchema = z.object({
   evidence_ids: z.array(z.uuid()),
   expected_sets: z.number().int().nullable(),
   completed_sets: z.number().int().nonnegative(),
+  /** Best single saved session against the pinned whole-activity targets. */
+  target_progress: z
+    .object({
+      duration_minutes: z.number().finite().nonnegative().nullable(),
+      target_duration_minutes: z.number().finite().nonnegative().nullable(),
+      distance_km: z.number().finite().nonnegative().nullable(),
+      target_distance_km: z.number().finite().nonnegative().nullable(),
+    })
+    .optional(),
 });
 export const activityRecordSchema = z.object({
   id: z.uuid(),

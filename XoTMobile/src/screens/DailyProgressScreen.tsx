@@ -1,4 +1,5 @@
 import ProgressItemAction from '../components/tracking/ProgressItemAction';
+import ActivityTargetProgress from '../components/tracking/ActivityTargetProgress';
 import {
   nutritionGoalLabel,
   progressDomainLabel,
@@ -384,6 +385,7 @@ const DailyProgressScreen: React.FC<Props> = ({ navigation, route }) => {
                               ? ` · ${t('progress.pendingSync', { defaultValue: 'saved on this phone' })}`
                               : ''}
                           </Text>
+                          <ActivityTargetProgress occurrence={occurrence} />
                         </View>
                         <Icon
                           name="chevron-forward"

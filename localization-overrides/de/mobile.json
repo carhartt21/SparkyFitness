@@ -4713,7 +4713,12 @@
       "fitness_equipment": "Fitnessgeräte"
     },
     "unknownHint": "Die Vorgaben dieses älteren Plans sind unbekannt und werden in den Abschlusszahlen nicht berücksichtigt.",
-    "missingHint": "Die zugeordnete Einheit ist nicht mehr verfügbar. Die Entscheidung kann rückgängig gemacht und eine gespeicherte Einheit an diesem Tag ausgewählt werden."
+    "missingHint": "Die zugeordnete Einheit ist nicht mehr verfügbar. Die Entscheidung kann rückgängig gemacht und eine gespeicherte Einheit an diesem Tag ausgewählt werden.",
+    "durationProgress": "{{recorded}} von {{target}} min",
+    "distanceProgress": "{{recorded}} von {{target}} km",
+    "ambiguousHint": "Mehrere Einheiten passen. Bitte die gewünschte Einheit zuordnen.",
+    "durationMissing": "Dauer nicht erfasst · Ziel {{target}} min",
+    "distanceMissing": "Strecke nicht erfasst · Ziel {{target}} km"
   },
   "wellness": {
     "title": "Wellness",

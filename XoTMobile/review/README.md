@@ -17,6 +17,13 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Gates and artifacts
 
+`--workout-goal-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
+opens Daily Progress from Home with a synthetic strength session below its
+45-minute target. It verifies the German Started state, the localized
+`35,3 von 45 min` comparison and its horizontal bounds. This is phone rendering
+against memory fixtures; real completion matching is covered by focused server
+projection and coaching tests, not by this native fixture.
+
 - 390×844 German dark/light; 402×874 German dark; 430×932 English dark and German accessibility-extra-large; empty day, over-target AMOLED and summary error.
 - OCR waits for expected fixture metrics and rejects known untranslated dashboard labels/developer menus. It is a render smoke test, **not a visual-fidelity score**.
 - Runtime errors and unknown fixture endpoints fail the run. Expected simulated HTTP 503 errors do not. Unsupported writes fail just like unknown GET routes.

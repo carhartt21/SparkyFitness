@@ -33,6 +33,46 @@ const meetsActivityTargets = (
     distance === undefined ||
     rows.reduce((sum, row) => sum + (row.distance ?? 0), 0) >= distance);
 
+type TargetProgress = NonNullable<ActivityOccurrence['target_progress']>;
+
+function activityTargetProgress(
+  rows: readonly PlanningEntry[],
+  duration: number | null | undefined,
+  distance: number | null | undefined
+): TargetProgress {
+  const total = (key: 'duration_minutes' | 'distance') => {
+    const values = rows.flatMap((row) => {
+      const value = row[key];
+      return typeof value === 'number' && Number.isFinite(value) && value >= 0
+        ? [value]
+        : [];
+    });
+    return values.length
+      ? Number(values.reduce((sum, value) => sum + value, 0).toFixed(6))
+      : null;
+  };
+  return {
+    duration_minutes: total('duration_minutes'),
+    target_duration_minutes: duration ?? null,
+    distance_km: total('distance'),
+    target_distance_km: distance ?? null,
+  };
+}
+
+/** Prefer the session closest to satisfying all targets, never add sessions. */
+function activityTargetFraction(progress: TargetProgress): number {
+  const pairs: [number | null, number | null][] = [
+    [progress.duration_minutes, progress.target_duration_minutes],
+    [progress.distance_km, progress.target_distance_km],
+  ];
+  const fractions = pairs.flatMap(([value, target]) =>
+    target === null
+      ? []
+      : [target === 0 ? 1 : Math.min((value ?? 0) / target, 1)]
+  );
+  return fractions.length ? Math.min(...fractions) : 0;
+}
+
 /** Pure projection: reads never generate plans, completion or diary rows. */
 export function projectActivityPlanning(
   data: ActivityPlanningData,
@@ -322,6 +362,22 @@ export function projectActivityPlanning(
           !assignment.workoutPresetId
         );
         const actualActivity = confirmedEvidence.filter(recordedActivity);
+        const sessionProgress = wholeActivity
+          ? [...new Set(actualActivity.map((row) => row.record_id))]
+              .map((recordId) =>
+                activityTargetProgress(
+                  actualActivity.filter((row) => row.record_id === recordId),
+                  assignment.plannedDurationMinutes,
+                  assignment.plannedDistanceKm
+                )
+              )
+              .sort(
+                (a, b) =>
+                  activityTargetFraction(b) - activityTargetFraction(a) ||
+                  (b.duration_minutes ?? 0) - (a.duration_minutes ?? 0) ||
+                  (b.distance_km ?? 0) - (a.distance_km ?? 0)
+              )[0]
+          : undefined;
         const activityComplete =
           wholeActivity &&
           [...new Set(actualActivity.map((row) => row.record_id))].some(
@@ -418,6 +474,17 @@ export function projectActivityPlanning(
                 .map((row) => row.id),
           expected_sets: expectedSets,
           completed_sets: completedSets,
+          ...(wholeActivity
+            ? {
+                target_progress:
+                  sessionProgress ??
+                  activityTargetProgress(
+                    [],
+                    assignment.plannedDurationMinutes,
+                    assignment.plannedDistanceKm
+                  ),
+              }
+            : {}),
         });
       }
     }
@@ -516,30 +583,47 @@ export function projectActivityPlanning(
           target.duration,
           target.distance
         );
-        return [{ record, entry, evidence, complete }];
+        const progress = activityTargetProgress(
+          evidence,
+          target.duration,
+          target.distance
+        );
+        return [{ record, entry, evidence, complete, progress }];
       })
       .sort(
         (a, b) =>
           Number(b.complete) - Number(a.complete) ||
+          activityTargetFraction(b.progress) -
+            activityTargetFraction(a.progress) ||
+          (b.progress.duration_minutes ?? 0) -
+            (a.progress.duration_minutes ?? 0) ||
+          (b.progress.distance_km ?? 0) - (a.progress.distance_km ?? 0) ||
           a.entry.recorded_at!.localeCompare(b.entry.recorded_at!) ||
           a.record.id.localeCompare(b.record.id)
       );
-    // More than one plausible session needs the owner's explicit link.
+    // Multiple complete sessions need an owner link. Partial evidence still
+    // establishes Started; show the best single session, not their combined time.
     const plausible = eligible.filter((candidate) => candidate.complete);
     const match =
       plausible.length === 1
         ? plausible[0]
-        : eligible.length === 1
+        : plausible.length === 0
           ? eligible[0]
           : undefined;
-    if (!match) continue;
-    reserved.add(match.record.id);
+    if (!match) {
+      if (plausible.length > 1)
+        occurrence.reason = 'ambiguous_activity_records';
+      continue;
+    }
+    // Partial evidence cannot consume a record needed to complete another task.
+    if (match.complete) reserved.add(match.record.id);
     occurrence.state = match.complete ? 'complete' : 'started';
     occurrence.reason = match.complete
       ? 'compatible_activity_recorded'
       : 'partial_activity_targets';
     occurrence.recorded_at = match.entry.recorded_at;
     occurrence.evidence_ids = match.evidence.map((entry) => entry.id);
+    occurrence.target_progress = match.progress;
   }
   occurrences.sort(
     (a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id)
