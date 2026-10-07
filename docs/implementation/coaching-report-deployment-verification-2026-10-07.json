@@ -1,0 +1,79 @@
+{
+  "sourceCommit": "719b62e39176663e7b2b231c1f4c80e010a28454",
+  "checkedAtUtc": "2026-10-07T09:17:32.622305+00:00",
+  "images": {
+    "frontend": {
+      "reference": "x-on-track-frontend:719b62e39",
+      "imageId": "sha256:39a83be27d4cc4b9a436313a6f4f3841248e131fb138bba9a5ee1eb6209b9bc8",
+      "revision": "719b62e39176663e7b2b231c1f4c80e010a28454"
+    },
+    "server": {
+      "reference": "x-on-track-server:719b62e39",
+      "imageId": "sha256:a3310f6a96ee8d3678a2f260bf79e8d59caf59281142041dd446fdd98b56451f",
+      "revision": "719b62e39176663e7b2b231c1f4c80e010a28454"
+    }
+  },
+  "publicHttps": {
+    "/": 200,
+    "/api/health": 200,
+    "/.well-known/oauth-protected-resource/mcp/chatgpt": 200,
+    "/.well-known/oauth-protected-resource/mcp/coaching": 200
+  },
+  "publicSmokePassed": true,
+  "anonymousMcpInitialize": {
+    "/mcp/chatgpt": 401,
+    "/mcp/coaching": 401
+  },
+  "serverAdapterAndSharedCalendarMatchSource": true,
+  "publicScopedPromptAssets": [
+    {
+      "path": "/assets/src-D3h7P1rs.js",
+      "sha256": "5a6123029d6b14ffc56f8c8c595c329d6c8ac46ee26e5c9fff6a8165c03aa3c8"
+    }
+  ],
+  "infoDiagnosticsEnabled": false,
+  "loggingConfigurationChanged": false,
+  "applicationHtmlMatchesImage": true,
+  "servedEntryAssetCount": 28,
+  "servedEntryAssetsMatchImage": true,
+  "artworkCount": 22,
+  "artworkMatchesSource": true,
+  "database": {
+    "migrationCount": 270,
+    "reviewLoopMigrationApplied": true,
+    "blsFoodCount": 7140,
+    "recapsRls": true,
+    "recapsOwnerPolicy": true,
+    "servingColumns": 4
+  },
+  "gates": {
+    "MICRONUTRIENT_IMPORT_ENABLED": "false",
+    "XOT_COACHING_ENABLED": "true"
+  },
+  "preserved": [
+    "database image",
+    "persistent mounts",
+    "protected settings",
+    "private routing",
+    "existing migration ledger unchanged",
+    "BLS catalogue count",
+    "mobility owner policies"
+  ],
+  "freshEncryptedMatchedBackupVerifiedOffHost": true,
+  "previousAppImagesAndConfigurationRetainedForRollback": true,
+  "validation": {
+    "serverValidate": "passed",
+    "frontendValidate": "passed",
+    "mobileValidate": "passed",
+    "focusedServerTests": 40,
+    "focusedFrontendTests": 6,
+    "focusedMobileTests": 8,
+    "fullBackendSuite": "skipped by owner request"
+  },
+  "manualCoachingRun": "not performed; owner will verify",
+  "unattendedCoachingRun": "not performed; prior platform denial remains unverified",
+  "authenticatedToolDiscovery": "not performed",
+  "externalTaskModified": false,
+  "coachingOrHealthDataWritesPerformed": false,
+  "mobileBuildAndPhysicalDeviceChecks": "not performed; server/web-only rollout"
+}

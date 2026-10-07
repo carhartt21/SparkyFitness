@@ -64,11 +64,47 @@ or production write. No migration, index, credential or native target change is
 required. A later mobile release carries the updated copied prompt on phone;
 server/web deployment carries the descriptions, diagnostics and web prompt.
 
+## Production rollout
+
+Merged into main and deployed server/web source
+`719b62e39176663e7b2b231c1f4c80e010a28454` on 2026-10-07. Both application
+images are healthy. A fresh encrypted matched backup was checksum-verified
+off-host before switching, and the prior v45 images/configuration remain
+available for rollback.
+
+- Public homepage, API health and both OAuth resource-discovery endpoints
+  returned 200. Anonymous MCP initialization returned 401 on both OAuth routes.
+- The deployed server adapter and shared calendar match the reviewed source.
+  The public web asset containing the updated scoped German prompt matches the
+  deployed image.
+- Application HTML and all 28 entry/preload/style/service-worker-registration
+  assets match the deployed image; all 22 food artwork exports match the source.
+- The database image, persistent mounts, protected environment, private routing
+  and feature gates were retained. Coaching remains enabled. All 270 migration
+  ledger rows, 7,140 BLS foods, serving columns and checked owner policies were
+  retained; no migration ran.
+- Removed only six archive-matched duplicate extracted build contexts to make
+  build space. Their source archives and release/rollback evidence were retained.
+  Unused Docker builder cache was reclaimed between image builds; no image,
+  volume or backup was pruned.
+- Production's existing log threshold suppresses INFO. The new diagnostics are
+  installed but are not emitted under that threshold; logging configuration was
+  not changed. Missing INFO records therefore cannot establish a pre-transport
+  rejection on this deployment.
+
+Sanitized results are in
+[the deployment verification record](coaching-report-deployment-verification-2026-10-07.json).
+Private configuration and encrypted backups remain outside the repository.
+No mobile build, coaching report, claim, proposal, health-data change or external
+task/schedule change was performed during this rollout.
+
 ## Remaining verification
 
-This branch has not been merged or deployed. Obtain the exact rejection where
-available; distinguish a ChatGPT permission/policy decision from server auth,
-schema or expired-lease failure. After a scoped rollout, refresh metadata and
-review/update the saved task prompt as the owner. Verify one manual review,
-then one unattended review saving its recap through the selected coaching
-connection. A prompt clarification is not a verified fix for a platform denial.
+Obtain the exact rejection where available; distinguish a ChatGPT
+permission/policy decision from server auth, schema or expired-lease failure.
+Refresh metadata and review/update the saved task prompt as the owner. The
+updated copy-ready prompt is available on the web; the phone needs a future
+binary for that copy change. Verify one manual review, then one unattended review
+saving its recap through the selected coaching connection. Authenticated tool
+discovery, real coaching writes and physical-device checks were not performed.
+A prompt clarification is not a verified fix for a platform denial.
