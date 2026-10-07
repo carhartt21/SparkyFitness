@@ -126,11 +126,14 @@ describe('WorkoutPresetDetailScreen', () => {
   const navigation = mockNavigation;
   const startLiveWorkout = jest.fn();
 
-  const renderScreen = (preset: WorkoutPreset) => {
+  const renderScreen = (
+    preset: WorkoutPreset,
+    plannedWorkout?: ScreenProps['route']['params']['plannedWorkout']
+  ) => {
     const route = {
       key: 'WorkoutPresetDetail-key',
       name: 'WorkoutPresetDetail' as const,
-      params: { preset },
+      params: { preset, plannedWorkout },
     };
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -256,6 +259,16 @@ describe('WorkoutPresetDetailScreen', () => {
       timeCapSeconds: null,
     });
     expect(navigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('starts from a scheduled preview with its plan link and keeps past logging separate', () => {
+    const plannedWorkout = { assignmentId: 102, name: 'Evening strength' };
+    const screen = renderScreen(buildPreset(), plannedWorkout);
+    fireEvent.press(screen.getByText('Start workout'));
+    expect(startLiveWorkout).toHaveBeenCalledWith(
+      expect.objectContaining({ plannedWorkout, sourcePresetId: 7 })
+    );
+    expect(screen.queryByText('Log past workout')).toBeNull();
   });
 
   it('duplicates the preset (available even though the fixture profile does not own it) into a private copy with the original exercises/sets', async () => {

@@ -27,13 +27,23 @@ export function useStartWorkoutPlanAssignment(
   const startAssignment = useCallback(
     async (
       targetPlan: WorkoutPlanTemplate,
-      assignment: WorkoutPlanAssignment
+      assignment: WorkoutPlanAssignment,
+      intent: 'activity' | 'routine' = 'activity'
     ) => {
       if (!targetPlan || assignment.activity_type === 'rest') return;
       if (assignment.activity_type) {
         const label =
           assignment.session_name ||
           plannedActivityLabel(t, assignment.activity_type);
+        if (intent === 'routine') {
+          navigation.navigate('PresetSearch', {
+            plannedWorkout: {
+              assignmentId: Number(assignment.id),
+              name: label,
+            },
+          });
+          return;
+        }
         const result = await prepareActivityExercise(
           String(targetPlan.id),
           String(assignment.id),

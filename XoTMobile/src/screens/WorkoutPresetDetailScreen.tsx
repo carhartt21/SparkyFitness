@@ -40,6 +40,7 @@ const WorkoutPresetDetailScreen: React.FC<WorkoutPresetDetailScreenProps> = ({
   route,
 }) => {
   const preset = route.params.updatedPreset ?? route.params.preset;
+  const plannedWorkout = route.params.plannedWorkout;
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const usesNativeHeader = useNativeIOSHeadersActive();
@@ -196,8 +197,9 @@ const WorkoutPresetDetailScreen: React.FC<WorkoutPresetDetailScreenProps> = ({
       sourcePresetId: preset.id,
       workoutFormat: preset.workout_format ?? 'standard',
       timeCapSeconds: preset.time_cap_seconds ?? null,
+      ...(plannedWorkout ? { plannedWorkout } : {}),
     });
-  }, [startLiveWorkout, preset]);
+  }, [startLiveWorkout, preset, plannedWorkout]);
 
   const navigateToPresetWorkout = useCallback(() => {
     navigation.navigate('WorkoutAdd', {
@@ -458,17 +460,19 @@ const WorkoutPresetDetailScreen: React.FC<WorkoutPresetDetailScreenProps> = ({
           </Text>
         </Button>
 
-        <Button
-          variant="ghost"
-          onPress={() => void handleLogPastWorkout()}
-          disabled={isStarting}
-          className="mt-3"
-          textClassName="text-text-secondary font-medium"
-        >
-          {t('workoutPresetDetail.actions.logPast', {
-            defaultValue: 'Log past workout',
-          })}
-        </Button>
+        {!plannedWorkout && (
+          <Button
+            variant="ghost"
+            onPress={() => void handleLogPastWorkout()}
+            disabled={isStarting}
+            className="mt-3"
+            textClassName="text-text-secondary font-medium"
+          >
+            {t('workoutPresetDetail.actions.logPast', {
+              defaultValue: 'Log past workout',
+            })}
+          </Button>
+        )}
 
         <Button
           variant="ghost"

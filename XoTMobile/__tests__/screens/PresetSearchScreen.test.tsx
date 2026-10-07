@@ -20,6 +20,7 @@ import {
 } from '../../src/utils/workoutSession';
 import type { Exercise } from '../../src/types/exercise';
 import type { WorkoutPreset } from '../../src/types/workoutPresets';
+import type { RootStackParamList } from '../../src/types/navigation';
 
 jest.mock('../../src/hooks', () => ({
   useWorkoutPresets: jest.fn(),
@@ -118,8 +119,7 @@ const navigation = {
   setOptions: jest.fn(),
 } as any;
 
-type RouteParams =
-  { selectedExercise?: Exercise; selectionNonce?: number } | undefined;
+type RouteParams = RootStackParamList['PresetSearch'];
 
 function makeRoute(params?: RouteParams) {
   return { key: 'PresetSearch-key', name: 'PresetSearch' as const, params };
@@ -264,6 +264,39 @@ describe('PresetSearchScreen', () => {
       preset: expect.objectContaining({ id: 7 }),
     });
     expect(startLiveWorkout).not.toHaveBeenCalled();
+  });
+
+  it('keeps the scheduled session when starting a selected routine', () => {
+    const plannedWorkout = { assignmentId: 102, name: 'Evening strength' };
+    const screen = renderScreen({ plannedWorkout });
+    expect(screen.getByText('Planned session: Evening strength')).toBeTruthy();
+    fireEvent.press(screen.getByText('Push Day'));
+    expect(startLiveWorkout).toHaveBeenCalledWith(
+      expect.objectContaining({ sourcePresetId: 7, plannedWorkout })
+    );
+  });
+
+  it('carries the scheduled session into the routine preview without starting it', () => {
+    const plannedWorkout = { assignmentId: 102, name: 'Evening strength' };
+    const screen = renderScreen({ plannedWorkout });
+    fireEvent.press(screen.getByLabelText('View preset details'));
+    expect(navigation.navigate).toHaveBeenCalledWith('WorkoutPresetDetail', {
+      preset: expect.objectContaining({ id: 7 }),
+      plannedWorkout,
+    });
+    expect(startLiveWorkout).not.toHaveBeenCalled();
+  });
+
+  it('keeps the scheduled session when the empty routine receives its first exercise', () => {
+    const plannedWorkout = { assignmentId: 102, name: 'Evening strength' };
+    renderScreen({
+      plannedWorkout,
+      selectedExercise: buildExercise(),
+      selectionNonce: 1,
+    });
+    expect(startLiveWorkout).toHaveBeenCalledWith(
+      expect.objectContaining({ plannedWorkout, exercises: expect.any(Array) })
+    );
   });
 
   it('opens the preset preview from the info button without starting', () => {

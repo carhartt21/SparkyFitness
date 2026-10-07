@@ -4241,6 +4241,8 @@
     "noSession": "Für diesen Tag ist keine Einheit geplant.",
     "log": "Aktivität erfassen",
     "start": "Training starten",
+    "startRoutine": "Routine starten",
+    "routineFor": "Geplante Einheit: {{name}}",
     "offline": "Zum Bearbeiten oder Starten eine Verbindung zum Server herstellen.",
     "loadFailed": "Trainingspläne konnten nicht geladen werden. Erneut versuchen.",
     "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen.",

@@ -6571,7 +6571,9 @@
     "timeFormat": "SS:mm",
     "noEndDate": "Kein Enddatum",
     "clearEndDate": "Enddatum entfernen",
-    "clearTime": "Uhrzeit entfernen"
+    "clearTime": "Uhrzeit entfernen",
+    "startRoutine": "Routine starten",
+    "routineFor": "Geplante Einheit: {{name}}"
   },
   "addWorkoutPlanDialog": {
     "saveFailed": "Der Plan konnte nicht gespeichert werden. Die Änderungen bleiben erhalten. Erneut versuchen."

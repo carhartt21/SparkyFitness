@@ -56,6 +56,7 @@ const PresetSearchScreen: React.FC<PresetSearchScreenProps> = ({
   route,
 }) => {
   const { t } = useTranslation();
+  const plannedWorkout = route.params?.plannedWorkout;
   const insets = useSafeAreaInsets();
   const activeWorkoutBarPadding = useActiveWorkoutBarPadding('stack');
   const [accentColor, textMuted, textSecondary, borderSubtle] = useCSSVariable([
@@ -134,18 +135,22 @@ const PresetSearchScreen: React.FC<PresetSearchScreenProps> = ({
         sourcePresetId: preset.id,
         workoutFormat: preset.workout_format ?? 'standard',
         timeCapSeconds: preset.time_cap_seconds ?? null,
+        ...(plannedWorkout ? { plannedWorkout } : {}),
       });
     },
-    [startLiveWorkout]
+    [startLiveWorkout, plannedWorkout]
   );
 
   const handlePreviewPreset = useCallback(
     (preset: WorkoutPreset) => {
       runNavigationAction(() => {
-        navigation.navigate('WorkoutPresetDetail', { preset });
+        navigation.navigate('WorkoutPresetDetail', {
+          preset,
+          ...(plannedWorkout ? { plannedWorkout } : {}),
+        });
       });
     },
-    [runNavigationAction, navigation]
+    [runNavigationAction, navigation, plannedWorkout]
   );
 
   const handleStartEmpty = useCallback(() => {
@@ -159,9 +164,10 @@ const PresetSearchScreen: React.FC<PresetSearchScreenProps> = ({
       setStartingId(EMPTY_START_ID);
       void startLiveWorkout({
         exercises: buildSingleExerciseStartPayload(exercise),
+        ...(plannedWorkout ? { plannedWorkout } : {}),
       });
     },
-    [startLiveWorkout]
+    [startLiveWorkout, plannedWorkout]
   );
 
   useSelectedExercise(route.params, handleFirstExerciseSelected);
@@ -421,6 +427,15 @@ const PresetSearchScreen: React.FC<PresetSearchScreenProps> = ({
       style={usesNativeHeader ? undefined : { paddingTop: insets.top }}
     >
       {header}
+
+      {plannedWorkout && (
+        <Text className="px-4 py-2 text-text-secondary">
+          {t('weeklyPlan.routineFor', {
+            defaultValue: 'Planned session: {{name}}',
+            name: plannedWorkout.name,
+          })}
+        </Text>
+      )}
 
       {/* Search bar */}
       <View className="px-4 py-2 border-b border-border-subtle">

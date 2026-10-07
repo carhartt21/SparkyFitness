@@ -303,6 +303,37 @@ describe('useStartLiveWorkout', () => {
     );
   });
 
+  it('creates a selected routine with the scheduled assignment and keeps its sets uncompleted', async () => {
+    const { result, navigation } = setup();
+    await act(async () => {
+      await result.current.startLiveWorkout({
+        name: 'Selected preset',
+        exercises: EXERCISES,
+        sourcePresetId: 7,
+        plannedWorkout: { assignmentId: 102, name: 'Evening strength' },
+      });
+    });
+    expect(mockCreateWorkout).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Evening strength',
+        workoutPlanAssignmentId: 102,
+        workout_preset_id: 7,
+        exercises: [
+          expect.objectContaining({
+            sets: [
+              expect.objectContaining({
+                reps: null,
+                weight: null,
+                completed_at: null,
+              }),
+            ],
+          }),
+        ],
+      })
+    );
+    expect(navigation.replace).toHaveBeenCalledWith('ActiveWorkout');
+  });
+
   it('seeds the store before dispatching the replace', async () => {
     const { result, navigation } = setup();
     let sessionIdAtReplace: string | null = null;

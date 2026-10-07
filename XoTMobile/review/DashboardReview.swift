@@ -2,6 +2,40 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// Scheduled activity → routine picker retains the plan without recording it.
+  func testScheduledRoutineSelection() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let training = app.buttons["dashboard-training"]
+    for _ in 0..<12 { if training.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(training.isHittable); training.tap()
+    XCTAssertTrue(app.otherElements["daily-training-summary"].waitForExistence(timeout: 15))
+    let weekly = app.buttons["daily-training-weekly"]
+    for _ in 0..<10 { if weekly.isHittable { break }; app.swipeDown() }
+    XCTAssertTrue(weekly.isHittable); weekly.tap()
+    XCTAssertTrue(app.otherElements["weekly-training-itinerary"].waitForExistence(timeout: 15))
+    let routine = app.buttons["weekly-routine-start-102"]
+    let log = app.buttons["weekly-activity-log-102"]
+    for _ in 0..<20 {
+      if routine.isHittable && routine.frame.minY >= 185 && log.frame.maxY <= app.frame.height - 50 { break }
+      if routine.isHittable && routine.frame.minY < 185 { app.swipeDown(velocity: .slow) }
+      else { app.swipeUp(velocity: .slow) }
+    }
+    XCTAssertTrue(routine.isHittable); XCTAssertTrue(log.isHittable)
+    XCTAssertGreaterThanOrEqual(routine.frame.height.rounded(), 44)
+    XCTAssertGreaterThanOrEqual(log.frame.height.rounded(), 44)
+    XCTAssertLessThanOrEqual(routine.frame.maxY, log.frame.minY)
+    XCTAssertGreaterThanOrEqual(routine.frame.minX, 16)
+    XCTAssertLessThanOrEqual(routine.frame.maxX, app.frame.width - 16)
+    capture("scheduled-routine-actions", app)
+    routine.tap()
+    XCTAssertTrue(app.staticTexts["Geplante Einheit: Krafttraining"].waitForExistence(timeout: 15))
+    XCTAssertTrue(app.descendants(matching: .any)["empty-workout-row"].waitForExistence(timeout: 10))
+    capture("scheduled-routine-picker", app)
+  }
+
   /// Focused intake layout, progress accessibility and retained Meals navigation.
   func testIntakeCard() throws {
     continueAfterFailure = false

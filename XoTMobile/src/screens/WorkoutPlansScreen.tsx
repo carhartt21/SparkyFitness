@@ -32,18 +32,22 @@ export default function WorkoutPlansScreen({
   const { isConnected } = useServerConnection();
   const query = useWorkoutPlans(isConnected);
   const start = useStartWorkoutPlanAssignment(navigation, date);
-  const [starting, setStarting] = useState<string | null>(null);
+  const [starting, setStarting] = useState<{
+    id: string;
+    intent: 'activity' | 'routine';
+  } | null>(null);
   const startLock = useRef(false);
   const [focusedId, setFocusedId] = useState(route.params?.assignmentId);
   const begin = async (
     plan: WorkoutPlanTemplate,
-    assignment: WorkoutPlanAssignment
+    assignment: WorkoutPlanAssignment,
+    intent: 'activity' | 'routine' = 'routine'
   ) => {
     if (startLock.current) return;
     startLock.current = true;
-    setStarting(String(assignment.id));
+    setStarting({ id: String(assignment.id), intent });
     try {
-      await start(plan, assignment);
+      await start(plan, assignment, intent);
     } catch {
       Toast.show({
         type: 'error',
@@ -245,21 +249,36 @@ export default function WorkoutPlansScreen({
                       .join(' · ')}
                   </Text>
                   {a.activity_type !== 'rest' && (
-                    <NeonButton
-                      label={
-                        a.activity_type
-                          ? t('weeklyPlan.log', {
-                              defaultValue: 'Log activity',
-                            })
-                          : t('weeklyPlan.start', {
-                              defaultValue: 'Start workout',
-                            })
-                      }
-                      onPress={() => void begin(plan, a)}
-                      loading={starting === String(a.id)}
-                      disabled={Boolean(starting) || !isConnected}
-                      variant="outline"
-                    />
+                    <>
+                      <NeonButton
+                        testID={`weekly-routine-start-${a.id}`}
+                        label={t('weeklyPlan.startRoutine', {
+                          defaultValue: 'Start routine',
+                        })}
+                        icon="play"
+                        onPress={() => void begin(plan, a)}
+                        loading={
+                          starting?.id === String(a.id) &&
+                          starting.intent === 'routine'
+                        }
+                        disabled={Boolean(starting) || !isConnected}
+                      />
+                      {a.activity_type && (
+                        <NeonButton
+                          testID={`weekly-activity-log-${a.id}`}
+                          label={t('weeklyPlan.log', {
+                            defaultValue: 'Log activity',
+                          })}
+                          onPress={() => void begin(plan, a, 'activity')}
+                          loading={
+                            starting?.id === String(a.id) &&
+                            starting.intent === 'activity'
+                          }
+                          disabled={Boolean(starting) || !isConnected}
+                          variant="outline"
+                        />
+                      )}
+                    </>
                   )}
                 </View>
               ))}

@@ -27,6 +27,7 @@ import type {
 import type { Meal, MealIngredientDraft } from './meals';
 import type { MealPlanPickerTarget, MealPlanTemplate } from './mealPlans';
 import type { WorkoutPreset } from './workoutPresets';
+import type { WorkoutPlanRoutineTarget } from './workoutPlans';
 
 export type FoodPickerMode =
   | 'log-entry'
@@ -89,7 +90,11 @@ export type RootStackParamList = {
   ExercisesLibrary: undefined;
   ExerciseReview: { date?: string } | undefined;
   WorkoutPresetsLibrary: undefined;
-  WorkoutPresetDetail: { preset: WorkoutPreset; updatedPreset?: WorkoutPreset };
+  WorkoutPresetDetail: {
+    preset: WorkoutPreset;
+    updatedPreset?: WorkoutPreset;
+    plannedWorkout?: WorkoutPlanRoutineTarget;
+  };
   WorkoutPresetForm:
     | {
         mode: 'create-preset';
@@ -264,7 +269,12 @@ export type RootStackParamList = {
     | undefined;
   ExerciseSearch: { returnKey: string };
   PresetSearch:
-    { selectedExercise?: Exercise; selectionNonce?: number } | undefined;
+    | {
+        selectedExercise?: Exercise;
+        selectionNonce?: number;
+        plannedWorkout?: WorkoutPlanRoutineTarget;
+      }
+    | undefined;
   DailyMeals: { date?: string; mealTypeId?: string } | undefined;
   DailyTraining: { date?: string } | undefined;
   TrainingHub: { date?: string } | undefined;

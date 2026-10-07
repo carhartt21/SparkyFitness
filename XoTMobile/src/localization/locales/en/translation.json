@@ -6533,6 +6533,8 @@
     "noSession": "No session planned for this day.",
     "log": "Log activity",
     "start": "Start workout",
+    "startRoutine": "Start routine",
+    "routineFor": "Planned session: {{name}}",
     "offline": "Connect to your server to edit or start planned sessions.",
     "loadFailed": "Could not load training plans. Try again.",
     "saveFailed": "Could not save the plan. Your changes are still here. Try again.",

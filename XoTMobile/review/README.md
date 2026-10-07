@@ -252,6 +252,15 @@ actual validation record and synthetic captures.
 
 ## Daily Meals, Training and hydration refinement
 
+`--interactions --v45-review --scheduled-routine-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
+checks the scheduled strength session's separate **Routine starten** and
+**Aktivität erfassen** actions, touch targets, vertical separation and contained
+width. It opens the existing routine picker and verifies the selected plan
+context, including the empty-routine option. These fixtures have no saved
+presets; selecting/previewing presets, creating a linked live session and keeping
+sets uncompleted are verified by the focused Jest suites. This tour does not
+prove server persistence, Health export or phone–Watch synchronization.
+
 `--interactions --v45-review --case '^(390-de-dark|390-de-light|430-de-large)$'`
 checks Home → Daily Meals, collapsed/expanded meal groups, real meal-state
 controls, Home → Daily Training → weekly itinerary, inline hydration source history

@@ -288,6 +288,15 @@ The shared `XoTFrontend/src/components/ui/input.tsx` preserves the existing bord
 
 ### Mobile phone action buttons
 
+Scheduled workout assignments expose a full-width primary **Start routine**
+action with the existing play symbol, followed by an outline **Log activity**
+action for activity-type plans. These actions stack at ordinary and enlarged
+text sizes; rest days offer neither. Saved presets/exercises start directly,
+while an activity-only assignment opens the existing routine picker with a
+localized planned-session context line. Selection and preview retain the
+assignment without editing the plan. This phone refinement is currently on
+`feat/scheduled-workout-routine-start-20261007`, pending release.
+
 `ui/Button` and `NeonButton` share `useButtonAppearance` in `buttonTheme.ts`, with a minimum 44-point touch height. Primary actions use a 16% semantic tint and 65% tinted edge; outline and destructive actions use a 7% tint and 40% edge. Secondary actions use the current elevated-surface token at 76% opacity with a 40% neutral edge. Primary, outline and secondary labels use the primary text role; destructive text uses its danger tint. Ghost, header and link actions keep transparent surfaces and quiet accent text, with the existing neutral option for secondary/header-like copy.
 
 The material is applied after caller styles. Callers supply layout, icons, semantic tint, translated labels and action state; radius, fill and glow stay shared. `ActionTile` uses the outline material and its existing 72-point minimum; `CreateTile` uses secondary material and retains its icon/title/subtitle anatomy. Disabled/loading actions block presses and remove glow; loading replaces the label with a spinner. `Button` allows two visible label lines; `NeonButton` bounds visible labels while keeping the full accessible name. `scripts/check-button-theme.mjs`, included in mobile `validate`, checks shared-button callers for conflicting surface classes and inline overrides.

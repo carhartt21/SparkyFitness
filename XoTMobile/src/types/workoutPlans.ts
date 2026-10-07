@@ -3,6 +3,12 @@ import type { WorkoutPresetSet } from './workoutPresets';
 
 export type WorkoutPlanScheduleType = 'weekly' | 'sequential';
 
+/** Carries a scheduled session through routine selection without editing its plan. */
+export interface WorkoutPlanRoutineTarget {
+  assignmentId: number;
+  name: string;
+}
+
 export interface WorkoutPlanAssignment extends WorkoutPlanActivityFields {
   id: string;
   template_id: string;

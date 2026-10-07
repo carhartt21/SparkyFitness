@@ -24,6 +24,17 @@ An activity's **Log activity** action opens the existing activity-entry form, wi
 
 A preset's **Start workout** action opens a live workout with its planned sets. Complete sets as you perform them and finish the session once. Planned sets are not completed sets. Phone/Watch tracking uses the existing live-workout flow; [MCP logging](/features/exercises/mcp-training) does not start that flow.
 
+On the phone, the upcoming **Start routine** action is available directly on
+scheduled sessions. Saved-workout and individual-exercise assignments start
+their configured routine. Activity-only assignments open the existing picker:
+choose a saved routine or start an empty workout with its first exercise. The
+scheduled session's name and assignment remain linked through selection and
+preview; choosing a routine does not rewrite the weekly plan. Live workouts
+start at the actual current time, rather than backdating to the selected plan day.
+Activity assignments also retain **Log activity** for entering what happened.
+Rest days have no start or log action. This phone change is pending the next
+release.
+
 Daily Progress uses saved activity records or completed workout sets linked to the assignment. Opening a session, activating a plan or passing its scheduled time is not completion. Optional sessions and rest do not become required tasks.
 
 ## Prompt and prefill modes

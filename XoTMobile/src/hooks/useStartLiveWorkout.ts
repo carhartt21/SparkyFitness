@@ -28,6 +28,7 @@ import {
 } from '../utils/workoutSession';
 import type { UserPreferences } from '../types/preferences';
 import type { RootStackParamList } from '../types/navigation';
+import type { WorkoutPlanRoutineTarget } from '../types/workoutPlans';
 
 type StartLiveWorkoutNavigation = Pick<
   NativeStackNavigationProp<RootStackParamList>,
@@ -46,6 +47,8 @@ interface StartLiveWorkoutArgs {
   sourcePresetId?: number;
   /** Plan assignment id if starting from a workout plan session. */
   workoutPlanAssignmentId?: number;
+  /** Selected routine fulfills this scheduled session; starting is not completion. */
+  plannedWorkout?: WorkoutPlanRoutineTarget;
   workoutFormat?: WorkoutFormat;
   timeCapSeconds?: number | null;
 }
@@ -126,6 +129,7 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
       exercises,
       sourcePresetId,
       workoutPlanAssignmentId,
+      plannedWorkout,
       workoutFormat,
       timeCapSeconds,
     }: StartLiveWorkoutArgs) => {
@@ -209,7 +213,7 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
         // is completed or typed over.
         const plannedSetValues = extractPlannedSetValues(resolvedExercises);
         const session = await createSession({
-          name: name ?? defaultWorkoutName(entryDate),
+          name: plannedWorkout?.name ?? name ?? defaultWorkoutName(entryDate),
           entry_date: entryDate,
           source: 'sparky',
           exercises: stripPlannedSetValues(resolvedExercises).map(
@@ -223,7 +227,8 @@ export function useStartLiveWorkout(navigation: StartLiveWorkoutNavigation): {
           // server keeps the client-supplied exercises verbatim when both
           // fields are present instead of substituting the preset's own.
           workout_preset_id: sourcePresetId,
-          workoutPlanAssignmentId,
+          workoutPlanAssignmentId:
+            plannedWorkout?.assignmentId ?? workoutPlanAssignmentId,
         });
         invalidateCache(entryDate);
         // Chained so the exact-alarm prompt never stacks on top of the OS
