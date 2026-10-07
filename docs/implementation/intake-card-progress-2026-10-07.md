@@ -1,8 +1,8 @@
 # Compact Home intake progress
 
 Implemented on `feat/v45-diary-meals-training-refinement-20261007`, following
-`9e9663f81`. This is an unreleased phone-only refinement of the existing Home
-intake card.
+`9e9663f81`. The original phone-only refinement shipped in v46; the later optical alignment
+follow-up below remains on its separate fix branch.
 
 ## Layout and typography
 
@@ -86,3 +86,30 @@ The independent finish review returned `ship` for this intake-card scope, with n
 material fixes. It confirmed the hierarchy, categorical colors, theme material,
 nonoverlapping layout and source accessibility. Actual VoiceOver interaction and
 historical enlarged-size equality remain unverified.
+
+
+## Post-v46 optical alignment follow-up
+
+On `fix/intake-gauge-optical-center-20261007`, the ordinary center text group
+moves 8 points down to use the arc's open bottom and increase clearance above
+the intake number. The four-line hierarchy, type sizes, glow thresholds, side
+rails, navigation, 130-point gauge/body and 184-point card remain unchanged.
+The arc-free layout above font scale 1.3 receives no translation. No strings,
+data contracts or native assets changed.
+
+Mobile `pnpm run validate` passed. Existing targeted Jest suites for
+`CalorieRingCard`, `EnergyGauge` and `DashboardReview` passed (3 suites, 16 tests).
+Native intake-card interaction checks passed in five simulator cases: German
+390-point dark/light, German 402-point dark matching the supplied screenshot's
+logical width, German 430-point enlarged text, and English above-target AMOLED.
+The ordinary cases measured 184/130-point card/body heights; the existing
+enlarged layout measured 415.33/331 points. Visual inspection and an independent
+bounded layout assessment found no center-text overlap or material concerns.
+
+[402-point preview](evidence/intake-gauge-optical-center-2026-10-07/402-de-dark.png),
+[enlarged-text preview](evidence/intake-gauge-optical-center-2026-10-07/430-de-large.png)
+and [results](evidence/intake-gauge-optical-center-2026-10-07/results.json) retain
+synthetic native XCTest captures and measurements. Tests used current JavaScript
+in an existing Debug simulator binary, not a new signed build. Physical-device,
+Android, VoiceOver, signed archive and TestFlight checks were not performed for
+this follow-up. No deployment was started.

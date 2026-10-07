@@ -289,7 +289,12 @@ export default function CalorieRingCard({
               style={
                 expandedText
                   ? { width: '100%' }
-                  : { position: 'absolute', width: 106 }
+                  : {
+                      position: 'absolute',
+                      width: 106,
+                      // Optical centering uses the open bottom of the arc.
+                      transform: [{ translateY: 8 }],
+                    }
               }
             >
               <Text
