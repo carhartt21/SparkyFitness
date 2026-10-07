@@ -1,0 +1,46 @@
+{
+  "reviewedSourceCommit": "6f528cd4c0bc0ca0acaae76d7d489420af86bb28",
+  "installation": "frozen offline passed",
+  "repositoryLayout": "passed",
+  "phone": {
+    "validate": "passed",
+    "fullTestSuites": 575,
+    "fullTests": 7924
+  },
+  "web": {
+    "validate": "passed",
+    "productionBuild": "passed",
+    "fullTestSuites": 178,
+    "fullTests": 1510
+  },
+  "server": {
+    "validate": "passed",
+    "focusedTestFiles": 8,
+    "focusedTests": 132,
+    "focusedEvidence": "Exact merged source, verified before release-only documentation commit",
+    "fullSuite": "skipped by owner"
+  },
+  "docsBuild": "passed",
+  "nativeEvidence": "Reused unchanged feature captures and native assertions; see the three feature records",
+  "productionCapacity": {
+    "beforeFreeGiB": 2.75,
+    "afterFreeGiB": 7.17,
+    "removedUnusedReleaseImages": ["v38", "v39", "v41", "v42", "v43"],
+    "retained": [
+      "all container images",
+      "current and rollback images",
+      "verified source archives",
+      "release receipts",
+      "encrypted backups",
+      "volumes",
+      "protected configuration"
+    ]
+  },
+  "unverified": [
+    "physical phone and paired Watch",
+    "Android",
+    "signed-device widget launches",
+    "notification quick actions",
+    "Health/Fitness export"
+  ]
+}
