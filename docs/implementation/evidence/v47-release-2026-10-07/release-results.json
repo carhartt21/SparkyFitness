@@ -1,0 +1,215 @@
+{
+  "recordedAtUtc": "2026-10-07T22:12:31.471317+00:00",
+  "sourceCommit": "dbadfa6395fa6e36a61e68f60d5cb363ee6e5358",
+  "buildContextArchiveSha256": "872f68cde8214468605d4bce6d55c86d576e1d773e8bf52f1d64cb310c7f0a1b",
+  "production": {
+    "checkedAtUtc": "2026-10-07T22:07:40.534949+00:00",
+    "images": {
+      "frontend": {
+        "reference": "x-on-track-frontend:dbadfa639",
+        "imageId": "sha256:36e6ea147073f0350f26befcf24ffbd90b8bdc3738561ad92698b1ec880395e3",
+        "revision": "dbadfa6395fa6e36a61e68f60d5cb363ee6e5358"
+      },
+      "server": {
+        "reference": "x-on-track-server:dbadfa639",
+        "imageId": "sha256:2de4a6bcc50abb64280262ff0095faaa418256b7a8c499852f88e155d86fece8",
+        "revision": "dbadfa6395fa6e36a61e68f60d5cb363ee6e5358"
+      },
+      "postgres": {
+        "reference": "postgres:18.3-alpine",
+        "indexDigest": "sha256:54451ecb8ab38c24c3ec123f2fd501303a3a1856a5c66e98cecf2460d5e1e9d7",
+        "linuxAmd64Digest": "sha256:1b13c640ae11f2f165d1e89667e5862b0017baf4c80fec2fb7377d86319859ba"
+      }
+    },
+    "gates": {
+      "MICRONUTRIENT_IMPORT_ENABLED": "false",
+      "XOT_COACHING_ENABLED": "true"
+    },
+    "preserved": [
+      "database image",
+      "persistent mounts",
+      "protected settings",
+      "private routing",
+      "existing migration ledger unchanged",
+      "BLS catalogue count",
+      "mobility owner policies"
+    ],
+    "publicHttps": {
+      "/": 200,
+      "/api/health": 200,
+      "/.well-known/oauth-protected-resource/mcp/chatgpt": 200,
+      "/.well-known/oauth-protected-resource/mcp/coaching": 200
+    },
+    "publicSmokePassed": true
+  },
+  "productionBackup": {
+    "encryptedMatchedBackup": true,
+    "offHostCopyChecksumVerified": true
+  },
+  "publicEntryAssets": {
+    "publicApplicationHtmlMatchesImage": true,
+    "edgeAddition": ["Cloudflare browser challenge"],
+    "entryPreloadAndServiceWorkerRegistrationAssets": [
+      "/assets/ActiveUserContext-D8MYxEvF.js",
+      "/assets/PreferencesContext-CRQ-v5r2.js",
+      "/assets/admin-DsOW29Zr.js",
+      "/assets/aiServiceSettingsService-BXahmfmQ.js",
+      "/assets/api-BPM1D09r.js",
+      "/assets/auth-client-Sl7g93D6.js",
+      "/assets/button-Dd6YIl9P.js",
+      "/assets/check-DgxBT1_3.js",
+      "/assets/chunk-BV7QT456-C8rPjA4B.js",
+      "/assets/createLucideIcon-Cb4AG6YS.js",
+      "/assets/diary-Beh76tkw.js",
+      "/assets/dist-BUBsQbua.js",
+      "/assets/dist-B_voqu6S.js",
+      "/assets/dist-CVVB174A.js",
+      "/assets/dist-CaZ_HEdU.js",
+      "/assets/dist-CqwVDND-.js",
+      "/assets/dist-DF8sm0NZ.js",
+      "/assets/dist-DR18IL4P.js",
+      "/assets/dist-lSRPZvWl.js",
+      "/assets/es2015-Cjy34EWF.js",
+      "/assets/i18nInstance-nl8sLhSu.js",
+      "/assets/index-CPsbUDno.css",
+      "/assets/index-CSK4Hb_A.js",
+      "/assets/settings-V7XUtkda.js",
+      "/assets/src-DffjhkRc.js",
+      "/assets/useAuth-D8D8eTFV.js",
+      "/assets/useTranslation-BS-uJ4_2.js",
+      "/registerSW.js"
+    ],
+    "count": 28,
+    "allMatchDeployedImage": true
+  },
+  "publicArtwork": {
+    "publicOrigin": "https://health.ilmtech.de",
+    "verifiedArtwork": [
+      "tomato-raw",
+      "tomato-sauce",
+      "apple-raw",
+      "rice-dry",
+      "rice-cooked",
+      "mushrooms",
+      "rice-brown-dry",
+      "rice-brown-cooked",
+      "tomato-cooked",
+      "tomato-dried",
+      "seeds",
+      "flour",
+      "bran",
+      "starch",
+      "milk-powder",
+      "quark",
+      "tofu",
+      "olives",
+      "poultry-raw",
+      "poultry-cooked",
+      "pasta-cooked",
+      "coffee-powder"
+    ],
+    "count": 22,
+    "allMatchSource": true
+  },
+  "publicMcpAuthentication": {
+    "anonymousInitializeRequiresAuthentication": {
+      "/mcp/chatgpt": 401,
+      "/mcp/coaching": 401
+    }
+  },
+  "databasePostRelease": {
+    "migrationCount": 270,
+    "reviewLoopMigrationApplied": true,
+    "blsFoodCount": 7140,
+    "recapsRls": true,
+    "recapsOwnerPolicy": true,
+    "servingColumns": 4
+  },
+  "databaseComparedWithPreflight": "unchanged",
+  "mobile": {
+    "version": "1.7.2",
+    "buildNumber": "47",
+    "sourceCommit": "dbadfa6395fa6e36a61e68f60d5cb363ee6e5358",
+    "buildId": "1f85b39b-42be-4d07-af4c-98d8df0f7d19",
+    "buildStatus": "FINISHED",
+    "submissionId": "f403e012-0abe-49d9-8e9d-3c51d572f226",
+    "submissionStatus": "FINISHED",
+    "ipa": {
+      "sha256": "61b3ba25b9e47f703f5d8a15b2a40f30b7eef11a6bf3d320f0fd0f6b8208704a",
+      "targets": [
+        {
+          "bundleId": "com.cg.phi",
+          "version": "1.7.2",
+          "build": "47",
+          "signatureVerified": true,
+          "appGroupPreserved": true,
+          "healthKit": true,
+          "germanPermissionKeys": [
+            "NSCameraUsageDescription",
+            "NSPhotoLibraryUsageDescription",
+            "NSHealthShareUsageDescription",
+            "NSHealthUpdateUsageDescription",
+            "NSLocalNetworkUsageDescription"
+          ]
+        },
+        {
+          "bundleId": "com.cg.phi.widget",
+          "version": "1.7.2",
+          "build": "47",
+          "signatureVerified": true,
+          "appGroupPreserved": true,
+          "healthKit": false
+        },
+        {
+          "bundleId": "com.cg.phi.ExpoWidgetsTarget",
+          "version": "1.7.2",
+          "build": "47",
+          "signatureVerified": true,
+          "appGroupPreserved": true,
+          "healthKit": false
+        },
+        {
+          "bundleId": "com.cg.phi.watchkitapp",
+          "version": "1.7.2",
+          "build": "47",
+          "signatureVerified": true,
+          "appGroupPreserved": true,
+          "healthKit": true,
+          "germanCatalogKeys": 150
+        },
+        {
+          "bundleId": "com.cg.phi.watchkitapp.watch-widget",
+          "version": "1.7.2",
+          "build": "47",
+          "signatureVerified": true,
+          "appGroupPreserved": true,
+          "healthKit": false,
+          "germanCatalogKeys": 16
+        }
+      ]
+    },
+    "assets": {
+      "canonicalArtworkPngs": 22,
+      "canonicalArtworkHashesMatch": true,
+      "mobilityCueAssetsBundled": ["rest-chime-2.wav", "rest-chime.wav"],
+      "reviewMarkersAbsent": true,
+      "displayName": "X on Track"
+    },
+    "phoneWidgetCatalog": {
+      "germanPhoneWidgetCatalogMatchesSource": true,
+      "keys": 34
+    },
+    "uploadComplete": true
+  },
+  "apple": {
+    "buildPresent": false,
+    "processingState": null,
+    "internalBuildState": null,
+    "externalBuildState": null,
+    "checkedAtUtc": "2026-10-07T22:12:08.890664+00:00",
+    "testerAvailabilityVerified": false
+  },
+  "fullBackendSuite": "skipped at owner request; 132 focused regressions and server validate passed",
+  "deviceAcceptance": "not performed; see release record",
+  "productionCapacityPostReleaseGiB": 4.55
+}

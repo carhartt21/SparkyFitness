@@ -4,6 +4,10 @@ Implemented on `fix/workout-goal-completion-20261007`, based on `848d18273`.
 That base includes the separate intake-gauge spacing and scheduled-routine start
 follow-ups. This batch is not merged or deployed.
 
+**Release update:** included in the merged v47 source. See the
+[v47 release record](v47-release-2026-10-07.md) for production, signed artifact
+and upload verification; the sections below describe the original feature batch.
+
 ## Diagnosis
 
 A bounded, owner-scoped production inspection for the reported day ran in a

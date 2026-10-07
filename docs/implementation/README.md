@@ -4,9 +4,9 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current user guides and runbooks
 
-- [v47 release](v47-release-2026-10-07.md): merged gauge and workout follow-ups, release checks and parallel delivery preparation.
-- [Workout goal recognition](workout-goal-completion-2026-10-07.md): shorter lifting sessions now show Started against the saved target, with shared single-session evidence and phone verification; unreleased.
-- [Scheduled workout routine start](scheduled-workout-routine-start-2026-10-07.md): direct live-routine action, plan-preserving selection/preview, separate activity logging and bounded phone verification; unreleased.
+- [v47 release](v47-release-2026-10-07.md): merged gauge and workout follow-ups, verified production rollout, signed artifact and completed upload; Apple availability pending.
+- [Workout goal recognition](workout-goal-completion-2026-10-07.md): shorter lifting sessions now show Started against the saved target, with shared single-session evidence and phone verification; merged for v47.
+- [Scheduled workout routine start](scheduled-workout-routine-start-2026-10-07.md): direct live-routine action, plan-preserving selection/preview, separate activity logging and bounded phone verification; merged for v47.
 - [v46 release](v46-release-2026-10-07.md): merged phone refinement and deferred completion, release checks and parallel delivery evidence.
 - [Deferred task completion](deferred-tasks-completion-2026-10-07.md): Todoist reconciliation, Watch ordering, mobility assistant argument/error fixes, supplement timing guide and remaining acceptance gates.
 

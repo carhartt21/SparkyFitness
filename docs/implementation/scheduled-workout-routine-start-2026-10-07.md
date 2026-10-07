@@ -4,6 +4,10 @@ Implemented on `feat/scheduled-workout-routine-start-20261007`, based on
 `787557609` (the separate intake-gauge optical correction). Neither follow-up is
 merged to main or released by this batch.
 
+**Release update:** both follow-ups are included in the merged v47 source. See
+the [v47 release record](v47-release-2026-10-07.md) for production, signed artifact
+and upload verification; the sections below describe the original feature batch.
+
 ## Behavior
 
 Every due, non-rest assignment in the phone's weekly Training screen now has a
