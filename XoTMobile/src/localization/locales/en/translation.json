@@ -1033,7 +1033,8 @@
     "mealPhoto": "Meal photo",
     "openMealsA11y": "{{amount}}. Open daily meals.",
     "noCalorieGoal": "No daily calorie target set",
-    "intakeGoal": "of {{value}} kcal"
+    "intakeGoal": "of {{value}} kcal",
+    "intakeOf": "of"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",

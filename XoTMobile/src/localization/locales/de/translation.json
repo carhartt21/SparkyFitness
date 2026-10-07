@@ -1292,7 +1292,8 @@
     "mealPhoto": "Mahlzeitenfoto",
     "openMealsA11y": "{{amount}}. Mahlzeiten des Tages öffnen.",
     "noCalorieGoal": "Kein Kalorienziel festgelegt",
-    "intakeGoal": "von {{value}} kcal"
+    "intakeGoal": "von {{value}} kcal",
+    "intakeOf": "von"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect-Einstellungen",

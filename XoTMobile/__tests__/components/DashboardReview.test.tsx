@@ -100,8 +100,8 @@ it('shows actual intake and target even when intake exceeds the target', () => {
       progressPercent={1.15}
     />
   );
-  expect(screen.getByText('2,300 kcal')).toBeTruthy();
-  expect(screen.getByText('of 2,000 kcal')).toBeTruthy();
+  expect(screen.getByText('2,300')).toBeTruthy();
+  expect(screen.getByText('2,000')).toBeTruthy();
   expect(screen.queryByText('remaining')).toBeNull();
 });
 
@@ -116,7 +116,7 @@ it('does not invent a remaining allowance when no target is configured', () => {
       progressPercent={0}
     />
   );
-  expect(screen.getByText('600 kcal')).toBeTruthy();
+  expect(screen.getByText('600')).toBeTruthy();
   expect(screen.getByText('No daily calorie target set')).toBeTruthy();
   expect(screen.queryByText('remaining')).toBeNull();
   expect(screen.queryByText('over target')).toBeNull();

@@ -9,7 +9,9 @@
     "command": "pnpm exec jest --runInBand",
     "postLayoutRegression": "5 suites / 49 tests passed after the final compact-heading and category-color changes",
     "ownerFollowupRegression": "3 suites / 40 tests passed after the intake-gauge and Diary icon changes",
-    "ownerFollowupValidate": "passed"
+    "ownerFollowupValidate": "passed",
+    "fourLineGaugeRegression": "2 suites / 9 tests passed; calorie arithmetic, navigation, over-goal and unavailable-goal states",
+    "fourLineGaugeValidate": "passed"
   },
   "server": {
     "validate": "passed",
@@ -37,7 +39,8 @@
     "supplementalInteraction": "passed: 390 German dark complete tour including supplement-history action/glyph capture",
     "supplementalLocatorCorrection": "Two initial supplemental selector attempts failed; descendant label matching resolves the accessible compound action. No production UI change.",
     "ownerFollowupInteractions": "3 passed: German dark/light390 and accessibility430; see owner-followup-simulator-results.json",
-    "ownerFollowupHarnessCorrection": "Energy-height ordinary-layout predicate replaced with actual stacked progress-row geometry; enlarged content intentionally scrolls."
+    "ownerFollowupHarnessCorrection": "Energy-height ordinary-layout predicate replaced with actual stacked progress-row geometry; enlarged content intentionally scrolls.",
+    "fourLineGaugeInteractions": "3 passed: German dark/light390 and accessibility430; four-line-simulator-results.json. Existing simulator Debug shell with current JavaScript; no new archive."
   },
   "release": {
     "merge": false,
@@ -60,7 +63,9 @@
     "detector": "Not run: native-only React Native interface",
     "ownerFollowupScreenshots": 12,
     "ownerFollowupVerdict": "ship at the two-change scope; finish-owner-followup.md",
-    "ownerFollowupReviewer": "Fresh narrow review completed after one replacement due to model capacity; all 12 required PNGs inspected"
+    "ownerFollowupReviewer": "Fresh narrow review completed after one replacement due to model capacity; all 12 required PNGs inspected",
+    "fourLineGaugeScreenshots": 6,
+    "fourLineGaugeVerdict": "ship for the scored sidecar correction; finish-four-line-gauge.md; all six captures inspected, no UI correction requested"
   },
   "repositoryLayout": "passed: 5 packages, 5891 tracked paths",
   "nextCycle": {

@@ -142,10 +142,22 @@ Repository layout checks and the final documentation build passed. VitePress
 retained its existing chunk-size warning. Results are recorded in the validation
 manifest.
 
+The four-line gauge follow-up passed **2 suites / 9 tests** and mobile validation.
+All three native German dark/light/enlarged interaction tours passed using the
+existing simulator Debug shell and current JavaScript. Six new Home captures
+(`four-line-` prefix) and [tour results](evidence/v45-diary-meals-training-2026-10-07/four-line-simulator-results.json)
+record this typography change. The [fresh narrow review](evidence/v45-diary-meals-training-2026-10-07/finish-four-line-gauge.md)
+found no UI defect and scored the stale sidecar correction resolved (**ship at
+that scope**). Physical-device review remains unperformed.
+
 ## Reference adaptations and remaining gates
 
 The final owner correction replaces remaining energy with consumed energy and
-`von <adjusted goal> kcal` directly inside the Home gauge, without text below it.
+the adjusted goal directly inside the Home gauge, without text below it. The
+latest typography correction uses four centered lines: intake, “von”, adjusted
+goal, then “kcal”. The ordinary intake uses 26-point bold type; the goal uses
+20-point semibold type, and the connector/unit use 12-point secondary type.
+This follows the hydration gauge’s centered hierarchy without changing its layout.
 It retains the existing server adjustment policy and explicit unavailable target.
 Diary meal groups now use the native fork-and-knife glyph, scoped to this timeline.
 

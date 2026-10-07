@@ -37,7 +37,12 @@ export default function CalorieRingCard({
   const hasGoal = Number.isFinite(calorieGoal) && calorieGoal > 0;
   // The allowance includes exactly the adjustment already applied by the server.
   const effectiveGoal = hasGoal ? remainingCalories + caloriesConsumed : null;
-  const intake = `${formatLocalizedNumber(Math.round(caloriesConsumed))} kcal`;
+  const intakeValue = formatLocalizedNumber(Math.round(caloriesConsumed));
+  const goalValue =
+    effectiveGoal === null
+      ? null
+      : formatLocalizedNumber(Math.round(effectiveGoal));
+  const intake = `${intakeValue} kcal`;
   const goal =
     effectiveGoal === null
       ? t('dashboard.noCalorieGoal', {
@@ -45,7 +50,7 @@ export default function CalorieRingCard({
         })
       : t('dashboard.intakeGoal', {
           defaultValue: 'of {{value}} kcal',
-          value: formatLocalizedNumber(Math.round(effectiveGoal)),
+          value: goalValue,
         });
   const amount = `${intake}, ${goal}`;
   return (
@@ -104,7 +109,7 @@ export default function CalorieRingCard({
           )}
           <View
             pointerEvents="none"
-            className="items-center justify-center"
+            className="items-center justify-center gap-0.5"
             style={
               expandedText
                 ? { width: '100%' }
@@ -115,22 +120,43 @@ export default function CalorieRingCard({
               className={
                 expandedText
                   ? 'w-full text-center text-[34px] font-bold text-text-primary'
-                  : 'w-full text-center text-[24px] font-bold text-text-primary'
+                  : 'w-full text-center text-[26px] leading-[30px] font-bold text-text-primary'
               }
               numberOfLines={1}
               adjustsFontSizeToFit
               maxFontSizeMultiplier={expandedText ? undefined : 1.6}
             >
-              {intake}
+              {intakeValue}
             </Text>
+            {goalValue !== null && (
+              <>
+                <Text
+                  className={`text-center text-text-secondary ${expandedText ? 'text-base' : 'text-xs leading-[14px]'}`}
+                >
+                  {t('dashboard.intakeOf', { defaultValue: 'of' })}
+                </Text>
+                <Text
+                  testID="dashboard-energy-goal"
+                  className={`w-full text-center font-semibold text-text-secondary ${expandedText ? 'text-2xl' : 'text-xl leading-6'}`}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit={!expandedText}
+                >
+                  {goalValue}
+                </Text>
+              </>
+            )}
             <Text
-              testID="dashboard-energy-goal"
-              className={`w-full text-center text-text-secondary ${expandedText ? 'text-base' : 'text-xs'}`}
-              numberOfLines={effectiveGoal === null ? undefined : 1}
-              adjustsFontSizeToFit={!expandedText && effectiveGoal !== null}
+              className={`text-center text-text-secondary ${expandedText ? 'text-base' : 'text-xs leading-[14px]'}`}
             >
-              {goal}
+              {t('dashboard.kcal', { defaultValue: 'kcal' })}
             </Text>
+            {goalValue === null && (
+              <Text
+                className={`w-full text-center text-text-secondary ${expandedText ? 'text-base' : 'text-xs'}`}
+              >
+                {goal}
+              </Text>
+            )}
           </View>
         </View>
       </Pressable>
