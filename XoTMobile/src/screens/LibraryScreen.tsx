@@ -21,9 +21,10 @@ import { useNavigationActionGuard } from '../hooks/useNavigationActionGuard';
 import Button from '../components/ui/Button';
 import CreateTile from '../components/CreateTile';
 import FoodLibraryRow from '../components/FoodLibraryRow';
-import Icon from '../components/Icon';
+import Icon, { type IconName } from '../components/Icon';
 import MealLibraryRow from '../components/MealLibraryRow';
 import StatusView from '../components/StatusView';
+import SettingsRow, { SettingsRowGroup } from '../components/SettingsRow';
 import {
   useFavorites,
   useFoods,
@@ -58,6 +59,48 @@ type RecentItem =
   | { type: 'meal'; data: Meal }
   | { type: 'food'; data: FoodItem }
   | { type: 'exercise'; data: Exercise };
+
+interface BrowseRowProps {
+  icon: IconName;
+  title: string;
+  subtitle?: string;
+  count?: number | string;
+  onPress: () => void;
+  testID?: string;
+}
+
+const BrowseRow: React.FC<BrowseRowProps> = ({
+  icon,
+  title,
+  subtitle,
+  count,
+  onPress,
+  testID,
+}) => {
+  const accentColor = useCSSVariable('--color-accent-primary') as string;
+  const textSecondary = useCSSVariable('--color-text-secondary') as string;
+  return (
+    <SettingsRow
+      icon={icon}
+      iconColor={accentColor}
+      title={title}
+      subtitle={subtitle}
+      onPress={onPress}
+      testID={testID}
+      accessibilityLabel={[title, subtitle, count]
+        .filter((value) => value !== undefined)
+        .join('. ')}
+      rightAccessory={
+        count !== undefined ? (
+          <View className="flex-row items-center shrink-0">
+            <Text className="text-text-secondary text-base mr-2">{count}</Text>
+            <Icon name="chevron-forward" size={20} color={textSecondary} />
+          </View>
+        ) : undefined
+      }
+    />
+  );
+};
 
 const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
   const { t } = useTranslation();
@@ -495,202 +538,111 @@ const LibraryScreen: React.FC<LibraryScreenProps> = ({ navigation }) => {
           </Text>
         </View>
 
-        <View className="bg-surface rounded-2xl mb-6 border border-border-subtle overflow-hidden">
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+        <SettingsRowGroup className="mb-6">
+          <BrowseRow
+            icon="food"
+            title={t('screens.library.foods', { defaultValue: 'Foods' })}
+            count={foodsCount ?? '-'}
             onPress={() => navigation.navigate('FoodsLibrary')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <Text className="text-base font-semibold text-text-primary">
-              {t('screens.library.foods', { defaultValue: 'Foods' })}
-            </Text>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-base mr-2">
-                {foodsCount ?? '-'}
-              </Text>
-              <Icon name="chevron-forward" size={20} color="#999" />
-            </View>
-          </Pressable>
-
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="food"
+            title={t('screens.library.meals', { defaultValue: 'Meals' })}
+            count={meals.length}
             onPress={() => navigation.navigate('MealsLibrary')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <Text className="text-base font-semibold text-text-primary">
-              {t('screens.library.meals', { defaultValue: 'Meals' })}
-            </Text>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-base mr-2">
-                {meals.length}
-              </Text>
-              <Icon name="chevron-forward" size={20} color="#999" />
-            </View>
-          </Pressable>
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="calendar"
+            title={t('screens.library.mealPlans', {
+              defaultValue: 'Meal plans',
+            })}
+            subtitle={t('screens.library.mealPlansSubtitle', {
+              defaultValue: 'Repeat meals on selected days',
+            })}
             onPress={() => navigation.navigate('MealPlans')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <View className="flex-1 mr-3">
-              <Text className="text-base font-semibold text-text-primary">
-                {t('screens.library.mealPlans', { defaultValue: 'Meal plans' })}
-              </Text>
-              <Text className="text-sm text-text-secondary mt-0.5">
-                {t('screens.library.mealPlansSubtitle', {
-                  defaultValue: 'Repeat meals on selected days',
-                })}
-              </Text>
-            </View>
-            <Icon name="chevron-forward" size={20} color="#999" />
-          </Pressable>
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="exercise-weights"
+            title={t('screens.library.exercises', {
+              defaultValue: 'Exercises',
+            })}
+            count={exercisesCount ?? '-'}
             onPress={() => navigation.navigate('ExercisesLibrary')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <Text className="text-base font-semibold text-text-primary">
-              {t('screens.library.exercises', { defaultValue: 'Exercises' })}
-            </Text>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-base mr-2">
-                {exercisesCount ?? '-'}
-              </Text>
-              <Icon name="chevron-forward" size={20} color="#999" />
-            </View>
-          </Pressable>
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="bookmark"
+            title={t('screens.library.workoutPresets', {
+              defaultValue: 'Workout presets',
+            })}
+            count={presetsCount ?? '-'}
             onPress={() => navigation.navigate('WorkoutPresetsLibrary')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <Text className="text-base font-semibold text-text-primary">
-              {t('screens.library.workoutPresets', {
-                defaultValue: 'Workout presets',
-              })}
-            </Text>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-base mr-2">
-                {presetsCount ?? '-'}
-              </Text>
-              <Icon name="chevron-forward" size={20} color="#999" />
-            </View>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            className="px-4 py-4 border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="sparkles"
+            title={t('coaching.title', { defaultValue: 'Recommendations' })}
             onPress={() => navigation.navigate('Coaching')}
-          >
-            <Text className="text-base font-semibold text-text-primary">
-              {t('coaching.title', { defaultValue: 'Recommendations' })}
-            </Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="exercise-yoga"
+            title={t('mobility.title', { defaultValue: 'Guided mobility' })}
+            subtitle={t('mobility.plannedOnPhone', {
+              defaultValue: 'Plan sessions on the web and run them here.',
+            })}
             onPress={() => navigation.navigate('GuidedMobility')}
-          >
-            <View className="flex-1 mr-3">
-              <Text className="text-base font-semibold text-text-primary">
-                {t('mobility.title', { defaultValue: 'Guided mobility' })}
-              </Text>
-              <Text className="text-sm text-text-secondary mt-0.5">
-                {t('mobility.plannedOnPhone', {
-                  defaultValue: 'Plan sessions on the web and run them here.',
-                })}
-              </Text>
-            </View>
-            <Icon name="chevron-forward" size={20} color="#999" />
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
+          />
+          <BrowseRow
+            icon="heart"
+            title={t('healthOverview.routines', {
+              defaultValue: 'Health & routines',
+            })}
+            testID="more-health-routines"
             onPress={() =>
               navigation.navigate('HealthOverview', {
                 section: 'routines',
                 date: selectedDate,
               })
             }
-            className="mb-3 min-h-14 flex-row items-center gap-3 rounded-2xl border border-border-subtle bg-surface p-4"
-          >
-            <Icon name="heart" size={22} color={accentColor} />
-            <Text className="min-w-0 flex-1 text-base font-semibold text-text-primary">
-              {t('healthOverview.routines', {
-                defaultValue: 'Health & routines',
-              })}
-            </Text>
-            <Icon name="chevron-forward" size={16} color={accentColor} />
-          </Pressable>
-          <Pressable
-            className="min-h-11 px-4 py-4 border-b border-border-subtle"
-            accessibilityRole="button"
+          />
+          <BrowseRow
+            icon="exercise-running"
+            title={t('trainingHub.title', {
+              defaultValue: 'Training & routines',
+            })}
             testID="more-training-plans"
             onPress={() =>
               navigation.navigate('TrainingHub', { date: selectedDate })
             }
-          >
-            <Text className="text-text-primary font-semibold">
-              {t('trainingHub.title', { defaultValue: 'Training & routines' })}
-            </Text>
-          </Pressable>
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="chart-bar"
+            title={t('exerciseReview.title', {
+              defaultValue: 'Exercise review',
+            })}
+            subtitle={t('exerciseReview.librarySubtitle', {
+              defaultValue: 'Compare activity by day, week, month, or year',
+            })}
             onPress={() => navigation.navigate('ExerciseReview')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <View className="flex-1 mr-3">
-              <Text className="text-base font-semibold text-text-primary">
-                {t('exerciseReview.title', { defaultValue: 'Exercise review' })}
-              </Text>
-              <Text className="text-sm text-text-secondary mt-0.5">
-                {t('exerciseReview.librarySubtitle', {
-                  defaultValue: 'Compare activity by day, week, month, or year',
-                })}
-              </Text>
-            </View>
-            <Icon name="chevron-forward" size={20} color="#999" />
-          </Pressable>
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between border-b border-border-subtle"
+          />
+          <BrowseRow
+            icon="water"
+            title={t('screens.library.waterContainers', {
+              defaultValue: 'Water containers',
+            })}
+            subtitle={t('screens.library.waterContainersSubtitle', {
+              defaultValue: 'Bottles, glasses, and drinks linked to foods',
+            })}
+            count={waterContainers.length}
             onPress={() => navigation.navigate('WaterContainers')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <View className="flex-1 mr-3">
-              <Text className="text-base font-semibold text-text-primary">
-                {t('screens.library.waterContainers', {
-                  defaultValue: 'Water containers',
-                })}
-              </Text>
-              <Text className="text-sm text-text-secondary mt-0.5">
-                {t('screens.library.waterContainersSubtitle', {
-                  defaultValue: 'Bottles, glasses, and drinks linked to foods',
-                })}
-              </Text>
-            </View>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-base mr-2">
-                {waterContainers.length}
-              </Text>
-              <Icon name="chevron-forward" size={20} color="#999" />
-            </View>
-          </Pressable>
-          <Pressable
-            className="px-4 py-4 flex-row items-center justify-between"
+          />
+          <BrowseRow
+            icon="medication"
+            title={t('screens.library.medications', {
+              defaultValue: 'Medications & supplements',
+            })}
+            count={medications?.length ?? '-'}
             onPress={() => navigation.navigate('MedicationsList')}
-            style={({ pressed }) => (pressed ? { opacity: 0.7 } : null)}
-          >
-            <Text className="text-base font-semibold text-text-primary">
-              {t('screens.library.medications', {
-                defaultValue: 'Medications & supplements',
-              })}
-            </Text>
-            <View className="flex-row items-center">
-              <Text className="text-text-secondary text-base mr-2">
-                {medications?.length ?? '-'}
-              </Text>
-              <Icon name="chevron-forward" size={20} color="#999" />
-            </View>
-          </Pressable>
-        </View>
+          />
+        </SettingsRowGroup>
 
         <View className="mb-3">
           <Text className="text-lg font-semibold text-text-primary">
