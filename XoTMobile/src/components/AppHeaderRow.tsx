@@ -1,5 +1,11 @@
 import type { ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import {
+  Pressable,
+  Text,
+  View,
+  type StyleProp,
+  type TextStyle,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import BrandMark from './brand/BrandMark';
@@ -10,6 +16,9 @@ import { useGlowTheme, withAlpha } from './ui/glow';
 interface AppHeaderRowProps {
   title: string;
   subtitle?: string;
+  /** Optional display artwork; title remains the accessible screen identity. */
+  titleContent?: ReactNode;
+  subtitleStyle?: StyleProp<TextStyle>;
   onSettings: () => void;
   /** Makes the logo a button, e.g. back to today on the Dashboard. */
   onLogoPress?: () => void;
@@ -27,6 +36,8 @@ interface AppHeaderRowProps {
 export default function AppHeaderRow({
   title,
   subtitle,
+  titleContent,
+  subtitleStyle,
   onSettings,
   onLogoPress,
   logoAccessibilityLabel,
@@ -64,19 +75,31 @@ export default function AppHeaderRow({
           {logo}
         </View>
       )}
-      <View className="flex-1" accessible accessibilityRole="header">
-        <Text
-          className="text-[28px] font-extrabold text-text-primary"
-          style={{ letterSpacing: -0.4 }}
-          numberOfLines={1}
-          adjustsFontSizeToFit
-          maxFontSizeMultiplier={1.4}
-        >
-          {title}
-        </Text>
+      <View
+        className="flex-1"
+        accessible
+        accessibilityRole="header"
+        accessibilityLabel={
+          titleContent
+            ? [title, subtitle].filter(Boolean).join('. ')
+            : undefined
+        }
+      >
+        {titleContent ?? (
+          <Text
+            className="text-[28px] font-extrabold text-text-primary"
+            style={{ letterSpacing: -0.4 }}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            maxFontSizeMultiplier={1.4}
+          >
+            {title}
+          </Text>
+        )}
         {subtitle ? (
           <Text
             className="text-sm font-medium text-text-secondary"
+            style={subtitleStyle}
             maxFontSizeMultiplier={1.6}
             numberOfLines={1}
             ellipsizeMode="tail"
