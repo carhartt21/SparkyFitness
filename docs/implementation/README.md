@@ -4,7 +4,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current user guides and runbooks
 
-- [v48 release](v48-release-2026-10-08.md): approved phone brand header and consistent More Browse rows, release checks and parallel delivery preparation.
+- [v48 release](v48-release-2026-10-08.md): approved phone brand header and consistent More Browse rows, verified production rollout and signed build; automatic upload pending.
 
 - [More Browse rows](more-browse-2026-10-08.md): shared grouped rows with semantic icons, consistent navigation affordances and German native render checks.
 
