@@ -1,5 +1,5 @@
 {
-  "recordedAtUtc": "2026-10-08T13:42:07.738557+00:00",
+  "recordedAtUtc": "2026-10-08T13:47:03.533534+00:00",
   "sourceCommit": "9013e18409df2d48488c76899b5b2423e0dab2f5",
   "buildContextArchiveSha256": "e86998f8d7539a82046c768290e75d8c78102872c9aeabab959c8a41e7237616",
   "production": {
@@ -133,7 +133,7 @@
     "buildId": "f7e9ec1c-7503-49fe-b8d3-661bb7fc783a",
     "buildStatus": "FINISHED",
     "submissionId": "486b56d7-eb67-4dc6-a4b0-cc39a2d7aaa3",
-    "submissionStatus": "IN_QUEUE",
+    "submissionStatus": "FINISHED",
     "ipa": {
       "sha256": "1ee8db6a6ed1e0849f5047c7f9dc2e05fef939346d386604f94b0c4949d86f6e",
       "targets": [
@@ -200,14 +200,14 @@
       "germanPhoneWidgetCatalogMatchesSource": true,
       "keys": 34
     },
-    "uploadComplete": false
+    "uploadComplete": true
   },
   "apple": {
     "buildPresent": false,
     "processingState": null,
     "internalBuildState": null,
     "externalBuildState": null,
-    "checkedAtUtc": "2026-10-08T13:41:57.424655+00:00",
+    "checkedAtUtc": "2026-10-08T13:46:49.447873+00:00",
     "testerAvailabilityVerified": false
   },
   "fullBackendSuite": "skipped at owner request; server source unchanged since v47 and server validate passed",
