@@ -4,6 +4,10 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Current user guides and runbooks
 
+- [v48 release](v48-release-2026-10-08.md): approved phone brand header and consistent More Browse rows, release checks and parallel delivery preparation.
+
+- [More Browse rows](more-browse-2026-10-08.md): shared grouped rows with semantic icons, consistent navigation affordances and German native render checks.
+
 - [Dashboard brand header](dashboard-brand-header-2026-10-08.md): owner-approved E8 stronger outline, real Space Grotesk vector lettering, localized accessible identity and bounded native phone rendering.
 - [v47 release](v47-release-2026-10-07.md): merged gauge and workout follow-ups, verified production rollout, signed artifact and completed upload; Apple availability pending.
 - [Workout goal recognition](workout-goal-completion-2026-10-07.md): shorter lifting sessions now show Started against the saved target, with shared single-session evidence and phone verification; merged for v47.

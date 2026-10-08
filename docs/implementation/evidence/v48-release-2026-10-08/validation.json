@@ -1,0 +1,31 @@
+{
+  "recordedAtUtc": "2026-10-08T13:21:54.039944+00:00",
+  "applicationChanges": [
+    "approved dark/AMOLED dashboard header",
+    "uniform More Browse icon rows"
+  ],
+  "frozenOfflineInstall": "passed",
+  "repositoryCheck": "passed",
+  "mobile": {
+    "validate": "passed",
+    "suites": 576,
+    "tests": 7928,
+    "normalIosExport": "passed",
+    "reviewMarkersAbsent": true
+  },
+  "web": {
+    "validate": "passed",
+    "productionBuild": "passed",
+    "fullTests": "not repeated; frontend tree identical to v47 with 178 suites / 1510 tests passed"
+  },
+  "server": {
+    "validate": "passed",
+    "tests": "skipped at owner request; server tree identical to v47"
+  },
+  "sharedTree": "identical to v47",
+  "nativeVisualEvidence": [
+    "dashboard-brand-header-2026-10-08",
+    "more-browse-2026-10-08"
+  ],
+  "docsBuild": "passed"
+}

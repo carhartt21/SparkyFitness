@@ -1,0 +1,40 @@
+{
+  "scope": "More / Browse uniform navigation rows and semantic icons",
+  "sourceSha256": "f2798eb8e81950f560f4a492bb22e7781fbc6e7bfd002f57104dc1c0ee9e90bd",
+  "baseRevision": "bff0dc8720e0d76c3f23bce4344b20d537bf2723",
+  "mobileValidate": "passed",
+  "focusedTests": {
+    "suites": 2,
+    "tests": 22,
+    "status": "passed"
+  },
+  "cases": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "device": "iPhone-13",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "device": "iPhone-13",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "device": "iPhone-14-Pro-Max",
+      "large": true,
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true
+    }
+  ],
+  "harnessCorrection": "The initial accessibility-size launch smoke expected calorie values below the Home viewport. The isolated harness was corrected to check visible Home fixture content and rerun only that case. No app change was needed.",
+  "limits": "German iOS simulator with synthetic data. No physical device, Android, server persistence or release publication verified."
+}

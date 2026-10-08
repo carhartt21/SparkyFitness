@@ -21,7 +21,7 @@ The generator is an asset-authoring script, not app runtime code. No dependency 
 ## Verification
 
 - Mobile `pnpm run validate` passed, including typecheck, lint, German overlay/copy checks, i18n audit, Knip, native locales, geometry, branding and formatting.
-- Five focused header tests passed, covering dark/AMOLED accessible identity and Home/date actions, unchanged light typography, enlarged text and existing tab subtitle behavior.
+- Four focused header tests passed, covering dark/AMOLED accessible identity and Home/date actions, unchanged light typography, enlarged text and existing tab subtitle behavior.
 - Normal iOS and Android exports passed. Neither bundle contains the isolated review origin or review-mode marker. The documentation build passed.
 - The type detector found no findings before or after implementation.
 - The existing development simulator app ran the current JavaScript through the isolated review transport. Four German native render checks passed at 390×844 dark/light, 402×874 dark and 430×932 enlarged text. [Results](evidence/dashboard-brand-header-2026-10-08/results.json) record the base revision; these captures include the implementation's working-tree changes.
