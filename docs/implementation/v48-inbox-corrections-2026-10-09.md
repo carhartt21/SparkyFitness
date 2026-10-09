@@ -37,7 +37,7 @@ German native rendering and the daily-details interaction smoke passed at normal
 dark/light and enlarged dark text sizes. The images use synthetic data. Enlarged
 summary tables deliberately stack instead of overlapping. These checks use the
 current JavaScript changes with the existing simulator application; signed phone
-and Watch compilation is a release-build gate. Normal iOS export and documentation
+and Watch compilation subsequently passed in EAS build 49. Normal iOS export and documentation
 build passed. The reviewed German overlay and button/header checks remain intact.
 
 ## Remaining physical acceptance

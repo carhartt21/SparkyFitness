@@ -36,7 +36,9 @@
     "syntheticTransport": true,
     "normalIosExport": "passed",
     "pairedWatch": "pending physical verification",
-    "watchCompilation": "release build gate"
+    "watchCompilation": "passed in signed EAS build 49",
+    "signedTargetsVerified": 5,
+    "normalExportReviewFixturesAbsent": true
   },
   "docsBuild": "passed",
   "remainingDeviceChecks": [
@@ -45,5 +47,6 @@
     "paired Watch ranking, portion confirmation and offline replay",
     "supplement backdating reflected in real history",
     "VoiceOver and Android rendering"
-  ]
+  ],
+  "releasedSourceCommit": "9a178ca11a64e9e1d639eb7c604bb8ca9b6ae70d"
 }
