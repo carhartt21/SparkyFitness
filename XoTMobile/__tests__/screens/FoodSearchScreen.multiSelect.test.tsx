@@ -1,3 +1,12 @@
+jest.mock('../../src/hooks/useMealTypes', () => ({
+  useMealTypes: () => ({
+    mealTypes: [{ id: 'breakfast', name: 'Breakfast' }],
+    defaultMealTypeId: 'breakfast',
+  }),
+}));
+jest.mock('../../src/hooks/useAddFoodEntryMeal', () => ({
+  useAddFoodEntryMeal: () => ({ addMealAsync: jest.fn() }),
+}));
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';

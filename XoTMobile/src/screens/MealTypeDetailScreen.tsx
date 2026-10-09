@@ -313,6 +313,11 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
                     }),
                     onPress: () =>
                       navigation.navigate('FoodSearch', {
+                        loggingOrigin: {
+                          routeKey: route.key,
+                          date,
+                          mealTypeId: resolvedType?.id,
+                        },
                         date,
                         mealTypeId: resolvedType?.id,
                       }),
@@ -384,6 +389,11 @@ const MealTypeDetailScreen: React.FC<MealTypeDetailScreenProps> = ({
               role: 'primary',
               onPress: () =>
                 navigation.navigate('FoodSearch', {
+                  loggingOrigin: {
+                    routeKey: route.key,
+                    date,
+                    mealTypeId: resolvedType?.id,
+                  },
                   date,
                   mealTypeId: resolvedType?.id,
                 }),

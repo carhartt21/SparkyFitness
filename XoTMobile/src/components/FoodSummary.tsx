@@ -16,6 +16,10 @@ import { glowSurfaceStyle, useGlowTheme } from './ui/glow';
 import { MEAL_CONFIG } from '../constants/meals';
 import SwipeableFoodRow from './SwipeableFoodRow';
 import type { CapturePhotoRef } from './SwipeableFoodRow';
+import FoodThumbnail from './FoodThumbnail';
+import NutritionCaptureThumbnail from './NutritionCaptureThumbnail';
+import { useFoodImageSourceContext } from './FoodImageSourceProvider';
+import { diaryEntryImage } from '../utils/foodImages';
 import {
   calculateEntryNutrition,
   calculateMealNutrition,
@@ -130,6 +134,17 @@ const MealSection: React.FC<MealSectionProps> = ({
     initiallyExpanded ?? false
   );
   const expanded = !collapsible || selectionMode || expandedByUser;
+  const getImageSource = useFoodImageSourceContext();
+  const previewEntries = group.entries.filter(
+    (entry, index, entries) =>
+      entries.findIndex(
+        (other) =>
+          (other.food_entry_meal_id ??
+            other.nutrition_capture_id ??
+            other.id) ===
+          (entry.food_entry_meal_id ?? entry.nutrition_capture_id ?? entry.id)
+      ) === index
+  );
   const glowing = useGlowTheme();
   const expandedText = useWindowDimensions().fontScale > 1.3;
   const [accentPrimary, breakfastColor, lunchColor, dinnerColor, snackColor] =
@@ -284,6 +299,52 @@ const MealSection: React.FC<MealSectionProps> = ({
           />
         ) : null}
       </View>
+      {collapsible && !expanded && previewEntries.length > 0 && (
+        <Pressable
+          testID={`meal-previews-${group.mealTypeId ?? group.name}`}
+          onPress={() => setExpanded(true)}
+          accessibilityRole="button"
+          accessibilityLabel={t('foodSummary.previewItems', {
+            defaultValue: 'Show logged items in {{meal}}',
+            meal: label,
+          })}
+          className="min-h-11 flex-row items-center gap-2 pb-1"
+        >
+          <View
+            pointerEvents="none"
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            className="flex-row items-center gap-2"
+          >
+            {previewEntries.slice(0, 3).map((entry) => {
+              const photo = entry.nutrition_capture_id
+                ? capturePhotos?.[entry.nutrition_capture_id]
+                : undefined;
+              return photo ? (
+                <NutritionCaptureThumbnail
+                  key={entry.id}
+                  photo={photo}
+                  size={32}
+                />
+              ) : (
+                <FoodThumbnail
+                  key={entry.id}
+                  image={diaryEntryImage(entry)}
+                  name={entry.food_name ?? ''}
+                  getImageSource={getImageSource}
+                  size={32}
+                  variant={entry.food_entry_meal_id ? 'meal' : 'food'}
+                />
+              );
+            })}
+          </View>
+          {previewEntries.length > 3 && (
+            <Text className="text-sm text-text-secondary">
+              +{formatLocalizedNumber(previewEntries.length - 3)}
+            </Text>
+          )}
+        </Pressable>
+      )}
       {expanded && (
         <>
           {group.entries.map((entry, index) => {
@@ -319,7 +380,8 @@ const MealSection: React.FC<MealSectionProps> = ({
                   onDragStart={onDragStart}
                   onDragMove={onDragMove}
                   onDragEnd={
-                    !entry.food_entry_meal_id &&
+                    (!entry.food_entry_meal_id ||
+                      entry.id === entry.food_entry_meal_id) &&
                     !entry.meal_plan_template_id &&
                     !entry.nutrition_capture_id &&
                     (!entry.source || entry.source === 'manual') &&

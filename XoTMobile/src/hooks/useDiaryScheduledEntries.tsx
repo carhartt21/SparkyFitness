@@ -11,7 +11,7 @@ import {
 import { useProjectedDailyProgress } from './useProjectedDailyProgress';
 import { useActivityPlanning } from './useActivityPlanning';
 import { useProgressActions } from './useProgressActions';
-import { useLogDose } from './useMedications';
+import { useManualDoseLogging } from './useManualDoseLogging';
 import { useLogHabit } from './useDailyTracking';
 import { getTodayDate } from '../utils/dateUtils';
 import { diaryTimestamp, wellnessTimestamp } from '../utils/diaryTimeline';
@@ -41,7 +41,7 @@ export function useDiaryScheduledEntries(
   const activities = useActivityPlanning(date, date, enabled && scheduledDay);
   const { itemLabel, openItem } = useProgressActions(date, onHydration);
   const habitMutation = useLogHabit(date, date);
-  const doses = useLogDose(date, intakes);
+  const doses = useManualDoseLogging(date, intakes);
   const entries: DiaryTimelineEntry[] = [];
   const stateLabels = {
     complete: t('progress.state.complete', { defaultValue: 'Complete' }),
@@ -222,6 +222,7 @@ export function useDiaryScheduledEntries(
     }
   return {
     entries,
+    timeSheet: doses.timeSheet,
     isLoading:
       progress.isLoading || (scheduledDay && activities.query.isLoading),
     isError:

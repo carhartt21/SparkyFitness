@@ -1,3 +1,8 @@
+import { compareFavoritePopularity } from '@workspace/shared';
+import { useMealTypes } from '../hooks/useMealTypes';
+import { useAddFoodEntryMeal } from '../hooks/useAddFoodEntryMeal';
+import { dateToTimeString } from '../components/TimeSheet';
+import { returnAfterFoodLogging } from '../utils/foodLoggingReturn';
 import React, {
   useCallback,
   useEffect,
@@ -69,6 +74,7 @@ import { FoodItem } from '../types/foods';
 import { ExternalFoodItem } from '../types/externalFoods';
 import { Meal } from '../types/meals';
 import {
+  mealToFoodInfo,
   externalFoodItemToFoodInfo,
   foodItemToFoodInfo,
 } from '../types/foodInfo';
@@ -118,6 +124,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 }) => {
   const { t, i18n } = useTranslation();
   const date = route.params?.date;
+  const loggingOrigin = route.params?.loggingOrigin;
   const pickerMode = route.params?.pickerMode ?? 'log-entry';
   const mealTypeId = route.params?.mealTypeId;
   const photoCapture = route.params?.photoCapture;
@@ -284,8 +291,12 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   );
 
   const openMultiAddReview = useCallback(() => {
-    navigation.navigate('FoodEntryMultiAdd', { date, mealTypeId });
-  }, [navigation, date, mealTypeId]);
+    navigation.navigate('FoodEntryMultiAdd', {
+      date,
+      mealTypeId,
+      loggingOrigin,
+    });
+  }, [navigation, date, mealTypeId, loggingOrigin]);
 
   const handleSelectAllInSection = useCallback(
     (entries: LandingEntry[]) => {
@@ -464,6 +475,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   const showFoodInfo = useCallback(
     (item: FoodInfoItem) => {
       navigation.navigate('FoodEntryAdd', {
+        loggingOrigin,
         item,
         date,
         photoCapture,
@@ -483,6 +495,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       photoCapture,
       selectionPickerMode,
       basketTapReturnDepth,
+      loggingOrigin,
     ]
   );
 
@@ -508,6 +521,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
   const openFoodScan = useCallback(() => {
     navigation.navigate('FoodScan', {
+      loggingOrigin,
       date,
       pickerMode: selectionPickerMode,
       returnDepth: basketTapReturnDepth,
@@ -527,6 +541,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     mealTypeId,
     selectionPickerMode,
     basketTapReturnDepth,
+    loggingOrigin,
   ]);
 
   // Only the custom-header path opens the JS menu; on the native path the
@@ -870,7 +885,12 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     // No dedupe needed: a food and a meal never share a key (kind-prefixed),
     // and the DB's unique constraints stop the same row arriving twice.
     return tagged
-      .sort((a, b) => b.favoritedAt - a.favoritedAt)
+      .sort((a, b) =>
+        compareFavoritePopularity(
+          a.entry.kind === 'food' ? a.entry.food : a.entry.meal,
+          b.entry.kind === 'food' ? b.entry.food : b.entry.meal
+        )
+      )
       .map((t) => t.entry);
   }, [
     filteredFavoriteFoods,
@@ -1184,6 +1204,52 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     t,
   ]);
 
+  const { mealTypes, defaultMealTypeId } = useMealTypes({
+    enabled: isConnected,
+  });
+  const { addMealAsync } = useAddFoodEntryMeal();
+  const mealQuickAddFlight = useRef(false);
+  const [quickAddMealId, setQuickAddMealId] = useState<string | null>(null);
+  const quickAddMeal = async (meal: Meal) => {
+    if (mealQuickAddFlight.current) return;
+    const portion = mealToFoodInfo(meal);
+    const target = mealTypes.find(
+      (type) => type.id === (mealTypeId ?? defaultMealTypeId)
+    );
+    if (
+      !target ||
+      !Number.isFinite(portion.servingSize) ||
+      portion.servingSize <= 0 ||
+      !portion.servingUnit ||
+      meal.foods.length === 0
+    ) {
+      showFoodInfo(portion);
+      return;
+    }
+    mealQuickAddFlight.current = true;
+    setQuickAddMealId(meal.id);
+    try {
+      await addMealAsync({
+        meal_template_id: meal.id,
+        meal_type: target.name,
+        meal_type_id: target.id,
+        entry_date:
+          date ?? useDiaryDateStore.getState().selectedDate ?? getTodayDate(),
+        entry_time: dateToTimeString(new Date()),
+        name: meal.name,
+        quantity: portion.servingSize,
+        unit: portion.servingUnit,
+      });
+      if (loggingOrigin && selectionCount === 0)
+        returnAfterFoodLogging(navigation, loggingOrigin);
+    } catch {
+      // The existing mutation shows the localized error and keeps this search open.
+    } finally {
+      mealQuickAddFlight.current = false;
+      setQuickAddMealId(null);
+    }
+  };
+
   // --- Results list renderers ---
 
   const renderResultRow = ({ item }: { item: ResultRow }) => (
@@ -1215,6 +1281,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         getProviderColor={getProviderColor}
         onSelectFood={showFoodInfo}
         onQuickAddFood={quickAddAvailable ? openQuickAdd : undefined}
+        onQuickAddMeal={
+          quickAddAvailable
+            ? (meal) => {
+                void quickAddMeal(meal);
+              }
+            : undefined
+        }
+        quickAddMealId={quickAddMealId}
         onSelectOnlineFood={handleExternalFoodTap}
         onSelectProvider={handleSelectProvider}
         onShowAllLocal={handleShowAllLocal}
@@ -1595,6 +1669,14 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
               favoriteGold={favoriteGold}
               onSelect={showFoodInfo}
               onQuickAdd={quickAddAvailable ? openQuickAdd : undefined}
+              onQuickAddMeal={
+                quickAddAvailable
+                  ? (meal) => {
+                      void quickAddMeal(meal);
+                    }
+                  : undefined
+              }
+              quickAddMealId={quickAddMealId}
               selection={
                 isSelectMode && item.kind === 'food'
                   ? {
@@ -1774,6 +1856,11 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       {quickAddAvailable ? (
         <QuickAddFoodSheet
           ref={quickAddRef}
+          onLogged={
+            loggingOrigin && selectionCount === 0
+              ? () => returnAfterFoodLogging(navigation, loggingOrigin)
+              : undefined
+          }
           date={date ?? useDiaryDateStore.getState().selectedDate}
           mealTypeId={mealTypeId}
           onMoreOptions={(food) => showFoodInfo(foodItemToFoodInfo(food))}

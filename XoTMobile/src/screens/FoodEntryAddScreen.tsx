@@ -1,3 +1,4 @@
+import { returnAfterFoodLogging } from '../utils/foodLoggingReturn';
 import { useProviderServingRefresh } from '../hooks/useProviderServingRefresh';
 import React, {
   useState,
@@ -1225,10 +1226,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
       // picker-mode flows, and using it here would turn every plain add
       // into a one-screen pop.
       const logEntryReturnDepth = route.params?.returnDepth;
-      navigation.dispatch(
+      returnAfterFoodLogging(
+        navigation,
+        route.params?.loggingOrigin,
         logEntryReturnDepth
-          ? StackActions.pop(logEntryReturnDepth)
-          : StackActions.popToTop()
       );
     },
   });
@@ -1241,10 +1242,10 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
     onSuccess: () => {
       invalidateMealCache(selectedDate);
       const mealReturnDepth = route.params?.returnDepth;
-      navigation.dispatch(
+      returnAfterFoodLogging(
+        navigation,
+        route.params?.loggingOrigin,
         mealReturnDepth
-          ? StackActions.pop(mealReturnDepth)
-          : StackActions.popToTop()
       );
     },
   });
@@ -1648,7 +1649,7 @@ const FoodEntryAddScreenContent: React.FC<FoodEntryAddScreenProps> = ({
             : {}),
         },
       });
-      navigation.dispatch(StackActions.popToTop());
+      returnAfterFoodLogging(navigation, route.params?.loggingOrigin);
       void reconcileNutritionActions().catch(() => undefined);
     } catch (cause) {
       Toast.show({

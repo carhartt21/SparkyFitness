@@ -201,6 +201,7 @@ export * from "./schemas/database/UserMedicationDisplayPreferences.zod.ts";
 export * from "./schemas/database/UserMoodDisplayPreferences.zod.ts";
 export * from "./types/progression.ts";
 export * from "./foodSearch/relevance.ts";
+export * from "./foodSearch/favoritePopularity.ts";
 export * from "./foodImages/fallbackGroup.ts";
 export * from "./foodImages/foodArtwork.ts";
 export * from "./foodImages/blsArtworkRules.ts";

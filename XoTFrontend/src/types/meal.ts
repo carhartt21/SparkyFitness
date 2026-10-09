@@ -1,6 +1,7 @@
+import type { FavoriteUsageFields } from '@workspace/shared';
 import type { Food } from './food';
 
-export interface Meal {
+export interface Meal extends FavoriteUsageFields {
   id?: string;
   user_id?: string;
   name: string;

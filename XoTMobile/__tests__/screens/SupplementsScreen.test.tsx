@@ -1,3 +1,36 @@
+jest.mock('../../src/hooks/usePreferences', () => ({
+  usePreferences: () => ({ preferences: { timezone: 'Europe/Berlin' } }),
+}));
+jest.mock('../../src/components/TimeSheet', () => {
+  const React = require('react');
+  const { Pressable, Text } = require('react-native');
+  return {
+    __esModule: true,
+    default: React.forwardRef(
+      (
+        { onSelectTime }: { onSelectTime: (time: string) => void },
+        ref: React.Ref<unknown>
+      ) => {
+        const [open, setOpen] = React.useState(false);
+        React.useImperativeHandle(ref, () => ({
+          present: () => setOpen(true),
+          dismiss: () => setOpen(false),
+        }));
+        return open ? (
+          <Pressable
+            testID="confirm-intake"
+            onPress={() => {
+              onSelectTime('08:00');
+              setOpen(false);
+            }}
+          >
+            <Text>Confirm intake</Text>
+          </Pressable>
+        ) : null;
+      }
+    ),
+  };
+});
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -148,11 +181,14 @@ describe('SupplementsScreen', () => {
     ).toEqual([0, '/', 2]);
     expect(logDose).not.toHaveBeenCalled();
     fireEvent.press(screen.getByTestId('supplement-take-s-d3'));
+    expect(logDose).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByTestId('confirm-intake'));
     expect(logDose).toHaveBeenCalledWith(
       expect.objectContaining({
         schedule: expect.objectContaining({ id: 's-d3' }),
       }),
-      'taken'
+      'taken',
+      expect.any(String)
     );
   });
 

@@ -1,3 +1,5 @@
+import type { PoolClient } from 'pg';
+import { moveFoodEntryMealWithClient } from './foodEntryMealRepository.js';
 import { getClient } from '../db/poolManager.js';
 
 export type FoodEntryBulkAction = 'move' | 'copy' | 'delete';
@@ -16,7 +18,7 @@ export async function applyFoodEntryBulkAction(
   userId: string,
   input: FoodEntryBulkInput
 ): Promise<{ count: number }> {
-  const client = await getClient(userId);
+  const client: PoolClient = await getClient(userId, input.actorId);
   try {
     await client.query('BEGIN');
     const selected = await client.query(
@@ -26,7 +28,39 @@ export async function applyFoodEntryBulkAction(
         FOR UPDATE`,
       [userId, input.sourceDate, input.ids]
     );
-    if (selected.rows.length !== input.ids.length) {
+    const parents =
+      input.action === 'move'
+        ? await client.query<{ id: string }>(
+            `SELECT id FROM food_entry_meals WHERE user_id = $1 AND entry_date = $2::date
+        AND id = ANY($3::uuid[]) FOR UPDATE`,
+            [userId, input.sourceDate, input.ids]
+          )
+        : { rows: [] as { id: string }[] };
+    const components = parents.rows.length
+      ? await client.query<{
+          source: string | null;
+          nutrition_capture_id: string | null;
+          meal_plan_template_id: string | null;
+        }>(
+          `SELECT source, nutrition_capture_id, meal_plan_template_id FROM food_entries
+        WHERE user_id = $1 AND food_entry_meal_id = ANY($2::uuid[]) FOR UPDATE`,
+          [userId, parents.rows.map((row) => row.id)]
+        )
+      : { rows: [] };
+    if (
+      components.rows.some(
+        (row) =>
+          row.nutrition_capture_id ||
+          row.meal_plan_template_id ||
+          (row.source && row.source !== 'manual')
+      )
+    ) {
+      throw Object.assign(
+        new Error('Edit imported, captured, and plan entries individually.'),
+        { statusCode: 409 }
+      );
+    }
+    if (selected.rows.length + parents.rows.length !== input.ids.length) {
       throw Object.assign(
         new Error('Selected food entries changed. Refresh the diary.'),
         {
@@ -61,7 +95,7 @@ export async function applyFoodEntryBulkAction(
     if (input.action !== 'delete') {
       const destination = await client.query(
         `SELECT id FROM meal_types
-          WHERE id = $1 AND (user_id = $2 OR user_id IS NULL)`,
+          WHERE id = $1 AND (user_id = $2 OR user_id IS NULL) AND purpose IS DISTINCT FROM 'import'`,
         [input.targetMealTypeId, userId]
       );
       if (destination.rows.length !== 1) {
@@ -71,6 +105,16 @@ export async function applyFoodEntryBulkAction(
       }
     }
 
+    for (const parent of parents.rows) {
+      await moveFoodEntryMealWithClient(
+        client,
+        parent.id,
+        input.targetMealTypeId!,
+        userId,
+        input.actorId,
+        input.targetDate
+      );
+    }
     let result;
     if (input.action === 'delete') {
       result = await client.query(
@@ -127,13 +171,13 @@ export async function applyFoodEntryBulkAction(
         ]
       );
     }
-    if (result.rows.length !== input.ids.length) {
+    if (result.rows.length + parents.rows.length !== input.ids.length) {
       throw new Error(
         'Food entry bulk action affected an unexpected number of entries.'
       );
     }
     await client.query('COMMIT');
-    return { count: result.rows.length };
+    return { count: result.rows.length + parents.rows.length };
   } catch (error) {
     await client.query('ROLLBACK');
     throw error;

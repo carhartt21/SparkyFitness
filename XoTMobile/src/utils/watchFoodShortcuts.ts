@@ -1,3 +1,4 @@
+import { compareFavoritePopularity } from '@workspace/shared';
 import type {
   WatchFoodServingPayload,
   WatchFoodShortcutPayload,
@@ -56,7 +57,8 @@ export function watchFoodCandidates(
 ): WatchFoodCandidate[] {
   const seen = new Set<string>();
   const candidates = [
-    ...favoriteFoods
+    ...[...favoriteFoods]
+      .sort(compareFavoritePopularity)
       .slice(0, 8)
       .map((food) => ({ food, group: 'favorite' as const })),
     ...recentFoods

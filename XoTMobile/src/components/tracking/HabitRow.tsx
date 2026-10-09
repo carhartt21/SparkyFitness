@@ -272,15 +272,11 @@ export default function HabitRow({
             disabled={!changed || saving}
             onPress={() => pending !== null && onSave(pending)}
             className="min-h-11 justify-center px-3"
+            textClassName="text-sm font-semibold"
           >
-            <Text
-              className="text-sm font-semibold"
-              style={{ color: changed ? '#08130d' : textSecondary }}
-            >
-              {log && !changed
-                ? t('habits.saved', { defaultValue: 'Saved' })
-                : t('common.save', { defaultValue: 'Save' })}
-            </Text>
+            {log && !changed
+              ? t('habits.saved', { defaultValue: 'Saved' })
+              : t('common.save', { defaultValue: 'Save' })}
           </Button>
         </View>
       )}

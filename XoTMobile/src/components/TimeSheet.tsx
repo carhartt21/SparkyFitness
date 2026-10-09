@@ -54,13 +54,17 @@ export function dateToTimeString(date: Date): string {
 }
 
 export interface TimeSheetRef {
-  present: () => void;
+  present: (initialTime?: string) => void;
   dismiss: () => void;
 }
 
 interface TimeSheetProps {
   value: string; // '' or 'HH:MM'
-  onSelectTime: (time: string) => void;
+  onSelectTime: (time: string) => void | boolean;
+  minuteInterval?: 1 | 15;
+  showNow?: boolean;
+  getCurrentTime?: () => string;
+  errorMessage?: string;
   timeFormat?: EntryTimeFormat | null;
   /**
    * 'change' (default) reports every wheel movement; 'done' reports only when
@@ -71,7 +75,19 @@ interface TimeSheetProps {
 }
 
 const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
-  ({ value, onSelectTime, timeFormat, commitOn = 'change' }, ref) => {
+  (
+    {
+      value,
+      onSelectTime,
+      timeFormat,
+      commitOn = 'change',
+      minuteInterval = 1,
+      showNow = false,
+      getCurrentTime,
+      errorMessage,
+    },
+    ref
+  ) => {
     const { t } = useTranslation();
     const { fontScale, height } = useWindowDimensions();
     const { preferences } = usePreferences();
@@ -100,8 +116,8 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
     );
 
     useImperativeHandle(ref, () => ({
-      present: () => {
-        setDisplayed(dateToTimeString(timeStringToDate(value)));
+      present: (initialTime) => {
+        setDisplayed(dateToTimeString(timeStringToDate(initialTime ?? value)));
         setEditingPart(null);
         bottomSheetRef.current?.present();
       },
@@ -129,7 +145,7 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
     );
 
     const handleDone = useCallback(() => {
-      if (displayed) onSelectTime(displayed);
+      if (displayed && onSelectTime(displayed) === false) return;
       bottomSheetRef.current?.dismiss();
     }, [displayed, onSelectTime]);
 
@@ -170,7 +186,7 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
         handleIndicatorStyle={{ backgroundColor: textMuted }}
       >
         <BottomSheetView className="pb-safe-or-5 px-2">
-          {fontScale > 1.25 ? (
+          {fontScale > 1.25 || minuteInterval > 1 ? (
             editingPart ? (
               <>
                 <Text className="px-4 pt-3 text-base font-semibold text-text-primary">
@@ -181,8 +197,15 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
                   style={{ height: Math.min(height * 0.4, 400) }}
                 >
                   {Array.from(
-                    { length: editingPart === 'hours' ? 24 : 60 },
-                    (_, value) => {
+                    {
+                      length:
+                        editingPart === 'hours' ? 24 : 60 / minuteInterval,
+                    },
+                    (_, index) => {
+                      const value =
+                        editingPart === 'hours'
+                          ? index
+                          : index * minuteInterval;
                       const selected =
                         value === (editingPart === 'hours' ? hour : minute);
                       const label = String(value).padStart(2, '0');
@@ -252,7 +275,25 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
               containerHeight={220}
             />
           )}
-          <View className="px-2 pt-2">
+          <View className="px-2 pt-2 gap-2">
+            {errorMessage ? (
+              <Text
+                accessibilityRole="alert"
+                className="text-sm text-text-danger"
+              >
+                {errorMessage}
+              </Text>
+            ) : null}
+            {showNow && !editingPart ? (
+              <Button
+                variant="secondary"
+                onPress={() =>
+                  selectTime(getCurrentTime?.() ?? dateToTimeString(new Date()))
+                }
+              >
+                {t('timeSheet.now', { defaultValue: 'Now' })}
+              </Button>
+            ) : null}
             <Button
               variant="primary"
               onPress={editingPart ? () => setEditingPart(null) : handleDone}

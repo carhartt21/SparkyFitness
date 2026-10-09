@@ -89,6 +89,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
   const isCaptureBarcodeMode = !!captureParams;
   const captureReturnKey = captureParams?.returnKey;
   const mealTypeId = lookupParams?.mealTypeId;
+  const loggingOrigin = lookupParams?.loggingOrigin;
   const [scanMode, setScanMode] = useState<ScanMode>(() => {
     if (isCaptureBarcodeMode) {
       // Capture-only mode: lock to barcode regardless of any other params.
@@ -248,6 +249,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
           originalItem: result.food,
         };
         navigation.replace('FoodEntryAdd', {
+          loggingOrigin,
           item,
           date,
           pickerMode: selectionPickerMode,
@@ -331,6 +333,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
           originalItem: result.food,
         };
         navigation.replace('FoodEntryAdd', {
+          loggingOrigin,
           item,
           date,
           pickerMode: selectionPickerMode,
@@ -639,6 +642,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
       const seen = await hasSeenFoodPhotoIntro();
       if (!seen) {
         navigation.navigate('FoodPhotoIntro', {
+          loggingOrigin,
           date,
           mealTypeId: mealTypeId ?? undefined,
         });
@@ -651,6 +655,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
     photoModeAvailable,
     isBasketOriginScan,
     navigation,
+    loggingOrigin,
     date,
     mealTypeId,
   ]);
@@ -676,6 +681,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
       // Mark seen even if user retakes — the intro shouldn't reappear later.
       await markFoodPhotoIntroSeen();
       navigation.replace('FoodPhotoFlow', {
+        loggingOrigin,
         screen: 'Improve',
         params: {
           date,
@@ -718,6 +724,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
       }
       await markFoodPhotoIntroSeen();
       navigation.replace('FoodPhotoFlow', {
+        loggingOrigin,
         screen: 'Improve',
         params: {
           date,
@@ -746,7 +753,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
 
   const handlePhotoGateLogManually = () => {
     setPhotoGateVisible(false);
-    navigation.replace('FoodSearch', { date, mealTypeId });
+    navigation.replace('FoodSearch', { date, mealTypeId, loggingOrigin });
   };
 
   const handleShowManualEntry = () => {
@@ -1244,6 +1251,7 @@ const FoodScanScreen: React.FC<FoodScanScreenProps> = ({
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('FoodPhotoIntro', {
+                        loggingOrigin,
                         date,
                         mealTypeId: mealTypeId ?? undefined,
                       })

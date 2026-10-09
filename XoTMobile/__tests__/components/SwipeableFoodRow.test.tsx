@@ -93,6 +93,23 @@ describe('SwipeableFoodRow', () => {
     expect(mockNavigate).toHaveBeenCalledWith('FoodEntryView', { entry });
   });
 
+  it('keeps a preset meal accessible in edit mode and exposes its whole-meal move handle', () => {
+    const entry = createEntry({ id: 'fem-1', food_entry_meal_id: 'fem-1' });
+    const screen = renderRow(
+      <SwipeableFoodRow
+        entry={entry}
+        nutrition={{ calories: 120, protein: 15, carbs: 8, fat: 2 }}
+        selectionMode
+        onDragEnd={jest.fn()}
+      />
+    );
+    expect(screen.getByTestId('food-drag-fem-1')).toBeTruthy();
+    fireEvent.press(screen.getByText(/Greek Yogurt/));
+    expect(mockNavigate).toHaveBeenCalledWith('EditLoggedMeal', {
+      foodEntryMealId: 'fem-1',
+    });
+  });
+
   it('routes meal-component tap to EditLoggedMeal', () => {
     const entry = createEntry({ food_entry_meal_id: 'fem-1' });
 

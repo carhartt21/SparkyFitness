@@ -2342,7 +2342,8 @@
     "caloriesUnit": "kcal",
     "nutritionBreakdown": "{{label}} Ernährung Aufschlüsselung",
     "addFood": "Lebensmittel hinzufügen",
-    "addFoodToMeal": "Essen zu {{meal}} hinzufügen"
+    "addFoodToMeal": "Essen zu {{meal}} hinzufügen",
+    "previewItems": "Erfasste Einträge in {{meal}} anzeigen"
   },
   "exerciseSummary": {
     "tapToAdd": "Training hinzufügen",
@@ -3865,7 +3866,8 @@
       "moreOptions": "Weitere Optionen",
       "add": "Zum Tagebuch hinzufügen",
       "moreOptionsShort": "Optionen",
-      "addShort": "Hinzufügen"
+      "addShort": "Hinzufügen",
+      "mealPortion": "Eine Portion {{name}} hinzufügen"
     }
   },
   "editBarcode": {
@@ -6438,6 +6440,9 @@
       "amount": "Eingenommene Menge",
       "time": "Einnahmezeit",
       "error": "Die Einnahme konnte nicht gespeichert werden. Bitte erneut versuchen."
+    },
+    "intakeTime": {
+      "invalid": "Eine gültige Einnahmezeit wählen, die nicht in der Zukunft liegt."
     }
   },
   "trackingSettings": {
@@ -6580,7 +6585,8 @@
   },
   "timeSheet": {
     "hours": "Stunden",
-    "minutes": "Minuten"
+    "minutes": "Minuten",
+    "now": "Jetzt"
   },
   "hydrationDetails": {
     "policy": "Getränke und angegebenes Wasser in Supplement-Getränken zählen zum Trinkziel. Wasser aus festen Lebensmitteln wird separat angezeigt.",

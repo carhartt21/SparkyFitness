@@ -1,3 +1,4 @@
+import { returnAfterFoodLogging } from '../utils/foodLoggingReturn';
 import React, { useCallback, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, Platform } from 'react-native';
@@ -117,10 +118,11 @@ const FoodPhotoEstimateReviewScreen: React.FC<Props> = ({
   const textPrimary = useCSSVariable('--color-text-primary') as string;
   const { backColor } = useHeaderActionColors();
 
-  const dismissFlow = () =>
-    navigation
-      .getParent<NativeStackNavigationProp<RootStackParamList>>()
-      ?.popToTop();
+  const dismissFlow = () => {
+    const parent =
+      navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+    if (parent) returnAfterFoodLogging(parent);
+  };
 
   const { date, estimate, request } = route.params;
 

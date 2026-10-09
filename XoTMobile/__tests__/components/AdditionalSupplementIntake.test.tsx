@@ -1,3 +1,6 @@
+jest.mock('../../src/hooks/usePreferences', () => ({
+  usePreferences: () => ({ preferences: { timezone: 'Europe/Berlin' } }),
+}));
 import React from 'react';
 import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import type { Medication } from '@workspace/shared';
@@ -53,9 +56,20 @@ const form = (date = '2026-10-04') => {
   return screen;
 };
 beforeEach(() => {
+  jest.useFakeTimers({
+    now: new Date('2026-10-05T12:25:00Z'),
+    doNotFake: [
+      'nextTick',
+      'setImmediate',
+      'clearImmediate',
+      'setTimeout',
+      'clearTimeout',
+    ],
+  });
   jest.clearAllMocks();
   mockSave.mockResolvedValue({ id: 'extra' });
 });
+afterEach(() => jest.useRealTimers());
 it('records the explicit amount and local intake time, separate from scheduled adherence', async () => {
   const screen = form();
   fireEvent.press(screen.getByTestId('choose-supplement'));

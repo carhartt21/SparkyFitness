@@ -1,3 +1,4 @@
+import { useFavoriteDayRefresh } from './useFavoriteDayRefresh';
 import { completeWatchProgress } from '../services/watchProgressActions';
 import { getDailyProgress, listHabits } from '../services/api/dailyTrackingApi';
 import { buildWatchProgressItems } from '../utils/watchProgressItems';
@@ -254,12 +255,13 @@ export function useWatchCheckInBridge(enabled: boolean): void {
     enabled,
     staleTime: 300_000,
   });
-  const { data: favorites } = useQuery({
+  const { data: favorites, refetch: refreshFavorites } = useQuery({
     queryKey: favoritesQueryKey,
     queryFn: fetchFavorites,
     enabled,
     staleTime: 300_000,
   });
+  useFavoriteDayRefresh(refreshFavorites, enabled, preferences?.timezone);
   const { data: allMealTypes } = useQuery({
     queryKey: mealTypesQueryKey,
     queryFn: fetchMealTypes,

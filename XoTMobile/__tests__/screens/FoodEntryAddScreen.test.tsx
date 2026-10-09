@@ -49,6 +49,7 @@ const mockNavigation = {
   navigate: jest.fn(),
   setParams: jest.fn(),
   dispatch: jest.fn(),
+  getState: () => ({ index: 0, routes: [{ key: 'root', name: 'Tabs' }] }),
   setOptions: jest.fn(),
 } as any;
 

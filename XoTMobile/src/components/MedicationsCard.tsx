@@ -1,3 +1,4 @@
+import { useManualDoseLogging } from '../hooks/useManualDoseLogging';
 import React, { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
@@ -6,11 +7,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 import Icon from './Icon';
 import DoseRow from './medications/DoseRow';
-import {
-  useMedications,
-  useMedicationEntries,
-  useLogDose,
-} from '../hooks/useMedications';
+import { useMedications, useMedicationEntries } from '../hooks/useMedications';
 import { usePreferences } from '../hooks/usePreferences';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import { getDueDosesForDate, formatDose } from '@workspace/shared';
@@ -58,10 +55,8 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
     bySchedule: localSupplementActions,
     storageError: supplementStorageError,
   } = usePlannedSupplementActions(selectedDate, entries);
-  const { entryForDue, logDose, toggleTaken, logPrn } = useLogDose(
-    selectedDate,
-    entries
-  );
+  const { entryForDue, logDose, toggleTaken, logPrn, timeSheet } =
+    useManualDoseLogging(selectedDate, entries);
 
   const [accentPrimary] = useCSSVariable(['--color-accent-primary']) as [
     string,
@@ -84,6 +79,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
   if (isLoadingMeds || isLoadingEntries) {
     return (
       <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
+        {timeSheet}
         <View className="flex-row items-center justify-between">
           <Text className="flex-1 mr-3 font-bold text-text-secondary">
             {t('medications.card.title', {
@@ -100,6 +96,7 @@ const MedicationsCard: React.FC<MedicationsCardProps> = ({ navigation }) => {
 
   return (
     <View className="bg-surface rounded-2xl border border-border-subtle p-4 mb-3">
+      {timeSheet}
       <TouchableOpacity
         onPress={() => navigation.navigate('MedicationsList')}
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}

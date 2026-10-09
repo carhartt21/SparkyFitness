@@ -283,7 +283,12 @@ export default function DailyMealsScreen({
             accessibilityLabel={t('dailyMeals.addFood', {
               defaultValue: 'Add food',
             })}
-            onPress={() => navigation.navigate('FoodSearch', { date })}
+            onPress={() =>
+              navigation.navigate('FoodSearch', {
+                date,
+                loggingOrigin: { routeKey: route.key, date },
+              })
+            }
           >
             {t('dailyMeals.foodAction', { defaultValue: 'Food' })}
           </Button>
@@ -292,7 +297,12 @@ export default function DailyMealsScreen({
             accessibilityLabel={t('dashboard.mealPhoto', {
               defaultValue: 'Meal photo',
             })}
-            onPress={() => navigation.navigate('FoodPhotoIntro', { date })}
+            onPress={() =>
+              navigation.navigate('FoodPhotoIntro', {
+                date,
+                loggingOrigin: { routeKey: route.key, date },
+              })
+            }
           >
             <Icon name="camera" size={22} color={accent} />
           </Button>
@@ -320,6 +330,7 @@ export default function DailyMealsScreen({
           storageError={local.storageError}
         />
         <NutritionPhotoEntries
+          loggingOrigin={{ routeKey: route.key, date }}
           local={local.photoActions}
           remote={remote.captures}
           completions={local.photoCompletionActions}
@@ -379,7 +390,11 @@ export default function DailyMealsScreen({
           goals={summary?.goals}
           calorieGoal={summary?.calorieGoal}
           onAddFood={(mealTypeId) =>
-            navigation.navigate('FoodSearch', { date, mealTypeId })
+            navigation.navigate('FoodSearch', {
+              date,
+              mealTypeId,
+              loggingOrigin: { routeKey: route.key, date, mealTypeId },
+            })
           }
           onAdjustServing={(entry) => serving.current?.present(entry)}
           onPressMealType={(mealTypeId, mealType) =>

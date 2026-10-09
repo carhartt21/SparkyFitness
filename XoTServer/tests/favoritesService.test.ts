@@ -2,11 +2,15 @@ import { vi, beforeEach, describe, expect, it } from 'vitest';
 import foodCoreService from '../services/foodCoreService.js';
 import foodRepository from '../models/foodRepository.js';
 import mealRepository from '../models/mealRepository.js';
+import { getFavoriteUsage } from '../models/favoriteUsage.js';
+import { loadUserTimezone } from '../utils/timezoneLoader.js';
 import favoritesService from '../services/favoritesService.js';
 
 vi.mock('../services/foodCoreService');
 vi.mock('../models/foodRepository');
 vi.mock('../models/mealRepository');
+vi.mock('../models/favoriteUsage');
+vi.mock('../utils/timezoneLoader');
 vi.mock('../config/logging', () => ({ log: vi.fn() }));
 
 const USER = 'user-123';
@@ -23,6 +27,8 @@ const mealRepo = mealRepository as any;
 describe('favoritesService', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(loadUserTimezone).mockResolvedValue('Europe/Berlin');
+    vi.mocked(getFavoriteUsage).mockResolvedValue([]);
   });
 
   describe('getFavorites', () => {
@@ -36,7 +42,18 @@ describe('favoritesService', () => {
 
       expect(foodRepo.getFavoriteFoods).toHaveBeenCalledWith(USER);
       expect(mealRepo.getFavoriteMeals).toHaveBeenCalledWith(USER);
-      expect(result).toEqual({ favoriteFoods: foods, favoriteMeals: meals });
+      expect(result).toEqual({
+        favoriteFoods: foods.map((item) => ({
+          ...item,
+          usage_count_28d: 0,
+          last_used_at: null,
+        })),
+        favoriteMeals: meals.map((item) => ({
+          ...item,
+          usage_count_28d: 0,
+          last_used_at: null,
+        })),
+      });
     });
   });
 

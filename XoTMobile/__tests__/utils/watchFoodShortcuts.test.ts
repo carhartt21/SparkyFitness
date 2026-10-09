@@ -23,6 +23,23 @@ const food = (id: string, overrides: Partial<FoodItem> = {}): FoodItem => ({
 });
 
 describe('Watch food shortcuts', () => {
+  it('ranks consumption popularity before the eight-favorite cap', () => {
+    const favorites = Array.from({ length: 10 }, (_, index) =>
+      food(`item-${index}`, { usage_count_28d: index })
+    );
+    const shortcuts = buildWatchFoodShortcuts(favorites, []);
+    expect(shortcuts.map((item) => item.foodId)).toEqual([
+      'item-9',
+      'item-8',
+      'item-7',
+      'item-6',
+      'item-5',
+      'item-4',
+      'item-3',
+      'item-2',
+    ]);
+  });
+
   it('prefers a favorite when that food also appears in recent items', () => {
     const shortcuts = buildWatchFoodShortcuts(
       [food('shared'), food('favorite')],

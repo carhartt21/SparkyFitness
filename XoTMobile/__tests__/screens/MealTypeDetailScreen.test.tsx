@@ -409,6 +409,7 @@ describe('MealTypeDetailScreen', () => {
     });
     fireEvent.press(view.getAllByLabelText('Add Food')[0]);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('FoodSearch', {
+      loggingOrigin: expect.objectContaining({ date: expect.any(String) }),
       date: '2026-01-01',
       mealTypeId: 'custom-pw',
     });
@@ -422,6 +423,7 @@ describe('MealTypeDetailScreen', () => {
     });
     fireEvent.press(view.getAllByLabelText('Add Food')[0]);
     expect(mockNavigation.navigate).toHaveBeenCalledWith('FoodSearch', {
+      loggingOrigin: expect.objectContaining({ date: expect.any(String) }),
       date: '2026-01-01',
       mealTypeId: undefined,
     });
@@ -472,6 +474,7 @@ describe('MealTypeDetailScreen', () => {
     );
     fireEvent.press(view.getByText('Add Food'));
     expect(mockNavigation.navigate).toHaveBeenCalledWith('FoodSearch', {
+      loggingOrigin: expect.objectContaining({ date: expect.any(String) }),
       date: '2026-01-01',
       mealTypeId: 'sys-b',
     });

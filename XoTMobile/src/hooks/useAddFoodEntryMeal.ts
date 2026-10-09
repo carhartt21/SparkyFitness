@@ -42,6 +42,7 @@ export function useAddFoodEntryMeal(options?: UseAddFoodEntryMealOptions) {
 
   return {
     addMeal: mutation.mutate,
+    addMealAsync: mutation.mutateAsync,
     isPending: mutation.isPending,
     invalidateCache,
   };

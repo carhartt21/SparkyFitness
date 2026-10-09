@@ -1,3 +1,4 @@
+import type { FavoriteUsageFields } from '@workspace/shared';
 export interface FoodDefaultVariant {
   id?: string;
   /**
@@ -38,7 +39,7 @@ export interface FoodDefaultVariant {
   custom_nutrients?: Record<string, string | number>;
 }
 
-export interface FoodItem {
+export interface FoodItem extends FavoriteUsageFields {
   id: string;
   name: string;
   brand: string | null;

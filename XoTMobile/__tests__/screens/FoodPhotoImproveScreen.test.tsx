@@ -33,12 +33,16 @@ const frame = { x: 0, y: 0, width: 390, height: 844 };
 describe('FoodPhotoImproveScreen', () => {
   const parentNavigation = {
     replace: jest.fn(),
+    getState: () => ({ index: 0, routes: [{ key: 'root', name: 'Tabs' }] }),
+    dispatch: jest.fn(),
     popToTop: jest.fn(),
   };
   const navigation = {
     replace: jest.fn(),
     goBack: jest.fn(),
     navigate: jest.fn(),
+    getState: () => ({ index: 0, routes: [{ key: 'root', name: 'Tabs' }] }),
+    dispatch: jest.fn(),
     popToTop: jest.fn(),
     getParent: jest.fn(() => parentNavigation),
   } as any;
@@ -335,9 +339,11 @@ describe('FoodPhotoImproveScreen', () => {
       );
       expect(navigation.navigate).not.toHaveBeenCalled();
       if (leavesEstimateFlow) {
-        expect(parentNavigation.popToTop).toHaveBeenCalledTimes(1);
+        expect(parentNavigation.dispatch).toHaveBeenCalledWith({
+          type: 'POP_TO_TOP',
+        });
       } else {
-        expect(parentNavigation.popToTop).not.toHaveBeenCalled();
+        expect(parentNavigation.dispatch).not.toHaveBeenCalled();
         expect(screen.getByText('Generate estimate')).toBeTruthy();
       }
     }

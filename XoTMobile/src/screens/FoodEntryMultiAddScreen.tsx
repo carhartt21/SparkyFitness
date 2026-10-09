@@ -1,3 +1,4 @@
+import { returnAfterFoodLogging } from '../utils/foodLoggingReturn';
 import Button from '../components/ui/Button';
 import React, {
   useCallback,
@@ -16,7 +17,6 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { StackActions } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
 import Icon from '../components/Icon';
@@ -299,10 +299,10 @@ const FoodEntryMultiAddScreen: React.FC<FoodEntryMultiAddScreenProps> = ({
       // the real remainder. Invalid-quantity and unstarted rows keep the
       // review open for the user to fix.
       if (useFoodSearchSelectionStore.getState().selectedByKey.size === 0) {
-        navigation.dispatch(StackActions.popToTop());
+        returnAfterFoodLogging(navigation, route.params?.loggingOrigin);
       }
     },
-    [submitBatch, draftFor, selection, navigation]
+    [submitBatch, draftFor, selection, navigation, route.params?.loggingOrigin]
   );
 
   const handleAddAll = useCallback(() => {

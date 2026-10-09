@@ -31,7 +31,10 @@ import { completeMealPhotoLocally } from '../services/nutritionPhotoCompletion';
 import { reconcileNutritionActions } from '../services/nutritionActionSync';
 import SafeImage from './SafeImage';
 import { formatDateToTimeLabel } from '../utils/entryTimeDisplay';
-import type { RootStackParamList } from '../types/navigation';
+import type {
+  FoodLoggingOrigin,
+  RootStackParamList,
+} from '../types/navigation';
 import { resolveNutritionPhotoUri } from '../services/nutritionPhotoFiles';
 import {
   NutritionPhotoRemovalError,
@@ -40,6 +43,7 @@ import {
 import { nutritionCapturesQueryKey } from '../hooks/useNutritionCapturesByDate';
 
 interface Props {
+  loggingOrigin?: FoodLoggingOrigin;
   local: PendingPhotoAction[];
   remote: NutritionCapture[];
   completions: PendingPhotoCompletionAction[];
@@ -66,6 +70,7 @@ export default function NutritionPhotoEntries({
   completions,
   completedFoodEntries,
   isConnected,
+  loggingOrigin,
 }: Props) {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
@@ -296,6 +301,7 @@ export default function NutritionPhotoEntries({
 
   const openSearch = (capture: PhotoRow) => {
     navigation.navigate('FoodSearch', {
+      loggingOrigin,
       date: capture.entryDate,
       mealTypeId: capture.mealTypeId ?? undefined,
       photoCapture: {

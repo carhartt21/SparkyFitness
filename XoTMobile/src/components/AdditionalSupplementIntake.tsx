@@ -2,18 +2,20 @@ import { useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
-  localDateTimeToUtc,
+  utcToLocalDateTimeInput,
   type Medication,
   type MedicationEntry,
 } from '@workspace/shared';
 import BottomSheetPicker, { PickerTrigger } from './BottomSheetPicker';
 import FormInput from './FormInput';
-import TimeSheet, { dateToTimeString, type TimeSheetRef } from './TimeSheet';
+import TimeSheet, { type TimeSheetRef } from './TimeSheet';
 import NeonButton from './ui/NeonButton';
 import {
   useCreateMedicationEntry,
   useDeleteMedicationEntry,
 } from '../hooks/useMedications';
+import { usePreferences } from '../hooks/usePreferences';
+import { supplementIntakeTimestamp } from '../utils/supplementIntakeTime';
 import { getDeviceTimezone, getTodayDate } from '../utils/dateUtils';
 import { parseDecimalInput } from '../utils/numericInput';
 import { formatLocalizedNumber } from '../localization';
@@ -32,7 +34,11 @@ export default function AdditionalSupplementIntake({
   const [open, setOpen] = useState(false);
   const [id, setId] = useState('');
   const [amount, setAmount] = useState('');
-  const [time, setTime] = useState(() => dateToTimeString(new Date()));
+  const { preferences } = usePreferences();
+  const timezone = preferences?.timezone || getDeviceTimezone();
+  const currentTime = () =>
+    utcToLocalDateTimeInput(new Date().toISOString(), timezone).slice(11, 16);
+  const [time, setTime] = useState(currentTime);
   const [error, setError] = useState(false);
   const saveInFlight = useRef(false);
   const timeRef = useRef<TimeSheetRef>(null);
@@ -58,8 +64,8 @@ export default function AdditionalSupplementIntake({
       date > getTodayDate()
     )
       return;
-    const takenAt = localDateTimeToUtc(`${date}T${time}`, getDeviceTimezone());
-    if (!Number.isFinite(takenAt.getTime()) || takenAt.getTime() > Date.now()) {
+    const takenAt = supplementIntakeTimestamp(date, time, timezone);
+    if (!takenAt) {
       setError(true);
       return;
     }
@@ -71,7 +77,7 @@ export default function AdditionalSupplementIntake({
         schedule_id: null,
         status: 'prn_taken',
         entry_date: date,
-        taken_at: takenAt.toISOString(),
+        taken_at: takenAt,
         dose_amount_snapshot: quantity,
         dose_unit_snapshot: unit || null,
         source: 'manual',
@@ -94,6 +100,7 @@ export default function AdditionalSupplementIntake({
         label={t('supplements.extra.add', { defaultValue: 'Log extra intake' })}
         disabled={busy || date > getTodayDate()}
         onPress={() => {
+          if (!open) setTime(currentTime());
           setOpen(!open);
           setError(false);
         }}
@@ -161,6 +168,9 @@ export default function AdditionalSupplementIntake({
             value={time}
             onSelectTime={setTime}
             timeFormat="HH:mm"
+            minuteInterval={15}
+            showNow
+            getCurrentTime={currentTime}
             commitOn="done"
           />
         </View>

@@ -103,9 +103,9 @@ export default function TrackingScreen({
               accessibilityRole="button"
               accessibilityLabel={t('common.back', { defaultValue: 'Back' })}
               onPress={onBack}
-              className="h-11 w-11 items-center justify-center rounded-full border border-border-subtle bg-surface active:opacity-70"
+              className="h-11 w-11 items-center justify-center rounded-xl border border-border-subtle bg-surface active:opacity-70"
             >
-              <Icon name="chevron-back" size={20} color={textPrimary} />
+              <Icon name="arrow-back" size={20} color={textPrimary} />
             </Pressable>
             {date && onDateChange ? (
               <View className="flex-1">

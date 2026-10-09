@@ -1,3 +1,4 @@
+import { FavoriteUsageFieldsSchema } from '@workspace/shared';
 import { apiFetch } from './apiClient';
 import {
   FavoritesResponse,
@@ -9,11 +10,21 @@ import {
  * Fetches the user's favorite (starred) foods and meals.
  */
 export const fetchFavorites = async (): Promise<FavoritesResponse> => {
-  return apiFetch<FavoritesResponse>({
+  const response = await apiFetch<FavoritesResponse>({
     endpoint: '/api/favorites',
     serviceName: 'Favorites API',
     operation: 'fetch favorites',
   });
+  return {
+    favoriteFoods: response.favoriteFoods.map((food) => ({
+      ...food,
+      ...FavoriteUsageFieldsSchema.parse(food),
+    })),
+    favoriteMeals: response.favoriteMeals.map((meal) => ({
+      ...meal,
+      ...FavoriteUsageFieldsSchema.parse(meal),
+    })),
+  };
 };
 
 /**

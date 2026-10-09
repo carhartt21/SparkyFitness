@@ -2449,7 +2449,8 @@
     "addFoodToMeal": "Add food to {{meal}}",
     "caloriesShort": "kcal",
     "caloriesUnit": "Cal",
-    "nutritionBreakdown": "{{label}} nutrition breakdown"
+    "nutritionBreakdown": "{{label}} nutrition breakdown",
+    "previewItems": "Show logged items in {{meal}}"
   },
   "nutritionOutbox": {
     "title": "Saved on this device",
@@ -4123,7 +4124,8 @@
       "moreOptions": "More options",
       "moreOptionsShort": "Options",
       "add": "Add to diary",
-      "addShort": "Add"
+      "addShort": "Add",
+      "mealPortion": "Add one portion of {{name}}"
     }
   },
   "editBarcode": {
@@ -6426,6 +6428,9 @@
       "amount": "Amount taken",
       "time": "Intake time",
       "error": "Could not save the intake. Please try again."
+    },
+    "intakeTime": {
+      "invalid": "Choose a valid intake time that is not in the future."
     }
   },
   "trackingSettings": {
@@ -6568,7 +6573,8 @@
   },
   "timeSheet": {
     "hours": "Hours",
-    "minutes": "Minutes"
+    "minutes": "Minutes",
+    "now": "Now"
   },
   "hydrationDetails": {
     "policy": "Drinks and declared water in supplement drinks count toward your goal. Water in solid foods is shown separately.",

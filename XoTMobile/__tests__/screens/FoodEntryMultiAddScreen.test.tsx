@@ -119,6 +119,7 @@ const navigation = {
   goBack: jest.fn(),
   navigate: jest.fn(),
   dispatch: jest.fn(),
+  getState: () => ({ index: 0, routes: [{ key: 'root', name: 'Tabs' }] }),
   setOptions: jest.fn(),
   addListener: (
     event: string,

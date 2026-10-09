@@ -18,8 +18,10 @@ export interface CapturePhotoRef {
 
 export default function NutritionCaptureThumbnail({
   photo,
+  size = 56,
 }: {
   photo: CapturePhotoRef;
+  size?: number;
 }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState<ServerConfig | null>(null);
@@ -60,7 +62,7 @@ export default function NutritionCaptureThumbnail({
       >
         <SafeImage
           source={source}
-          style={{ width: 56, height: 56, borderRadius: 8 }}
+          style={{ width: size, height: size, borderRadius: 8 }}
         />
       </Pressable>
       <Modal

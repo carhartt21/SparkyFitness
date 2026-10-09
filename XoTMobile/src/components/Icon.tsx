@@ -13,6 +13,7 @@ const ICON_MAP = {
   'chevron-down': { sf: 'chevron.down', ion: 'chevron-down' },
   'chevron-up': { sf: 'chevron.up', ion: 'chevron-up' },
   'chevron-forward': { sf: 'chevron.right', ion: 'chevron-forward' },
+  'arrow-back': { sf: 'arrow.left', ion: 'arrow-back' },
   'chevron-back': { sf: 'chevron.left', ion: 'chevron-back' },
   'chevron-expand': { sf: 'chevron.up.chevron.down', ion: 'chevron-expand' },
 

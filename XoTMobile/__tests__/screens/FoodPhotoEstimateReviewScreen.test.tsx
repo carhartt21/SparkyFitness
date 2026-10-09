@@ -119,7 +119,11 @@ function buildEstimate(): FoodPhotoEstimateResponse {
 }
 
 describe('FoodPhotoEstimateReviewScreen', () => {
-  const parentNavigation = { popToTop: jest.fn() };
+  const parentNavigation = {
+    getState: () => ({ index: 0, routes: [{ key: 'root', name: 'Tabs' }] }),
+    dispatch: jest.fn(),
+    popToTop: jest.fn(),
+  };
   const navigation = {
     navigate: jest.fn(),
     goBack: jest.fn(),
@@ -223,12 +227,14 @@ describe('FoodPhotoEstimateReviewScreen', () => {
     expect(secondCall.saveFoodPayload.serving_size).toBeLessThan(255);
   });
 
-  it('cancels back to the root via getParent().popToTop()', () => {
+  it('cancels back to the root using the context-aware root return action', () => {
     const screen = renderScreen();
 
     fireEvent.press(screen.getByLabelText('Cancel'));
 
-    expect(parentNavigation.popToTop).toHaveBeenCalledTimes(1);
+    expect(parentNavigation.dispatch).toHaveBeenCalledWith({
+      type: 'POP_TO_TOP',
+    });
   });
 
   it('opens on the editable ingredient list, not the single-food form', () => {

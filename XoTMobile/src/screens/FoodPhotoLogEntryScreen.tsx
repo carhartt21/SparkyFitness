@@ -1,3 +1,4 @@
+import { returnAfterFoodLogging } from '../utils/foodLoggingReturn';
 import { useAppLocale } from '../localization';
 import React, { useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -175,9 +176,9 @@ const FoodPhotoLogEntryScreen: React.FC<Props> = ({ navigation, route }) => {
           defaultValue: 'Estimate saved',
         }),
       });
-      navigation
-        .getParent<NativeStackNavigationProp<RootStackParamList>>()
-        ?.popToTop();
+      const parent =
+        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      if (parent) returnAfterFoodLogging(parent);
     },
   });
 
@@ -194,9 +195,9 @@ const FoodPhotoLogEntryScreen: React.FC<Props> = ({ navigation, route }) => {
           defaultValue: 'Estimate saved',
         }),
       });
-      navigation
-        .getParent<NativeStackNavigationProp<RootStackParamList>>()
-        ?.popToTop();
+      const parent =
+        navigation.getParent<NativeStackNavigationProp<RootStackParamList>>();
+      if (parent) returnAfterFoodLogging(parent);
     },
   });
 

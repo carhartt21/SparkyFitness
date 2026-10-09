@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   Alert,
+  Pressable,
   View,
   Text,
   TouchableOpacity,
@@ -196,7 +197,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
 
   const handlePress = () => {
     if (readOnly) return;
-    if (selectionMode) {
+    if (selectionMode && onSelect) {
       onSelect?.(entry);
       return;
     }
@@ -217,6 +218,10 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
       return;
     }
     if (isPending) return;
+    if (selectionMode) {
+      handlePress();
+      return;
+    }
     const buttons: {
       text: string;
       style?: 'cancel' | 'destructive';
@@ -390,9 +395,10 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               </Text>
             )}
           </View>
-          {!readOnly && selectionMode && onDragEnd && onSelect && (
+          {!readOnly && selectionMode && onDragEnd && (
             <GestureDetector gesture={dragGesture}>
-              <View
+              <Pressable
+                onPress={handlePress}
                 testID={`food-drag-${entry.id}`}
                 accessible
                 accessibilityRole="button"
@@ -403,7 +409,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
                 className="min-h-11 min-w-11 items-center justify-center"
               >
                 <Icon name="reorder-handle" size={20} color={mutedColor} />
-              </View>
+              </Pressable>
             </GestureDetector>
           )}
         </View>

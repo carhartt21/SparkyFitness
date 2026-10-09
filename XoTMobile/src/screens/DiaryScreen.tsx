@@ -1307,6 +1307,7 @@ const DiaryScreen: React.FC<DiaryScreenProps> = ({ navigation }) => {
             }
           />
         )}
+        {scheduledEntries.timeSheet}
         {(scheduledEntries.isError ||
           hydration.isError ||
           intakeEntries.isError ||

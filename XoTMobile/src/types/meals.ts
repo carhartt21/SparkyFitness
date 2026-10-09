@@ -1,3 +1,4 @@
+import type { FavoriteUsageFields } from '@workspace/shared';
 // 'food' (default, omitted by legacy servers) or 'meal' when this ingredient
 // links a reusable sub-meal instead of a food. See MEAL_COMPOSITION_PLAN.md.
 export type MealComponentType = 'food' | 'meal';
@@ -116,7 +117,7 @@ export interface MealIngredientDraft extends MealFoodPayload {
   fat: number;
 }
 
-export interface Meal {
+export interface Meal extends FavoriteUsageFields {
   id: string;
   user_id: string;
   name: string;

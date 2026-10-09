@@ -384,6 +384,32 @@ export interface MealEntryMoveResult {
   meal_type_id: string;
 }
 
+/** Same metadata-only move inside an existing transaction; never rebuild nutrition. */
+export async function moveFoodEntryMealWithClient(
+  client: PoolClient,
+  foodEntryMealId: string,
+  mealTypeId: string,
+  userId: string,
+  updatedByUserId: string,
+  targetDate?: string
+): Promise<MealEntryMoveResult> {
+  const parent = await client.query(
+    `UPDATE food_entry_meals SET meal_type_id = $1, updated_by_user_id = $2,
+      entry_date = COALESCE($5::date, entry_date), updated_at = CURRENT_TIMESTAMP
+     WHERE id = $3 AND user_id = $4 RETURNING id, meal_type_id`,
+    [mealTypeId, updatedByUserId, foodEntryMealId, userId, targetDate ?? null]
+  );
+  if (!parent.rows.length)
+    throw new Error('Food entry meal not found or not authorized to update.');
+  await client.query(
+    `UPDATE food_entries SET meal_type_id = $1, updated_by_user_id = $2,
+      entry_date = COALESCE($5::date, entry_date)
+     WHERE food_entry_meal_id = $3 AND user_id = $4`,
+    [mealTypeId, updatedByUserId, foodEntryMealId, userId, targetDate ?? null]
+  );
+  return parent.rows[0] as MealEntryMoveResult;
+}
+
 // Metadata-only move of a meal container (and its component food_entries) to
 // another meal type, in one transaction. Unlike updateFoodEntryMeal, this
 // does NOT delete and rebuild the components, so historical nutrition
@@ -401,27 +427,15 @@ async function moveFoodEntryMealToMealType(
   const client = await getClient(userId, updatedByUserId);
   try {
     await client.query('BEGIN');
-    const parent = await client.query(
-      `UPDATE food_entry_meals
-       SET meal_type_id = $1,
-           updated_by_user_id = $2,
-           updated_at = CURRENT_TIMESTAMP
-       WHERE id = $3 AND user_id = $4
-       RETURNING id, meal_type_id`,
-      [mealTypeId, updatedByUserId, foodEntryMealId, userId]
-    );
-    if (parent.rows.length === 0) {
-      throw new Error('Food entry meal not found or not authorized to update.');
-    }
-    await client.query(
-      `UPDATE food_entries
-       SET meal_type_id = $1,
-           updated_by_user_id = $2
-       WHERE food_entry_meal_id = $3 AND user_id = $4`,
-      [mealTypeId, updatedByUserId, foodEntryMealId, userId]
+    const moved = await moveFoodEntryMealWithClient(
+      client,
+      foodEntryMealId,
+      mealTypeId,
+      userId,
+      updatedByUserId
     );
     await client.query('COMMIT');
-    return parent.rows[0] as MealEntryMoveResult;
+    return moved;
   } catch (error) {
     await client.query('ROLLBACK');
     log(

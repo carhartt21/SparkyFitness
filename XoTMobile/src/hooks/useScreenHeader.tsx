@@ -451,7 +451,7 @@ function HeaderBarButton({
   if (busy) {
     content = <ActivityIndicator size="small" color={color} />;
   } else if (item.kind === 'back') {
-    content = <Icon name="chevron-back" size={22} color={color} />;
+    content = <Icon name="arrow-back" size={22} color={color} />;
   } else if (item.kind === 'dismiss') {
     content = <Icon name="close" size={22} color={color} />;
   } else if (item.kind === 'icon') {

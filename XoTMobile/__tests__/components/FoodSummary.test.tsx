@@ -74,6 +74,19 @@ const entry = (
 ): FoodEntry => ({ id, meal_type_id, meal_type }) as FoodEntry;
 
 describe('FoodSummary', () => {
+  it('bounds collapsed previews and expands them on tap without reserving empty preview rows', () => {
+    const entries = Array.from({ length: 5 }, (_, i) =>
+      entry(`food-${i}`, 'sys-b', 'breakfast')
+    );
+    const screen = render(
+      <FoodSummary foodEntries={entries} mealTypes={mealTypes} collapsible />
+    );
+    expect(screen.getByText('+2')).toBeTruthy();
+    expect(screen.queryByTestId('meal-previews-sys-l')).toBeNull();
+    fireEvent.press(screen.getByTestId('meal-previews-sys-b'));
+    expect(screen.getAllByTestId('food-row')).toHaveLength(5);
+  });
+
   it('shows visible empty meal cards and passes the selected meal to Add food', () => {
     const onAddFood = jest.fn();
     const view = render(

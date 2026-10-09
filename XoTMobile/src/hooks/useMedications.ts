@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import Toast from 'react-native-toast-message';
@@ -235,8 +235,14 @@ export function useLogDose(
     Toast.show({ type: 'error', text1: message });
   }, []);
 
+  const doseInFlight = useRef(false);
+  const settleDose = useCallback(() => {
+    doseInFlight.current = false;
+  }, []);
   const logDose = useCallback(
-    (due: DueDose, status: 'taken' | 'skipped') => {
+    (due: DueDose, status: 'taken' | 'skipped', takenAt?: string) => {
+      if (doseInFlight.current) return;
+      doseInFlight.current = true;
       const isTaken = status === 'taken';
       const existing = entryForDue(due);
 
@@ -255,6 +261,7 @@ export function useLogDose(
           });
       if (existing && undone) {
         deleteEntryMutation.mutate(existing.id, {
+          onSettled: settleDose,
           onSuccess: () => Toast.show({ type: 'info', text1: undoneMessage }),
           onError: (error) =>
             showEntryError(
@@ -292,11 +299,12 @@ export function useLogDose(
             body: {
               schedule_id: due.schedule.id,
               status,
-              taken_at: new Date().toISOString(),
+              taken_at: takenAt ?? new Date().toISOString(),
             },
           },
           {
             onSuccess: showLoggedToast,
+            onSettled: settleDose,
             onError: (error) =>
               showEntryError(
                 t('medications.dose.failedUpdate', {
@@ -314,10 +322,13 @@ export function useLogDose(
             schedule_id: due.schedule.id,
             status,
             entry_date: selectedDate,
-            taken_at: isTaken ? new Date().toISOString() : undefined,
+            taken_at: isTaken
+              ? (takenAt ?? new Date().toISOString())
+              : undefined,
           },
           {
             onSuccess: showLoggedToast,
+            onSettled: settleDose,
             onError: (error) =>
               showEntryError(
                 t('medications.dose.failedLog', {
@@ -332,6 +343,7 @@ export function useLogDose(
     },
     [
       entryForDue,
+      settleDose,
       createEntryMutation,
       updateEntryMutation,
       deleteEntryMutation,
@@ -365,13 +377,13 @@ export function useLogDose(
   // Unlike scheduled slots, a PRN log has no toggle surface to undo a
   // mis-tap, so the success toast itself is the undo affordance.
   const logPrn = useCallback(
-    (med: Medication) => {
+    (med: Medication, takenAt?: string) => {
       createEntryMutation.mutate(
         {
           medication_id: med.id,
           status: 'prn_taken',
           entry_date: selectedDate,
-          taken_at: new Date().toISOString(),
+          taken_at: takenAt ?? new Date().toISOString(),
         },
         {
           onSuccess: (created) =>
@@ -423,5 +435,14 @@ export function useLogDose(
     [createEntryMutation, deleteEntryMutation, selectedDate, showEntryError, t]
   );
 
-  return { entryForDue, logDose, toggleTaken, logPrn };
+  return {
+    entryForDue,
+    logDose,
+    toggleTaken,
+    logPrn,
+    isPending:
+      createEntryMutation.isPending ||
+      updateEntryMutation.isPending ||
+      deleteEntryMutation.isPending,
+  };
 }

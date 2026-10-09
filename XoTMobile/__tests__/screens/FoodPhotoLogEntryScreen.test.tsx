@@ -102,7 +102,11 @@ function buildSaveFoodPayload(
 }
 
 describe('FoodPhotoLogEntryScreen', () => {
-  const parentNavigation = { popToTop: jest.fn() };
+  const parentNavigation = {
+    getState: () => ({ index: 0, routes: [{ key: 'root', name: 'Tabs' }] }),
+    dispatch: jest.fn(),
+    popToTop: jest.fn(),
+  };
   const navigation = {
     goBack: jest.fn(),
     getParent: jest.fn(() => parentNavigation),
@@ -196,7 +200,7 @@ describe('FoodPhotoLogEntryScreen', () => {
     });
   });
 
-  it('dismisses to root via getParent().popToTop() when useAddFoodEntry fires onSuccess', () => {
+  it('dismisses to root using the context-aware root return action when useAddFoodEntry fires onSuccess', () => {
     // Capture the onSuccess option passed to the hook so we can trigger it manually.
     let capturedOnSuccess: (() => void) | undefined;
     (useAddFoodEntry as jest.Mock).mockImplementation((options) => {
@@ -205,6 +209,8 @@ describe('FoodPhotoLogEntryScreen', () => {
     });
     renderScreen();
     capturedOnSuccess?.();
-    expect(parentNavigation.popToTop).toHaveBeenCalledTimes(1);
+    expect(parentNavigation.dispatch).toHaveBeenCalledWith({
+      type: 'POP_TO_TOP',
+    });
   });
 });

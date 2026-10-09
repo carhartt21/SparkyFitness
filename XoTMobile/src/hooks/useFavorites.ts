@@ -1,3 +1,5 @@
+import { useFavoriteDayRefresh } from './useFavoriteDayRefresh';
+import { usePreferences } from './usePreferences';
 import { useQuery } from '@tanstack/react-query';
 import { fetchFavorites } from '../services/api/favoritesApi';
 import { favoritesQueryKey } from './queryKeys';
@@ -28,6 +30,9 @@ export function useFavorites(options?: { enabled?: boolean }) {
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
   });
+
+  const { preferences } = usePreferences({ enabled });
+  useFavoriteDayRefresh(query.refetch, enabled, preferences?.timezone);
 
   return {
     favoriteFoods: query.data?.favoriteFoods ?? [],

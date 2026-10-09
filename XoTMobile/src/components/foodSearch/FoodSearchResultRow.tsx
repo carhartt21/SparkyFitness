@@ -17,6 +17,7 @@ import {
 } from '../../utils/foodDetails';
 import { mealToFoodInfo } from '../../types/foodInfo';
 import type { FoodInfoItem } from '../../types/foodInfo';
+import type { Meal } from '../../types/meals';
 import type { FoodItem } from '../../types/foods';
 import type { ExternalFoodItem } from '../../types/externalFoods';
 import type { ExternalProvider } from '../../types/externalProviders';
@@ -313,6 +314,8 @@ interface FoodSearchResultRowProps {
   selection?: FoodRowSelection;
   /** Serving quick-add for local food rows when logging to the diary. */
   onQuickAddFood?: (food: FoodItem) => void;
+  onQuickAddMeal?: (meal: Meal) => void;
+  quickAddMealId?: string | null;
   onSelectOnlineFood: (
     item: ExternalFoodItem,
     providerId?: string
@@ -325,6 +328,8 @@ const FoodSearchResultRow: React.FC<FoodSearchResultRowProps> = ({
   row,
   selection,
   onQuickAddFood,
+  onQuickAddMeal,
+  quickAddMealId,
   profileId,
   favoriteKeys,
   favoriteGold,
@@ -360,6 +365,10 @@ const FoodSearchResultRow: React.FC<FoodSearchResultRowProps> = ({
           showDivider
           isFavorite={favoriteKeys.has(landingKey('meal', row.meal.id))}
           onPress={() => onSelectFood(mealToFoodInfo(row.meal))}
+          onQuickAdd={
+            onQuickAddMeal ? () => onQuickAddMeal(row.meal) : undefined
+          }
+          quickAddBusy={quickAddMealId === row.meal.id}
         />
       );
     case 'online':

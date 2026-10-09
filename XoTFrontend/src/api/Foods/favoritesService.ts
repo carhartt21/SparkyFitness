@@ -1,3 +1,4 @@
+import { FavoriteUsageFieldsSchema } from '@workspace/shared';
 import { apiCall } from '../api';
 
 import type { Food } from '@/types/food';
@@ -17,9 +18,19 @@ export interface FavoriteToggleResponse {
 }
 
 export const getFavorites = async (): Promise<FavoritesResponse> => {
-  return apiCall('/favorites', {
+  const response: FavoritesResponse = await apiCall('/favorites', {
     method: 'GET',
   });
+  return {
+    favoriteFoods: response.favoriteFoods.map((food) => ({
+      ...food,
+      ...FavoriteUsageFieldsSchema.parse(food),
+    })),
+    favoriteMeals: response.favoriteMeals.map((meal) => ({
+      ...meal,
+      ...FavoriteUsageFieldsSchema.parse(meal),
+    })),
+  };
 };
 
 export const addFavorite = async (

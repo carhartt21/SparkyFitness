@@ -78,6 +78,19 @@ describe('hasLoggedMealComponents', () => {
 });
 
 describe('loggedMealToFoodEntry', () => {
+  test('retains logged override and template fallback images without changing historical nutrition', () => {
+    const entry = loggedMealToFoodEntry(
+      makeMeal({
+        images: ['logged.jpg'],
+        meal_images: ['template.jpg'],
+        calories: 600,
+      })
+    );
+    expect(entry.images).toEqual(['logged.jpg']);
+    expect(entry.food_images).toEqual(['template.jpg']);
+    expect(entry.calories).toBe(600);
+  });
+
   test('maps meal fields and tags the entry with its meal id', () => {
     const entry = loggedMealToFoodEntry(makeMeal({ entry_time: '12:45' }));
 

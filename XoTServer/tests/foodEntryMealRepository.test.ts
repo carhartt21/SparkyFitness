@@ -85,6 +85,7 @@ describe('foodEntryMealRepository.moveFoodEntryMealToMealType', () => {
       ACTOR_ID,
       MEAL_ENTRY_ID,
       USER_ID,
+      null,
     ]);
     // Components UPDATE params: same mealTypeId, actor, mealEntryId, userId.
     const componentsParams = updateCalls()[1][1];
@@ -93,6 +94,7 @@ describe('foodEntryMealRepository.moveFoodEntryMealToMealType', () => {
       ACTOR_ID,
       MEAL_ENTRY_ID,
       USER_ID,
+      null,
     ]);
     // food_entries has no updated_at column — it must not appear in the
     // components UPDATE (the real schema would reject it).

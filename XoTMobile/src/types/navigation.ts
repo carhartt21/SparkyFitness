@@ -38,6 +38,12 @@ export type FoodPickerMode =
   // logging a diary entry. See services/waterContainerLinkSelection.ts.
   | 'container-link';
 
+export interface FoodLoggingOrigin {
+  routeKey: string;
+  date: string;
+  mealTypeId?: string;
+}
+
 /** Immutable occurrence context carried through search and portion review. */
 export interface PhotoCompletionRouteContext {
   id: string;
@@ -139,6 +145,7 @@ export type RootStackParamList = {
   };
   FoodSearch:
     | {
+        loggingOrigin?: FoodLoggingOrigin;
         date?: string;
         pickerMode?: FoodPickerMode;
         initialBrowseTab?: 'favorites' | 'recent';
@@ -149,6 +156,7 @@ export type RootStackParamList = {
       }
     | undefined;
   FoodEntryAdd: {
+    loggingOrigin?: FoodLoggingOrigin;
     item: FoodInfoItem;
     photoCapture?: PhotoCompletionRouteContext;
     date?: string;
@@ -171,7 +179,9 @@ export type RootStackParamList = {
    * useFoodSearchSelectionStore, not route params, so no selection data
    * travels here — only the diary date/meal-type context FoodSearchScreen
    * had when the user tapped Review. */
-  FoodEntryMultiAdd: { date?: string; mealTypeId?: string } | undefined;
+  FoodEntryMultiAdd:
+    | { date?: string; mealTypeId?: string; loggingOrigin?: FoodLoggingOrigin }
+    | undefined;
   EditLoggedMeal: { foodEntryMealId: string; initialMeal?: FoodEntryMeal };
   FoodEntryView: {
     entry: FoodEntry;
@@ -234,6 +244,7 @@ export type RootStackParamList = {
   FoodScan:
     | {
         mode?: 'lookup';
+        loggingOrigin?: FoodLoggingOrigin;
         date?: string;
         pickerMode?: FoodPickerMode;
         returnDepth?: number;
@@ -248,12 +259,16 @@ export type RootStackParamList = {
         returnKey: string;
       }
     | undefined;
-  FoodPhotoIntro: { date?: string; mealTypeId?: string } | undefined;
+  FoodPhotoIntro:
+    | { date?: string; mealTypeId?: string; loggingOrigin?: FoodLoggingOrigin }
+    | undefined;
   QuickMealPhoto: undefined;
   MovementBreak: undefined;
   GuidedMobility: undefined;
   Coaching: undefined;
-  FoodPhotoFlow: NavigatorScreenParams<FoodPhotoFlowParamList>;
+  FoodPhotoFlow: NavigatorScreenParams<FoodPhotoFlowParamList> & {
+    loggingOrigin?: FoodLoggingOrigin;
+  };
   MealAdd:
     | {
         mode: 'edit';

@@ -7,6 +7,7 @@ import type { LandingEntry } from '../../utils/landingLists';
 import { mealToFoodInfo } from '../../types/foodInfo';
 import type { FoodInfoItem } from '../../types/foodInfo';
 import type { FoodItem } from '../../types/foods';
+import type { Meal } from '../../types/meals';
 
 interface LandingEntryRowProps {
   entry: LandingEntry;
@@ -21,6 +22,8 @@ interface LandingEntryRowProps {
    */
   selection?: FoodRowSelection;
   onQuickAdd?: (food: FoodItem) => void;
+  onQuickAddMeal?: (meal: Meal) => void;
+  quickAddMealId?: string | null;
 }
 
 // A landing row is either a food or a saved meal (tagged with a "Meal" badge
@@ -33,12 +36,18 @@ const LandingEntryRow: React.FC<LandingEntryRowProps> = ({
   onSelect,
   selection,
   onQuickAdd,
+  onQuickAddMeal,
+  quickAddMealId,
 }) => {
   if (entry.kind === 'meal') {
     return (
       <MealLibraryRow
         meal={entry.meal}
         showBadge
+        onQuickAdd={
+          onQuickAddMeal ? () => onQuickAddMeal(entry.meal) : undefined
+        }
+        quickAddBusy={quickAddMealId === entry.meal.id}
         showDivider
         isFavorite={favoriteKeys.has(landingKey('meal', entry.meal.id))}
         onPress={() => onSelect(mealToFoodInfo(entry.meal))}

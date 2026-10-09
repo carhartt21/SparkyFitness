@@ -1,5 +1,15 @@
+const mockQuickAddMeal = jest.fn();
+jest.mock('../../src/hooks/useMealTypes', () => ({
+  useMealTypes: () => ({
+    mealTypes: [{ id: 'breakfast', name: 'Breakfast' }],
+    defaultMealTypeId: 'breakfast',
+  }),
+}));
+jest.mock('../../src/hooks/useAddFoodEntryMeal', () => ({
+  useAddFoodEntryMeal: () => ({ addMealAsync: mockQuickAddMeal }),
+}));
 import React from 'react';
-import { fireEvent, render, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import FoodSearchScreen from '../../src/screens/FoodSearchScreen';
@@ -804,6 +814,26 @@ describe('FoodSearchScreen', () => {
     expect(screen.getByText('Starred Food')).toBeTruthy();
   });
 
+  it('offers preset quick-add from Favorites and falls back to details without a valid portion', () => {
+    favoriteOneFoodAndOneMeal();
+    mockUseFavorites.mockReturnValue({
+      favoriteFoods: [],
+      favoriteMeals: [{ ...buildMeal(), name: 'Starred Meal', foods: [] }],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    });
+    const screen = renderLanding();
+    fireEvent.press(screen.getByLabelText('Add one portion of Starred Meal'));
+    expect(navigation.navigate).toHaveBeenCalledWith(
+      'FoodEntryAdd',
+      expect.objectContaining({
+        item: expect.objectContaining({ name: 'Starred Meal' }),
+      })
+    );
+    expect(mockQuickAddMeal).not.toHaveBeenCalled();
+  });
+
   it('does not show saved meals in meal-builder mode', () => {
     mockUseMealSearch.mockReturnValue({
       searchResults: [buildMeal()],
@@ -822,6 +852,38 @@ describe('FoodSearchScreen', () => {
 
     expect(screen.queryByText('Your Meals')).toBeNull();
     expect(screen.queryByText('Lunch Bowl')).toBeNull();
+  });
+
+  it('quick-adds exactly one documented preset portion and guards duplicate taps', async () => {
+    let finish: (value: unknown) => void = () => undefined;
+    mockQuickAddMeal.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          finish = resolve;
+        })
+    );
+    const preset = buildMeal();
+    mockUseMealSearch.mockReturnValue({
+      searchResults: [preset],
+      isSearching: false,
+      isSearchActive: true,
+      isSearchError: false,
+      refetch: jest.fn(),
+    });
+    const screen = renderSearching();
+    const action = screen.getByLabelText('Add one portion of Lunch Bowl');
+    fireEvent.press(action);
+    fireEvent.press(action);
+    expect(mockQuickAddMeal).toHaveBeenCalledTimes(1);
+    expect(mockQuickAddMeal).toHaveBeenCalledWith(
+      expect.objectContaining({
+        meal_template_id: preset.id,
+        quantity: 1,
+        unit: 'serving',
+        meal_type_id: 'breakfast',
+      })
+    );
+    await act(async () => finish({ id: 'logged-preset' }));
   });
 
   it('forwards the tapped row serving to the detail fetch so the preview keeps it', async () => {

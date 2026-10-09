@@ -39,6 +39,7 @@ interface QuickAddFoodSheetProps {
   mealTypeId?: string;
   /** Opens the full entry screen for options the sheet does not offer. */
   onMoreOptions: (food: FoodItem) => void;
+  onLogged?: () => void;
 }
 
 interface ServingOption extends QuickAddServingBasis {
@@ -81,7 +82,7 @@ const Chip = ({
 const QuickAddFoodSheet = forwardRef<
   QuickAddFoodSheetRef,
   QuickAddFoodSheetProps
->(({ date, mealTypeId, onMoreOptions }, ref) => {
+>(({ date, mealTypeId, onMoreOptions, onLogged }, ref) => {
   const { t } = useTranslation();
   const sheetRef = useRef<BottomSheetModal>(null);
   const renderBackdrop = useSheetBackdrop();
@@ -167,6 +168,7 @@ const QuickAddFoodSheet = forwardRef<
         }),
       });
       sheetRef.current?.dismiss();
+      onLogged?.();
     } catch {
       // useAddFoodEntry reports the failure; keep the sheet open to retry.
     }
@@ -280,7 +282,9 @@ const QuickAddFoodSheet = forwardRef<
             {mealTypes.length > 0 ? (
               <>
                 <Text className="mt-4 mb-2 text-sm font-semibold text-text-primary">
-                  {t('foodSearch.quickAdd.meal', { defaultValue: 'Meal' })}
+                  {t('foodSearch.quickAdd.meal', {
+                    defaultValue: 'Meal',
+                  })}
                 </Text>
                 <ScrollView
                   horizontal

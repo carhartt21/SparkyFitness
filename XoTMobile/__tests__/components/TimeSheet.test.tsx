@@ -166,3 +166,35 @@ describe('TimeSheet', () => {
     expect(onSelectTime).toHaveBeenCalledWith('14:45');
   });
 });
+
+describe('quarter-hour intake time confirmation', () => {
+  it('offers quarter hours without rounding the current default and preserves a fresh open seed', () => {
+    const onSelect = jest.fn();
+    const ref = React.createRef<TimeSheetRef>();
+    const screen = render(
+      <TimeSheet
+        ref={ref}
+        value=""
+        minuteInterval={15}
+        showNow
+        commitOn="done"
+        onSelectTime={onSelect}
+      />
+    );
+    act(() => ref.current?.present('14:49'));
+    expect(screen.getByText('49')).toBeTruthy();
+    expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByLabelText('Minutes'));
+    expect(screen.getByText('00')).toBeTruthy();
+    expect(screen.getByText('15')).toBeTruthy();
+    expect(screen.getByText('30')).toBeTruthy();
+    expect(screen.getByText('45')).toBeTruthy();
+    expect(screen.queryByText('14')).toBeNull();
+    fireEvent.press(screen.getByText('15'));
+    expect(onSelect).not.toHaveBeenCalled();
+    fireEvent.press(screen.getByText('Done'));
+    expect(onSelect).toHaveBeenCalledWith('14:15');
+    act(() => ref.current?.present('15:07'));
+    expect(screen.getByText('07')).toBeTruthy();
+  });
+});

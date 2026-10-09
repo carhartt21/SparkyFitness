@@ -1,3 +1,4 @@
+import { compareFavoritePopularity } from '@workspace/shared';
 import {
   useState,
   useEffect,
@@ -330,7 +331,12 @@ const EnhancedFoodSearch = ({
     // No dedupe needed: a food and a meal never share a key (kind-prefixed),
     // and the DB's unique constraints stop the same row arriving twice.
     return tagged
-      .sort((a, b) => b.favoritedAt - a.favoritedAt)
+      .sort((a, b) =>
+        compareFavoritePopularity(
+          a.entry.kind === 'food' ? a.entry.food : a.entry.meal,
+          b.entry.kind === 'food' ? b.entry.food : b.entry.meal
+        )
+      )
       .map((t) => t.entry);
   }, [favoritesData, showMeals]);
 

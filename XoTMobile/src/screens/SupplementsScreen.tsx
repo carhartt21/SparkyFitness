@@ -1,3 +1,4 @@
+import { useManualDoseLogging } from '../hooks/useManualDoseLogging';
 import React, { useMemo, useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
@@ -19,11 +20,7 @@ import NeonButton from '../components/ui/NeonButton';
 import { withAlpha } from '../components/ui/glow';
 import StatusView from '../components/StatusView';
 import Icon, { type IconName } from '../components/Icon';
-import {
-  useLogDose,
-  useMedicationEntries,
-  useMedications,
-} from '../hooks/useMedications';
+import { useMedicationEntries, useMedications } from '../hooks/useMedications';
 import { usePlannedSupplementActions } from '../hooks/usePlannedSupplementActions';
 import { usePreferences, useServerConnection } from '../hooks';
 import { useAppPreferencesStore } from '../stores/appPreferencesStore';
@@ -107,7 +104,10 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
   );
   const { bySchedule: localActions, storageError } =
     usePlannedSupplementActions(date, dayEntries);
-  const { entryForDue, logDose } = useLogDose(date, dayEntries);
+  const { entryForDue, logDose, timeSheet } = useManualDoseLogging(
+    date,
+    dayEntries
+  );
   const timezone = getDeviceTimezone();
   const medications = useMemo(
     () => medicationsQuery.data ?? [],
@@ -254,6 +254,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
         Promise.all([medicationsQuery.refetch(), entriesQuery.refetch()])
       }
     >
+      {timeSheet}
       {supplements.length > 0 && (
         <AdditionalSupplementIntake
           supplements={supplements}

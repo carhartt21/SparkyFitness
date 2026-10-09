@@ -57,6 +57,7 @@ const FoodPhotoIntroScreen: React.FC<Props> = ({ navigation, route }) => {
   const handleLogManually = async () => {
     await markFoodPhotoIntroSeen();
     navigation.replace('FoodSearch', {
+      loggingOrigin: route.params?.loggingOrigin,
       date,
       mealTypeId: mealTypeId ?? undefined,
     });

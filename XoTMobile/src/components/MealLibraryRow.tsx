@@ -8,6 +8,7 @@ import { useProfile } from '../hooks';
 import { deriveShareStatus } from '../utils/shareStatus';
 import ShareStatusBadge from './ShareStatusBadge';
 import Icon from './Icon';
+import Button from './ui/Button';
 import FoodThumbnail from './FoodThumbnail';
 import { useFoodImageSourceContext } from './FoodImageSourceProvider';
 import { primaryImageOf, usableFoodImages } from '../utils/foodImages';
@@ -27,6 +28,8 @@ interface MealLibraryRowProps {
   // screens using this row (meal library, meal picker) have no favorites
   // concept and should not sprout a star.
   isFavorite?: boolean;
+  onQuickAdd?: () => void;
+  quickAddBusy?: boolean;
 }
 
 const MealLibraryRow: React.FC<MealLibraryRowProps> = ({
@@ -35,6 +38,8 @@ const MealLibraryRow: React.FC<MealLibraryRowProps> = ({
   showDivider = false,
   showBadge = false,
   isFavorite = false,
+  onQuickAdd,
+  quickAddBusy = false,
 }) => {
   const { t } = useTranslation();
   const { profile } = useProfile();
@@ -70,15 +75,15 @@ const MealLibraryRow: React.FC<MealLibraryRowProps> = ({
       <Pressable
         onPress={onPress}
         disabled={!onPress}
-        className="flex-1 pr-4 py-3"
+        className="flex-1 min-w-0 px-3 py-3"
         style={({ pressed }) => (pressed && onPress ? { opacity: 0.7 } : null)}
       >
-        <View className="flex-row justify-between items-center">
-          <View className="flex-1 mr-3">
-            <View className="flex-row items-center gap-1.5">
+        <View className="min-w-0">
+          <View className="min-w-0">
+            <View className="flex-row items-start gap-1.5 min-w-0">
               <Text
                 className="text-text-primary text-base font-medium flex-shrink"
-                numberOfLines={1}
+                numberOfLines={2}
               >
                 {meal.name}
               </Text>
@@ -113,8 +118,8 @@ const MealLibraryRow: React.FC<MealLibraryRowProps> = ({
               </Text>
             ) : null}
           </View>
-          <View className="items-end">
-            <Text className="text-text-primary text-base font-semibold">
+          <View className="flex-row flex-wrap items-center gap-x-3 gap-y-1 mt-1">
+            <Text className="text-text-secondary text-sm">
               {Math.round(foodInfo.calories)}{' '}
               {t('foodSearch.labels.caloriesUnit', { defaultValue: 'cal' })}
             </Text>
@@ -129,6 +134,22 @@ const MealLibraryRow: React.FC<MealLibraryRowProps> = ({
           </View>
         </View>
       </Pressable>
+      {onQuickAdd ? (
+        <Button
+          variant="secondary"
+          className="mr-3 w-11 h-11 p-0"
+          icon="add"
+          loading={quickAddBusy}
+          disabled={quickAddBusy}
+          onPress={onQuickAdd}
+          accessibilityLabel={t('foodSearch.quickAdd.mealPortion', {
+            defaultValue: 'Add one portion of {{name}}',
+            name: meal.name,
+          })}
+        >
+          {null}
+        </Button>
+      ) : null}
     </View>
   );
 };

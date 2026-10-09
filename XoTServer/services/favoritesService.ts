@@ -1,26 +1,60 @@
+import {
+  addDays,
+  todayInZone,
+  compareFavoritePopularity,
+  FavoriteUsageFieldsSchema,
+  type FavoriteUsageFields,
+} from '@workspace/shared';
+import { loadUserTimezone } from '../utils/timezoneLoader.js';
+import { getFavoriteUsage } from '../models/favoriteUsage.js';
 import foodCoreService from './foodCoreService.js';
 import foodRepository from '../models/foodRepository.js';
 import mealRepository from '../models/mealRepository.js';
 
-// Unified favorites across foods and meals. Foods and meals are returned as two
-// arrays (each item carries a `favorited_at`) so the client can render them with
-// their existing row components and interleave them into one recency-ordered list.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getFavorites(authenticatedUserId: any) {
-  const [favoriteFoods, favoriteMeals] = await Promise.all([
-    foodRepository.getFavoriteFoods(authenticatedUserId),
-    mealRepository.getFavoriteMeals(authenticatedUserId),
+interface Favorite extends Record<string, unknown> {
+  id: string;
+  favorited_at?: string;
+}
+async function getFavorites(authenticatedUserId: string) {
+  const timezone = await loadUserTimezone(authenticatedUserId);
+  const today = todayInZone(timezone);
+  const [foods, meals, usage] = await Promise.all([
+    foodRepository.getFavoriteFoods(authenticatedUserId) as Promise<Favorite[]>,
+    mealRepository.getFavoriteMeals(authenticatedUserId) as Promise<Favorite[]>,
+    getFavoriteUsage(authenticatedUserId, addDays(today, -27), today, timezone),
   ]);
-  return { favoriteFoods, favoriteMeals };
+  const metadata = new Map(
+    usage.map((row) => [
+      `${row.kind}:${row.id}`,
+      FavoriteUsageFieldsSchema.parse({
+        usage_count_28d: row.usage_count_28d,
+        last_used_at: row.last_used_at?.toISOString() ?? null,
+      }),
+    ])
+  );
+  const ranked = (
+    items: Favorite[],
+    kind: 'food' | 'meal'
+  ): Array<Favorite & FavoriteUsageFields> =>
+    items
+      .map((item) => ({
+        ...item,
+        ...(metadata.get(`${kind}:${item.id}`) ?? {
+          usage_count_28d: 0,
+          last_used_at: null,
+        }),
+      }))
+      .sort(compareFavoritePopularity);
+  return {
+    favoriteFoods: ranked(foods, 'food'),
+    favoriteMeals: ranked(meals, 'meal'),
+  };
 }
 
 async function addFavorite(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  authenticatedUserId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  id: any
+  authenticatedUserId: string,
+  type: string,
+  id: string
 ) {
   if (type === 'food') {
     // foodCoreService.addFoodFavorite verifies access before inserting.
@@ -41,12 +75,9 @@ async function addFavorite(
 }
 
 async function removeFavorite(
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  authenticatedUserId: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  type: any,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  id: any
+  authenticatedUserId: string,
+  type: string,
+  id: string
 ) {
   if (type === 'food') {
     await foodCoreService.removeFoodFavorite(authenticatedUserId, id);

@@ -1,3 +1,4 @@
+import { returnAfterFoodLogging } from '../utils/foodLoggingReturn';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
@@ -514,7 +515,7 @@ const FoodPhotoImproveScreen: React.FC<Props> = ({ navigation, route }) => {
                 mealTypeId: mealTypeId ?? undefined,
               });
             } else {
-              parent?.popToTop();
+              if (parent) returnAfterFoodLogging(parent);
             }
           }
         },

@@ -1,3 +1,4 @@
+import type { FavoriteUsageFields } from '@workspace/shared';
 import { FormFoodVariant } from '@/utils/foodForm';
 
 export type GlycemicIndex =
@@ -54,7 +55,7 @@ export interface FoodVariant {
   traces?: string[] | null;
 }
 
-export interface Food {
+export interface Food extends FavoriteUsageFields {
   id: string;
   name: string;
   brand?: string | null;

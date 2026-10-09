@@ -1,3 +1,10 @@
+jest.mock('../../src/hooks/usePreferences', () => ({
+  usePreferences: () => ({ preferences: { timezone: 'Europe/Berlin' } }),
+}));
+jest.mock('../../src/components/TimeSheet', () => ({
+  __esModule: true,
+  default: () => null,
+}));
 import React from 'react';
 import { fireEvent, render, renderHook } from '@testing-library/react-native';
 import type { Habit, DailyProgressItem } from '@workspace/shared';

@@ -1,3 +1,4 @@
+import { useManualDoseLogging } from '../hooks/useManualDoseLogging';
 import Button from '../components/ui/Button';
 import React, { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -11,7 +12,6 @@ import {
   useDeleteMedication,
   useMedicationEntries,
   useDeleteMedicationEntry,
-  useLogDose,
 } from '../hooks/useMedications';
 import { usePreferences } from '../hooks/usePreferences';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
@@ -71,10 +71,8 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
   } = usePlannedSupplementActions(selectedDate, entries);
   const deleteMedicationMutation = useDeleteMedication();
   const deleteEntryMutation = useDeleteMedicationEntry();
-  const { entryForDue, logDose, toggleTaken, logPrn } = useLogDose(
-    selectedDate,
-    entries
-  );
+  const { entryForDue, logDose, toggleTaken, logPrn, timeSheet } =
+    useManualDoseLogging(selectedDate, entries);
 
   const [iconDanger, textSecondary] = useCSSVariable([
     '--color-icon-danger',
@@ -263,6 +261,7 @@ const MedicationDetailScreen: React.FC<MedicationDetailScreenProps> = ({
       style={usesNativeHeader ? undefined : { paddingTop: insets.top }}
     >
       {header}
+      {timeSheet}
       {isLoading || !med ? (
         <View className="flex-1 items-center justify-center">
           <Text className="text-text-muted text-base">
