@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "baseRevision": "b396a4445308f905ab5d8cee9961af3cb66b93df",
+  "workingTreeChangesReviewed": true,
+  "mobile": {
+    "validate": "passed",
+    "fullSuites": 580,
+    "fullTests": 7945,
+    "finalSearchSuites": 3,
+    "finalSearchTests": 49
+  },
+  "frontend": {
+    "validate": "passed",
+    "affectedSuites": 5,
+    "affectedTests": 21
+  },
+  "server": {
+    "validate": "passed",
+    "testSuites": "skipped by owner instruction",
+    "isolatedPostgresAndHttpSmoke": [
+      "atomic whole-preset move",
+      "component nutrition preserved",
+      "owner rejection",
+      "protected-import rollback",
+      "28-day boundary",
+      "future exclusion",
+      "preset counted once",
+      "favorites HTTP contract",
+      "unrelated owner isolation",
+      "cross-owner request rejection"
+    ]
+  },
+  "native": {
+    "germanCases": ["390-de-dark", "390-de-light", "430-de-large"],
+    "renderAndInteractionSmoke": "passed",
+    "syntheticTransport": true,
+    "normalIosExport": "passed",
+    "pairedWatch": "pending physical verification",
+    "watchCompilation": "release build gate"
+  },
+  "docsBuild": "passed",
+  "remainingDeviceChecks": [
+    "drag/drop at scroll edges and cancelled gestures",
+    "selected-meal scroll restoration with real transports",
+    "paired Watch ranking, portion confirmation and offline replay",
+    "supplement backdating reflected in real history",
+    "VoiceOver and Android rendering"
+  ]
+}

@@ -89,3 +89,16 @@ Meal Management:
 
 Adding a meal:
 ![image](https://github.com/user-attachments/assets/827cc881-5472-461f-94e4-3f86023b58c1)
+
+## Meal previews and editing on the phone
+
+Collapsed, nonempty meal groups show up to three distinct thumbnails and an
+additional-item count. Tap this preview to expand the group. Logged saved meals
+use their recorded image first, then the saved template image; ingredient
+nutrition is not changed by image selection.
+
+In edit mode, tap a food or a saved-meal row to edit its details. Saved meals also
+have a drag handle: moving one to another category/day moves its parent and all
+components together, preserving quantities and nutrition. Imported, planned or
+otherwise protected entries keep their existing restrictions. Bulk selection of
+whole presets is not enabled by this change.

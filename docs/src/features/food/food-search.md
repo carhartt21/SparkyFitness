@@ -31,3 +31,26 @@ appends missing choices without replacing saved nutrient values or historical
 diary snapshots. Existing choices stay usable if the provider is unavailable.
 A barcode lookup still returns an existing saved food first. You can also manage
 portions from the food's edit screen.
+
+## Favorites and quick-add
+
+Favorite foods and saved meals are ranked by actual consumption during the last
+28 account-calendar days. More frequently logged items appear first; ties use
+last consumption and then favorite date. Future/planned entries are excluded,
+and a whole saved meal counts once rather than counting each ingredient.
+The phone refreshes this rolling window at account midnight and after returning
+to the foreground. Offline, cached favorites remain available.
+
+The Watch uses the same ranking before choosing its eight favorite shortcuts.
+Recent shortcuts retain their existing order. Watch logging still confirms a
+portion and uses the existing offline queue.
+
+Saved-meal rows in phone Favorites and search have a separate **Add one portion**
+action. It logs the preset's documented default portion into the selected date
+and meal category. If a usable portion or ingredients are missing, it opens the
+quantity screen instead. A failed log stays in search for retry; rapid repeated
+taps do not create a second entry.
+
+When search, scan, photo logging or quick-add was opened from Meals, successful
+logging returns to the same mounted meal with its selected date and scroll
+position. Independent logging flows retain their usual destination.

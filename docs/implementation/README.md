@@ -27,6 +27,10 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v49 release](v49-release-2026-10-09.md): v48 corrections, readiness checks and parallel delivery status.
+- [v48 Inbox corrections](v48-inbox-corrections-2026-10-09.md): implementation outcomes, automated/native evidence and remaining physical acceptance.
+- [v48 Inbox corrective plan](v48-inbox-corrective-plan-2026-10-09.md): all eight open findings, confirmed return-to-meal navigation, meal moves/images, phone/Watch favorite ranking, supplement timing and shared controls; original planning record; implementation outcomes and remaining device gates are linked above.
+
 - [Coaching report permissions and diagnostics](coaching-report-permissions-2026-10-07.md): bounded private recap writes, safe invocation diagnostics, English/German task scope and unresolved unattended platform rejection.
 
 - [v45 release](v45-release-2026-10-06.md): combined diary/navigation and coaching corrections, notification payload and widget fallback fixes, validation and parallel release evidence.

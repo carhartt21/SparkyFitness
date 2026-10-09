@@ -59,3 +59,17 @@ Use [Notification settings](/features/settings/notifications) to control repeat
 intake reminders. A repeat can produce another reminder for the same unresolved
 occurrence. Supplement reminders at the same exact time are grouped; completing or skipping
 an occurrence resolves its existing action rather than creating another intake.
+
+## Confirming a manual supplement intake time
+
+Logging a supplement from the phone's routine, item details or diary opens a
+24-hour time confirmation. It starts with the current account-local time each
+time the sheet opens. **Now** refreshes that exact time; the minute selector
+offers 00, 15, 30 and 45. The default is not rounded before confirmation.
+
+Nothing is recorded until **Done** confirms. Cancel leaves history unchanged.
+The chosen time applies to the selected calendar day and is stored as an instant
+in the account timezone; future times and nonexistent daylight-saving times are
+rejected. A scheduled dose retains its schedule identity and status, while an
+additional intake remains additional. Medicine logging, skip/undo, notification
+and Watch quick actions retain their existing behavior.
