@@ -109,7 +109,8 @@ const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value));
 export function createNutritionFixture(
   scenario: string,
   legacyPortions = false,
-  diaryRefinement = false
+  diaryRefinement = false,
+  phoneInputReview = false
 ) {
   // Empty planned meals only exist on current/future days in production.
   // Use today for this isolated interaction fixture, not a historic default.
@@ -132,6 +133,18 @@ export function createNutritionFixture(
   let entries: FoodEntry[] = clone(baseSummary.foodEntries);
   if (diaryRefinement)
     entries = entries.map((entry) => ({ ...entry, entry_date: reviewDate }));
+  if (phoneInputReview)
+    entries = entries.map((entry) => ({
+      ...entry,
+      food_id: reviewFood.id,
+      variant_id: 'review-variant',
+      food_name: reviewFood.name,
+      quantity: 3 * 7.1,
+      unit: 'g',
+      serving_size: 7.1,
+      serving_unit: 'g',
+      calories: 24,
+    }));
   let nextId = 1;
   const mealTypes = [
     ...(reviewResponse('/api/meal-types', scenario) as object[]),

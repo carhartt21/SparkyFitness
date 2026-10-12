@@ -1074,6 +1074,72 @@ final class DashboardReview: XCTestCase {
     verifyWorkoutPlanTime(app)
   }
 
+  func testPhoneInputRefinements() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    let dashboard = app.otherElements["dashboard-scroll"]
+    XCTAssertTrue(dashboard.waitForExistence(timeout: 30))
+    let water = app.buttons["dashboard-water"]
+    for _ in 0..<8 { if water.isHittable { break }; dashboard.swipeUp() }
+    XCTAssertTrue(water.isHittable)
+    XCTAssertTrue(water.label.contains("Meine große Wasserflasche"))
+    XCTAssertTrue(water.label.contains("250 ml"))
+    for name in ["food", "exercise-running", "water", "scan"] {
+      let tile = app.buttons["dashboard-\(name)"]
+      XCTAssertTrue(tile.isHittable)
+      XCTAssertGreaterThanOrEqual(tile.frame.height, 44)
+      XCTAssertEqual(tile.frame.height, water.frame.height, accuracy: 1)
+    }
+    capture("phone-input-dashboard", app)
+    app.buttons["Tagebuch"].tap()
+    let meal = app.buttons["diary-expand-meal:review-breakfast-type"]
+    XCTAssertTrue(meal.waitForExistence(timeout: 15)); meal.tap()
+    let row = app.buttons.matching(NSPredicate(format: "label BEGINSWITH %@", "Review yogurt with berries and toasted pumpkin seeds, 21,3 g")).firstMatch
+    for _ in 0..<8 { if row.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(row.isHittable)
+    XCTAssertFalse(row.label.contains("99999"))
+    for _ in 0..<8 { if row.frame.maxY <= app.frame.height - 120 { break }; app.swipeUp(velocity: .slow) }
+    capture("phone-input-quantity-row", app)
+    row.tap()
+    let portion = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", "7,1 g pro Portion")).firstMatch
+    XCTAssertTrue(portion.waitForExistence(timeout: 10))
+    for _ in 0..<10 { if portion.frame.minY >= 100 && portion.frame.maxY <= app.frame.height - 100 { break }; app.swipeUp(velocity: .slow) }
+    XCTAssertTrue(portion.isHittable)
+    XCTAssertLessThanOrEqual(portion.frame.maxY, app.frame.height - 100)
+    capture("phone-input-quantity-detail", app)
+    let back = app.buttons["Zurück"].firstMatch
+    for _ in 0..<10 { if back.isHittable && back.frame.minY >= 0 { break }; app.swipeDown(velocity: .slow) }
+    back.tap()
+    let more = app.buttons["Mehr"]
+    XCTAssertTrue(more.waitForExistence(timeout: 10)); more.tap()
+    let supplements = app.descendants(matching: .any)["more-supplements"]
+    for _ in 0..<8 { if supplements.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(supplements.isHittable); supplements.tap()
+    let extra = app.buttons["supplements-log-extra"]
+    for _ in 0..<8 { if extra.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(extra.waitForExistence(timeout: 15)); extra.tap()
+    let time = app.buttons["Einnahmezeit"]
+    for _ in 0..<8 { if time.isHittable { break }; app.swipeUp() }
+    XCTAssertTrue(time.waitForExistence(timeout: 10)); time.tap()
+    let minuteElements = app.descendants(matching: .any).matching(NSPredicate(format: "label == %@", "Minuten"))
+    XCTAssertTrue(minuteElements.firstMatch.waitForExistence(timeout: 10))
+    let minutes = try XCTUnwrap(minuteElements.allElementsBoundByIndex.first { $0.frame.height > 100 })
+    XCTAssertFalse(app.keyboards.firstMatch.exists)
+    capture("phone-input-time-wheel", app)
+    let before = minutes.value as? String
+    XCTAssertNotNil(before)
+    minutes.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.65)).press(forDuration: 0.1, thenDragTo: minutes.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.35)))
+    let changed = NSPredicate { _, _ in (minutes.value as? String) != before }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: changed, object: app)], timeout: 10), .completed)
+    capture("phone-input-time-selected", app)
+    let done = app.buttons["Erledigt"].firstMatch
+    XCTAssertTrue(done.isHittable); done.tap()
+    let dismissed = NSPredicate { _, _ in !minutes.exists }
+    XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: dismissed, object: app)], timeout: 10), .completed)
+    capture("phone-input-time-committed", app)
+  }
+
   func testWorkoutPlanTime() throws {
     continueAfterFailure = false
     let app = XCUIApplication(bundleIdentifier: "com.cg.phi")

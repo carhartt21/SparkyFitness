@@ -1,6 +1,6 @@
 # Phone input and quick-action refinements
 
-Date: 2026-10-12. Status: implementation in progress on `fix/phone-input-refinements-20261012`, based on current main (`3f3bf7521`).
+Date: 2026-10-12. Status: implementation and scoped native verification complete; release preparation in progress on `fix/phone-input-refinements-20261012`, based on main `3f3bf7521`.
 
 ## Evidence and baseline
 
@@ -8,13 +8,13 @@ The current Todoist Inbox contains three relevant open findings: precision in fo
 
 Remote `main` was checked on 2026-10-12 at `3f3bf7521d9ec333af5e33347b3b0dd2e616097f`. The latest repository release record is [v49](v49-release-2026-10-09.md), documenting application revision `9a178ca11` and Apple upload of 1.7.2 (49). This does not establish the build currently installed on a physical device. The separate local upstream adaptation branch ends at `7b7da2241`; it is not on remote main.
 
-Implement this correction batch in a focused branch from fresh main, for example `fix/phone-input-refinements-20261012`. Recheck the baseline first. Keep its commits independently reviewable; if the upstream adaptation is included in a later release, review conflicts and validate the combined candidate before merging. This plan does not start a release or deployment.
+This correction batch uses a focused branch from checked main. Its three implementation commits remain independently reviewable. The upstream adaptation is excluded; if included in a later release, review conflicts and validate that combined candidate. Planning alone did not authorize a release; the subsequent execution authorization below does.
 
 ## UX brief and confirmed scope
 
 This is an Operate refinement within the existing phone design: readable quantities, predictable 24-hour time selection and a water action whose effect is clear before tapping. Preserve the five-tab navigation, shared button material, current meal edit/save semantics and hydration action queue.
 
-The owner confirmed both scope choices: use meal-style wheels across all phone time inputs, retaining calendars for dates; show the per-tap amount and selected container in the Water shortcut. The plan below incorporates those decisions. Implementation has not started.
+The owner confirmed both scope choices: use meal-style wheels across all phone time inputs, retaining calendars for dates; show the per-tap amount and selected container in the Water shortcut. The sequence below incorporates those decisions and has been implemented.
 
 ## 1. Quantity precision and localization
 
@@ -73,3 +73,13 @@ Reviewed against `agent-docs/plan-review-checklist.md`: existing formatters, whe
 ## Execution authorization
 
 On 12 October the owner confirmed all phone clock inputs, the per-tap amount and selected container, and execution in the proposed order followed by the next release/deployment cycle. The broad upstream adaptation remains separate. Backend tests remain skipped by the standing instruction.
+
+## Implementation and verification record
+
+- `778d245c7`: food quantities and serving summaries use the existing locale-aware four-decimal presentation formatter. Stored amounts and nutrient calculations retain their original precision.
+- `4311e5155`: a shared `TimeWheel` replaces the clock-selector fallbacks and fasting clock controls. It preserves dates, exact off-step values, 24-hour time, validation and commit behavior. Scaled row geometry and adjustable accessibility actions support enlarged text.
+- `bf236dd8e`: the Home water tile shows its resolved container and per-tap amount, using the same state as the logging action. Linked drinks use their actual serving description. All quick-action tiles reserve matching supporting-line space.
+
+All 583 mobile suites passed (7,952 tests). The final supporting-line alignment adjustment passed eight focused control tests. Mobile, web and server validate wrappers passed; backend tests were skipped. The German dark/light and enlarged-text native interaction matrix passed; the [scoped finish review](evidence/v50-release-2026-10-12/finish-review.md) returned **ship**. Evidence and limits are recorded in the [v50 release receipt](v50-release-2026-10-12.md). Physical Android gestures and VoiceOver/TalkBack acceptance remain separate from simulator and unit checks.
+
+The production health endpoint returns HTTP 200. The existing SSH route through the university host timed out during preparation; no production mutation occurred from that probe. Release preparation continues independently, and deployment must retain its normal capacity, backup and rollback gates when the route is available.

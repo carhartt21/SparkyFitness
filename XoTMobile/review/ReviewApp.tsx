@@ -77,12 +77,14 @@ export default function ReviewApp() {
         motionReview?: boolean;
         mobilityReview?: boolean;
         coachingReview?: boolean;
+        phoneInputReview?: boolean;
       };
       const coachingFixture = createCoachingReviewFixture();
       const fixture = createNutritionFixture(
         config.scenario,
         config.v42Review,
-        config.v44Review || config.v45Review
+        config.v44Review || config.v45Review,
+        config.phoneInputReview
       );
       const mobilityFixture = createMobilityReviewFixture();
       const wellnessFixture = createWellnessReviewFixture(config.scenario);
@@ -111,6 +113,24 @@ export default function ReviewApp() {
             options?.body
           );
           if (
+            config.phoneInputReview &&
+            method === 'GET' &&
+            url.pathname === '/api/water-containers'
+          )
+            return new Response(
+              JSON.stringify([
+                {
+                  id: 1,
+                  name: 'Meine große Wasserflasche',
+                  volume: 1000,
+                  unit: 'ml',
+                  is_primary: true,
+                  servings_per_container: 4,
+                },
+              ]),
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+          if (
             config.v41Review &&
             method === 'GET' &&
             url.pathname === '/api/water-containers'
@@ -129,7 +149,7 @@ export default function ReviewApp() {
               { status: 200, headers: { 'Content-Type': 'application/json' } }
             );
           const supplementResult =
-            config.v40Review &&
+            (config.v40Review || config.phoneInputReview) &&
             method === 'GET' &&
             ['/api/v2/medications', '/api/v2/medications/entries'].includes(
               url.pathname

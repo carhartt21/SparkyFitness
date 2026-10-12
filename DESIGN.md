@@ -175,6 +175,8 @@ The native Home, Diary and daily detail pages are **Operate** surfaces. Home lea
 
 **Current phone alignment:** [The phone button and Meals/Training record](docs/implementation/phone-buttons-meals-training-alignment-2026-10-07.md) captures the shared action material and closer daily/weekly composition now implemented. The current `aligned-` German iOS simulator captures cover 390-point dark/light and 430-point enlarged text, including the lower meal and weekly footers. [The finish review](docs/implementation/evidence/v45-diary-meals-training-2026-10-07/finish-button-alignment.md) resolves the four layout corrections and the introduced German Daily details word break, with ship disposition only at that scored-fix scope. The full mobile run passed 7,904 tests before the bounded corrections; 24 focused tests, mobile validation and three native render/interaction cases cover the follow-up. These are native phone adaptations of the approved boards: platform headers and calendar controls, existing symbols, real data and enlarged-text reflow remain authoritative. Android source shares these patterns, but Android/device behavior and whole-app visual acceptance remain unverified. This documentation merge adds no application test run.
 
+**Phone input refinements — 2026-10-12:** [The implementation record](docs/implementation/phone-input-refinements-plan-2026-10-12.md) preserves display-only quantity precision, shared 24-hour clock wheels and the Home water action's resolved container and per-tap amount. [The scoped finish review](docs/implementation/evidence/v50-release-2026-10-12/finish-review.md) returns ship for the number labels, shared wheel presentation and tested supplement interaction, and Home water shortcut shown in 14 German iOS Simulator captures: 390-point dark/light and 430-point enlarged text. Shared consumers and fasting date/save semantics rely on source and regression evidence rather than separate visual acceptance of each screen. The enlarged Diary row and pre-existing enlarged nutrient-table wrapping are excluded. Synthetic transport does not prove backend persistence; physical iPhone/Android gestures, VoiceOver/TalkBack, paired Watch behavior and whole-app acceptance remain outside this review. This documentation merge adds no application test run.
+
 **Completed Watch direction:** The Watch `ContentView.swift` now orders its `TabView` children as **Daily Goals → Nutrition → Water → Food quick logging → Workout → Entry → Trend**. Page tags remain stable, an active workout retains its initial destination, and existing complication links and sync gates remain. [The deferred-task completion record](docs/implementation/deferred-tasks-completion-2026-10-07.md) documents a source-level finish review with a ship disposition for this navigation refinement, successful Watch compilation, 19 passing synthetic native assertions, and four 42 mm watchOS 26.2 captures of existing goals/intake content. Actual swipe interaction and phone–Watch/physical pairing remain unverified: Simulator UI access failed with `cgWindowNotFound`. This bounded change adds no page styling or design tokens; release acceptance remains unverified.
 
 **Key Characteristics:**
@@ -225,6 +227,12 @@ Home uses the native font stack, a medium-weight date control (14 points), a cen
 Diary timeline titles use semibold native body text (16 points), with clocks and summaries at 14 points. Clocks use tabular numerals and a single line. Above a font scale of 1.3, `HH:mm` moves above the title and summary in the content column instead of squeezing into the ordinary 44-point gutter. Titles and summaries wrap naturally; disclosure and eligible meal-state controls retain separate targets of at least 44 by 44 points.
 
 **The Dashboard Reading Rule.** Keep Dashboard text readable and let content scroll or stack; never scale the entire screen to reproduce the reference screenshot.
+
+### Mobile food quantities
+
+Food quantities, fractional serving counts and per-serving weights use the app-locale `formatServingSizeForDisplay` formatter: at most four fractional digits, trimmed trailing zeros and no grouping. The same recorded quantity reads as `21,3 g` in German and `21.3 g` in English, with localized units and matching visible and spoken labels. Serving summaries may wrap to keep the complete count and per-serving amount readable.
+
+**The Display Precision Rule.** Localize and bound quantity text without rounding saved quantities or recomputing recorded nutrition.
 
 ## Layout
 
@@ -290,6 +298,14 @@ Tabs have text labels and decorative icons, with a visible active fill and keybo
 
 The shared `XoTFrontend/src/components/ui/input.tsx` preserves the existing bordered input, focus ring, disabled state, and theme roles. Time fields render as text with a numeric keyboard hint and an `HH:mm` placeholder, validate the complete 00:00–23:59 range, and normalize four entered digits such as `1430` to `14:30`. Partial drafts remain visible and invalid rather than becoming saved times. `TimeCommitInput` commits a changed, complete valid draft on blur; Enter triggers that same validation boundary. Existing meal-time and bedtime save flows also check validity. The isolated desktop/mobile captures verify this shared control, not browser keyboards or authenticated settings screens.
 
+### Mobile 24-hour clock wheels
+
+`TimeWheel` is the shared full-width clock presentation for `TimeSheet`, meal-time editors and fasting date/time editors. Equal-width Hours and Minutes columns use two-digit 00–23 hours and canonical `HH:mm`, independent of a legacy 12-hour display preference. One-minute and intentional quarter-hour modes retain exact off-grid initial and Now values; visited off-grid minutes remain available until the wheel closes so option positions do not jump during a gesture.
+
+Selected digits use native medium type (28 points) and the subtle bordered-surface indicator. Row height grows with text scale from a 44-point minimum; enlarged text shows fewer surrounding rows while keeping the labels and selected digits complete. Each column exposes its localized name, current value and independent adjustable increment/decrement actions; individual option rows do not duplicate accessibility announcements.
+
+`TimeSheet` retains its existing change-versus-Done commit boundary, initialization on reopening, caller-specific Now/timezone behavior, visible validation errors and rejected-Done behavior. Wheel movement does not save a separate intake. Fasting retains its calendar date, bounds and explicit save action when the clock changes. Date-only controls remain calendars and duration controls keep duration semantics. Sheet content panning stays disabled where it would compete with wheel scrolling.
+
 ### Mobile phone action buttons
 
 Scheduled workout assignments expose a full-width primary **Start routine**
@@ -317,7 +333,9 @@ Each read-only side display has a localized label, a 4-point rail and a numeric 
 
 [The intake-card implementation record](docs/implementation/intake-card-progress-2026-10-07.md) and [native results](docs/implementation/evidence/intake-card-progress-2026-10-07/results.json) cover five simulator cases: German 390-point dark/light, German 430-point enlarged text, English above-target AMOLED, and German unset goals. The independent finish review returned ship only for this intake-card scope. Ordinary captures retain the 184/130-point card/body; enlarged height is an observation, not proof of equal height across text sizes. Physical-device, Android and actual VoiceOver interaction remain unverified. This documentation merge adds no rendering or application test run.
 
-The four labelled quick actions preserve their real destinations. Food opens dated food search, Exercise opens exercise logging, Water adds the configured amount or opens container setup, and Scan opens dated food scanning. They do not imply unimplemented profile, notification, or photo actions from the reference.
+The four labelled quick actions preserve their real destinations. Food opens dated food search, Exercise opens exercise logging, Water logs the resolved container serving or opens container setup, and Scan opens dated food scanning. `waterShortcut` derives the Water title and supporting amount from the logging hook's `activeContainer`, never a second selection preference. The amount uses the known per-serving volume in the preferred unit; linked-food containers use their actual serving description or the explicit linked-drink fallback rather than an invented millilitre credit. Unresolved containers retain the existing generic/setup action without advertising an assumed amount.
+
+The Water tile shows the selected container name and complete per-tap amount before activation. A long container name may ellipsize; its full name, amount and per-tap meaning remain in the accessibility label. When the supporting amount is present, all four `ActionTile`s reserve the same secondary-line height so their icons and titles stay aligned. The existing 72-point minimum, shared outline material and enlarged-text two-column reflow remain. These actions do not imply unimplemented profile, notification, or photo actions from the reference.
 
 ### Mobile launch-icon quick actions
 
@@ -427,6 +445,9 @@ Medium iOS energy, macro, and nutrition-capture Home Screen widgets add the star
 - **Do** keep daily Meals editing on existing food mutations and snapshot-preserving templates, with explicit review for unresolved serving variants.
 - **Do** keep hydration logging and source history together, distinguish solid-food water from goal-counting drinks, and state unavailable source data explicitly.
 - **Do** present actual training types and occurrence clocks, exclude daily energy aggregates from sessions, and keep future-day habit/meal shortcuts read-only.
+- **Do** format food quantities and serving summaries with the app locale in visible and spoken labels while preserving stored precision and nutrient snapshots.
+- **Do** reuse the shared 24-hour phone clock wheels while preserving exact off-grid times, calendar dates and each caller's save boundary.
+- **Do** show the resolved water container and complete per-tap amount, keep all four quick-action icons and titles aligned, and expose the full container name and amount to accessibility.
 
 ### Don't:
 
@@ -437,3 +458,4 @@ Medium iOS energy, macro, and nutrition-capture Home Screen widgets add the star
 - **Don't** shrink the Dashboard as a whole to fit a screenshot or apply its native composition to web Settings.
 - **Don't** override phone action radius, fill or glow at the call site; native chrome, state glyphs, shutters, progress graphics and tappable content cards keep their own geometry.
 - **Don't** treat a widget picker shortcut as a logged meal or commit an incomplete web clock draft.
+- **Don't** round stored food quantities for display or silently snap an existing or Now clock value to the wheel interval.

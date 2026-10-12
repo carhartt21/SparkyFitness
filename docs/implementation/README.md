@@ -27,7 +27,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
-- [Phone input refinements plan](phone-input-refinements-plan-2026-10-12.md): quantity precision, shared 24-hour wheels and selected-container clarity; planned, with all-phone time wheels and per-tap amount/container display confirmed.
+- [Phone input refinements](phone-input-refinements-plan-2026-10-12.md): localized quantity precision, shared 24-hour wheels and selected-container clarity; implementation and verification record.
+- [v50 release](v50-release-2026-10-12.md): phone input corrections, readiness checks and delivery status.
 
 - [v49 release](v49-release-2026-10-09.md): v48 corrections, readiness checks and parallel delivery status.
 - [v48 Inbox corrections](v48-inbox-corrections-2026-10-09.md): implementation outcomes, automated/native evidence and remaining physical acceptance.

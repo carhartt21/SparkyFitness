@@ -1,0 +1,82 @@
+{
+  "observedAt": "2026-10-12T10:30:45.130433+00:00",
+  "implementationRevision": "bf236dd8eb7427b988e35ec4db9ed5a79e05b785",
+  "scope": [
+    "localized food quantity presentation",
+    "all phone 24-hour clock wheels",
+    "selected water container and per-tap amount"
+  ],
+  "checks": {
+    "frozenInstall": "passed",
+    "mobileValidate": "passed",
+    "frontendValidate": "passed",
+    "serverValidate": "passed",
+    "backendTests": "skipped by owner instruction",
+    "mobileTests": {
+      "suitesPassed": 583,
+      "testsPassed": 7952
+    },
+    "finalFocusedControls": {
+      "testsPassed": 8
+    },
+    "reviewFixture": {
+      "testsPassed": 7
+    },
+    "reviewRunner": {
+      "testsPassed": 3
+    },
+    "docsBuild": "passed",
+    "normalIosExport": {
+      "passed": true,
+      "reviewMarkersAbsent": true
+    }
+  },
+  "native": [
+    {
+      "case": "390-de-dark",
+      "viewport": "390x844",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "scenario": "phone-input-refinements",
+      "pass": "interaction"
+    },
+    {
+      "case": "390-de-light",
+      "viewport": "390x844",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "scenario": "phone-input-refinements",
+      "pass": "interaction"
+    },
+    {
+      "case": "430-de-large",
+      "viewport": "430x932",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "scenario": "phone-input-refinements",
+      "pass": "interaction"
+    },
+    {
+      "case": "430-de-large",
+      "viewport": "430x932",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "scenario": "phone-input-refinements",
+      "pass": "large-detail-recapture"
+    }
+  ],
+  "visualEvidence": {
+    "acceptedCaptures": 14,
+    "finishReview": "ship; bounded native phone input and Home shortcut scope",
+    "largeDiaryQuantityRow": "accessible label verified; screenshot excluded because sticky header obscures the value",
+    "immediateMidDragCaptures": "excluded from visual fidelity evidence",
+    "report": "finish-review.md"
+  },
+  "notVerified": [
+    "physical Android wheel gestures",
+    "VoiceOver/TalkBack behavior",
+    "paired-device acceptance",
+    "production rollout",
+    "Apple upload/processing"
+  ]
+}

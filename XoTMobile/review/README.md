@@ -17,6 +17,15 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Gates and artifacts
 
+`--phone-input-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
+uses a synthetic `3 × 7.1 g` food entry and a 1,000 ml bottle with four servings.
+It checks the Home action's full accessible container name, visible 250 ml amount
+and matching quick-action heights, then opens the localized Diary quantity and
+serving details. It opens the additional-intake clock, drags the actual minute
+wheel, checks that its selected value changes and confirms it without a keyboard.
+This covers current JavaScript on a compatible development simulator app; it
+does not prove physical-device accessibility, Android gestures or server writes.
+
 `--workout-goal-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
 opens Daily Progress from Home with a synthetic strength session below its
 45-minute target. It verifies the German Started state, the localized
