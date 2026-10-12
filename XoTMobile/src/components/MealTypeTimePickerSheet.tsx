@@ -6,7 +6,7 @@ import {
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Platform, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
@@ -89,7 +89,7 @@ const MealTypeTimePickerSheet = forwardRef<MealTypeTimePickerSheetRef>(
       <BottomSheetModal
         ref={bottomSheetRef}
         enableDynamicSizing
-        enableContentPanningGesture={Platform.OS !== 'android'}
+        enableContentPanningGesture={false}
         backdropComponent={renderBackdrop}
         containerComponent={sheetContainer}
         backgroundStyle={{ backgroundColor: surfaceBg }}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, act, fireEvent } from '@testing-library/react-native';
 import TimeSheet, { type TimeSheetRef } from '../../src/components/TimeSheet';
-import { usePreferences } from '../../src/hooks/usePreferences';
+import { setWheelTime } from '../helpers/timeWheel';
 
 jest.mock('@gorhom/bottom-sheet', () => {
   const React = require('react');
@@ -18,17 +18,7 @@ jest.mock('@gorhom/bottom-sheet', () => {
   };
 });
 
-jest.mock('../../src/hooks/usePreferences');
-
-function pickerProps(queries: { getByTestId: (id: string) => any }) {
-  return queries.getByTestId('date-picker').props;
-}
-
 describe('TimeSheet', () => {
-  const mockedUsePreferences = usePreferences as jest.MockedFunction<
-    typeof usePreferences
-  >;
-
   beforeEach(() => {
     jest.clearAllMocks();
     jest
@@ -47,62 +37,33 @@ describe('TimeSheet', () => {
   afterEach(() => jest.restoreAllMocks());
 
   it('uses 24-hour presentation (use12Hours=false) when preferences set time_format to HH:mm', () => {
-    mockedUsePreferences.mockReturnValue({
-      preferences: { time_format: 'HH:mm' },
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
     const queries = render(
       <TimeSheet value="13:30" onSelectTime={jest.fn()} />
     );
-    const picker = pickerProps(queries);
-    expect(picker.use12Hours).toBe(false);
+    expect(queries.getByLabelText('Hours').props.accessibilityValue.now).toBe(
+      13
+    );
   });
 
   it('uses 24-hour presentation for legacy 12-hour preferences', () => {
-    mockedUsePreferences.mockReturnValue({
-      preferences: { time_format: 'h:mm A' },
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
     const queries = render(
       <TimeSheet value="13:30" onSelectTime={jest.fn()} />
     );
-    const picker = pickerProps(queries);
-    expect(picker.use12Hours).toBe(false);
+    expect(queries.getByLabelText('Hours').props.accessibilityValue.now).toBe(
+      13
+    );
   });
 
   it('explicit timeFormat prop overrides preferences', () => {
-    mockedUsePreferences.mockReturnValue({
-      preferences: { time_format: 'h:mm A' },
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
     const queries = render(
       <TimeSheet value="13:30" onSelectTime={jest.fn()} timeFormat="HH:mm" />
     );
-    const picker = pickerProps(queries);
-    expect(picker.use12Hours).toBe(false);
+    expect(queries.getByLabelText('Hours').props.accessibilityValue.now).toBe(
+      13
+    );
   });
 
   it('calls onSelectTime when time changes and Done is clicked', () => {
-    mockedUsePreferences.mockReturnValue({
-      preferences: { time_format: 'HH:mm' },
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
     const onSelectTime = jest.fn();
     const ref = React.createRef<TimeSheetRef>();
     const queries = render(
@@ -113,11 +74,7 @@ describe('TimeSheet', () => {
       ref.current?.present();
     });
 
-    act(() => {
-      pickerProps(queries).onChange({
-        date: new Date(2026, 0, 1, 14, 45, 0),
-      });
-    });
+    setWheelTime(queries.getByLabelText, '14:45');
 
     expect(onSelectTime).toHaveBeenCalledWith('14:45');
 
@@ -128,14 +85,6 @@ describe('TimeSheet', () => {
   });
 
   it("with commitOn='done', reports only the final time when Done is pressed", () => {
-    mockedUsePreferences.mockReturnValue({
-      preferences: { time_format: 'HH:mm' },
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: jest.fn(),
-    });
-
     const onSelectTime = jest.fn();
     const ref = React.createRef<TimeSheetRef>();
     const queries = render(
@@ -151,12 +100,8 @@ describe('TimeSheet', () => {
       ref.current?.present();
     });
 
-    act(() => {
-      pickerProps(queries).onChange({ date: new Date(2026, 0, 1, 23, 0, 0) });
-    });
-    act(() => {
-      pickerProps(queries).onChange({ date: new Date(2026, 0, 1, 14, 45, 0) });
-    });
+    setWheelTime(queries.getByLabelText, '23:00');
+    setWheelTime(queries.getByLabelText, '14:45');
 
     expect(onSelectTime).not.toHaveBeenCalled();
 
@@ -182,19 +127,41 @@ describe('quarter-hour intake time confirmation', () => {
       />
     );
     act(() => ref.current?.present('14:49'));
-    expect(screen.getByText('49')).toBeTruthy();
+    expect(screen.getByLabelText('Minutes').props.accessibilityValue.now).toBe(
+      49
+    );
     expect(onSelect).not.toHaveBeenCalled();
-    fireEvent.press(screen.getByLabelText('Minutes'));
-    expect(screen.getByText('00')).toBeTruthy();
-    expect(screen.getByText('15')).toBeTruthy();
-    expect(screen.getByText('30')).toBeTruthy();
-    expect(screen.getByText('45')).toBeTruthy();
-    expect(screen.queryByText('14')).toBeNull();
-    fireEvent.press(screen.getByText('15'));
+
+    setWheelTime(screen.getByLabelText, '14:15');
     expect(onSelect).not.toHaveBeenCalled();
     fireEvent.press(screen.getByText('Done'));
     expect(onSelect).toHaveBeenCalledWith('14:15');
     act(() => ref.current?.present('15:07'));
-    expect(screen.getByText('07')).toBeTruthy();
+    expect(screen.getByLabelText('Minutes').props.accessibilityValue.now).toBe(
+      7
+    );
   });
+});
+
+it('keeps a rejected time open, preserves the initial value until Done, and uses exact Now', () => {
+  const onSelect = jest.fn(() => false);
+  const ref = React.createRef<TimeSheetRef>();
+  const screen = render(
+    <TimeSheet
+      ref={ref}
+      value="08:00"
+      onSelectTime={onSelect}
+      commitOn="done"
+      showNow
+      getCurrentTime={() => '14:49'}
+      minuteInterval={15}
+      errorMessage="Invalid time"
+    />
+  );
+  act(() => ref.current?.present());
+  fireEvent.press(screen.getByText('Now'));
+  expect(onSelect).not.toHaveBeenCalled();
+  fireEvent.press(screen.getByText('Done'));
+  expect(onSelect).toHaveBeenCalledWith('14:49');
+  expect(screen.getByRole('alert')).toBeTruthy();
 });

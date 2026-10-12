@@ -179,7 +179,7 @@ const MealTypeFormSheet = forwardRef<
         accessible={false}
         ref={bottomSheetRef}
         enableDynamicSizing
-        enableContentPanningGesture={Platform.OS !== 'android'}
+        enableContentPanningGesture={false}
         backdropComponent={renderBackdrop}
         containerComponent={sheetContainer}
         backgroundStyle={{ backgroundColor: surfaceBg }}

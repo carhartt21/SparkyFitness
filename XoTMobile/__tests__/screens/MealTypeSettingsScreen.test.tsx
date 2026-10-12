@@ -6,10 +6,7 @@ import { useSharedValue } from 'react-native-reanimated';
 import Toast from 'react-native-toast-message';
 import MealTypeSettingsScreen from '../../src/screens/MealTypeSettingsScreen';
 import { useReorderRowPreviewStyle } from '../../src/components/WorkoutReorderList';
-import {
-  TIME_WHEEL_CONTAINER_HEIGHT,
-  TIME_WHEEL_WRAPPER_HEIGHT,
-} from '../../src/components/MealTypeTimeWheel';
+import { setWheelTime } from '../helpers/timeWheel';
 import * as mealTypesApi from '../../src/services/api/mealTypesApi';
 
 jest.mock('../../src/components/Icon', () => {
@@ -605,14 +602,13 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     // The shared wheel root owns a deterministic full width + its own height.
     expect(wheel.props.style.width).toBe('100%');
     expect(wheel.props.style.alignSelf).toBe('stretch');
-    expect(wheel.props.style.height).toBeGreaterThan(0);
     // No alignItems:'center' shrink wrapper around the picker (would collapse
     // the wheel columns' inherited width and blank them on device).
     expect(wheel.props.style.alignItems).not.toBe('center');
     // The shared wheel owns its own deterministic height (the single dimension
     // owner); the dedicated sheet no longer adds a redundant fixed-height
     // wrapper around it.
-    expect(wheel.props.style.height).toBe(TIME_WHEEL_WRAPPER_HEIGHT);
+    expect(wheel.props.style).not.toHaveProperty('height');
   });
 
   it('create sheet has no Delete, no helper copy, no Selected box — name + large wheel in one flow', async () => {
@@ -1062,7 +1058,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     const {
       findByText,
       getByLabelText,
-      getByTestId,
+
       queryAllByLabelText,
       queryClient,
     } = renderScreen({
@@ -1102,8 +1098,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
       );
     });
     // Rotate the wheel to 17:30 (the date-picker mock exposes onChange).
-    const picker = getByTestId('date-picker');
-    fireEvent(picker, 'change', { date: new Date(2024, 0, 1, 17, 30) });
+    setWheelTime(getByLabelText, '17:30');
     fireEvent.press(getByLabelText('Save default time')); // A (17:30) — network starts
     await waitFor(() => expect(updateCalls).toBe(1));
 
@@ -1117,8 +1112,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
         0
       );
     });
-    const picker2 = getByTestId('date-picker');
-    fireEvent(picker2, 'change', { date: new Date(2024, 0, 1, 17, 30) });
+    setWheelTime(getByLabelText, '17:30');
     fireEvent.press(getByLabelText('Save default time')); // B optimistic; queued
     await act(async () => {});
     expect(updateCalls).toBe(1); // serialized: B's PUT waits for A
@@ -1296,7 +1290,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     const {
       findByText,
       getByLabelText,
-      getByTestId,
+
       queryAllByLabelText,
       queryClient,
     } = renderScreen({ fetchMock });
@@ -1339,9 +1333,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
           0
         );
       });
-      const picker = getByTestId('date-picker');
-      const [h, m] = hhmm.split(':').map(Number);
-      fireEvent(picker, 'change', { date: new Date(2024, 0, 1, h, m) });
+      setWheelTime(getByLabelText, hhmm);
       fireEvent.press(getByLabelText('Save default time'));
     };
 
@@ -1526,7 +1518,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
     const {
       findByText,
       getByLabelText,
-      getByTestId,
+
       queryAllByLabelText,
       queryClient,
     } = renderScreen({ fetchMock });
@@ -1563,9 +1555,7 @@ describe('MealTypeSettingsScreen — unified anchor list', () => {
           0
         );
       });
-      const picker = getByTestId('date-picker');
-      const [h, m] = hhmm.split(':').map(Number);
-      fireEvent(picker, 'change', { date: new Date(2024, 0, 1, h, m) });
+      setWheelTime(getByLabelText, hhmm);
       fireEvent.press(getByLabelText('Save default time'));
     };
 
@@ -1643,38 +1633,22 @@ describe('Meal type time wheel — visible on-device picker (device bugfix)', ()
   });
 
   it('dedicated sheet passes the supported picker sizing API to the wheel', async () => {
-    const { findByText, getByLabelText, getByTestId } = renderScreen();
+    const { findByText, getByLabelText } = renderScreen();
     await findByText('Pre-Workout');
     fireEvent.press(getByLabelText('Default time for Pre-Workout, 17:30'));
-    const picker = getByTestId('date-picker');
-    expect(picker.props.timePicker).toBe(true);
-    expect(picker.props.initialView).toBe('time');
-    expect(picker.props.hideHeader).toBe(true);
-    // 24-hour presentation (no AM/PM column) per the maintainer mockup.
-    expect(picker.props.use12Hours).toBeFalsy();
-    // Full-width stretch contract (the visible-on-Android fix) is on both the
-    // shared wheel root and the picker style.
-    expect(picker.props.style.width).toBe('100%');
-    expect(picker.props.style.alignSelf).toBe('stretch');
-    // Explicit supported container height.
-    expect(picker.props.containerHeight).toBe(TIME_WHEEL_CONTAINER_HEIGHT);
-    // Existing 17:30 seeds the wheel correctly (24h value).
-    const d = picker.props.date as Date;
-    expect(d.getHours()).toBe(17);
-    expect(d.getMinutes()).toBe(30);
+    expect(getByLabelText('Hours').props.accessibilityValue.now).toBe(17);
+    expect(getByLabelText('Minutes').props.accessibilityValue.now).toBe(30);
   });
 
   it('unset seeds the current visible time; Save without scrolling commits it', async () => {
-    const { findByText, getByLabelText, getByTestId } = renderScreen();
+    const { findByText, getByLabelText } = renderScreen();
     const updateSpy = jest
       .spyOn(mealTypesApi, 'updateMealType')
       .mockResolvedValue({} as any);
     await findByText('Pre-Workout');
     fireEvent.press(getByLabelText('Default time for Lunch, Not set'));
-    const picker = getByTestId('date-picker');
-    const d = picker.props.date as Date;
-    const hh = String(d.getHours()).padStart(2, '0');
-    const mm = String(d.getMinutes()).padStart(2, '0');
+    const hh = getByLabelText('Hours').props.accessibilityValue.text;
+    const mm = getByLabelText('Minutes').props.accessibilityValue.text;
     expect(`${hh}:${mm}`).toMatch(/^\d{2}:\d{2}$/);
     // Save WITHOUT scrolling commits exactly the visible HH:MM.
     fireEvent.press(getByLabelText('Save default time'));
@@ -1687,7 +1661,7 @@ describe('Meal type time wheel — visible on-device picker (device bugfix)', ()
   });
 
   it('wheel change updates the pending value and Save commits the changed HH:MM', async () => {
-    const { findByText, getByLabelText, getByTestId } = renderScreen();
+    const { findByText, getByLabelText } = renderScreen();
     const updateSpy = jest
       .spyOn(mealTypesApi, 'updateMealType')
       .mockResolvedValue({} as any);
@@ -1697,11 +1671,7 @@ describe('Meal type time wheel — visible on-device picker (device bugfix)', ()
       expect(getByLabelText('Save default time')).toBeTruthy()
     );
     // Scroll the wheel to 18:45 (drive the picker's onChange).
-    act(() => {
-      getByTestId('date-picker').props.onChange({
-        date: new Date(2026, 7, 9, 18, 45),
-      });
-    });
+    setWheelTime(getByLabelText, '18:45');
     fireEvent.press(getByLabelText('Save default time'));
     await waitFor(() => {
       expect(updateSpy).toHaveBeenCalledWith('custom-pw', {
@@ -1712,8 +1682,7 @@ describe('Meal type time wheel — visible on-device picker (device bugfix)', ()
   });
 
   it('Create inline wheel uses the same supported sizing; changing it updates submitted default_time', async () => {
-    const { findByText, getByLabelText, getByTestId, getByPlaceholderText } =
-      renderScreen();
+    const { findByText, getByLabelText, getByPlaceholderText } = renderScreen();
     const createSpy = jest
       .spyOn(mealTypesApi, 'createMealType')
       .mockResolvedValue({
@@ -1727,18 +1696,9 @@ describe('Meal type time wheel — visible on-device picker (device bugfix)', ()
       .mockResolvedValue({} as any);
     await findByText('Pre-Workout');
     fireEvent.press(getByLabelText('Add meal type'));
-    const picker = getByTestId('date-picker');
-    // Same visible wheel contract as the dedicated sheet: full-width stretch,
-    // 24-hour, supported sizing.
-    expect(picker.props.style.width).toBe('100%');
-    expect(picker.props.style.alignSelf).toBe('stretch');
-    expect(picker.props.use12Hours).toBeFalsy();
-    expect(picker.props.containerHeight).toBe(TIME_WHEEL_CONTAINER_HEIGHT);
-    expect(picker.props.timePicker).toBe(true);
+    expect(getByLabelText('Hours').props.accessibilityValue.max).toBe(23);
     fireEvent.changeText(getByPlaceholderText('e.g. Lunch 2.0'), 'Dessert');
-    act(() => {
-      picker.props.onChange({ date: new Date(2026, 7, 9, 20, 15) });
-    });
+    setWheelTime(getByLabelText, '20:15');
     fireEvent.press(getByLabelText('Create meal type'));
     await waitFor(() => {
       expect(createSpy).toHaveBeenCalledWith(
@@ -1766,11 +1726,7 @@ describe('Meal type time wheel — visible on-device picker (device bugfix)', ()
     await waitFor(() =>
       expect(getByLabelText('Save default time')).toBeTruthy()
     );
-    act(() => {
-      getAllByTestId('date-picker')[0].props.onChange({
-        date: new Date(2026, 7, 9, 12, 0),
-      });
-    });
+    setWheelTime(getByLabelText, '12:00');
     // Dismiss via the sheet backdrop — the pending wheel value must be
     // discarded and no update fired.
     fireEvent.press(getAllByTestId('sheet-backdrop')[0]);

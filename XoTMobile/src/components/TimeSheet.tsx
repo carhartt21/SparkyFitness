@@ -2,56 +2,21 @@ import {
   forwardRef,
   useCallback,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Text, View } from 'react-native';
 import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
-import DateTimePicker, { type DateType } from 'react-native-ui-datepicker';
 import Button from './ui/Button';
-import { PickerTrigger } from './BottomSheetPicker';
+import TimeWheel from './TimeWheel';
 import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
-import { usePreferences } from '../hooks/usePreferences';
-import {
-  is12HourTimeFormat,
-  type EntryTimeFormat,
-} from '../utils/entryTimeDisplay';
+import { dateToTimeString, timeStringToDate } from '../utils/timePicker';
+import type { EntryTimeFormat } from '../utils/entryTimeDisplay';
 
-/** Normalizes the picker's 6-way `DateType` into a JS `Date`. */
-export function dateTypeToDate(date: DateType): Date | null {
-  if (!date) return null;
-  if (date instanceof Date) return date;
-  if (typeof date === 'object' && 'toDate' in date) return date.toDate();
-  if (typeof date === 'string') return new Date(date);
-  return new Date(date);
-}
-
-/** Builds a `Date` seeded with today's date and the given 'HH:MM' (or now if empty/invalid).
- * Exported so the shared MealTypeTimeWheel uses the same conversion (single
- * implementation of HH:MM → Date across the app). */
-export function timeStringToDate(value: string): Date {
-  const now = new Date();
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) return now;
-  const [hours, minutes] = value.split(':').map(Number);
-  const date = new Date(now);
-  date.setHours(hours, minutes, 0, 0);
-  return date;
-}
-
-/** Formats a `Date` as canonical 'HH:MM'. Exported for the shared time wheel. */
-export function dateToTimeString(date: Date): string {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-}
+// Existing meal-form callers retain this formatting export.
+export { dateToTimeString } from '../utils/timePicker';
 
 export interface TimeSheetRef {
   present: (initialTime?: string) => void;
@@ -79,7 +44,6 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
     {
       value,
       onSelectTime,
-      timeFormat,
       commitOn = 'change',
       minuteInterval = 1,
       showNow = false,
@@ -89,43 +53,22 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
     ref
   ) => {
     const { t } = useTranslation();
-    const { fontScale, height } = useWindowDimensions();
-    const { preferences } = usePreferences();
+    const [surfaceBg, textMuted] = useCSSVariable([
+      '--color-surface',
+      '--color-text-muted',
+    ]) as [string, string];
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-
-    const use12Hours = is12HourTimeFormat(
-      timeFormat !== undefined ? timeFormat : preferences?.time_format
-    );
-
-    const [surfaceBg, textMuted, accentPrimary, textPrimary, borderSubtle] =
-      useCSSVariable([
-        '--color-surface',
-        '--color-text-muted',
-        '--color-accent-primary',
-        '--color-text-primary',
-        '--color-border-subtle',
-      ]) as [string, string, string, string, string];
-    const accentText = useCSSVariable('--color-accent-text') as string;
-
-    // The time the wheel is showing, committed by Done even if never scrolled.
-    // Seeded at present() so an open sheet doesn't re-seed to "now" on parent
-    // re-renders while the value is still empty.
     const [displayed, setDisplayed] = useState('');
-    const [editingPart, setEditingPart] = useState<'hours' | 'minutes' | null>(
-      null
-    );
-
+    const [session, setSession] = useState(0);
     useImperativeHandle(ref, () => ({
       present: (initialTime) => {
         setDisplayed(dateToTimeString(timeStringToDate(initialTime ?? value)));
-        setEditingPart(null);
+        setSession((current) => current + 1);
         bottomSheetRef.current?.present();
       },
       dismiss: () => bottomSheetRef.current?.dismiss(),
     }));
-
     const renderBackdrop = useSheetBackdrop();
-
     const selectTime = useCallback(
       (time: string) => {
         setDisplayed(time);
@@ -133,149 +76,29 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
       },
       [commitOn, onSelectTime]
     );
-    const handleChange = useCallback(
-      ({ date }: { date: DateType }) => {
-        const js = dateTypeToDate(date);
-        if (js && !Number.isNaN(js.getTime())) {
-          const time = dateToTimeString(js);
-          selectTime(time);
-        }
-      },
-      [selectTime]
-    );
-
-    const handleDone = useCallback(() => {
+    const handleDone = () => {
       if (displayed && onSelectTime(displayed) === false) return;
       bottomSheetRef.current?.dismiss();
-    }, [displayed, onSelectTime]);
-
-    const pickerStyles = useMemo(
-      () => ({
-        time_selector_label: { color: textPrimary, fontWeight: '600' as const },
-        time_label: {
-          color: textPrimary,
-          fontSize: 24,
-          fontWeight: '500' as const,
-        },
-        time_selected_indicator: {
-          backgroundColor: borderSubtle,
-          borderRadius: 10,
-        },
-        selected_month: { backgroundColor: accentPrimary },
-        selected_month_label: { color: accentText },
-      }),
-      [accentPrimary, accentText, textPrimary, borderSubtle]
-    );
-    const visibleTime = displayed || dateToTimeString(timeStringToDate(value));
-    const [hour, minute] = visibleTime.split(':').map(Number);
-    const hourLabel = t('timeSheet.hours', { defaultValue: 'Hours' });
-    const minuteLabel = t('timeSheet.minutes', { defaultValue: 'Minutes' });
-
+    };
     return (
       <BottomSheetModal
         accessible={false}
         ref={bottomSheetRef}
-        enableDynamicSizing={!editingPart}
-        snapPoints={editingPart ? [Math.min(height * 0.75, 680)] : undefined}
-        enableContentPanningGesture={
-          fontScale <= 1.25 && Platform.OS !== 'android'
-        }
+        enableDynamicSizing
+        enableContentPanningGesture={false}
         backdropComponent={renderBackdrop}
         containerComponent={sheetContainer}
         backgroundStyle={{ backgroundColor: surfaceBg }}
         handleIndicatorStyle={{ backgroundColor: textMuted }}
       >
-        <BottomSheetView className="pb-safe-or-5 px-2">
-          {fontScale > 1.25 || minuteInterval > 1 ? (
-            editingPart ? (
-              <>
-                <Text className="px-4 pt-3 text-base font-semibold text-text-primary">
-                  {editingPart === 'hours' ? hourLabel : minuteLabel}
-                </Text>
-                <ScrollView
-                  testID="timesheet-options"
-                  style={{ height: Math.min(height * 0.4, 400) }}
-                >
-                  {Array.from(
-                    {
-                      length:
-                        editingPart === 'hours' ? 24 : 60 / minuteInterval,
-                    },
-                    (_, index) => {
-                      const value =
-                        editingPart === 'hours'
-                          ? index
-                          : index * minuteInterval;
-                      const selected =
-                        value === (editingPart === 'hours' ? hour : minute);
-                      const label = String(value).padStart(2, '0');
-                      return (
-                        <Pressable
-                          key={value}
-                          accessibilityRole="radio"
-                          accessibilityLabel={label}
-                          accessibilityState={{ selected }}
-                          onPress={() => {
-                            selectTime(
-                              editingPart === 'hours'
-                                ? `${label}:${visibleTime.slice(3)}`
-                                : `${visibleTime.slice(0, 2)}:${label}`
-                            );
-                            setEditingPart(null);
-                          }}
-                          className="min-h-11 border-b border-border-subtle px-4 py-3.5"
-                        >
-                          <Text
-                            className={`text-base text-text-primary ${selected ? 'font-semibold' : ''}`}
-                          >
-                            {label}
-                          </Text>
-                        </Pressable>
-                      );
-                    }
-                  )}
-                </ScrollView>
-              </>
-            ) : (
-              <View className="flex-row gap-3 px-2 py-3">
-                <View className="flex-1 gap-2">
-                  <Text className="text-base text-text-primary">
-                    {hourLabel}
-                  </Text>
-                  <PickerTrigger
-                    label={String(hour).padStart(2, '0')}
-                    accessibilityLabel={hourLabel}
-                    onPress={() => setEditingPart('hours')}
-                  />
-                </View>
-                <View className="flex-1 gap-2">
-                  <Text className="text-base text-text-primary">
-                    {minuteLabel}
-                  </Text>
-                  <PickerTrigger
-                    label={String(minute).padStart(2, '0')}
-                    accessibilityLabel={minuteLabel}
-                    onPress={() => setEditingPart('minutes')}
-                  />
-                </View>
-              </View>
-            )
-          ) : (
-            <DateTimePicker
-              mode="single"
-              date={timeStringToDate(displayed || value)}
-              timePicker
-              initialView="time"
-              hideHeader
-              use12Hours={use12Hours}
-              onChange={handleChange}
-              styles={pickerStyles}
-              // The wheels render 5 rows of 44px; the default 300px container
-              // centers them inside ~80px of dead space.
-              containerHeight={220}
-            />
-          )}
-          <View className="px-2 pt-2 gap-2">
+        <BottomSheetView className="bg-surface pb-safe-or-5 px-4">
+          <TimeWheel
+            key={session}
+            value={displayed || value}
+            onChange={selectTime}
+            minuteInterval={minuteInterval}
+          />
+          <View className="pt-2 gap-2">
             {errorMessage ? (
               <Text
                 accessibilityRole="alert"
@@ -284,7 +107,7 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
                 {errorMessage}
               </Text>
             ) : null}
-            {showNow && !editingPart ? (
+            {showNow ? (
               <Button
                 variant="secondary"
                 onPress={() =>
@@ -294,10 +117,7 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
                 {t('timeSheet.now', { defaultValue: 'Now' })}
               </Button>
             ) : null}
-            <Button
-              variant="primary"
-              onPress={editingPart ? () => setEditingPart(null) : handleDone}
-            >
+            <Button variant="primary" onPress={handleDone}>
               {t('common.done', { defaultValue: 'Done' })}
             </Button>
           </View>
@@ -306,7 +126,5 @@ const TimeSheet = forwardRef<TimeSheetRef, TimeSheetProps>(
     );
   }
 );
-
 TimeSheet.displayName = 'TimeSheet';
-
 export default TimeSheet;

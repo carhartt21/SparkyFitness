@@ -6,7 +6,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import {
   BottomSheetModal,
@@ -15,7 +15,12 @@ import {
 } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
 import DateTimePicker, { type DateType } from 'react-native-ui-datepicker';
-import { dateTypeToDate } from './TimeSheet';
+import {
+  dateTypeToDate,
+  dateToTimeString,
+  withLocalTime,
+} from '../utils/timePicker';
+import TimeWheel from './TimeWheel';
 import Toast from 'react-native-toast-message';
 import { useAppLocale } from '../localization';
 
@@ -24,8 +29,6 @@ import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import Icon from './Icon';
 import StepperInput from './StepperInput';
 import { useStartFast } from '../hooks/useFasting';
-import { usePreferences } from '../hooks/usePreferences';
-import { is12HourTimeFormat } from '../utils/entryTimeDisplay';
 import {
   FASTING_PRESETS,
   DEFAULT_PRESET_ID,
@@ -100,10 +103,7 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
   (_props, ref) => {
     const { t } = useTranslation();
     const appLocale = useAppLocale();
-    const { preferences } = usePreferences();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-
-    const use12Hours = is12HourTimeFormat(preferences?.time_format);
 
     const [surfaceBg, textMuted, accentPrimary, textPrimary, textSecondary] =
       useCSSVariable([
@@ -238,7 +238,7 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
         // off there. Must be static: toggling this prop swaps the sheet's
         // content wrapper component, remounting the content and dismissing the
         // modal.
-        enableContentPanningGesture={Platform.OS !== 'android'}
+        enableContentPanningGesture={false}
         backdropComponent={renderBackdrop}
         containerComponent={sheetContainer}
         backgroundStyle={{ backgroundColor: surfaceBg }}
@@ -361,39 +361,56 @@ const FastingProtocolSheet = forwardRef<FastingProtocolSheetRef>(
           </TouchableOpacity>
 
           {showStartPicker && (
-            <DateTimePicker
-              mode="single"
-              date={startDate}
-              timePicker
-              use12Hours={use12Hours}
-              onChange={handleStartChange}
-              components={{
-                IconPrev: (
-                  <Icon name="chevron-back" size={18} color={textPrimary} />
-                ),
-                IconNext: (
-                  <Icon name="chevron-forward" size={18} color={textPrimary} />
-                ),
-              }}
-              styles={{
-                selected: { backgroundColor: accentPrimary },
-                selected_label: { color: accentText },
-                today: { borderColor: accentPrimary, borderWidth: 1 },
-                day_label: { color: textPrimary },
-                weekday_label: { color: textSecondary },
-                month_selector_label: { color: textPrimary, fontWeight: '600' },
-                year_selector_label: { color: textPrimary, fontWeight: '600' },
-                time_selector_label: { color: textPrimary, fontWeight: '600' },
-                disabled_label: { color: textMuted },
-                month_label: { color: textPrimary },
-                year_label: { color: textPrimary },
-                time_label: { color: textPrimary },
-                selected_month: { backgroundColor: accentPrimary },
-                selected_month_label: { color: accentText },
-                selected_year: { backgroundColor: accentPrimary },
-                selected_year_label: { color: accentText },
-              }}
-            />
+            <View>
+              <DateTimePicker
+                mode="single"
+                date={startDate}
+                timePicker
+                onChange={handleStartChange}
+                components={{
+                  IconPrev: (
+                    <Icon name="chevron-back" size={18} color={textPrimary} />
+                  ),
+                  IconNext: (
+                    <Icon
+                      name="chevron-forward"
+                      size={18}
+                      color={textPrimary}
+                    />
+                  ),
+                }}
+                styles={{
+                  selected: { backgroundColor: accentPrimary },
+                  selected_label: { color: accentText },
+                  today: { borderColor: accentPrimary, borderWidth: 1 },
+                  day_label: { color: textPrimary },
+                  weekday_label: { color: textSecondary },
+                  month_selector_label: {
+                    color: textPrimary,
+                    fontWeight: '600',
+                  },
+                  year_selector_label: {
+                    color: textPrimary,
+                    fontWeight: '600',
+                  },
+                  time_selector: { display: 'none' },
+                  disabled_label: { color: textMuted },
+                  month_label: { color: textPrimary },
+                  year_label: { color: textPrimary },
+                  time_label: { color: textPrimary },
+                  selected_month: { backgroundColor: accentPrimary },
+                  selected_month_label: { color: accentText },
+                  selected_year: { backgroundColor: accentPrimary },
+                  selected_year_label: { color: accentText },
+                }}
+              />
+              <TimeWheel
+                value={dateToTimeString(startDate)}
+                onChange={(time) =>
+                  setStartDate(withLocalTime(startDate, time))
+                }
+              />
+            </View>
           )}
 
           <Button

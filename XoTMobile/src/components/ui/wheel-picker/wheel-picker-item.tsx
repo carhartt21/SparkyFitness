@@ -140,14 +140,4 @@ const WheelPickerItem: React.FC<ItemProps> = ({
   );
 };
 
-const customComparator = (
-  prevProps: Readonly<ItemProps>,
-  nextProps: Readonly<ItemProps>
-) => {
-  return (
-    prevProps.textClassName === nextProps.textClassName &&
-    JSON.stringify(prevProps.textStyle) === JSON.stringify(nextProps.textStyle)
-  );
-};
-
-export default React.memo(WheelPickerItem, customComparator);
+export default React.memo(WheelPickerItem);

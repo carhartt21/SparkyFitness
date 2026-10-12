@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, fireEvent, render } from '@testing-library/react-native';
+import { setWheelTime } from '../helpers/timeWheel';
 import TimeSheet, { type TimeSheetRef } from '../../src/components/TimeSheet';
 
 jest.mock('../../src/hooks/usePreferences', () => ({
@@ -55,15 +56,16 @@ it('uses independently labelled hour/minute selectors at enlarged text and commi
   );
   act(() => ref.current?.present());
   expect(screen.queryByTestId('date-picker')).toBeNull();
-  expect(screen.getByText('07')).toBeTruthy();
-  expect(screen.getByText('30')).toBeTruthy();
+  expect(screen.getByLabelText('Hours').props.accessibilityValue.now).toBe(7);
+  expect(screen.getByLabelText('Minutes').props.accessibilityValue.now).toBe(
+    30
+  );
   expect(screen.getByTestId('time-modal').props.accessible).toBe(false);
-  fireEvent.press(screen.getByRole('button', { name: 'Hours' }));
-  fireEvent.press(screen.getByRole('radio', { name: '23' }));
-  fireEvent.press(screen.getByRole('button', { name: 'Minutes' }));
-  fireEvent.press(screen.getByRole('radio', { name: '59' }));
-  expect(screen.getByText('23')).toBeTruthy();
-  expect(screen.getByText('59')).toBeTruthy();
+  setWheelTime(screen.getByLabelText, '23:59');
+  expect(screen.getByLabelText('Hours').props.accessibilityValue.now).toBe(23);
+  expect(screen.getByLabelText('Minutes').props.accessibilityValue.now).toBe(
+    59
+  );
   expect(onSelect).not.toHaveBeenCalled();
   fireEvent.press(screen.getByText('Done'));
   expect(onSelect).toHaveBeenCalledWith('23:59');

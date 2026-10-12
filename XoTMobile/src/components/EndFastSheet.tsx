@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from 'react';
-import { Platform, Text, TouchableOpacity, View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { BottomSheetModal, BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useCSSVariable } from 'uniwind';
@@ -19,8 +19,12 @@ import { sheetContainer, useSheetBackdrop } from './ui/sheetChrome';
 import { useEndFast } from '../hooks/useFasting';
 import { usePreferences } from '../hooks/usePreferences';
 import { formatHoursMinutes, formatDateTime } from '../utils/fasting';
-import { is12HourTimeFormat } from '../utils/entryTimeDisplay';
-import { dateTypeToDate } from './TimeSheet';
+import {
+  dateTypeToDate,
+  dateToTimeString,
+  withLocalTime,
+} from '../utils/timePicker';
+import TimeWheel from './TimeWheel';
 import { addLog } from '../services/LogService';
 import type { FastingLog } from '../types/fasting';
 
@@ -39,8 +43,6 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
     const { t } = useTranslation();
     const { preferences } = usePreferences();
     const bottomSheetRef = useRef<BottomSheetModal>(null);
-
-    const use12Hours = is12HourTimeFormat(preferences?.time_format);
 
     const [surfaceBg, textMuted, accentPrimary, textPrimary, textSecondary] =
       useCSSVariable([
@@ -211,15 +213,9 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
           <Text className="text-xs font-semibold uppercase text-text-muted tracking-wide mb-1 px-1">
             {t('fastingEdit.time', { defaultValue: 'Time' })}
           </Text>
-          <DateTimePicker
-            mode="single"
-            date={value}
-            timePicker
-            initialView="time"
-            hideHeader
-            use12Hours={use12Hours}
-            onChange={onChange}
-            styles={pickerStyles}
+          <TimeWheel
+            value={dateToTimeString(value)}
+            onChange={(time) => onChange({ date: withLocalTime(value, time) })}
           />
         </View>
       </View>
@@ -234,7 +230,7 @@ const EndFastSheet = forwardRef<EndFastSheetRef, EndFastSheetProps>(
         // off there. Must be static: toggling this prop swaps the sheet's
         // content wrapper component, remounting the content and dismissing the
         // modal.
-        enableContentPanningGesture={Platform.OS !== 'android'}
+        enableContentPanningGesture={false}
         backdropComponent={renderBackdrop}
         containerComponent={sheetContainer}
         backgroundStyle={{ backgroundColor: surfaceBg }}
