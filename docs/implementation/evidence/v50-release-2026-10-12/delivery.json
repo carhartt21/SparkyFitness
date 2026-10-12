@@ -1,0 +1,107 @@
+{
+  "observedAt": "2026-10-12T10:55:20.081024+00:00",
+  "applicationRevision": "cb13445abf52a42d44fc6ff5d2cedd04b7471820",
+  "sourceArchiveSha256": "ebdc2c03e962f31c9d52d37fb6a500c020b3222abe1c6eec882d3a0e8cef82b8",
+  "version": "1.7.2",
+  "buildNumber": "50",
+  "easBuild": {
+    "id": "ae0482bc-9058-422e-8346-ad2b47a0c703",
+    "status": "FINISHED",
+    "url": "https://expo.dev/accounts/ilmtech/projects/personalbest/builds/ae0482bc-9058-422e-8346-ad2b47a0c703",
+    "completedAt": "2026-10-12T10:49:03.260Z"
+  },
+  "automaticAppleSubmission": {
+    "id": "1aeef7a1-074e-435a-a359-0a52870f800a",
+    "status": "FINISHED",
+    "url": "https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/1aeef7a1-074e-435a-a359-0a52870f800a",
+    "completedAt": "2026-10-12T10:49:19.739Z",
+    "manualUploadUsed": false
+  },
+  "apple": {
+    "buildId": "9240a2ec-6cab-4ed3-8593-eb8f0dba1763",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION",
+    "autoNotifyEnabled": true
+  },
+  "ipaVerification": {
+    "sha256": "9ad58d674a6a23154f985d04e78a1fa33fe91b48395eb11c04fef83a94054834",
+    "targets": [
+      {
+        "bundleId": "com.cg.phi",
+        "version": "1.7.2",
+        "build": "50",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": true,
+        "germanPermissionKeys": [
+          "NSCameraUsageDescription",
+          "NSPhotoLibraryUsageDescription",
+          "NSHealthShareUsageDescription",
+          "NSHealthUpdateUsageDescription",
+          "NSLocalNetworkUsageDescription"
+        ]
+      },
+      {
+        "bundleId": "com.cg.phi.widget",
+        "version": "1.7.2",
+        "build": "50",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false
+      },
+      {
+        "bundleId": "com.cg.phi.ExpoWidgetsTarget",
+        "version": "1.7.2",
+        "build": "50",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false
+      },
+      {
+        "bundleId": "com.cg.phi.watchkitapp",
+        "version": "1.7.2",
+        "build": "50",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": true,
+        "germanCatalogKeys": 150
+      },
+      {
+        "bundleId": "com.cg.phi.watchkitapp.watch-widget",
+        "version": "1.7.2",
+        "build": "50",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false,
+        "germanCatalogKeys": 16
+      }
+    ]
+  },
+  "assetVerification": {
+    "canonicalArtworkPngs": 22,
+    "canonicalArtworkHashesMatch": true,
+    "mobilityCueAssetsBundled": ["rest-chime-2.wav", "rest-chime.wav"],
+    "reviewMarkersAbsent": true,
+    "displayName": "X on Track",
+    "dashboardWordmarkGeometryBundled": true
+  },
+  "production": {
+    "status": "blocked",
+    "reason": "Authorized university SSH jump host connection timed out",
+    "attempt": "20261012T103728Z-69528",
+    "sourceTransferred": false,
+    "servicesChanged": false,
+    "capacityAndBackupGatesExecuted": false,
+    "publicHealthHttpStatus": 200,
+    "publicHealthObservedAt": "2026-10-12T10:55:20.081024+00:00",
+    "retry": "Pinned production-only retry prepared; no duplicate EAS build required"
+  },
+  "acceptanceLimits": [
+    "Physical Android gestures",
+    "VoiceOver/TalkBack behavior",
+    "Paired-device acceptance",
+    "Production rollout"
+  ],
+  "portfolioHandover": "Client records pending designated-host synchronization; local receipt is not host acknowledgment"
+}

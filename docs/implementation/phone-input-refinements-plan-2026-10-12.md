@@ -1,6 +1,6 @@
 # Phone input and quick-action refinements
 
-Date: 2026-10-12. Status: implementation and scoped native verification complete; release preparation in progress on `fix/phone-input-refinements-20261012`, based on main `3f3bf7521`.
+Date: 2026-10-12. Status: implementation and scoped native verification complete; merged to main at `cb13445abf`. v50 is uploaded, Apple VALID and in internal beta testing; production remains blocked by the SSH route. The focused branch was based on main `3f3bf7521`.
 
 ## Evidence and baseline
 
