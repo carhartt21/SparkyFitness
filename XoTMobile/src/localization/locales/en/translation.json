@@ -1038,7 +1038,9 @@
     "intakeWater": "Water",
     "intakeProgressUnavailable": "{{label}} unavailable.",
     "intakeProgressNoGoal": "{{label}}: {{value}} {{unit}}. No target set.",
-    "intakeProgressA11y": "{{label}}: {{value}} of {{goal}} {{unit}}, {{percent}}%."
+    "intakeProgressA11y": "{{label}}: {{value}} of {{goal}} {{unit}}, {{percent}}%.",
+    "waterShortcutLinkedDrink": "Linked drink",
+    "waterShortcutAdd": "Log water: {{container}}, {{amount}} per tap"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect settings",

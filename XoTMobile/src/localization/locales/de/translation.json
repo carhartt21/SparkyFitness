@@ -1297,7 +1297,13 @@
     "intakeWater": "Wasser",
     "intakeProgressUnavailable": "{{label}} nicht verfügbar.",
     "intakeProgressNoGoal": "{{label}}: {{value}} {{unit}}. Kein Ziel festgelegt.",
-    "intakeProgressA11y": "{{label}}: {{value}} von {{goal}} {{unit}}, {{percent}}%."
+    "intakeProgressA11y": "{{label}}: {{value}} von {{goal}} {{unit}}, {{percent}}%.",
+    "waterShortcut": {
+      "linkedDrink": "Verknüpftes Getränk",
+      "add": "Wasser erfassen: {{container}}, {{amount}} pro Tippen"
+    },
+    "waterShortcutLinkedDrink": "Verknüpftes Getränk",
+    "waterShortcutAdd": "Wasser erfassen: {{container}}, {{amount}} pro Tippen"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect-Einstellungen",

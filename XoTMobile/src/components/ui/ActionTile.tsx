@@ -1,4 +1,10 @@
-import { Text, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Text,
+  View,
+  useWindowDimensions,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import MotionPressable from './MotionPressable';
 import Icon, { type IconName } from '../Icon';
 import { useButtonAppearance } from './buttonTheme';
@@ -6,6 +12,8 @@ import { useButtonAppearance } from './buttonTheme';
 interface ActionTileProps {
   label: string;
   sublabel?: string;
+  /** Keep labels on one baseline when neighboring tiles show supporting copy. */
+  reserveSublabel?: boolean;
   icon: IconName;
   /** Hex theme color that tints the border, glow, fill and icon. */
   color: string;
@@ -19,6 +27,7 @@ interface ActionTileProps {
 export default function ActionTile({
   label,
   sublabel,
+  reserveSublabel = false,
   icon,
   color,
   onPress,
@@ -27,6 +36,7 @@ export default function ActionTile({
   style,
 }: ActionTileProps) {
   const appearance = useButtonAppearance('outline', false, color);
+  const { fontScale } = useWindowDimensions();
   return (
     <MotionPressable
       testID={testID}
@@ -42,16 +52,24 @@ export default function ActionTile({
       <Text
         className="mt-1 text-center text-[13px] font-semibold text-text-primary"
         maxFontSizeMultiplier={1.6}
+        numberOfLines={1}
+        ellipsizeMode="tail"
       >
         {label}
       </Text>
-      {sublabel ? (
-        <Text
-          className="text-center text-[11px] text-text-secondary"
-          maxFontSizeMultiplier={1.6}
-        >
-          {sublabel}
-        </Text>
+      {sublabel || reserveSublabel ? (
+        <View style={{ height: 14 * Math.min(fontScale, 1.6) }}>
+          <Text
+            className="text-center text-[11px] text-text-secondary"
+            maxFontSizeMultiplier={1.6}
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.85}
+            style={{ lineHeight: 14 }}
+          >
+            {sublabel || '\u00a0'}
+          </Text>
+        </View>
       ) : null}
     </MotionPressable>
   );

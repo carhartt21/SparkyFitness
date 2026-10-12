@@ -68,6 +68,7 @@ import {
   WATER_UNIT_LABELS,
 } from '../utils/unitConversions';
 import { useAppLocale } from '../localization';
+import { waterShortcut } from '../utils/waterShortcut';
 import { getNetCarbsValue } from '../utils/nutrientUtils';
 
 type Props = CompositeScreenProps<
@@ -195,6 +196,9 @@ export default function DashboardScreen({ navigation }: Props) {
     }
   };
   const unit = water.unit ?? preferences?.water_display_unit ?? 'ml';
+  const waterTile = water.isContainersLoaded
+    ? waterShortcut(water.activeContainer, unit, t)
+    : undefined;
   const actions = [
     {
       id: 'food',
@@ -213,7 +217,11 @@ export default function DashboardScreen({ navigation }: Props) {
     {
       id: 'water',
       icon: 'water' as const,
-      label: t('dashboard.quickWater', { defaultValue: 'Log water' }),
+      label:
+        waterTile?.label ??
+        t('dashboard.quickWater', { defaultValue: 'Log water' }),
+      sublabel: waterTile?.sublabel,
+      accessibilityLabel: waterTile?.accessibilityLabel,
       color: hydration,
       press: () =>
         water.isContainersLoaded
@@ -405,6 +413,9 @@ export default function DashboardScreen({ navigation }: Props) {
               key={a.id}
               testID={`dashboard-${a.id}`}
               label={a.label}
+              sublabel={a.sublabel}
+              reserveSublabel={!!waterTile}
+              accessibilityLabel={a.accessibilityLabel}
               icon={a.icon}
               color={a.color}
               onPress={a.press}

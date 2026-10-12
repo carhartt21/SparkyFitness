@@ -1,4 +1,5 @@
-import { formatLocalizedNumber } from '../localization';
+import i18n from '../localization/i18n';
+import { formatLocalizedUnitQuantity } from './foodUnitLocalization';
 import type { WaterContainer } from '../types/measurements';
 
 /** State what one tap logs in the linked drink's own unit, without invented ml. */
@@ -8,7 +9,7 @@ export function linkedWaterPressLabel(container?: WaterContainer) {
   const unit = container.linked_variant_serving_unit || '';
   const name = container.linked_food_name || '';
   if (!unit || !Number.isFinite(quantity) || quantity <= 0) return name;
-  const amount = `${formatLocalizedNumber(quantity, { maximumFractionDigits: 2 })} ${unit}`;
+  const amount = formatLocalizedUnitQuantity(quantity, unit, i18n.t);
   return name ? `${amount} · ${name}` : amount;
 }
 
@@ -21,7 +22,7 @@ export function waterPresetOptions(presets: WaterContainer[]) {
       name: preset.linked_food_name || preset.name,
       pressLabel:
         unit && Number.isFinite(quantity) && quantity > 0
-          ? `${formatLocalizedNumber(quantity, { maximumFractionDigits: 2 })} ${unit}`
+          ? formatLocalizedUnitQuantity(quantity, unit, i18n.t)
           : undefined,
     };
   });
