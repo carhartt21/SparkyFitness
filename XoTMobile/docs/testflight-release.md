@@ -17,7 +17,7 @@ EAS uses its stored signing and submission credentials. If the account has no cl
 Use a clean committed checkout. If the main checkout has unfinished changes, create a detached worktree at the commit to release. Start at the repository root:
 
 ```bash
-release_dir="$(mktemp -d /tmp/sparky-testflight.XXXXXX)"
+release_dir="$(mktemp -d /tmp/xot-testflight.XXXXXX)"
 git worktree add --detach "$release_dir/repo" HEAD
 cd "$release_dir/repo"
 pnpm install --frozen-lockfile
@@ -53,6 +53,8 @@ Keep the working directory at `XoTMobile/` for the remaining commands. If the cu
 
    If this succeeds, use `$release_dir/XonTrack.ipa` in step 5. On a Mac with a second Apple Distribution certificate, Xcode may archive successfully but choose that other certificate during IPA export. The log then shows `Archive Succeeded`, followed by `EXPORT FAILED` and a provisioning profile certificate mismatch. Continue with step 4 in that case. If archiving itself fails, fix that build error first.
 
+   When reusing a build number already reserved by a rejected cloud request, verify that neither EAS Submit nor Apple has accepted that number. Temporarily set the local production profile's `autoIncrement` to `false` and restore it after the build. Append `CURRENT_PROJECT_VERSION = <reserved number>` to the private signing `.xcconfig` so all five native targets receive the same number. Before upload, inspect every target in the exported IPA: the phone's version alone does not prove the Watch and extensions match. Preserve the committed application revision and record operational overrides in the dated release evidence.
+
 4. Export the successful `.xcarchive` using the exact certificate and provisioning profiles from EAS. Find the archive path in `build.log` or in Xcode's Archives directory and confirm it belongs to this build. The helper derives each target's bundle ID and team from its signed profile, explicitly selects the matching certificate for export, and restores the user's keychain search list afterward:
 
    ```bash
@@ -73,6 +75,8 @@ Keep the working directory at `XoTMobile/` for the remaining commands. If the cu
    ```
 
    Record Apple's delivery UUID. An `UPLOAD SUCCEEDED` response means Apple accepted the transfer; check the build under [App Store Connect → TestFlight](https://appstoreconnect.apple.com/apps/6803564460/testflight/ios) until processing is **Valid** before assigning testers.
+
+   Alternatively, use the existing EAS submission profile with `eas submit --platform ios --profile production --path "/path/to/XonTrack.ipa" --non-interactive --no-wait`. Record the submission ID and verify its final state, Apple processing and internal tester availability separately. If EAS rejects `--what-to-test` because the account plan does not support changelog submission, confirm no submission was created before retrying without that flag; enter German testing notes in App Store Connect. Do not duplicate an accepted upload or change the subscription as part of a retry.
 
 6. Remove the downloaded credentials after export. Keep the IPA and logs in `release_dir` as needed. EAS may also leave temporary `.p12` files under `$TMPDIR` after a failed local build; remove only the files from this run. Do not commit or attach `credentials.json`, `.p12`, `.mobileprovision`, or `.p8` files:
 

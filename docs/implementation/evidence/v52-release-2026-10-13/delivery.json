@@ -1,0 +1,133 @@
+{
+  "observedAt": "2026-10-12T23:20:26.258143+00:00",
+  "applicationRevision": "bf118ae09938faaee474a9c60072a32811bc6afa",
+  "sourceArchiveSha256": "9ce138372cd8fba715d0fca86d466dc444844b24952565cd7f8bf14982f6edae",
+  "version": "1.7.2",
+  "buildNumber": "52",
+  "build": {
+    "method": "local EAS archive and repository manual export helper",
+    "archiveExportVerified": true,
+    "cloudBuildCreated": false,
+    "cloudFailure": "Monthly iOS build allowance exhausted before job creation",
+    "subscriptionChanged": false,
+    "operationalOverrides": [
+      "production autoIncrement=false; restored afterward",
+      "CURRENT_PROJECT_VERSION=52 for all five native targets",
+      "Existing distribution certificate selected by fingerprint"
+    ],
+    "downloadedSigningFilesRemoved": true
+  },
+  "easSubmission": {
+    "id": "09b372b7-5ea4-4bef-8531-c6f2bde5b93a",
+    "status": "FINISHED",
+    "url": "https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/09b372b7-5ea4-4bef-8531-c6f2bde5b93a",
+    "createdAt": "2026-10-12T23:11:53.271Z",
+    "completedAt": "2026-10-12T23:14:08.619Z",
+    "schedulingRetryReason": "Optional changelog parameter rejected before job creation; fresh EAS and Apple lookups verified no build-52 submission before retry without notes"
+  },
+  "apple": {
+    "buildId": "8115c5c3-42bd-4fb6-8773-c672b4ffd423",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION",
+    "autoNotifyEnabled": true,
+    "url": "https://appstoreconnect.apple.com/apps/6803564460/testflight/ios/8115c5c3-42bd-4fb6-8773-c672b4ffd423"
+  },
+  "ipaVerification": {
+    "sha256": "8647ca4e929f1276c4c1b214ddbbfcf095dd13b35f8fc81b050c8c8a82c7fba6",
+    "targets": [
+      {
+        "bundleId": "com.cg.phi",
+        "version": "1.7.2",
+        "build": "52",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": true,
+        "germanPermissionKeys": [
+          "NSCameraUsageDescription",
+          "NSPhotoLibraryUsageDescription",
+          "NSHealthShareUsageDescription",
+          "NSHealthUpdateUsageDescription",
+          "NSLocalNetworkUsageDescription"
+        ]
+      },
+      {
+        "bundleId": "com.cg.phi.widget",
+        "version": "1.7.2",
+        "build": "52",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false
+      },
+      {
+        "bundleId": "com.cg.phi.ExpoWidgetsTarget",
+        "version": "1.7.2",
+        "build": "52",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false
+      },
+      {
+        "bundleId": "com.cg.phi.watchkitapp",
+        "version": "1.7.2",
+        "build": "52",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": true,
+        "germanCatalogKeys": 150
+      },
+      {
+        "bundleId": "com.cg.phi.watchkitapp.watch-widget",
+        "version": "1.7.2",
+        "build": "52",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false,
+        "germanCatalogKeys": 16
+      }
+    ]
+  },
+  "assetVerification": {
+    "canonicalArtworkPngs": 22,
+    "canonicalArtworkHashesMatch": true,
+    "mobilityCueAssetsBundled": ["rest-chime-2.wav", "rest-chime.wav"],
+    "reviewMarkersAbsent": true,
+    "displayName": "X on Track",
+    "dashboardWordmarkGeometryBundled": true
+  },
+  "phoneWidgetVerification": {
+    "germanPhoneWidgetCatalogMatchesSource": true,
+    "keys": 34
+  },
+  "production": {
+    "status": "blocked",
+    "reason": "Authorized university SSH jump host timed out on initial deployment and production-only retry",
+    "sourceTransferred": false,
+    "servicesChanged": false,
+    "capacityAndBackupGatesExecuted": false,
+    "publicHealth": {
+      "httpStatus": 200,
+      "bodyStatus": "UP",
+      "productionRevisionVerified": false
+    },
+    "retry": "Pinned production-only retry prepared; source checksum, fresh origin/main, expected live images, capacity, backup/off-host checksum, owner RLS and rollback guards retained",
+    "pendingMigration": "20261012170000_offline_meal_actions.sql"
+  },
+  "acceptanceLimits": [
+    "Grouped offline meal replay requires production endpoint rollout",
+    "Physical-device and paired Watch acceptance",
+    "Authenticated production acceptance"
+  ],
+  "portfolioHandover": "Client records await designated-host synchronization; local receipt is not host acknowledgment",
+  "testingNotes": {
+    "locale": "de-DE",
+    "savedAndReadBack": true,
+    "content": "Gespeicherte Lebensmittel, Favoriten und komplette Mahlzeiten offline erfassen. Dashboard mit einheitlichen Untertiteln, Langdruck-Menüs und zusätzlichen Direktzugriffen.\n\nBitte zunächst die gewünschten Lebensmittel und Mahlzeiten online laden, anschließend offline erfassen und die App neu starten. Vollständige Mahlzeiten bleiben bis zum ausstehenden Server-Rollout sicher in der Warteschlange; ihre Synchronisierung kann erst danach geprüft werden.",
+    "source": "Apple App Store Connect betaBuildLocalizations API"
+  },
+  "taskState": {
+    "dashboardLabelsAndHoldMenus": "completed; remote read-back verified",
+    "dashboardShortcutExpansion": "completed; remote read-back verified",
+    "offlineFoodsAndCompleteMeals": "open until new server endpoint is deployed; blocker comment read-back verified"
+  }
+}

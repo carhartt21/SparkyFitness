@@ -27,6 +27,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v52 release](v52-release-2026-10-13.md): offline foods and complete meals, Dashboard labels/hold menus and shortcuts; signed local build, TestFlight and production delivery evidence.
+- [v52 offline nutrition and Dashboard batch](v52-offline-dashboard-2026-10-12.md): account-scoped snapshots, atomic grouped-meal replay and automated/native verification.
 - [v51 release](v51-release-2026-10-12.md): merged saved-meal quick-add and Dashboard supplement access; pinned parallel delivery and verification status.
 - [Saved-meal add and Dashboard supplements](meal-add-dashboard-supplements-2026-10-12.md): restored icon-only quick-add controls and selected-day supplement access in Home's lower list.
 - [Phone input refinements](phone-input-refinements-plan-2026-10-12.md): localized quantity precision, shared 24-hour wheels and selected-container clarity; implementation and verification record.
