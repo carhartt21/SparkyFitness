@@ -1,0 +1,146 @@
+{
+  "observedAt": "2026-10-12T15:22:34.242870+00:00",
+  "applicationRevision": "8e4bd78241c94b1903e99630769e1cff0e3c0e8c",
+  "sourceArchiveSha256": "be838a1fb339e38e3466e694baf9d7daf20698eea75c08ebd4e32a3917e9b4c2",
+  "version": "1.7.2",
+  "buildNumber": "51",
+  "easBuild": {
+    "id": "8052edb6-13f8-4c42-9157-acc2017644c1",
+    "status": "FINISHED",
+    "url": "https://expo.dev/accounts/ilmtech/projects/personalbest/builds/8052edb6-13f8-4c42-9157-acc2017644c1",
+    "completedAt": "2026-10-12T15:10:23.099Z"
+  },
+  "automaticAppleSubmission": {
+    "id": "16c561ea-ad86-44a5-bf43-2103866655b1",
+    "status": "FINISHED",
+    "url": "https://expo.dev/accounts/ilmtech/projects/personalbest/submissions/16c561ea-ad86-44a5-bf43-2103866655b1",
+    "completedAt": "2026-10-12T15:13:08.325Z",
+    "manualUploadUsed": false
+  },
+  "apple": {
+    "buildId": "72605acc-2d17-40e1-a156-4e5339c52351",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "externalBuildState": "READY_FOR_BETA_SUBMISSION",
+    "autoNotifyEnabled": true
+  },
+  "ipaVerification": {
+    "sha256": "c5937ef17ece15c154465519a21068fe75bc182ff4074cfa40f801a07cf73acc",
+    "targets": [
+      {
+        "bundleId": "com.cg.phi",
+        "version": "1.7.2",
+        "build": "51",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": true,
+        "germanPermissionKeys": [
+          "NSCameraUsageDescription",
+          "NSPhotoLibraryUsageDescription",
+          "NSHealthShareUsageDescription",
+          "NSHealthUpdateUsageDescription",
+          "NSLocalNetworkUsageDescription"
+        ]
+      },
+      {
+        "bundleId": "com.cg.phi.widget",
+        "version": "1.7.2",
+        "build": "51",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false
+      },
+      {
+        "bundleId": "com.cg.phi.ExpoWidgetsTarget",
+        "version": "1.7.2",
+        "build": "51",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false
+      },
+      {
+        "bundleId": "com.cg.phi.watchkitapp",
+        "version": "1.7.2",
+        "build": "51",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": true,
+        "germanCatalogKeys": 150
+      },
+      {
+        "bundleId": "com.cg.phi.watchkitapp.watch-widget",
+        "version": "1.7.2",
+        "build": "51",
+        "signatureVerified": true,
+        "appGroupPreserved": true,
+        "healthKit": false,
+        "germanCatalogKeys": 16
+      }
+    ]
+  },
+  "assetVerification": {
+    "canonicalArtworkPngs": 22,
+    "canonicalArtworkHashesMatch": true,
+    "mobilityCueAssetsBundled": [
+      "rest-chime-2.wav",
+      "rest-chime.wav"
+    ],
+    "reviewMarkersAbsent": true,
+    "displayName": "X on Track",
+    "dashboardWordmarkGeometryBundled": true
+  },
+  "phoneWidgetVerification": {
+    "germanPhoneWidgetCatalogMatchesSource": true,
+    "keys": 34
+  },
+  "signedBundleFixturesVerification": {
+    "reviewMarkersAbsent": true,
+    "checkedMarkers": [
+      "ui-review.invalid",
+      "review-saved-meal",
+      "Testmahlzeit",
+      "Review only accepts JSON request bodies",
+      "XOT_UI_REVIEW is simulator-only",
+      "createNutritionFixture"
+    ],
+    "bundleBytes": 19036511
+  },
+  "production": {
+    "status": "blocked",
+    "reason": "Authorized university SSH jump host connection timed out on launch and final read-only check",
+    "attempt": "20261012T145907Z-58279",
+    "sourceTransferred": false,
+    "servicesChanged": false,
+    "capacityAndBackupGatesExecuted": false,
+    "publicHealth": {
+      "checkedAtUtc": "2026-10-12T15:16:03.227045+00:00",
+      "endpoints": {
+        "/": {
+          "httpStatus": 200,
+          "exitCode": 0
+        },
+        "/api/health": {
+          "httpStatus": 200,
+          "exitCode": 0
+        },
+        "/.well-known/oauth-protected-resource/mcp/chatgpt": {
+          "httpStatus": 200,
+          "exitCode": 0
+        },
+        "/.well-known/oauth-protected-resource/mcp/coaching": {
+          "httpStatus": 200,
+          "exitCode": 0
+        }
+      },
+      "productionRevisionVerified": false
+    },
+    "retry": "Pinned production-only retry prepared; no duplicate EAS build required"
+  },
+  "acceptanceLimits": [
+    "Physical Android gestures",
+    "VoiceOver/TalkBack behavior",
+    "Paired-device acceptance",
+    "Production rollout"
+  ],
+  "portfolioHandover": "Client records pending designated-host synchronization; local receipt is not host acknowledgment"
+}
