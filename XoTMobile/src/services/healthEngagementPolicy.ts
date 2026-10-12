@@ -9,6 +9,7 @@ import type { PendingNutritionAction } from './nutritionActionOutbox';
 import type { FoodEntry } from '../types/foodEntries';
 import { toLocalDateString } from '../utils/dateUtils';
 import type { MobilityRoutine, MobilitySession } from './mobilityRoutineStore';
+import { projectLocalFoodActions } from '../utils/nutritionDiaryProjection';
 
 export type EngagementDomain =
   'nutrition' | 'hydration' | 'movement' | 'tracking';
@@ -88,7 +89,18 @@ export function deriveNutritionEngagementState(
     });
   }
   let pendingCalories = 0;
-  for (const action of input.localActions) {
+  const localActions = [
+    ...projectLocalFoodActions(
+      input.day,
+      input.localActions,
+      input.remoteEntries ?? []
+    ),
+    ...input.localActions.filter(
+      (action) =>
+        action.type !== 'logFoodEntry' && action.type !== 'logMealEntry'
+    ),
+  ];
+  for (const action of localActions) {
     if (action.type === 'logFoodEntry') {
       if (action.payload.entry_date !== input.day) continue;
       if (foodOperationIds.has(action.clientOperationId)) continue;

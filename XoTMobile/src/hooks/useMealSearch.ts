@@ -2,6 +2,7 @@ import { useQuery, keepPreviousData } from '@tanstack/react-query';
 import { searchMeals } from '../services/api/mealsApi';
 import { mealSearchQueryKey } from './queryKeys';
 import { useDebounce } from './useDebounce';
+import { fetchAndCacheNutritionMeals } from '../services/cacheNutritionData';
 
 export function useMealSearch(
   searchText: string,
@@ -16,7 +17,11 @@ export function useMealSearch(
 
   const query = useQuery({
     queryKey: mealSearchQueryKey(debouncedSearch),
-    queryFn: () => searchMeals(debouncedSearch),
+    queryFn: () =>
+      fetchAndCacheNutritionMeals(
+        () => searchMeals(debouncedSearch),
+        (result) => result
+      ),
     enabled: isSearchActive && enabled,
     staleTime: 1000 * 60 * 5, // 5 minutes
     placeholderData: keepPreviousData,

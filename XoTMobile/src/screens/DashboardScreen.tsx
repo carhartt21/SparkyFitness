@@ -9,6 +9,9 @@ import {
   useState,
 } from 'react';
 import {
+  ActionSheetIOS,
+  Alert,
+  Platform,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -199,20 +202,84 @@ export default function DashboardScreen({ navigation }: Props) {
   const waterTile = water.isContainersLoaded
     ? waterShortcut(water.activeContainer, unit, t)
     : undefined;
+  const openActionOptions = (
+    title: string,
+    options: { label: string; press: () => void }[]
+  ) => {
+    const cancel = t('common.cancel', { defaultValue: 'Cancel' });
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          title,
+          options: [...options.map((option) => option.label), cancel],
+          cancelButtonIndex: options.length,
+        },
+        (index) => options[index]?.press()
+      );
+    } else {
+      Alert.alert(title, undefined, [
+        ...options.map((option) => ({
+          text: option.label,
+          onPress: option.press,
+        })),
+        { text: cancel, style: 'cancel' },
+      ]);
+    }
+  };
+  const longPressLabel = t('dashboard.quickActionOptions', {
+    defaultValue: 'Hold for more options',
+  });
   const actions = [
     {
       id: 'food',
       icon: 'food' as const,
       label: t('dashboard.quickFood', { defaultValue: 'Log food' }),
+      sublabel: t('dashboard.quickFoodSubtitle', {
+        defaultValue: 'Choose food',
+      }),
       color: food,
       press: () => navigation.navigate('FoodSearch', { date: selectedDate }),
+      options: [
+        {
+          label: t('foodSearch.sections.favorites', {
+            defaultValue: 'Favorites',
+          }),
+          press: () =>
+            navigation.navigate('FoodSearch', {
+              date: selectedDate,
+              initialBrowseTab: 'favorites',
+            }),
+        },
+        {
+          label: t('dailyMeals.title', { defaultValue: 'Meals' }),
+          press: () =>
+            navigation.navigate('DailyMeals', { date: selectedDate }),
+        },
+      ],
     },
     {
       id: 'exercise-running',
       icon: 'exercise-running' as const,
       label: t('dashboard.quickExercise', { defaultValue: 'Log exercise' }),
+      sublabel: t('dashboard.quickExerciseSubtitle', {
+        defaultValue: 'Start or log',
+      }),
       color: training,
       press: () => addSheetRef.current?.present({ initialMenu: 'exercise' }),
+      options: [
+        {
+          label: t('dailyTraining.title', { defaultValue: 'Training' }),
+          press: () =>
+            navigation.navigate('DailyTraining', { date: selectedDate }),
+        },
+        {
+          label: t('dashboard.quickWorkoutPlan', {
+            defaultValue: 'Weekly plan',
+          }),
+          press: () =>
+            navigation.navigate('WorkoutPlans', { date: selectedDate }),
+        },
+      ],
     },
     {
       id: 'water',
@@ -220,20 +287,55 @@ export default function DashboardScreen({ navigation }: Props) {
       label:
         waterTile?.label ??
         t('dashboard.quickWater', { defaultValue: 'Log water' }),
-      sublabel: waterTile?.sublabel,
+      sublabel:
+        waterTile?.sublabel ??
+        t('dashboard.quickWaterSubtitle', { defaultValue: 'Choose container' }),
       accessibilityLabel: waterTile?.accessibilityLabel,
       color: hydration,
       press: () =>
         water.isContainersLoaded
           ? water.increment()
           : navigation.navigate('WaterContainers'),
+      options: [
+        {
+          label: t('waterContainers.title', {
+            defaultValue: 'Water containers',
+          }),
+          press: () => navigation.navigate('WaterContainers'),
+        },
+        {
+          label: t('hydration.title', { defaultValue: 'Hydration' }),
+          press: () => navigation.navigate('WaterLog', { date: selectedDate }),
+        },
+      ],
     },
     {
       id: 'scan',
       icon: 'scan' as const,
       label: t('dashboard.quickScan', { defaultValue: 'Scan' }),
+      sublabel: t('dashboard.quickScanSubtitle', {
+        defaultValue: 'Barcode or photo',
+      }),
       color: scan,
       press: () => navigation.navigate('FoodScan', { date: selectedDate }),
+      options: [
+        {
+          label: t('foodScan.segment.label', { defaultValue: 'Label' }),
+          press: () =>
+            navigation.navigate('FoodScan', {
+              date: selectedDate,
+              initialMode: 'label',
+            }),
+        },
+        {
+          label: t('foodScan.segment.photo', { defaultValue: 'Photo' }),
+          press: () =>
+            navigation.navigate('FoodScan', {
+              date: selectedDate,
+              initialMode: 'photo',
+            }),
+        },
+      ],
     },
   ];
   const destinations: {
@@ -267,6 +369,37 @@ export default function DashboardScreen({ navigation }: Props) {
       icon: 'medication',
       label: t('supplements.title', { defaultValue: 'Supplements' }),
       press: () => navigation.navigate('Supplements', { date: selectedDate }),
+    },
+    {
+      icon: 'exercise-yoga',
+      label: t('mobility.title', { defaultValue: 'Guided mobility' }),
+      press: () => navigation.navigate('GuidedMobility'),
+    },
+    {
+      icon: 'habit',
+      label: t('habits.title', { defaultValue: 'Habits' }),
+      press: () => navigation.navigate('Habits', { date: selectedDate }),
+    },
+    {
+      icon: 'daily-checkin',
+      label: t('checkin.title', { defaultValue: 'Daily Check-In' }),
+      press: () => navigation.navigate('DailyCheckIn', { date: selectedDate }),
+    },
+    {
+      icon: 'scale',
+      label: t('screens.measurements', { defaultValue: 'Measurements' }),
+      press: () =>
+        navigation.navigate('MeasurementsAdd', { date: selectedDate }),
+    },
+    {
+      icon: 'wellness',
+      label: t('wellness.title', { defaultValue: 'Wellness' }),
+      press: () => navigation.navigate('Wellness', { date: selectedDate }),
+    },
+    {
+      icon: 'sparkles',
+      label: t('coaching.title', { defaultValue: 'Recommendations' }),
+      press: () => navigation.navigate('Coaching'),
     },
   ];
   return (
@@ -419,11 +552,13 @@ export default function DashboardScreen({ navigation }: Props) {
               testID={`dashboard-${a.id}`}
               label={a.label}
               sublabel={a.sublabel}
-              reserveSublabel={!!waterTile}
+              reserveSublabel
               accessibilityLabel={a.accessibilityLabel}
               icon={a.icon}
               color={a.color}
               onPress={a.press}
+              onLongPress={() => openActionOptions(a.label, a.options)}
+              longPressLabel={longPressLabel}
               style={{
                 flexBasis: fontScale > 1.3 ? '46%' : '21%',
                 flexGrow: 1,

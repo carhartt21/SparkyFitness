@@ -18,6 +18,8 @@ interface ActionTileProps {
   /** Hex theme color that tints the border, glow, fill and icon. */
   color: string;
   onPress: () => void;
+  onLongPress?: () => void;
+  longPressLabel?: string;
   testID?: string;
   accessibilityLabel?: string;
   style?: StyleProp<ViewStyle>;
@@ -31,6 +33,8 @@ export default function ActionTile({
   icon,
   color,
   onPress,
+  onLongPress,
+  longPressLabel,
   testID,
   accessibilityLabel,
   style,
@@ -41,6 +45,16 @@ export default function ActionTile({
     <MotionPressable
       testID={testID}
       onPress={onPress}
+      onLongPress={onLongPress}
+      accessibilityHint={longPressLabel}
+      accessibilityActions={
+        onLongPress && longPressLabel
+          ? [{ name: 'longpress', label: longPressLabel }]
+          : undefined
+      }
+      onAccessibilityAction={(event) => {
+        if (event.nativeEvent.actionName === 'longpress') onLongPress?.();
+      }}
       accessibilityRole="button"
       accessibilityLabel={
         accessibilityLabel ?? (sublabel ? `${label} ${sublabel}` : label)

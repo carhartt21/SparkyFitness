@@ -6,6 +6,7 @@ import {
   NutritionOutboxCorruptError,
   acknowledgeNutritionActionVisible,
   enqueueFoodEntry,
+  enqueueMealEntry,
   enqueueManualWaterAction,
   enqueueContainerWaterAction,
   enqueuePlannedSupplementAction,
@@ -22,6 +23,7 @@ import {
   removePhotoCaptureAction,
   subscribeNutritionActions,
 } from '../../src/services/nutritionActionOutbox';
+import { offlineMealPayload } from '../helpers/offlineMealFixtures';
 
 const identity = { serverConfigId: 'server-1', userId: 'user-1' };
 const operation = '33333333-3333-4333-8333-333333333333';
@@ -62,6 +64,28 @@ describe('nutrition action outbox', () => {
       (await AsyncStorage.getAllKeys()).some((key) => key.includes(operation))
     ).toBe(true);
     expect(await listPendingNutritionActions(identity)).toEqual([action]);
+  });
+
+  it('persists complete meals without flattening and prevents reuse with different ingredients', async () => {
+    const mealInput = {
+      ...identity,
+      clientOperationId: offlineMealPayload.client_operation_id,
+      occurredAt: input.occurredAt,
+      payload: offlineMealPayload,
+    };
+    const action = await enqueueMealEntry(mealInput);
+    expect(action.payload.meal.foods).toHaveLength(1);
+    expect(await enqueueMealEntry(mealInput)).toEqual(action);
+    expect(await listNutritionActions(identity)).toEqual([action]);
+    await expect(
+      enqueueMealEntry({
+        ...mealInput,
+        payload: { ...offlineMealPayload, quantity: 3 },
+      })
+    ).rejects.toThrow(/different meal action/);
+    expect(
+      await listNutritionActions({ ...identity, userId: 'other' })
+    ).toEqual([]);
   });
 
   it('keeps one immutable plain-water action across retries', async () => {

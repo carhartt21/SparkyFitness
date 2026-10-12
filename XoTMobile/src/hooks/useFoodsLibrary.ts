@@ -4,6 +4,7 @@ import { fetchFoodsPage } from '../services/api/foodsApi';
 import { foodsLibraryQueryKey } from './queryKeys';
 import { useDebounce } from './useDebounce';
 import { useRefetchOnFocus } from './useRefetchOnFocus';
+import { fetchAndCacheNutritionFoods } from '../services/cacheNutritionData';
 
 interface UseFoodsLibraryOptions {
   enabled?: boolean;
@@ -21,12 +22,16 @@ export function useFoodsLibrary(
   const query = useInfiniteQuery({
     queryKey,
     queryFn: ({ pageParam }) =>
-      fetchFoodsPage({
-        searchTerm: debouncedSearch,
-        page: pageParam,
-        itemsPerPage: 20,
-        sortBy: 'name:asc',
-      }),
+      fetchAndCacheNutritionFoods(
+        () =>
+          fetchFoodsPage({
+            searchTerm: debouncedSearch,
+            page: pageParam,
+            itemsPerPage: 20,
+            sortBy: 'name:asc',
+          }),
+        (result) => result.foods
+      ),
     enabled,
     initialPageParam: 1,
     getNextPageParam: (lastPage) =>

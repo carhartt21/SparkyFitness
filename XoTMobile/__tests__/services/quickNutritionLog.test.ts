@@ -1,17 +1,24 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   cacheFavoriteFoods,
+  cacheSavedFoods,
   cacheQuickMealTypes,
 } from '../../src/services/nutritionFavoriteCache';
 import { listNutritionActions } from '../../src/services/nutritionActionOutbox';
 import {
   logFavoriteFood,
+  logCachedFood,
+  logCachedMeal,
   logQuickNutrition,
 } from '../../src/services/quickNutritionLog';
 import { getActiveServerConfigId } from '../../src/services/storage';
 import { rememberActiveNutritionUser } from '../../src/services/nutritionIdentity';
 import type { FoodItem } from '../../src/types/foods';
 import type { MealType } from '../../src/types/mealTypes';
+import {
+  offlineMeal,
+  offlineMealPayload,
+} from '../helpers/offlineMealFixtures';
 
 jest.mock('../../src/services/storage', () => ({
   getActiveServerConfigId: jest.fn().mockResolvedValue('server-a'),
@@ -98,6 +105,64 @@ describe('quick nutrition logging', () => {
     expect(action.payload.protein).toBeUndefined();
     expect(action.payload.carbs).toBeUndefined();
     expect(action.payload.fat).toBeUndefined();
+  });
+
+  test('a saved non-favorite preserves the selected date, portion and reviewed snapshot', async () => {
+    await cacheFavoriteFoods(owner, []);
+    await cacheSavedFoods(owner, [food]);
+    const action = await logCachedFood(food.id, {
+      identity: owner,
+      snapshot: food,
+      quantity: 75.5,
+      entryDate: '2026-10-11',
+      occurredAt: '2026-10-12T22:05:00Z',
+    });
+    expect(action.payload).toMatchObject({
+      entry_date: '2026-10-11',
+      quantity: 75.5,
+      calories: 200,
+      serving_size: 50,
+    });
+    expect(await listNutritionActions(owner)).toEqual([action]);
+    await expect(
+      logCachedFood(food.id, {
+        identity: { ...owner, userId: 'other' },
+        snapshot: food,
+      })
+    ).rejects.toThrow(/account changed/);
+    await expect(logCachedFood(food.id, { quantity: 0 })).rejects.toThrow();
+  });
+
+  test('complete meals keep all ingredients, original recipe yield and portion in the durable queue', async () => {
+    await cacheQuickMealTypes(owner, [
+      { ...mealType, id: offlineMealPayload.meal_type_id },
+    ]);
+    const action = await logCachedMeal(offlineMeal, {
+      identity: owner,
+      quantity: 2,
+      entryDate: '2026-10-11',
+    });
+    expect(action.type).toBe('logMealEntry');
+    expect(action.payload).toMatchObject({
+      quantity: 2,
+      entry_date: '2026-10-11',
+      meal: offlineMeal,
+    });
+    expect(await listNutritionActions(owner)).toEqual([action]);
+    await expect(
+      logCachedMeal(offlineMeal, {
+        identity: { ...owner, serverConfigId: 'other' },
+      })
+    ).rejects.toThrow(/account changed/);
+  });
+
+  test('a storage failure leaves no claimed offline entry', async () => {
+    const setItem = AsyncStorage.setItem as jest.Mock;
+    setItem.mockRejectedValueOnce(new Error('disk full'));
+    await expect(logCachedFood(food.id, { identity: owner })).rejects.toThrow(
+      'disk full'
+    );
+    expect(await listNutritionActions(owner)).toEqual([]);
   });
 
   test('missing cached favorite or meal type cannot claim durable success', async () => {

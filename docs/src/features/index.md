@@ -5,6 +5,7 @@ X on Track separates plans, captured information and confirmed records. Use the 
 ## Log and review
 
 - [Meals and logging](/features/diary/meals), [nutrition summaries](/features/diary/nutrition-summary) and [exercise diary](/features/diary/exercise).
+- [Offline food and complete-meal logging](/features/diary/meals#offline-logging-on-the-phone) explains the device cache and pending sync state.
 - [Check-in](/features/check-in), [measurements](/features/measurements), [goals](/features/goals) and [reports](/features/reports).
 - [Medications and supplements](/features/supplements): classification, confirmed intake, reminders and assistant timing review.
 - [FDDB import](/features/settings/fddb-import) for reviewing imported records separately from current daily meal routines.

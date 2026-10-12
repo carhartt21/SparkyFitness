@@ -16,6 +16,12 @@ activity queries under the Daily Progress family. See
 
 ## Scope
 
+Offline complete meals use `OfflineMealAction.api.zod.ts` and
+`OfflineMealActions.zod.ts`. Preserve strict complete ingredient snapshots,
+positive serving/yield math, original calendar date and stable operation IDs.
+Replay can return a null meal ID after deliberate diary deletion; consumers must
+acknowledge it without recreating the meal. The receipt table is owner-only.
+
 - This package defines contracts and shared logic, not an app.
 - Validate changes from consuming packages (server, frontend, mobile), not in isolation.
 - Every schema change here potentially touches three packages.

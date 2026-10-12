@@ -1,0 +1,41 @@
+{
+  "baseRevision": "93101a1dd6ba8f978b1bc75bcb2db45b0ad76900",
+  "sourceState": "Working tree of fix/v52-offline-dashboard-20261012, subsequently committed without further application changes.",
+  "mobile": {
+    "suites": 586,
+    "tests": 7976,
+    "failed": 0,
+    "finalFocusedTests": 59,
+    "validate": "passed"
+  },
+  "server": {
+    "validate": "passed",
+    "tests": "intentionally not run, per owner instruction",
+    "migrationBoot": "passed through normal isolated server startup"
+  },
+  "frontendValidate": "passed",
+  "docsBuild": "passed",
+  "repositoryCheck": "passed",
+  "nativeCases": [
+    {
+      "name": "390-de-dark",
+      "render": true,
+      "interaction": true
+    },
+    {
+      "name": "390-de-light",
+      "render": true,
+      "interaction": true
+    },
+    {
+      "name": "430-de-large",
+      "render": true,
+      "interaction": true
+    }
+  ],
+  "limits": [
+    "Synthetic, isolated account only; native outbox survives restart.",
+    "Server replay regression tests authored but not executed.",
+    "Production endpoint and physical-device acceptance remain separate."
+  ]
+}

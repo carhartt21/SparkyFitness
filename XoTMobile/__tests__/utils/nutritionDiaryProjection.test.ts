@@ -4,6 +4,7 @@ import {
 } from '../../src/utils/nutritionDiaryProjection';
 import type { PendingNutritionAction } from '../../src/services/nutritionActionOutbox';
 import type { FoodEntry } from '../../src/types/foodEntries';
+import { offlineMealPayload } from '../helpers/offlineMealFixtures';
 
 const action: PendingNutritionAction = {
   version: 1,
@@ -41,6 +42,35 @@ const remote: FoodEntry = {
 };
 
 describe('local nutrition diary projection', () => {
+  it('shows the consumed meal portion once until its grouped ingredients arrive', () => {
+    const meal: PendingNutritionAction = {
+      ...action,
+      type: 'logMealEntry',
+      payload: offlineMealPayload,
+    };
+    const [visible] = projectLocalFoodActions('2026-10-12', [meal], []);
+    expect(visible.payload).toMatchObject({
+      quantity: 2,
+      serving_size: 1,
+      calories: 175,
+      protein: 6,
+    });
+    const synced = {
+      ...meal,
+      syncState: 'synced' as const,
+      serverIdentity: 'group-id',
+    };
+    const ingredient = {
+      ...remote,
+      id: 'leaf-id',
+      client_operation_id: null,
+      food_entry_meal_id: 'group-id',
+    };
+    expect(
+      projectLocalFoodActions('2026-10-12', [synced], [ingredient])
+    ).toEqual([]);
+    expect(reconciledFoodActions([synced], [ingredient])).toHaveLength(1);
+  });
   it('shows an offline action only on its original diary day', () => {
     expect(projectLocalFoodActions('2026-09-23', [action], [])).toEqual([
       action,

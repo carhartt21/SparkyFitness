@@ -10,8 +10,10 @@ import {
 } from '../../src/services/healthEngagementPolicy';
 import {
   enqueuePhotoCapture,
+  enqueueMealEntry,
   listNutritionActions,
 } from '../../src/services/nutritionActionOutbox';
+import { offlineMealPayload } from '../helpers/offlineMealFixtures';
 import type {
   MobilityRoutine,
   MobilitySession,
@@ -26,6 +28,52 @@ const imageId = '22222222-2222-4222-8222-222222222222';
 
 beforeEach(async () => {
   await AsyncStorage.clear();
+});
+
+it('counts an offline complete meal as one captured meal and avoids duplicate calories after grouped sync', async () => {
+  const action = await enqueueMealEntry({
+    ...identity,
+    clientOperationId: offlineMealPayload.client_operation_id,
+    occurredAt: new Date(at(12, 5)).toISOString(),
+    payload: { ...offlineMealPayload, entry_date: day },
+  });
+  const input = {
+    day,
+    remoteEntries: [],
+    remoteCaptures: [],
+    localActions: [action],
+    knownRemoteCalories: 0,
+    now: at(12, 10),
+  };
+  expect(deriveNutritionEngagementState(input)).toMatchObject({
+    capturedCount: 1,
+    pendingSyncCount: 1,
+    knownCalories: 350,
+  });
+  const remote = {
+    id: 'leaf',
+    entry_date: day,
+    entry_time: '12:05:00',
+    food_entry_meal_id: 'group',
+    quantity: 100,
+    unit: 'g',
+    serving_size: 100,
+    calories: 350,
+  };
+  expect(
+    deriveNutritionEngagementState({
+      ...input,
+      remoteEntries: [remote],
+      localActions: [
+        { ...action, syncState: 'synced', serverIdentity: 'group' },
+      ],
+      knownRemoteCalories: 350,
+    })
+  ).toMatchObject({
+    capturedCount: 1,
+    pendingSyncCount: 0,
+    knownCalories: 350,
+  });
 });
 
 it('counts a durable offline photo as capture while leaving nutrition unknown', async () => {

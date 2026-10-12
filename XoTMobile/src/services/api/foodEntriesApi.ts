@@ -43,6 +43,7 @@ export interface CreateFoodEntryPayload {
   cholesterol?: number;
   vitamin_a?: number;
   vitamin_c?: number;
+  glycemic_index?: string;
   custom_nutrients?: Record<string, string | number> | null;
   // Meal entry
   meal_id?: string;

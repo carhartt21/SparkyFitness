@@ -53,6 +53,10 @@ FDDB historical imports preserve nutrition snapshots without creating food-libra
 
 ### 1. Tier 1: Strictly Private Data
 
+- Offline-meal retry receipts (`offline_meal_actions`) are private to their owner.
+  Shared diary access still follows the usual rules for the logged meal and its
+  ingredients; delegates cannot submit an offline action for another account.
+
 Certain tables contain private user data that is **never** accessible to any family member or friend, regardless of the permission level. This includes:
 
 - API Keys (`api_key` table)

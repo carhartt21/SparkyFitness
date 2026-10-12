@@ -1303,7 +1303,13 @@
       "add": "Wasser erfassen: {{container}}, {{amount}} pro Tippen"
     },
     "waterShortcutLinkedDrink": "Verknüpftes Getränk",
-    "waterShortcutAdd": "Wasser erfassen: {{container}}, {{amount}} pro Tippen"
+    "waterShortcutAdd": "Wasser erfassen: {{container}}, {{amount}} pro Tippen",
+    "quickFoodSubtitle": "Auswählen",
+    "quickExerciseSubtitle": "Start / Eintrag",
+    "quickWaterSubtitle": "Gefäß wählen",
+    "quickScanSubtitle": "Barcode / Foto",
+    "quickActionOptions": "Gedrückt halten für weitere Optionen",
+    "quickWorkoutPlan": "Wochenplan"
   },
   "syncScreen": {
     "healthConnectSettings": "Health Connect-Einstellungen",
@@ -3874,6 +3880,25 @@
       "moreOptionsShort": "Optionen",
       "addShort": "Hinzufügen",
       "mealPortion": "Eine Portion {{name}} hinzufügen"
+    },
+    "offline": {
+      "savedItems": "Auf dem Gerät",
+      "notice": "Offline · Wählen Sie ein gespeichertes Lebensmittel oder eine Mahlzeit. Einträge bleiben bis zur Synchronisierung auf diesem Gerät.",
+      "empty": "Noch keine Lebensmittel oder Mahlzeiten auf diesem Gerät gespeichert. Öffnen Sie zuerst Ihre Bibliothek und Favoriten mit einer Verbindung.",
+      "noMatch": "Kein passendes Lebensmittel und keine passende Mahlzeit auf diesem Gerät gespeichert.",
+      "missingMealTypes": "Stellen Sie einmal eine Verbindung her, um Ihre Mahlzeitenkategorien für die Offline-Erfassung zu laden.",
+      "choose": "Portion für {{food}} auswählen",
+      "portion": "{{amount}} · {{calories}} kcal",
+      "cacheError": "Gespeicherte Lebensmittel und Mahlzeiten konnten nicht gelesen werden. Ihre gespeicherten Einträge wurden nicht verändert.",
+      "signIn": "Melden Sie sich einmal mit einer Verbindung an, um Lebensmittel und Mahlzeiten offline zu nutzen.",
+      "saved": "Auf diesem Gerät gespeichert",
+      "pending": "Wird bei bestehender Verbindung synchronisiert.",
+      "saveFailed": "Eintrag konnte nicht gespeichert werden",
+      "retry": "Lassen Sie diese Ansicht geöffnet und versuchen Sie es erneut. Prüfen Sie, ob dasselbe Konto ausgewählt ist.",
+      "servingNote": "Verwendet die auf diesem Gerät gespeicherte Portion. Neue Portionen erfordern eine Verbindung.",
+      "invalidAmount": "Geben Sie eine Menge größer als null ein.",
+      "mealIngredients_one": "Mahlzeit · {{count}} Zutat",
+      "mealIngredients_other": "Mahlzeit · {{count}} Zutaten"
     }
   },
   "editBarcode": {

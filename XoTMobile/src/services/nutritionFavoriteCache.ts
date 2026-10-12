@@ -1,6 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { z } from 'zod';
-import { isFddbImportMeal } from '@workspace/shared';
+import {
+  isFddbImportMeal,
+  offlineMealSnapshotSchema,
+  type OfflineMealSnapshot,
+} from '@workspace/shared';
 import type { FoodItem } from '../types/foods';
 import type { MealType } from '../types/mealTypes';
 import type { NutritionActionIdentity } from './nutritionActionOutbox';
@@ -23,6 +27,8 @@ const variantSchema = z.strictObject({
   carbs: nutrient,
   fat: nutrient,
   saturated_fat: nutrient.optional(),
+  polyunsaturated_fat: nutrient.optional(),
+  monounsaturated_fat: nutrient.optional(),
   sodium: nutrient.optional(),
   dietary_fiber: nutrient.optional(),
   sugars: nutrient.optional(),
@@ -36,6 +42,7 @@ const variantSchema = z.strictObject({
   cholesterol: nutrient.optional(),
   vitamin_a: nutrient.optional(),
   vitamin_c: nutrient.optional(),
+  glycemic_index: z.string().optional(),
   custom_nutrients: z
     .record(z.string(), z.union([z.string(), nutrient]))
     .optional(),
@@ -51,6 +58,8 @@ const cachedFoodSchema = z.strictObject({
 const cachedMealTypeSchema = z.strictObject({
   id: z.string().min(1),
   name: z.string().min(1),
+  user_id: z.string().nullable().optional(),
+  display_name: z.string().optional(),
   sort_order: z.number().int(),
   is_visible: z.boolean(),
   show_in_quick_log: z.boolean(),
@@ -60,10 +69,38 @@ const cacheSchema = z.strictObject({
   version: z.literal(1),
   updatedAt: z.iso.datetime({ offset: true }),
   foods: z.array(cachedFoodSchema),
+  savedFoods: z.array(cachedFoodSchema).optional(),
+  meals: z.array(offlineMealSnapshotSchema).optional(),
+  favoriteMealIds: z.array(z.uuid()).optional(),
   mealTypes: z.array(cachedMealTypeSchema),
 });
 
 export type CachedFavoriteFood = z.infer<typeof cachedFoodSchema>;
+export function cacheOfflineMeals(
+  identity: NutritionActionIdentity,
+  meals: OfflineMealSnapshot[],
+  favoriteIds?: string[]
+) {
+  return update(identity, (current) => {
+    const byId = new Map((current.meals ?? []).map((meal) => [meal.id, meal]));
+    for (const meal of meals) {
+      byId.delete(meal.id);
+      byId.set(meal.id, meal);
+    }
+    const favorites = favoriteIds ?? current.favoriteMealIds ?? [];
+    const ordered = [...byId.values()];
+    const retained = [
+      ...ordered.filter((meal) => favorites.includes(meal.id)),
+      ...ordered.filter((meal) => !favorites.includes(meal.id)).slice(-200),
+    ];
+    return {
+      ...current,
+      meals: retained,
+      favoriteMealIds: favorites,
+      updatedAt: new Date().toISOString(),
+    };
+  });
+}
 export type CachedMealType = z.infer<typeof cachedMealTypeSchema>;
 export type NutritionFavoriteCache = z.infer<typeof cacheSchema>;
 
@@ -124,7 +161,16 @@ export function cacheFavoriteFoods(
   identity: NutritionActionIdentity,
   foods: FoodItem[]
 ): Promise<NutritionFavoriteCache> {
-  const snapshots = foods.map((food) =>
+  const snapshots = foodSnapshots(foods);
+  return update(identity, (current) => ({
+    ...current,
+    updatedAt: new Date().toISOString(),
+    foods: snapshots,
+  }));
+}
+
+function foodSnapshots(foods: FoodItem[]): CachedFavoriteFood[] {
+  return foods.map((food) =>
     cachedFoodSchema.parse({
       id: food.id,
       name: food.name,
@@ -140,6 +186,8 @@ export function cacheFavoriteFoods(
         carbs: food.default_variant.carbs,
         fat: food.default_variant.fat,
         saturated_fat: known(food.default_variant.saturated_fat),
+        polyunsaturated_fat: known(food.default_variant.polyunsaturated_fat),
+        monounsaturated_fat: known(food.default_variant.monounsaturated_fat),
         sodium: known(food.default_variant.sodium),
         dietary_fiber: known(food.default_variant.dietary_fiber),
         sugars: known(food.default_variant.sugars),
@@ -153,15 +201,33 @@ export function cacheFavoriteFoods(
         cholesterol: known(food.default_variant.cholesterol),
         vitamin_a: known(food.default_variant.vitamin_a),
         vitamin_c: known(food.default_variant.vitamin_c),
+        glycemic_index: known(food.default_variant.glycemic_index),
         custom_nutrients: known(food.default_variant.custom_nutrients),
       },
     })
   );
-  return update(identity, (current) => ({
-    ...current,
-    updatedAt: new Date().toISOString(),
-    foods: snapshots,
-  }));
+}
+
+/** Seen library/search/recent foods remain usable after a cold offline launch. */
+export function cacheSavedFoods(
+  identity: NutritionActionIdentity,
+  foods: FoodItem[]
+): Promise<NutritionFavoriteCache> {
+  const snapshots = foodSnapshots(foods);
+  return update(identity, (current) => {
+    const byId = new Map(
+      (current.savedFoods ?? []).map((food) => [food.id, food])
+    );
+    snapshots.forEach((food) => {
+      byId.delete(food.id);
+      byId.set(food.id, food);
+    });
+    return {
+      ...current,
+      updatedAt: new Date().toISOString(),
+      savedFoods: [...byId.values()].slice(-500),
+    };
+  });
 }
 
 export function cacheQuickMealTypes(
@@ -174,6 +240,8 @@ export function cacheQuickMealTypes(
       cachedMealTypeSchema.parse({
         id: mealType.id,
         name: mealType.name,
+        user_id: mealType.user_id,
+        display_name: mealType.display_name,
         sort_order: mealType.sort_order,
         is_visible: mealType.is_visible,
         show_in_quick_log: mealType.show_in_quick_log,

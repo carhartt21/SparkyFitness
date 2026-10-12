@@ -22,6 +22,15 @@ All tables in the SparkyFitness database are classified into one of three securi
 
 ### Tier 1: Strictly Private (Owner-Only Read & Write)
 
+`offline_meal_actions` is Tier 1 retry metadata. Its owner-only all-command RLS
+policy checks the authenticated owner. `/api/v2/offline-meals/actions` rejects
+delegated contexts and additionally requires diary write permission. A unique
+`(user_id, client_operation_id)` and canonical request fingerprint protect replay.
+Deleting the linked diary meal sets its receipt reference to null; retain the
+receipt for the life of the account so a device reconnecting much later cannot
+restore that meal. Account deletion cascades receipts. The created diary group
+and ingredient rows retain their normal diary-sharing rules.
+
 The `engagement_settings`, `engagement_devices`, `engagement_occurrences`, `engagement_deliveries`, `engagement_action_receipts`, and `engagement_change_events` tables are Tier 1 and have owner-only RLS policies; push tokens are encrypted before storage. MCP OAuth tables (`oauthClient`, `oauthResource`, `oauthClientResource`, `oauthAccessToken`, `oauthRefreshToken`, `oauthConsent`, `oauthClientAssertion`, `jwks`) are stricter system-auth tables: RLS denies the application role entirely, and Better Auth uses the database owner pool. The connected-assistants API checks the signed-in account and returns only client names, scopes, dates, and opaque connection IDs. Delegates cannot list or revoke these connections. The daily tracking tables `health_context_periods` (user-declared injury, illness and vacation periods), `measurement_reminders` and `daily_tracking_preferences` (Daily Progress and reminder configuration) are also Tier 1 owner-only tables; their `/api/v2/tracking` routes additionally reject delegated contexts.
 
 The read-only MCP measurement reminder status combines owner-only `measurement_reminders` with the authenticated owner's saved values in `check_in_measurements`, `custom_measurements` and `custom_categories`. It uses the application pool and existing RLS with an explicit owner/date filter; it does not accept a target user, enable delegation or add grants. Weight values use canonical kg; custom values retain stored text and configured units. No schema or security-tier change is needed for this MCP-only response projection.

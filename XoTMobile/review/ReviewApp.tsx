@@ -11,6 +11,17 @@ import { useDiaryDateStore } from '../src/stores/diaryDateStore';
 import { setThemePreference } from '../src/services/themeService';
 import { saveDashboardSnapshot } from '../src/services/dashboardSnapshot';
 import { rememberActiveNutritionUser } from '../src/services/nutritionIdentity';
+import {
+  cacheFavoriteFoods,
+  cacheSavedFoods,
+  cacheOfflineMeals,
+  cacheQuickMealTypes,
+} from '../src/services/nutritionFavoriteCache';
+import {
+  listNutritionActions,
+  subscribeNutritionActions,
+} from '../src/services/nutritionActionOutbox';
+import { snapshotOfflineMeals } from '../src/services/offlineMealSnapshot';
 import { buildDailySummary } from '../src/services/dailySummaryService';
 import { reviewDate, summaryFixture } from './fixtures';
 import { createNutritionFixture, reviewFood } from './nutritionFixture';
@@ -67,6 +78,7 @@ export default function ReviewApp() {
   useEffect(() => {
     let keyboardSubscription:
       ReturnType<typeof Keyboard.addListener> | undefined;
+    let stopOfflineReview: (() => void) | undefined;
     async function prepare() {
       if (!__DEV__ || Device.isDevice)
         throw new Error('UI review requires a development simulator');
@@ -105,6 +117,8 @@ export default function ReviewApp() {
         coachingReview?: boolean;
         phoneInputReview?: boolean;
         inboxUiReview?: boolean;
+        offlineDashboardReview?: boolean;
+        offlineReviewRunId?: string;
       };
       const coachingFixture = createCoachingReviewFixture();
       const fixture = createNutritionFixture(
@@ -127,6 +141,8 @@ export default function ReviewApp() {
           throw new Error(`Review blocked network origin: ${url.origin}`);
         const method = options?.method ?? 'GET';
         try {
+          if (config.offlineDashboardReview)
+            throw new Error('Synthetic offline mode');
           if (
             ['error', 'saved'].includes(config.scenario) &&
             url.pathname === '/api/daily-summary'
@@ -310,6 +326,72 @@ export default function ReviewApp() {
         authType: 'apiKey',
       });
       await rememberActiveNutritionUser('review-user');
+      if (config.offlineDashboardReview) {
+        const identity = { serverConfigId: 'ui-review', userId: 'review-user' };
+        const marker = '@XoT/review/offline-run';
+        if (
+          (await AsyncStorage.getItem(marker)) !== config.offlineReviewRunId
+        ) {
+          const oldActions = (await AsyncStorage.getAllKeys()).filter((key) =>
+            key.startsWith(
+              '@SparkyFitness/nutrition-action/v1/ui-review/review-user/'
+            )
+          );
+          await AsyncStorage.multiRemove(oldActions);
+          await AsyncStorage.setItem(
+            marker,
+            config.offlineReviewRunId ?? 'offline-review'
+          );
+        }
+        await cacheFavoriteFoods(identity, [
+          { ...reviewFood, name: 'Testjoghurt' },
+        ]);
+        await cacheSavedFoods(identity, [
+          { ...reviewFood, id: 'review-saved-food', name: 'Testhaferflocken' },
+        ]);
+        const meal = {
+          ...reviewSavedMeal,
+          id: '11111111-1111-4111-8111-111111111111',
+          total_servings: 2,
+        };
+        await cacheOfflineMeals(identity, await snapshotOfflineMeals([meal]), [
+          meal.id,
+        ]);
+        await cacheQuickMealTypes(identity, [
+          {
+            id: '22222222-2222-4222-8222-222222222222',
+            name: 'Breakfast',
+            user_id: null,
+            sort_order: 1,
+            is_visible: true,
+            show_in_quick_log: true,
+            created_at: '2026-10-12T08:00:00Z',
+          },
+        ]);
+        const reportQueue = async () => {
+          const actions = await listNutritionActions(identity);
+          await transport('http://127.0.0.1:43991/event', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              method: 'OFFLINE_QUEUE',
+              path: '/review/offline-queue',
+              metrics: actions.map((action) => ({
+                type: action.type,
+                state: action.syncState,
+                ingredientCount:
+                  action.type === 'logMealEntry'
+                    ? action.payload.meal.foods.length
+                    : null,
+              })),
+            }),
+          });
+        };
+        stopOfflineReview = subscribeNutritionActions(() => {
+          void reportQueue();
+        });
+        await reportQueue();
+      }
       if (config.mobilityReview || config.v43Review) {
         const identity = { serverConfigId: 'ui-review', userId: 'review-user' };
         await saveHealthPreference('writebackWorkoutEnabled', false);
@@ -354,7 +436,7 @@ export default function ReviewApp() {
           );
         }
       }
-      if (config.scenario === 'saved') {
+      if (config.scenario === 'saved' || config.offlineDashboardReview) {
         await saveDashboardSnapshot(
           { serverConfigId: 'ui-review', userId: 'review-user' },
           {
@@ -387,7 +469,10 @@ export default function ReviewApp() {
       if (config.motionReview) await SplashScreen.hideAsync();
     }
     void prepare().catch((error) => setFailure(String(error)));
-    return () => keyboardSubscription?.remove();
+    return () => {
+      keyboardSubscription?.remove();
+      stopOfflineReview?.();
+    };
   }, []);
   if (failure) return <Text accessibilityRole="alert">{failure}</Text>;
   return ready ? motionReview ? <MotionReview /> : <App /> : null;

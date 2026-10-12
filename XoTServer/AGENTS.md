@@ -168,6 +168,7 @@ When searching, ignore noisy/generated directories unless you explicitly need th
 - `@workspace/shared` resolves directly to `../shared/src/index.ts` here and in Vitest
 - Avoid using `any` declarations in models, repositories, and integration services (e.g. `integrations/fatsecret/fatsecretService.ts`). Instead, use base datatypes (like `string`), proper types/interfaces, or import strict type schemas directly from `@workspace/shared`.
 - New public endpoints should include TypeScript code, Zod validation, and automated tests
+- Offline saved meals use owner-only `routes/v2/offlineMealRoutes.ts` and `offlineMealActionService.ts`. The parent, standalone ingredient snapshots and immutable `offline_meal_actions` receipt commit on one owner-scoped client under an operation lock. Never reread mutable library nutrition, prune these receipts independently of account deletion, or recreate a diary meal after its receipt reference becomes null. Shared request/response/database schemas are in `shared/src/schemas/`; see the diary guide and database security tiers.
 
 ### Logging
 

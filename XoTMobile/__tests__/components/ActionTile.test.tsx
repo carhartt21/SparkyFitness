@@ -24,3 +24,30 @@ test('keeps the full container action accessible while shortening only its visib
   );
   expect(onPress).toHaveBeenCalledTimes(1);
 });
+
+it('keeps a separate hold/accessibility action from the primary tap', () => {
+  const tap = jest.fn();
+  const hold = jest.fn();
+  const screen = render(
+    <ActionTile
+      label="Food"
+      sublabel="Choose food"
+      icon="food"
+      color="#12ab78"
+      onPress={tap}
+      onLongPress={hold}
+      longPressLabel="More options"
+    />
+  );
+  const button = screen.getByRole('button', { name: 'Food Choose food' });
+  fireEvent(button, 'longPress');
+  expect(hold).toHaveBeenCalledTimes(1);
+  expect(tap).not.toHaveBeenCalled();
+  fireEvent(button, 'accessibilityAction', {
+    nativeEvent: { actionName: 'longpress' },
+  });
+  expect(hold).toHaveBeenCalledTimes(2);
+  fireEvent.press(button);
+  expect(tap).toHaveBeenCalledTimes(1);
+  expect(button.props.accessibilityHint).toBe('More options');
+});

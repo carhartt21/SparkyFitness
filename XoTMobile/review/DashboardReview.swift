@@ -2,6 +2,65 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// Real native holds, dated shortcuts, offline meal portions and cold restart.
+  func testOfflineDashboard() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<12 { if food.isHittable { break }; app.swipeUp(velocity: .slow) }
+    for id in ["food", "exercise-running", "water", "scan"] {
+      let tile = app.buttons["dashboard-\(id)"]
+      XCTAssertTrue(tile.isHittable)
+      XCTAssertGreaterThanOrEqual(tile.frame.width.rounded(), 44)
+      XCTAssertGreaterThanOrEqual(tile.frame.height.rounded(), 44)
+      tile.press(forDuration: 0.8)
+      XCTAssertTrue(app.buttons["Abbrechen"].waitForExistence(timeout: 5))
+      capture("offline-dashboard-hold-\(id)", app)
+      app.buttons["Abbrechen"].tap()
+    }
+    XCTAssertEqual(try offlineQueue().count, 0)
+    capture("offline-dashboard-action-labels", app)
+    let habits = app.buttons["dashboard-detail-habit"]
+    for _ in 0..<16 { if habits.isHittable && habits.frame.maxY < app.frame.height - 125 { break }; app.swipeUp(velocity: .slow) }
+    for id in ["habit", "exercise-yoga", "daily-checkin", "scale", "wellness", "sparkles"] {
+      XCTAssertTrue(app.buttons["dashboard-detail-\(id)"].exists)
+    }
+    capture("offline-dashboard-shortcuts", app)
+    for _ in 0..<20 { if food.isHittable { break }; app.swipeDown(velocity: .slow) }
+    food.press(forDuration: 0.8)
+    app.buttons["Favoriten"].tap()
+    let meal = app.buttons["offline-meal-11111111-1111-4111-8111-111111111111"]
+    XCTAssertTrue(meal.waitForExistence(timeout: 15))
+    XCTAssertTrue(app.buttons["offline-food-review-food"].exists)
+    capture("offline-favorites", app)
+    meal.tap()
+    let confirm = app.buttons["quick-add-confirm"]
+    XCTAssertTrue(confirm.waitForExistence(timeout: 10))
+    let amount = app.descendants(matching: .any)["quick-add-offline-quantity"].firstMatch
+    XCTAssertTrue(amount.exists)
+    let macros = app.staticTexts["quick-add-macros"]
+    XCTAssertTrue(macros.exists)
+    XCTAssertGreaterThanOrEqual(macros.frame.minX, app.frame.minX)
+    XCTAssertLessThanOrEqual(macros.frame.maxX, app.frame.maxX)
+    capture("offline-meal-portion", app)
+    confirm.tap()
+    for _ in 0..<20 { if try offlineQueue().count == 1 { break }; Thread.sleep(forTimeInterval: 0.2) }
+    let queued = try XCTUnwrap(offlineQueue().first)
+    XCTAssertEqual(queued["type"] as? String, "logMealEntry")
+    XCTAssertEqual(queued["state"] as? String, "pending")
+    XCTAssertEqual(queued["ingredientCount"] as? Int, 1)
+    app.terminate(); app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    XCTAssertEqual(try offlineQueue().count, 1)
+    capture("offline-cold-restart", app)
+  }
+
+  private func offlineQueue() throws -> [[String: Any]] {
+    return try events().last(where: { $0["method"] as? String == "OFFLINE_QUEUE" })?["metrics"] as? [[String: Any]] ?? []
+  }
+
   /// Saved-meal plus rendering and dated Home → Supplements navigation.
   func testInboxUIRefinements() throws {
     continueAfterFailure = false

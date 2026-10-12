@@ -8,6 +8,7 @@ import type {
   NutritionActionIdentity,
 } from '../../src/services/nutritionActionOutbox';
 import { ApiError } from '../../src/services/api/errors';
+import { offlineMealPayload } from '../helpers/offlineMealFixtures';
 
 const identity: NutritionActionIdentity = {
   serverConfigId: 'server-a',
@@ -89,6 +90,10 @@ function harness(actions: PendingNutritionAction[]) {
       return next;
     }),
     createEntry,
+    createMealAction: jest
+      .fn()
+      .mockResolvedValue({ mealEntryId: 'meal-group', alreadyApplied: false }),
+    acknowledge: jest.fn().mockResolvedValue(undefined),
     createWaterAction: jest.fn().mockResolvedValue({
       id: 'water-1',
       alreadyApplied: false,
@@ -109,6 +114,34 @@ function harness(actions: PendingNutritionAction[]) {
 }
 
 describe('nutrition action reconciliation', () => {
+  test('retries a grouped meal unchanged after a lost response or an older server', async () => {
+    const action: PendingNutritionAction = {
+      ...foodAction(offlineMealPayload.client_operation_id),
+      type: 'logMealEntry',
+      payload: offlineMealPayload,
+    };
+    const { deps, rows } = harness([action]);
+    const create = deps.createMealAction as jest.Mock;
+    create
+      .mockRejectedValueOnce(new Error('response lost'))
+      .mockRejectedValueOnce(new ApiError('not deployed', 404));
+    await reconcileNutritionActions(undefined, deps);
+    await reconcileNutritionActions(undefined, deps);
+    expect(rows.get(action.clientOperationId)?.syncState).toBe('pending');
+    create.mockResolvedValueOnce({ mealEntryId: null, alreadyApplied: true });
+    await reconcileNutritionActions(undefined, deps);
+    expect(create.mock.calls.map(([payload]) => payload)).toEqual([
+      action.payload,
+      action.payload,
+      action.payload,
+    ]);
+    expect(deps.createEntry).not.toHaveBeenCalled();
+    expect(deps.acknowledge).toHaveBeenCalledWith(
+      identity,
+      action.clientOperationId,
+      action.clientOperationId
+    );
+  });
   test('waits until explicit photo maintenance finishes before uploading', async () => {
     const { deps } = harness([
       foodAction('cbb275a8-8d2a-4514-a6e2-0fb864452293'),

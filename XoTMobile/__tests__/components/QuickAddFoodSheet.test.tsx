@@ -9,6 +9,12 @@ import type { FoodItem } from '../../src/types/foods';
 const mockPresent = jest.fn();
 const mockDismiss = jest.fn();
 const mockAddEntryAsync = jest.fn();
+const mockLogCachedFood = jest.fn();
+const mockLogCachedMeal = jest.fn();
+jest.mock('../../src/services/quickNutritionLog', () => ({
+  logCachedFood: (...args: unknown[]) => mockLogCachedFood(...args),
+  logCachedMeal: (...args: unknown[]) => mockLogCachedMeal(...args),
+}));
 
 jest.mock('react-native-toast-message', () => ({
   __esModule: true,
@@ -17,7 +23,7 @@ jest.mock('react-native-toast-message', () => ({
 
 jest.mock('@gorhom/bottom-sheet', () => {
   const React = require('react');
-  const { View } = require('react-native');
+  const { View, TextInput } = require('react-native');
   const MockBottomSheetModal = React.forwardRef(
     ({ children }: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
       React.useImperativeHandle(ref, () => ({
@@ -31,6 +37,10 @@ jest.mock('@gorhom/bottom-sheet', () => {
   return {
     __esModule: true,
     BottomSheetBackdrop: () => <View />,
+    BottomSheetTextInput: TextInput,
+    BottomSheetScrollView: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
     BottomSheetModal: MockBottomSheetModal,
     BottomSheetView: ({ children }: { children: React.ReactNode }) => (
       <View>{children}</View>
@@ -124,6 +134,91 @@ describe('QuickAddFoodSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddEntryAsync.mockResolvedValue({ id: 'entry-1' });
+  });
+
+  it('durably queues a decimal offline portion before showing success and ignores duplicate taps', async () => {
+    let resolve: () => void = () => undefined;
+    mockLogCachedFood.mockImplementationOnce(
+      () =>
+        new Promise<void>((done) => {
+          resolve = done;
+        })
+    );
+    const onLogged = jest.fn();
+    const identity = { serverConfigId: 'server', userId: 'owner' };
+    const { screen } = renderSheet({
+      offline: {
+        identity,
+        mealTypes: [
+          {
+            id: 'lunch',
+            name: 'Lunch',
+            sort_order: 1,
+            is_visible: true,
+            show_in_quick_log: true,
+          },
+        ],
+      },
+      onLogged,
+    });
+    const input = screen.getByTestId('quick-add-offline-quantity');
+    fireEvent.changeText(input, '75,5');
+    const add = screen.getByRole('button', { name: 'Add' });
+    fireEvent.press(add);
+    fireEvent.press(add);
+    expect(mockLogCachedFood).toHaveBeenCalledTimes(1);
+    expect(mockLogCachedFood).toHaveBeenCalledWith(
+      food.id,
+      expect.objectContaining({
+        quantity: 75.5,
+        entryDate: '2026-09-28',
+        identity,
+      })
+    );
+    expect(Toast.show).not.toHaveBeenCalled();
+    expect(mockDismiss).not.toHaveBeenCalled();
+    await act(async () => resolve());
+    expect(onLogged).toHaveBeenCalledTimes(1);
+    expect(Toast.show).toHaveBeenCalledWith(
+      expect.objectContaining({ text1: 'Saved on this device' })
+    );
+    expect(mockAddEntryAsync).not.toHaveBeenCalled();
+  });
+
+  it('keeps the offline portion open after a storage failure and rejects invalid quantities', async () => {
+    mockLogCachedFood.mockRejectedValueOnce(new Error('disk full'));
+    const { screen } = renderSheet({
+      offline: {
+        identity: { serverConfigId: 'server', userId: 'owner' },
+        mealTypes: [
+          {
+            id: 'lunch',
+            name: 'Lunch',
+            sort_order: 1,
+            is_visible: true,
+            show_in_quick_log: true,
+          },
+        ],
+      },
+    });
+    fireEvent.changeText(
+      screen.getByTestId('quick-add-offline-quantity'),
+      '-1'
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Add' }));
+    expect(mockLogCachedFood).not.toHaveBeenCalled();
+    fireEvent.changeText(
+      screen.getByTestId('quick-add-offline-quantity'),
+      '20'
+    );
+    fireEvent.press(screen.getByRole('button', { name: 'Add' }));
+    await waitFor(() =>
+      expect(Toast.show).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'error' })
+      )
+    );
+    expect(mockDismiss).not.toHaveBeenCalled();
+    expect(screen.queryByText('More options')).toBeNull();
   });
 
   it('shows serving presets with live nutrition for the selected amount', () => {

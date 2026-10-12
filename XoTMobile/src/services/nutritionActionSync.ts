@@ -1,5 +1,6 @@
 import type { QueryClient } from '@tanstack/react-query';
 import { createFoodEntry } from './api/foodEntriesApi';
+import { createOfflineMealAction } from './api/offlineMealsApi';
 import {
   createContainerWaterAction,
   createManualWaterAction,
@@ -20,6 +21,7 @@ import {
   markNutritionActionPending,
   markNutritionActionSynced,
   markNutritionActionSyncing,
+  acknowledgeNutritionActionVisible,
   type NutritionActionErrorClass,
   type NutritionActionIdentity,
   type PendingNutritionAction,
@@ -52,6 +54,8 @@ export interface NutritionSyncDependencies {
   markAttention: typeof markNutritionActionAttentionRequired;
   markSynced: typeof markNutritionActionSynced;
   createEntry: typeof createFoodEntry;
+  createMealAction: typeof createOfflineMealAction;
+  acknowledge: typeof acknowledgeNutritionActionVisible;
   createWaterAction: typeof createManualWaterAction;
   createContainerWaterAction: typeof createContainerWaterAction;
   createPlannedSupplementAction: typeof createPlannedSupplementAction;
@@ -70,6 +74,8 @@ const productionDependencies: NutritionSyncDependencies = {
   markAttention: markNutritionActionAttentionRequired,
   markSynced: markNutritionActionSynced,
   createEntry: createFoodEntry,
+  createMealAction: createOfflineMealAction,
+  acknowledge: acknowledgeNutritionActionVisible,
   createWaterAction: createManualWaterAction,
   createContainerWaterAction,
   createPlannedSupplementAction,
@@ -207,8 +213,13 @@ async function reconcilePass(
     processed += 1;
     try {
       let serverId: string;
+      let deletedMeal = false;
       if (action.type === 'logFoodEntry') {
         serverId = (await deps.createEntry(action.payload)).id;
+      } else if (action.type === 'logMealEntry') {
+        const result = await deps.createMealAction(action.payload);
+        deletedMeal = result.mealEntryId === null;
+        serverId = result.mealEntryId ?? action.clientOperationId;
       } else if (action.type === 'logManualWater') {
         serverId = (await deps.createWaterAction(action.payload)).id;
       } else if (action.type === 'logContainerWater') {
@@ -244,6 +255,20 @@ async function reconcilePass(
         return { processed, nextDelayMs: null };
       }
       await deps.markSynced(identity, action.clientOperationId, serverId);
+      if (deletedMeal)
+        await deps.acknowledge(identity, action.clientOperationId, serverId);
+      if (action.type === 'logFoodEntry' || action.type === 'logMealEntry') {
+        for (const key of [
+          ['foodEntries'],
+          ['foodEntryMeals'],
+          ['recentMeals'],
+          ['topMeals'],
+          ['favorites'],
+          ['dailyProgress'],
+          caffeineActiveRootQueryKey,
+        ])
+          void queryClient?.invalidateQueries({ queryKey: key });
+      }
       void queryClient?.invalidateQueries({ queryKey: ['waterIntakeLog'] });
       void queryClient?.invalidateQueries({ queryKey: ['waterIntakeRange'] });
       void queryClient?.invalidateQueries({
@@ -274,7 +299,14 @@ async function reconcilePass(
         });
       }
     } catch (error) {
-      const failure = classify(error);
+      // A previous server can receive a queued meal before its rollout. Keep
+      // that operation retryable; never fall back to a non-idempotent write.
+      const failure =
+        action.type === 'logMealEntry' &&
+        error instanceof ApiError &&
+        error.statusCode === 404
+          ? { reason: 'server' as const, permanent: false }
+          : classify(error);
       if (failure.permanent) {
         await deps.markAttention(
           identity,

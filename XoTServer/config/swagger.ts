@@ -2,10 +2,13 @@
 import swaggerJsdoc from 'swagger-jsdoc';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { z } from 'zod';
 import {
   CHART_SCALE_MODES,
   MAX_CALORIE_SAFETY_FLOOR,
   MIN_CALORIE_SAFETY_FLOOR,
+  offlineMealActionBodySchema,
+  offlineMealActionResponseSchema,
 } from '@workspace/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -53,6 +56,13 @@ const options = {
         },
       },
       schemas: {
+        OfflineMealAction: z.toJSONSchema(offlineMealActionBodySchema, {
+          target: 'openapi-3.0',
+        }),
+        OfflineMealActionResponse: z.toJSONSchema(
+          offlineMealActionResponseSchema,
+          { target: 'openapi-3.0' }
+        ),
         Exercise: {
           type: 'object',
           properties: {

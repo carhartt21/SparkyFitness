@@ -24,6 +24,7 @@ import {
   topMealsQueryKeyRoot,
 } from './queryKeys';
 import type { QueryClient } from '@tanstack/react-query';
+import { fetchAndCacheNutritionMeals } from '../services/cacheNutritionData';
 import type {
   CreateMealPayload,
   Meal,
@@ -71,7 +72,7 @@ export function useMeals(options?: { enabled?: boolean }) {
 
   const query = useQuery({
     queryKey: mealsQueryKey,
-    queryFn: fetchMeals,
+    queryFn: () => fetchAndCacheNutritionMeals(fetchMeals, (result) => result),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
   });
@@ -92,7 +93,11 @@ export function useRecentMeals(options?: {
 
   const query = useQuery({
     queryKey: recentMealsQueryKey(limit),
-    queryFn: () => fetchRecentMeals(limit),
+    queryFn: () =>
+      fetchAndCacheNutritionMeals(
+        () => fetchRecentMeals(limit),
+        (result) => result
+      ),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
   });
@@ -110,7 +115,11 @@ export function useTopMeals(options?: { enabled?: boolean; limit?: number }) {
 
   const query = useQuery({
     queryKey: topMealsQueryKey(limit),
-    queryFn: () => fetchTopMeals(limit),
+    queryFn: () =>
+      fetchAndCacheNutritionMeals(
+        () => fetchTopMeals(limit),
+        (result) => result
+      ),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
   });
@@ -131,7 +140,11 @@ export function useMeal(
 
   const query = useQuery({
     queryKey: mealDetailQueryKey(mealId ?? ''),
-    queryFn: () => fetchMeal(mealId!),
+    queryFn: () =>
+      fetchAndCacheNutritionMeals(
+        () => fetchMeal(mealId!),
+        (result) => [result]
+      ),
     enabled: enabled && !!mealId,
     staleTime: 1000 * 60 * 5, // 5 minutes
     placeholderData: initialMeal,

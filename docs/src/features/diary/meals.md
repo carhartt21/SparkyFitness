@@ -43,6 +43,25 @@ entry dates, times or photographs. Ingredients without confirmed nutrition or a
 reusable library food need review. Resolve them first or explicitly continue with
 the resolved ingredients; missing nutrition is never invented.
 
+## Offline logging on the phone
+
+While connected, open your food/meal library and favorites once. The phone
+retains the foods and complete recipes it has loaded for that server and account.
+Offline, **Add food** shows **On device** and **Favorites**. Search this local list,
+choose a portion and meal category, then add it to the selected diary day.
+
+“Saved on this device” confirms local storage. The entry remains pending until
+the same account reconnects; it is not yet a confirmed server record. Reopening
+the app preserves pending entries. Recipes retain their ingredient snapshots and
+yield, and sync as one grouped diary meal. Retrying a sync cannot create a second
+meal or restore a deliberately deleted one.
+
+The local list contains previously loaded data, not the entire online catalog.
+Provider searches, new servings and library editing need a connection. A recipe
+with unavailable ingredients or unresolved units cannot be saved for offline use.
+Connect once if meal categories have not been loaded. A storage failure leaves
+the portion sheet open and does not claim the entry was saved.
+
 ## Suggested Meal Category Times
 
 X on Track dynamically suggests the appropriate meal category (e.g., Breakfast, Lunch, Dinner, Snacks, or custom categories) when you log food based on your current time of day.

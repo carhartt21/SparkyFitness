@@ -2,13 +2,18 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchFoods } from '../services/api/foodsApi';
 import { foodsQueryKey } from './queryKeys';
 import { useRefetchOnFocus } from './useRefetchOnFocus';
+import { fetchAndCacheNutritionFoods } from '../services/cacheNutritionData';
 
 export function useFoods(options?: { enabled?: boolean }) {
   const { enabled = true } = options ?? {};
 
   const query = useQuery({
     queryKey: foodsQueryKey,
-    queryFn: fetchFoods,
+    queryFn: () =>
+      fetchAndCacheNutritionFoods(fetchFoods, (result) => [
+        ...result.recentFoods,
+        ...result.topFoods,
+      ]),
     staleTime: 1000 * 60 * 5, // 5 minutes
     enabled,
   });

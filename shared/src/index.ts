@@ -252,3 +252,5 @@ export * from "./schemas/database/ActivityPlanResolutions.zod.ts";
 
 export * from "./activityPlanning.ts";
 export * from "./schemas/api/Hevy.api.zod.ts";
+export * from "./schemas/api/OfflineMealAction.api.zod.ts";
+export * from "./schemas/database/OfflineMealActions.zod.ts";

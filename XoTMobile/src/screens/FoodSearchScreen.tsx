@@ -39,6 +39,7 @@ import { useGlowTheme, withAlpha } from '../components/ui/glow';
 import QuickAddFoodSheet, {
   type QuickAddFoodSheetRef,
 } from '../components/foodSearch/QuickAddFoodSheet';
+import OfflineFoodBrowser from '../components/foodSearch/OfflineFoodBrowser';
 import { useDiaryDateStore } from '../stores/diaryDateStore';
 import FoodSearchSectionHeader, {
   SectionTitleHeader,
@@ -241,7 +242,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   // untouched. The basket is deliberately independent of select MODE: mode
   // only switches the row affordances, so a basket survives typing a search
   // and single-tap adds; only Clear or a completed batch empties it.
-  const multiSelectAvailable = pickerMode === 'log-entry' && !photoCapture;
+  const multiSelectAvailable =
+    isConnected && pickerMode === 'log-entry' && !photoCapture;
   const {
     count: selectionCount,
     maxItems: selectionMaxItems,
@@ -672,31 +674,35 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           onPress: () => navigation.goBack(),
         }),
       ],
-      unstable_headerRightItems: () => [
-        createNativeHeaderMenuButtonItem({
-          // Bare glyph: Liquid Glass draws its own circular button background,
-          // so ellipsis.circle would double up the ring.
-          sfSymbol: 'ellipsis',
-          identifier: 'food-search-overflow',
-          tintColor: headerActionColor,
-          accessibilityLabel: isOwnershipFiltered
-            ? t('foodSearch.accessibility.moreFiltered', {
-                defaultValue: 'More options, filtered to {{filter}}',
-                filter: localizedFilterLabels[ownershipFilter],
-              })
-            : t('foodSearch.accessibility.moreOptions', {
-                defaultValue: 'More options',
+      unstable_headerRightItems: () =>
+        !isConnected
+          ? []
+          : [
+              createNativeHeaderMenuButtonItem({
+                // Bare glyph: Liquid Glass draws its own circular button background,
+                // so ellipsis.circle would double up the ring.
+                sfSymbol: 'ellipsis',
+                identifier: 'food-search-overflow',
+                tintColor: headerActionColor,
+                accessibilityLabel: isOwnershipFiltered
+                  ? t('foodSearch.accessibility.moreFiltered', {
+                      defaultValue: 'More options, filtered to {{filter}}',
+                      filter: localizedFilterLabels[ownershipFilter],
+                    })
+                  : t('foodSearch.accessibility.moreOptions', {
+                      defaultValue: 'More options',
+                    }),
+                badge: isOwnershipFiltered
+                  ? createNativeHeaderAccentBadge(accentColor)
+                  : undefined,
+                menuItems: nativeMenuItems,
               }),
-          badge: isOwnershipFiltered
-            ? createNativeHeaderAccentBadge(accentColor)
-            : undefined,
-          menuItems: nativeMenuItems,
-        }),
-      ],
+            ],
     });
   }, [
     accentColor,
     headerActionColor,
+    isConnected,
     isOwnershipFiltered,
     localizedFilterLabels,
     nativeMenuItems,
@@ -1447,7 +1453,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           </Button>
         )}
 
-        {!usesNativeHeader && (
+        {!usesNativeHeader && isConnected && (
           <View ref={addButtonRef} collapsable={false}>
             <Button
               variant="ghost"
@@ -1532,7 +1538,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
             >
               <Icon name="close" size={20} color={textMuted} />
             </Button>
-          ) : (
+          ) : isConnected ? (
             <Button
               variant="header"
               onPress={openFoodScan}
@@ -1544,22 +1550,32 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
             >
               <Icon name="scan" size={20} color={headerActionColor} />
             </Button>
-          )}
+          ) : null}
         </View>
       </View>
       <View className="px-4 pb-3">
-        <SegmentedControl
+        <SegmentedControl<'all' | 'recent' | 'favorites'>
           activeKey={browseTab}
           onSelect={setBrowseTab}
           segments={[
             {
               key: 'all',
-              label: t('foodSearch.filter.all', { defaultValue: 'All' }),
+              label: isConnected
+                ? t('foodSearch.filter.all', { defaultValue: 'All' })
+                : t('foodSearch.offline.savedItems', {
+                    defaultValue: 'On device',
+                  }),
             },
-            {
-              key: 'recent',
-              label: t('foodSearch.tabs.recent', { defaultValue: 'Recent' }),
-            },
+            ...(isConnected
+              ? [
+                  {
+                    key: 'recent' as const,
+                    label: t('foodSearch.tabs.recent', {
+                      defaultValue: 'Recent',
+                    }),
+                  },
+                ]
+              : []),
             {
               key: 'favorites',
               label: t('foodSearch.sections.favorites', {
@@ -1576,6 +1592,20 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
 
   const renderBody = () => {
     if (!isConnected) {
+      if (pickerMode === 'log-entry' && !photoCapture)
+        return (
+          <OfflineFoodBrowser
+            search={searchText}
+            favoritesOnly={browseTab === 'favorites'}
+            date={date ?? useDiaryDateStore.getState().selectedDate}
+            mealTypeId={mealTypeId}
+            onLogged={
+              loggingOrigin && selectionCount === 0
+                ? () => returnAfterFoodLogging(navigation, loggingOrigin)
+                : undefined
+            }
+          />
+        );
       return (
         <View className="flex-1 justify-center items-center px-6">
           <Icon name="cloud-offline" size={48} color={accentColor} />
@@ -1747,7 +1777,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     >
       <ScreenBackground />
       {renderHeaderBar()}
-      {pickerMode === 'log-entry' && !photoCapture && (
+      {isConnected && pickerMode === 'log-entry' && !photoCapture && (
         <View className="flex-row gap-2 px-4 pb-3">
           {[
             ...(!date || date === getTodayDate()

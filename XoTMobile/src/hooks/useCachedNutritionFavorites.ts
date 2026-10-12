@@ -9,10 +9,15 @@ import {
   getActiveNutritionIdentity,
   subscribeNutritionIdentity,
 } from '../services/nutritionIdentity';
+import type { NutritionActionIdentity } from '../services/nutritionActionOutbox';
 
 export function useCachedNutritionFavorites() {
   const [cache, setCache] = useState<NutritionFavoriteCache | null>(null);
   const [storageError, setStorageError] = useState(false);
+  const [identity, setIdentity] = useState<NutritionActionIdentity | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
   const generation = useRef(0);
   const refresh = useCallback(async () => {
     const currentGeneration = ++generation.current;
@@ -21,11 +26,15 @@ export function useCachedNutritionFavorites() {
       const next = identity ? await readNutritionFavoriteCache(identity) : null;
       if (currentGeneration !== generation.current) return;
       setCache(next);
+      setIdentity(identity);
       setStorageError(false);
     } catch {
       if (currentGeneration !== generation.current) return;
       setCache(null);
+      setIdentity(null);
       setStorageError(true);
+    } finally {
+      if (currentGeneration === generation.current) setIsLoading(false);
     }
   }, []);
 
@@ -35,6 +44,8 @@ export function useCachedNutritionFavorites() {
     const stopIdentity = subscribeNutritionIdentity(() => {
       generation.current += 1;
       setCache(null);
+      setIdentity(null);
+      setIsLoading(true);
       void refresh();
     });
     const appState = AppState.addEventListener('change', (state) => {
@@ -48,5 +59,5 @@ export function useCachedNutritionFavorites() {
     };
   }, [refresh]);
 
-  return { cache, storageError };
+  return { cache, identity, storageError, isLoading };
 }

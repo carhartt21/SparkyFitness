@@ -17,6 +17,17 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Gates and artifacts
 
+`--inbox-ui-review --offline-dashboard-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
+uses an isolated, account-scoped offline cache containing saved foods and a
+complete meal. It holds and cancels all four Dashboard tiles, verifies no action
+was queued by those menus, checks the additional lower destinations, opens
+Favorites, reviews the meal portion and queues it. The actual device outbox must
+retain the complete ingredient snapshot after terminating and restarting the
+app. Macro text must remain inside the viewport, including at enlarged text;
+the sheet scrolls to its confirmation action. The unique fixture run ID clears
+only that synthetic account's outbox before a new test, never on its restart.
+This proves local persistence, not successful server replay or device acceptance.
+
 `--inbox-ui-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
 captures the saved-meal quick-add plus and Home's lower Supplements navigation
 row. It checks their minimum touch targets and horizontal bounds, opens the
@@ -64,7 +75,7 @@ Dashboard navigation/layout use `--summary-cards-review` separately.
 
 `XOT_UI_REVIEW=1` changes only Metro's resolution of the entrypoint's `./App` import. Normal exports retain the production entrypoint. The review wrapper refuses release builds and physical devices, allows only the synthetic `ui-review.invalid` origin, supplies explicit GET fixtures, and accepts only enumerated in-memory nutrition and wellness mutations plus a timezone bootstrap response. Created IDs use `review-created-`; other writes and origins are rejected. Each scenario starts with a fresh fixture. Loopback audit events contain synthetic records only. No credentials or personal records belong in fixtures or committed screenshots. Do not set this variable in EAS/deployment profiles.
 
-The synthetic transport deliberately does not verify authentication, server persistence, offline mutation replay, HealthKit, Watch sync, camera permissions or physical-device performance. Search, portion, save, quantity edit and delete are tested against memory only; persistence across process restart and editing a note with the keyboard open remain unverified. An unpaired Watch warning is expected. The review preference set hides health trend series and optional modules; those require separate scenario coverage.
+The synthetic transport deliberately does not verify authentication, server persistence, offline mutation replay, HealthKit, Watch sync, camera permissions or physical-device performance. Search, portion, save, quantity edit and delete are tested against memory only; the dedicated offline scenario additionally checks local outbox persistence across process restart. Editing a note with the keyboard open needs its separate keyboard scenario. An unpaired Watch warning is expected. The review preference set hides health trend series and optional modules; those require separate scenario coverage.
 
 Before release: run the normal type check, lint and relevant tests; export iOS without `XOT_UI_REVIEW`; verify review markers are absent from the bundle; review captures; then use a real TestFlight device for integration gates.
 

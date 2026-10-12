@@ -1,11 +1,14 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   cacheFavoriteFoods,
+  cacheSavedFoods,
+  cacheOfflineMeals,
   cacheQuickMealTypes,
   readNutritionFavoriteCache,
 } from '../../src/services/nutritionFavoriteCache';
 import type { FoodItem } from '../../src/types/foods';
 import type { MealType } from '../../src/types/mealTypes';
+import { offlineMeal } from '../helpers/offlineMealFixtures';
 
 const owner = { serverConfigId: 'server-a', userId: 'user-a' };
 const food: FoodItem = {
@@ -64,6 +67,48 @@ describe('offline favorite cache', () => {
     const refreshed = await readNutritionFavoriteCache(owner);
     expect(refreshed.foods).toEqual([]);
     expect(refreshed.mealTypes).toHaveLength(1);
+  });
+
+  test('reads the existing v1 format and retains saved foods when favorites change', async () => {
+    await cacheFavoriteFoods(owner, [food]);
+    await cacheSavedFoods(owner, [{ ...food, id: 'saved-only' }]);
+    await cacheFavoriteFoods(owner, []);
+    const cache = await readNutritionFavoriteCache(owner);
+    expect(cache.foods).toEqual([]);
+    expect(cache.savedFoods?.map((item) => item.id)).toEqual(['saved-only']);
+    expect(
+      (await readNutritionFavoriteCache({ ...owner, serverConfigId: 'other' }))
+        .savedFoods
+    ).toBeUndefined();
+  });
+
+  test('bounds seen foods while keeping all favorite recipes and refreshed snapshots', async () => {
+    await cacheSavedFoods(
+      owner,
+      Array.from({ length: 501 }, (_, index) => ({
+        ...food,
+        id: `food-${index}`,
+      }))
+    );
+    expect((await readNutritionFavoriteCache(owner)).savedFoods).toHaveLength(
+      500
+    );
+    await cacheOfflineMeals(owner, [offlineMeal], [offlineMeal.id]);
+    const meals = Array.from({ length: 201 }, (_, index) => ({
+      ...offlineMeal,
+      id: `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+    }));
+    await cacheOfflineMeals(owner, meals);
+    expect((await readNutritionFavoriteCache(owner)).meals).toHaveLength(201);
+    await cacheOfflineMeals(
+      owner,
+      [{ ...offlineMeal, name: 'Edited recipe' }],
+      []
+    );
+    const cache = await readNutritionFavoriteCache(owner);
+    expect(cache.meals).toHaveLength(200);
+    expect(cache.meals?.at(-1)?.name).toBe('Edited recipe');
+    expect(cache.favoriteMealIds).toEqual([]);
   });
 
   test('server null nutrients stay unknown while known zero is retained', async () => {

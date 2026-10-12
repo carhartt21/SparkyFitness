@@ -4,6 +4,8 @@ import type { CreateFoodEntryPayload } from './api/foodEntriesApi';
 import {
   containerWaterActionBodySchema,
   plannedSupplementActionBodySchema,
+  offlineMealActionBodySchema,
+  type OfflineMealActionBody,
 } from '@workspace/shared';
 import { newUuid } from '../utils/ids';
 
@@ -30,6 +32,8 @@ const foodPayloadSchema = z.strictObject({
   carbs: z.number().finite().optional(),
   fat: z.number().finite().optional(),
   saturated_fat: z.number().finite().optional(),
+  polyunsaturated_fat: z.number().finite().optional(),
+  monounsaturated_fat: z.number().finite().optional(),
   sodium: z.number().finite().optional(),
   dietary_fiber: z.number().finite().optional(),
   sugars: z.number().finite().optional(),
@@ -43,6 +47,7 @@ const foodPayloadSchema = z.strictObject({
   cholesterol: z.number().finite().optional(),
   vitamin_a: z.number().finite().optional(),
   vitamin_c: z.number().finite().optional(),
+  glycemic_index: z.string().optional(),
   custom_nutrients: z
     .record(z.string(), z.union([z.string(), z.number()]))
     .nullable()
@@ -133,6 +138,11 @@ const waterPayloadSchema = z.strictObject({
 const actionSchema = z.discriminatedUnion('type', [
   z.strictObject({
     ...commonActionFields,
+    type: z.literal('logMealEntry'),
+    payload: offlineMealActionBodySchema,
+  }),
+  z.strictObject({
+    ...commonActionFields,
     type: z.literal('logFoodEntry'),
     payload: foodPayloadSchema,
   }),
@@ -164,6 +174,10 @@ const actionSchema = z.discriminatedUnion('type', [
 ]);
 
 export type PendingNutritionAction = z.infer<typeof actionSchema>;
+export type PendingMealAction = Extract<
+  PendingNutritionAction,
+  { type: 'logMealEntry' }
+>;
 export type PendingFoodAction = Extract<
   PendingNutritionAction,
   { type: 'logFoodEntry' }
@@ -247,7 +261,7 @@ function parseAction(raw: string): PendingNutritionAction {
     }
     const action = actionSchema.parse(parsed);
     if (
-      (action.type === 'logFoodEntry' &&
+      ((action.type === 'logFoodEntry' || action.type === 'logMealEntry') &&
         action.payload.client_operation_id !== action.clientOperationId) ||
       (action.type === 'logManualWater' &&
         action.payload.client_operation_id !== action.clientOperationId) ||
@@ -325,6 +339,52 @@ export function enqueueFoodEntry(
       lastError: null,
       serverIdentity: null,
     });
+    await save(key, action);
+    return action;
+  });
+}
+
+export function enqueueMealEntry(
+  input: NutritionActionIdentity & {
+    occurredAt: string;
+    payload: Omit<OfflineMealActionBody, 'client_operation_id'>;
+    clientOperationId?: string;
+  }
+): Promise<PendingMealAction> {
+  return serialized(async () => {
+    const clientOperationId = input.clientOperationId ?? newUuid();
+    const key = keyFor(input, clientOperationId);
+    const payload = offlineMealActionBodySchema.parse({
+      ...input.payload,
+      client_operation_id: clientOperationId,
+    });
+    const existing = await read(key);
+    if (existing) {
+      if (
+        existing.type !== 'logMealEntry' ||
+        JSON.stringify(existing.payload) !== JSON.stringify(payload)
+      )
+        throw new Error(
+          'Operation ID already belongs to a different meal action.'
+        );
+      return existing;
+    }
+    const action = actionSchema.parse({
+      version: 1,
+      type: 'logMealEntry',
+      clientOperationId,
+      serverConfigId: input.serverConfigId,
+      userId: input.userId,
+      occurredAt: input.occurredAt,
+      createdAt: new Date().toISOString(),
+      payload,
+      syncState: 'pending',
+      retryCount: 0,
+      lastAttemptAt: null,
+      lastError: null,
+      serverIdentity: null,
+    });
+    if (action.type !== 'logMealEntry') throw new Error('Invalid meal action.');
     await save(key, action);
     return action;
   });

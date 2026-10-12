@@ -937,6 +937,12 @@
     }
   },
   "dashboard": {
+    "quickFoodSubtitle": "Choose food",
+    "quickExerciseSubtitle": "Start or log",
+    "quickWaterSubtitle": "Choose container",
+    "quickScanSubtitle": "Barcode or photo",
+    "quickActionOptions": "Hold for more options",
+    "quickWorkoutPlan": "Weekly plan",
     "chooseDate": "Choose dashboard date",
     "noServerConfigured": "No server configured",
     "configureServer": "Configure your server connection in Settings to view your daily summary.",
@@ -4006,6 +4012,25 @@
     }
   },
   "foodSearch": {
+    "offline": {
+      "savedItems": "On device",
+      "notice": "Offline · Choose a saved food or meal. Entries stay on this device until they can sync.",
+      "empty": "No foods or meals saved on this device yet. Open your library and favorites while connected first.",
+      "noMatch": "No matching food or meal saved on this device.",
+      "missingMealTypes": "Connect once to load your meal categories before logging offline.",
+      "choose": "Choose portion for {{food}}",
+      "portion": "{{amount}} · {{calories}} kcal",
+      "cacheError": "Saved foods and meals could not be read. Your stored entries have not been changed.",
+      "signIn": "Sign in while connected once to make foods and meals available offline.",
+      "saved": "Saved on this device",
+      "pending": "Waiting to sync when connected.",
+      "saveFailed": "Could not save this entry",
+      "retry": "Keep this screen open and try again. Check that the same account is selected.",
+      "servingNote": "Uses the serving saved on this device. New servings need a connection.",
+      "invalidAmount": "Enter an amount greater than zero.",
+      "mealIngredients_one": "Saved meal · {{count}} ingredient",
+      "mealIngredients_other": "Saved meal · {{count}} ingredients"
+    },
     "quickPhoto": "Meal photo",
     "bls4Attribution": "BLS 4.0 · Max Rubner-Institut · per 100 g · ",
     "bls4Source": "Source",

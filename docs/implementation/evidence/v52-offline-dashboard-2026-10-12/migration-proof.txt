@@ -1,0 +1,5 @@
+migration=true
+rls=true,forced=false
+owner_policy:ALL:(user_id = authenticated_user_id())
+offline_meal_actions_meal_entry_id_fkey:n
+offline_meal_actions_user_id_fkey:c

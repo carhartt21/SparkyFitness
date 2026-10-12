@@ -1,14 +1,32 @@
 import { getActiveNutritionIdentity } from './nutritionIdentity';
 import {
   enqueueFoodEntry,
+  enqueueMealEntry,
   type PendingNutritionAction,
+  type NutritionActionIdentity,
 } from './nutritionActionOutbox';
-import { readNutritionFavoriteCache } from './nutritionFavoriteCache';
+import {
+  readNutritionFavoriteCache,
+  type CachedFavoriteFood,
+} from './nutritionFavoriteCache';
 import type { CreateFoodEntryPayload } from './api/foodEntriesApi';
+import {
+  offlineMealSnapshotSchema,
+  type OfflineMealSnapshot,
+} from '@workspace/shared';
 
 export interface QuickLogTime {
   occurredAt?: string;
   mealTypeId?: string;
+}
+
+export interface CachedFoodLogOptions extends QuickLogTime {
+  entryDate?: string;
+  quantity?: number;
+  /** Identity that owned the visible snapshot when the picker opened. */
+  identity?: NutritionActionIdentity;
+  /** Keep the exact nutrient basis reviewed in the portion sheet. */
+  snapshot?: CachedFavoriteFood;
 }
 
 function dateFields(occurredAt: string) {
@@ -63,22 +81,85 @@ export async function logFavoriteFood(
   favoriteId: string,
   options: QuickLogTime = {}
 ): Promise<PendingNutritionAction> {
+  return queueCachedFood(favoriteId, options, true);
+}
+
+export async function logCachedFood(
+  foodId: string,
+  options: CachedFoodLogOptions = {}
+): Promise<PendingNutritionAction> {
+  return queueCachedFood(foodId, options, false);
+}
+
+export async function logCachedMeal(
+  meal: OfflineMealSnapshot,
+  options: CachedFoodLogOptions
+) {
+  const identity = await getActiveNutritionIdentity();
+  if (
+    !identity ||
+    !options.identity ||
+    identity.serverConfigId !== options.identity.serverConfigId ||
+    identity.userId !== options.identity.userId
+  )
+    throw new Error('The nutrition account changed.');
+  const cache = await readNutritionFavoriteCache(identity);
+  const occurredAt = options.occurredAt ?? new Date().toISOString();
+  const snapshot = offlineMealSnapshotSchema.parse(meal);
+  const active = await getActiveNutritionIdentity();
+  if (
+    active?.userId !== identity.userId ||
+    active.serverConfigId !== identity.serverConfigId
+  )
+    throw new Error('The nutrition account changed.');
+  return enqueueMealEntry({
+    ...identity,
+    occurredAt,
+    payload: {
+      ...dateFields(occurredAt),
+      entry_date: options.entryDate ?? dateFields(occurredAt).entry_date,
+      meal_type_id: chooseMealType(cache.mealTypes, options.mealTypeId),
+      quantity: options.quantity ?? meal.serving_size,
+      meal: snapshot,
+    },
+  });
+}
+
+async function queueCachedFood(
+  favoriteId: string,
+  options: CachedFoodLogOptions,
+  favoritesOnly: boolean
+): Promise<PendingNutritionAction> {
   const identity = await getActiveNutritionIdentity();
   if (!identity) {
     throw new Error(
       'Sign in once while online before logging nutrition offline.'
     );
   }
+  if (
+    (options.snapshot && !options.identity) ||
+    (options.identity &&
+      (options.identity.userId !== identity.userId ||
+        options.identity.serverConfigId !== identity.serverConfigId))
+  )
+    throw new Error('The nutrition account changed.');
   const cache = await readNutritionFavoriteCache(identity);
-  const food = cache.foods.find((item) => item.id === favoriteId);
+  const foods = favoritesOnly
+    ? cache.foods
+    : [...(cache.savedFoods ?? []), ...cache.foods];
+  const food =
+    options.snapshot?.id === favoriteId
+      ? options.snapshot
+      : foods.find((item) => item.id === favoriteId);
   if (!food) throw new Error('Favorite is not cached on this device.');
   const variant = food.default_variant;
   const occurredAt = options.occurredAt ?? new Date().toISOString();
   const payload: CreateFoodEntryPayload = {
     meal_type_id: chooseMealType(cache.mealTypes, options.mealTypeId),
-    quantity: variant.serving_size,
+    quantity: options.quantity ?? variant.serving_size,
     unit: variant.serving_unit,
     ...dateFields(occurredAt),
+    ...(options.entryDate ? { entry_date: options.entryDate } : {}),
     // A standalone snapshot remains loggable after a favorite is removed or
     // its source food/variant changes while this device is offline.
     food_name: food.name,
@@ -90,6 +171,8 @@ export async function logFavoriteFood(
     carbs: variant.carbs,
     fat: variant.fat,
     saturated_fat: variant.saturated_fat,
+    polyunsaturated_fat: variant.polyunsaturated_fat,
+    monounsaturated_fat: variant.monounsaturated_fat,
     sodium: variant.sodium,
     dietary_fiber: variant.dietary_fiber,
     sugars: variant.sugars,
@@ -103,8 +186,15 @@ export async function logFavoriteFood(
     cholesterol: variant.cholesterol,
     vitamin_a: variant.vitamin_a,
     vitamin_c: variant.vitamin_c,
+    glycemic_index: variant.glycemic_index,
     custom_nutrients: variant.custom_nutrients,
   };
+  const active = await getActiveNutritionIdentity();
+  if (
+    active?.userId !== identity.userId ||
+    active.serverConfigId !== identity.serverConfigId
+  )
+    throw new Error('The nutrition account changed.');
   return enqueueFoodEntry({ ...identity, occurredAt, payload });
 }
 
