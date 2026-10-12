@@ -59,6 +59,8 @@ filters truncate and meal names wrap; this bounded change does not redesign
 those layouts. The implementation is ready for integration; release delivery
 and owner acceptance remain separate.
 
+Subsequent merge and delivery work is tracked in the [v51 release record](v51-release-2026-10-12.md).
+
 | Case | Home lower list | Saved-meal action |
 | --- | --- | --- |
 | German dark, 390 pt | [Capture](evidence/meal-add-dashboard-supplements-2026-10-12/390-de-dark-dashboard-supplements.png) | [Capture](evidence/meal-add-dashboard-supplements-2026-10-12/390-de-dark-saved-meal-plus.png) |
