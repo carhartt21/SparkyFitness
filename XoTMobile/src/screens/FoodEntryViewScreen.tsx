@@ -78,6 +78,7 @@ import {
   buildLocalUnitVariants,
   convertEquivalentVariantQuantity,
   formatServingSizeDisplay,
+  formatServingSizeForDisplay,
   buildLocalVariantOptions,
   formatServingUnit,
   formatVariantLabel,
@@ -886,15 +887,14 @@ const FoodEntryViewScreen: React.FC<FoodEntryViewScreenProps> = ({
   const servings = entry.serving_size
     ? entry.quantity / entry.serving_size
     : entry.quantity;
-  const servingsCount =
-    servings % 1 === 0 ? servings : parseFloat(servings.toFixed(2));
+  const servingsCount = formatServingSizeForDisplay(servings);
   const formattedEntryUnit = formatServingUnit(entry.unit || '');
   const servingsDisplay = `${servingsCount} ${t('foodEntryAdd.labels.serving', {
     defaultValue: 'servings',
     defaultValue_one: 'serving',
     defaultValue_other: 'servings',
     count: servings,
-  })} · ${entry.serving_size} ${formattedEntryUnit} ${t(
+  })} · ${formatServingSizeForDisplay(entry.serving_size ?? 0)} ${formattedEntryUnit} ${t(
     'foodEntryAdd.labels.perServing',
     {
       defaultValue: 'per serving',

@@ -1,12 +1,13 @@
 import React from 'react';
 import { Alert } from 'react-native';
-import { fireEvent, render } from '@testing-library/react-native';
+import { act, fireEvent, render } from '@testing-library/react-native';
 import {
   createQueryWrapper,
   createTestQueryClient,
 } from '../hooks/queryTestUtils';
 import SwipeableFoodRow from '../../src/components/SwipeableFoodRow';
 import type { FoodEntry } from '../../src/types/foodEntries';
+import i18n, { initializeI18n } from '../../src/localization/i18n';
 
 const mockNavigate = jest.fn();
 
@@ -35,12 +36,39 @@ const createEntry = (overrides: Partial<FoodEntry> = {}): FoodEntry => ({
 });
 
 describe('SwipeableFoodRow', () => {
+  beforeAll(async () => {
+    await initializeI18n('en');
+  });
+  afterEach(async () => {
+    await act(async () => {
+      await i18n.changeLanguage('en');
+    });
+  });
   const renderRow = (ui: React.ReactElement) =>
     render(ui, { wrapper: createQueryWrapper(createTestQueryClient()) });
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
+
+  it.each(['de', 'en'])(
+    'formats fractional quantities consistently for sight and speech in %s',
+    async (locale) => {
+      await i18n.changeLanguage(locale);
+      const entry = createEntry({ quantity: 3 * 7.1 });
+      const quantityLabel = locale === 'de' ? '21,3 g' : '21.3 g';
+      const screen = renderRow(
+        <SwipeableFoodRow
+          entry={entry}
+          nutrition={{ calories: 72, protein: 0, carbs: 0, fat: 0 }}
+        />
+      );
+      expect(screen.getByText(quantityLabel)).toBeTruthy();
+      fireEvent.press(screen.getByLabelText(`Greek Yogurt, ${quantityLabel}`));
+      expect(mockNavigate).toHaveBeenCalledWith('FoodEntryView', { entry });
+      expect(entry.quantity).toBe(21.299999999999997);
+    }
+  );
 
   it('opens serving adjustment from the calorie affordance', () => {
     const entry = createEntry();

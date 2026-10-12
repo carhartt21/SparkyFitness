@@ -49,6 +49,24 @@ describe('foodDetails: INPUT vs DISPLAY formatting split', () => {
   });
 
   describe('presentation labels follow the active application locale', () => {
+    test.each(['de', 'en'])(
+      'hides floating-point residue without changing quantities in %s',
+      async (locale) => {
+        await i18n.changeLanguage(locale);
+        const quantity = 3 * 7.1;
+        expect(formatServingSizeForDisplay(quantity)).toBe(
+          locale === 'de' ? '21,3' : '21.3'
+        );
+        expect(formatServingSizeForDisplay(0.1 + 0.2)).toBe(
+          locale === 'de' ? '0,3' : '0.3'
+        );
+        expect(formatServingSizeForDisplay(100)).toBe('100');
+        expect(formatServingSizeForDisplay(0.0001)).toBe(
+          locale === 'de' ? '0,0001' : '0.0001'
+        );
+        expect(quantity).toBe(21.299999999999997);
+      }
+    );
     test('renders OFF serving descriptions and saved unit context in German', async () => {
       await i18n.changeLanguage('de');
       const values = {

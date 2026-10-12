@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, waitFor } from '@testing-library/react-native';
+import i18n, { initializeI18n } from '../../src/localization/i18n';
+import { act, render, waitFor } from '@testing-library/react-native';
 import { pressAction } from './helpers/nativeHeaderTestUtils';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import FoodEntryViewScreen from '../../src/screens/FoodEntryViewScreen';
@@ -211,6 +212,14 @@ const insets = { top: 0, bottom: 0, left: 0, right: 0 };
 const frame = { x: 0, y: 0, width: 390, height: 844 };
 
 describe('FoodEntryViewScreen', () => {
+  beforeAll(async () => {
+    await initializeI18n('en');
+  });
+  afterEach(async () => {
+    await act(async () => {
+      await i18n.changeLanguage('en');
+    });
+  });
   const navigation = mockNavigation;
 
   const mockCreateVariant = jest.fn();
@@ -310,6 +319,20 @@ describe('FoodEntryViewScreen', () => {
   it('does not redirect for a standalone food entry', () => {
     renderScreen();
     expect(navigation.replace).not.toHaveBeenCalled();
+  });
+
+  it('localizes fractional serving count and per-serving weight without saving a rounded amount', async () => {
+    await i18n.changeLanguage('de');
+    const entry = {
+      ...baseEntry,
+      quantity: 1.5 * 7.1,
+      serving_size: 7.1,
+      unit: 'g',
+    };
+    const screen = renderScreen({ entry });
+    expect(screen.getByText('1,5 Portionen · 7,1 g pro Portion')).toBeTruthy();
+    expect(mockUpdateEntry).not.toHaveBeenCalled();
+    expect(entry.quantity).toBe(1.5 * 7.1);
   });
 
   it('renders verified badge for verified diary entries', () => {

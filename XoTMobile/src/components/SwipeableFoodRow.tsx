@@ -38,6 +38,10 @@ import NutritionCaptureThumbnail, {
 } from './NutritionCaptureThumbnail';
 import Icon from './Icon';
 import { useCSSVariable } from 'uniwind';
+import {
+  formatServingSizeForDisplay,
+  formatServingUnit,
+} from '../utils/foodDetails';
 
 export type { CapturePhotoRef } from './NutritionCaptureThumbnail';
 
@@ -74,6 +78,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
 }) => {
   const readOnly = requestedReadOnly || entry.source === 'fddb';
   const { t } = useTranslation();
+  const quantityLabel = `${formatServingSizeForDisplay(entry.quantity)} ${formatServingUnit(entry.unit)}`;
   const { preferences } = usePreferences();
   const { fontScale } = useWindowDimensions();
   const stacked = fontScale > 1.3;
@@ -311,7 +316,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
               onPress={handlePress}
               onLongPress={handleLongPress}
               accessibilityRole="button"
-              accessibilityLabel={`${name}, ${entry.quantity} ${entry.unit}`}
+              accessibilityLabel={`${name}, ${quantityLabel}`}
               accessibilityState={
                 !readOnly && selectionMode && onSelect
                   ? { selected }
@@ -337,7 +342,7 @@ const SwipeableFoodRow: React.FC<SwipeableFoodRowProps> = ({
                   }
                   numberOfLines={stacked ? undefined : 1}
                 >
-                  {entry.quantity} {entry.unit}
+                  {quantityLabel}
                   {compact && !isPending
                     ? ` · ${Math.round(nutrition.calories)} ${t('foodRow.caloriesUnit', { defaultValue: 'Cal' })}`
                     : ''}

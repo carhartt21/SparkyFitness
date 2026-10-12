@@ -27,6 +27,8 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [Phone input refinements plan](phone-input-refinements-plan-2026-10-12.md): quantity precision, shared 24-hour wheels and selected-container clarity; planned, with all-phone time wheels and per-tap amount/container display confirmed.
+
 - [v49 release](v49-release-2026-10-09.md): v48 corrections, readiness checks and parallel delivery status.
 - [v48 Inbox corrections](v48-inbox-corrections-2026-10-09.md): implementation outcomes, automated/native evidence and remaining physical acceptance.
 - [v48 Inbox corrective plan](v48-inbox-corrective-plan-2026-10-09.md): all eight open findings, confirmed return-to-meal navigation, meal moves/images, phone/Watch favorite ranking, supplement timing and shared controls; original planning record; implementation outcomes and remaining device gates are linked above.
