@@ -2,6 +2,44 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// Saved-meal plus rendering and dated Home → Supplements navigation.
+  func testInboxUIRefinements() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let selectedDay = try XCTUnwrap(app.buttons["dashboard-date"].value as? String)
+    let supplements = app.buttons["dashboard-detail-medication"]
+    for _ in 0..<16 {
+      if supplements.isHittable && supplements.frame.maxY < app.frame.height - 125 { break }
+      app.swipeUp(velocity: .slow)
+    }
+    XCTAssertTrue(supplements.isHittable)
+    XCTAssertEqual(supplements.label, "Supplemente")
+    XCTAssertGreaterThanOrEqual(supplements.frame.height.rounded(), 44)
+    XCTAssertGreaterThanOrEqual(supplements.frame.width.rounded(), 44)
+    XCTAssertGreaterThanOrEqual(supplements.frame.minX, 16)
+    XCTAssertLessThanOrEqual(supplements.frame.maxX, app.frame.width - 16)
+    capture("inbox-dashboard-supplements", app)
+    supplements.tap()
+    XCTAssertTrue(app.otherElements["supplements"].waitForExistence(timeout: 15))
+    XCTAssertEqual(app.buttons["supplements-date"].value as? String, selectedDay)
+    capture("inbox-supplements-selected-day", app)
+    app.buttons["supplements-back"].tap()
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<16 { if food.isHittable { break }; app.swipeDown(velocity: .slow) }
+    XCTAssertTrue(food.isHittable); food.tap()
+    let plus = app.buttons["Eine Portion Testmahlzeit hinzufügen"]
+    XCTAssertTrue(plus.waitForExistence(timeout: 15))
+    for _ in 0..<8 { if plus.isHittable { break }; app.swipeUp(velocity: .slow) }
+    XCTAssertTrue(plus.isHittable)
+    XCTAssertGreaterThanOrEqual(plus.frame.width.rounded(), 44)
+    XCTAssertGreaterThanOrEqual(plus.frame.height.rounded(), 44)
+    // Saved-meal rows use the existing 12-point trailing inset (mr-3).
+    XCTAssertLessThanOrEqual(plus.frame.maxX, app.frame.width - 12)
+    capture("inbox-saved-meal-plus", app)
+  }
+
   /// A recorded session below its target stays started and explains the gap.
   func testWorkoutGoalProgress() throws {
     continueAfterFailure = false

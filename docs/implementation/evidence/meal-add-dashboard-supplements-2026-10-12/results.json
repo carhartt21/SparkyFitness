@@ -1,0 +1,66 @@
+{
+  "baseRevision": "a48f2e37253944bd2bdb61759863b69e949cfade",
+  "sourceState": "Working tree on fix/meal-add-dashboard-supplements-20261012",
+  "date": "2026-10-12",
+  "results": [
+    {
+      "name": "390-de-dark",
+      "language": "de",
+      "theme": "Dark",
+      "logicalViewport": "390x844",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "meal-add-dashboard-supplements",
+      "captures": {
+        "saved-meal-plus": "390-de-dark-saved-meal-plus.png",
+        "supplements-selected-day": "390-de-dark-supplements-selected-day.png",
+        "dashboard-supplements": "390-de-dark-dashboard-supplements.png"
+      }
+    },
+    {
+      "name": "390-de-light",
+      "language": "de",
+      "theme": "Light",
+      "logicalViewport": "390x844",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "meal-add-dashboard-supplements",
+      "captures": {
+        "saved-meal-plus": "390-de-light-saved-meal-plus.png",
+        "supplements-selected-day": "390-de-light-supplements-selected-day.png",
+        "dashboard-supplements": "390-de-light-dashboard-supplements.png"
+      }
+    },
+    {
+      "name": "430-de-large",
+      "language": "de",
+      "theme": "Dark",
+      "logicalViewport": "430x932",
+      "renderSmokePassed": true,
+      "nativeInteractionPassed": true,
+      "interactionScenario": "meal-add-dashboard-supplements",
+      "captures": {
+        "saved-meal-plus": "430-de-large-saved-meal-plus.png",
+        "supplements-selected-day": "430-de-large-supplements-selected-day.png",
+        "dashboard-supplements": "430-de-large-dashboard-supplements.png"
+      }
+    }
+  ],
+  "assertions": [
+    "Localized Supplements row label excludes decorative symbol names",
+    "Both targets are at least 44 points and within their incumbent horizontal insets",
+    "Supplements destination retains the selected historical day",
+    "Saved-meal quick-add plus is visible in all three captured variants"
+  ],
+  "limitations": [
+    "Synthetic read-only saved meal; native flow does not perform intake writes",
+    "One-portion saving, pending state and duplicate-tap protection are covered by automated food-search tests",
+    "No physical-device, Android, server persistence or actual VoiceOver acceptance",
+    "At extreme Dynamic Type, incumbent food-search filters truncate and meal names wrap; this batch does not redesign those layouts"
+  ],
+  "harnessCorrections": [
+    "Aligned saved-meal trailing-bound assertion with its existing 12-point inset",
+    "Enabled native interactions for this scenario in light and enlarged-text cases",
+    "Allowed enlarged-text render smoke to identify the visible progress heading while the gauge is below the viewport"
+  ]
+}

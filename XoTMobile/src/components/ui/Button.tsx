@@ -153,6 +153,8 @@ const Button: React.FC<ButtonProps> = ({
             {children}
           </Text>
         </View>
+      ) : children == null && icon ? (
+        <Icon name={icon} size={18} color={appearance.foreground} />
       ) : (
         children
       )}

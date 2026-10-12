@@ -27,6 +27,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [Saved-meal add and Dashboard supplements](meal-add-dashboard-supplements-2026-10-12.md): restored icon-only quick-add controls and selected-day supplement access in Home's lower list.
 - [Phone input refinements](phone-input-refinements-plan-2026-10-12.md): localized quantity precision, shared 24-hour wheels and selected-container clarity; implementation and verification record.
 - [v50 release](v50-release-2026-10-12.md): phone input corrections, readiness checks and delivery status.
 

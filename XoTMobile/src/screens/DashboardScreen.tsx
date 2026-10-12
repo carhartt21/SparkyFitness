@@ -263,6 +263,11 @@ export default function DashboardScreen({ navigation }: Props) {
       label: t('trainingHub.title', { defaultValue: 'Training & routines' }),
       press: () => navigation.navigate('TrainingHub', { date: selectedDate }),
     },
+    {
+      icon: 'medication',
+      label: t('supplements.title', { defaultValue: 'Supplements' }),
+      press: () => navigation.navigate('Supplements', { date: selectedDate }),
+    },
   ];
   return (
     <View
@@ -451,6 +456,9 @@ export default function DashboardScreen({ navigation }: Props) {
               key={d.label}
               testID={`dashboard-detail-${d.icon}`}
               accessibilityRole="button"
+              accessibilityLabel={
+                d.detail ? `${d.label}, ${d.detail}` : d.label
+              }
               onPress={d.press}
               className={`min-h-14 flex-row items-center gap-3 py-3 ${i ? 'border-t border-border-subtle' : ''}`}
             >

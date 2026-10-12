@@ -337,6 +337,8 @@ The four labelled quick actions preserve their real destinations. Food opens dat
 
 The Water tile shows the selected container name and complete per-tap amount before activation. A long container name may ellipsize; its full name, amount and per-tap meaning remain in the accessibility label. When the supporting amount is present, all four `ActionTile`s reserve the same secondary-line height so their icons and titles stay aligned. The existing 72-point minimum, shared outline material and enlarged-text two-column reflow remain. These actions do not imply unimplemented profile, notification, or photo actions from the reference.
 
+Home's lower grouped navigation list contains Nutrition details, Hydration, Training & routines and Supplements. Each flat row uses its semantic icon, shared separators and at least a 44-point target. Localized accessible labels include any displayed amount without announcing decorative symbol names. Supplements opens the existing supplement screen for the selected date; navigation does not record an intake.
+
 ### Mobile launch-icon quick actions
 
 **The Native Launch Menu Rule.** Launch-icon quick actions use the operating system menu with localized task labels and semantic platform icons. The operating system owns menu typography, spacing, color, shape, and motion; app control tokens do not restyle this surface. Selecting an action opens an existing editor for local today without saving an entry or resetting the navigation stack.

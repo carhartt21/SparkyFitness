@@ -9,7 +9,13 @@ jest.mock('../../src/hooks/useAddFoodEntryMeal', () => ({
   useAddFoodEntryMeal: () => ({ addMealAsync: mockQuickAddMeal }),
 }));
 import React from 'react';
-import { act, fireEvent, render, waitFor } from '@testing-library/react-native';
+import {
+  act,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import FoodSearchScreen from '../../src/screens/FoodSearchScreen';
@@ -872,8 +878,14 @@ describe('FoodSearchScreen', () => {
     });
     const screen = renderSearching();
     const action = screen.getByLabelText('Add one portion of Lunch Bowl');
+    expect(within(action).getByTestId('icon-add')).toBeTruthy();
     fireEvent.press(action);
     fireEvent.press(action);
+    expect(action.props.accessibilityState).toMatchObject({
+      busy: true,
+      disabled: true,
+    });
+    expect(within(action).queryByTestId('icon-add')).toBeNull();
     expect(mockQuickAddMeal).toHaveBeenCalledTimes(1);
     expect(mockQuickAddMeal).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -884,6 +896,11 @@ describe('FoodSearchScreen', () => {
       })
     );
     await act(async () => finish({ id: 'logged-preset' }));
+    expect(
+      within(
+        screen.getByLabelText('Add one portion of Lunch Bowl')
+      ).getByTestId('icon-add')
+    ).toBeTruthy();
   });
 
   it('forwards the tapped row serving to the detail fetch so the preview keeps it', async () => {

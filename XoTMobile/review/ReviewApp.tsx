@@ -13,7 +13,8 @@ import { saveDashboardSnapshot } from '../src/services/dashboardSnapshot';
 import { rememberActiveNutritionUser } from '../src/services/nutritionIdentity';
 import { buildDailySummary } from '../src/services/dailySummaryService';
 import { reviewDate, summaryFixture } from './fixtures';
-import { createNutritionFixture } from './nutritionFixture';
+import { createNutritionFixture, reviewFood } from './nutritionFixture';
+import type { Meal } from '../src/types/meals';
 import { createWellnessReviewFixture } from './wellnessFixture';
 import { trackingReviewResponse } from './trackingFixture';
 import { getTodayDate } from '../src/utils/dateUtils';
@@ -34,6 +35,31 @@ import {
 } from '@workspace/shared';
 
 const transport = global.fetch;
+const reviewSavedMeal: Meal = {
+  id: 'review-saved-meal',
+  user_id: 'review-user',
+  name: 'Testmahlzeit',
+  description: null,
+  notes: null,
+  is_public: false,
+  serving_size: 1,
+  serving_unit: 'serving',
+  total_servings: 1,
+  created_at: '2026-09-26T08:00:00Z',
+  updated_at: '2026-09-26T08:00:00Z',
+  foods: [
+    {
+      ...reviewFood.default_variant,
+      id: 'review-saved-ingredient',
+      food_id: reviewFood.id,
+      variant_id: reviewFood.default_variant.id,
+      quantity: 100,
+      unit: 'g',
+      food_name: reviewFood.name,
+      brand: null,
+    },
+  ],
+};
 export default function ReviewApp() {
   const [ready, setReady] = useState(false);
   const [failure, setFailure] = useState('');
@@ -78,6 +104,7 @@ export default function ReviewApp() {
         mobilityReview?: boolean;
         coachingReview?: boolean;
         phoneInputReview?: boolean;
+        inboxUiReview?: boolean;
       };
       const coachingFixture = createCoachingReviewFixture();
       const fixture = createNutritionFixture(
@@ -107,6 +134,20 @@ export default function ReviewApp() {
             return new Response('{}', { status: 503 });
           if (options?.body !== undefined && typeof options.body !== 'string')
             throw new Error('Review only accepts JSON request bodies');
+          if (
+            config.inboxUiReview &&
+            method === 'GET' &&
+            ['/api/favorites', '/api/meals/search'].includes(url.pathname)
+          ) {
+            return new Response(
+              JSON.stringify(
+                url.pathname === '/api/favorites'
+                  ? { favoriteFoods: [], favoriteMeals: [reviewSavedMeal] }
+                  : [reviewSavedMeal]
+              ),
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+          }
           const wellnessResult = wellnessFixture.respond(
             url,
             method,

@@ -17,6 +17,14 @@ The runner creates/reuses only simulators named `XOT UI Review …`; it does not
 
 ## Gates and artifacts
 
+`--inbox-ui-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
+captures the saved-meal quick-add plus and Home's lower Supplements navigation
+row. It checks their minimum touch targets and horizontal bounds, opens the
+actual Supplements screen, and verifies that its date equals Home's selected
+day. The saved meal is synthetic and read-only; focused food-search tests cover
+one-portion saving, the loading indicator and duplicate-tap protection. These
+captures do not establish server persistence or physical-device acceptance.
+
 `--phone-input-review --interactions --case '^(390-de-dark|390-de-light|430-de-large)$'`
 uses a synthetic `3 × 7.1 g` food entry and a 1,000 ml bottle with four servings.
 It checks the Home action's full accessible container name, visible 250 ml amount
