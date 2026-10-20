@@ -27,6 +27,7 @@ Dated records describe what was verified at that revision. They are evidence, no
 
 ## Dated reviews and implementation history
 
+- [v52 production follow-up](v52-production-resume-2026-10-20.md): restored direct SSH, guarded server rollout and the separate unresolved client identity-switch acceptance blocker.
 - [v52 release](v52-release-2026-10-13.md): offline foods and complete meals, Dashboard labels/hold menus and shortcuts; signed local build, TestFlight and production delivery evidence.
 - [v52 offline nutrition and Dashboard batch](v52-offline-dashboard-2026-10-12.md): account-scoped snapshots, atomic grouped-meal replay and automated/native verification.
 - [v51 release](v51-release-2026-10-12.md): merged saved-meal quick-add and Dashboard supplement access; pinned parallel delivery and verification status.

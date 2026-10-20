@@ -1,0 +1,96 @@
+{
+  "observedAt": "2026-10-20T09:18:15.195185+00:00",
+  "applicationRevision": "bf118ae09938faaee474a9c60072a32811bc6afa",
+  "sourceArchiveSha256": "9ce138372cd8fba715d0fca86d466dc444844b24952565cd7f8bf14982f6edae",
+  "production": {
+    "status": "deployed",
+    "verifiedAt": "2026-10-20T09:16:34.149527+00:00",
+    "transport": "Existing configured direct SSH route",
+    "previousRelease": "v49",
+    "universityJumpHost": "Still times out from this workstation",
+    "newPhoneBuildOrUpload": false,
+    "images": {
+      "server": {
+        "reference": "x-on-track-server:bf118ae09",
+        "imageId": "sha256:f45ca8130dae0737a380ed365de8bf61194488c29365589bc6933fd6d3978b8d",
+        "revision": "bf118ae09938faaee474a9c60072a32811bc6afa"
+      },
+      "frontend": {
+        "reference": "x-on-track-frontend:bf118ae09",
+        "imageId": "sha256:bdb908d6b9c081731643f86935372e04c0753a2cb6593a28bad0be0070694a08",
+        "revision": "bf118ae09938faaee474a9c60072a32811bc6afa"
+      }
+    },
+    "allServicesHealthy": true,
+    "preserved": [
+      "database image",
+      "persistent mounts",
+      "protected settings",
+      "private routing",
+      "existing migration ledger retained; only reviewed offline-meal migration added",
+      "BLS catalogue count",
+      "mobility owner policies"
+    ],
+    "publicHttps": {
+      "/": 200,
+      "/api/health": 200,
+      "/.well-known/oauth-protected-resource/mcp/chatgpt": 200,
+      "/.well-known/oauth-protected-resource/mcp/coaching": 200
+    },
+    "servedHtmlMatchesPinnedImage": true,
+    "anonymousOfflineMealPost": {
+      "loopbackStatus": 401,
+      "publicStatus": 401
+    }
+  },
+  "backup": {
+    "name": "sparkyfitness-20261020T091504Z.cms",
+    "sha256": "ad1884832cf34536481d212644ca4a0ca2d2e8571f37cc0a6bf9fa3dfd668793",
+    "bytes": 270735941,
+    "encryptedMatchedBackup": true,
+    "offHostChecksumVerifiedBeforeSwitch": true,
+    "restoreTested": false
+  },
+  "offlineMealSchema": {
+    "migrationApplied": true,
+    "rowSecurity": true,
+    "policies": [
+      {
+        "name": "owner_policy",
+        "command": "ALL",
+        "using": "(user_id = authenticated_user_id())",
+        "check": "(user_id = authenticated_user_id())"
+      }
+    ],
+    "foreignKeys": [
+      {
+        "name": "offline_meal_actions_meal_entry_id_fkey",
+        "deleteAction": "n"
+      },
+      {
+        "name": "offline_meal_actions_user_id_fkey",
+        "deleteAction": "c"
+      }
+    ],
+    "ownerOperationUnique": true
+  },
+  "phone": {
+    "version": "1.7.2",
+    "build": "52",
+    "appleBuildId": "8115c5c3-42bd-4fb6-8773-c672b4ffd423",
+    "processingState": "VALID",
+    "internalBuildState": "IN_BETA_TESTING",
+    "newBuildOrUpload": false,
+    "germanTestingNotesSavedAndReadBack": true,
+    "germanTestingNotes": "Gespeicherte Lebensmittel, Favoriten und komplette Mahlzeiten offline erfassen. Dashboard mit einheitlichen Untertiteln, Langdruck-Menüs und zusätzlichen Direktzugriffen.\n\nDer Server wurde am 20. Oktober aktualisiert; die Synchronisierung kompletter Mahlzeiten ist jetzt verfügbar. Bitte die gewünschten Lebensmittel und Mahlzeiten zunächst online laden und anschließend offline erfassen.\n\nBekannte Einschränkung in Build 52: Das Konto oder den Server nicht wechseln, solange Ernährungseinträge auf Synchronisierung warten, gerade übertragen werden oder ihr Status unklar ist. Diese Kontowechsel-Korrektur ist noch nicht in diesem Build enthalten."
+  },
+  "backendTests": "Skipped by owner instruction; normal startup migration, schema and HTTP checks performed",
+  "realHealthEntriesCreatedForVerification": false,
+  "acceptance": {
+    "clientIdentitySwitch": "Blocked: pending nutrition actions may be sent under a newly selected account/server; grouped-meal correction is not in build 52 and non-meal/late-response paths remain unresolved",
+    "requiredPrecaution": "Do not switch account/server while any nutrition action is pending, syncing or uncertain",
+    "authenticatedReplayAndDeletion": "Unverified",
+    "physicalPhoneAndWatch": "Unverified"
+  },
+  "portfolioHandover": "Local client handover awaits designated-host transfer and acknowledgment"
+}
