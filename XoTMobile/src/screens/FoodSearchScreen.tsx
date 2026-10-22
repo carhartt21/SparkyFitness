@@ -1036,18 +1036,21 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     );
     const sections = [
       {
+        key: 'favorites',
         title: t('foodSearch.sections.favorites', {
           defaultValue: 'Favorites',
         }),
         data: favoriteEntries.filter((entry) => !contextKeys.has(entry.key)),
       },
       {
+        key: 'recent',
         title: t('foodSearch.sections.recentlyLogged', {
           defaultValue: 'Recently Logged',
         }),
         data: recentEntries,
       },
       {
+        key: 'top',
         title: t('foodSearch.sections.top', { defaultValue: 'Top' }),
         data: frequentEntries,
       },
@@ -1060,6 +1063,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     return contextualEntries.length
       ? [
           {
+            key: 'meal-context',
             title: t('foodSearch.sections.forThisMeal', {
               defaultValue: 'For this meal',
             }),
@@ -1491,8 +1495,8 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           <Button
             variant="ghost"
             onPress={() => navigation.goBack()}
-            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            className="p-0"
+            testID="food-search-close"
+            className="h-11 w-11 items-center justify-center p-0"
             accessibilityLabel={t('common.close', { defaultValue: 'Close' })}
           >
             <Icon name="close" size={22} color={headerActionColor} />
@@ -1797,6 +1801,7 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
           )}
           renderSectionHeader={({ section }) => (
             <SectionTitleHeader
+              testID={`food-landing-section-${section.key}`}
               title={section.title}
               action={
                 isSelectMode &&

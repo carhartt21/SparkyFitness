@@ -240,7 +240,7 @@ export default function HabitRow({
                 defaultValue: '{{name}} amount',
                 name: habit.name,
               })}
-              className="min-h-9 w-14 text-center text-lg font-semibold text-text-primary"
+              className="min-h-11 w-14 text-center text-lg font-semibold text-text-primary"
             />
             <Text
               className="pb-1 text-[10px] text-text-secondary"

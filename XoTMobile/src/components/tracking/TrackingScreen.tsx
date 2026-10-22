@@ -8,6 +8,7 @@ import {
   Text,
   View,
 } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useTranslation } from 'react-i18next';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCSSVariable } from 'uniwind';
@@ -29,6 +30,8 @@ interface TrackingScreenProps {
   onRefresh?: () => Promise<unknown>;
   /** Pinned below the scroll view, e.g. the check-in actions. */
   footer?: React.ReactNode;
+  /** Opt in for inline habit drafts; other tracking screens keep their frame. */
+  keyboardAware?: boolean;
   testID: string;
   children: React.ReactNode;
 }
@@ -48,8 +51,10 @@ export default function TrackingScreen({
   onRefresh,
   footer,
   testID,
+  keyboardAware = false,
   children,
 }: TrackingScreenProps) {
+  const ScrollContainer = keyboardAware ? KeyboardAwareScrollView : ScrollView;
   const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const calendarRef = useRef<CalendarSheetRef>(null);
@@ -74,9 +79,11 @@ export default function TrackingScreen({
       <ScreenBackground />
       <KeyboardAvoidingView
         className="flex-1"
+        enabled={!keyboardAware}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView
+        <ScrollContainer
+          {...(keyboardAware ? { bottomOffset: 72 } : {})}
           className="flex-1"
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={
@@ -142,7 +149,7 @@ export default function TrackingScreen({
             {titleAccessory}
           </View>
           {children}
-        </ScrollView>
+        </ScrollContainer>
         {footer ? (
           <View
             className="px-4 pt-2"

@@ -55,6 +55,15 @@ describe('HabitRow', () => {
     expect(onSave).toHaveBeenCalledWith(14);
   });
 
+  it('does not save an abandoned keyboard draft on blur or unmount', () => {
+    const { screen, onSave } = renderRow();
+    const amount = screen.getByTestId('habit-amount-h1');
+    fireEvent.changeText(amount, '5');
+    fireEvent(amount, 'blur');
+    screen.unmount();
+    expect(onSave).not.toHaveBeenCalled();
+  });
+
   it('keeps an explicit 0 as a value to save', () => {
     const { screen, onSave } = renderRow();
     fireEvent.changeText(screen.getByTestId('habit-amount-h1'), '0');

@@ -2,6 +2,128 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// Populated synthetic lists, wrapped German, real native keyboard and cancelled targets.
+  func testNativeIntegration() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let date = app.buttons["dashboard-date"]
+    XCTAssertTrue(date.waitForExistence(timeout: 10))
+    let originalDay = try XCTUnwrap(date.value as? String)
+    app.buttons["dashboard-previous-day"].tap()
+    XCTAssertNotEqual(date.value as? String, originalDay)
+    app.buttons["dashboard-next-day"].tap()
+    XCTAssertEqual(date.value as? String, originalDay)
+    capture("integration-dashboard", app)
+    for (tile, screen, lastID) in [
+      ("habit", "habits", "habit-menu-review-long-habit-11"),
+      ("medication", "supplements", "supplement-menu-review-long-schedule-15")
+    ] {
+      let target = app.buttons["dashboard-detail-\(tile)"]
+      reveal(target, app: app, upwards: true)
+      XCTAssertTrue(target.isHittable); target.tap()
+      XCTAssertTrue(app.otherElements[screen].waitForExistence(timeout: 15))
+      XCTAssertEqual(app.buttons["\(screen)-date"].value as? String, originalDay)
+      capture("integration-\(screen)-populated-top", app)
+      let last = app.buttons[lastID]
+      reveal(last, app: app, upwards: true)
+      assertControl(last, app: app)
+      capture("integration-\(screen)-last-row", app)
+      let back = app.buttons["\(screen)-back"]
+      reveal(back, app: app, upwards: false)
+      if screen == "habits" {
+        let input = app.textFields["habit-amount-review-long-habit-00"]
+        reveal(input, app: app, upwards: true)
+        XCTAssertTrue(input.isHittable); input.tap(); input.typeText("5")
+        XCTAssertTrue(app.keyboards.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertEqual(input.value as? String, "5")
+        let save = app.buttons["habit-save-review-long-habit-00"]
+        XCTAssertTrue(save.isEnabled)
+        assertControl(input, app: app); assertControl(save, app: app)
+        var keyboardTop: Double? = nil
+        for _ in 0..<20 {
+          if let event = try events().last(where: { $0["method"] as? String == "KEYBOARD" }), let metrics = event["metrics"] as? [String: Any] {
+            keyboardTop = metrics["screenY"] as? Double
+            if keyboardTop != nil { break }
+          }
+          Thread.sleep(forTimeInterval: 0.1)
+        }
+        XCTAssertLessThanOrEqual(save.frame.maxY, CGFloat(try XCTUnwrap(keyboardTop)) - 8)
+        capture("integration-habit-keyboard-draft", app)
+        // Back discards this local draft. Save/intake/routine controls are never pressed.
+        reveal(back, app: app, upwards: false)
+      }
+      assertControl(back, app: app); back.tap()
+    }
+    let food = app.buttons["dashboard-food"]
+    reveal(food, app: app, upwards: false); XCTAssertTrue(food.isHittable); food.tap()
+    let context = app.staticTexts["food-landing-section-meal-context"]
+    reveal(context, app: app, upwards: true)
+    XCTAssertTrue(context.exists); XCTAssertTrue(context.isHittable)
+    capture("integration-contextual-suggestions", app)
+    let close = app.buttons["food-search-close"]
+    assertControl(close, app: app); close.tap()
+    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
+    XCTAssertTrue(diary.waitForExistence(timeout: 10)); diary.tap()
+    let edit = app.buttons["diary-edit-foods"]
+    XCTAssertTrue(edit.waitForExistence(timeout: 15)); reveal(edit, app: app, upwards: true); edit.tap()
+    let select = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@ OR label BEGINSWITH %@", "Select Oat", "Oat bowl with berries auswählen")).firstMatch
+    reveal(select, app: app, upwards: true); XCTAssertTrue(select.isHittable); select.tap()
+    for labels in [["Copy", "Kopieren"], ["Move", "Verschieben"]] {
+      let action = app.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+      reveal(action, app: app, upwards: false); XCTAssertTrue(action.isHittable); action.tap()
+      let choose = app.staticTexts.matching(NSPredicate(format: "label IN %@", ["Choose destination date", "Zieldatum auswählen"])).firstMatch
+      XCTAssertTrue(choose.waitForExistence(timeout: 10))
+      let apply = app.buttons.matching(NSPredicate(format: "label IN %@", ["Apply", "Anwenden"])).firstMatch
+      XCTAssertFalse(apply.isEnabled)
+      let oldDate = choose.value as? String
+      let day = app.buttons["15"]
+      reveal(day, app: app, upwards: true); assertControl(day, app: app); day.tap()
+      XCTAssertNotEqual(choose.value as? String, oldDate)
+      capture("integration-\(labels[0].lowercased())-calendar-selected", app)
+      let lastMeal = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@", "Synthetische Zielmahlzeit 12")).firstMatch
+      reveal(lastMeal, app: app, upwards: true); XCTAssertTrue(lastMeal.isHittable); lastMeal.tap()
+      XCTAssertTrue(apply.isEnabled); assertControl(apply, app: app)
+      capture("integration-\(labels[0].lowercased())-last-target-selected", app)
+      let cancel = app.buttons.matching(NSPredicate(format: "label IN %@", ["Cancel", "Abbrechen"])).firstMatch
+      reveal(cancel, app: app, upwards: false); assertControl(cancel, app: app); cancel.tap()
+      XCTAssertFalse(choose.exists)
+    }
+    let audit = try events()
+    // The app intentionally attempts one automatic timezone bootstrap on startup.
+    // It must stay rejected by this read-only fixture, never silently accepted.
+    let bootstrap = audit.filter { $0["method"] as? String == "POST" && $0["path"] as? String == "/api/user-preferences/bootstrap-timezone" }
+    XCTAssertEqual(bootstrap.count, 1)
+    for event in audit {
+      let method = event["method"] as? String ?? ""
+      if method == "POST" && event["path"] as? String == "/api/user-preferences/bootstrap-timezone" {
+        XCTAssertEqual(event["rejected"] as? Bool, true); continue
+      }
+      XCTAssertTrue(["GET", "KEYBOARD"].contains(method), "Unexpected fixture request \(event)")
+      XCTAssertNotEqual(event["rejected"] as? Bool, true, "Rejected unexpected read \(event)")
+    }
+    for (path, count) in [("/api/v2/tracking/habits", 12), ("/api/v2/medications", 16), ("/api/meal-types", 14)] {
+      XCTAssertTrue(audit.contains(where: { $0["path"] as? String == path && $0["fixtureRows"] as? Int == count }))
+    }
+    XCTAssertFalse(audit.contains(where: { $0["path"] as? String == "/api/food-entries/bulk-action" }))
+    capture("integration-cancelled-no-write", app)
+  }
+
+  private func reveal(_ target: XCUIElement, app: XCUIApplication, upwards: Bool) {
+    for _ in 0..<45 {
+      if target.exists && target.isHittable && target.frame.minY >= 0 && target.frame.maxY < app.frame.height - 95 { return }
+      if upwards { app.swipeUp(velocity: .slow) } else { app.swipeDown(velocity: .slow) }
+    }
+  }
+  private func assertControl(_ control: XCUIElement, app: XCUIApplication) {
+    XCTAssertTrue(control.exists); XCTAssertTrue(control.isHittable)
+    XCTAssertGreaterThanOrEqual(control.frame.width, 43.99)
+    XCTAssertGreaterThanOrEqual(control.frame.height, 43.99)
+    XCTAssertGreaterThanOrEqual(control.frame.minX, -0.5)
+    XCTAssertLessThanOrEqual(control.frame.maxX, app.frame.width + 0.5)
+  }
+
   /// Current combined JavaScript, synthetic read-only navigation and cancelled sheets.
   func testCombinedCandidate() throws {
     continueAfterFailure = false

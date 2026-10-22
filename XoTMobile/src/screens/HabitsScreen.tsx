@@ -196,6 +196,7 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
   return (
     <TrackingScreen
       testID="habits"
+      keyboardAware
       title={title}
       subtitle={subtitle}
       date={date}

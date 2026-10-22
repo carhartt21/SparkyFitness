@@ -26,6 +26,8 @@ import { buildDailySummary } from '../src/services/dailySummaryService';
 import { reviewDate, summaryFixture } from './fixtures';
 import { createNutritionFixture, reviewFood } from './nutritionFixture';
 import type { Meal } from '../src/types/meals';
+import { nativeIntegrationResponse } from './nativeIntegrationFixture';
+import type { MealType } from '../src/types/mealTypes';
 import { createWellnessReviewFixture } from './wellnessFixture';
 import { trackingReviewResponse } from './trackingFixture';
 import { getTodayDate } from '../src/utils/dateUtils';
@@ -102,6 +104,7 @@ export default function ReviewApp() {
         await transport('http://127.0.0.1:43991/scenario')
       ).json()) as {
         combinedReview?: boolean;
+        nativeIntegrationReview?: boolean;
         language: 'en' | 'de';
         theme: 'Dark' | 'Light' | 'Amoled';
         scenario: string;
@@ -185,6 +188,17 @@ export default function ReviewApp() {
               { headers: { 'Content-Type': 'application/json' } }
             );
           }
+          const integrationResult = config.nativeIntegrationReview
+            ? nativeIntegrationResponse(
+                url,
+                method,
+                getTodayDate(),
+                fixture.respond(
+                  new URL('https://ui-review.invalid/api/meal-types'),
+                  'GET'
+                ) as MealType[]
+              )
+            : undefined;
           const wellnessResult = wellnessFixture.respond(
             url,
             method,
@@ -248,24 +262,27 @@ export default function ReviewApp() {
             ? coachingFixture(url, method)
             : undefined;
           const result =
-            config.v45Review &&
-            method === 'GET' &&
-            url.pathname === '/api/v2/activity-planning'
-              ? dailyDetailPlanning(
-                  url,
-                  getTodayDate(),
-                  config.workoutGoalReview
-                )
-              : coachingResult !== undefined
-                ? coachingResult
-                : mobilityResult !== undefined
-                  ? mobilityResult
-                  : supplementResult !== undefined
-                    ? supplementResult
-                    : wellnessResult === undefined
-                      ? fixture.respond(url, method, options?.body)
-                      : wellnessResult;
+            integrationResult !== undefined
+              ? integrationResult
+              : config.v45Review &&
+                  method === 'GET' &&
+                  url.pathname === '/api/v2/activity-planning'
+                ? dailyDetailPlanning(
+                    url,
+                    getTodayDate(),
+                    config.workoutGoalReview
+                  )
+                : coachingResult !== undefined
+                  ? coachingResult
+                  : mobilityResult !== undefined
+                    ? mobilityResult
+                    : supplementResult !== undefined
+                      ? supplementResult
+                      : wellnessResult === undefined
+                        ? fixture.respond(url, method, options?.body)
+                        : wellnessResult;
           if (
+            config.nativeIntegrationReview ||
             method !== 'GET' ||
             url.pathname === '/api/daily-summary' ||
             (config.combinedReview && url.pathname === '/api/identity/profiles')
@@ -276,6 +293,10 @@ export default function ReviewApp() {
               body: JSON.stringify({
                 method,
                 path: url.pathname,
+                query: url.search,
+                ...(config.nativeIntegrationReview && Array.isArray(result)
+                  ? { fixtureRows: result.length }
+                  : {}),
                 entries: fixture.snapshot(),
                 wellness: wellnessFixture.snapshot(),
               }),
@@ -311,6 +332,17 @@ export default function ReviewApp() {
             headers: { 'Content-Type': 'application/json' },
           });
         } catch (error) {
+          if (config.nativeIntegrationReview)
+            await transport('http://127.0.0.1:43991/event', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                method,
+                path: url.pathname,
+                query: url.search,
+                rejected: true,
+              }),
+            });
           console.warn(String(error));
           return new Response(JSON.stringify({ error: String(error) }), {
             status: 501,

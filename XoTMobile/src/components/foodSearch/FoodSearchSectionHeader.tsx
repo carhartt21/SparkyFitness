@@ -21,10 +21,16 @@ export interface SectionTitleHeaderAction {
 
 export const SectionTitleHeader: React.FC<{
   title: string;
+  testID?: string;
   action?: SectionTitleHeaderAction;
-}> = ({ title, action }) => (
+}> = ({ title, testID, action }) => (
   <View className="px-4 py-1 bg-background flex-row items-center justify-between">
-    <Text className="text-text-muted text-xs font-bold uppercase">{title}</Text>
+    <Text
+      testID={testID}
+      className="text-text-muted text-xs font-bold uppercase"
+    >
+      {title}
+    </Text>
     {action ? (
       <TouchableOpacity
         onPress={action.onPress}
