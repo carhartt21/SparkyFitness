@@ -1,6 +1,13 @@
 import Button from '../ui/Button';
 import { useRef, useState } from 'react';
-import { Alert, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import { habitDayState, type Habit, type HabitLog } from '@workspace/shared';
@@ -44,6 +51,8 @@ export default function HabitRow({
   showDivider,
 }: HabitRowProps) {
   const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const enlargedText = fontScale >= 1.5;
   const amountRef = useRef<TextInput>(null);
   const [textPrimary, textSecondary, green, border] = useCSSVariable([
     '--color-text-primary',
@@ -116,182 +125,217 @@ export default function HabitRow({
     setText(String(Math.round(next * 1000) / 1000));
   };
 
+  const title = (
+    <Text className="text-base font-semibold text-text-primary">
+      {habit.name}
+    </Text>
+  );
+  const metadata = (
+    <>
+      {detail ? (
+        <Text className="text-xs text-text-secondary" numberOfLines={2}>
+          {detail}
+        </Text>
+      ) : null}
+      <View className="mt-0.5 flex-row items-center gap-1">
+        <Icon name="clock" size={11} color={textSecondary} />
+        <Text className="text-xs text-text-secondary">
+          {timeLabel ?? t('habits.anyTime', { defaultValue: 'Any time' })}
+        </Text>
+        {state === 'not_done' ? (
+          <Text className="text-xs text-text-secondary">
+            {' · '}
+            {t('habits.recordedNotDone', {
+              defaultValue: 'Recorded as not done',
+            })}
+          </Text>
+        ) : null}
+      </View>
+    </>
+  );
+  const stateControl = (
+    <Pressable
+      testID={`habit-state-${habit.id}`}
+      accessibilityRole="button"
+      accessibilityLabel={t('progress.openAction', {
+        defaultValue: 'Open action for {{name}}',
+        name: habit.name,
+      })}
+      disabled={saving}
+      onPress={() =>
+        habit.habit_type === 'completion'
+          ? complete
+            ? openMenu()
+            : onSave(true)
+          : amountRef.current?.focus()
+      }
+      onLongPress={openMenu}
+      className="h-11 w-11 items-center justify-center rounded-full"
+      style={
+        complete
+          ? { backgroundColor: green }
+          : { borderWidth: 2, borderColor: withAlpha(tint, 0.9) }
+      }
+    >
+      {complete ? <Icon name="checkmark" size={16} color="#08130d" /> : null}
+    </Pressable>
+  );
+  const menu = (
+    <Pressable
+      testID={`habit-menu-${habit.id}`}
+      accessibilityRole="button"
+      accessibilityLabel={t('habits.moreActions', {
+        defaultValue: 'More actions for {{name}}',
+        name: habit.name,
+      })}
+      onPress={openMenu}
+      className="h-11 w-11 items-center justify-center"
+    >
+      <Icon name="ellipsis-horizontal" size={18} color={textPrimary} />
+    </Pressable>
+  );
+  const valueControls =
+    habit.habit_type === 'completion' ? (
+      <Button
+        variant={complete ? 'primary' : 'secondary'}
+        testID={`habit-done-${habit.id}`}
+        accessibilityRole="button"
+        accessibilityState={{ selected: complete, busy: saving }}
+        accessibilityLabel={
+          complete
+            ? t('habits.doneA11y', {
+                defaultValue: '{{name}} done. Tap to undo.',
+                name: habit.name,
+              })
+            : t('habits.markDoneA11y', {
+                defaultValue: 'Mark {{name}} done',
+                name: habit.name,
+              })
+        }
+        disabled={saving}
+        onPress={() => onSave(complete ? null : true)}
+        className="min-h-11 flex-row items-center gap-1 px-4"
+      >
+        {complete ? <Icon name="checkmark" size={14} color={green} /> : null}
+        <Text
+          className="text-sm font-semibold"
+          style={{ color: complete ? green : textPrimary }}
+        >
+          {complete
+            ? t('habits.done', { defaultValue: 'Done' })
+            : t('habits.markDone', { defaultValue: 'Mark done' })}
+        </Text>
+      </Button>
+    ) : (
+      <View className="ml-auto flex-row flex-wrap items-center gap-1.5 max-w-full">
+        {habit.step ? (
+          <Pressable
+            testID={`habit-decrement-${habit.id}`}
+            accessibilityRole="button"
+            accessibilityLabel={t('habits.decrease', {
+              defaultValue: 'Decrease',
+            })}
+            onPress={() => stepBy(-1)}
+            className="h-11 w-11 items-center justify-center rounded-lg border border-border-subtle"
+          >
+            <Icon name="remove" size={16} color={textPrimary} />
+          </Pressable>
+        ) : null}
+        <View className="items-center rounded-lg border border-border-subtle px-2">
+          <TextInput
+            ref={amountRef}
+            testID={`habit-amount-${habit.id}`}
+            value={text}
+            onChangeText={setText}
+            keyboardType="decimal-pad"
+            placeholder="–"
+            placeholderTextColor={textSecondary}
+            accessibilityLabel={t('habits.amountA11y', {
+              defaultValue: '{{name}} amount',
+              name: habit.name,
+            })}
+            className="min-h-11 w-14 text-center text-lg font-semibold text-text-primary"
+          />
+          <Text
+            className="pb-1 text-[10px] text-text-secondary"
+            numberOfLines={1}
+          >
+            {habit.target != null
+              ? `/ ${formatLocalizedNumber(habit.target)} ${unit}`.trim()
+              : unit}
+          </Text>
+        </View>
+        {habit.step ? (
+          <Pressable
+            testID={`habit-increment-${habit.id}`}
+            accessibilityRole="button"
+            accessibilityLabel={t('habits.increase', {
+              defaultValue: 'Increase',
+            })}
+            onPress={() => stepBy(1)}
+            className="h-11 w-11 items-center justify-center rounded-lg border border-border-subtle"
+          >
+            <Icon name="add" size={16} color={textPrimary} />
+          </Pressable>
+        ) : null}
+        <Button
+          variant="secondary"
+          testID={`habit-save-${habit.id}`}
+          accessibilityRole="button"
+          accessibilityState={{ disabled: !changed || saving }}
+          disabled={!changed || saving}
+          onPress={() => pending !== null && onSave(pending)}
+          className="min-h-11 justify-center px-3"
+          textClassName="text-sm font-semibold"
+        >
+          {log && !changed
+            ? t('habits.saved', { defaultValue: 'Saved' })
+            : t('common.save', { defaultValue: 'Save' })}
+        </Button>
+      </View>
+    );
   return (
     <View
       testID={`habit-row-${habit.id}`}
-      // Controls wrap under the name on narrow rows instead of squeezing it.
-      className="flex-row flex-wrap items-center gap-x-3 gap-y-2 py-3"
+      className={
+        enlargedText
+          ? 'gap-2 py-3'
+          : 'flex-row flex-wrap items-center gap-x-3 gap-y-2 py-3'
+      }
       style={
         showDivider ? { borderTopWidth: 1, borderTopColor: border } : undefined
       }
     >
-      <Pressable
-        testID={`habit-state-${habit.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={t('progress.openAction', {
-          defaultValue: 'Open action for {{name}}',
-          name: habit.name,
-        })}
-        disabled={saving}
-        onPress={() =>
-          habit.habit_type === 'completion'
-            ? complete
-              ? openMenu()
-              : onSave(true)
-            : amountRef.current?.focus()
-        }
-        onLongPress={openMenu}
-        className="h-11 w-11 items-center justify-center rounded-full"
-        style={
-          complete
-            ? { backgroundColor: green }
-            : { borderWidth: 2, borderColor: withAlpha(tint, 0.9) }
-        }
-      >
-        {complete ? <Icon name="checkmark" size={16} color="#08130d" /> : null}
-      </Pressable>
-      <Icon name={habitIcon(habit.icon)} size={24} color={tint} />
-      <View
-        className={`flex-1 ${habit.habit_type === 'count' ? 'min-w-[45%]' : ''}`}
-      >
-        <Text
-          className="text-base font-semibold text-text-primary"
-          numberOfLines={2}
-        >
-          {habit.name}
-        </Text>
-        {detail ? (
-          <Text className="text-xs text-text-secondary" numberOfLines={2}>
-            {detail}
-          </Text>
-        ) : null}
-        <View className="mt-0.5 flex-row items-center gap-1">
-          <Icon name="clock" size={11} color={textSecondary} />
-          <Text className="text-xs text-text-secondary">
-            {timeLabel ?? t('habits.anyTime', { defaultValue: 'Any time' })}
-          </Text>
-          {state === 'not_done' ? (
-            <Text className="text-xs text-text-secondary">
-              {' · '}
-              {t('habits.recordedNotDone', {
-                defaultValue: 'Recorded as not done',
-              })}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-
-      {habit.habit_type === 'completion' ? (
-        <Button
-          variant={complete ? 'primary' : 'secondary'}
-          testID={`habit-done-${habit.id}`}
-          accessibilityRole="button"
-          accessibilityState={{ selected: complete, busy: saving }}
-          accessibilityLabel={
-            complete
-              ? t('habits.doneA11y', {
-                  defaultValue: '{{name}} done. Tap to undo.',
-                  name: habit.name,
-                })
-              : t('habits.markDoneA11y', {
-                  defaultValue: 'Mark {{name}} done',
-                  name: habit.name,
-                })
-          }
-          disabled={saving}
-          onPress={() => onSave(complete ? null : true)}
-          className="min-h-11 flex-row items-center gap-1 px-4"
-        >
-          {complete ? <Icon name="checkmark" size={14} color={green} /> : null}
-          <Text
-            className="text-sm font-semibold"
-            style={{ color: complete ? green : textPrimary }}
-          >
-            {complete
-              ? t('habits.done', { defaultValue: 'Done' })
-              : t('habits.markDone', { defaultValue: 'Mark done' })}
-          </Text>
-        </Button>
-      ) : (
-        <View className="ml-auto flex-row flex-wrap items-center gap-1.5 max-w-full">
-          {habit.step ? (
-            <Pressable
-              testID={`habit-decrement-${habit.id}`}
-              accessibilityRole="button"
-              accessibilityLabel={t('habits.decrease', {
-                defaultValue: 'Decrease',
-              })}
-              onPress={() => stepBy(-1)}
-              className="h-11 w-11 items-center justify-center rounded-lg border border-border-subtle"
-            >
-              <Icon name="remove" size={16} color={textPrimary} />
-            </Pressable>
-          ) : null}
-          <View className="items-center rounded-lg border border-border-subtle px-2">
-            <TextInput
-              ref={amountRef}
-              testID={`habit-amount-${habit.id}`}
-              value={text}
-              onChangeText={setText}
-              keyboardType="decimal-pad"
-              placeholder="–"
-              placeholderTextColor={textSecondary}
-              accessibilityLabel={t('habits.amountA11y', {
-                defaultValue: '{{name}} amount',
-                name: habit.name,
-              })}
-              className="min-h-11 w-14 text-center text-lg font-semibold text-text-primary"
-            />
-            <Text
-              className="pb-1 text-[10px] text-text-secondary"
-              numberOfLines={1}
-            >
-              {habit.target != null
-                ? `/ ${formatLocalizedNumber(habit.target)} ${unit}`.trim()
-                : unit}
-            </Text>
+      {enlargedText ? (
+        <>
+          <View testID={`habit-name-block-${habit.id}`} className="w-full">
+            {title}
           </View>
-          {habit.step ? (
-            <Pressable
-              testID={`habit-increment-${habit.id}`}
-              accessibilityRole="button"
-              accessibilityLabel={t('habits.increase', {
-                defaultValue: 'Increase',
-              })}
-              onPress={() => stepBy(1)}
-              className="h-11 w-11 items-center justify-center rounded-lg border border-border-subtle"
-            >
-              <Icon name="add" size={16} color={textPrimary} />
-            </Pressable>
-          ) : null}
-          <Button
-            variant="secondary"
-            testID={`habit-save-${habit.id}`}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: !changed || saving }}
-            disabled={!changed || saving}
-            onPress={() => pending !== null && onSave(pending)}
-            className="min-h-11 justify-center px-3"
-            textClassName="text-sm font-semibold"
+          <View
+            testID={`habit-actions-${habit.id}`}
+            className="flex-row flex-wrap items-center gap-2"
           >
-            {log && !changed
-              ? t('habits.saved', { defaultValue: 'Saved' })
-              : t('common.save', { defaultValue: 'Save' })}
-          </Button>
-        </View>
+            {stateControl}
+            <Icon name={habitIcon(habit.icon)} size={24} color={tint} />
+            {menu}
+            <View className="w-full">{valueControls}</View>
+          </View>
+          {metadata}
+        </>
+      ) : (
+        <>
+          {stateControl}
+          <Icon name={habitIcon(habit.icon)} size={24} color={tint} />
+          <View
+            className={`flex-1 ${habit.habit_type === 'count' ? 'min-w-[45%]' : ''}`}
+          >
+            {title}
+            {metadata}
+          </View>
+          {valueControls}
+          {menu}
+        </>
       )}
-      <Pressable
-        testID={`habit-menu-${habit.id}`}
-        accessibilityRole="button"
-        accessibilityLabel={t('habits.moreActions', {
-          defaultValue: 'More actions for {{name}}',
-          name: habit.name,
-        })}
-        onPress={openMenu}
-        className="h-11 w-11 items-center justify-center"
-      >
-        <Icon name="ellipsis-horizontal" size={18} color={textPrimary} />
-      </Pressable>
     </View>
   );
 }

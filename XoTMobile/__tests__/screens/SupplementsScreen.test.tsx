@@ -32,6 +32,7 @@ jest.mock('../../src/components/TimeSheet', () => {
   };
 });
 import React from 'react';
+import { Alert, Dimensions } from 'react-native';
 import { fireEvent, render } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import SupplementsScreen from '../../src/screens/SupplementsScreen';
@@ -123,6 +124,72 @@ describe('SupplementsScreen', () => {
       logDose,
     });
   });
+
+  it.each([1, 2])(
+    'keeps a long German supplement name readable without shrinking at fontScale %s and preserves explicit intake/menu actions',
+    (fontScale) => {
+      const longName =
+        'Magnesiumcitrat mit Vitamin B-Komplex zur Unterstützung der normalen Muskelfunktion nach dem abendlichen Spaziergang';
+      const window = Dimensions.get('window');
+      const screenSize = Dimensions.get('screen');
+      Dimensions.set({
+        window: { ...window, width: 390, fontScale },
+        screen: { ...screenSize, width: 390, fontScale },
+      });
+      const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      try {
+        (useMedications as jest.Mock).mockReturnValue({
+          data: [
+            {
+              id: 'long',
+              name: longName,
+              is_active: true,
+              is_supplement: true,
+              schedules: [schedule('s-long', 'long', '08:00:00')],
+            },
+          ],
+          isLoading: false,
+          refetch: jest.fn(),
+        });
+        const screen = renderScreen();
+        const name = screen.getByText(longName);
+        if (fontScale >= 1.5) {
+          expect(
+            screen
+              .getByTestId('supplement-name-block-s-long')
+              .findAllByType(name.type)
+          ).toHaveLength(1);
+          expect(screen.getByTestId('supplement-actions-s-long')).toBeTruthy();
+        } else {
+          expect(screen.queryByTestId('supplement-actions-s-long')).toBeNull();
+        }
+        // Assert the actual native Text contract; Jest cannot measure glyph layout.
+        expect(name.props.numberOfLines ?? 0).toBe(0);
+        expect(name.props.allowFontScaling).not.toBe(false);
+        expect(name.props.adjustsFontSizeToFit).not.toBe(true);
+        expect(Dimensions.get('window').fontScale).toBe(fontScale);
+        expect(logDose).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('supplement-menu-s-long'));
+        expect(alert.mock.calls[0][0]).toBe(longName);
+        expect(logDose).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('supplement-take-s-long'));
+        expect(logDose).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('confirm-intake'));
+        expect(logDose).toHaveBeenCalledTimes(1);
+        expect(logDose).toHaveBeenCalledWith(
+          expect.objectContaining({
+            schedule: expect.objectContaining({ id: 's-long' }),
+          }),
+          'taken',
+          expect.any(String)
+        );
+        screen.unmount();
+      } finally {
+        alert.mockRestore();
+        Dimensions.set({ window, screen: screenSize });
+      }
+    }
+  );
 
   it('shows an empty state rather than 0/0 without supplements', () => {
     (useMedications as jest.Mock).mockReturnValue({

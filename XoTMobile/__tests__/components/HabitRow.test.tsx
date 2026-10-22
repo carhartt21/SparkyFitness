@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
+import { Alert, Dimensions } from 'react-native';
 import type { Habit, HabitLog } from '@workspace/shared';
 import HabitRow from '../../src/components/tracking/HabitRow';
 
@@ -103,4 +104,100 @@ describe('HabitRow', () => {
     fireEvent.press(done.screen.getByTestId('habit-done-h1'));
     expect(done.onSave).toHaveBeenCalledWith(null);
   });
+});
+
+describe('long German habit names', () => {
+  const longName =
+    'Tägliche Gleichgewichtsübungen mit langsamer Atmung und anschließendem Entspannungsspaziergang im Stadtpark';
+  it.each([1, 2])(
+    'keeps the literal name readable without shrinking at fontScale %s and preserves explicit draft actions',
+    (fontScale) => {
+      const window = Dimensions.get('window');
+      const screenSize = Dimensions.get('screen');
+      Dimensions.set({
+        window: { ...window, width: 390, fontScale },
+        screen: { ...screenSize, width: 390, fontScale },
+      });
+      const alert = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
+      try {
+        const { screen, onSave } = renderRow({
+          habit: habit({ name: longName }),
+        });
+        const name = screen.getByText(longName);
+        if (fontScale >= 1.5) {
+          expect(
+            screen.getByTestId('habit-name-block-h1').findAllByType(name.type)
+          ).toHaveLength(1);
+          expect(screen.getByTestId('habit-actions-h1')).toBeTruthy();
+        } else {
+          expect(screen.queryByTestId('habit-actions-h1')).toBeNull();
+        }
+        // RN's native contract: zero/omitted line limit allows natural height.
+        // Jest has no Yoga/text rasterizer; this asserts the actual Text contract,
+        // not a screenshot, pixel layout or physical Dynamic Type acceptance.
+        expect(name.props.numberOfLines ?? 0).toBe(0);
+        expect(name.props.allowFontScaling).not.toBe(false);
+        expect(name.props.adjustsFontSizeToFit).not.toBe(true);
+        expect(Dimensions.get('window').fontScale).toBe(fontScale);
+        const amount = screen.getByTestId('habit-amount-h1');
+        fireEvent.changeText(amount, '12,5');
+        fireEvent(amount, 'blur');
+        expect(onSave).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('habit-menu-h1'));
+        expect(alert).toHaveBeenCalledWith(
+          longName,
+          undefined,
+          expect.any(Array)
+        );
+        expect(onSave).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('habit-save-h1'));
+        expect(onSave).toHaveBeenCalledTimes(1);
+        expect(onSave).toHaveBeenCalledWith(12.5);
+        screen.unmount();
+      } finally {
+        alert.mockRestore();
+        Dimensions.set({ window, screen: screenSize });
+      }
+    }
+  );
+});
+
+describe('long completion habit names', () => {
+  it.each([1, 2])(
+    'keeps a long completion title readable at fontScale %s with explicit Done',
+    (fontScale) => {
+      const window = Dimensions.get('window');
+      const screenSize = Dimensions.get('screen');
+      Dimensions.set({
+        window: { ...window, width: 390, fontScale },
+        screen: { ...screenSize, width: 390, fontScale },
+      });
+      try {
+        const name =
+          'Abendliche Entspannungsroutine mit bewusstem Atemrhythmus und einer abschließenden ruhigen Dehnungsübung';
+        const { screen, onSave } = renderRow({
+          habit: habit({
+            name,
+            habit_type: 'completion',
+            target: null,
+            unit: null,
+          }),
+        });
+        expect(screen.getByText(name).props.numberOfLines ?? 0).toBe(0);
+        if (fontScale >= 1.5)
+          expect(screen.getByTestId('habit-actions-h1')).toBeTruthy();
+        expect(screen.getByText(name).props.allowFontScaling).not.toBe(false);
+        expect(screen.getByText(name).props.adjustsFontSizeToFit).not.toBe(
+          true
+        );
+        expect(onSave).not.toHaveBeenCalled();
+        fireEvent.press(screen.getByTestId('habit-done-h1'));
+        expect(onSave).toHaveBeenCalledTimes(1);
+        expect(onSave).toHaveBeenCalledWith(true);
+        screen.unmount();
+      } finally {
+        Dimensions.set({ window, screen: screenSize });
+      }
+    }
+  );
 });

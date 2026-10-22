@@ -1,7 +1,13 @@
 import { useDatedEntryContext } from '../hooks/useDatedEntryContext';
 import { useManualDoseLogging } from '../hooks/useManualDoseLogging';
 import React, { useMemo } from 'react';
-import { Alert, Pressable, Text, View } from 'react-native';
+import {
+  Alert,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -76,6 +82,8 @@ function minutesOf(time: string): number {
 
 const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
   const { t } = useTranslation();
+  const { fontScale } = useWindowDimensions();
+  const enlargedText = fontScale >= 1.5;
   const scale = useNeonScale();
   const [primary, secondary, border] = useCSSVariable([
     '--color-text-primary',
@@ -396,11 +404,107 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                   const withMeal = dose.schedule.with_meal
                     ? localizedMealTimingLabel(t, dose.schedule.with_meal)
                     : null;
+                  const title = (
+                    <Text className="text-base font-semibold text-text-primary">
+                      {dose.medication.name}
+                    </Text>
+                  );
+                  const metadata = (
+                    <>
+                      <View className="flex-row flex-wrap items-center gap-2">
+                        {amount ? (
+                          <Text className="text-sm text-text-secondary">
+                            {amount}
+                          </Text>
+                        ) : null}
+                        {time ? (
+                          <View className="flex-row items-center gap-1">
+                            <Icon name="clock" size={14} color={timeColor} />
+                            <Text
+                              className="text-sm"
+                              style={{ color: timeColor }}
+                            >
+                              {timeLabel(time)}
+                            </Text>
+                          </View>
+                        ) : null}
+                        {withMeal ? (
+                          <View className="rounded-md border border-border-subtle px-2 py-0.5">
+                            <Text className="text-xs text-text-secondary">
+                              {withMeal}
+                            </Text>
+                          </View>
+                        ) : null}
+                        {status === 'skipped' ? (
+                          <Text className="text-xs text-text-secondary">
+                            {t('supplements.skipped', {
+                              defaultValue: 'Skipped',
+                            })}
+                          </Text>
+                        ) : null}
+                      </View>
+                    </>
+                  );
+                  const takeControl = (
+                    <Pressable
+                      testID={`supplement-take-${dose.schedule.id}`}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked: isTaken }}
+                      accessibilityLabel={
+                        isTaken
+                          ? t('supplements.takenA11y', {
+                              defaultValue: '{{name}} taken. Tap to undo.',
+                              name: dose.medication.name,
+                            })
+                          : t('supplements.markTakenA11y', {
+                              defaultValue: 'Mark {{name}} taken',
+                              name: dose.medication.name,
+                            })
+                      }
+                      onPress={() => record(dose, 'taken')}
+                      className="h-11 w-11 items-center justify-center"
+                    >
+                      <View
+                        className="h-8 w-8 items-center justify-center rounded-full"
+                        style={
+                          isTaken
+                            ? { backgroundColor: scale.green }
+                            : { borderWidth: 2, borderColor: secondary }
+                        }
+                      >
+                        {isTaken ? (
+                          <Icon name="checkmark" size={16} color="#08130d" />
+                        ) : null}
+                      </View>
+                    </Pressable>
+                  );
+                  const menu = (
+                    <Pressable
+                      testID={`supplement-menu-${dose.schedule.id}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('supplements.moreActions', {
+                        defaultValue: 'More actions for {{name}}',
+                        name: dose.medication.name,
+                      })}
+                      onPress={() => openMenu(dose)}
+                      className="h-11 w-11 items-center justify-center"
+                    >
+                      <Icon
+                        name="ellipsis-horizontal"
+                        size={18}
+                        color={primary}
+                      />
+                    </Pressable>
+                  );
                   return (
                     <View
                       key={`${dose.medication.id}-${dose.schedule.id}`}
                       testID={`supplement-row-${dose.schedule.id}`}
-                      className="mb-2 flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-3 py-2"
+                      className={
+                        enlargedText
+                          ? 'mb-2 gap-2 rounded-xl border px-3 py-2'
+                          : 'mb-2 flex-row flex-wrap items-center gap-x-3 gap-y-1 rounded-xl border px-3 py-2'
+                      }
                       style={{
                         borderColor: overdue
                           ? withAlpha(scale.yellow, 0.8)
@@ -408,93 +512,33 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
                         backgroundColor: withAlpha(color, 0.04),
                       }}
                     >
-                      <Pressable
-                        testID={`supplement-take-${dose.schedule.id}`}
-                        accessibilityRole="checkbox"
-                        accessibilityState={{ checked: isTaken }}
-                        accessibilityLabel={
-                          isTaken
-                            ? t('supplements.takenA11y', {
-                                defaultValue: '{{name}} taken. Tap to undo.',
-                                name: dose.medication.name,
-                              })
-                            : t('supplements.markTakenA11y', {
-                                defaultValue: 'Mark {{name}} taken',
-                                name: dose.medication.name,
-                              })
-                        }
-                        onPress={() => record(dose, 'taken')}
-                        className="h-11 w-11 items-center justify-center"
-                      >
-                        <View
-                          className="h-8 w-8 items-center justify-center rounded-full"
-                          style={
-                            isTaken
-                              ? { backgroundColor: scale.green }
-                              : { borderWidth: 2, borderColor: secondary }
-                          }
-                        >
-                          {isTaken ? (
-                            <Icon name="checkmark" size={16} color="#08130d" />
-                          ) : null}
-                        </View>
-                      </Pressable>
-                      <View className="min-w-0 flex-1">
-                        <Text
-                          className="text-base font-semibold text-text-primary"
-                          numberOfLines={2}
-                        >
-                          {dose.medication.name}
-                        </Text>
-                        <View className="flex-row flex-wrap items-center gap-2">
-                          {amount ? (
-                            <Text className="text-sm text-text-secondary">
-                              {amount}
-                            </Text>
-                          ) : null}
-                          {time ? (
-                            <View className="flex-row items-center gap-1">
-                              <Icon name="clock" size={14} color={timeColor} />
-                              <Text
-                                className="text-sm"
-                                style={{ color: timeColor }}
-                              >
-                                {timeLabel(time)}
-                              </Text>
-                            </View>
-                          ) : null}
-                          {withMeal ? (
-                            <View className="rounded-md border border-border-subtle px-2 py-0.5">
-                              <Text className="text-xs text-text-secondary">
-                                {withMeal}
-                              </Text>
-                            </View>
-                          ) : null}
-                          {status === 'skipped' ? (
-                            <Text className="text-xs text-text-secondary">
-                              {t('supplements.skipped', {
-                                defaultValue: 'Skipped',
-                              })}
-                            </Text>
-                          ) : null}
-                        </View>
-                      </View>
-                      <Pressable
-                        testID={`supplement-menu-${dose.schedule.id}`}
-                        accessibilityRole="button"
-                        accessibilityLabel={t('supplements.moreActions', {
-                          defaultValue: 'More actions for {{name}}',
-                          name: dose.medication.name,
-                        })}
-                        onPress={() => openMenu(dose)}
-                        className="h-11 w-11 items-center justify-center"
-                      >
-                        <Icon
-                          name="ellipsis-horizontal"
-                          size={18}
-                          color={primary}
-                        />
-                      </Pressable>
+                      {enlargedText ? (
+                        <>
+                          <View
+                            testID={`supplement-name-block-${dose.schedule.id}`}
+                            className="w-full"
+                          >
+                            {title}
+                          </View>
+                          <View
+                            testID={`supplement-actions-${dose.schedule.id}`}
+                            className="flex-row items-center gap-3"
+                          >
+                            {takeControl}
+                            {menu}
+                          </View>
+                          {metadata}
+                        </>
+                      ) : (
+                        <>
+                          {takeControl}
+                          <View className="min-w-0 flex-1">
+                            {title}
+                            {metadata}
+                          </View>
+                          {menu}
+                        </>
+                      )}
                     </View>
                   );
                 })}

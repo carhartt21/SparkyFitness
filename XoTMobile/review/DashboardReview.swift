@@ -2,6 +2,62 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// One enlarged-German tracking-only proof, no feature writes or food flows.
+  func testReadableTrackingNames() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    for (tile, screen, fullName, menuID) in [
+      ("habit", "habits", "Synthetische Gewohnheit 01 – Ruhige Beweglichkeit und bewusste Pausen im langen Alltag", "habit-menu-review-long-habit-00"),
+      ("medication", "supplements", "Synthetisches Supplement 01 – Ausführliche Bezeichnung für die schmale Listenansicht", "supplement-menu-review-long-schedule-00")
+    ] {
+      let target = app.buttons["dashboard-detail-\(tile)"]
+      reveal(target, app: app, upwards: true); XCTAssertTrue(target.isHittable); target.tap()
+      XCTAssertTrue(app.otherElements[screen].waitForExistence(timeout: 15))
+      let name = app.staticTexts.matching(NSPredicate(format: "label == %@", fullName)).firstMatch
+      XCTAssertTrue(name.waitForExistence(timeout: 10))
+      // RN exposes nested StaticText nodes with the same literal label.
+      // Use measured offsets, not whole-screen swipes that overshoot large rows.
+      // First cross the tall preexisting summary/header, stopping as soon as
+      // the title intersects the viewport. Fine drags then remove overshoot.
+      for _ in 0..<12 {
+        if name.frame.minY < app.frame.height - 95 && name.frame.maxY > 80 { break }
+        if name.frame.maxY <= 80 { app.swipeDown(velocity: .slow) } else { app.swipeUp(velocity: .slow) }
+      }
+      for _ in 0..<4 {
+        let safeTop: CGFloat = 80
+        if name.frame.minY >= safeTop && name.frame.maxY < app.frame.height - 95 { break }
+        let requested = name.frame.minY < safeTop ? safeTop - name.frame.minY : app.frame.height - 110 - name.frame.maxY
+        let delta = max(-120, min(120, requested))
+        let start = app.coordinate(withNormalizedOffset: CGVector(dx: 0.85, dy: 0.5))
+        let end = start.withOffset(CGVector(dx: 0, dy: delta))
+        start.press(forDuration: 0.1, thenDragTo: end, withVelocity: .slow, thenHoldForDuration: 0.3)
+      }
+      XCTAssertEqual(name.label, fullName)
+      XCTAssertGreaterThan(name.frame.height, 90, "Enlarged literal name must grow beyond two lines")
+      XCTAssertGreaterThanOrEqual(name.frame.minY, 0)
+      XCTAssertLessThan(name.frame.maxY, app.frame.height - 95)
+      let menu = app.buttons[menuID]
+      assertControl(menu, app: app)
+      capture("readable-\(screen)-full-name", app)
+      menu.tap()
+      let cancel = app.buttons.matching(NSPredicate(format: "label IN %@", ["Cancel", "Abbrechen"])).firstMatch
+      XCTAssertTrue(cancel.waitForExistence(timeout: 5));cancel.tap()
+      let back = app.buttons["\(screen)-back"]
+      reveal(back, app: app, upwards: false); assertControl(back, app: app);back.tap()
+    }
+    let audit = try events()
+    for event in audit {
+      let method = event["method"] as? String ?? ""
+      if method == "POST" && event["path"] as? String == "/api/user-preferences/bootstrap-timezone" {
+        XCTAssertEqual(event["rejected"] as? Bool, true);continue
+      }
+      XCTAssertTrue(["GET", "KEYBOARD"].contains(method), "Unexpected request \(event)")
+      XCTAssertNotEqual(event["rejected"] as? Bool, true)
+    }
+  }
+
   /// Populated synthetic lists, wrapped German, real native keyboard and cancelled targets.
   func testNativeIntegration() throws {
     continueAfterFailure = false
