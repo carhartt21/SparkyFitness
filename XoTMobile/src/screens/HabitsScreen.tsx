@@ -1,3 +1,4 @@
+import { useDatedEntryContext } from '../hooks/useDatedEntryContext';
 import Button from '../components/ui/Button';
 import React, { useMemo, useState } from 'react';
 import { Text, View } from 'react-native';
@@ -66,8 +67,11 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
     '--color-border-subtle',
     '--color-progress-track',
   ]) as [string, string, string];
-  const [date, setDate] = useState(route.params?.date ?? getTodayDate());
-  const [focusedId, setFocusedId] = useState(route.params?.habitId);
+  const { date, setDate, focusedId } = useDatedEntryContext(
+    route.params?.date,
+    route.params?.habitId,
+    route.params
+  );
   const [range, setRange] = useState<Range>(7);
   const [trendHabitId, setTrendHabitId] = useState<string | null>(null);
   const { isConnected } = useServerConnection();
@@ -96,6 +100,7 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
     (habit) => habitDayState(habit, todaysLogs.get(habit.id)) === 'complete'
   ).length;
 
+  const focusedName = dueHabits.find((habit) => habit.id === focusedId)?.name;
   const isToday = date === getTodayDate();
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -213,13 +218,17 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
         ) : null
       }
     >
-      {focusedId && (
-        <NeonButton
-          label={t('common.showAll', { defaultValue: 'Show all' })}
-          variant="subtle"
-          onPress={() => setFocusedId(undefined)}
-        />
-      )}
+      {focusedName ? (
+        <Text
+          testID="entry-focus-context"
+          className="mb-4 text-sm text-text-secondary"
+        >
+          {t('tracking.selectedEntry', {
+            defaultValue: 'Selected: {{name}}',
+            name: focusedName,
+          })}
+        </Text>
+      ) : null}
       {habitsQuery.isLoading ? (
         <StatusView
           loading
@@ -316,26 +325,24 @@ const HabitsScreen: React.FC<Props> = ({ navigation, route }) => {
                 })}
               </Text>
             ) : (
-              dueHabits
-                .filter((habit) => !focusedId || habit.id === focusedId)
-                .map((habit, index) => (
-                  <HabitRow
-                    key={habit.id}
-                    habit={habit}
-                    log={todaysLogs.get(habit.id)}
-                    timeLabel={timeLabel(habit)}
-                    tint={habitTint(index, scale)}
-                    saving={
-                      logHabit.isPending &&
-                      logHabit.variables?.habitId === habit.id
-                    }
-                    onSave={(value) => save(habit, value)}
-                    onEdit={() =>
-                      navigation.navigate('HabitForm', { habitId: habit.id })
-                    }
-                    showDivider={index > 0}
-                  />
-                ))
+              dueHabits.map((habit, index) => (
+                <HabitRow
+                  key={habit.id}
+                  habit={habit}
+                  log={todaysLogs.get(habit.id)}
+                  timeLabel={timeLabel(habit)}
+                  tint={habitTint(index, scale)}
+                  saving={
+                    logHabit.isPending &&
+                    logHabit.variables?.habitId === habit.id
+                  }
+                  onSave={(value) => save(habit, value)}
+                  onEdit={() =>
+                    navigation.navigate('HabitForm', { habitId: habit.id })
+                  }
+                  showDivider={index > 0}
+                />
+              ))
             )}
           </GlowCard>
 

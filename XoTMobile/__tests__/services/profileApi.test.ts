@@ -1,3 +1,4 @@
+import { retryPendingWorkoutExports } from '../../src/services/workoutHealthExport';
 import { fetchProfile } from '../../src/services/api/profileApi';
 import {
   getActiveServerConfig,
@@ -9,6 +10,10 @@ jest.mock('../../src/services/storage', () => ({
   getActiveServerConfigId: jest.fn().mockResolvedValue(null),
   proxyHeadersToRecord: jest.requireActual('../../src/services/storage')
     .proxyHeadersToRecord,
+}));
+
+jest.mock('../../src/services/workoutHealthExport', () => ({
+  retryPendingWorkoutExports: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('../../src/services/LogService', () => ({
@@ -24,6 +29,7 @@ describe('profileApi', () => {
 
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(retryPendingWorkoutExports).mockResolvedValue(undefined);
     global.fetch = mockFetch;
     jest.spyOn(console, 'log').mockImplementation(() => {});
     jest.spyOn(console, 'error').mockImplementation(() => {});
@@ -62,7 +68,7 @@ describe('profileApi', () => {
         expect.objectContaining({
           method: 'GET',
           headers: {
-            Authorization: 'Bearer test-api-key-12345',
+            authorization: 'Bearer test-api-key-12345',
 
             'X-Meal-Model-Version': '2',
           },

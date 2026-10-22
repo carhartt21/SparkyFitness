@@ -1,3 +1,5 @@
+import { useMealFoodHistory } from '../hooks/useMealFoodHistory';
+import { rankMealFoods } from '../services/mealFoodSuggestions';
 import { compareFavoritePopularity } from '@workspace/shared';
 import { useMealTypes } from '../hooks/useMealTypes';
 import { useAddFoodEntryMeal } from '../hooks/useAddFoodEntryMeal';
@@ -162,6 +164,10 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
   }, [route.params?.initialBrowseTab]);
 
   const { profile } = useProfile();
+  const { mealTypes, defaultMealTypeId } = useMealTypes({
+    enabled: isConnected,
+  });
+
   const ownershipFilter = useAppPreferencesStore(
     (s) => s.foodSearchOwnershipFilter
   );
@@ -948,6 +954,60 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     );
   }, [filteredMealResults, favoriteKeys, browseTab, filteredRecentMeals]);
 
+  const historyEnabled =
+    isConnected &&
+    pickerMode === 'log-entry' &&
+    !mealPlanTarget &&
+    !photoCapture &&
+    !route.params?.initialBrowseTab;
+  const contextMealId = mealTypeId ?? defaultMealTypeId;
+  const validContextMealId = mealTypes.some((meal) => meal.id === contextMealId)
+    ? contextMealId
+    : undefined;
+  const history = useMealFoodHistory(
+    profile?.id,
+    date,
+    historyEnabled && !!validContextMealId
+  );
+  const contextualEntries = useMemo<LandingEntry[]>(
+    () =>
+      browseTab === 'all' && historyEnabled
+        ? rankMealFoods(
+            [
+              ...filteredFavoriteFoods,
+              ...filteredRecentFoods,
+              ...filteredTopFoods,
+            ],
+            history.entries,
+            validContextMealId,
+            history.start,
+            history.end
+          )
+            .slice(0, landingLimit)
+            .map((food) => ({
+              kind: 'food',
+              key: landingKey('food', food.id),
+              food,
+            }))
+        : [],
+    [
+      browseTab,
+      historyEnabled,
+      filteredFavoriteFoods,
+      filteredRecentFoods,
+      filteredTopFoods,
+      history.entries,
+      history.start,
+      history.end,
+      validContextMealId,
+      landingLimit,
+    ]
+  );
+  const contextKeys = useMemo(
+    () => new Set(contextualEntries.map((entry) => entry.key)),
+    [contextualEntries]
+  );
+
   const landingSections = useMemo<LandingSection[]>(() => {
     // Each section excludes what the sections above it already show, so the
     // landing never repeats a row: Recent drops favorites, Top drops favorites
@@ -959,21 +1019,27 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
       photoCapture ? [] : filteredRecentMeals,
       filteredRecentFoods,
       landingLimit,
-      browseTab === 'recent' ? new Set<string>() : favoriteKeys
+      browseTab === 'recent'
+        ? new Set<string>()
+        : new Set([...favoriteKeys, ...contextKeys])
     );
     // Top: foods + meals by usage.
     const frequentEntries = mergeFrequent(
       photoCapture ? [] : filteredTopMeals,
       filteredTopFoods,
       landingLimit,
-      new Set([...favoriteKeys, ...recentEntries.map((entry) => entry.key)])
+      new Set([
+        ...favoriteKeys,
+        ...contextKeys,
+        ...recentEntries.map((entry) => entry.key),
+      ])
     );
-    return [
+    const sections = [
       {
         title: t('foodSearch.sections.favorites', {
           defaultValue: 'Favorites',
         }),
-        data: favoriteEntries,
+        data: favoriteEntries.filter((entry) => !contextKeys.has(entry.key)),
       },
       {
         title: t('foodSearch.sections.recentlyLogged', {
@@ -991,7 +1057,20 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
         (browseTab === 'all' ||
           (browseTab === 'favorites' ? index === 0 : index === 1))
     );
+    return contextualEntries.length
+      ? [
+          {
+            title: t('foodSearch.sections.forThisMeal', {
+              defaultValue: 'For this meal',
+            }),
+            data: contextualEntries,
+          },
+          ...sections,
+        ]
+      : sections;
   }, [
+    contextualEntries,
+    contextKeys,
     browseTab,
     favoriteEntries,
     favoriteKeys,
@@ -1210,9 +1289,6 @@ const FoodSearchScreen: React.FC<FoodSearchScreenProps> = ({
     t,
   ]);
 
-  const { mealTypes, defaultMealTypeId } = useMealTypes({
-    enabled: isConnected,
-  });
   const { addMealAsync } = useAddFoodEntryMeal();
   const mealQuickAddFlight = useRef(false);
   const [quickAddMealId, setQuickAddMealId] = useState<string | null>(null);

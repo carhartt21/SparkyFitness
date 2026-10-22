@@ -3,6 +3,7 @@ import {
   customNutrientsQueryKey,
   nutrientDisplayPreferencesQueryKey,
   dailyProgressRootQueryKey,
+  mealFoodHistoryRootQueryKey,
 } from './queryKeys';
 
 /** Imports can provision definitions as well as change diary/report totals. */
@@ -11,6 +12,7 @@ export function invalidateNutritionCaches(queryClient: QueryClient) {
     customNutrientsQueryKey,
     nutrientDisplayPreferencesQueryKey,
     dailyProgressRootQueryKey,
+    mealFoodHistoryRootQueryKey,
     ['nutritionTrends'],
     ['goals'],
   ]) {

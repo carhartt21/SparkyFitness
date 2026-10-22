@@ -531,7 +531,9 @@
   "diary": {
     "bulk": {
       "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen.",
-      "invalidDate": "Geben Sie ein gültiges Datum ein."
+      "invalidDate": "Geben Sie ein gültiges Datum ein.",
+      "destinationDay": "Zieldatum",
+      "chooseDate": "Zieldatum auswählen"
     },
     "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten.",
     "configureServer": "Richten Sie die Serververbindung in den Einstellungen ein, um Ihr Tagebuch anzuzeigen.",
@@ -808,7 +810,8 @@
     },
     "sections": {
       "yourFoods": "Ihre Lebensmittel",
-      "yourMeals": "Ihre Mahlzeiten"
+      "yourMeals": "Ihre Mahlzeiten",
+      "forThisMeal": "Für diese Mahlzeit"
     },
     "states": {
       "connectToSearch": "Verbinden Sie sich mit dem Server, um Lebensmittel zu suchen.",
@@ -1266,7 +1269,8 @@
     "manageContext": "Verwalten Sie Verletzungen, Krankheiten und Urlaubszeiten"
   },
   "tracking": {
-    "chooseDate": "Datum auswählen"
+    "chooseDate": "Datum auswählen",
+    "selectedEntry": "Ausgewählt: {{name}}"
   },
   "syncStatus": {
     "synced": "Gesundheitsdaten synchronisiert",

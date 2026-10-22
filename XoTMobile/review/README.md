@@ -307,3 +307,7 @@ No production account, import, real health writeback or release upload is involv
 Bulk food movement/template draft behavior is also covered by focused unit tests;
 physical drag accuracy, offline restart/replay and paired Watch checks remain
 manual acceptance gates.
+
+## Combined candidate check
+
+`--combined-review --interactions --device-prefix 'XOT UI Review <unique-packet>' --case '^(390-de-dark|390-de-light|390-de-large|430-en-dark)$'` uses new review simulator names, current Metro JavaScript and synthetic history rows. It captures the suggestion landing and dated Habits/Supplements navigation plus cancelled copy/move calendars and targets. No bulk action is applied. The existing native app is reused; XCTest builds only its separate review driver. Store native app hash, exact source/diff hashes and current Metro bundle markers beside results. Static tests and successful native navigation do not establish visual approval, real-account usefulness or physical-device acceptance.

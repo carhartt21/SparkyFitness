@@ -1439,7 +1439,9 @@
       "targetMeal": "Destination meal",
       "invalidDate": "Enter a valid date.",
       "apply": "Apply",
-      "failed": "Could not update selected foods"
+      "failed": "Could not update selected foods",
+      "destinationDay": "Destination date",
+      "chooseDate": "Choose destination date"
     },
     "subtitle": "Log your meals and activity.",
     "timeline": {
@@ -4076,7 +4078,8 @@
       "yourMeals": "Your Meals",
       "topMatches": "Top Matches",
       "onlineResults": "Online Results",
-      "byProvider": "By Provider"
+      "byProvider": "By Provider",
+      "forThisMeal": "For this meal"
     },
     "search": {
       "placeholder": "Search foods..."
@@ -6486,7 +6489,8 @@
     "manageContext": "Manage injury, illness and vacation periods"
   },
   "tracking": {
-    "chooseDate": "Choose date"
+    "chooseDate": "Choose date",
+    "selectedEntry": "Selected: {{name}}"
   },
   "syncStatus": {
     "synced": "Health data synced",

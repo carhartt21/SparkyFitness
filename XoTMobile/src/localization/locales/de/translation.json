@@ -1702,7 +1702,9 @@
       "invalidDate": "Geben Sie ein gültiges Datum ein.",
       "apply": "Anwenden",
       "failed": "Die ausgewählten Lebensmittel konnten nicht aktualisiert werden",
-      "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen."
+      "dragHint": "Ziehen Sie ein Lebensmittel zu einer anderen Mahlzeit oder wählen Sie Lebensmittel aus, um weitere Aktionen auszuführen.",
+      "destinationDay": "Zieldatum",
+      "chooseDate": "Zieldatum auswählen"
     },
     "subtitle": "Protokollieren Sie Ihre Mahlzeiten und Aktivitäten.",
     "timeline": {
@@ -3795,7 +3797,8 @@
       "yourMeals": "Ihre Mahlzeiten",
       "topMatches": "Beste Treffer",
       "onlineResults": "Online-Ergebnisse",
-      "byProvider": "Nach Anbieter"
+      "byProvider": "Nach Anbieter",
+      "forThisMeal": "Für diese Mahlzeit"
     },
     "search": {
       "placeholder": "Lebensmittel suchen…"
@@ -6502,7 +6505,8 @@
     "manageContext": "Verwalten Sie Verletzungen, Krankheiten und Urlaubszeiten"
   },
   "tracking": {
-    "chooseDate": "Datum auswählen"
+    "chooseDate": "Datum auswählen",
+    "selectedEntry": "Ausgewählt: {{name}}"
   },
   "syncStatus": {
     "synced": "Gesundheitsdaten synchronisiert",

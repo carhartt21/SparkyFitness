@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { apiFetch, type ExpectedNutritionIdentity } from './apiClient';
 import type {
   Medication,
   MedicationDetail,
@@ -130,7 +130,8 @@ export const createEntry = (
   });
 
 export const createPlannedSupplementAction = (
-  body: PlannedSupplementActionBody
+  body: PlannedSupplementActionBody,
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<PlannedSupplementActionResult> =>
   apiFetch<PlannedSupplementActionResult>({
     endpoint: '/api/v2/medications/entries/planned-supplement-actions',
@@ -138,6 +139,7 @@ export const createPlannedSupplementAction = (
     operation: 'log planned supplement action',
     method: 'POST',
     body,
+    ...(expectedIdentity ? { expectedIdentity } : {}),
   });
 
 export const updateEntry = (

@@ -1,3 +1,5 @@
+import DiaryBulkActionSheet from '../../src/components/DiaryBulkActionSheet';
+import * as diaryFoodEditing from '../../src/hooks/useDiaryFoodEditing';
 jest.mock('../../src/components/SwipeableFoodRow', () => {
   const { View } = require('react-native');
   return {
@@ -1113,4 +1115,58 @@ describe('DiaryScreen progress photo markers', () => {
     expect(mockUseCheckInPhotoDates).toHaveBeenCalledWith(false);
     expect(mockUseCheckInPhotoDates).not.toHaveBeenCalledWith(true);
   });
+});
+
+describe('bulk sheet call-site contracts', () => {
+  it.each([
+    [true, 'copy'],
+    [true, 'move'],
+    [false, 'copy'],
+    [false, 'move'],
+  ] as const)(
+    'preserves Diary native-tabs=%s %s callback/date without a mutation on open',
+    (native, action) => {
+      jest.clearAllMocks();
+      configureConnection(true);
+      configureFamilyUsers([]);
+      configureOnlineData();
+      mockUseNativeIOSTabsActive.mockReturnValue(native);
+      useDiaryDateStore.setState({
+        selectedDate: '2030-02-27',
+        lastKnownToday: getTodayDate(),
+      });
+      const runBulkAction = jest.fn();
+      const spy = jest
+        .spyOn(diaryFoodEditing, 'useDiaryFoodEditing')
+        .mockReturnValue({
+          editingFoods: false,
+          selectedFoodIds: new Set(['synthetic-entry']),
+          bulkAction: action,
+          bulkBusy: false,
+          runBulkAction,
+          setEditingFoods: jest.fn(),
+          toggleFoodSelection: jest.fn(),
+          setBulkAction: jest.fn(),
+          finishFoodEditing: jest.fn(),
+          moveDroppedFood: jest.fn(),
+          confirmBulkDelete: jest.fn(),
+        });
+      try {
+        const v = renderScreen();
+        const sheet = v.UNSAFE_getByType(DiaryBulkActionSheet);
+        expect(sheet.props.sourceDate).toBe('2030-02-27');
+        expect(sheet.props.action).toBe(action);
+        expect(runBulkAction).not.toHaveBeenCalled();
+        act(() => sheet.props.onApply(action, '2030-02-28', 'synthetic-meal'));
+        expect(runBulkAction).toHaveBeenCalledWith(
+          action,
+          '2030-02-28',
+          'synthetic-meal'
+        );
+        v.unmount();
+      } finally {
+        spy.mockRestore();
+      }
+    }
+  );
 });

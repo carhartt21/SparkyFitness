@@ -225,4 +225,61 @@ describe('SupplementsScreen', () => {
       screen.getByTestId('supplements-summary-count').props.children
     ).toEqual([1, '/', 1]);
   });
+
+  it('keeps every dated dose visible for a focused shortcut; cue is read-only and missing IDs never filter', () => {
+    (useMedications as jest.Mock).mockReturnValue({
+      data: [
+        {
+          id: 'synthetic-a',
+          name: 'Synthetic A',
+          is_active: true,
+          is_supplement: true,
+          schedules: [schedule('synthetic-slot-a', 'synthetic-a', '08:00:00')],
+        },
+        {
+          id: 'synthetic-b',
+          name: 'Synthetic B',
+          is_active: true,
+          is_supplement: true,
+          schedules: [schedule('synthetic-slot-b', 'synthetic-b', '20:00:00')],
+        },
+      ],
+      isLoading: false,
+      refetch: jest.fn(),
+    });
+    const focused = {
+      ...route,
+      params: { date: '2026-09-28', scheduleId: 'synthetic-slot-a' },
+    };
+    const wrapper = ({ children }: { children: React.ReactNode }) => (
+      <SafeAreaProvider
+        initialMetrics={{
+          frame: { x: 0, y: 0, width: 390, height: 844 },
+          insets: { top: 0, bottom: 34, left: 0, right: 0 },
+        }}
+      >
+        {children}
+      </SafeAreaProvider>
+    );
+    const v = render(
+      <SupplementsScreen navigation={navigation} route={focused} />,
+      { wrapper }
+    );
+    expect(v.getByTestId('supplement-row-synthetic-slot-a')).toBeTruthy();
+    expect(v.getByTestId('supplement-row-synthetic-slot-b')).toBeTruthy();
+    expect(v.getByText('Selected: Synthetic A')).toBeTruthy();
+    expect(logDose).not.toHaveBeenCalled();
+    v.rerender(
+      <SupplementsScreen
+        navigation={navigation}
+        route={{
+          ...route,
+          params: { date: '2026-09-29', scheduleId: 'missing' },
+        }}
+      />
+    );
+    expect(v.queryByTestId('entry-focus-context')).toBeNull();
+    expect(v.getByTestId('supplement-row-synthetic-slot-b')).toBeTruthy();
+    expect(logDose).not.toHaveBeenCalled();
+  });
 });

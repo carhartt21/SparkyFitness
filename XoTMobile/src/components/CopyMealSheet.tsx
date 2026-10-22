@@ -23,7 +23,8 @@ import {
 import { useAppLocale } from '../localization/i18n';
 import { formatDateLabel } from '../utils/dateUtils';
 import { useCalendarPresentation } from '../utils/calendarLocalization';
-import { dayToPickerDate, localDateToDay } from '@workspace/shared';
+import { dayToPickerDate } from '@workspace/shared';
+import { selectedCalendarDay } from '../utils/calendarSelection';
 import type { CopyFoodEntriesPayload } from '../services/api/foodEntriesApi';
 
 export interface CopyMealSheetRef {
@@ -92,21 +93,8 @@ const CopyMealSheet = forwardRef<CopyMealSheetRef, CopyMealSheetProps>(
     const renderBackdrop = useSheetBackdrop();
 
     const handleDateChange = useCallback(({ date }: { date: DateType }) => {
-      if (!date) return;
-      // The picker hands back a dayjs object; convert it to a Date, then to a
-      // local YYYY-MM-DD day string via the shared helper so there is no
-      // timezone day shift. A YYYY-MM-DD string is parsed with the same helper.
-      let jsDate: Date;
-      if (date instanceof Date) {
-        jsDate = date;
-      } else if (typeof date === 'object' && 'toDate' in date) {
-        jsDate = date.toDate();
-      } else if (typeof date === 'string') {
-        jsDate = dayToPickerDate(date);
-      } else {
-        jsDate = new Date(date);
-      }
-      setTargetDate(localDateToDay(jsDate));
+      const day = selectedCalendarDay(date);
+      if (day) setTargetDate(day);
     }, []);
 
     const dateValue = useMemo(

@@ -1,6 +1,13 @@
-import { getActiveNutritionIdentity } from '../nutritionIdentity';
+import {
+  getActiveNutritionIdentity,
+  subscribeNutritionIdentity,
+} from '../nutritionIdentity';
 import type { NutritionActionIdentity } from '../nutritionActionOutbox';
-import { getActiveServerConfig, proxyHeadersToRecord } from '../storage';
+import {
+  getActiveServerConfig,
+  proxyHeadersToRecord,
+  type ServerConfig,
+} from '../storage';
 import { addLog } from '../LogService';
 import { getAuthHeaders, notifySessionExpired } from './authService';
 import { ApiError } from './errors';
@@ -10,7 +17,213 @@ import {
 } from '../../utils/concurrency';
 import { normalizeUrl, isPermittedHttpUrl } from '../../utils/serverUrl';
 
+import {
+  IdentityChangedError,
+  assertNutritionTransportGeneration,
+  nutritionIdentityGeneration,
+} from '../nutritionIdentityLifecycle';
+
 export { normalizeUrl };
+export { IdentityChangedError } from '../nutritionIdentityLifecycle';
+/** Ephemeral transport state; never persist credentials or this object. */
+export interface TransportRequestBinding {
+  readonly serverConfigId: string;
+  readonly config: Readonly<ServerConfig>;
+  readonly headers: Readonly<Record<string, string>>;
+  assertCurrent: () => Promise<void>;
+  release: () => void;
+}
+export interface NutritionRequestBinding extends TransportRequestBinding {
+  readonly userId: string;
+}
+export type ExpectedNutritionIdentity =
+  NutritionActionIdentity | TransportRequestBinding;
+
+function snapshotConfig(config: ServerConfig): Readonly<ServerConfig> {
+  const proxyHeaders = config.proxyHeaders?.map((header) =>
+    Object.freeze({ ...header })
+  );
+  if (proxyHeaders) Object.freeze(proxyHeaders);
+  return Object.freeze({ ...config, proxyHeaders });
+}
+function canonicalHeaders(
+  headers: Record<string, string>
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(headers).map(([key, value]) => [key.toLowerCase(), value])
+  );
+}
+function sameHeaders(
+  a: Record<string, string>,
+  b: Record<string, string>
+): boolean {
+  return (
+    Object.keys(a).length === Object.keys(b).length &&
+    Object.entries(a).every(([key, value]) => b[key] === value)
+  );
+}
+
+/** First profile lookup cannot depend on an already-known nutrition user. */
+export async function bindTransportRequestIdentity(): Promise<TransportRequestBinding> {
+  const generation = nutritionIdentityGeneration();
+  assertNutritionTransportGeneration(generation);
+  const activeConfig = await getActiveServerConfig();
+  assertNutritionTransportGeneration(generation);
+  if (!activeConfig) throw new Error('Server configuration not found.');
+  const config = snapshotConfig(activeConfig);
+  const url = normalizeUrl(config.url);
+  const authType = config.authType ?? 'apiKey';
+  const auth = Object.freeze(canonicalHeaders(getAuthHeaders(config)));
+  const proxy = Object.freeze(
+    canonicalHeaders(proxyHeadersToRecord(config.proxyHeaders))
+  );
+  const headers = Object.freeze({ ...proxy, ...auth });
+  let closed = false;
+  const assertCurrent = async () => {
+    assertNutritionTransportGeneration(generation);
+    if (closed) throw new IdentityChangedError();
+    const active = await getActiveServerConfig();
+    assertNutritionTransportGeneration(generation);
+    const current = active ? snapshotConfig(active) : null;
+    if (
+      closed ||
+      !current ||
+      current.id !== config.id ||
+      normalizeUrl(current.url) !== url ||
+      (current.authType ?? 'apiKey') !== authType ||
+      !sameHeaders(canonicalHeaders(getAuthHeaders(current)), auth) ||
+      !sameHeaders(
+        canonicalHeaders(proxyHeadersToRecord(current.proxyHeaders)),
+        proxy
+      )
+    )
+      throw new IdentityChangedError();
+  };
+  const binding = Object.freeze({
+    serverConfigId: config.id,
+    config,
+    headers,
+    assertCurrent,
+    release: () => {
+      closed = true;
+    },
+  });
+  try {
+    await assertCurrent();
+    return binding;
+  } catch (error) {
+    binding.release();
+    throw error;
+  }
+}
+/** Known-owner operations additionally reject mapping changes and notifications. */
+export async function bindNutritionRequestIdentity(
+  expected: NutritionActionIdentity
+): Promise<NutritionRequestBinding> {
+  const identity = Object.freeze({
+    serverConfigId: expected.serverConfigId,
+    userId: expected.userId,
+  });
+  let invalid = false;
+  const unsubscribe = subscribeNutritionIdentity(() => {
+    invalid = true;
+  });
+  let transport: TransportRequestBinding | undefined;
+  const release = () => {
+    invalid = true;
+    unsubscribe();
+    transport?.release();
+  };
+  try {
+    transport = await bindTransportRequestIdentity();
+    const captured = transport;
+    const assertCurrent = async () => {
+      if (invalid) throw new IdentityChangedError();
+      await captured.assertCurrent();
+      const current = await getActiveNutritionIdentity();
+      await captured.assertCurrent();
+      if (
+        invalid ||
+        captured.serverConfigId !== identity.serverConfigId ||
+        current?.serverConfigId !== identity.serverConfigId ||
+        current.userId !== identity.userId
+      )
+        throw new IdentityChangedError();
+    };
+    const binding = Object.freeze({
+      ...captured,
+      ...identity,
+      assertCurrent,
+      release,
+    });
+    await assertCurrent();
+    return binding;
+  } catch (error) {
+    release();
+    throw error;
+  }
+}
+
+interface RequestContext {
+  config: Readonly<ServerConfig>;
+  binding?: TransportRequestBinding;
+  release: () => void;
+}
+function isBinding(
+  identity: ExpectedNutritionIdentity
+): identity is TransportRequestBinding {
+  return (
+    'assertCurrent' in identity && typeof identity.assertCurrent === 'function'
+  );
+}
+/** JSON and multipart share the same binding and own only subscriptions they create. */
+export async function captureApiRequest(
+  expected?: ExpectedNutritionIdentity
+): Promise<RequestContext> {
+  if (expected) {
+    const binding = isBinding(expected)
+      ? expected
+      : await bindNutritionRequestIdentity(expected);
+    try {
+      await binding.assertCurrent();
+      return {
+        config: binding.config,
+        binding,
+        release: isBinding(expected) ? () => undefined : binding.release,
+      };
+    } catch (error) {
+      if (!isBinding(expected)) binding.release();
+      throw error;
+    }
+  }
+  const config = await getActiveServerConfig();
+  if (!config) throw new Error('Server configuration not found.');
+  return { config: snapshotConfig(config), release: () => undefined };
+}
+
+export function apiRequestHeaders(
+  context: RequestContext,
+  custom: Record<string, string>
+): Record<string, string> {
+  if (!context.binding)
+    return {
+      ...proxyHeadersToRecord(context.config.proxyHeaders),
+      ...getAuthHeaders(context.config),
+      ...custom,
+    };
+  // Case-insensitive: neither custom bearer/cookies nor proxy keys can rebind a queued request.
+  const protectedNames = new Set([
+    'authorization',
+    'cookie',
+    ...Object.keys(context.binding.headers),
+  ]);
+  const safe = Object.fromEntries(
+    Object.entries(custom).filter(
+      ([key]) => !protectedNames.has(key.toLowerCase())
+    )
+  );
+  return { ...safe, ...context.binding.headers };
+}
 
 interface ApiFetchOptions {
   endpoint: string;
@@ -21,7 +234,7 @@ interface ApiFetchOptions {
   headers?: Record<string, string>;
   timeoutMs?: number;
   /** Bind credentials/destination and discard late responses after account changes. */
-  expectedIdentity?: NutritionActionIdentity;
+  expectedIdentity?: ExpectedNutritionIdentity;
 }
 
 export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
@@ -35,44 +248,31 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
     timeoutMs = DEFAULT_API_TIMEOUT_MS,
   } = options;
 
-  const activeConfig = await getActiveServerConfig();
-  const config = activeConfig
-    ? {
-        ...activeConfig,
-        proxyHeaders: activeConfig.proxyHeaders?.map((header) => ({
-          ...header,
-        })),
-      }
-    : null;
-  if (!config) {
-    throw new Error('Server configuration not found.');
-  }
-
+  // Snapshot caller inputs before the first await, too.
+  const serializedBody = body ? JSON.stringify(body) : undefined;
+  const callerHeaders = { ...customHeaders };
+  const context = await captureApiRequest(options.expectedIdentity);
+  const { config, binding } = context;
   const assertIdentity = async () => {
-    if (!options.expectedIdentity) return;
-    const current = await getActiveNutritionIdentity();
-    if (
-      config.id !== options.expectedIdentity.serverConfigId ||
-      current?.serverConfigId !== options.expectedIdentity.serverConfigId ||
-      current.userId !== options.expectedIdentity.userId
-    )
-      throw new Error('Account changed. Refresh before trying again.');
+    await binding?.assertCurrent();
   };
-  // Destination and auth headers below use the captured config, never a later
-  // global lookup. The final guard prevents late data entering an old cache.
-  await assertIdentity();
   const baseUrl = normalizeUrl(config.url);
-
-  if (
-    baseUrl.toLowerCase().startsWith('http://') &&
-    !isPermittedHttpUrl(baseUrl)
-  ) {
-    throw new Error(
-      'HTTPS is required for server connections. Please update your server URL in Settings.'
-    );
-  }
-
   try {
+    if (
+      baseUrl.toLowerCase().startsWith('http://') &&
+      !isPermittedHttpUrl(baseUrl)
+    ) {
+      throw new Error(
+        'HTTPS is required for server connections. Please update your server URL in Settings.'
+      );
+    }
+
+    const headers = apiRequestHeaders(context, {
+      ...(body ? { 'Content-Type': 'application/json' } : {}),
+      'X-Meal-Model-Version': '2',
+      ...callerHeaders,
+    });
+    await assertIdentity();
     const response = await fetchWithTimeout(
       `${baseUrl}${endpoint}`,
       {
@@ -89,28 +289,20 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
         // cacheable, and the polyfill appends the cache-buster regardless of
         // method, so we scope this to GET to avoid pinning `_` onto mutating URLs.
         ...(method === 'GET' ? { cache: 'no-store' as const } : {}),
-        headers: {
-          ...proxyHeadersToRecord(config.proxyHeaders),
-          ...getAuthHeaders(config),
-          ...(body ? { 'Content-Type': 'application/json' } : {}),
-          // Identify this client to the server as understanding the new meal
-          // serving model (issue #1023). Older mobile builds omit this header
-          // and the server applies legacy "unit === 'serving' → multiplier =
-          // quantity" math for backwards compatibility on diary-meal creates.
-          'X-Meal-Model-Version': '2',
-          ...customHeaders,
-        },
-        ...(body ? { body: JSON.stringify(body) } : {}),
+        ...(binding ? { credentials: 'omit' as const } : {}),
+        headers,
+        ...(serializedBody !== undefined ? { body: serializedBody } : {}),
       },
       timeoutMs
     );
 
     await assertIdentity();
     if (!response.ok) {
+      const errorText = await response.text();
+      await assertIdentity();
       if (response.status === 401 && config.authType === 'session') {
         notifySessionExpired(config.id);
       }
-      const errorText = await response.text();
       addLog(
         `[${serviceName}] Failed to ${operation}: ${response.status}`,
         'ERROR',
@@ -127,6 +319,7 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
       response.status === 204 ||
       response.headers?.get('content-length') === '0'
     ) {
+      await assertIdentity();
       return undefined as T;
     }
 
@@ -134,8 +327,11 @@ export async function apiFetch<T>(options: ApiFetchOptions): Promise<T> {
     await assertIdentity();
     return result;
   } catch (error) {
+    await assertIdentity();
     const message = error instanceof Error ? error.message : String(error);
     addLog(`[${serviceName}] Failed to ${operation}: ${message}`, 'ERROR');
     throw error;
+  } finally {
+    context.release();
   }
 }

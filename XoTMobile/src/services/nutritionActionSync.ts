@@ -11,7 +11,12 @@ import {
   uploadNutritionCaptureImage,
   completeNutritionCapture,
 } from './api/nutritionCaptureApi';
-import { fetchProfile } from './api/profileApi';
+import {
+  apiFetch,
+  bindNutritionRequestIdentity,
+  IdentityChangedError,
+  type NutritionRequestBinding,
+} from './api/apiClient';
 import { ApiError } from './api/errors';
 import { getActiveServerConfigId } from './storage';
 import { getActiveNutritionIdentity } from './nutritionIdentity';
@@ -47,7 +52,8 @@ export interface NutritionSyncResult {
 export interface NutritionSyncDependencies {
   getIdentity: typeof getActiveNutritionIdentity;
   getServerConfigId: typeof getActiveServerConfigId;
-  fetchProfile: typeof fetchProfile;
+  bindIdentity: typeof bindNutritionRequestIdentity;
+  fetchProfile: (identity: NutritionRequestBinding) => Promise<{ id: string }>;
   listPending: typeof listPendingNutritionActions;
   markSyncing: typeof markNutritionActionSyncing;
   markPending: typeof markNutritionActionPending;
@@ -67,7 +73,14 @@ export interface NutritionSyncDependencies {
 const productionDependencies: NutritionSyncDependencies = {
   getIdentity: getActiveNutritionIdentity,
   getServerConfigId: getActiveServerConfigId,
-  fetchProfile,
+  bindIdentity: bindNutritionRequestIdentity,
+  fetchProfile: (expectedIdentity) =>
+    apiFetch<{ id: string }>({
+      endpoint: '/api/identity/profiles',
+      serviceName: 'Profile API',
+      operation: 'verify nutrition owner',
+      expectedIdentity,
+    }),
   listPending: listPendingNutritionActions,
   markSyncing: markNutritionActionSyncing,
   markPending: markNutritionActionPending,
@@ -100,7 +113,10 @@ function dueIn(action: PendingNutritionAction, now: number): number {
 function classify(error: unknown): {
   reason: NutritionActionErrorClass;
   permanent: boolean;
+  stopPass?: boolean;
 } {
+  if (error instanceof IdentityChangedError)
+    return { reason: 'auth', permanent: false, stopPass: true };
   if (error instanceof ApiError) {
     if (error.statusCode === 401 || error.statusCode === 403) {
       return { reason: 'auth', permanent: false };
@@ -170,160 +186,229 @@ async function reconcilePass(
   deps: NutritionSyncDependencies,
   now: () => number
 ): Promise<NutritionSyncResult> {
-  const identity = await deps.getIdentity();
-  if (!identity) return { processed: 0, nextDelayMs: null };
-  const actions = await deps.listPending(identity);
-  if (actions.length === 0) return { processed: 0, nextDelayMs: null };
-
-  // Verify the authenticated owner before any write. A stale local identity
-  // must never replay another account's unsent food under this session.
+  const activeIdentity = await deps.getIdentity();
+  if (!activeIdentity) return { processed: 0, nextDelayMs: null };
+  const identity = Object.freeze({
+    serverConfigId: activeIdentity.serverConfigId,
+    userId: activeIdentity.userId,
+  });
+  let requestIdentity: NutritionRequestBinding;
   try {
-    const profile = await deps.fetchProfile();
-    if (
-      profile.id !== identity.userId ||
-      (await deps.getServerConfigId()) !== identity.serverConfigId
-    ) {
-      return { processed: 0, nextDelayMs: null };
-    }
-  } catch {
-    // Profile/auth/network failure leaves every action untouched.
-    return { processed: 0, nextDelayMs: MAX_RETRY_DELAY_MS };
+    requestIdentity = await deps.bindIdentity(identity);
+  } catch (error) {
+    return {
+      processed: 0,
+      nextDelayMs:
+        error instanceof IdentityChangedError ? null : MAX_RETRY_DELAY_MS,
+    };
   }
+  try {
+    const actions = await deps.listPending(identity);
+    if (actions.length === 0) return { processed: 0, nextDelayMs: null };
 
-  let processed = 0;
-  let nextDelayMs: number | null = null;
-  for (const action of actions) {
-    if (processed >= MAX_ACTIONS_PER_PASS) {
-      nextDelayMs = 0;
-      break;
-    }
-    const delay = dueIn(action, now());
-    if (delay > 0) {
-      nextDelayMs = Math.min(nextDelayMs ?? delay, delay);
-      continue;
-    }
-    if (
-      (await deps.getServerConfigId()) !== identity.serverConfigId ||
-      !sameIdentity(await deps.getIdentity(), identity)
-    ) {
-      return { processed, nextDelayMs: null };
-    }
-
-    await deps.markSyncing(identity, action.clientOperationId);
-    processed += 1;
+    // Verify the authenticated owner before any write. A stale local identity
+    // must never replay another account's unsent food under this session.
     try {
-      let serverId: string;
-      let deletedMeal = false;
-      if (action.type === 'logFoodEntry') {
-        serverId = (await deps.createEntry(action.payload)).id;
-      } else if (action.type === 'logMealEntry') {
-        const result = await deps.createMealAction(action.payload);
-        deletedMeal = result.mealEntryId === null;
-        serverId = result.mealEntryId ?? action.clientOperationId;
-      } else if (action.type === 'logManualWater') {
-        serverId = (await deps.createWaterAction(action.payload)).id;
-      } else if (action.type === 'logContainerWater') {
-        const result = await deps.createContainerWaterAction(action.payload);
-        // A receipt outlives deliberate deletion of its water row. Keep the
-        // operation itself acknowledged even when replay returns a null row ID.
-        serverId = result.waterLogId ?? action.clientOperationId;
-      } else if (action.type === 'logPlannedSupplement') {
-        const result = await deps.createPlannedSupplementAction(action.payload);
-        serverId = result.entry?.id ?? action.clientOperationId;
-      } else if (action.type === 'createPhotoEntry') {
-        serverId = (await deps.createCapture(action.payload)).id;
-        for (const image of action.payload.images) {
-          await deps.uploadCaptureImage(action.payload.id, {
-            ...image,
-            uri: resolveNutritionPhotoUri(
-              action.payload.id,
-              image.id,
-              image.uri
-            ),
-          });
-        }
-      } else {
-        serverId = (
-          await deps.completeCapture(action.clientOperationId, action.payload)
-        ).entry.id;
+      const profile = await deps.fetchProfile(requestIdentity);
+      await requestIdentity.assertCurrent();
+      if (
+        profile.id !== identity.userId ||
+        (await deps.getServerConfigId()) !== identity.serverConfigId
+      ) {
+        return { processed: 0, nextDelayMs: null };
       }
-      // A switch during the request cannot reassign the local acknowledgement.
+    } catch (error) {
+      if (error instanceof IdentityChangedError)
+        return { processed: 0, nextDelayMs: null };
+      // Profile/auth/network failure leaves every action untouched.
+      return { processed: 0, nextDelayMs: MAX_RETRY_DELAY_MS };
+    }
+
+    let processed = 0;
+    let nextDelayMs: number | null = null;
+    for (const action of actions) {
+      if (processed >= MAX_ACTIONS_PER_PASS) {
+        nextDelayMs = 0;
+        break;
+      }
+      const delay = dueIn(action, now());
+      if (delay > 0) {
+        nextDelayMs = Math.min(nextDelayMs ?? delay, delay);
+        continue;
+      }
       if (
         (await deps.getServerConfigId()) !== identity.serverConfigId ||
         !sameIdentity(await deps.getIdentity(), identity)
       ) {
         return { processed, nextDelayMs: null };
       }
-      await deps.markSynced(identity, action.clientOperationId, serverId);
-      if (deletedMeal)
-        await deps.acknowledge(identity, action.clientOperationId, serverId);
-      if (action.type === 'logFoodEntry' || action.type === 'logMealEntry') {
-        for (const key of [
-          ['foodEntries'],
-          ['foodEntryMeals'],
-          ['recentMeals'],
-          ['topMeals'],
-          ['favorites'],
-          ['dailyProgress'],
-          caffeineActiveRootQueryKey,
-        ])
-          void queryClient?.invalidateQueries({ queryKey: key });
+
+      try {
+        await requestIdentity.assertCurrent();
+      } catch {
+        return { processed, nextDelayMs: null };
       }
-      void queryClient?.invalidateQueries({ queryKey: ['waterIntakeLog'] });
-      void queryClient?.invalidateQueries({ queryKey: ['waterIntakeRange'] });
-      void queryClient?.invalidateQueries({
-        queryKey: dailySummaryRootQueryKey,
-      });
-      if (
-        action.type === 'logManualWater' ||
-        action.type === 'logContainerWater'
-      ) {
+      await deps.markSyncing(identity, action.clientOperationId);
+      processed += 1;
+      try {
+        await requestIdentity.assertCurrent();
+        let serverId: string;
+        let deletedMeal = false;
+        if (action.type === 'logFoodEntry') {
+          serverId = (await deps.createEntry(action.payload, requestIdentity))
+            .id;
+        } else if (action.type === 'logMealEntry') {
+          const result = await deps.createMealAction(
+            action.payload,
+            requestIdentity
+          );
+          deletedMeal = result.mealEntryId === null;
+          serverId = result.mealEntryId ?? action.clientOperationId;
+        } else if (action.type === 'logManualWater') {
+          serverId = (
+            await deps.createWaterAction(action.payload, requestIdentity)
+          ).id;
+        } else if (action.type === 'logContainerWater') {
+          const result = await deps.createContainerWaterAction(
+            action.payload,
+            requestIdentity
+          );
+          // A receipt outlives deliberate deletion of its water row. Keep the
+          // operation itself acknowledged even when replay returns a null row ID.
+          serverId = result.waterLogId ?? action.clientOperationId;
+        } else if (action.type === 'logPlannedSupplement') {
+          const result = await deps.createPlannedSupplementAction(
+            action.payload,
+            requestIdentity
+          );
+          serverId = result.entry?.id ?? action.clientOperationId;
+        } else if (action.type === 'createPhotoEntry') {
+          serverId = (await deps.createCapture(action.payload, requestIdentity))
+            .id;
+          for (const image of action.payload.images) {
+            await deps.uploadCaptureImage(
+              action.payload.id,
+              {
+                ...image,
+                uri: resolveNutritionPhotoUri(
+                  action.payload.id,
+                  image.id,
+                  image.uri
+                ),
+              },
+              requestIdentity
+            );
+          }
+        } else {
+          serverId = (
+            await deps.completeCapture(
+              action.clientOperationId,
+              action.payload,
+              requestIdentity
+            )
+          ).entry.id;
+        }
+        await requestIdentity.assertCurrent();
+        // A switch during the request cannot reassign the local acknowledgement.
+        if (
+          (await deps.getServerConfigId()) !== identity.serverConfigId ||
+          !sameIdentity(await deps.getIdentity(), identity)
+        ) {
+          return { processed, nextDelayMs: null };
+        }
+        await requestIdentity.assertCurrent();
+        await deps.markSynced(identity, action.clientOperationId, serverId);
+        try {
+          await requestIdentity.assertCurrent();
+        } catch {
+          return { processed, nextDelayMs: null };
+        }
+        if (deletedMeal) {
+          await deps.acknowledge(identity, action.clientOperationId, serverId);
+          try {
+            await requestIdentity.assertCurrent();
+          } catch {
+            return { processed, nextDelayMs: null };
+          }
+        }
+        if (action.type === 'logFoodEntry' || action.type === 'logMealEntry') {
+          for (const key of [
+            ['foodEntries'],
+            ['foodEntryMeals'],
+            ['recentMeals'],
+            ['topMeals'],
+            ['favorites'],
+            ['dailyProgress'],
+            caffeineActiveRootQueryKey,
+          ])
+            void queryClient?.invalidateQueries({ queryKey: key });
+        }
+        void queryClient?.invalidateQueries({ queryKey: ['waterIntakeLog'] });
+        void queryClient?.invalidateQueries({ queryKey: ['waterIntakeRange'] });
         void queryClient?.invalidateQueries({
-          queryKey: waterIntakeLogQueryKey(action.payload.entry_date),
+          queryKey: dailySummaryRootQueryKey,
         });
-      }
-      if (action.type === 'logContainerWater') {
-        void queryClient?.invalidateQueries({
-          queryKey: caffeineActiveRootQueryKey,
-        });
-      }
-      if (action.type === 'logPlannedSupplement' && queryClient) {
-        invalidateMedicationEntryCaches(queryClient);
-      }
-      if (
-        action.type === 'createPhotoEntry' ||
-        action.type === 'completePhotoEntry'
-      ) {
-        void queryClient?.invalidateQueries({
-          queryKey: ['nutritionCaptures', action.payload.entryDate],
-        });
-      }
-    } catch (error) {
-      // A previous server can receive a queued meal before its rollout. Keep
-      // that operation retryable; never fall back to a non-idempotent write.
-      const failure =
-        action.type === 'logMealEntry' &&
-        error instanceof ApiError &&
-        error.statusCode === 404
-          ? { reason: 'server' as const, permanent: false }
-          : classify(error);
-      if (failure.permanent) {
-        await deps.markAttention(
-          identity,
-          action.clientOperationId,
-          failure.reason
-        );
-      } else {
-        await deps.markPending(
-          identity,
-          action.clientOperationId,
-          failure.reason
-        );
-        const wait = retryDelay(action.retryCount + 1);
-        nextDelayMs = Math.min(nextDelayMs ?? wait, wait);
-        if (failure.reason === 'auth') break;
+        if (
+          action.type === 'logManualWater' ||
+          action.type === 'logContainerWater'
+        ) {
+          void queryClient?.invalidateQueries({
+            queryKey: waterIntakeLogQueryKey(action.payload.entry_date),
+          });
+        }
+        if (action.type === 'logContainerWater') {
+          void queryClient?.invalidateQueries({
+            queryKey: caffeineActiveRootQueryKey,
+          });
+        }
+        if (action.type === 'logPlannedSupplement' && queryClient) {
+          invalidateMedicationEntryCaches(queryClient);
+        }
+        if (
+          action.type === 'createPhotoEntry' ||
+          action.type === 'completePhotoEntry'
+        ) {
+          void queryClient?.invalidateQueries({
+            queryKey: ['nutritionCaptures', action.payload.entryDate],
+          });
+        }
+      } catch (error) {
+        let failureError = error;
+        try {
+          await requestIdentity.assertCurrent();
+        } catch (identityError) {
+          failureError = identityError;
+        }
+        // A previous server can receive a queued meal before its rollout. Keep
+        // that operation retryable; never fall back to a non-idempotent write.
+        const failure =
+          action.type === 'logMealEntry' &&
+          failureError instanceof ApiError &&
+          failureError.statusCode === 404
+            ? { reason: 'server' as const, permanent: false }
+            : classify(failureError);
+        if (failure.permanent) {
+          await deps.markAttention(
+            identity,
+            action.clientOperationId,
+            failure.reason
+          );
+        } else {
+          await deps.markPending(
+            identity,
+            action.clientOperationId,
+            failure.reason
+          );
+          const wait = retryDelay(action.retryCount + 1);
+          nextDelayMs = Math.min(nextDelayMs ?? wait, wait);
+          if ('stopPass' in failure && failure.stopPass)
+            return { processed, nextDelayMs: null };
+          if (failure.reason === 'auth') break;
+        }
       }
     }
+    return { processed, nextDelayMs };
+  } finally {
+    requestIdentity.release();
   }
-  return { processed, nextDelayMs };
 }

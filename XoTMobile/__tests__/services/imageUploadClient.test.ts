@@ -20,6 +20,9 @@ jest.mock('../../src/services/api/authService', () => ({
 }));
 
 jest.mock('../../src/services/api/apiClient', () => ({
+  ...jest.requireActual<typeof import('../../src/services/api/apiClient')>(
+    '../../src/services/api/apiClient'
+  ),
   normalizeUrl: (url: string) => url.replace(/\/$/, ''),
 }));
 

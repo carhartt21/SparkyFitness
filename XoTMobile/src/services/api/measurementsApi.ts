@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { apiFetch, type ExpectedNutritionIdentity } from './apiClient';
 import { ApiError } from './errors';
 import { getTodayDate } from '../../utils/dateUtils';
 import { newUuid } from '../../utils/ids';
@@ -465,7 +465,8 @@ export const changeWaterIntake = async (params: {
 };
 
 export const createContainerWaterAction = async (
-  payload: ContainerWaterActionBody
+  payload: ContainerWaterActionBody,
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<ContainerWaterActionResponse> => {
   return apiFetch<ContainerWaterActionResponse>({
     endpoint: '/api/v2/measurements/water-intake/container-actions',
@@ -473,6 +474,7 @@ export const createContainerWaterAction = async (
     operation: 'log container water action',
     method: 'POST',
     body: payload,
+    ...(expectedIdentity ? { expectedIdentity } : {}),
   });
 };
 
@@ -484,7 +486,8 @@ export interface ManualWaterActionPayload {
 }
 
 export const createManualWaterAction = async (
-  payload: ManualWaterActionPayload
+  payload: ManualWaterActionPayload,
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<{ id: string; alreadyApplied: boolean }> => {
   return apiFetch<{ id: string; alreadyApplied: boolean }>({
     endpoint: '/api/v2/measurements/water-intake/manual-actions',
@@ -492,6 +495,7 @@ export const createManualWaterAction = async (
     operation: 'log manual water action',
     method: 'POST',
     body: payload,
+    ...(expectedIdentity ? { expectedIdentity } : {}),
   });
 };
 

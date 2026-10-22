@@ -2,6 +2,62 @@ import XCTest
 import Vision
 
 final class DashboardReview: XCTestCase {
+  /// Current combined JavaScript, synthetic read-only navigation and cancelled sheets.
+  func testCombinedCandidate() throws {
+    continueAfterFailure = false
+    let app = XCUIApplication(bundleIdentifier: "com.cg.phi")
+    app.activate()
+    XCTAssertTrue(app.otherElements["dashboard-scroll"].waitForExistence(timeout: 30))
+    let selectedDay = try XCTUnwrap(app.buttons["dashboard-date"].value as? String)
+    capture("combined-dashboard", app)
+    for (tile, screen) in [("habit", "habits"), ("medication", "supplements")] {
+      let target = app.buttons["dashboard-detail-\(tile)"]
+      for _ in 0..<20 { if target.isHittable && target.frame.maxY < app.frame.height - 120 { break }; app.swipeUp(velocity: .slow) }
+      XCTAssertTrue(target.isHittable)
+      XCTAssertGreaterThanOrEqual(target.frame.height.rounded(), 44)
+      target.tap()
+      XCTAssertTrue(app.otherElements[screen].waitForExistence(timeout: 15))
+      XCTAssertEqual(app.buttons["\(screen)-date"].value as? String, selectedDay)
+      capture("combined-\(screen)-top", app)
+      app.swipeUp(velocity: .slow)
+      capture("combined-\(screen)-lower", app)
+      app.buttons["\(screen)-back"].tap()
+    }
+    let food = app.buttons["dashboard-food"]
+    for _ in 0..<25 { if food.isHittable { break }; app.swipeDown(velocity: .slow) }
+    XCTAssertTrue(food.isHittable); food.tap()
+    let context = app.staticTexts.matching(NSPredicate(format: "label IN[c] %@", ["For this meal", "Für diese Mahlzeit"])).firstMatch
+    XCTAssertTrue(context.waitForExistence(timeout: 20))
+    capture("combined-suggestion-landing", app)
+    let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Close", "Schließen", "Back", "Zurück"])).firstMatch
+    XCTAssertTrue(back.exists); back.tap()
+    let diary = app.buttons.matching(NSPredicate(format: "label IN %@", ["Diary", "Tagebuch"])).firstMatch
+    XCTAssertTrue(diary.waitForExistence(timeout: 10)); diary.tap()
+    let edit = app.buttons["diary-edit-foods"]
+    XCTAssertTrue(edit.waitForExistence(timeout: 15))
+    for _ in 0..<12 { if edit.isHittable { break }; app.swipeUp(velocity: .slow) }
+    XCTAssertTrue(edit.isHittable); edit.tap()
+    let select = app.descendants(matching: .any).matching(NSPredicate(format: "label BEGINSWITH %@ OR label BEGINSWITH %@", "Select Oat", "Oat bowl with berries auswählen")).firstMatch
+    for _ in 0..<15 { if select.isHittable { break }; app.swipeUp(velocity: .slow) }
+    XCTAssertTrue(select.exists); XCTAssertTrue(select.isHittable); select.tap()
+    for labels in [["Copy", "Kopieren"], ["Move", "Verschieben"]] {
+      let action = app.buttons.matching(NSPredicate(format: "label IN %@", labels)).firstMatch
+      for _ in 0..<20 { if action.isHittable { break }; app.swipeDown(velocity: .slow) }
+      XCTAssertTrue(action.isHittable); action.tap()
+      let choose = app.staticTexts.matching(NSPredicate(format: "label IN %@", ["Choose destination date", "Zieldatum auswählen"])).firstMatch
+      XCTAssertTrue(choose.waitForExistence(timeout: 10))
+      capture("combined-\(labels[0].lowercased())-calendar", app)
+      let apply = app.buttons.matching(NSPredicate(format: "label IN %@", ["Apply", "Anwenden"])).firstMatch
+      XCTAssertTrue(apply.exists); XCTAssertFalse(apply.isEnabled)
+      app.swipeUp(velocity: .slow)
+      capture("combined-\(labels[0].lowercased())-targets", app)
+      let cancel = app.buttons.matching(NSPredicate(format: "label IN %@", ["Cancel", "Abbrechen"])).firstMatch
+      for _ in 0..<15 { if cancel.isHittable { break }; app.swipeDown(velocity: .slow) }
+      XCTAssertTrue(cancel.isHittable); cancel.tap()
+    }
+    XCTAssertFalse(try events().contains(where: { $0["path"] as? String == "/api/food-entries/bulk-action" }))
+  }
+
   /// Real native holds, dated shortcuts, offline meal portions and cold restart.
   func testOfflineDashboard() throws {
     continueAfterFailure = false

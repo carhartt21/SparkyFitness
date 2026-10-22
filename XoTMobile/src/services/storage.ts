@@ -1,3 +1,9 @@
+import {
+  beginNutritionIdentityChange,
+  nutritionIdentityGeneration,
+  nutritionConfigChanging,
+} from './nutritionIdentityLifecycle';
+import { forgetNutritionIdentityFor } from './nutritionIdentity';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SecureStore from 'expo-secure-store';
 import { CATEGORY_ORDER } from '../HealthMetrics';
@@ -75,61 +81,69 @@ const getRawStoredConfigs = async (): Promise<StoredServerConfig[]> => {
  * Also sets the saved/updated config as the active one.
  */
 export const saveServerConfig = async (config: ServerConfig): Promise<void> => {
+  const finishIdentityChange = beginNutritionIdentityChange();
   try {
-    const stored = await getRawStoredConfigs();
-    const index = stored.findIndex((c) => c.id === config.id);
-    const existingAuthType = index > -1 ? stored[index].authType : undefined;
-    const authType = config.authType ?? existingAuthType;
+    await forgetNutritionIdentityFor(config.id);
+    try {
+      const stored = await getRawStoredConfigs();
+      const index = stored.findIndex((c) => c.id === config.id);
+      const existingAuthType = index > -1 ? stored[index].authType : undefined;
+      const authType = config.authType ?? existingAuthType;
 
-    const stripped: StoredServerConfig = {
-      id: config.id,
-      url: config.url,
-      ...(authType ? { authType } : {}),
-    };
+      const stripped: StoredServerConfig = {
+        id: config.id,
+        url: config.url,
+        ...(authType ? { authType } : {}),
+      };
 
-    if (index > -1) {
-      stored[index] = stripped;
-    } else {
-      stored.push(stripped);
-    }
+      if (index > -1) {
+        stored[index] = stripped;
+      } else {
+        stored.push(stripped);
+      }
 
-    await SecureStore.setItemAsync(
-      secureStoreKey(config.id),
-      config.apiKey,
-      secureStoreOptions
-    );
+      await SecureStore.setItemAsync(
+        secureStoreKey(config.id),
+        config.apiKey,
+        secureStoreOptions
+      );
 
-    if (config.sessionToken !== undefined) {
-      if (config.sessionToken) {
+      if (config.sessionToken !== undefined) {
+        if (config.sessionToken) {
+          await SecureStore.setItemAsync(
+            sessionTokenSecureStoreKey(config.id),
+            config.sessionToken,
+            secureStoreOptions
+          );
+        } else {
+          await SecureStore.deleteItemAsync(
+            sessionTokenSecureStoreKey(config.id)
+          );
+        }
+      }
+
+      if (config.proxyHeaders?.length) {
         await SecureStore.setItemAsync(
-          sessionTokenSecureStoreKey(config.id),
-          config.sessionToken,
+          proxyHeadersSecureStoreKey(config.id),
+          JSON.stringify(config.proxyHeaders),
           secureStoreOptions
         );
       } else {
         await SecureStore.deleteItemAsync(
-          sessionTokenSecureStoreKey(config.id)
+          proxyHeadersSecureStoreKey(config.id)
         );
       }
-    }
 
-    if (config.proxyHeaders?.length) {
-      await SecureStore.setItemAsync(
-        proxyHeadersSecureStoreKey(config.id),
-        JSON.stringify(config.proxyHeaders),
-        secureStoreOptions
-      );
-    } else {
-      await SecureStore.deleteItemAsync(proxyHeadersSecureStoreKey(config.id));
+      await AsyncStorage.setItem(SERVER_CONFIGS_KEY, JSON.stringify(stored));
+      activeServerConfigCache = undefined;
+      await setActiveServerConfig(config.id);
+    } catch (e) {
+      const message = getErrorMessage(e);
+      addLog(`[Storage] Failed to save server config: ${message}`, 'ERROR');
+      throw e;
     }
-
-    await AsyncStorage.setItem(SERVER_CONFIGS_KEY, JSON.stringify(stored));
-    activeServerConfigCache = undefined;
-    await setActiveServerConfig(config.id);
-  } catch (e) {
-    const message = getErrorMessage(e);
-    addLog(`[Storage] Failed to save server config: ${message}`, 'ERROR');
-    throw e;
+  } finally {
+    finishIdentityChange();
   }
 };
 
@@ -145,25 +159,39 @@ export const getActiveServerConfigId = async (): Promise<string | null> => {
   if (activeServerConfigCache !== undefined) {
     return activeServerConfigCache?.id ?? null;
   }
-  return AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY);
+  const generation = nutritionIdentityGeneration();
+  const result = await AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY);
+  return generation === nutritionIdentityGeneration() ? result : null;
 };
 
 /**
  * Retrieves the currently active server configuration.
  */
 export const getActiveServerConfig = async (): Promise<ServerConfig | null> => {
+  const generation = nutritionIdentityGeneration();
+  if (nutritionConfigChanging()) return null;
   if (activeServerConfigCache !== undefined) {
     return activeServerConfigCache;
   }
 
   try {
     const activeId = await AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY);
+    if (
+      generation !== nutritionIdentityGeneration() ||
+      nutritionConfigChanging()
+    )
+      return null;
     if (!activeId) {
       activeServerConfigCache = null;
       return null;
     }
 
     const configs = await getAllServerConfigs();
+    if (
+      generation !== nutritionIdentityGeneration() ||
+      nutritionConfigChanging()
+    )
+      return null;
     const result = configs.find((config) => config.id === activeId) || null;
     // Only cache non-null results; getAllServerConfigs swallows errors and returns [],
     // so a transient failure would otherwise be cached as "no config" permanently.
@@ -273,13 +301,22 @@ export const getAllServerConfigs = async (): Promise<ServerConfig[]> => {
 export const setActiveServerConfig = async (
   configId: string
 ): Promise<void> => {
+  const finishIdentityChange = beginNutritionIdentityChange();
   try {
-    await AsyncStorage.setItem(ACTIVE_SERVER_CONFIG_ID_KEY, configId);
-    activeServerConfigCache = undefined;
-  } catch (e) {
-    const message = getErrorMessage(e);
-    addLog(`[Storage] Failed to set active server config: ${message}`, 'ERROR');
-    throw e;
+    await forgetNutritionIdentityFor(configId);
+    try {
+      await AsyncStorage.setItem(ACTIVE_SERVER_CONFIG_ID_KEY, configId);
+      activeServerConfigCache = undefined;
+    } catch (e) {
+      const message = getErrorMessage(e);
+      addLog(
+        `[Storage] Failed to set active server config: ${message}`,
+        'ERROR'
+      );
+      throw e;
+    }
+  } finally {
+    finishIdentityChange();
   }
 };
 
@@ -288,23 +325,29 @@ export const setActiveServerConfig = async (
  * If the deleted config was active, it clears the active config.
  */
 export const deleteServerConfig = async (configId: string): Promise<void> => {
+  const finishIdentityChange = beginNutritionIdentityChange();
   try {
-    let stored = await getRawStoredConfigs();
-    stored = stored.filter((config) => config.id !== configId);
-    await AsyncStorage.setItem(SERVER_CONFIGS_KEY, JSON.stringify(stored));
-    activeServerConfigCache = undefined;
-    await SecureStore.deleteItemAsync(secureStoreKey(configId));
-    await SecureStore.deleteItemAsync(sessionTokenSecureStoreKey(configId));
-    await SecureStore.deleteItemAsync(proxyHeadersSecureStoreKey(configId));
+    await forgetNutritionIdentityFor(configId);
+    try {
+      let stored = await getRawStoredConfigs();
+      stored = stored.filter((config) => config.id !== configId);
+      await AsyncStorage.setItem(SERVER_CONFIGS_KEY, JSON.stringify(stored));
+      activeServerConfigCache = undefined;
+      await SecureStore.deleteItemAsync(secureStoreKey(configId));
+      await SecureStore.deleteItemAsync(sessionTokenSecureStoreKey(configId));
+      await SecureStore.deleteItemAsync(proxyHeadersSecureStoreKey(configId));
 
-    const activeId = await AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY);
-    if (activeId === configId) {
-      await AsyncStorage.removeItem(ACTIVE_SERVER_CONFIG_ID_KEY);
+      const activeId = await AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY);
+      if (activeId === configId) {
+        await AsyncStorage.removeItem(ACTIVE_SERVER_CONFIG_ID_KEY);
+      }
+    } catch (e) {
+      const message = getErrorMessage(e);
+      addLog(`[Storage] Failed to delete server config: ${message}`, 'ERROR');
+      throw e;
     }
-  } catch (e) {
-    const message = getErrorMessage(e);
-    addLog(`[Storage] Failed to delete server config: ${message}`, 'ERROR');
-    throw e;
+  } finally {
+    finishIdentityChange();
   }
 };
 
@@ -517,8 +560,14 @@ export const loadCollapsedCategories = async (): Promise<string[]> => {
 };
 
 export const clearSessionToken = async (configId: string): Promise<void> => {
-  await SecureStore.deleteItemAsync(sessionTokenSecureStoreKey(configId));
-  activeServerConfigCache = undefined;
+  const finishIdentityChange = beginNutritionIdentityChange();
+  try {
+    await forgetNutritionIdentityFor(configId);
+    await SecureStore.deleteItemAsync(sessionTokenSecureStoreKey(configId));
+    activeServerConfigCache = undefined;
+  } finally {
+    finishIdentityChange();
+  }
 };
 
 export const clearServerConfigCache = (): void => {

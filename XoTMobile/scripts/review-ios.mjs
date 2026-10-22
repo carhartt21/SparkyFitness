@@ -26,6 +26,10 @@ const run = (command, args, options = {}) =>
   }).trim();
 const sim = (...args) => run('xcrun', ['simctl', ...args]);
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const devicePrefix = arg('--device-prefix', 'XOT UI Review');
+if (!/^XOT UI Review[ A-Za-z0-9-]*$/.test(devicePrefix))
+  throw new Error('Dedicated review prefix required');
+const combinedReview = process.argv.includes('--combined-review');
 const runtime = arg('--runtime', 'com.apple.CoreSimulator.SimRuntime.iOS-26-2');
 const allCases = process.argv.includes('--single')
   ? [
@@ -88,6 +92,18 @@ const allCases = process.argv.includes('--single')
         device: 'iPhone-14-Pro-Max',
         large: true,
       },
+      ...(combinedReview
+        ? [
+            {
+              name: '390-de-large',
+              language: 'de',
+              theme: 'Dark',
+              scenario: 'populated',
+              device: 'iPhone-13',
+              large: true,
+            },
+          ]
+        : []),
       {
         name: '390-en-empty',
         language: 'en',
@@ -141,6 +157,7 @@ const filteredCases = selectedCase
   : allCases;
 const cases = filteredCases.map((item) => ({
   ...item,
+  combinedReview,
   ...(process.argv.includes('--meal-status-review')
     ? { scenario: 'meal-status' }
     : {}),
@@ -149,6 +166,7 @@ const cases = filteredCases.map((item) => ({
     : {}),
   ...(process.argv.includes('--v38-review') ||
   process.argv.includes('--ui-refinement-review') ||
+  combinedReview ||
   process.argv.includes('--summary-cards-review') ||
   process.argv.includes('--supplements-review') ||
   process.argv.includes('--v40-review') ||
@@ -319,7 +337,7 @@ try {
       offlineReviewRunId: `${process.pid}-${item.name ?? item.id ?? item.device}-${Date.now()}`,
     };
     events = [];
-    const name = `XOT UI Review ${item.device}`;
+    const name = `${devicePrefix} ${item.device}`;
     const devices = Object.values(
       JSON.parse(sim('list', 'devices', 'available', '-j')).devices
     ).flat();
@@ -490,10 +508,15 @@ try {
                       : /300/.test(text)) && /kcal/.test(text);
       if (
         process.argv.includes('--phone-input-review') ||
-        process.argv.includes('--inbox-ui-review')
+        process.argv.includes('--inbox-ui-review') ||
+        combinedReview
       )
         // Enlarged text can push the intake gauge below the first viewport.
         passed = /Kalorien|Täglicher Fortschritt/.test(text);
+      if (combinedReview)
+        passed = /Calories|Kalorien|Daily progress|Täglicher Fortschritt/.test(
+          text
+        );
       if (process.argv.includes('--offline-dashboard-review'))
         passed = /Kalorien|Täglicher Fortschritt|Gespeicherter Stand/.test(
           text
@@ -587,7 +610,10 @@ try {
             ? '402x874'
             : '430x932',
     });
-    if (process.argv.includes('--offline-dashboard-review'))
+    if (combinedReview)
+      results.at(-1).interactionScenario =
+        'combined-copy-move-history-dated-navigation';
+    else if (process.argv.includes('--offline-dashboard-review'))
       results.at(-1).interactionScenario =
         'offline-meals-dashboard-holds-cold-restart';
     else if (process.argv.includes('--inbox-ui-review'))
@@ -619,7 +645,7 @@ try {
       throw new Error(`No expected product content for ${item.name}`);
     if (
       process.argv.includes('--interactions') &&
-      [
+      ([
         'baseline-de',
         '390-de-dark',
         '402-de-dark',
@@ -656,7 +682,8 @@ try {
         process.argv.includes('--notification-tour')
           ? ['430-de-large']
           : []),
-      ].includes(item.name)
+      ].includes(item.name) ||
+        combinedReview)
     ) {
       const resultBundle = path.join(output, `${item.name}.xcresult`);
       const recorder = item.motionReview
@@ -678,7 +705,7 @@ try {
           'xcodebuild',
           [
             'test',
-            `-only-testing:DashboardReview/DashboardReview/${process.argv.includes('--offline-dashboard-review') ? 'testOfflineDashboard' : process.argv.includes('--inbox-ui-review') ? 'testInboxUIRefinements' : process.argv.includes('--phone-input-review') ? 'testPhoneInputRefinements' : process.argv.includes('--workout-goal-review') ? 'testWorkoutGoalProgress' : process.argv.includes('--scheduled-routine-review') ? 'testScheduledRoutineSelection' : process.argv.includes('--activity-notes-review') ? 'testActivityNotesCopy' : process.argv.includes('--intake-card-review') ? 'testIntakeCard' : v45Review ? 'testV45DailyDetails' : process.argv.includes('--v44-review') ? 'testV44DiaryRefinement' : v43Review ? 'testV43Corrections' : process.argv.includes('--coaching-review') ? 'testCoachingReviews' : process.argv.includes('--v42-review') ? 'testV42Corrections' : process.argv.includes('--mobility-review') ? 'testMobilityFlow' : process.argv.includes('--motion-review') ? 'testWidgetMotion' : process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--hydration-review') ? 'testHydrationSources' : process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--supplements-review') ? 'testSupplementLayout' : process.argv.includes('--v41-review') || process.argv.includes('--v42-review') ? 'testV41Corrections' : process.argv.includes('--v40-review') ? 'testV40Corrections' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
+            `-only-testing:DashboardReview/DashboardReview/${combinedReview ? 'testCombinedCandidate' : process.argv.includes('--offline-dashboard-review') ? 'testOfflineDashboard' : process.argv.includes('--inbox-ui-review') ? 'testInboxUIRefinements' : process.argv.includes('--phone-input-review') ? 'testPhoneInputRefinements' : process.argv.includes('--workout-goal-review') ? 'testWorkoutGoalProgress' : process.argv.includes('--scheduled-routine-review') ? 'testScheduledRoutineSelection' : process.argv.includes('--activity-notes-review') ? 'testActivityNotesCopy' : process.argv.includes('--intake-card-review') ? 'testIntakeCard' : v45Review ? 'testV45DailyDetails' : process.argv.includes('--v44-review') ? 'testV44DiaryRefinement' : v43Review ? 'testV43Corrections' : process.argv.includes('--coaching-review') ? 'testCoachingReviews' : process.argv.includes('--v42-review') ? 'testV42Corrections' : process.argv.includes('--mobility-review') ? 'testMobilityFlow' : process.argv.includes('--motion-review') ? 'testWidgetMotion' : process.argv.includes('--wellness-tour') ? 'testWellnessLogging' : process.argv.includes('--hydration-review') ? 'testHydrationSources' : process.argv.includes('--food-macro-review') ? 'testFoodMacroColumns' : process.argv.includes('--supplements-review') ? 'testSupplementLayout' : process.argv.includes('--v41-review') || process.argv.includes('--v42-review') ? 'testV41Corrections' : process.argv.includes('--v40-review') ? 'testV40Corrections' : process.argv.includes('--summary-cards-review') ? 'testSummaryCards' : process.argv.includes('--food-keyboard-only') ? 'testFoodKeyboard' : process.argv.includes('--ui-refinement-review') ? 'testUIRefinements' : process.argv.includes('--workout-plan-time-review') ? 'testWorkoutPlanTime' : process.argv.includes('--v38-review') ? 'testV38Corrections' : process.argv.includes('--meal-status-review') ? 'testMealGoalStatus' : process.argv.includes('--food-details-review') ? 'testFoodDetailsLayout' : process.argv.includes('--notification-tour') ? 'testNotificationTour' : process.argv.includes('--launch-icon-actions') ? 'testLaunchIconActions' : process.argv.includes('--tracking-tour') ? 'testTrackingTour' : process.argv.includes('--tour') ? 'testScreenTour' : process.argv.includes('--dashboard-only') ? 'testDashboardAlignment' : 'testDashboardScrollAndFoodNavigation'}`,
             '-project',
             path.join(nativeProject, 'DashboardReview.xcodeproj'),
             '-scheme',

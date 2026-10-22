@@ -31,6 +31,7 @@ export const waterIntakeLogQueryKey = (date: string) =>
   ['waterIntakeLog', date] as const;
 
 export const foodsQueryKey = ['foods'] as const;
+export const mealFoodHistoryRootQueryKey = ['mealFoodHistory'] as const;
 
 export const favoritesQueryKey = ['favorites'] as const;
 

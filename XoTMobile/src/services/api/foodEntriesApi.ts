@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { apiFetch, type ExpectedNutritionIdentity } from './apiClient';
 import type { FoodEntry } from '../../types/foodEntries';
 import type {
   CopyReviewedFoodEntriesFromUserPayload,
@@ -53,7 +53,8 @@ export interface CreateFoodEntryPayload {
  * Creates a food entry.
  */
 export const createFoodEntry = async (
-  payload: CreateFoodEntryPayload
+  payload: CreateFoodEntryPayload,
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<FoodEntry> => {
   return apiFetch<FoodEntry>({
     endpoint: '/api/food-entries/',
@@ -61,6 +62,7 @@ export const createFoodEntry = async (
     operation: 'create food entry',
     method: 'POST',
     body: payload,
+    ...(expectedIdentity ? { expectedIdentity } : {}),
   });
 };
 

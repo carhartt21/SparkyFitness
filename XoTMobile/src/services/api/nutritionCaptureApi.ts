@@ -1,4 +1,4 @@
-import { apiFetch } from './apiClient';
+import { apiFetch, type ExpectedNutritionIdentity } from './apiClient';
 import { postImageMultipart } from './imageUploadClient';
 import type {
   PhotoCapturePayload,
@@ -19,12 +19,14 @@ export interface NutritionCapture {
 }
 
 export async function createNutritionCapture(
-  payload: PhotoCapturePayload
+  payload: PhotoCapturePayload,
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<NutritionCapture> {
   return apiFetch<NutritionCapture>({
     endpoint: '/api/nutrition-captures',
     serviceName: 'Nutrition Capture API',
     operation: 'create capture',
+    ...(expectedIdentity ? { expectedIdentity } : {}),
     method: 'POST',
     body: {
       id: payload.id,
@@ -39,12 +41,14 @@ export async function createNutritionCapture(
 
 export async function uploadNutritionCaptureImage(
   captureId: string,
-  image: { id: string; uri: string }
+  image: { id: string; uri: string },
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<{ id: string; file_path: string }> {
   return postImageMultipart({
     endpoint: `/api/nutrition-captures/${captureId}/images/${image.id}`,
     serviceName: 'Nutrition Capture API',
     operation: 'upload capture image',
+    ...(expectedIdentity ? { expectedIdentity } : {}),
     method: 'PUT',
     fileField: 'image',
     includeOrder: false,
@@ -74,12 +78,14 @@ export async function deleteNutritionCapture(captureId: string): Promise<void> {
 
 export async function completeNutritionCapture(
   operationId: string,
-  payload: PhotoCompletionPayload
+  payload: PhotoCompletionPayload,
+  expectedIdentity?: ExpectedNutritionIdentity
 ): Promise<{ capture: NutritionCapture; entry: FoodEntry }> {
   return apiFetch<{ capture: NutritionCapture; entry: FoodEntry }>({
     endpoint: `/api/nutrition-captures/${payload.captureId}/complete`,
     serviceName: 'Nutrition Capture API',
     operation: 'complete capture',
+    ...(expectedIdentity ? { expectedIdentity } : {}),
     method: 'POST',
     body: { clientOperationId: operationId, food: payload.food },
   });

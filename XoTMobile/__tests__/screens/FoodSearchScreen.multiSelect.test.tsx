@@ -1,3 +1,10 @@
+jest.mock('../../src/hooks/useMealFoodHistory', () => ({
+  useMealFoodHistory: () => ({
+    entries: [],
+    start: '2030-01-01',
+    end: '2030-01-28',
+  }),
+}));
 jest.mock('../../src/hooks/useMealTypes', () => ({
   useMealTypes: () => ({
     mealTypes: [{ id: 'breakfast', name: 'Breakfast' }],

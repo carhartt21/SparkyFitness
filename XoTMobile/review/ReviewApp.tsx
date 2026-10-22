@@ -101,6 +101,7 @@ export default function ReviewApp() {
       const config = (await (
         await transport('http://127.0.0.1:43991/scenario')
       ).json()) as {
+        combinedReview?: boolean;
         language: 'en' | 'de';
         theme: 'Dark' | 'Light' | 'Amoled';
         scenario: string;
@@ -160,6 +161,26 @@ export default function ReviewApp() {
                 url.pathname === '/api/favorites'
                   ? { favoriteFoods: [], favoriteMeals: [reviewSavedMeal] }
                   : [reviewSavedMeal]
+              ),
+              { headers: { 'Content-Type': 'application/json' } }
+            );
+          }
+          if (
+            config.combinedReview &&
+            method === 'GET' &&
+            url.pathname.startsWith('/api/food-entries/range/')
+          ) {
+            const end = url.pathname.split('/').at(-1)!;
+            return new Response(
+              JSON.stringify(
+                ['review-breakfast-type', 'review-custom-meal'].map(
+                  (meal_type_id, index) => ({
+                    id: `review-history-${index}`,
+                    food_id: reviewFood.id,
+                    meal_type_id,
+                    entry_date: end,
+                  })
+                )
               ),
               { headers: { 'Content-Type': 'application/json' } }
             );
@@ -244,7 +265,11 @@ export default function ReviewApp() {
                     : wellnessResult === undefined
                       ? fixture.respond(url, method, options?.body)
                       : wellnessResult;
-          if (method !== 'GET' || url.pathname === '/api/daily-summary') {
+          if (
+            method !== 'GET' ||
+            url.pathname === '/api/daily-summary' ||
+            (config.combinedReview && url.pathname === '/api/identity/profiles')
+          ) {
             await transport('http://127.0.0.1:43991/event', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },

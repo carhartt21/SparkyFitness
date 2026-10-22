@@ -48,6 +48,17 @@ function harness(actions: PendingNutritionAction[]) {
   }));
   const deps = {
     getIdentity: jest.fn().mockResolvedValue(identity),
+    bindIdentity: jest.fn().mockResolvedValue({
+      ...identity,
+      config: {
+        id: identity.serverConfigId,
+        url: 'https://synthetic.invalid',
+        apiKey: '',
+      },
+      headers: {},
+      assertCurrent: jest.fn().mockResolvedValue(undefined),
+      release: jest.fn(),
+    }),
     getServerConfigId: jest.fn().mockResolvedValue(identity.serverConfigId),
     fetchProfile: jest.fn().mockResolvedValue({ id: identity.userId }),
     listPending: jest
@@ -187,7 +198,8 @@ describe('nutrition action reconciliation', () => {
     await reconcileNutritionActions(undefined, deps);
     expect(deps.createPlannedSupplementAction).toHaveBeenCalledTimes(2);
     expect(deps.createPlannedSupplementAction).toHaveBeenCalledWith(
-      action.payload
+      action.payload,
+      expect.objectContaining(identity)
     );
     expect(rows.get(id)?.syncState).toBe('synced');
     expect(rows.get(id)?.serverIdentity).toBe(id);
@@ -212,7 +224,10 @@ describe('nutrition action reconciliation', () => {
     expect(rows.get(id)?.syncState).toBe('pending');
     await reconcileNutritionActions(undefined, deps);
     expect(deps.createWaterAction).toHaveBeenCalledTimes(2);
-    expect(deps.createWaterAction).toHaveBeenCalledWith(action.payload);
+    expect(deps.createWaterAction).toHaveBeenCalledWith(
+      action.payload,
+      expect.objectContaining(identity)
+    );
     expect(rows.get(id)?.serverIdentity).toBe('water-1');
   });
 
@@ -241,7 +256,8 @@ describe('nutrition action reconciliation', () => {
     await reconcileNutritionActions(undefined, deps);
     expect(deps.createContainerWaterAction).toHaveBeenCalledTimes(2);
     expect(deps.createContainerWaterAction).toHaveBeenCalledWith(
-      action.payload
+      action.payload,
+      expect.objectContaining(identity)
     );
     expect(rows.get(id)?.syncState).toBe('synced');
     expect(rows.get(id)?.serverIdentity).toBe(id);
@@ -252,7 +268,8 @@ describe('nutrition action reconciliation', () => {
     const result = await reconcileNutritionActions(undefined, deps);
     expect(result).toEqual({ processed: 1, nextDelayMs: null });
     expect(createEntry).toHaveBeenCalledWith(
-      expect.objectContaining({ client_operation_id: id })
+      expect.objectContaining({ client_operation_id: id }),
+      expect.objectContaining(identity)
     );
     expect(rows.get(id)?.serverIdentity).toBe(`server-${id}`);
     expect(rows.get(id)?.syncState).toBe('synced');
@@ -365,10 +382,14 @@ describe('nutrition action reconciliation', () => {
     await reconcileNutritionActions(undefined, deps);
     expect(deps.createCapture).toHaveBeenCalledTimes(2);
     expect(deps.uploadCaptureImage).toHaveBeenCalledTimes(2);
-    expect(deps.uploadCaptureImage).toHaveBeenCalledWith(id, {
-      id: imageId,
-      uri: 'file:///documents/meal.jpg',
-    });
+    expect(deps.uploadCaptureImage).toHaveBeenCalledWith(
+      id,
+      {
+        id: imageId,
+        uri: 'file:///documents/meal.jpg',
+      },
+      expect.objectContaining(identity)
+    );
     expect(rows.get(id)?.syncState).toBe('synced');
   });
 
@@ -399,7 +420,11 @@ describe('nutrition action reconciliation', () => {
     expect(rows.get(id)?.syncState).toBe('pending');
     await reconcileNutritionActions(undefined, deps);
     expect(deps.completeCapture).toHaveBeenCalledTimes(2);
-    expect(deps.completeCapture).toHaveBeenCalledWith(id, action.payload);
+    expect(deps.completeCapture).toHaveBeenCalledWith(
+      id,
+      action.payload,
+      expect.objectContaining(identity)
+    );
     expect(rows.get(id)?.serverIdentity).toBe('entry-1');
   });
 });

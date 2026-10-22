@@ -50,7 +50,8 @@ export default function TrackingSummaryCard({
   const scale = useNeonScale();
   // Large Dynamic Type stacks the stats under the count instead of
   // squeezing three columns.
-  const stacked = useWindowDimensions().fontScale > 1.3;
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width / fontScale < 440;
   const quietColumns = quiet && !stacked;
   const [border, secondary] = useCSSVariable([
     '--color-border-subtle',
@@ -100,7 +101,6 @@ export default function TrackingSummaryCard({
               </Text>
               <Text
                 className={`text-sm text-text-secondary ${quietColumns ? 'text-center' : ''}`}
-                numberOfLines={2}
               >
                 {caption}
               </Text>
@@ -146,17 +146,11 @@ export default function TrackingSummaryCard({
               >
                 {stat.value}
               </Text>
-              <Text
-                className="text-center text-xs text-text-secondary"
-                numberOfLines={2}
-              >
+              <Text className="text-center text-xs text-text-secondary">
                 {stat.label}
               </Text>
               {stat.detail ? (
-                <Text
-                  className="text-center text-xs text-text-secondary"
-                  numberOfLines={1}
-                >
+                <Text className="text-center text-xs text-text-secondary">
                   {stat.detail}
                 </Text>
               ) : null}

@@ -1,5 +1,6 @@
+import { useDatedEntryContext } from '../hooks/useDatedEntryContext';
 import { useManualDoseLogging } from '../hooks/useManualDoseLogging';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import { useCSSVariable } from 'uniwind';
@@ -81,8 +82,11 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
     '--color-text-secondary',
     '--color-border-subtle',
   ]) as [string, string, string];
-  const [date, setDate] = useState(route.params?.date ?? getTodayDate());
-  const [focusedId, setFocusedId] = useState(route.params?.scheduleId);
+  const { date, setDate, focusedId } = useDatedEntryContext(
+    route.params?.date,
+    route.params?.scheduleId,
+    route.params
+  );
   const { isConnected } = useServerConnection();
   const { preferences } = usePreferences({ enabled: isConnected });
   const remindersEnabled = useAppPreferencesStore(
@@ -130,6 +134,8 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
   const taken = doses.filter((dose) => statusOf(dose) === 'taken').length;
   const skipped = doses.filter((dose) => statusOf(dose) === 'skipped').length;
   const applicable = doses.length - skipped;
+  const focusedName = doses.find((dose) => dose.schedule.id === focusedId)
+    ?.medication.name;
   const isToday = date === getTodayDate();
   const now = new Date();
   const nowMinutes = now.getHours() * 60 + now.getMinutes();
@@ -262,14 +268,17 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
           date={date}
         />
       )}
-      {focusedId && (
-        <NeonButton
-          label={t('common.showAll', { defaultValue: 'Show all' })}
-          variant="subtle"
-          className="mb-3"
-          onPress={() => setFocusedId(undefined)}
-        />
-      )}
+      {focusedName ? (
+        <Text
+          testID="entry-focus-context"
+          className="mb-4 text-sm text-text-secondary"
+        >
+          {t('tracking.selectedEntry', {
+            defaultValue: 'Selected: {{name}}',
+            name: focusedName,
+          })}
+        </Text>
+      ) : null}
       {storageError ? (
         <Text className="mb-2 text-sm text-text-danger">
           {t('medications.dose.savedActionError', {
@@ -334,9 +343,7 @@ const SupplementsScreen: React.FC<Props> = ({ navigation, route }) => {
             quiet
           />
 
-          {groupByDaypart(
-            doses.filter((dose) => !focusedId || dose.schedule.id === focusedId)
-          ).map(({ daypart, doses: group }) => {
+          {groupByDaypart(doses).map(({ daypart, doses: group }) => {
             const color = daypartColor(daypart, scale);
             const groupTaken = group.filter(
               (dose) => statusOf(dose) === 'taken'

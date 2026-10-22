@@ -1,3 +1,11 @@
+import { useMealFoodHistory } from '../../src/hooks/useMealFoodHistory';
+jest.mock('../../src/hooks/useMealFoodHistory', () => ({
+  useMealFoodHistory: jest.fn(() => ({
+    entries: [],
+    start: '2030-01-01',
+    end: '2030-01-28',
+  })),
+}));
 const mockQuickAddMeal = jest.fn();
 jest.mock('../../src/hooks/useMealTypes', () => ({
   useMealTypes: () => ({
@@ -243,6 +251,9 @@ describe('FoodSearchScreen', () => {
   };
 
   beforeEach(() => {
+    jest
+      .mocked(useMealFoodHistory)
+      .mockReturnValue({ entries: [], start: '2030-01-01', end: '2030-01-28' });
     jest.clearAllMocks();
     __resetAppPreferencesStoreForTests();
     mockUseServerConnection.mockReturnValue({ isConnected: true } as any);
@@ -1240,5 +1251,135 @@ describe('FoodSearchScreen', () => {
       expect(screen.queryByText('All Providers')).toBeNull();
       expect(screen.getByText('FatSecret')).toBeTruthy();
     });
+  });
+
+  it('adds real meal-context FOOD suggestions from known definitions and removes duplicates below', () => {
+    mockUseFoods.mockReturnValue({
+      recentFoods: [
+        buildFood({ id: 'context-food', name: 'Test context food' }),
+      ],
+      topFoods: [],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFoods>);
+    jest.mocked(useMealFoodHistory).mockReturnValue({
+      entries: [
+        {
+          id: 'synthetic-log',
+          food_id: 'context-food',
+          meal_type_id: 'breakfast',
+          entry_date: '2030-01-27',
+        } as import('../../src/types/foodEntries').FoodEntry,
+      ],
+      start: '2030-01-01',
+      end: '2030-01-28',
+    });
+    const v = renderLanding();
+    expect(v.getByText('For this meal')).toBeTruthy();
+    expect(v.getAllByText('Test context food')).toHaveLength(1);
+    const unknown = {
+      ...route,
+      params: { ...route.params, mealTypeId: 'unknown-custom' },
+    };
+    v.unmount();
+    const noMatch = renderLanding(unknown);
+    expect(noMatch.queryByText('For this meal')).toBeNull();
+    expect(noMatch.getByText('Test context food')).toBeTruthy();
+  });
+
+  it('shows a contextual food once when it also appears in Favorites, Recent and Top', () => {
+    const food = buildFood({
+      id: 'context-favorite',
+      name: 'Test overlapping food',
+    });
+    mockUseFoods.mockReturnValue({
+      recentFoods: [food],
+      topFoods: [food],
+      isLoading: false,
+      isError: false,
+      refetch: jest.fn(),
+    } as ReturnType<typeof useFoods>);
+    mockUseFavorites.mockReturnValue({
+      favoriteFoods: [food],
+      favoriteMeals: [],
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useFavorites>);
+    jest.mocked(useMealFoodHistory).mockReturnValue({
+      entries: [
+        {
+          id: 'synthetic-log',
+          food_id: food.id,
+          meal_type_id: 'breakfast',
+          entry_date: '2030-01-27',
+        } as import('../../src/types/foodEntries').FoodEntry,
+      ],
+      start: '2030-01-01',
+      end: '2030-01-28',
+    });
+    const v = renderLanding();
+    expect(v.getByText('For this meal')).toBeTruthy();
+    expect(v.getAllByText('Test overlapping food')).toHaveLength(1);
+  });
+
+  it.each(['meal-builder', 'meal-plan', 'container-link', 'library'] as const)(
+    'never personalizes the %s picker',
+    (pickerMode) => {
+      const v = renderLanding({
+        ...route,
+        params: { ...route.params, pickerMode },
+      });
+      expect(v.queryByText('For this meal')).toBeNull();
+      expect(jest.mocked(useMealFoodHistory).mock.calls.at(-1)?.[2]).toBe(
+        false
+      );
+    }
+  );
+
+  it('keeps photo completion and typed search free of contextual landing suggestions', () => {
+    const v = renderLanding({
+      ...route,
+      params: {
+        ...route.params,
+        photoCapture: {
+          id: 'synthetic-photo',
+          consumedAt: '2030-01-28T08:00:00Z',
+          entryDate: '2030-01-28',
+          mealTypeId: 'breakfast',
+        },
+      },
+    });
+    expect(v.queryByText('For this meal')).toBeNull();
+    expect(jest.mocked(useMealFoodHistory).mock.calls.at(-1)?.[2]).toBe(false);
+    v.unmount();
+    const search = renderSearching();
+    expect(search.queryByText('For this meal')).toBeNull();
+  });
+  it('keeps widget Recent/Favorites and meal-plan-target paths unchanged', () => {
+    for (const initialBrowseTab of ['recent', 'favorites'] as const) {
+      const v = renderLanding({
+        ...route,
+        params: { ...route.params, initialBrowseTab },
+      });
+      expect(jest.mocked(useMealFoodHistory).mock.calls.at(-1)?.[2]).toBe(
+        false
+      );
+      expect(v.queryByText('For this meal')).toBeNull();
+      v.unmount();
+    }
+    const v = renderLanding({
+      ...route,
+      params: {
+        ...route.params,
+        mealPlanTarget: {
+          dayOfWeek: 1,
+          mealTypeId: 'breakfast',
+          mealTypeName: 'Breakfast',
+        },
+      },
+    });
+    expect(jest.mocked(useMealFoodHistory).mock.calls.at(-1)?.[2]).toBe(false);
+    expect(v.queryByText('For this meal')).toBeNull();
   });
 });

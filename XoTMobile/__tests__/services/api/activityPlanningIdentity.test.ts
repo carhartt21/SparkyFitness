@@ -8,6 +8,7 @@ jest.mock('../../../src/services/storage', () => ({
 }));
 jest.mock('../../../src/services/nutritionIdentity', () => ({
   getActiveNutritionIdentity: jest.fn(),
+  subscribeNutritionIdentity: () => () => undefined,
 }));
 jest.mock('../../../src/services/api/authService', () => ({
   getAuthHeaders: () => ({}),
