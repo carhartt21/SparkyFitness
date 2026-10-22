@@ -724,7 +724,11 @@ try {
         results.at(-1).nativeInteractionPassed = true;
       } catch (error) {
         results.at(-1).nativeInteractionPassed = false;
-        throw error;
+        results.at(-1).nativeInteractionError = String(error);
+        if (!combinedReview) throw error;
+        console.error(
+          `${item.name}: interaction FAILED; retaining evidence and continuing bounded combined matrix`
+        );
       } finally {
         if (recorder) {
           const stopped = new Promise((resolve) =>
@@ -777,3 +781,10 @@ try {
   );
   cleanup();
 }
+
+if (
+  results.some(
+    (r) => !r.renderSmokePassed || r.nativeInteractionPassed === false
+  )
+)
+  process.exitCode = 1;

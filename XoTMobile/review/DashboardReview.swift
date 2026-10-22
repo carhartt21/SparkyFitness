@@ -26,7 +26,7 @@ final class DashboardReview: XCTestCase {
     let food = app.buttons["dashboard-food"]
     for _ in 0..<25 { if food.isHittable { break }; app.swipeDown(velocity: .slow) }
     XCTAssertTrue(food.isHittable); food.tap()
-    let context = app.staticTexts.matching(NSPredicate(format: "label IN[c] %@", ["For this meal", "Für diese Mahlzeit"])).firstMatch
+    let context = app.staticTexts.matching(NSPredicate(format: "label == %@ OR label == %@", "FOR THIS MEAL", "FÜR DIESE MAHLZEIT")).firstMatch
     XCTAssertTrue(context.waitForExistence(timeout: 20))
     capture("combined-suggestion-landing", app)
     let back = app.buttons.matching(NSPredicate(format: "label IN %@", ["Close", "Schließen", "Back", "Zurück"])).firstMatch

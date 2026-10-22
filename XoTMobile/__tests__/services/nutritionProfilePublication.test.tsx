@@ -19,6 +19,11 @@ import {
   forgetActiveNutritionIdentity,
   subscribeNutritionIdentity,
 } from '../../src/services/nutritionIdentity';
+import {
+  beginNutritionIdentityChange,
+  nutritionConfigChanging,
+  nutritionIdentityBlocked,
+} from '../../src/services/nutritionIdentityLifecycle';
 import * as identityModule from '../../src/services/nutritionIdentity';
 import { readMealFoodHistory } from '../../src/services/mealFoodSuggestions';
 import { useMealFoodHistory } from '../../src/hooks/useMealFoodHistory';
@@ -868,4 +873,348 @@ it('conservative inactive invalidation still rejects a delayed profile and leave
   await old.rejected;
   expect(await getActiveNutritionIdentity()).toEqual(owner);
   expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+
+async function establishWithInactivePair() {
+  await saveServerConfig({
+    ...configA,
+    id: 'inactive-one',
+    sessionToken: 'inactive-one-token',
+  });
+  await saveServerConfig({
+    ...configA,
+    id: 'inactive-two',
+    sessionToken: 'inactive-two-token',
+  });
+  await saveServerConfig(configA);
+  profileOwner = owner.userId;
+  await establish();
+}
+async function startHeldInactivePair() {
+  const entered = deferred<void>();
+  const release = deferred<void>();
+  beforeRemove = async (k) => {
+    if (k.endsWith('/inactive-one')) {
+      beforeRemove = undefined;
+      entered.resolve();
+      await release.promise;
+    }
+  };
+  const first = deleteServerConfig('inactive-one');
+  await entered.promise;
+  const second = clearSessionToken('inactive-two');
+  return { first, second, release };
+}
+it('N2 actual overlapping inactive cleanup recovers A without an explicit profile fetch', async () => {
+  await establishWithInactivePair();
+  const saved = data.get(key);
+  const held = await startHeldInactivePair();
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  held.release.resolve();
+  await Promise.all([held.first, held.second]);
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  expect(await getActiveServerConfig()).toMatchObject(configA);
+  expect(data.get(key)).toBe(saved);
+  expect(fetchMock).not.toHaveBeenCalled();
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+it.each(['delete', 'token'] as const)(
+  'N2 last finishing %s member alone restores inactive-group availability',
+  async (last) => {
+    await establishWithInactivePair();
+    clearServerConfigCache();
+    const entered = deferred<void>();
+    const release = deferred<void>();
+    const heldKey =
+      last === 'delete' ? 'apiKey_inactive-one' : 'sessionToken_inactive-two';
+    jest.mocked(SecureStore.deleteItemAsync).mockImplementation(async (k) => {
+      if (k === heldKey) {
+        entered.resolve();
+        await release.promise;
+      }
+      secure.delete(k);
+    });
+    const held =
+      last === 'delete'
+        ? deleteServerConfig('inactive-one')
+        : clearSessionToken('inactive-two');
+    await entered.promise;
+    if (last === 'delete') await clearSessionToken('inactive-two');
+    else await deleteServerConfig('inactive-one');
+    expect(await getActiveNutritionIdentity()).toBeNull();
+    release.resolve();
+    await held;
+    expect(await getActiveNutritionIdentity()).toEqual(owner);
+    expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+  }
+);
+it('N2 actual mounted history returns after the complete inactive group without profile publication/export', async () => {
+  await establishWithInactivePair();
+  const query = createTestQueryClient();
+  const hook = renderHook(
+    () => useMealFoodHistory(owner.userId, '2026-10-12', true),
+    { wrapper: createQueryWrapper(query) }
+  );
+  await waitFor(() => expect(hook.result.current.entries).toEqual(rows));
+  let held!: Awaited<ReturnType<typeof startHeldInactivePair>>;
+  await act(async () => {
+    held = await startHeldInactivePair();
+  });
+  try {
+    await waitFor(() => expect(hook.result.current.entries).toEqual([]));
+    await act(async () => {
+      held.release.resolve();
+      await Promise.all([held.first, held.second]);
+    });
+    await waitFor(() => expect(hook.result.current.entries).toEqual(rows));
+    expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+  } finally {
+    hook.unmount();
+    query.clear();
+  }
+});
+it.each([
+  'url',
+  'apiKey',
+  'sessionToken',
+  'authType',
+  'proxyHeaders',
+  'ABA',
+  'active-token',
+  'forget',
+] as const)(
+  'N2 inactive recovery never clears an intervening active %s invalidation',
+  async (change) => {
+    await establishWithInactivePair();
+    const held = await startHeldInactivePair();
+    let mutation: Promise<void>;
+    if (change === 'ABA')
+      mutation = (async () => {
+        await setActiveServerConfig('inactive-two');
+        await setActiveServerConfig(configA.id);
+      })();
+    else if (change === 'active-token')
+      mutation = clearSessionToken(configA.id);
+    else if (change === 'forget') mutation = forgetActiveNutritionIdentity();
+    else {
+      const next = { ...configA };
+      if (change === 'url') next.url = 'https://replacement.synthetic.invalid';
+      if (change === 'apiKey') next.apiKey = 'replacement-fixture-key';
+      if (change === 'sessionToken')
+        next.sessionToken = 'replacement-fixture-session';
+      if (change === 'authType') next.authType = 'session';
+      if (change === 'proxyHeaders')
+        next.proxyHeaders = [
+          { name: 'X-Proxy', value: 'replacement-fixture-proxy' },
+        ];
+      mutation = saveServerConfig(next);
+    }
+    expect(await getActiveNutritionIdentity()).toBeNull();
+    held.release.resolve();
+    await Promise.all([held.first, held.second, mutation]);
+    expect(await getActiveNutritionIdentity()).toBeNull();
+    expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+    profileOwner = 'replacement-owner';
+    await fetchProfile();
+    expect(await getActiveNutritionIdentity()).toEqual({
+      ...owner,
+      userId: 'replacement-owner',
+    });
+    expect(retryPendingWorkoutExports).toHaveBeenCalledTimes(1);
+  }
+);
+it('N2 a late profile cannot publish or retry after inactive-group recovery', async () => {
+  await establishWithInactivePair();
+  const old = delayedProfile();
+  await old.entered.promise;
+  const held = await startHeldInactivePair();
+  held.release.resolve();
+  await Promise.all([held.first, held.second]);
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  old.body.resolve({ id: 'obsolete-owner' });
+  await old.rejected;
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+it('N2 a prior blocked mapping cannot seed an inactive recovery group', async () => {
+  await establishWithInactivePair();
+  await forgetActiveNutritionIdentity();
+  data.set(key, JSON.stringify({ version: 1, userId: 'obsolete-owner' }));
+  const held = await startHeldInactivePair();
+  held.release.resolve();
+  await Promise.all([held.first, held.second]);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+
+it.each(['begin', 'restore'] as const)(
+  'N2 %s observer active change cannot be erased by inactive recovery',
+  async (phase) => {
+    await establishWithInactivePair();
+    let mutation: Promise<void> | undefined;
+    const stop = subscribeNutritionIdentity(() => {
+      if (
+        (phase === 'begin' && nutritionConfigChanging()) ||
+        (phase === 'restore' && !nutritionIdentityBlocked())
+      ) {
+        stop();
+        mutation = saveServerConfig({
+          ...configA,
+          apiKey: 'observer-fixture-key',
+        });
+      }
+    });
+    try {
+      await Promise.all([
+        deleteServerConfig('inactive-one'),
+        clearSessionToken('inactive-two'),
+      ]);
+      await mutation;
+      expect(mutation).toBeDefined();
+      expect(await getActiveNutritionIdentity()).toBeNull();
+      await fetchProfile();
+      expect(await getActiveNutritionIdentity()).toEqual(owner);
+    } finally {
+      stop();
+    }
+  }
+);
+it('N2 an old idempotent finish never clears a successor group or general block', async () => {
+  await establishWithInactivePair();
+  const old = beginNutritionIdentityChange(true);
+  old(configA.id);
+  const successor = beginNutritionIdentityChange(true);
+  old(configA.id);
+  expect(nutritionConfigChanging()).toBe(true);
+  expect(nutritionIdentityBlocked()).toBe(true);
+  const general = beginNutritionIdentityChange();
+  general();
+  successor(configA.id);
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  await fetchProfile();
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+});
+it('N2 final active proof rejection settles the group exactly once and permits later profile recovery', async () => {
+  await establishWithInactivePair();
+  clearServerConfigCache();
+  let fail = false;
+  jest.mocked(SecureStore.deleteItemAsync).mockImplementation(async (k) => {
+    secure.delete(k);
+    if (k === 'sessionToken_inactive-two') fail = true;
+  });
+  beforeRead = async (k) => {
+    if (fail && k === 'activeServerConfigId') {
+      beforeRead = undefined;
+      throw new Error('synthetic final proof failure');
+    }
+  };
+  const result = await Promise.allSettled([
+    deleteServerConfig('inactive-one'),
+    clearSessionToken('inactive-two'),
+  ]);
+  expect(result.some((r) => r.status === 'rejected')).toBe(true);
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  await fetchProfile();
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+});
+it('N2 failed inactive native deletion keeps unchanged A usable after all members settle', async () => {
+  await establishWithInactivePair();
+  jest.mocked(SecureStore.deleteItemAsync).mockImplementation(async (k) => {
+    if (k === 'sessionToken_inactive-two')
+      throw new Error('synthetic native failure');
+    secure.delete(k);
+  });
+  const result = await Promise.allSettled([
+    deleteServerConfig('inactive-one'),
+    clearSessionToken('inactive-two'),
+  ]);
+  expect(result.some((r) => r.status === 'rejected')).toBe(true);
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+it.each(['delete', 'token'] as const)(
+  'N2 three overlapping inactive %s members recover cold A',
+  async (kind) => {
+    await establishWithInactivePair();
+    await saveServerConfig({ ...configA, id: 'inactive-three' });
+    await saveServerConfig(configA);
+    await establish();
+    clearServerConfigCache();
+    const cleanup = kind === 'delete' ? deleteServerConfig : clearSessionToken;
+    await Promise.all(
+      ['inactive-one', 'inactive-two', 'inactive-three'].map(cleanup)
+    );
+    expect(nutritionConfigChanging()).toBe(false);
+    expect(await getActiveNutritionIdentity()).toEqual(owner);
+  }
+);
+it('N2 an unknown proof poisons the group but cannot strand transition settlement', async () => {
+  await establishWithInactivePair();
+  clearServerConfigCache();
+  beforeRead = async (k) => {
+    if (k === 'activeServerConfigId') {
+      beforeRead = undefined;
+      throw new Error('synthetic initial proof failure');
+    }
+  };
+  await Promise.allSettled([
+    deleteServerConfig('inactive-one'),
+    clearSessionToken('inactive-two'),
+  ]);
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  await fetchProfile();
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+});
+
+it('N2 conflicting active proofs refuse restoration without leaking a transition', async () => {
+  await establishWithInactivePair();
+  const first = beginNutritionIdentityChange(true);
+  const second = beginNutritionIdentityChange(true);
+  first(configA.id);
+  second('conflicting-fixture-owner');
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  await fetchProfile();
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+});
+it('N2 a throwing begin observer settles its unreturned member without recovery', async () => {
+  await establishWithInactivePair();
+  const stop = subscribeNutritionIdentity(() => {
+    throw new Error('synthetic observer failure');
+  });
+  try {
+    await expect(clearSessionToken('inactive-one')).rejects.toThrow(
+      'synthetic observer failure'
+    );
+  } finally {
+    stop();
+  }
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  await fetchProfile();
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+});
+it('N2 restore observer creates a distinct successor that an old finish cannot settle', async () => {
+  await establishWithInactivePair();
+  let successor: ReturnType<typeof beginNutritionIdentityChange> | undefined;
+  const stop = subscribeNutritionIdentity(() => {
+    if (!nutritionConfigChanging()) {
+      stop();
+      successor = beginNutritionIdentityChange(true);
+    }
+  });
+  const old = beginNutritionIdentityChange(true);
+  old(configA.id);
+  old(configA.id);
+  expect(successor).toBeDefined();
+  expect(nutritionConfigChanging()).toBe(true);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  successor?.(configA.id);
+  expect(nutritionConfigChanging()).toBe(false);
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  stop();
 });

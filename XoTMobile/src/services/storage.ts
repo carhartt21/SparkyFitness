@@ -320,27 +320,30 @@ export const setActiveServerConfig = async (
   }
 };
 
-/**
- * Deletes a specific server configuration and its SecureStore key.
- * If the deleted config was active, it clears the active config.
- */
 /** Invalidate immediately, but recover an unchanged active owner after unrelated removal. */
 async function withNutritionConfigRemoval(
   configId: string,
   remove: () => Promise<void>
 ): Promise<void> {
-  const finish = beginNutritionIdentityChange();
+  const finish = beginNutritionIdentityChange(true);
   let unaffectedActiveId: string | null = null;
   try {
-    const activeId = await getActiveServerConfigId();
+    // Read the persisted ID for each proof. The public generation-bound getter
+    // correctly rejects another cohort member's generation; here cohort identity
+    // and all general mutations are independently tracked by the lifecycle.
+    const activeId = await AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY);
     if (activeId && activeId !== configId) unaffectedActiveId = activeId;
     await forgetNutritionIdentityFor(configId);
     await remove();
   } finally {
-    let unchanged = false;
+    let unchanged: string | undefined;
     try {
       if (unaffectedActiveId) {
-        unchanged = (await getActiveServerConfigId()) === unaffectedActiveId;
+        if (
+          (await AsyncStorage.getItem(ACTIVE_SERVER_CONFIG_ID_KEY)) ===
+          unaffectedActiveId
+        )
+          unchanged = unaffectedActiveId;
       }
     } finally {
       finish(unchanged);
@@ -348,6 +351,7 @@ async function withNutritionConfigRemoval(
   }
 }
 
+/** Deletes the selected config and credentials, clearing the active ID if needed. */
 export const deleteServerConfig = async (configId: string): Promise<void> =>
   withNutritionConfigRemoval(configId, async () => {
     try {
