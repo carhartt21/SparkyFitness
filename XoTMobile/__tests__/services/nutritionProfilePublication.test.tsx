@@ -736,3 +736,136 @@ it('missing profile owner keeps actual history hook inert while scope is unknown
   hook.unmount();
   query.clear();
 });
+
+async function establishWithInactiveConfig() {
+  const inactive = {
+    ...configA,
+    id: 'inactive-config',
+    url: 'https://inactive.synthetic.invalid',
+    sessionToken: 'inactive-token',
+  };
+  await saveServerConfig(inactive);
+  profileOwner = 'inactive-owner';
+  await fetchProfile();
+  await saveServerConfig(configA);
+  profileOwner = owner.userId;
+  await establish();
+  return inactive;
+}
+
+it.each(['delete', 'clear-session'] as const)(
+  'inactive %s preserves established active identity without requiring settings refresh',
+  async (change) => {
+    const inactive = await establishWithInactiveConfig();
+    clearServerConfigCache();
+    if (change === 'delete') await deleteServerConfig(inactive.id);
+    else await clearSessionToken(inactive.id);
+    expect(await getActiveNutritionIdentity()).toEqual(owner);
+    expect(await getActiveServerConfig()).toMatchObject(configA);
+    expect(
+      data.has('@SparkyFitness/nutrition-identity/v1/inactive-config')
+    ).toBe(false);
+    expect(secure.has('sessionToken_inactive-config')).toBe(false);
+    if (change === 'delete')
+      expect(secure.has('apiKey_inactive-config')).toBe(false);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+  }
+);
+
+it('inactive deletion restores the ACTUAL mounted history hook after its conservative invalidation', async () => {
+  const inactive = await establishWithInactiveConfig();
+  const query = createTestQueryClient();
+  const hook = renderHook(
+    () => useMealFoodHistory(owner.userId, '2026-10-12', true),
+    { wrapper: createQueryWrapper(query) }
+  );
+  await waitFor(() => expect(hook.result.current.entries).toEqual(rows));
+  const oldRanges = fetchMock.mock.calls.filter(([url]) =>
+    String(url).includes('/api/food-entries/range/')
+  ).length;
+  try {
+    await act(async () => {
+      await deleteServerConfig(inactive.id);
+    });
+    await waitFor(() => expect(hook.result.current.entries).toEqual(rows));
+    expect(
+      fetchMock.mock.calls.filter(([url]) =>
+        String(url).includes('/api/food-entries/range/')
+      ).length
+    ).toBeGreaterThan(oldRanges);
+    expect(
+      fetchMock.mock.calls.every(([url]) =>
+        String(url).startsWith(configA.url + '/')
+      )
+    ).toBe(true);
+    expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+  } finally {
+    hook.unmount();
+    query.clear();
+  }
+});
+
+it('failed inactive credential deletion rejects but does not strand the unaffected active identity', async () => {
+  const inactive = await establishWithInactiveConfig();
+  jest
+    .mocked(SecureStore.deleteItemAsync)
+    .mockRejectedValueOnce(new Error('synthetic native delete failure'));
+  await expect(deleteServerConfig(inactive.id)).rejects.toThrow(
+    'synthetic native delete failure'
+  );
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  expect(fetchMock).not.toHaveBeenCalled();
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+
+it('inactive cleanup cannot revive identity across an overlapping active credential change', async () => {
+  const inactive = await establishWithInactiveConfig();
+  const entered = deferred<void>();
+  const release = deferred<void>();
+  beforeRemove = async (k) => {
+    if (k.endsWith('/inactive-config')) {
+      beforeRemove = undefined;
+      entered.resolve();
+      await release.promise;
+    }
+  };
+  const deletion = deleteServerConfig(inactive.id);
+  await entered.promise;
+  const replacement = saveServerConfig({
+    ...configA,
+    apiKey: 'replacement-fixture-key',
+  });
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  release.resolve();
+  await Promise.all([deletion, replacement]);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+  profileOwner = 'replacement-owner';
+  await fetchProfile();
+  expect(await getActiveNutritionIdentity()).toEqual({
+    ...owner,
+    userId: 'replacement-owner',
+  });
+});
+
+it('inactive deletion cannot unblock a previously invalidated persisted identity', async () => {
+  const inactive = await establishWithInactiveConfig();
+  await forgetActiveNutritionIdentity();
+  // Native-I/O sentinel: an obsolete persisted value must stay behind the invalidated gate.
+  data.set(key, JSON.stringify({ version: 1, userId: 'obsolete-owner' }));
+  await deleteServerConfig(inactive.id);
+  expect(await getActiveNutritionIdentity()).toBeNull();
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});
+
+it('conservative inactive invalidation still rejects a delayed profile and leaves the established active owner intact', async () => {
+  const inactive = await establishWithInactiveConfig();
+  const old = delayedProfile();
+  await old.entered.promise;
+  await deleteServerConfig(inactive.id);
+  old.body.resolve({ id: 'obsolete-owner' });
+  await old.rejected;
+  expect(await getActiveNutritionIdentity()).toEqual(owner);
+  expect(retryPendingWorkoutExports).not.toHaveBeenCalled();
+});

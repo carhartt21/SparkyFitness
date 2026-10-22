@@ -324,10 +324,32 @@ export const setActiveServerConfig = async (
  * Deletes a specific server configuration and its SecureStore key.
  * If the deleted config was active, it clears the active config.
  */
-export const deleteServerConfig = async (configId: string): Promise<void> => {
-  const finishIdentityChange = beginNutritionIdentityChange();
+/** Invalidate immediately, but recover an unchanged active owner after unrelated removal. */
+async function withNutritionConfigRemoval(
+  configId: string,
+  remove: () => Promise<void>
+): Promise<void> {
+  const finish = beginNutritionIdentityChange();
+  let unaffectedActiveId: string | null = null;
   try {
+    const activeId = await getActiveServerConfigId();
+    if (activeId && activeId !== configId) unaffectedActiveId = activeId;
     await forgetNutritionIdentityFor(configId);
+    await remove();
+  } finally {
+    let unchanged = false;
+    try {
+      if (unaffectedActiveId) {
+        unchanged = (await getActiveServerConfigId()) === unaffectedActiveId;
+      }
+    } finally {
+      finish(unchanged);
+    }
+  }
+}
+
+export const deleteServerConfig = async (configId: string): Promise<void> =>
+  withNutritionConfigRemoval(configId, async () => {
     try {
       let stored = await getRawStoredConfigs();
       stored = stored.filter((config) => config.id !== configId);
@@ -346,10 +368,7 @@ export const deleteServerConfig = async (configId: string): Promise<void> => {
       addLog(`[Storage] Failed to delete server config: ${message}`, 'ERROR');
       throw e;
     }
-  } finally {
-    finishIdentityChange();
-  }
-};
+  });
 
 /**
  * Saves the selected time range.
@@ -559,16 +578,11 @@ export const loadCollapsedCategories = async (): Promise<string[]> => {
   return CATEGORY_ORDER.filter((c) => c !== 'Common');
 };
 
-export const clearSessionToken = async (configId: string): Promise<void> => {
-  const finishIdentityChange = beginNutritionIdentityChange();
-  try {
-    await forgetNutritionIdentityFor(configId);
+export const clearSessionToken = async (configId: string): Promise<void> =>
+  withNutritionConfigRemoval(configId, async () => {
     await SecureStore.deleteItemAsync(sessionTokenSecureStoreKey(configId));
     activeServerConfigCache = undefined;
-  } finally {
-    finishIdentityChange();
-  }
-};
+  });
 
 export const clearServerConfigCache = (): void => {
   activeServerConfigCache = undefined;

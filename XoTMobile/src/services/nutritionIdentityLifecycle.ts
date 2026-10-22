@@ -24,16 +24,31 @@ function changed() {
   listeners.forEach((listener) => listener());
 }
 /** Invalidation precedes all awaited config/forget work, including ABA. */
-export function beginNutritionIdentityChange(): () => void {
+export function beginNutritionIdentityChange(): (
+  preserveUnchangedIdentity?: boolean
+) => void {
+  const wasBlocked = blocked;
   generation += 1;
+  const changeGeneration = generation;
   transitions += 1;
   blocked = true;
   changed();
   let finished = false;
-  return () => {
+  return (preserveUnchangedIdentity = false) => {
     if (!finished) {
       finished = true;
       transitions -= 1;
+      // Only targeted inactive maintenance may request this recovery. It must
+      // prove the active destination unchanged; never clear another change.
+      if (
+        preserveUnchangedIdentity &&
+        !wasBlocked &&
+        changeGeneration === generation &&
+        transitions === 0
+      ) {
+        blocked = false;
+        changed();
+      }
     }
   };
 }
